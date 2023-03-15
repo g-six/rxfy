@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"typescript.tsdk": "node_modules/typescript/lib",
+		"typescript.enablePromptUseWorkspaceTsdk": true,
+		"workbench.colorTheme": "One Dark Pro",
+		"oneDarkPro.editorTheme": "Nord"
+	}
+}

@@ -1,0 +1,71 @@
+export const DateFields = ['ListingDate'];
+
+export const NumericFields = [
+  'B_Depth',
+  'L_Frontage_Feet',
+  'L_FloorArea_Total',
+  'L_FloorArea_Finished_AboveMainFloor',
+  'L_FloorArea_Main',
+  'L_FloorArea_GrantTotal',
+  'L_LotSize_SqMtrs',
+];
+
+export const FinanceFields = [
+  'AskingPrice',
+  'PricePerSQFT',
+  'L_GrossTaxes',
+];
+
+export interface MLSProperty
+  extends Record<string, string | number | string[]> {
+  lat: number;
+  lng: number;
+  Address: string;
+  Area: string;
+  AskingPrice: number;
+  B_ServicesConnected: string[];
+  CDOM: number;
+  City: string;
+  ForTaxYear: number;
+  LandTitle: string;
+  ListingDate: string;
+  MLS_ID: string;
+  PricePerSQFT: number;
+  PropertyType: string;
+  Status: 'Active' | 'Sold';
+  B_Amenities: string;
+  B_Depth: number;
+  B_Heating: string;
+  B_Parking_Access: string;
+  B_Style: string;
+  LO1_URL: string;
+  LO2_URL: string;
+  L_Age: number;
+  L_PID: number;
+  L_Region: string;
+  L_BedroomTotal: number;
+  L_Fireplaces: number;
+  L_GrossTaxes: number;
+  L_KitchensTotal: number;
+  L_LotSize_SqMtrs: number;
+  L_Parking_covered: number;
+  L_Parking_total: number;
+  L_PublicRemakrs: string;
+  L_TotalBaths: number;
+  L_YearBuilt: number;
+  LFD_Amenities_56: string[];
+  LFD_BylawRestrictions_58: string[];
+  LFD_ExteriorFinish_42: string[];
+  LFD_FeaturesIncluded_55: string[];
+  LFD_FloorFinish_50: string[];
+  LFD_Foundation_156: string[];
+  LFD_FuelHeating_48: string[];
+  LFD_MaintFeeIncludes_57: string[];
+  LFD_OutdoorArea_47: string[];
+  LFD_Parking_44: string[];
+  LFD_Roof_43: string[];
+  LFD_StyleofHome_32: string[];
+  LFD_SiteInfluences_46: string[];
+  Remarks: string;
+  Zoning: string;
+}
