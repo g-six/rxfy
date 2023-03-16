@@ -3,6 +3,7 @@ import parse, {
   HTMLReactParserOptions,
   Element,
   attributesToProps,
+  domToReact,
 } from 'html-react-parser';
 import NavLogo from './Nav/Logo';
 import EmailAnchor from './A/Email';
@@ -13,6 +14,9 @@ import PropertyCarousel from './PropertyCarousel/main';
 import { RexifyStatBlock } from './PropertyInformationRow';
 import { MLSProperty } from '@/_typings/property';
 import { RexifyPropertyFeatureBlock } from './PropertyFeatureSection';
+import { HTMLNode } from '@/_typings/elements';
+import { ReactElement } from 'react';
+import { formatValues } from '@/_utilities/data-helpers/property-page';
 
 function findInfoIfFound(agent_data: AgentData, info: string) {
   if (!agent_data) return '';
@@ -252,7 +256,125 @@ export function rexify(
                   groupName='propinfo'
                 />
               );
-            else if (node.attribs.class.indexOf('financial') >= 0)
+            // Building units section
+            else if (
+              node.lastChild &&
+              (node.lastChild as HTMLNode).attribs.class &&
+              (node.lastChild as HTMLNode).attribs.class.indexOf(
+                'div-building-units-on-sale'
+              ) >= 0 &&
+              node.attribs.class.indexOf(
+                'building-and-sold-column'
+              ) >= 0
+            ) {
+              const elements = domToReact(
+                node.children
+              ) as unknown as ReactElement[];
+
+              const contents = elements.filter(
+                (el) =>
+                  el.props.className !==
+                  'div-building-units-on-sale'
+              );
+
+              const children = elements.filter(
+                (el) =>
+                  el.props.className ===
+                  'div-building-units-on-sale'
+              );
+
+              const neighbours =
+                property.neighbours as MLSProperty[];
+
+              return neighbours && neighbours.length ? (
+                <div className='building-and-sold-column'>
+                  {contents}
+
+                  {neighbours
+                    .filter(({ Status }) => Status === 'Active')
+                    .map((neighbour) => {
+                      formatValues(
+                        neighbour.AskingPrice,
+                        'AskingPrice'
+                      );
+                      return (
+                        <div
+                          key={neighbour.MLS_ID}
+                          className={children[0].props.className}
+                        >
+                          {children[0].props.children.map(
+                            (unit: ReactElement) => {
+                              if (
+                                unit.props.children ===
+                                '{Other Unit No}'
+                              ) {
+                                return (
+                                  <a
+                                    href={`/property?mls=${neighbour.MLS_ID}`}
+                                    key={unit.key}
+                                    className={unit.props.className}
+                                  >
+                                    Unit {neighbour.AddressUnit}{' '}
+                                  </a>
+                                );
+                              }
+                              if (
+                                unit.props.children ===
+                                '{Other Beds}'
+                              ) {
+                                return (
+                                  <span
+                                    key={unit.key}
+                                    className={unit.props.className}
+                                  >
+                                    {neighbour.L_BedroomTotal}
+                                  </span>
+                                );
+                              }
+                              if (
+                                unit.props.children ===
+                                '{Other Sqft}'
+                              ) {
+                                return (
+                                  <span
+                                    key={unit.key}
+                                    className={unit.props.className}
+                                  >
+                                    {formatValues(
+                                      neighbour.L_FloorArea_Total,
+                                      'L_FloorArea_Total'
+                                    )}
+                                  </span>
+                                );
+                              } else {
+                                return (
+                                  <span
+                                    key={unit.key}
+                                    className={unit.props.className}
+                                  >
+                                    {formatValues(
+                                      neighbour.AskingPrice,
+                                      'AskingPrice'
+                                    )}
+                                  </span>
+                                );
+                              }
+                            }
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+              ) : null;
+              return (
+                <div>
+                  <div className={header.attribs.class}>{}</div>
+                  <div
+                    className={`${row.attribs.class} rexified`}
+                  ></div>
+                </div>
+              );
+            } else if (node.attribs.class.indexOf('financial') >= 0)
               return (
                 <RexifyStatBlock
                   node={node}

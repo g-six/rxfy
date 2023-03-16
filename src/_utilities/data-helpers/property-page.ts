@@ -1,6 +1,7 @@
 import {
   DateFields,
   FinanceFields,
+  MLSProperty,
   NumericFields,
 } from '@/_typings/property';
 import { AxiosStatic } from 'axios';
@@ -87,13 +88,42 @@ export function getGqlForPropertyId(id: number) {
   };
 }
 
-export async function getPropertyData(property_id: number) {
+export function getGqlForFilteredProperties(
+  filters: Record<string, unknown>
+) {
+  return {
+    query: `query getProperties($filters: PropertyFiltersInput!) {
+          properties(filters: $filters) {
+              data {
+                  id
+                  attributes {
+                      mls_data
+                  }
+              }
+          }
+      }`,
+    variables: {
+      filters,
+    },
+  };
+}
+
+export async function getPropertyData(
+  property_id: number,
+  id_is_mls = false
+) {
   const axios: AxiosStatic = (await import('axios')).default;
 
   const xhr = await axios
     .post(
       process.env.NEXT_APP_CMS_GRAPHQL_URL as string,
-      getGqlForPropertyId(property_id),
+      id_is_mls
+        ? getGqlForFilteredProperties({
+            mls_id: {
+              eq: property_id,
+            },
+          })
+        : getGqlForPropertyId(property_id),
       {
         headers: {
           Authorization: `Bearer ${
@@ -113,9 +143,12 @@ export async function getPropertyData(property_id: number) {
       );
     });
 
-  let clean = {};
+  let clean: Record<string, unknown> | MLSProperty = {};
+  const neighbours: MLSProperty[] = [];
   if (xhr && xhr.data) {
-    const { property } = xhr.data.data;
+    const { property } = id_is_mls
+      ? xhr.data.data[0]
+      : xhr.data.data;
     const { mls_data } = property.data.attributes;
     Object.keys(mls_data).map((key: string) => {
       if (mls_data[key]) {
@@ -125,23 +158,81 @@ export async function getPropertyData(property_id: number) {
         };
       }
     });
+
+    const {
+      data: {
+        hits: { total, hits },
+      },
+    } = await axios.post(
+      process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
+      {
+        query: {
+          bool: {
+            should: [
+              { match: { 'data.Address': clean.Address } },
+              {
+                match: {
+                  'data.PostalCode_Zip': clean.PostalCode_Zip,
+                },
+              },
+              {
+                match: {
+                  'data.Province_State': clean.Province_State,
+                },
+              },
+            ],
+            minimum_should_match: 3,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Basic ${Buffer.from(
+            `${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`
+          ).toString('base64')}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    hits.forEach(({ _source }: { _source: unknown }) => {
+      const { data: hit } = _source as {
+        data: Record<string, unknown>;
+      };
+      let property = {};
+      Object.keys(hit as Record<string, unknown>).forEach((key) => {
+        if (hit[key]) {
+          property = {
+            ...property,
+            [key]: hit[key],
+          };
+        }
+      });
+      neighbours.push(property as MLSProperty);
+    });
   }
 
-  return clean;
+  return {
+    ...clean,
+    neighbours,
+  };
 }
 
 export function formatValues(
   value: string | number,
   key: string
 ): string {
+  if (!value || value === '0') return '';
+
   if (NumericFields.includes(key)) {
     return new Intl.NumberFormat(undefined).format(value as number);
   }
+
   if (FinanceFields.includes(key)) {
     return `$${new Intl.NumberFormat(undefined).format(
       value as number
     )}`;
   }
+
   if (DateFields.includes(key)) {
     return dateStringToDMY(value as string);
   }

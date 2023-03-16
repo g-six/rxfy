@@ -39,10 +39,15 @@ export default async function Home({
     params &&
     params.slug === 'property' &&
     searchParams &&
-    searchParams.id
+    (searchParams.id || searchParams.mls)
   ) {
     // Property page
-    property = await getPropertyData(Number(searchParams.id));
+    property = await getPropertyData(
+      Number(searchParams.id || searchParams.mls),
+      !!searchParams.mls
+    );
+
+    console.log('property', property);
   }
   if (agent_data && agent_data.agent_id) {
     listings = await getAgentListings(agent_data.agent_id);

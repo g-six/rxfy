@@ -91,6 +91,7 @@ export function RexifyStatBlock({
                 record[key] as string | number,
                 key
               );
+              if (!value) return;
 
               if (groupName === 'financial') {
                 switch (key) {
@@ -103,7 +104,7 @@ export function RexifyStatBlock({
                 }
               }
 
-              return (
+              return value ? (
                 <PropertyInformationRow
                   key={key}
                   wrapper_class={RowItem.attribs.class}
@@ -112,6 +113,8 @@ export function RexifyStatBlock({
                   label={stat_keys[key] as string}
                   value={value}
                 />
+              ) : (
+                <></>
               );
             })}
           </div>

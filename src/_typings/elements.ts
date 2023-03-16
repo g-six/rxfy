@@ -1,6 +1,6 @@
 export interface BaseNode {
   attribs: Record<string, string>;
-  data: string;
+  data?: string;
 }
 
 export interface HTMLNode extends BaseNode {

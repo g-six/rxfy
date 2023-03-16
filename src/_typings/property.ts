@@ -21,6 +21,7 @@ export interface MLSProperty
   lat: number;
   lng: number;
   Address: string;
+  AddressUnit: string;
   Area: string;
   AskingPrice: number;
   B_ServicesConnected: string[];
@@ -45,6 +46,7 @@ export interface MLSProperty
   L_Region: string;
   L_BedroomTotal: number;
   L_Fireplaces: number;
+  L_FloorArea_Total: number;
   L_GrossTaxes: number;
   L_KitchensTotal: number;
   L_LotSize_SqMtrs: number;

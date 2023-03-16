@@ -47,7 +47,7 @@ export function RexifyPropertyFeatureBlock({
         .filter((key: string) => property_features.includes(key))
         .forEach((key: string) => {
           const feature = (record[key] as string[]).join(', ');
-          console.log(key, feature);
+
           if (feature.toLowerCase().indexOf('air cond') >= 0) {
             features['Air Conditioning'] = 'air-conditioner';
           }
