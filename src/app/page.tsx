@@ -8,6 +8,7 @@ import { WebFlow } from '@/_typings/webflow';
 import { getAgentDataFromWebflowDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
 import { getPropertyData } from '@/_utilities/data-helpers/property-page';
+import { MLSProperty } from '@/_typings/property';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -46,8 +47,6 @@ export default async function Home({
       searchParams.id || searchParams.mls,
       !!searchParams.mls
     );
-
-    console.log('property', property);
   }
   if (agent_data && agent_data.agent_id) {
     listings = await getAgentListings(agent_data.agent_id);
@@ -56,6 +55,44 @@ export default async function Home({
   }
 
   const $: CheerioAPI = load(data);
+
+  if (property) {
+    const d = property as unknown as MLSProperty;
+    const photos: string[] = d.photos as string[];
+    $('.cardimage').each((e, el) => {
+      let { src, ...attribs } = el.attribs;
+
+      $(el).replaceWith(`<img
+        src="${photos[e]}"
+        alt="${attribs.alt}"
+        loading="${attribs.loading}"
+        sizes="${attribs.sizes}"
+        class="cardimage"
+      />`);
+    });
+    $('#propertyimages .w-json, #allimages .w-json').each(
+      (e, el) => {
+        try {
+          const img_json = JSON.parse($(el).html() as string);
+          if (photos[e]) {
+            img_json.items[0].url = photos[e];
+            //JSON.stringify(img_json, null, 4)
+            $(el).replaceWith(
+              `<script class="w-json" type="application/json">${JSON.stringify(
+                img_json,
+                null,
+                4
+              )}</script>`
+            );
+          } else {
+            $(el).replaceWith('');
+          }
+        } catch (e) {
+          console.log('Not a json string');
+        }
+      }
+    );
+  }
   $('.w-webflow-badge').remove();
   const webflow: WebFlow = {
     head: {

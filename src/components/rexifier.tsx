@@ -5,7 +5,6 @@ import parse, {
   attributesToProps,
   domToReact,
 } from 'html-react-parser';
-import NavLogo from './Nav/Logo';
 import EmailAnchor from './A/Email';
 import { AgentData } from '@/_typings/agent';
 import PersonalTitle from './PersonalTitle';
@@ -16,7 +15,11 @@ import { MLSProperty } from '@/_typings/property';
 import { RexifyPropertyFeatureBlock } from './PropertyFeatureSection';
 import { HTMLNode } from '@/_typings/elements';
 import { ReactElement } from 'react';
-import { formatValues } from '@/_utilities/data-helpers/property-page';
+import {
+  combineAndFormatValues,
+  formatValues,
+} from '@/_utilities/data-helpers/property-page';
+import RxTable from './RxTable';
 
 function findInfoIfFound(agent_data: AgentData, info: string) {
   if (!agent_data) return '';
@@ -43,14 +46,6 @@ export function rexify(
   agent_data: AgentData,
   property: Record<string, unknown> = {}
 ) {
-  if (property && Object.keys(property).length) {
-    // console.log(
-    //   'rexify property page',
-    //   JSON.stringify(property, null, 4)
-    // );
-  } else {
-    // console.log('rexify agent_data', agent_data);
-  }
   const options: HTMLReactParserOptions = {
     replace: (node) => {
       // Take out script / replace DOM placeholders with our Reidget
@@ -58,14 +53,6 @@ export function rexify(
         const { class: className, ...props } = attributesToProps(
           node.attribs
         );
-        if (
-          node.attribs.id === 'reidget-nav-logo' ||
-          node.attribs['data-type'] === 'business_logo'
-        ) {
-          // Logo Reidget
-          return <NavLogo {...props} agent={agent_data} />;
-        }
-
         if (
           node.attribs['data-type'] === 'email' &&
           node.tagName === 'a'
@@ -118,133 +105,12 @@ export function rexify(
             /**
              * This is where the magic happens
              */
-            if (data === '{Description}') {
-              return (
-                <p className={node.attribs.class}>
-                  {record.L_PublicRemakrs}
-                </p>
-              );
-            }
-            if (data === '{Sqft}') {
-              return (
-                <p className={node.attribs.class}>
-                  {new Intl.NumberFormat(undefined).format(
-                    record.L_LotSize_SqMtrs
-                  )}
-                </p>
-              );
-            }
-            if (data === '{Baths}') {
-              return (
-                <p className={node.attribs.class}>
-                  {record.L_TotalBaths}
-                </p>
-              );
-            }
-            if (data === '{Beds}') {
-              return (
-                <p className={node.attribs.class}>
-                  {record.L_BedroomTotal}
-                </p>
-              );
-            }
-            if (data === '{Year Built}') {
-              return (
-                <p className={node.attribs.class}>
-                  {record.L_YearBuilt}
-                </p>
-              );
-            }
-            if (data === '{Area}') {
-              return (
-                <p className={node.attribs.class}>{record.Area}</p>
-              );
-            }
-
-            if (data === '{Price}') {
-              return (
-                <div className={node.attribs.class}>
-                  $
-                  {new Intl.NumberFormat(undefined).format(
-                    record.AskingPrice
-                  )}
-                </div>
-              );
-            }
-            if (data === '{Address}') {
-              return (
-                <div className={node.attribs.class}>
-                  {record.Address}
-                </div>
-              );
-            }
-            if (data === '{Building Type}') {
-              return (
-                <p className={node.attribs.class}>
-                  {record.PropertyType}
-                </p>
-              );
-            }
-            // ----------------------------------------------------
-            // Section with icons
-            if (data === '{MLS Number}' && record.MLS_ID) {
-              return (
-                <span className={node.attribs.class}>
-                  {record.MLS_ID}
-                </span>
-              );
-            }
-
-            if (data === '{Lot Size}' && record.L_LotSize_SqMtrs) {
-              return (
-                <p className={node.attribs.class}>
-                  {new Intl.NumberFormat(undefined).format(
-                    record.L_LotSize_SqMtrs
-                  )}
-                </p>
-              );
-            }
-
-            if (data === '{Land Title}') {
-              return (
-                <p className={node.attribs.class}>
-                  {record.LandTitle}
-                </p>
-              );
-            }
-
-            if (data === '{Price Per Sqft}') {
-              if (record.PricePerSQFT)
-                return (
-                  <p className={node.attribs.class}>
-                    $
-                    {new Intl.NumberFormat(undefined).format(
-                      record.PricePerSQFT
-                    )}
-                  </p>
-                );
-              else {
-                return <></>;
-              }
-            }
-
-            if (data === '{Property Tax}') {
-              if (record.L_GrossTaxes && record.ForTaxYear)
-                return (
-                  <p className={node.attribs.class}>
-                    $
-                    {new Intl.NumberFormat(undefined).format(
-                      record.L_GrossTaxes
-                    )}{' '}
-                    ({record.ForTaxYear})
-                  </p>
-                );
-              else {
-                return <></>;
-              }
-            }
-            // end of section with icons
-            // ----------------------------------------------------
+            const reX = rexifyOrSkip(
+              data,
+              record,
+              node.attribs.class
+            );
+            if (reX) return reX;
           } else if (node.attribs && node.attribs.class) {
             // Grouped data table sections
             // Property Information, Financial, Dimensions, Construction
@@ -267,105 +133,41 @@ export function rexify(
                 'building-and-sold-column'
               ) >= 0
             ) {
-              const elements = domToReact(
-                node.children
-              ) as unknown as ReactElement[];
-
-              const contents = elements.filter(
-                (el) =>
-                  el.props.className !==
-                  'div-building-units-on-sale'
+              return property.neighbours &&
+                (property.neighbours as MLSProperty[]).length ? (
+                property.AddressUnit ? (
+                  <RxTable
+                    rows={node.children}
+                    data={property.neighbours as MLSProperty[]}
+                    rowClassName='div-building-units-on-sale'
+                  />
+                ) : (
+                  <></>
+                )
+              ) : (
+                <></>
               );
-
-              const children = elements.filter(
-                (el) =>
-                  el.props.className ===
-                  'div-building-units-on-sale'
+            } // Sold history
+            else if (
+              node.lastChild &&
+              (node.lastChild as HTMLNode).attribs.class &&
+              (node.lastChild as HTMLNode).attribs.class.indexOf(
+                'div-sold-history'
+              ) >= 0 &&
+              node.attribs.class.indexOf(
+                'building-and-sold-column'
+              ) >= 0
+            ) {
+              return property.sold_history &&
+                (property.sold_history as MLSProperty[]).length ? (
+                <RxTable
+                  rowClassName='div-sold-history'
+                  rows={node.children}
+                  data={property.sold_history as MLSProperty[]}
+                />
+              ) : (
+                <></>
               );
-
-              const neighbours =
-                property.neighbours as MLSProperty[];
-
-              return neighbours && neighbours.length ? (
-                <div className='building-and-sold-column'>
-                  {contents}
-
-                  {neighbours
-                    .filter(({ Status }) => Status === 'Active')
-                    .map((neighbour) => {
-                      formatValues(
-                        neighbour.AskingPrice,
-                        'AskingPrice'
-                      );
-                      return (
-                        <div
-                          key={neighbour.MLS_ID}
-                          className={children[0].props.className}
-                        >
-                          {children[0].props.children.map(
-                            (unit: ReactElement) => {
-                              if (
-                                unit.props.children ===
-                                '{Other Unit No}'
-                              ) {
-                                return (
-                                  <a
-                                    href={`/property?mls=${neighbour.MLS_ID}`}
-                                    key={unit.key}
-                                    className={unit.props.className}
-                                  >
-                                    Unit {neighbour.AddressUnit}{' '}
-                                  </a>
-                                );
-                              }
-                              if (
-                                unit.props.children ===
-                                '{Other Beds}'
-                              ) {
-                                return (
-                                  <span
-                                    key={unit.key}
-                                    className={unit.props.className}
-                                  >
-                                    {neighbour.L_BedroomTotal}
-                                  </span>
-                                );
-                              }
-                              if (
-                                unit.props.children ===
-                                '{Other Sqft}'
-                              ) {
-                                return (
-                                  <span
-                                    key={unit.key}
-                                    className={unit.props.className}
-                                  >
-                                    {formatValues(
-                                      neighbour.L_FloorArea_Total,
-                                      'L_FloorArea_Total'
-                                    )}
-                                  </span>
-                                );
-                              } else {
-                                return (
-                                  <span
-                                    key={unit.key}
-                                    className={unit.props.className}
-                                  >
-                                    {formatValues(
-                                      neighbour.AskingPrice,
-                                      'AskingPrice'
-                                    )}
-                                  </span>
-                                );
-                              }
-                            }
-                          )}
-                        </div>
-                      );
-                    })}
-                </div>
-              ) : null;
             } else if (node.attribs.class.indexOf('financial') >= 0)
               return (
                 <RexifyStatBlock
@@ -453,4 +255,79 @@ export function rexify(
   const elements = parse(html_code, options);
 
   return elements;
+}
+
+function rexifyOrSkip(
+  placeholder: string,
+  record: MLSProperty,
+  className = ''
+) {
+  switch (placeholder) {
+    case '{Description}':
+      return <p className={className}>{record.L_PublicRemakrs}</p>;
+
+    case '{Sqft}':
+      return (
+        <p className={className}>
+          {new Intl.NumberFormat(undefined).format(
+            record.L_LotSize_SqMtrs
+          )}
+        </p>
+      );
+
+    case '{Baths}':
+      return <p className={className}>{record.L_TotalBaths}</p>;
+
+    case '{Beds}':
+      return <p className={className}>{record.L_BedroomTotal}</p>;
+
+    case '{Year Built}':
+      return <p className={className}>{record.L_YearBuilt}</p>;
+
+    case '{Area}':
+      return <p className={className}>{record.Area}</p>;
+
+    case '{Address}':
+      return <div className={className}>{record.Address}</div>;
+
+    case '{Building Type}':
+      return <div className={className}>{record.PropertyType}</div>;
+
+    case '{Lot Size}':
+      return (
+        <div className={className}>
+          {formatValues(record, 'L_LotSize_SqMtrs')}
+        </div>
+      );
+
+    case '{MLS Number}':
+      return <span className={className}>{record.MLS_ID}</span>;
+
+    case '{Land Title}':
+      return <span className={className}>{record.LandTitle}</span>;
+
+    case '{Price Per Sqft}':
+      return (
+        <span className={className}>
+          {formatValues(record, 'PricePerSQFT')}
+        </span>
+      );
+
+    case '{Price}':
+      return (
+        <div className={className}>
+          {formatValues(record, 'AskingPrice')}
+        </div>
+      );
+
+    case '{Property Tax}':
+      return (
+        <span className={className}>
+          {combineAndFormatValues({
+            L_GrossTaxes: record.L_GrossTaxes,
+            ForTaxYear: record.ForTaxYear,
+          })}
+        </span>
+      );
+  }
 }

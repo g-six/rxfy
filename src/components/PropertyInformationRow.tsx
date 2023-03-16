@@ -87,10 +87,7 @@ export function RexifyStatBlock({
               </div>
             </div>
             {Object.keys(stat_keys).map((key) => {
-              let value = formatValues(
-                record[key] as string | number,
-                key
-              );
+              let value = formatValues(record, key);
               if (!value) return;
 
               if (groupName === 'financial') {

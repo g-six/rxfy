@@ -30,6 +30,7 @@ export const financial_stats: Record<string, string> = {
   L_GrossTaxes: 'Gross taxes',
   ListingDate: 'List Date',
   MLS_ID: 'MLS #',
+  SoldPrice: 'Sold For',
 };
 
 export const construction_stats: Record<string, string> = {
@@ -145,6 +146,7 @@ export async function getPropertyData(
 
   let clean: Record<string, unknown> | MLSProperty = {};
   const neighbours: MLSProperty[] = [];
+  const sold_history: MLSProperty[] = [];
   if (xhr && xhr.data) {
     const { property, properties } = id_is_mls
       ? xhr.data.data
@@ -197,11 +199,15 @@ export async function getPropertyData(
         },
       }
     );
+
     hits.forEach(({ _source }: { _source: unknown }) => {
       const { data: hit } = _source as {
         data: Record<string, unknown>;
       };
-      let property = {};
+      let property = {
+        Address: '',
+        Status: '',
+      };
       Object.keys(hit as Record<string, unknown>).forEach((key) => {
         if (hit[key]) {
           property = {
@@ -210,36 +216,45 @@ export async function getPropertyData(
           };
         }
       });
-      neighbours.push(property as MLSProperty);
+      if (
+        property.Status === 'Sold' &&
+        property.Address === clean.Address
+      )
+        sold_history.push(property as MLSProperty);
+      else if (property.Status === 'Active')
+        neighbours.push(property as MLSProperty);
     });
   }
 
   return {
     ...clean,
     neighbours,
+    sold_history,
   };
 }
 
 export function formatValues(
-  value: string | number,
+  obj: MLSProperty | Record<string, string>,
   key: string
 ): string {
-  if (!value || value === '0') return '';
+  if (!obj) return '';
 
   if (NumericFields.includes(key)) {
-    return new Intl.NumberFormat(undefined).format(value as number);
+    return new Intl.NumberFormat(undefined).format(
+      parseInt((obj as Record<string, string>)[key], 10) as number
+    );
   }
 
   if (FinanceFields.includes(key)) {
     return `$${new Intl.NumberFormat(undefined).format(
-      value as number
+      obj[key] as number
     )}`;
   }
 
   if (DateFields.includes(key)) {
-    return dateStringToDMY(value as string);
+    return dateStringToDMY(obj[key] as string);
   }
-  return value as unknown as string;
+  return obj[key] as unknown as string;
 }
 
 export function combineAndFormatValues(
@@ -250,9 +265,10 @@ export function combineAndFormatValues(
     Object.keys(values).includes('L_GrossTaxes') &&
     Object.keys(values).includes('ForTaxYear')
   ) {
-    return `${formatValues(values.L_GrossTaxes, 'L_GrossTaxes')} (${
-      values.ForTaxYear
-    })`;
+    return `${formatValues(
+      values as MLSProperty,
+      'L_GrossTaxes'
+    )} (${values.ForTaxYear})`;
   }
   return Object.keys(values)
     .map((key) => values[key])

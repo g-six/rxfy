@@ -4,6 +4,7 @@ export interface BaseNode {
 }
 
 export interface HTMLNode extends BaseNode {
+  name: string;
   firstChild: HTMLNode;
   lastChild: HTMLNode;
   children: HTMLNode[];

@@ -14,6 +14,7 @@ export const FinanceFields = [
   'AskingPrice',
   'PricePerSQFT',
   'L_GrossTaxes',
+  'SoldPrice',
 ];
 
 export interface MLSProperty
