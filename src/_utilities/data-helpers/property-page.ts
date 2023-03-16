@@ -109,11 +109,10 @@ export function getGqlForFilteredProperties(
 }
 
 export async function getPropertyData(
-  property_id: number,
+  property_id: number | string,
   id_is_mls = false
 ) {
   const axios: AxiosStatic = (await import('axios')).default;
-
   const xhr = await axios
     .post(
       process.env.NEXT_APP_CMS_GRAPHQL_URL as string,
@@ -123,7 +122,7 @@ export async function getPropertyData(
               eq: property_id,
             },
           })
-        : getGqlForPropertyId(property_id),
+        : getGqlForPropertyId(property_id as number),
       {
         headers: {
           Authorization: `Bearer ${
@@ -146,10 +145,13 @@ export async function getPropertyData(
   let clean: Record<string, unknown> | MLSProperty = {};
   const neighbours: MLSProperty[] = [];
   if (xhr && xhr.data) {
-    const { property } = id_is_mls
-      ? xhr.data.data[0]
+    const { property, properties } = id_is_mls
+      ? xhr.data.data
       : xhr.data.data;
-    const { mls_data } = property.data.attributes;
+
+    const { mls_data } = id_is_mls
+      ? properties.data[0].attributes
+      : property.data.attributes;
     Object.keys(mls_data).map((key: string) => {
       if (mls_data[key]) {
         clean = {

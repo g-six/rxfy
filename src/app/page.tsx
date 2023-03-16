@@ -43,7 +43,7 @@ export default async function Home({
   ) {
     // Property page
     property = await getPropertyData(
-      Number(searchParams.id || searchParams.mls),
+      searchParams.id || searchParams.mls,
       !!searchParams.mls
     );
 
