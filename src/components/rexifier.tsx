@@ -366,14 +366,6 @@ export function rexify(
                     })}
                 </div>
               ) : null;
-              return (
-                <div>
-                  <div className={header.attribs.class}>{}</div>
-                  <div
-                    className={`${row.attribs.class} rexified`}
-                  ></div>
-                </div>
-              );
             } else if (node.attribs.class.indexOf('financial') >= 0)
               return (
                 <RexifyStatBlock
