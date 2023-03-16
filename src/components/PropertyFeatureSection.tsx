@@ -101,6 +101,7 @@ export function RexifyPropertyFeatureBlock({
             .map((feature: string) => {
               return (
                 <SinglePropertyFeature
+                  key={features[feature]}
                   icon={features[feature]}
                   label={feature}
                 />
