@@ -26,10 +26,12 @@ export default async function Home({
   const { hostname, origin } = new URL(url);
 
   // Get Webflow page html
-  const webflow_page_url =
-    params && params.slug
-      ? `${origin}/${params.slug}/${params.slug}id`
-      : origin;
+  let webflow_page_url =
+    params && params.slug ? `${origin}/${params.slug}` : origin;
+
+  if (params.slug === 'property') {
+    webflow_page_url = `${webflow_page_url}/${params.slug}id`;
+  }
 
   const { data } = await axios.get(webflow_page_url);
 
@@ -61,7 +63,7 @@ export default async function Home({
     const photos: string[] = d.photos as string[];
     $('.cardimage').each((e, el) => {
       let { src, ...attribs } = el.attribs;
-
+      console.log(photos);
       $(el).replaceWith(`<img
         src="${photos[e]}"
         alt="${attribs.alt}"
