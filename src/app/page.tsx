@@ -59,6 +59,7 @@ export default async function Home({
   const $: CheerioAPI = load(data);
 
   if (property) {
+    // Photo gallery for properties
     const d = property as unknown as MLSProperty;
     const photos: string[] = d.photos as string[];
     $('a.link').each((e, el) => {
@@ -82,37 +83,9 @@ export default async function Home({
           }
         }
       });
-      // let { src, ...attribs } = el.attribs;
-      // $(el).replaceWith(`<img
-      //   src="${photos[e]}"
-      //   alt="${attribs.alt}"
-      //   loading="${attribs.loading}"
-      //   sizes="${attribs.sizes}"
-      //   class="cardimage"
-      // />`);
     });
-
-    // $('a.link .w-json').each((e, el) => {
-    //   try {
-    //     const img_json = JSON.parse($(el).html() as string);
-    //     if (photos[e]) {
-    //       img_json.items[0].url = photos[e];
-    //       JSON.stringify(img_json, null, 4);
-    //       $(el).replaceWith(
-    //         `<script class="w-json" type="application/json">${JSON.stringify(
-    //           img_json,
-    //           null,
-    //           4
-    //         )}</script>`
-    //       );
-    //     } else {
-    //       // $(el).replaceWith('');
-    //     }
-    //   } catch (e) {
-    //     console.log('Not a json string');
-    //   }
-    // });
   }
+
   $('.w-webflow-badge').remove();
   const webflow: WebFlow = {
     head: {
