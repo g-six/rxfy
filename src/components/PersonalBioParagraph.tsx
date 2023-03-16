@@ -1,4 +1,5 @@
 import { AgentData } from '@/_typings/agent';
+import { ReactNode } from 'react';
 
 export function PersonalBioParagraph(
   props: Record<string, unknown>
