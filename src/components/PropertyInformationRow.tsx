@@ -107,7 +107,9 @@ export function RexifyStatBlock({
               return value ? (
                 <PropertyInformationRow
                   key={key}
-                  wrapper_class={RowItem.attribs.class}
+                  wrapper_class={[RowItem.attribs.class, key].join(
+                    ' '
+                  )}
                   label_class={RowItem.firstChild.attribs.class}
                   value_class={RowItem.lastChild.attribs.class}
                   label={stat_keys[key] as string}
