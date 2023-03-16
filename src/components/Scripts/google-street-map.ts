@@ -1,3 +1,5 @@
+import { createNeighborhoodMapOptions } from '@/_utilities/map-helper';
+
 export function addPropertyMapScripts(
   property: Record<string, unknown>
 ): string {
