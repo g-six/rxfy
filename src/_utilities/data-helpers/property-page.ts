@@ -245,7 +245,7 @@ export function formatValues(
     );
   }
 
-  if (FinanceFields.includes(key)) {
+  if (FinanceFields.includes(key) && !isNaN(Number(obj[key]))) {
     return `$${new Intl.NumberFormat(undefined).format(
       obj[key] as number
     )}`;

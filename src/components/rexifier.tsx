@@ -1,8 +1,10 @@
+/* eslint-disable @next/next/no-img-element */
 import Script from 'next/script';
 import parse, {
   HTMLReactParserOptions,
   Element,
   attributesToProps,
+  DOMNode,
   domToReact,
 } from 'html-react-parser';
 import EmailAnchor from './A/Email';
@@ -14,7 +16,6 @@ import { RexifyStatBlock } from './PropertyInformationRow';
 import { MLSProperty } from '@/_typings/property';
 import { RexifyPropertyFeatureBlock } from './PropertyFeatureSection';
 import { HTMLNode } from '@/_typings/elements';
-import { ReactElement } from 'react';
 import {
   combineAndFormatValues,
   formatValues,
@@ -53,6 +54,7 @@ export function rexify(
         const { class: className, ...props } = attributesToProps(
           node.attribs
         );
+
         if (
           node.attribs['data-type'] === 'email' &&
           node.tagName === 'a'
@@ -100,14 +102,15 @@ export function rexify(
           const record = property as unknown as MLSProperty;
 
           if (node.children && node.children.length === 1) {
-            const { data } = node.children[0] as { data: string };
-
             /**
              * This is where the magic happens
              */
             const reX = rexifyOrSkip(
-              data,
-              record,
+              node.children[0],
+              {
+                ...record,
+                agent_data,
+              },
               node.attribs.class
             );
             if (reX) return reX;
@@ -258,10 +261,64 @@ export function rexify(
 }
 
 function rexifyOrSkip(
-  placeholder: string,
-  record: MLSProperty,
+  element: DOMNode,
+  record: MLSProperty | { agent_data?: AgentData },
   className = ''
 ) {
+  const { agent_data } = record as { agent_data: AgentData };
+  const { data: placeholder } = element as { data: string };
+  if (agent_data) {
+    if (placeholder === '{Agent Name}') {
+      if (
+        className.indexOf('logo-dark') >= 0 &&
+        agent_data.metatags?.logo_for_light_bg
+      ) {
+        return (
+          <h3
+            className={className}
+            style={{
+              backgroundImage: `url(${agent_data.metatags?.logo_for_light_bg})`,
+              backgroundRepeat: 'no-repeat',
+              backgroundSize: 'contain',
+              flex: 1,
+              /* We wanna hide the agent name text if logo is available */
+              textIndent: '-100em',
+            }}
+          >
+            &nbsp;{agent_data.full_name || '{Agent Name}'}
+          </h3>
+        );
+      } else {
+        return (
+          <div className={className}>{agent_data.full_name}</div>
+        );
+      }
+    } else if (placeholder === '{Agent Phone Number}') {
+      const { name: TagName } = element.parent as { name: string };
+      switch (TagName) {
+        case 'div':
+          return (
+            <div className={className}>{agent_data.phone}</div>
+          );
+        default:
+          return (
+            <span className={className}>{agent_data.phone}</span>
+          );
+      }
+    } else if (placeholder === '{Agent Email}') {
+      const { name: TagName } = element.parent as { name: string };
+      switch (TagName) {
+        case 'div':
+          return (
+            <div className={className}>{agent_data.email}</div>
+          );
+        default:
+          return (
+            <span className={className}>{agent_data.email}</span>
+          );
+      }
+    }
+  }
   switch (placeholder) {
     case '{Description}':
       return <p className={className}>{record.L_PublicRemakrs}</p>;

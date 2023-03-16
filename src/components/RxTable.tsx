@@ -55,14 +55,14 @@ export default function RxTable({
                   );
                 }
                 if (unit.props.children === '{Other Price}') {
-                  return (
+                  return item.SoldPrice ? (
                     <span
                       key={unit.key}
                       className={unit.props.className}
                     >
                       {formatValues(item, 'SoldPrice')}
                     </span>
-                  );
+                  ) : null;
                 }
                 if (unit.props.children === '{Status Chg Date}') {
                   return (
