@@ -1,4 +1,5 @@
 import { AgentData } from '@/_typings/agent';
+import { ReactNode } from 'react';
 
 export function PersonalTitle(props: Record<string, unknown>) {
   const { children, agent: data, ...attribs } = props;
