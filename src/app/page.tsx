@@ -29,7 +29,7 @@ export default async function Home({
   let webflow_page_url =
     params && params.slug ? `${origin}/${params.slug}` : origin;
 
-  if (params.slug === 'property') {
+  if (params && params.slug === 'property') {
     webflow_page_url = `${webflow_page_url}/${params.slug}id`;
   }
 
