@@ -15,7 +15,7 @@ export function addPropertyMapScripts(
         
             function initNeighborhoodMap() {
                 const localContext = new google.maps.localContext.LocalContextMapView({
-                    element: document.getElementById("PropertyMapWrapper"),
+                    element: document.querySelector(".map-div"),
                     placeTypePreferences: [
                         {type: 'department_store', weight: 1},
                         {type: 'drugstore', weight: 1},
@@ -40,6 +40,38 @@ export function addPropertyMapScripts(
                 placeMarker(property, localContext.map);
                 localContext.search();
             }
+
+            function initStreetView(selector) {
+                const posCenter = {
+                    lat: ${property.lat},
+                    lng: ${property.lng},
+                };
+  
+                const sv = new google.maps.StreetViewService();
+                const panorama = new google.maps.StreetViewPanorama(document.querySelector(selector), {
+                    position: posCenter,
+                    addressControlOptions: { position: google.maps.ControlPosition.BOTTOM_CENTER },
+                    linksControl: false,
+                    panControl: false,
+                    enableCloseButton: false,
+                    streetViewControl: false,
+                });
+            
+                sv.getPanorama({ location: posCenter, radius: 50, source: 'outdoor' }, data => {
+                    panorama.setPano(data.location.pano)
+                    panorama.setPov({ heading: 320, pitch: 0 });
+                    // now we calculate heading (ange of rotation) after map is inited (approx 500ms)
+                    // so we take current position of the viewer (center of panorama on street view map) and defCenter
+                    // having those two, one can calculate spherical angle of rotation by calling .spherical.computeHeading
+                    setTimeout(() => {
+                        const propertyLocation = new window.google.maps.LatLng(posCenter.lat, posCenter.lng);
+                        const heading = window.google.maps.geometry.spherical.computeHeading(panorama.getLocation().latLng, propertyLocation);
+                        panorama.setPov({ heading: heading, pitch: 0 });
+                        panorama.setVisible(true);
+                    }, 500);
+                });
+            }
+
             function placeMarker(property, map) {
                 if (!property || !map) return
                 var marker = new google.maps.Marker({
@@ -62,6 +94,20 @@ export function addPropertyMapScripts(
                 google.maps.event.addListener(marker, "click", function () {
                     infowindow.open(map, marker);
                 });
+            }
+
+
+
+            if (document.querySelector(".map-div")) {
+                setTimeout(() => {
+                    initNeighborhoodMap();
+                }, 400);
+            }
+
+            if (document.querySelector(".street-view-div")) {
+                setTimeout(() => {
+                    initStreetView(".street-view-div");
+                }, 400);
             }
         `;
 }

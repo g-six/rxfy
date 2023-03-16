@@ -9,6 +9,8 @@ import { getAgentDataFromWebflowDomain } from '@/_utilities/data-helpers/agent-h
 import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
 import { getPropertyData } from '@/_utilities/data-helpers/property-page';
 import { MLSProperty } from '@/_typings/property';
+import Script from 'next/script';
+import { addPropertyMapScripts } from '@/components/Scripts/google-street-map';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -188,6 +190,16 @@ export default async function Home({
             </a>
           </div>
         </main>
+      )}
+      {property && property.lat && property.lng && (
+        <Script
+          defer
+          suppressHydrationWarning
+          id='property-map-init'
+          dangerouslySetInnerHTML={{
+            __html: addPropertyMapScripts(property),
+          }}
+        />
       )}
     </>
   );

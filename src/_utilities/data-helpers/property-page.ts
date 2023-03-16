@@ -227,7 +227,7 @@ export async function getPropertyData(
   }
 
   return {
-    ...clean,
+    ...(clean as MLSProperty),
     neighbours,
     sold_history,
   };
