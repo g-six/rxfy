@@ -54,6 +54,7 @@ export const dimension_stats: Record<string, string> = {
 };
 
 export const property_features: string[] = [
+  'L_Features',
   'B_WaterSupply',
   'LFD_Amenities_56',
   'LFD_BylawRestrictions_58',
