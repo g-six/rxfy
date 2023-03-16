@@ -61,39 +61,57 @@ export default async function Home({
   if (property) {
     const d = property as unknown as MLSProperty;
     const photos: string[] = d.photos as string[];
-    $('.cardimage').each((e, el) => {
-      let { src, ...attribs } = el.attribs;
-      console.log(photos);
-      $(el).replaceWith(`<img
-        src="${photos[e]}"
-        alt="${attribs.alt}"
-        loading="${attribs.loading}"
-        sizes="${attribs.sizes}"
-        class="cardimage"
-      />`);
-    });
-    $('#propertyimages .w-json, #allimages .w-json').each(
-      (e, el) => {
-        try {
-          const img_json = JSON.parse($(el).html() as string);
-          if (photos[e]) {
+    $('a.link').each((e, el) => {
+      el.children.forEach((child) => {
+        if (photos[e]) {
+          if (child.type === 'script') {
+            const img_json = JSON.parse($(child).html() as string);
             img_json.items[0].url = photos[e];
-            //JSON.stringify(img_json, null, 4)
-            $(el).replaceWith(
+            JSON.stringify(img_json, null, 4);
+            $(child).replaceWith(
               `<script class="w-json" type="application/json">${JSON.stringify(
                 img_json,
                 null,
                 4
               )}</script>`
             );
-          } else {
-            $(el).replaceWith('');
+          } else if ((child as { name: string }).name === 'img') {
+            $(child).attr('src', photos[e]);
+            $(child).removeAttr('srcset');
+            $(child).removeAttr('sizes');
           }
-        } catch (e) {
-          console.log('Not a json string');
         }
-      }
-    );
+      });
+      // let { src, ...attribs } = el.attribs;
+      // $(el).replaceWith(`<img
+      //   src="${photos[e]}"
+      //   alt="${attribs.alt}"
+      //   loading="${attribs.loading}"
+      //   sizes="${attribs.sizes}"
+      //   class="cardimage"
+      // />`);
+    });
+
+    // $('a.link .w-json').each((e, el) => {
+    //   try {
+    //     const img_json = JSON.parse($(el).html() as string);
+    //     if (photos[e]) {
+    //       img_json.items[0].url = photos[e];
+    //       JSON.stringify(img_json, null, 4);
+    //       $(el).replaceWith(
+    //         `<script class="w-json" type="application/json">${JSON.stringify(
+    //           img_json,
+    //           null,
+    //           4
+    //         )}</script>`
+    //       );
+    //     } else {
+    //       // $(el).replaceWith('');
+    //     }
+    //   } catch (e) {
+    //     console.log('Not a json string');
+    //   }
+    // });
   }
   $('.w-webflow-badge').remove();
   const webflow: WebFlow = {
