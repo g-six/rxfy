@@ -1,6 +1,10 @@
+import { ReactElement } from 'react';
+
 export function BuildingUnitSection({
   properties,
-}: Record<string, unknown>[]) {
+}: {
+  properties: ReactElement[];
+}) {
   return (
     <div className='div-building-units-on-sale'>{properties}</div>
   );
