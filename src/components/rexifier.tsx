@@ -445,7 +445,7 @@ export function rexify(
 
 function rexifyOrSkip(
   element: DOMNode,
-  record: MLSProperty & { agent_data?: AgentData },
+  record: unknown,
   className = '',
   tagName = ''
 ) {
