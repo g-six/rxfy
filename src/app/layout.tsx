@@ -65,10 +65,6 @@ export default async function RootLayout({
           >
             {children}
             <Script
-              src={`https://maps.googleapis.com/maps/api/js?key=${NEXT_APP_GOOGLE_API_KEY}&libraries=places,localContext&v=beta&callback=initializePlacesAutocomplete`}
-              defer
-            />
-            <Script
               async
               suppressHydrationWarning
               id='google-map-init'
@@ -77,6 +73,10 @@ export default async function RootLayout({
                   apiKey: NEXT_APP_GOOGLE_API_KEY || '',
                 }),
               }}
+            />
+            <Script
+              src={`https://maps.googleapis.com/maps/api/js?key=${NEXT_APP_GOOGLE_API_KEY}&libraries=places,localContext&v=beta&callback=initializePlacesAutocomplete`}
+              strategy='lazyOnload'
             />
           </body>
         ) : (

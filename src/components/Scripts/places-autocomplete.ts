@@ -14,7 +14,9 @@ export default function initializePlacesAutocomplete(
  
     function initializePlacesAutocomplete() {
         var gpaInput = document.getElementById('search-input');
+
         if (!gpaInput) gpaInput = document.querySelector('.section---search input')
+
         if (gpaInput) {
             var autocomplete = new google.maps.places.Autocomplete(gpaInput);
     

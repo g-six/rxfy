@@ -19,32 +19,89 @@ import { HTMLNode } from '@/_typings/elements';
 import {
   combineAndFormatValues,
   formatValues,
-  getSimilarHomes,
 } from '@/_utilities/data-helpers/property-page';
 import RxTable from './RxTable';
-import SimilarHomes from './SimilarHomes';
 import { ReactElement } from 'react';
 import { Cheerio, CheerioAPI } from 'cheerio';
 import PropertyCard from './PropertyCard';
+import {
+  getCityFromGeolocation,
+  getGeocode,
+  getViewPortParamsFromGeolocation,
+} from '@/_utilities/geocoding-helper';
+import { GeoLocation, MapboxBoundaries } from '@/_typings/maps';
 
-function findInfoIfFound(agent_data: AgentData, info: string) {
-  if (!agent_data) return '';
-  switch (info) {
-    case 'business_name':
-      return agent_data.full_name;
-    case 'business_logo':
-      return (
-        agent_data.metatags && agent_data.metatags.logo_for_dark_bg
-      );
-    default:
-      return '';
+async function replaceTargetCityComponents(
+  $: CheerioAPI,
+  target_city: string
+) {
+  const result = await getGeocode(target_city);
+  if (result && 'place_id' in result) {
+    // Result is of a valid Google Geolocation (if it has a place_id)
+    const city = getCityFromGeolocation(result);
+    const mapbox_boundaries =
+      getViewPortParamsFromGeolocation(result);
+    const pin_location = result.geometry.location;
+    replaceByCheerio($, '.address-chip:first-child', {
+      city,
+      mapbox_boundaries,
+      pin_location,
+    });
   }
 }
 
-export function fillAgentInfo(
+function replaceSearchHighlights(
+  $: CheerioAPI,
+  target_child = '.address-chip:nth-child(2)',
+  city: string,
+  mapbox_boundaries: MapboxBoundaries,
+  pin_location: GeoLocation
+) {
+  replaceByCheerio($, target_child, {
+    city,
+    mapbox_boundaries,
+    pin_location,
+  });
+}
+
+export async function fillAgentInfo(
   $: CheerioAPI,
   agent_data: AgentData
 ) {
+  if (agent_data.metatags.target_city) {
+    await replaceTargetCityComponents(
+      $,
+      agent_data.metatags.target_city
+    );
+  }
+
+  if (
+    agent_data.metatags.search_highlights &&
+    agent_data.metatags.search_highlights.labels
+  ) {
+    const areas = agent_data.metatags.search_highlights.labels;
+
+    areas.forEach((area, i) => {
+      replaceSearchHighlights(
+        $,
+        `.address-chip:nth-child(${i + 2})`,
+        area.title,
+        {
+          nelat: area.ne.lat,
+          nelng: area.ne.lng,
+          swlat: area.sw.lat,
+          swlng: area.sw.lng,
+        },
+        {
+          lat: area.lat,
+          lng: area.lng,
+        }
+      );
+    });
+
+    $('.address-chip[href="#"]').replaceWith('');
+  }
+
   if (agent_data.metatags.headshot) {
     replaceByCheerio($, '.little-profile-card img', {
       photo: agent_data.metatags.headshot,
@@ -130,15 +187,25 @@ export function fillPropertyGrid(
     );
 
     // Baths
-    replaceByCheerio(
-      $,
-      `${selector} > .property-card-map:nth-child(${
-        i + 1
-      }) .bath-stat`,
-      {
-        content: `${formatValues(p, 'L_TotalBaths')}`,
-      }
-    );
+    if (p.L_TotalBaths) {
+      replaceByCheerio(
+        $,
+        `${selector} > .property-card-map:nth-child(${
+          i + 1
+        }) .bath-stat`,
+        {
+          content: `${formatValues(p, 'L_TotalBaths')}`,
+        }
+      );
+    } else {
+      removeSection(
+        $,
+        `${selector} > .property-card-map:nth-child(${
+          i + 1
+        }) .bath-stat`,
+        '.propertycard-feature'
+      );
+    }
 
     // Sqft
     replaceByCheerio(
@@ -164,10 +231,19 @@ export function fillPropertyGrid(
   });
 }
 
+type ReplacementOptions = {
+  backgroundImage?: string;
+  content?: string;
+  ['data-mls']?: string;
+  city?: string;
+  mapbox_boundaries?: MapboxBoundaries;
+  photo?: string;
+  pin_location?: GeoLocation;
+};
 export function replaceByCheerio(
   $: CheerioAPI,
   target: string,
-  replacement: Record<string, string>
+  replacement: ReplacementOptions
 ) {
   if (replacement) {
     if (target.indexOf('.propcard-image') >= 0) {
@@ -193,7 +269,42 @@ export function replaceByCheerio(
       $(target).html(replacement.content);
     } else if (replacement['data-mls']) {
       $(target).attr('data-mls', replacement['data-mls']);
+    } else if (
+      replacement.city &&
+      replacement.pin_location &&
+      replacement.mapbox_boundaries
+    ) {
+      const query_params = [
+        `nelat=${replacement.mapbox_boundaries.nelat}`,
+        `nelng=${replacement.mapbox_boundaries.nelng}`,
+        `swlat=${replacement.mapbox_boundaries.swlat}`,
+        `swlng=${replacement.mapbox_boundaries.swlng}`,
+        `lat=${replacement.pin_location.lat}`,
+        `lng=${replacement.pin_location.lng}`,
+        `city=${encodeURIComponent(replacement.city)}`,
+      ];
+      $(target).attr('href', `/map?${query_params.join('&')}`);
+      $(target).text(replacement.city);
     }
+  }
+}
+
+/**
+ * Removes a placeholder section from the page
+ * @param $
+ * @param target className
+ * @param parentClass className
+ */
+export function removeSection(
+  $: CheerioAPI,
+  target: string,
+  parentClass = '.wf-section'
+) {
+  const [parent] = $(target).parents(
+    parentClass
+  ) as unknown as Cheerio<Element>[];
+  if (parent) {
+    $(parent).remove();
   }
 }
 

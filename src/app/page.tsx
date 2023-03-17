@@ -6,6 +6,7 @@ import styles from './page.module.css';
 import {
   fillAgentInfo,
   fillPropertyGrid,
+  removeSection,
   rexify,
 } from '@/components/rexifier';
 import { WebFlow } from '@/_typings/webflow';
@@ -13,11 +14,13 @@ import { getAgentDataFromWebflowDomain } from '@/_utilities/data-helpers/agent-h
 import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
 import {
   getPropertyData,
+  getRecentListings,
   getSimilarHomes,
 } from '@/_utilities/data-helpers/property-page';
 import { MLSProperty } from '@/_typings/property';
 import Script from 'next/script';
 import { addPropertyMapScripts } from '@/components/Scripts/google-street-map';
+import { AgentData } from '@/_typings/agent';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -44,7 +47,9 @@ export default async function Home({
 
   const { data } = await axios.get(webflow_page_url);
 
-  const agent_data = await getAgentDataFromWebflowDomain(hostname);
+  const agent_data: AgentData = await getAgentDataFromWebflowDomain(
+    hostname
+  );
   let listings, property;
 
   if (
@@ -60,13 +65,39 @@ export default async function Home({
     );
   }
   if (agent_data && agent_data.agent_id) {
+    console.log('getAgentListings', agent_data.agent_id);
     listings = await getAgentListings(agent_data.agent_id);
+    if (listings.active?.length === 0) {
+      const recent_listings = await getRecentListings(agent_data);
+      listings = {
+        ...listings,
+        active: recent_listings,
+      };
+    }
   } else {
     console.log('\n\nHome.agent_data not available');
   }
 
   const $: CheerioAPI = load(data);
-  fillAgentInfo($, agent_data);
+
+  await fillAgentInfo($, agent_data);
+  // Recent listings
+  if (listings?.active?.length) {
+    fillPropertyGrid($, listings.active, '.recent-listings-grid');
+  } else {
+    removeSection($, '.recent-listings-grid');
+  }
+
+  // Sold listings
+  if (listings?.sold?.length) {
+    fillPropertyGrid(
+      $,
+      listings.sold as unknown as MLSProperty[],
+      '.sold-listings-grid'
+    );
+  } else {
+    removeSection($, '.sold-listings-grid');
+  }
 
   if (property) {
     // Photo gallery for properties

@@ -1,3 +1,4 @@
+import { AgentData } from '@/_typings/agent';
 import {
   DateFields,
   FinanceFields,
@@ -110,6 +111,149 @@ export function getGqlForFilteredProperties(
   };
 }
 
+const must_not: { match: { [key: string]: string } }[] = [
+  { match: { 'data.IdxInclude': 'no' } },
+  { match: { 'data.L_Class': 'Rental' } },
+  { match: { 'data.L_Class': 'Commercial Lease' } },
+  { match: { 'data.L_Class': 'Commercial Sale' } },
+  {
+    match: {
+      'data.Status': 'Sold',
+    },
+  },
+];
+
+export async function retrieveFromLegacyPipeline(
+  params: {
+    from: number;
+    size: number;
+    sort?: {
+      [key: string]: 'asc' | 'desc';
+    };
+    query: {
+      bool: {
+        filter?: {
+          match?: Record<string, string | number>;
+          range?: {};
+        }[];
+        should?: {
+          match?: Record<string, string | number>;
+          range?: {};
+        }[];
+        minimum_should_match?: number;
+        must_not?: {
+          match?: Record<string, string | number>;
+          range?: {};
+        }[];
+      };
+    };
+  } = {
+    from: 0,
+    size: 3,
+    sort: { 'data.ListingDate': 'desc' },
+    query: {
+      bool: {
+        filter: [],
+        must_not,
+      },
+    },
+  }
+) {
+  const axios: AxiosStatic = (await import('axios')).default;
+  const {
+    data: {
+      hits: { hits },
+    },
+  } = await axios.post(
+    process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
+    params,
+    {
+      headers: {
+        Authorization: `Basic ${Buffer.from(
+          `${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`
+        ).toString('base64')}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return hits.map(({ _source }: { _source: unknown }) => {
+    const { data: hit } = _source as {
+      data: Record<string, unknown>;
+    };
+    let property = {
+      Address: '',
+      Status: '',
+    };
+    Object.keys(hit as Record<string, unknown>).forEach((key) => {
+      if (hit[key]) {
+        property = {
+          ...property,
+          [key]: hit[key],
+        };
+      }
+    });
+
+    return property as MLSProperty;
+  });
+}
+
+export async function getRecentListings(
+  agent: AgentData,
+  limit = 3
+) {
+  let properties = await retrieveFromLegacyPipeline({
+    from: 0,
+    size: 3,
+    sort: { 'data.ListingDate': 'desc' },
+    query: {
+      bool: {
+        filter: [],
+        should: [
+          {
+            match: { 'data.LA1_LoginName': agent.agent_id },
+          },
+          {
+            match: {
+              'data.LA2_LoginName': agent.agent_id,
+            },
+          },
+          {
+            match: {
+              'data.LA3_LoginName': agent.agent_id,
+            },
+          },
+        ],
+        minimum_should_match: 1,
+        must_not,
+      },
+    },
+  });
+  if (properties.length === 0) {
+    properties = await retrieveFromLegacyPipeline({
+      from: 0,
+      size: 3,
+      sort: { 'data.ListingDate': 'desc' },
+      query: {
+        bool: {
+          filter: [],
+          should: agent.metatags?.target_city
+            ? []
+            : [
+                {
+                  match: {
+                    'data.L_Region': 'Greater Vancouver',
+                  },
+                },
+              ],
+          must_not,
+        },
+      },
+    });
+  }
+  return properties;
+}
+
 export async function getSimilarHomes(
   property: MLSProperty,
   limit = 3
@@ -119,7 +263,6 @@ export async function getSimilarHomes(
     property.L_BedroomTotal &&
     property.PropertyType
   ) {
-    const axios: AxiosStatic = (await import('axios')).default;
     const filter: {
       match?: Record<string, string | number>;
       range?: {};
@@ -159,62 +302,18 @@ export async function getSimilarHomes(
       });
     }
 
-    const {
-      data: {
-        hits: { hits },
-      },
-    } = await axios.post(
-      process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
-      {
-        from: 0,
-        size: limit,
-        sort: { 'data.ListingDate': 'desc' },
-        query: {
-          bool: {
-            filter,
-            must_not: [
-              { match: { 'data.Address': property.Address } },
-              { match: { 'data.IdxInclude': 'no' } },
-              { match: { 'data.L_Class': 'Rental' } },
-              { match: { 'data.L_Class': 'Commercial Lease' } },
-              { match: { 'data.L_Class': 'Commercial Sale' } },
-              {
-                match: {
-                  'data.Status': 'Sold',
-                },
-              },
-            ],
-          },
+    return await retrieveFromLegacyPipeline({
+      from: 0,
+      size: limit,
+      sort: { 'data.ListingDate': 'desc' },
+      query: {
+        bool: {
+          filter,
+          must_not: must_not.concat([
+            { match: { 'data.Address': property.Address } },
+          ]),
         },
       },
-      {
-        headers: {
-          Authorization: `Basic ${Buffer.from(
-            `${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`
-          ).toString('base64')}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    return hits.map(({ _source }: { _source: unknown }) => {
-      const { data: hit } = _source as {
-        data: Record<string, unknown>;
-      };
-      let property = {
-        Address: '',
-        Status: '',
-      };
-      Object.keys(hit as Record<string, unknown>).forEach((key) => {
-        if (hit[key]) {
-          property = {
-            ...property,
-            [key]: hit[key],
-          };
-        }
-      });
-
-      return property as MLSProperty;
     });
   }
   return [];
@@ -347,7 +446,7 @@ export function formatValues(
   obj: MLSProperty | Record<string, string>,
   key: string
 ): string {
-  if (!obj) return '';
+  if (!obj || !obj[key]) return '';
 
   if (NumericFields.includes(key)) {
     return new Intl.NumberFormat(undefined).format(

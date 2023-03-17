@@ -1,3 +1,5 @@
+import { GeoLocation } from './maps';
+
 export type ThemeName =
   | 'hamburg'
   | 'lisbon'
@@ -30,7 +32,17 @@ export interface AgentMetatags {
   youtube_url?: string;
   mailchimp_subscription_url?: string;
   target_city?: string;
-  search_highlights?: Record<string, string>;
+  search_highlights?: {
+    labels: {
+      ne: GeoLocation;
+      sw: GeoLocation;
+      lat: number;
+      lng: number;
+      name: string;
+      zoom: number;
+      title: string;
+    }[];
+  };
   brokerage_name?: string;
 }
 

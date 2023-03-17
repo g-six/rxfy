@@ -68,10 +68,10 @@ export async function getAgentDataFromWebflowDomain(
   let url = `https://pages.leagent.com/${encodeURIComponent(
     domain
   )}/agent-data.json`;
-  console.log('\ngetAgentDataFromDomain.axios', url, '\n');
+  console.log('getAgentDataFromWebflowDomain.axios', url, '\n');
   let xhr = await axios.get(url).catch(() => {
     console.log(
-      'ngetAgentDataFromDomain: No agent-data.json found at',
+      '\ngetAgentDataFromWebflowDomain: No agent-data.json found at',
       url
     );
   });
