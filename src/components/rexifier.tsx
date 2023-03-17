@@ -582,61 +582,68 @@ function rexifyOrSkip(
       }
     }
   }
+  const property = record as MLSProperty;
   switch (placeholder) {
     case '{Description}':
-      return <p className={className}>{record.L_PublicRemakrs}</p>;
+      return (
+        <p className={className}>{property.L_PublicRemakrs}</p>
+      );
 
     case '{Sqft}':
       return (
         <p className={className}>
           {new Intl.NumberFormat(undefined).format(
-            record.L_LotSize_SqMtrs
+            property.L_LotSize_SqMtrs
           )}
         </p>
       );
 
     case '{Baths}':
-      return <p className={className}>{record.L_TotalBaths}</p>;
+      return <p className={className}>{property.L_TotalBaths}</p>;
 
     case '{Beds}':
-      return <p className={className}>{record.L_BedroomTotal}</p>;
+      return <p className={className}>{property.L_BedroomTotal}</p>;
 
     case '{Year Built}':
-      return <p className={className}>{record.L_YearBuilt}</p>;
+      return <p className={className}>{property.L_YearBuilt}</p>;
 
     case '{Area}':
-      return <p className={className}>{record.Area}</p>;
+      return <p className={className}>{property.Area}</p>;
 
     case '{Address}':
-      return <div className={className}>{record.Address}</div>;
+      return <div className={className}>{property.Address}</div>;
 
     case '{Building Type}':
-      return <div className={className}>{record.PropertyType}</div>;
+      return (
+        <div className={className}>{property.PropertyType}</div>
+      );
 
     case '{Lot Size}':
       return (
         <div className={className}>
-          {formatValues(record, 'L_LotSize_SqMtrs')}
+          {formatValues(property, 'L_LotSize_SqMtrs')}
         </div>
       );
 
     case '{MLS Number}':
-      return <span className={className}>{record.MLS_ID}</span>;
+      return <span className={className}>{property.MLS_ID}</span>;
 
     case '{Land Title}':
-      return <span className={className}>{record.LandTitle}</span>;
+      return (
+        <span className={className}>{property.LandTitle}</span>
+      );
 
     case '{Price Per Sqft}':
       return (
         <span className={className}>
-          {formatValues(record, 'PricePerSQFT')}
+          {formatValues(property, 'PricePerSQFT')}
         </span>
       );
 
     case '{Price}':
       return (
         <div className={className}>
-          {formatValues(record, 'AskingPrice')}
+          {formatValues(property, 'AskingPrice')}
         </div>
       );
 
@@ -644,8 +651,8 @@ function rexifyOrSkip(
       return (
         <span className={className}>
           {combineAndFormatValues({
-            L_GrossTaxes: record.L_GrossTaxes,
-            ForTaxYear: record.ForTaxYear,
+            L_GrossTaxes: property.L_GrossTaxes,
+            ForTaxYear: property.ForTaxYear,
           })}
         </span>
       );
