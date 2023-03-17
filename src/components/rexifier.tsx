@@ -60,16 +60,15 @@ export function fillAgentInfo(
   }
 }
 
-export function fillSimilarProperties(
+export function fillPropertyGrid(
   $: CheerioAPI,
-  properties: MLSProperty[]
+  properties: MLSProperty[],
+  selector = '.similar-homes-grid'
 ) {
   properties.forEach((p: MLSProperty, i) => {
     replaceByCheerio(
       $,
-      `.similar-homes-grid > .property-card-map:nth-child(${
-        i + 1
-      })`,
+      `${selector} > .property-card-map:nth-child(${i + 1})`,
       {
         ['data-mls']: p.MLS_ID,
       }
@@ -78,7 +77,7 @@ export function fillSimilarProperties(
     // Photo
     replaceByCheerio(
       $,
-      `.similar-homes-grid > .property-card-map:nth-child(${
+      `${selector} > .property-card-map:nth-child(${
         i + 1
       }) > .propcard-image`,
       {
@@ -89,7 +88,7 @@ export function fillSimilarProperties(
     // Area
     replaceByCheerio(
       $,
-      `.similar-homes-grid > .property-card-map:nth-child(${
+      `${selector} > .property-card-map:nth-child(${
         i + 1
       }) .area-text`,
       {
@@ -100,7 +99,7 @@ export function fillSimilarProperties(
     // Price
     replaceByCheerio(
       $,
-      `.similar-homes-grid > .property-card-map:nth-child(${
+      `${selector} > .property-card-map:nth-child(${
         i + 1
       }) .propcard-price`,
       {
@@ -111,7 +110,7 @@ export function fillSimilarProperties(
     // Address
     replaceByCheerio(
       $,
-      `.similar-homes-grid > .property-card-map:nth-child(${
+      `${selector} > .property-card-map:nth-child(${
         i + 1
       }) .propcard-address`,
       {
@@ -122,7 +121,7 @@ export function fillSimilarProperties(
     // Beds
     replaceByCheerio(
       $,
-      `.similar-homes-grid > .property-card-map:nth-child(${
+      `${selector} > .property-card-map:nth-child(${
         i + 1
       }) .bedroom-stat`,
       {
@@ -133,7 +132,7 @@ export function fillSimilarProperties(
     // Baths
     replaceByCheerio(
       $,
-      `.similar-homes-grid > .property-card-map:nth-child(${
+      `${selector} > .property-card-map:nth-child(${
         i + 1
       }) .bath-stat`,
       {
@@ -144,7 +143,7 @@ export function fillSimilarProperties(
     // Sqft
     replaceByCheerio(
       $,
-      `.similar-homes-grid > .property-card-map:nth-child(${
+      `${selector} > .property-card-map:nth-child(${
         i + 1
       }) .sqft-stat`,
       {
@@ -155,7 +154,7 @@ export function fillSimilarProperties(
     // Year
     replaceByCheerio(
       $,
-      `.similar-homes-grid > .property-card-map:nth-child(${
+      `${selector} > .property-card-map:nth-child(${
         i + 1
       }) .year-stat`,
       {

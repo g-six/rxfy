@@ -1,4 +1,4 @@
-export const DateFields = ['ListingDate'];
+export const DateFields = ['UpdateDate', 'ListingDate'];
 
 export const NumericFields = [
   'B_Depth',

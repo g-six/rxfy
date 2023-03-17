@@ -5,7 +5,7 @@ import { Inter } from 'next/font/google';
 import styles from './page.module.css';
 import {
   fillAgentInfo,
-  fillSimilarProperties,
+  fillPropertyGrid,
   rexify,
 } from '@/components/rexifier';
 import { WebFlow } from '@/_typings/webflow';
@@ -81,7 +81,7 @@ export default async function Home({
     };
 
     if (similar_properties.length) {
-      fillSimilarProperties($, similar_properties);
+      fillPropertyGrid($, similar_properties);
     }
 
     $('a.link').each((e, el) => {
