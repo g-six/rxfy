@@ -110,6 +110,116 @@ export function getGqlForFilteredProperties(
   };
 }
 
+export async function getSimilarHomes(
+  property: MLSProperty,
+  limit = 3
+): Promise<MLSProperty[]> {
+  if (
+    property.AskingPrice &&
+    property.L_BedroomTotal &&
+    property.PropertyType
+  ) {
+    const axios: AxiosStatic = (await import('axios')).default;
+    const filter: {
+      match?: Record<string, string | number>;
+      range?: {};
+    }[] = [
+      {
+        range: {
+          'data.AskingPrice': {
+            gte: property.AskingPrice * 0.85,
+            lte: property.AskingPrice * 1.1,
+          },
+        },
+      },
+      {
+        match: {
+          'data.L_BedroomTotal': property.L_BedroomTotal,
+        },
+      },
+      {
+        match: {
+          'data.PropertyType': property.PropertyType,
+        },
+      },
+    ];
+
+    if (property.Area) {
+      filter.push({ match: { 'data.Area': property.Area } });
+    } else {
+      filter.push({
+        match: {
+          'data.Province_State': property.Province_State as string,
+        },
+      });
+      filter.push({
+        match: {
+          'data.PostalCode_Zip': property.PostalCode_Zip as string,
+        },
+      });
+    }
+
+    const {
+      data: {
+        hits: { hits },
+      },
+    } = await axios.post(
+      process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
+      {
+        from: 0,
+        size: limit,
+        sort: { 'data.ListingDate': 'desc' },
+        query: {
+          bool: {
+            filter,
+            must_not: [
+              { match: { 'data.Address': property.Address } },
+              { match: { 'data.IdxInclude': 'no' } },
+              { match: { 'data.L_Class': 'Rental' } },
+              { match: { 'data.L_Class': 'Commercial Lease' } },
+              { match: { 'data.L_Class': 'Commercial Sale' } },
+              {
+                match: {
+                  'data.Status': 'Sold',
+                },
+              },
+            ],
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Basic ${Buffer.from(
+            `${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`
+          ).toString('base64')}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    return hits.map(({ _source }: { _source: unknown }) => {
+      const { data: hit } = _source as {
+        data: Record<string, unknown>;
+      };
+      let property = {
+        Address: '',
+        Status: '',
+      };
+      Object.keys(hit as Record<string, unknown>).forEach((key) => {
+        if (hit[key]) {
+          property = {
+            ...property,
+            [key]: hit[key],
+          };
+        }
+      });
+
+      return property as MLSProperty;
+    });
+  }
+  return [];
+}
+
 export async function getPropertyData(
   property_id: number | string,
   id_is_mls = false

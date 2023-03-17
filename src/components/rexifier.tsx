@@ -19,8 +19,13 @@ import { HTMLNode } from '@/_typings/elements';
 import {
   combineAndFormatValues,
   formatValues,
+  getSimilarHomes,
 } from '@/_utilities/data-helpers/property-page';
 import RxTable from './RxTable';
+import SimilarHomes from './SimilarHomes';
+import { ReactElement } from 'react';
+import { Cheerio, CheerioAPI } from 'cheerio';
+import PropertyCard from './PropertyCard';
 
 function findInfoIfFound(agent_data: AgentData, info: string) {
   if (!agent_data) return '';
@@ -36,6 +41,163 @@ function findInfoIfFound(agent_data: AgentData, info: string) {
   }
 }
 
+export function fillAgentInfo(
+  $: CheerioAPI,
+  agent_data: AgentData
+) {
+  if (agent_data.metatags.headshot) {
+    replaceByCheerio($, '.little-profile-card img', {
+      photo: agent_data.metatags.headshot,
+    });
+  }
+  if (agent_data.metatags.profile_image) {
+    replaceByCheerio($, '.agentface', {
+      backgroundImage: agent_data.metatags.profile_image,
+    });
+    replaceByCheerio($, 'img.agentface', {
+      photo: agent_data.metatags.profile_image,
+    });
+  }
+}
+
+export function fillSimilarProperties(
+  $: CheerioAPI,
+  properties: MLSProperty[]
+) {
+  properties.forEach((p: MLSProperty, i) => {
+    replaceByCheerio(
+      $,
+      `.similar-homes-grid > .property-card-map:nth-child(${
+        i + 1
+      })`,
+      {
+        ['data-mls']: p.MLS_ID,
+      }
+    );
+
+    // Photo
+    replaceByCheerio(
+      $,
+      `.similar-homes-grid > .property-card-map:nth-child(${
+        i + 1
+      }) > .propcard-image`,
+      {
+        backgroundImage: (p.photos as string[])[0],
+      }
+    );
+
+    // Area
+    replaceByCheerio(
+      $,
+      `.similar-homes-grid > .property-card-map:nth-child(${
+        i + 1
+      }) .area-text`,
+      {
+        content: p.Area,
+      }
+    );
+
+    // Price
+    replaceByCheerio(
+      $,
+      `.similar-homes-grid > .property-card-map:nth-child(${
+        i + 1
+      }) .propcard-price`,
+      {
+        content: `${formatValues(p, 'AskingPrice')}`,
+      }
+    );
+
+    // Address
+    replaceByCheerio(
+      $,
+      `.similar-homes-grid > .property-card-map:nth-child(${
+        i + 1
+      }) .propcard-address`,
+      {
+        content: `${formatValues(p, 'Address')}`,
+      }
+    );
+
+    // Beds
+    replaceByCheerio(
+      $,
+      `.similar-homes-grid > .property-card-map:nth-child(${
+        i + 1
+      }) .bedroom-stat`,
+      {
+        content: `${formatValues(p, 'L_BedroomTotal')}`,
+      }
+    );
+
+    // Baths
+    replaceByCheerio(
+      $,
+      `.similar-homes-grid > .property-card-map:nth-child(${
+        i + 1
+      }) .bath-stat`,
+      {
+        content: `${formatValues(p, 'L_TotalBaths')}`,
+      }
+    );
+
+    // Sqft
+    replaceByCheerio(
+      $,
+      `.similar-homes-grid > .property-card-map:nth-child(${
+        i + 1
+      }) .sqft-stat`,
+      {
+        content: `${formatValues(p, 'L_FloorArea_Total')}`,
+      }
+    );
+
+    // Year
+    replaceByCheerio(
+      $,
+      `.similar-homes-grid > .property-card-map:nth-child(${
+        i + 1
+      }) .year-stat`,
+      {
+        content: `${formatValues(p, 'L_YearBuilt')}`,
+      }
+    );
+  });
+}
+
+export function replaceByCheerio(
+  $: CheerioAPI,
+  target: string,
+  replacement: Record<string, string>
+) {
+  if (replacement) {
+    if (target.indexOf('.propcard-image') >= 0) {
+      const styles: string[] = [];
+      if (replacement.backgroundImage) {
+        styles.push(
+          `background-image: url(${replacement.backgroundImage})`
+        );
+      }
+
+      if (styles.length > 0) {
+        $(target).attr('style', styles.join('; '));
+      }
+    } else if (replacement.backgroundImage) {
+      $(target).attr(
+        'style',
+        `background-image: url(${replacement.backgroundImage})`
+      );
+    } else if (replacement.photo) {
+      $(target).attr('src', replacement.photo);
+      $(target).removeAttr('srcset');
+    } else if (replacement.content) {
+      $(target).html(replacement.content);
+    } else if (replacement['data-mls']) {
+      $(target).attr('data-mls', replacement['data-mls']);
+    }
+  }
+}
+
 /**
  *
  * @param html_code
@@ -47,6 +209,9 @@ export function rexify(
   agent_data: AgentData,
   property: Record<string, unknown> = {}
 ) {
+  // Cheerio
+
+  // React parser
   const options: HTMLReactParserOptions = {
     replace: (node) => {
       // Take out script / replace DOM placeholders with our Reidget
@@ -98,23 +263,39 @@ export function rexify(
           return <PropertyCarousel {...props} agent={agent_data} />;
         }
 
+        if (node.children && node.children.length === 1) {
+          /**
+           * This is where the magic happens
+           */
+          const reX = rexifyOrSkip(
+            node.children[0],
+            {
+              ...(property && Object.keys(property).length
+                ? property
+                : {}),
+              agent_data,
+            },
+            node.attribs.class,
+            node.name
+          );
+          if (reX) return reX;
+        }
+
         if (property && Object.keys(property).length) {
           const record = property as unknown as MLSProperty;
-
-          if (node.children && node.children.length === 1) {
-            /**
-             * This is where the magic happens
-             */
-            const reX = rexifyOrSkip(
-              node.children[0],
-              {
-                ...record,
-                agent_data,
-              },
-              node.attribs.class
+          if (node.attribs['data-mls']) {
+            return (
+              <PropertyCard
+                className={node.attribs.class || ''}
+                data={{
+                  mls: node.attribs['data-mls'],
+                }}
+              >
+                {domToReact(node.children) as ReactElement[]}
+              </PropertyCard>
             );
-            if (reX) return reX;
-          } else if (node.attribs && node.attribs.class) {
+          }
+          if (node.attribs && node.attribs.class) {
             // Grouped data table sections
             // Property Information, Financial, Dimensions, Construction
             if (node.attribs.class.indexOf('propinfo') >= 0)
@@ -125,53 +306,7 @@ export function rexify(
                   groupName='propinfo'
                 />
               );
-            // Building units section
-            else if (
-              node.lastChild &&
-              (node.lastChild as HTMLNode).attribs.class &&
-              (node.lastChild as HTMLNode).attribs.class.indexOf(
-                'div-building-units-on-sale'
-              ) >= 0 &&
-              node.attribs.class.indexOf(
-                'building-and-sold-column'
-              ) >= 0
-            ) {
-              return property.neighbours &&
-                (property.neighbours as MLSProperty[]).length ? (
-                property.AddressUnit ? (
-                  <RxTable
-                    rows={node.children}
-                    data={property.neighbours as MLSProperty[]}
-                    rowClassName='div-building-units-on-sale'
-                  />
-                ) : (
-                  <></>
-                )
-              ) : (
-                <></>
-              );
-            } // Sold history
-            else if (
-              node.lastChild &&
-              (node.lastChild as HTMLNode).attribs.class &&
-              (node.lastChild as HTMLNode).attribs.class.indexOf(
-                'div-sold-history'
-              ) >= 0 &&
-              node.attribs.class.indexOf(
-                'building-and-sold-column'
-              ) >= 0
-            ) {
-              return property.sold_history &&
-                (property.sold_history as MLSProperty[]).length ? (
-                <RxTable
-                  rowClassName='div-sold-history'
-                  rows={node.children}
-                  data={property.sold_history as MLSProperty[]}
-                />
-              ) : (
-                <></>
-              );
-            } else if (node.attribs.class.indexOf('financial') >= 0)
+            else if (node.attribs.class.indexOf('financial') >= 0)
               return (
                 <RexifyStatBlock
                   node={node}
@@ -206,6 +341,55 @@ export function rexify(
                   record={record}
                 />
               );
+            }
+            // Building units section
+            else if (
+              node.lastChild &&
+              (node.lastChild as HTMLNode).attribs &&
+              (node.lastChild as HTMLNode).attribs.class
+            ) {
+              const child_class = (node.lastChild as HTMLNode)
+                .attribs.class;
+              if (
+                child_class.indexOf('div-building-units-on-sale') >=
+                  0 &&
+                node.attribs.class.indexOf(
+                  'building-and-sold-column'
+                ) >= 0
+              ) {
+                return property.neighbours &&
+                  (property.neighbours as MLSProperty[]).length ? (
+                  property.AddressUnit ? (
+                    <RxTable
+                      rows={node.children}
+                      data={property.neighbours as MLSProperty[]}
+                      rowClassName='div-building-units-on-sale'
+                    />
+                  ) : (
+                    <></>
+                  )
+                ) : (
+                  <></>
+                );
+              } // Sold history
+              else if (
+                child_class.indexOf('div-sold-history') >= 0 &&
+                node.attribs.class.indexOf(
+                  'building-and-sold-column'
+                ) >= 0
+              ) {
+                return property.sold_history &&
+                  (property.sold_history as MLSProperty[])
+                    .length ? (
+                  <RxTable
+                    rowClassName='div-sold-history'
+                    rows={node.children}
+                    data={property.sold_history as MLSProperty[]}
+                  />
+                ) : (
+                  <></>
+                );
+              }
             }
           }
         }
@@ -263,11 +447,57 @@ export function rexify(
 function rexifyOrSkip(
   element: DOMNode,
   record: MLSProperty | { agent_data?: AgentData },
-  className = ''
+  className = '',
+  tagName = ''
 ) {
   const { agent_data } = record as { agent_data: AgentData };
   const { data: placeholder } = element as { data: string };
   if (agent_data) {
+    if (placeholder === '{Agent Title}') {
+    }
+    if (
+      placeholder === '{Bio Title}' ||
+      placeholder === '{Agent Title}'
+    ) {
+      if (agent_data.metatags?.personal_title) {
+        switch (tagName) {
+          case 'h1':
+            return (
+              <h1 className={className}>
+                {agent_data.metatags?.personal_title}
+              </h1>
+            );
+          default:
+            return (
+              <span className={className}>
+                {agent_data.metatags?.personal_title}
+              </span>
+            );
+        }
+      }
+    }
+    if (placeholder === '{Bio}') {
+      if (agent_data.metatags?.personal_bio) {
+        return (
+          <p
+            className={className}
+            style={{ whiteSpace: 'pre-line' }}
+          >
+            {agent_data.metatags?.personal_bio
+              .split('\n')
+              .map((text, i) => {
+                return (
+                  <span key={`bio-${i + 1}`}>
+                    {text}
+                    <br />
+                    <br />
+                  </span>
+                );
+              })}
+          </p>
+        );
+      }
+    }
     if (placeholder === '{Agent Name}') {
       if (
         className.indexOf('logo-dark') >= 0 &&
@@ -288,11 +518,45 @@ function rexifyOrSkip(
             &nbsp;{agent_data.full_name || '{Agent Name}'}
           </h3>
         );
-      } else {
-        return (
-          <div className={className}>{agent_data.full_name}</div>
-        );
       }
+
+      switch (tagName) {
+        case 'h1':
+          return (
+            <h1 className={className}>{agent_data.full_name}</h1>
+          );
+        case 'h2':
+          return (
+            <h2 className={className}>{agent_data.full_name}</h2>
+          );
+        case 'h3':
+          return (
+            <h3 className={className}>{agent_data.full_name}</h3>
+          );
+        case 'h4':
+          return (
+            <h4 className={className}>{agent_data.full_name}</h4>
+          );
+        case 'h5':
+          return (
+            <h5 className={className}>{agent_data.full_name}</h5>
+          );
+        default:
+          return (
+            <span className={className}>
+              {agent_data.full_name}
+            </span>
+          );
+      }
+    } else if (className.indexOf('phone-link-blockj') >= 0) {
+      return (
+        <a
+          href={`tel:${agent_data.phone.replace(/[^0-9.]/g, '')}`}
+          className={className}
+        >
+          {agent_data.phone}
+        </a>
+      );
     } else if (placeholder === '{Agent Phone Number}') {
       const { name: TagName } = element.parent as { name: string };
       switch (TagName) {

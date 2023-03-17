@@ -3,11 +3,18 @@ import { headers } from 'next/headers';
 import Image from 'next/image';
 import { Inter } from 'next/font/google';
 import styles from './page.module.css';
-import { rexify } from '@/components/rexifier';
+import {
+  fillAgentInfo,
+  fillSimilarProperties,
+  rexify,
+} from '@/components/rexifier';
 import { WebFlow } from '@/_typings/webflow';
 import { getAgentDataFromWebflowDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
-import { getPropertyData } from '@/_utilities/data-helpers/property-page';
+import {
+  getPropertyData,
+  getSimilarHomes,
+} from '@/_utilities/data-helpers/property-page';
 import { MLSProperty } from '@/_typings/property';
 import Script from 'next/script';
 import { addPropertyMapScripts } from '@/components/Scripts/google-street-map';
@@ -59,11 +66,24 @@ export default async function Home({
   }
 
   const $: CheerioAPI = load(data);
+  fillAgentInfo($, agent_data);
 
   if (property) {
     // Photo gallery for properties
     const d = property as unknown as MLSProperty;
     const photos: string[] = d.photos as string[];
+    const similar_properties = await getSimilarHomes(
+      property as unknown as MLSProperty
+    );
+    property = {
+      ...property,
+      similar_properties,
+    };
+
+    if (similar_properties.length) {
+      fillSimilarProperties($, similar_properties);
+    }
+
     $('a.link').each((e, el) => {
       el.children.forEach((child) => {
         if (photos[e]) {
