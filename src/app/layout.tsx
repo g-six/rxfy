@@ -76,7 +76,11 @@ export default async function RootLayout({
             />
             <Script
               src={`https://maps.googleapis.com/maps/api/js?key=${NEXT_APP_GOOGLE_API_KEY}&libraries=places,localContext&v=beta&callback=initializePlacesAutocomplete`}
-              strategy='lazyOnload'
+              async
+            />
+            <Script
+              src='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js'
+              async
             />
           </body>
         ) : (

@@ -96,18 +96,12 @@ export function addPropertyMapScripts(
                 });
             }
 
-
-
             if (document.querySelector(".map-div")) {
-                setTimeout(() => {
-                    initNeighborhoodMap();
-                }, 400);
+                initNeighborhoodMap();
             }
 
             if (document.querySelector(".street-view-div")) {
-                setTimeout(() => {
-                    initStreetView(".street-view-div");
-                }, 400);
+                initStreetView(".street-view-div");
             }
         `;
 }

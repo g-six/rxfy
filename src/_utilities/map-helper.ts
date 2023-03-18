@@ -125,3 +125,9 @@ function mapStyles(): MapStyle[] {
     },
   ];
 }
+
+export function getShortPrice(amount: number) {
+  if (amount < 1000000) return `$${Math.round(amount / 1000)}K`;
+
+  return `$${Math.round(amount / 1000000)}M`;
+}

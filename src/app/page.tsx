@@ -47,11 +47,29 @@ export default async function Home({
 
   const { data } = await axios.get(webflow_page_url);
 
+  const $: CheerioAPI = load(data);
+
   const agent_data: AgentData = await getAgentDataFromWebflowDomain(
     hostname
   );
   let listings, property;
 
+  if (!params || !params.slug || params.slug === '/') {
+    if (agent_data && agent_data.agent_id) {
+      listings = await getAgentListings(agent_data.agent_id);
+      if (listings.active?.length === 0) {
+        const recent_listings = await getRecentListings(agent_data);
+        listings = {
+          ...listings,
+          active: recent_listings,
+        };
+      }
+    } else {
+      console.log('\n\nHome.agent_data not available');
+    }
+  }
+  if (params && params.slug === 'compare') {
+  }
   if (
     params &&
     params.slug === 'property' &&
@@ -64,21 +82,6 @@ export default async function Home({
       !!searchParams.mls
     );
   }
-  if (agent_data && agent_data.agent_id) {
-    console.log('getAgentListings', agent_data.agent_id);
-    listings = await getAgentListings(agent_data.agent_id);
-    if (listings.active?.length === 0) {
-      const recent_listings = await getRecentListings(agent_data);
-      listings = {
-        ...listings,
-        active: recent_listings,
-      };
-    }
-  } else {
-    console.log('\n\nHome.agent_data not available');
-  }
-
-  const $: CheerioAPI = load(data);
 
   await fillAgentInfo($, agent_data);
   // Recent listings

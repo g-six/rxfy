@@ -30,6 +30,7 @@ import {
   getViewPortParamsFromGeolocation,
 } from '@/_utilities/geocoding-helper';
 import { GeoLocation, MapboxBoundaries } from '@/_typings/maps';
+import RxMapbox from './RxMapbox';
 
 async function replaceTargetCityComponents(
   $: CheerioAPI,
@@ -308,6 +309,12 @@ export function removeSection(
   }
 }
 
+export function replaceInlineScripts($: CheerioAPI) {
+  $('script:not([src])').each((index, scrpt) => {
+    $(scrpt).remove();
+  });
+}
+
 /**
  *
  * @param html_code
@@ -325,10 +332,78 @@ export function rexify(
   const options: HTMLReactParserOptions = {
     replace: (node) => {
       // Take out script / replace DOM placeholders with our Reidget
-      if (node instanceof Element && node.attribs) {
+      if (node.type === 'script') {
+        const { attribs } = node as unknown as {
+          attribs: Record<string, string>;
+        };
+
+        if (attribs.src) {
+          const { pathname } = new URL(attribs.src);
+
+          return (
+            <>
+              <Script
+                id={pathname.split('/').pop()}
+                dangerouslySetInnerHTML={{
+                  __html: `
+                    var script = document.createElement('script');
+                    ${
+                      pathname.indexOf('datepicker') >= 0
+                        ? 'script.defer = true;'
+                        : 'script.async = true;'
+                    }
+                    script.src = '${attribs.src}';
+                    console.log('Loading ${attribs.src}')
+                    script.onload = () => {
+                        console.log('${attribs.src}', '${pathname
+                    .split('/')
+                    .pop()} loaded')
+                        setTimeout(() => {
+                            const badge = document.querySelector('.w-webflow-badge')
+                            if (badge) {
+                                badge.remove();
+                                console.log('badge found and removed');
+                            }
+                        }, 1200)
+                    }
+                    
+                    ${
+                      attribs.src.indexOf('jquery')
+                        ? 'document.body.appendChild(script);'
+                        : ''
+                    }
+                  `,
+                }}
+              />
+            </>
+          );
+        } else {
+          if ((node as Element).children) {
+            // Scripts that are inline...
+            // Debugging purposes
+            // const { data } = (node as Element).children[0] as {
+            //   data: string;
+            // };
+            return <></>;
+          }
+        }
+      } else if (node instanceof Element && node.attribs) {
         const { class: className, ...props } = attributesToProps(
           node.attribs
         );
+
+        if (props['data-mls']) {
+          return (
+            <PropertyCard
+              className={className || ''}
+              data={{
+                mls: props['data-mls'],
+              }}
+            >
+              {domToReact(node.children) as ReactElement[]}
+            </PropertyCard>
+          );
+        }
 
         if (
           node.attribs['data-type'] === 'email' &&
@@ -372,11 +447,34 @@ export function rexify(
         ) {
           return <PropertyCarousel {...props} agent={agent_data} />;
         }
-
+        /**
+         * This is where the magic happens
+         */
+        if (node.attribs.class === 'map-and-header') {
+          // Mapbox Voodoo here
+          return (
+            <div
+              className={node.attribs.class}
+              style={{ display: 'flex', flexDirection: 'column' }}
+            >
+              {domToReact(node.children)}
+              <RxMapbox
+                agent={agent_data}
+                token={process.env.NEXT_APP_MAPBOX_TOKEN as string}
+                search_url={
+                  process.env.NEXT_APP_LEGACY_PIPELINE_URL as string
+                }
+                headers={{
+                  Authorization: `Basic ${Buffer.from(
+                    `${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`
+                  ).toString('base64')}`,
+                  'Content-Type': 'application/json',
+                }}
+              />
+            </div>
+          );
+        }
         if (node.children && node.children.length === 1) {
-          /**
-           * This is where the magic happens
-           */
           const reX = rexifyOrSkip(
             node.children[0],
             {
@@ -393,18 +491,6 @@ export function rexify(
 
         if (property && Object.keys(property).length) {
           const record = property as unknown as MLSProperty;
-          if (node.attribs['data-mls']) {
-            return (
-              <PropertyCard
-                className={node.attribs.class || ''}
-                data={{
-                  mls: node.attribs['data-mls'],
-                }}
-              >
-                {domToReact(node.children) as ReactElement[]}
-              </PropertyCard>
-            );
-          }
           if (node.attribs && node.attribs.class) {
             // Grouped data table sections
             // Property Information, Financial, Dimensions, Construction
@@ -503,48 +589,6 @@ export function rexify(
             }
           }
         }
-
-        if (node.type === 'script' && node.attribs.src) {
-          const { pathname } = new URL(node.attribs.src);
-
-          return (
-            <>
-              <Script
-                id={pathname}
-                dangerouslySetInnerHTML={{
-                  __html: `
-                    var script = document.createElement('script');
-                    ${
-                      pathname.indexOf('jquery') >= 0
-                        ? 'script.defer = true;'
-                        : 'script.async = true;'
-                    }
-                    script.src = '${node.attribs.src}';
-                    script.onload = () => {
-                        console.log('${
-                          node.attribs.src
-                        }', '${pathname.split('/').pop()} loaded')
-
-                        setTimeout(() => {
-                            const badge = document.querySelector('.w-webflow-badge')
-                            if (badge) {
-                                badge.remove();
-                                console.log('badge found and removed');
-                            }
-                        }, 1000)
-                    }
-                    
-                    ${
-                      node.attribs.src.indexOf('jquery')
-                        ? 'document.body.appendChild(script);'
-                        : ''
-                    }
-                  `,
-                }}
-              />
-            </>
-          );
-        }
       }
     },
   };
@@ -621,11 +665,21 @@ function rexifyOrSkip(
               backgroundRepeat: 'no-repeat',
               backgroundSize: 'contain',
               flex: 1,
+              display: 'flex',
               /* We wanna hide the agent name text if logo is available */
-              textIndent: '-100em',
             }}
           >
-            &nbsp;{agent_data.full_name || '{Agent Name}'}
+            <a
+              href='/'
+              style={{
+                display: 'inline-block',
+                opacity: 0,
+                width: '100%',
+                textIndent: '-100em',
+              }}
+            >
+              {agent_data.full_name || '{Agent Name}'}
+            </a>
           </h3>
         );
       }

@@ -111,7 +111,22 @@ export function getGqlForFilteredProperties(
   };
 }
 
-const must_not: { match: { [key: string]: string } }[] = [
+// Let's only retrieve listings from 4 hours ago as
+// the Geocoding script might still be running on
+// the new entries (time here is UTC due to legacy server config)
+const gte = new Date(new Date().getTime() - 8 * 60 * 60000)
+  .toISOString()
+  .substring(0, 19);
+
+export const must_not: {
+  match?: { [key: string]: string };
+  range?: {
+    [key: string]: {
+      lte?: string;
+      gte?: string;
+    };
+  };
+}[] = [
   { match: { 'data.IdxInclude': 'no' } },
   { match: { 'data.L_Class': 'Rental' } },
   { match: { 'data.L_Class': 'Commercial Lease' } },
@@ -119,6 +134,13 @@ const must_not: { match: { [key: string]: string } }[] = [
   {
     match: {
       'data.Status': 'Sold',
+    },
+  },
+  {
+    range: {
+      'data.UpdateDate': {
+        gte,
+      },
     },
   },
 ];
@@ -157,6 +179,15 @@ export async function retrieveFromLegacyPipeline(
         must_not,
       },
     },
+  },
+  config = {
+    url: process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
+    headers: {
+      Authorization: `Basic ${Buffer.from(
+        `${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`
+      ).toString('base64')}`,
+      'Content-Type': 'application/json',
+    },
   }
 ) {
   const axios: AxiosStatic = (await import('axios')).default;
@@ -164,18 +195,9 @@ export async function retrieveFromLegacyPipeline(
     data: {
       hits: { hits },
     },
-  } = await axios.post(
-    process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
-    params,
-    {
-      headers: {
-        Authorization: `Basic ${Buffer.from(
-          `${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`
-        ).toString('base64')}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
+  } = await axios.post(config.url, params, {
+    headers: config.headers,
+  });
 
   return hits.map(({ _source }: { _source: unknown }) => {
     const { data: hit } = _source as {
@@ -204,7 +226,7 @@ export async function getRecentListings(
 ) {
   let properties = await retrieveFromLegacyPipeline({
     from: 0,
-    size: 3,
+    size: limit,
     sort: { 'data.ListingDate': 'desc' },
     query: {
       bool: {
@@ -236,7 +258,7 @@ export async function getRecentListings(
       sort: { 'data.ListingDate': 'desc' },
       query: {
         bool: {
-          filter: [],
+          filter: agent.metatags?.target_city ? [] : [],
           should: agent.metatags?.target_city
             ? []
             : [
