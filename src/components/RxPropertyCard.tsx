@@ -39,23 +39,30 @@ function RxComponentChomper({ config, children }: any): any {
   return <>{cloneChildren}</>;
 }
 
-export default function RxPropertyCard(
-  props: MLSProperty & { children: any }
-) {
+export default function RxPropertyCard({
+  children,
+  listing,
+}: {
+  children: any;
+  listing: MLSProperty;
+}) {
   return (
     <RxComponentChomper
       config={{
-        '{PropertyCard Address}': props.Address,
-        '{PropertyCard Price}': formatValues(props, 'AskingPrice'),
-        '{PArea}': props.Area,
-        '{PBd}': props.L_BedroomTotal,
-        '{PBth}': props.L_TotalBaths,
-        '{Psq}': props.L_FloorArea_Total,
-        photos: props.photos as string[],
-        '{PYear}': props.L_YearBuilt || ' ',
+        '{PropertyCard Address}': listing.Address,
+        '{PropertyCard Price}': formatValues(
+          listing,
+          'AskingPrice'
+        ),
+        '{PArea}': listing.Area,
+        '{PBd}': listing.L_BedroomTotal,
+        '{PBth}': listing.L_TotalBaths,
+        '{Psq}': listing.L_FloorArea_Total,
+        photos: listing.photos as string[],
+        '{PYear}': listing.L_YearBuilt || ' ',
       }}
     >
-      {props.children}
+      {children}
     </RxComponentChomper>
   );
 }
