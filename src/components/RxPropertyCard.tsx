@@ -2,14 +2,10 @@ import { MLSProperty } from '@/_typings/property';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import React from 'react';
 
-type RxComponentChomperProps = {
-  config: Record<string, string | number | string[]>;
-  children: any;
-};
 function RxComponentChomper({ config, children }: any): any {
   const cloneChildren = React.Children.map(children, (child) => {
     if (typeof child === 'string') {
-      return <span>config[child] || child</span>;
+      return config[child] || 'child';
     } else if (
       React.isValidElement(child) &&
       child.type !== 'img'
@@ -23,7 +19,14 @@ function RxComponentChomper({ config, children }: any): any {
             ? `url(${(config.photos as string[])[0]})`
             : 'none',
         };
-        return React.cloneElement(child);
+
+        return React.cloneElement(child, {
+          ...(child as React.ReactElement).props,
+          children: RxComponentChomper({
+            config,
+            children: (child as React.ReactElement).props.children,
+          }) as any,
+        });
       }
 
       return React.cloneElement(child, {
@@ -34,6 +37,8 @@ function RxComponentChomper({ config, children }: any): any {
         }) as any,
       });
     }
+    // console.log('skipped', child, typeof child);
+    return child;
   });
 
   return <>{cloneChildren}</>;
@@ -54,7 +59,7 @@ export default function RxPropertyCard({
           listing,
           'AskingPrice'
         ),
-        '{PArea}': listing.Area,
+        '{PArea}': listing.Area || listing.City || 'N/A',
         '{PBd}': listing.L_BedroomTotal,
         '{PBth}': listing.L_TotalBaths,
         '{Psq}': listing.L_FloorArea_Total,
