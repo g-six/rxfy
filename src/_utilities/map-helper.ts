@@ -127,7 +127,16 @@ function mapStyles(): MapStyle[] {
 }
 
 export function getShortPrice(amount: number) {
-  if (amount < 1000000) return `$${Math.round(amount / 1000)}K`;
+  const str = `${Math.round(amount / 1000)}`;
+  if (amount < 1000000) {
+    return `$${str}K`;
+  }
+
+  if (str.substring(1, 2) !== '0') {
+    const x = Math.round(parseInt(str.substring(1), 10) / 100);
+    if (x < 10) return `$${str.substring(0, 1)}.${x}M`;
+    else return `$${str.substring(0, 1)}M`;
+  }
 
   return `$${Math.round(amount / 1000000)}M`;
 }

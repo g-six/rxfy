@@ -243,8 +243,6 @@ export async function retrieveFromLegacyPipeline(
         }
       });
 
-      console.log(property);
-
       return property as MLSProperty;
     }
   );

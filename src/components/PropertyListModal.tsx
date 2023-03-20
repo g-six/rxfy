@@ -5,7 +5,7 @@ import { PropertyCardSmall } from './PropertyCard';
 import { classNames } from '@/_utilities/html-helper';
 
 type PropertyListProps = {
-  properties: Feature<Geometry, GeoJsonProperties>[];
+  properties: Record<string, string>[];
   onClose(): void;
 };
 
@@ -57,7 +57,7 @@ export default function PropertyListModal(p: PropertyListProps) {
                           <PropertyCardSmall
                             className='w-full shadow-none m-0 hover:bg-indigo-100 p-1 rounded-2xl'
                             key={p.id as string}
-                            {...p.properties}
+                            {...p}
                           />
                         )
                     )}

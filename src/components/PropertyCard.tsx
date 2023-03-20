@@ -14,7 +14,7 @@ type PropertyCardProps = {
   sold?: boolean;
 };
 export function PropertyCardSmall(props: Record<string, string>) {
-  const [photo] = props.photos as unknown as string[];
+  const [photo] = (props.photos || []) as unknown as string[];
   return (
     <div
       className={classNames(
