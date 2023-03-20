@@ -149,9 +149,13 @@ export async function retrieveFromLegacyPipeline(
   params: {
     from: number;
     size: number;
-    sort?: {
-      [key: string]: 'asc' | 'desc';
-    };
+    sort?:
+      | {
+          [key: string]: 'asc' | 'desc';
+        }
+      | {
+          [key: string]: 'asc' | 'desc' | Record<string, unknown>;
+        }[];
     fields?: string[];
     query: {
       bool: {
