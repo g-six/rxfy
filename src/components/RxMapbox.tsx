@@ -173,7 +173,9 @@ export function RxMapbox(props: RxMapboxProps) {
     }
   };
 
-  const clickEventListener = (e) => {
+  const clickEventListener = (
+    e: mapboxgl.MapMouseEvent & mapboxgl.EventData
+  ) => {
     const features = e.target.queryRenderedFeatures(e.point, {
       layers: ['rx-clusters', 'rx-home-price-bg'],
     });
