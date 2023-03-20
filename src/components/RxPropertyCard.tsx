@@ -5,7 +5,7 @@ import React from 'react';
 function RxComponentChomper({ config, children }: any): any {
   const cloneChildren = React.Children.map(children, (child) => {
     if (typeof child === 'string') {
-      return config[child] || 'child';
+      return config[child] || child;
     } else if (
       React.isValidElement(child) &&
       child.type !== 'img'
@@ -52,22 +52,27 @@ export default function RxPropertyCard({
   listing: MLSProperty;
 }) {
   return (
-    <RxComponentChomper
-      config={{
-        '{PropertyCard Address}': listing.Address,
-        '{PropertyCard Price}': formatValues(
-          listing,
-          'AskingPrice'
-        ),
-        '{PArea}': listing.Area || listing.City || 'N/A',
-        '{PBd}': listing.L_BedroomTotal,
-        '{PBth}': listing.L_TotalBaths,
-        '{Psq}': listing.L_FloorArea_Total,
-        photos: listing.photos as string[],
-        '{PYear}': listing.L_YearBuilt || ' ',
-      }}
-    >
-      {children}
-    </RxComponentChomper>
+    <div className='relative'>
+      <RxComponentChomper
+        config={{
+          '{PropertyCard Address}': listing.Address,
+          '{PropertyCard Price}': formatValues(
+            listing,
+            'AskingPrice'
+          ),
+          '{PArea}': listing.Area || listing.City || 'N/A',
+          '{PBd}': listing.L_BedroomTotal,
+          '{PBth}': listing.L_TotalBaths,
+          '{Psq}': listing.L_FloorArea_Total,
+          photos: listing.photos as string[],
+          '{PYear}': listing.L_YearBuilt || ' ',
+        }}
+      >
+        {children}
+      </RxComponentChomper>
+      <a href='/' className='absolute top-0 left-0 w-full h-full'>
+        &nbsp;
+      </a>
+    </div>
   );
 }

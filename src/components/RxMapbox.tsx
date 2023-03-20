@@ -169,6 +169,7 @@ export function RxMapbox(props: RxMapboxProps) {
   const retrieveAndRenderMapData = () => {
     if (!map) return;
     if (!is_loading) {
+      console.log('setting it to true again');
       setLoading(true);
     }
   };
@@ -274,6 +275,8 @@ export function RxMapbox(props: RxMapboxProps) {
   );
 
   React.useEffect(() => {
+    setLoading(false);
+    console.log('is_loading', is_loading);
     is_loading &&
       map &&
       retrieveFromLegacyPipeline(
@@ -371,13 +374,12 @@ export function RxMapbox(props: RxMapboxProps) {
       const nav = new mapboxgl.NavigationControl();
       map.addControl(nav, 'top-left');
       retrieveAndRenderMapData();
-      //   repositionMap();
     }
   }, [map]);
 
   React.useEffect(() => {
     if (props.params && props.params.id) {
-      repositionMap([props.params.lng, props.params.lat]);
+      //   repositionMap([props.params.lng, props.params.lat]);
     }
   }, [props.params, map, repositionMap]);
 

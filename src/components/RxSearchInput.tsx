@@ -66,6 +66,7 @@ export default function SearchInput(p: SearchInputProps) {
       <div className='relative w-full'>
         <Combobox.Input
           className='w-full rounded-md border-0 bg-white p-0 text-gray-900 focus:ring-0 focus:outline-0 sm:text-sm sm:leading-6'
+          autoComplete='off'
           onChange={(e) => {
             setValue(e);
             updateMapState(
