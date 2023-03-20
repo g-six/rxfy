@@ -6,10 +6,7 @@ type RxComponentChomperProps = {
   config: Record<string, string | number | string[]>;
   children: any;
 };
-const RxComponentChomper = ({
-  config,
-  children,
-}: RxComponentChomperProps): React.ReactElement[] => {
+function RxComponentChomper({ config, children }: any): any {
   const cloneChildren = React.Children.map(children, (child) => {
     if (typeof child === 'string') {
       return config[child] || child;
@@ -21,29 +18,25 @@ const RxComponentChomper = ({
         (child as React.ReactElement).props.className ===
         'propcard-image'
       ) {
-        return React.cloneElement(child, {
-          style: {
-            backgroundImage: config.photos
-              ? `url(${config.photos[0]})`
-              : 'none',
-          },
-          children: RxComponentChomper({
-            config,
-            children: child.props.children,
-          }),
-        });
+        (child as React.ReactElement).props.style = {
+          backgroundImage: config.photos
+            ? `url(${(config.photos as string[])[0]})`
+            : 'none',
+        };
+        return React.cloneElement(child);
       }
+
       return React.cloneElement(child, {
         children: RxComponentChomper({
           config,
           children: child.props.children,
-        }),
+        }) as any,
       });
     }
   });
 
   return <>{cloneChildren}</>;
-};
+}
 
 export default function RxPropertyCard(
   props: MLSProperty & { children: any }
