@@ -17,11 +17,14 @@ import {
   getPlaceDetails,
   PlaceDetails,
 } from '@/_utilities/geocoding-helper';
+import { MLSProperty } from '@/_typings/property';
 
 type RxPropertyMapProps = {
   hide_others?: boolean;
   place?: google.maps.places.AutocompletePrediction;
   setPlace?: (p: google.maps.places.AutocompletePrediction) => void;
+  listings: MLSProperty[];
+  setListings?: (p: MLSProperty[]) => void;
   setHideOthers?: (hide: boolean) => void;
   children: any;
   agent_data: AgentData;
@@ -134,6 +137,10 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps) {
                   token={props.config.mapbox_token}
                   search_url={props.config.url}
                   params={props.mapbox_params}
+                  setListings={(listings: MLSProperty[]) => {
+                    props.setListings &&
+                      props.setListings(listings);
+                  }}
                 ></RxMapbox>
               </>
             ),
@@ -145,17 +152,19 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps) {
         if (child.props.className === 'property-card-map') {
           // Just clone one
           return child.key === '0' ? (
-            <RxPropertyCard>
-              {cloneElement(child, {
-                ...child.props,
-                className: classNames(
-                  child.props.className,
-                  styles.RxPropertyMap
-                ),
-                // Wrap grandchildren too
-                children: <>{child.props.children}</>,
-              })}
-            </RxPropertyCard>
+            props.listings.slice(-10).map((p: MLSProperty) => (
+              <RxPropertyCard key={p.MLS_ID} {...p}>
+                {cloneElement(child, {
+                  ...child.props,
+                  className: classNames(
+                    child.props.className,
+                    styles.RxPropertyMap
+                  ),
+                  // Wrap grandchildren too
+                  children: <>{child.props.children}</>,
+                })}
+              </RxPropertyCard>
+            ))
           ) : (
             <></>
           );
@@ -186,6 +195,7 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
   const [hide_others, setHideOthers] = React.useState(false);
   const [place, setPlace] =
     React.useState<google.maps.places.AutocompletePrediction>();
+  const [listings, setListings] = React.useState<MLSProperty[]>([]);
   const [map_params, setMapParams] = React.useState<PlaceDetails>();
 
   React.useEffect(() => {
@@ -197,6 +207,10 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
     }
   }, [place]);
 
+  React.useEffect(() => {
+    console.log('listings changed', listings);
+  }, [listings]);
+
   return (
     <MapProvider>
       <RxPropertyMapRecursive
@@ -205,6 +219,10 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
           setPlace(p);
         }}
         place={place}
+        setListings={(p: MLSProperty[]) => {
+          setListings(p);
+        }}
+        listings={listings}
         setHideOthers={(hide: boolean) => {
           console.log('hide', hide);
           setHideOthers(hide);

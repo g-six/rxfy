@@ -28,6 +28,7 @@ type RxMapboxProps = {
   search_url: string;
   params?: PlaceDetails;
   headers: Record<string, unknown>;
+  setListings(listings: MLSProperty[]): void;
 };
 
 function createClusterPin(num_of_items: number) {
@@ -277,7 +278,7 @@ export function RxMapbox(props: RxMapboxProps) {
         {
           from: 0,
           size: 1000,
-          sort: { 'data.ListingDate': 'desc' },
+          sort: [{ 'data.ListingDate': 'desc' }],
           fields: [
             'data.Address',
             'data.Area',
@@ -286,6 +287,7 @@ export function RxMapbox(props: RxMapboxProps) {
             'data.L_BedroomTotal',
             'data.L_FloorArea_Total',
             'data.L_TotalBaths',
+            'data.L_YearBuilt',
             'data.photos',
             'data.Status',
             'data.MLS_ID',
@@ -434,6 +436,8 @@ export function RxMapbox(props: RxMapboxProps) {
         registerMapClickHandler(listings);
       }
     }
+
+    props.setListings(listings);
   }, [listings]);
 
   React.useEffect(() => {
