@@ -27,9 +27,10 @@ function RxComponentChomper({ config, children }: any): any {
       }
 
       return React.cloneElement(child, {
+        ...(child as React.ReactElement).props,
         children: RxComponentChomper({
           config,
-          children: child.props.children,
+          children: (child as React.ReactElement).props.children,
         }) as any,
       });
     }
