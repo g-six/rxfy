@@ -27,14 +27,14 @@ const RxComponentChomper = ({
               ? `url(${config.photos[0]})`
               : 'none',
           },
-          children: ReplaceTextComponent({
+          children: RxComponentChomper({
             config,
             children: child.props.children,
           }),
         });
       }
       return React.cloneElement(child, {
-        children: ReplaceTextComponent({
+        children: RxComponentChomper({
           config,
           children: child.props.children,
         }),
