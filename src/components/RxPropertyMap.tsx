@@ -151,7 +151,8 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps) {
 
         if (child.props.className === 'property-card-map') {
           // Just clone one
-          return child.key === '0' ? (
+
+          return child.key === '1' ? (
             props.listings.slice(-10).map((p: MLSProperty) => (
               <RxPropertyCard key={p.MLS_ID} listing={p}>
                 {cloneElement(child, {
