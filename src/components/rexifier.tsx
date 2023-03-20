@@ -499,6 +499,7 @@ export function rexify(
             <div className={node.attribs.class}>
               <RxPropertyMap
                 agent_data={agent_data}
+                listings={[]}
                 config={{
                   authorization: `Basic ${Buffer.from(
                     `${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`
