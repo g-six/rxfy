@@ -2,7 +2,14 @@ import { MLSProperty } from '@/_typings/property';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import React from 'react';
 
-const ReplaceTextComponent = ({ config, children }) => {
+type RxComponentChomperProps = {
+  config: Record<string, string | number | string[]>;
+  children: any;
+};
+const RxComponentChomper = ({
+  config,
+  children,
+}: RxComponentChomperProps): React.ReactElement => {
   const cloneChildren = React.Children.map(children, (child) => {
     if (typeof child === 'string') {
       return config[child] || child;
@@ -39,7 +46,7 @@ export default function RxPropertyCard(
   props: MLSProperty & { children: any }
 ) {
   return (
-    <ReplaceTextComponent
+    <RxComponentChomper
       config={{
         '{PropertyCard Address}': props.Address,
         '{PropertyCard Price}': formatValues(props, 'AskingPrice'),
@@ -52,6 +59,6 @@ export default function RxPropertyCard(
       }}
     >
       {props.children}
-    </ReplaceTextComponent>
+    </RxComponentChomper>
   );
 }
