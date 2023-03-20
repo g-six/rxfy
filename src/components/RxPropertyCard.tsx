@@ -9,7 +9,7 @@ type RxComponentChomperProps = {
 function RxComponentChomper({ config, children }: any): any {
   const cloneChildren = React.Children.map(children, (child) => {
     if (typeof child === 'string') {
-      return config[child] || child;
+      return <span>config[child] || child</span>;
     } else if (
       React.isValidElement(child) &&
       child.type !== 'img'

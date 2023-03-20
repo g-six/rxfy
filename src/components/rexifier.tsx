@@ -31,7 +31,6 @@ import {
   getViewPortParamsFromGeolocation,
 } from '@/_utilities/geocoding-helper';
 import { GeoLocation, MapboxBoundaries } from '@/_typings/maps';
-import RxSearchInput from './RxSearchInput';
 import RxPropertyMap from './RxPropertyMap';
 
 async function replaceTargetCityComponents(
@@ -681,26 +680,11 @@ function rexifyOrSkip(
   record: unknown,
   className = '',
   tagName = ''
-) {
+): ReactElement | undefined {
   const { agent_data } = record as { agent_data: AgentData };
-
-  if (tagName === 'input') {
-    if (className === 'txt-search-input') {
-      return (
-        <RxSearchInput
-          id='search-input'
-          name='search-input'
-          className={className}
-        />
-      );
-    }
-    return;
-  }
 
   const { data: placeholder } = element as { data: string };
   if (agent_data) {
-    if (placeholder === '{Agent Title}') {
-    }
     if (
       placeholder === '{Bio Title}' ||
       placeholder === '{Agent Title}'
@@ -746,14 +730,18 @@ function rexifyOrSkip(
     }
     if (placeholder === '{Agent Name}') {
       if (agent_data.full_name) {
-        return domToReact(
-          htmlToDOM(
-            `<${tagName || 'span'}
+        return (
+          <>
+            {domToReact(
+              htmlToDOM(
+                `<${tagName || 'span'}
             class="${className}"
           >
             ${agent_data.full_name}
           </${tagName || 'span'}>`
-          )
+              )
+            )}
+          </>
         );
       }
     }
