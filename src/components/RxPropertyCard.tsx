@@ -9,7 +9,7 @@ type RxComponentChomperProps = {
 const RxComponentChomper = ({
   config,
   children,
-}: RxComponentChomperProps): React.ReactElement => {
+}: RxComponentChomperProps): React.ReactElement[] => {
   const cloneChildren = React.Children.map(children, (child) => {
     if (typeof child === 'string') {
       return config[child] || child;
@@ -17,7 +17,10 @@ const RxComponentChomper = ({
       React.isValidElement(child) &&
       child.type !== 'img'
     ) {
-      if (child.props.className === 'propcard-image') {
+      if (
+        (child as React.ReactElement).props.className ===
+        'propcard-image'
+      ) {
         return React.cloneElement(child, {
           style: {
             backgroundImage: config.photos
