@@ -2,11 +2,12 @@ import { CheerioAPI, load } from 'cheerio';
 import { headers } from 'next/headers';
 import Image from 'next/image';
 import { Inter } from 'next/font/google';
-import styles from './page.module.css';
+import styles from './page.module.scss';
 import {
   fillAgentInfo,
   fillPropertyGrid,
   removeSection,
+  replaceByCheerio,
   rexify,
 } from '@/components/rexifier';
 import { WebFlow } from '@/_typings/webflow';
@@ -48,6 +49,12 @@ export default async function Home({
   const { data } = await axios.get(webflow_page_url);
 
   const $: CheerioAPI = load(data);
+
+  replaceByCheerio($, '.search-input-field', {
+    prepend: `<input class="txt-search-input" name="search-input" id="search-input" type="text" value="${
+      (searchParams && searchParams.city) || ''
+    }" />`,
+  });
 
   const agent_data: AgentData = await getAgentDataFromWebflowDomain(
     hostname
@@ -159,7 +166,9 @@ export default async function Home({
   return (
     <>
       {webflow.body.code ? (
-        rexify(webflow.body.code, agent_data, property)
+        <main className={styles['rx-realm']}>
+          {rexify(webflow.body.code, agent_data, property)}
+        </main>
       ) : (
         <main className={styles.main}>
           <div className={styles.description}>

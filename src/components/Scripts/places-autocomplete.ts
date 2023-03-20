@@ -18,28 +18,45 @@ export default function initializePlacesAutocomplete(
         if (!gpaInput) gpaInput = document.querySelector('.section---search input, .map-search-block input')
 
         if (gpaInput) {
+            console.log('Page search is ready')
             var autocomplete = new google.maps.places.Autocomplete(gpaInput);
     
             google.maps.event.addListener(autocomplete, 'place_changed', function() {
-                const { geometry } = autocomplete.getPlace()
-                const qs = objectToUrlParams({
-                    lat: geometry.location.lat(),
-                    lng: geometry.location.lng(),
-                    swlat: geometry.viewport.getSouthWest().lat(),
-                    swlng: geometry.viewport.getSouthWest().lng(),
-                    nelat: geometry.viewport.getNorthEast().lat(),
-                    nelng: geometry.viewport.getNorthEast().lng(),
-                    type: 'R',
-                    sorting: 'date_desc',
-                    minprice: 0,
-                    maxprice: 100000000,
-                    baths: 0,
-                    beds: 0,
-                    minsqft: 0,
-                    maxsqft: 63591,
-                    zoom: 12,
-                })
-                location.href = '/map?' + qs
+                const { address_components, geometry, vicinity } = autocomplete.getPlace()
+                if (geometry) {
+                    const params = {
+                        lat: geometry.location.lat(),
+                        lng: geometry.location.lng(),
+                        swlat: geometry.viewport.getSouthWest().lat(),
+                        swlng: geometry.viewport.getSouthWest().lng(),
+                        nelat: geometry.viewport.getNorthEast().lat(),
+                        nelng: geometry.viewport.getNorthEast().lng(),
+                        type: 'R',
+                        sorting: 'date_desc',
+                        minprice: 0,
+                        maxprice: 100000000,
+                        baths: 0,
+                        beds: 0,
+                        minsqft: 0,
+                        maxsqft: 63591,
+                        zoom: 12,
+                    }
+                    if (address_components && address_components.length) {
+                        address_components.forEach(({ types, long_name }) => {
+                            if (long_name) {
+                                if (
+                                    types.includes('locality') &&
+                                    types.includes('political')
+                                ) {
+                                    params.city = encodeURIComponent(long_name.replace(/ /g, '+'))
+                                }
+                            }
+                        })
+                    }
+                    const qs = objectToUrlParams(params)
+                    
+                    location.href = '/map?' + qs
+                }
             });
         }
 

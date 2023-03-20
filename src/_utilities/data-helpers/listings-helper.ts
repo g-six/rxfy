@@ -39,7 +39,7 @@ export async function getAgentListings(agent_id: string): Promise<{
   if (!res.ok) {
     console.log('Cache file not found', url);
     // If no cached listings results found, let's search
-    url = `${process.env.NEXT_APP_INTEGRATIONS_URL}/opensearch/agent-listings/${agent_id}`;
+    url = `${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent_id}`;
     res = await fetch(url);
   }
   if (res.ok) {

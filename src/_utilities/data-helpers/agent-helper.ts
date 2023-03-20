@@ -38,7 +38,7 @@ export async function getAgentDataFromDomain(
   );
   if (!data || Object.keys(data).length === 0 || !data.agent_id) {
     url = `${
-      process.env.NEXT_APP_INTEGRATIONS_URL
+      process.env.NEXT_PUBLIC_API
     }/agent-websites/d/${encodeURIComponent(
       henrik_steiners.includes(domain)
         ? henrik_steiners[0].substring(3)
@@ -69,7 +69,7 @@ export async function getAgentDataFromWebflowDomain(
     domain
   )}/agent-data.json`;
   console.log('getAgentDataFromWebflowDomain.axios', url, '\n');
-  let xhr = await axios.get(url).catch(() => {
+  let xhr = await axios.get(url).catch(async () => {
     console.log(
       '\ngetAgentDataFromWebflowDomain: No agent-data.json found at',
       url
@@ -82,7 +82,7 @@ export async function getAgentDataFromWebflowDomain(
 
   if (!data || Object.keys(data).length === 0 || !data.agent_id) {
     url = `${
-      process.env.NEXT_APP_INTEGRATIONS_URL
+      process.env.NEXT_PUBLIC_API
     }/agent-websites/webflow/${encodeURIComponent(domain)}`;
     console.log('axios', url);
     xhr = await axios.get(url).catch((e) => {

@@ -6,6 +6,7 @@ import parse, {
   attributesToProps,
   DOMNode,
   domToReact,
+  htmlToDOM,
 } from 'html-react-parser';
 import EmailAnchor from './A/Email';
 import { AgentData } from '@/_typings/agent';
@@ -30,7 +31,8 @@ import {
   getViewPortParamsFromGeolocation,
 } from '@/_utilities/geocoding-helper';
 import { GeoLocation, MapboxBoundaries } from '@/_typings/maps';
-import RxMapbox from './RxMapbox';
+import RxSearchInput from './RxSearchInput';
+import RxPropertyMap from './RxPropertyMap';
 
 async function replaceTargetCityComponents(
   $: CheerioAPI,
@@ -108,6 +110,7 @@ export async function fillAgentInfo(
       photo: agent_data.metatags.headshot,
     });
   }
+
   if (agent_data.metatags.profile_image) {
     replaceByCheerio($, '.agentface', {
       backgroundImage: agent_data.metatags.profile_image,
@@ -116,6 +119,26 @@ export async function fillAgentInfo(
       photo: agent_data.metatags.profile_image,
     });
   }
+
+  if (agent_data.metatags?.logo_for_light_bg) {
+    $('.navbar-wrapper-2 > a').remove();
+    // replaceByCheerio($, '.navbar-wrapper-2 > a', {
+    //   content: `<a href="/" class="flex justify-items-start"><img class="justify-self-start max-h-10" src="${agent_data.metatags.logo_for_light_bg}" /></a>`,
+    // });
+    replaceByCheerio($, '.navbar-wrapper-2', {
+      prepend: `<a href="/" class="flex justify-items-start"><img class="justify-self-start max-h-10" src="${agent_data.metatags.logo_for_light_bg}" /></a>`,
+    });
+  }
+
+  // $('.logo-dark').each((seq, tag) => {
+  //   $(`.logo-dark:nth-child(${seq + 1})`).html(
+  //     injectLogo(
+  //       tag.name,
+  //       tag.attribs && tag.attribs.class,
+  //       agent_data
+  //     )
+  //   );
+  // });
 }
 
 export function fillPropertyGrid(
@@ -235,9 +258,11 @@ export function fillPropertyGrid(
 type ReplacementOptions = {
   backgroundImage?: string;
   content?: string;
+  prepend?: string;
   ['data-mls']?: string;
   city?: string;
   mapbox_boundaries?: MapboxBoundaries;
+  inline_style?: string;
   photo?: string;
   pin_location?: GeoLocation;
 };
@@ -246,7 +271,7 @@ export function replaceByCheerio(
   target: string,
   replacement: ReplacementOptions
 ) {
-  if (replacement) {
+  if (replacement && Object.keys(replacement).length) {
     if (target.indexOf('.propcard-image') >= 0) {
       const styles: string[] = [];
       if (replacement.backgroundImage) {
@@ -261,13 +286,17 @@ export function replaceByCheerio(
     } else if (replacement.backgroundImage) {
       $(target).attr(
         'style',
-        `background-image: url(${replacement.backgroundImage})`
+        `background-image: url(${replacement.backgroundImage}); background-repeat: no-repeat;`
       );
     } else if (replacement.photo) {
       $(target).attr('src', replacement.photo);
       $(target).removeAttr('srcset');
     } else if (replacement.content) {
+      // Replace the whole tag
       $(target).html(replacement.content);
+    } else if (replacement.prepend) {
+      // Prepends child content
+      $(target).prepend(replacement.prepend);
     } else if (replacement['data-mls']) {
       $(target).attr('data-mls', replacement['data-mls']);
     } else if (
@@ -392,6 +421,20 @@ export function rexify(
           node.attribs
         );
 
+        if (node.tagName === 'form') {
+          return (
+            <form
+              {...props}
+              id='rex-form'
+              data-class={className}
+              method='get'
+              action='/#'
+            >
+              {domToReact(node.children) as ReactElement[]}
+            </form>
+          );
+        }
+
         if (props['data-mls']) {
           return (
             <PropertyCard
@@ -450,31 +493,32 @@ export function rexify(
         /**
          * This is where the magic happens
          */
-        if (node.attribs.class === 'map-and-header') {
+        if (node.attribs.class === '_100vhvw-window') {
           // Mapbox Voodoo here
           return (
-            <div
-              className={node.attribs.class}
-              style={{ display: 'flex', flexDirection: 'column' }}
-            >
-              {domToReact(node.children)}
-              <RxMapbox
-                agent={agent_data}
-                token={process.env.NEXT_APP_MAPBOX_TOKEN as string}
-                search_url={
-                  process.env.NEXT_APP_LEGACY_PIPELINE_URL as string
-                }
-                headers={{
-                  Authorization: `Basic ${Buffer.from(
+            <div className={node.attribs.class}>
+              <RxPropertyMap
+                agent_data={agent_data}
+                config={{
+                  authorization: `Basic ${Buffer.from(
                     `${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`
                   ).toString('base64')}`,
-                  'Content-Type': 'application/json',
+                  mapbox_token: process.env
+                    .NEXT_APP_MAPBOX_TOKEN as string,
+                  url: process.env
+                    .NEXT_APP_LEGACY_PIPELINE_URL as string,
                 }}
-              />
+              >
+                {domToReact(node.children) as ReactElement[]}
+              </RxPropertyMap>
             </div>
           );
         }
-        if (node.children && node.children.length === 1) {
+
+        if (
+          (node.children && node.children.length === 1) ||
+          node.name === 'input'
+        ) {
           const reX = rexifyOrSkip(
             node.children[0],
             {
@@ -598,6 +642,39 @@ export function rexify(
   return elements;
 }
 
+export function injectLogo(
+  tagName: string,
+  className: string,
+  agent_data: AgentData
+): string {
+  if (
+    className.indexOf('logo-dark') >= 0 &&
+    agent_data.metatags?.logo_for_light_bg
+  ) {
+    const styles = [
+      `background-image: url(${agent_data.metatags?.logo_for_light_bg})`,
+      `background-size: 'contain'`,
+      `background-repeat: 'no-repeat'`,
+      'flex: 1',
+      `display: 'flex'`,
+    ];
+    return `<h3
+        class="${className}"
+        style="${styles.join('; ')}"
+      >
+        <a
+          href='/'
+          style="display: inline-block; opacity: 0; width: 100%; textIndent: -100em"
+        >
+          ${agent_data.full_name || '{Agent Name}'}
+        </a>
+      </h3>`;
+  }
+  return `<${tagName || 'span'} class="${className}">${
+    agent_data.full_name
+  }</${tagName || 'span'}>`;
+}
+
 function rexifyOrSkip(
   element: DOMNode,
   record: unknown,
@@ -605,6 +682,20 @@ function rexifyOrSkip(
   tagName = ''
 ) {
   const { agent_data } = record as { agent_data: AgentData };
+
+  if (tagName === 'input') {
+    if (className === 'txt-search-input') {
+      return (
+        <RxSearchInput
+          id='search-input'
+          name='search-input'
+          className={className}
+        />
+      );
+    }
+    return;
+  }
+
   const { data: placeholder } = element as { data: string };
   if (agent_data) {
     if (placeholder === '{Agent Title}') {
@@ -653,66 +744,19 @@ function rexifyOrSkip(
       }
     }
     if (placeholder === '{Agent Name}') {
-      if (
-        className.indexOf('logo-dark') >= 0 &&
-        agent_data.metatags?.logo_for_light_bg
-      ) {
-        return (
-          <h3
-            className={className}
-            style={{
-              backgroundImage: `url(${agent_data.metatags?.logo_for_light_bg})`,
-              backgroundRepeat: 'no-repeat',
-              backgroundSize: 'contain',
-              flex: 1,
-              display: 'flex',
-              /* We wanna hide the agent name text if logo is available */
-            }}
+      if (agent_data.full_name) {
+        return domToReact(
+          htmlToDOM(
+            `<${tagName || 'span'}
+            class="${className}"
           >
-            <a
-              href='/'
-              style={{
-                display: 'inline-block',
-                opacity: 0,
-                width: '100%',
-                textIndent: '-100em',
-              }}
-            >
-              {agent_data.full_name || '{Agent Name}'}
-            </a>
-          </h3>
+            ${agent_data.full_name}
+          </${tagName || 'span'}>`
+          )
         );
       }
-
-      switch (tagName) {
-        case 'h1':
-          return (
-            <h1 className={className}>{agent_data.full_name}</h1>
-          );
-        case 'h2':
-          return (
-            <h2 className={className}>{agent_data.full_name}</h2>
-          );
-        case 'h3':
-          return (
-            <h3 className={className}>{agent_data.full_name}</h3>
-          );
-        case 'h4':
-          return (
-            <h4 className={className}>{agent_data.full_name}</h4>
-          );
-        case 'h5':
-          return (
-            <h5 className={className}>{agent_data.full_name}</h5>
-          );
-        default:
-          return (
-            <span className={className}>
-              {agent_data.full_name}
-            </span>
-          );
-      }
-    } else if (className.indexOf('phone-link-blockj') >= 0) {
+    }
+    if (className.indexOf('phone-link-blockj') >= 0) {
       return (
         <a
           href={`tel:${agent_data.phone.replace(/[^0-9.]/g, '')}`}

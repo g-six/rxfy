@@ -114,7 +114,7 @@ export function getGqlForFilteredProperties(
 // Let's only retrieve listings from 4 hours ago as
 // the Geocoding script might still be running on
 // the new entries (time here is UTC due to legacy server config)
-const gte = new Date(new Date().getTime() - 8 * 60 * 60000)
+const gte = new Date(new Date().getTime() - 4 * 60 * 60000)
   .toISOString()
   .substring(0, 19);
 
@@ -133,7 +133,7 @@ export const must_not: {
   { match: { 'data.L_Class': 'Commercial Sale' } },
   {
     match: {
-      'data.Status': 'Sold',
+      'data.Status': 'Terminated',
     },
   },
   {
@@ -152,6 +152,7 @@ export async function retrieveFromLegacyPipeline(
     sort?: {
       [key: string]: 'asc' | 'desc';
     };
+    fields?: string[];
     query: {
       bool: {
         filter?: {
@@ -169,16 +170,24 @@ export async function retrieveFromLegacyPipeline(
         }[];
       };
     };
+    _source?: boolean;
   } = {
     from: 0,
     size: 3,
     sort: { 'data.ListingDate': 'desc' },
     query: {
       bool: {
-        filter: [],
+        filter: [
+          {
+            match: {
+              'data.Status': 'Active',
+            },
+          },
+        ],
         must_not,
       },
     },
+    _source: true,
   },
   config = {
     url: process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
@@ -199,25 +208,46 @@ export async function retrieveFromLegacyPipeline(
     headers: config.headers,
   });
 
-  return hits.map(({ _source }: { _source: unknown }) => {
-    const { data: hit } = _source as {
-      data: Record<string, unknown>;
-    };
-    let property = {
-      Address: '',
-      Status: '',
-    };
-    Object.keys(hit as Record<string, unknown>).forEach((key) => {
-      if (hit[key]) {
-        property = {
-          ...property,
-          [key]: hit[key],
-        };
+  return hits.map(
+    ({
+      _source,
+      fields,
+    }: {
+      _source: unknown;
+      fields: Record<string, unknown>;
+    }) => {
+      let hit: Record<string, unknown>;
+      if (_source) {
+        hit = (
+          _source as {
+            data: Record<string, unknown>;
+          }
+        ).data;
+      } else {
+        hit = fields;
       }
-    });
 
-    return property as MLSProperty;
-  });
+      let property = {
+        Address: '',
+        Status: '',
+      };
+      Object.keys(hit as Record<string, unknown>).forEach((key) => {
+        if (hit[key]) {
+          property = {
+            ...property,
+            [_source ? key : key.split('.')[1]]:
+              _source || key === 'data.photos'
+                ? hit[key]
+                : (hit[key] as string[] | number[]).join(','),
+          };
+        }
+      });
+
+      console.log(property);
+
+      return property as MLSProperty;
+    }
+  );
 }
 
 export async function getRecentListings(
@@ -230,7 +260,13 @@ export async function getRecentListings(
     sort: { 'data.ListingDate': 'desc' },
     query: {
       bool: {
-        filter: [],
+        filter: [
+          {
+            match: {
+              'data.Status': 'Active',
+            },
+          },
+        ],
         should: [
           {
             match: { 'data.LA1_LoginName': agent.agent_id },
@@ -258,9 +294,34 @@ export async function getRecentListings(
       sort: { 'data.ListingDate': 'desc' },
       query: {
         bool: {
-          filter: agent.metatags?.target_city ? [] : [],
+          filter: agent.metatags?.target_city
+            ? [
+                {
+                  match: {
+                    'data.PropertyType': 'Residential Detached',
+                  },
+                },
+                {
+                  match: {
+                    'data.Status': 'Active',
+                  },
+                },
+              ]
+            : [
+                {
+                  match: {
+                    'data.Status': 'Active',
+                  },
+                },
+              ],
           should: agent.metatags?.target_city
-            ? []
+            ? [
+                {
+                  match: {
+                    'data.L_Region': 'Greater Vancouver',
+                  },
+                },
+              ]
             : [
                 {
                   match: {

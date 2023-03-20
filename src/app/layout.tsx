@@ -22,7 +22,6 @@ export default async function RootLayout({
   const url = TEST_DOMAIN || headers().get('origin') || '';
 
   const { origin, pathname } = new URL(url);
-  console.log('layout.axios', `${origin}${pathname && pathname}`);
   const { data } = await axios.get(
     `${origin}${pathname && pathname}`
   );

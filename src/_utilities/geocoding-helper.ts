@@ -1,5 +1,28 @@
 import { Geolocation, MapboxBoundaries } from '@/_typings/maps';
 
+export interface PlaceDetails {
+  id: number;
+  name: string;
+  lat: number;
+  lng: number;
+  ne_lat: number;
+  ne_lng: number;
+  sw_lat: number;
+  sw_lng: number;
+  zoom: number;
+  title: string;
+  agent: number;
+  place_id: string;
+  province_state: string;
+  metroarea: string;
+  country: string;
+  postal_code: string;
+  route: string;
+  street_number: string;
+  formatted_address: string;
+  vicinity: string;
+}
+
 export async function getGeocode(
   address: string
 ): Promise<Geolocation | undefined> {
@@ -46,4 +69,15 @@ export function getViewPortParamsFromGeolocation(
     swlat: southwest.lat,
     swlng: southwest.lng,
   };
+}
+
+export async function getPlaceDetails(
+  place: google.maps.places.AutocompletePrediction
+): Promise<PlaceDetails> {
+  const url = `${process.env.NEXT_PUBLIC_API}/opensearch/place/${place.place_id}`;
+  const results = await fetch(url);
+  if (results.ok) {
+    return (await results.json()) as PlaceDetails;
+  }
+  return await results.json();
 }
