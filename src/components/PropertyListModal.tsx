@@ -5,7 +5,7 @@ import { PropertyCardSmall } from './PropertyCard';
 import { classNames } from '@/_utilities/html-helper';
 
 type PropertyListProps = {
-  properties: Record<string, string>[];
+  properties: Record<string, string | number | string[]>[];
   onClose(): void;
 };
 
