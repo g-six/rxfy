@@ -32,6 +32,8 @@ import {
 } from '@/_utilities/geocoding-helper';
 import { GeoLocation, MapboxBoundaries } from '@/_typings/maps';
 import RxPropertyMap from './RxPropertyMap';
+import { classNames } from '@/_utilities/html-helper';
+import RxHomeAlertLayer from './RxHomeAlertComponents/RxHomeAlertLayer';
 
 async function replaceTargetCityComponents(
   $: CheerioAPI,
@@ -492,10 +494,10 @@ export function rexify(
         /**
          * This is where the magic happens
          */
-        if (node.attribs.class === '_100vhvw-window') {
+        if (node.attribs.class === 'map-div') {
           // Mapbox Voodoo here
           return (
-            <div className={node.attribs.class}>
+            <div className={node.attribs.class} id='MapDiv'>
               <RxPropertyMap
                 agent_data={agent_data}
                 listings={[]}
@@ -512,6 +514,19 @@ export function rexify(
                 {domToReact(node.children) as ReactElement[]}
               </RxPropertyMap>
             </div>
+          );
+        }
+
+        // Home alerts
+        if (
+          node.attribs.class &&
+          node.attribs.class.indexOf('home-alert---all-screens') >=
+            0
+        ) {
+          return (
+            <RxHomeAlertLayer className={node.attribs.class}>
+              {domToReact(node.children)}
+            </RxHomeAlertLayer>
           );
         }
 
@@ -682,7 +697,7 @@ function rexifyOrSkip(
   tagName = ''
 ): ReactElement | undefined {
   const { agent_data } = record as { agent_data: AgentData };
-
+  if (!element) return;
   const { data: placeholder } = element as { data: string };
   if (agent_data) {
     if (

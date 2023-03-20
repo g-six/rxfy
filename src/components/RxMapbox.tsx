@@ -21,6 +21,7 @@ import { classNames } from '@/_utilities/html-helper';
 import { PlaceDetails } from '@/_utilities/geocoding-helper';
 import PropertyListModal from './PropertyListModal';
 import { mergeObjects } from '@/_utilities/array-helper';
+import useDebounce from '@/hooks/useDebounce';
 
 type RxMapboxProps = {
   agent: AgentData;
@@ -31,30 +32,10 @@ type RxMapboxProps = {
   setListings(listings: MLSProperty[]): void;
 };
 
-function createClusterPin(num_of_items: number) {
-  const el = document.createElement('div');
-  el.className = 'marker';
-  el.innerHTML = `<div class="property-map-pin">${getShortPrice(
-    num_of_items
-  )}</div>`;
-
-  return el;
-}
-
 function createMapPin() {
   const el = document.createElement('div');
   el.className = 'marker';
-  el.innerHTML = `<img src="/icons/map/map-pin.svg" width="24" height="24" />`;
-
-  return el;
-}
-
-function createPropertyPin(property: MLSProperty) {
-  const el = document.createElement('div');
-  el.className = 'marker';
-  el.innerHTML = `<div class="property-map-pin">${getShortPrice(
-    property.AskingPrice
-  )}</div>`;
+  el.innerHTML = `<img src="/icons/map/map-pin.svg" width="24" height="24" class="opacity-60" />`;
 
   return el;
 }
@@ -155,7 +136,6 @@ function addSingleHomePins(map: mapboxgl.Map) {
 }
 
 export function RxMapbox(props: RxMapboxProps) {
-  const [url, setUrl] = React.useState('');
   const [selected_cluster, setSelectedCluster] = React.useState<
     Record<string, string | number | string[]>[]
   >([]);
@@ -244,10 +224,18 @@ export function RxMapbox(props: RxMapboxProps) {
     map.on('click', clickEventListener);
   };
 
+  const [resizing, setResizing] = React.useState('no');
+  const resizing_state = useDebounce(resizing, 400);
   if (map) {
     map.on('dragend', retrieveAndRenderMapData);
     map.on('zoomend', retrieveAndRenderMapData);
+    map.on('resize', () => {
+      setResizing('done');
+    });
   }
+  React.useEffect(() => {
+    console.log(resizing_state);
+  }, [resizing_state]);
 
   const repositionMap = React.useCallback(
     (p?: LngLatLike) => {
@@ -267,7 +255,6 @@ export function RxMapbox(props: RxMapboxProps) {
         new mapboxgl.Marker(createMapPin())
           .setLngLat(map.getCenter())
           .addTo(map);
-
         retrieveAndRenderMapData();
       }
     },
@@ -276,7 +263,7 @@ export function RxMapbox(props: RxMapboxProps) {
 
   React.useEffect(() => {
     setLoading(false);
-    console.log('is_loading', is_loading);
+
     is_loading &&
       map &&
       retrieveFromLegacyPipeline(
@@ -379,7 +366,8 @@ export function RxMapbox(props: RxMapboxProps) {
 
   React.useEffect(() => {
     if (props.params && props.params.id) {
-      //   repositionMap([props.params.lng, props.params.lat]);
+      setLoading(false);
+      repositionMap([props.params.lng, props.params.lat]);
     }
   }, [props.params, map, repositionMap]);
 
@@ -473,7 +461,7 @@ export function RxMapbox(props: RxMapboxProps) {
   }, []);
 
   return (
-    <main className={styles.MainWrapper} data-url={url}>
+    <main className={styles.MainWrapper}>
       <div
         id='map'
         className={classNames(

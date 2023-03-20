@@ -1,0 +1,10 @@
+.RxHomeAlertLayer {
+    @apply pointer-events-none;
+    > * {
+        @apply pointer-events-auto;
+    }
+
+    .HiddenHomeAlertComponent {
+        @apply hidden;
+    }
+}
