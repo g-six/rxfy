@@ -358,7 +358,7 @@ export function RxMapbox(props: RxMapboxProps) {
   React.useEffect(() => {
     if (map) {
       const nav = new mapboxgl.NavigationControl();
-      map.addControl(nav, 'top-left');
+      map.addControl(nav, 'bottom-right');
       retrieveAndRenderMapData();
     }
   }, [map]);

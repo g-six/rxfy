@@ -182,10 +182,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps) {
                 >
                   {cloneElement(child, {
                     ...child.props,
-                    className: classNames(
-                      child.props.className,
-                      styles.RxPropertyMap
-                    ),
+                    className: classNames(child.props.className),
                     // Wrap grandchildren too
                     children: <>{child.props.children}</>,
                   })}

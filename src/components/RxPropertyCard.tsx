@@ -58,11 +58,8 @@ export default function RxPropertyCard({
     <div
       className={classNames(
         'absolute ml-1 w-11/12 sm:ml-4 md:w-full md:ml-auto md:relative',
-        sequence ? `bottom-${sequence * 10}` : ''
+        sequence === 0 ? `` : 'hidden sm:block'
       )}
-      style={{
-        marginBottom: sequence ? `${sequence * 10}px` : '0',
-      }}
     >
       <RxComponentChomper
         config={{
