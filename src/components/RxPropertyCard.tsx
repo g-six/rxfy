@@ -1,5 +1,6 @@
 import { MLSProperty } from '@/_typings/property';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
+import { classNames } from '@/_utilities/html-helper';
 import React from 'react';
 
 function RxComponentChomper({ config, children }: any): any {
@@ -45,14 +46,24 @@ function RxComponentChomper({ config, children }: any): any {
 }
 
 export default function RxPropertyCard({
+  sequence,
   children,
   listing,
 }: {
+  sequence?: number;
   children: any;
   listing: MLSProperty;
 }) {
   return (
-    <div className='relative'>
+    <div
+      className={classNames(
+        'absolute ml-1 w-11/12 sm:ml-4 md:w-full md:ml-auto md:relative',
+        sequence ? `bottom-${sequence * 10}` : ''
+      )}
+      style={{
+        marginBottom: sequence ? `${sequence * 10}px` : '0',
+      }}
+    >
       <RxComponentChomper
         config={{
           '{PropertyCard Address}': listing.Address,
@@ -71,7 +82,7 @@ export default function RxPropertyCard({
         {children}
       </RxComponentChomper>
       <a href='/' className='absolute top-0 left-0 w-full h-full'>
-        &nbsp;
+        {' '}
       </a>
     </div>
   );

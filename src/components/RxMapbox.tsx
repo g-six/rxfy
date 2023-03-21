@@ -461,7 +461,9 @@ export function RxMapbox(props: RxMapboxProps) {
   }, []);
 
   return (
-    <main className={styles.MainWrapper}>
+    <main
+      className={classNames(styles.MainWrapper, 'mapbox-canvas')}
+    >
       <div
         id='map'
         className={classNames(

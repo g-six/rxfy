@@ -1,10 +1,7 @@
 .MainWrapper {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    width: 100%;
+    @apply w-full h-full;
+    
     .RxMapbox {
-        flex: 1;
-        width: 100%;
+        @apply h-full w-full;
     }
 }

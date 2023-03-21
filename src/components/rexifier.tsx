@@ -32,7 +32,6 @@ import {
 } from '@/_utilities/geocoding-helper';
 import { GeoLocation, MapboxBoundaries } from '@/_typings/maps';
 import RxPropertyMap from './RxPropertyMap';
-import { classNames } from '@/_utilities/html-helper';
 import RxHomeAlertLayer from './RxHomeAlertComponents/RxHomeAlertLayer';
 
 async function replaceTargetCityComponents(

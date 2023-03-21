@@ -2,11 +2,7 @@
 
 import { AgentData } from '@/_typings/agent';
 import { classNames } from '@/_utilities/html-helper';
-import React, {
-  Children,
-  cloneElement,
-  SetStateAction,
-} from 'react';
+import React, { Children, cloneElement } from 'react';
 import RxMapbox from './RxMapbox';
 import RxSearchInput from './RxSearchInput';
 import styles from './RxPropertyMap.module.scss';
@@ -86,6 +82,27 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps) {
       return <>{SmallCard}</>;
     }
 
+    if (
+      child.props &&
+      child.props.className === 'mapbox-canvas' &&
+      props.config
+    ) {
+      return (
+        <RxMapbox
+          agent={props.agent_data}
+          headers={{
+            Authorization: props.config.authorization,
+          }}
+          token={props.config.mapbox_token}
+          search_url={props.config.url}
+          params={props.mapbox_params}
+          setListings={(listings: MLSProperty[]) => {
+            props.setListings && props.setListings(listings);
+          }}
+        ></RxMapbox>
+      );
+    }
+
     if (child.props && child.props.children) {
       if (child.props.className) {
         if (child.props.className === 'toggle-base') {
@@ -116,7 +133,8 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps) {
         }
 
         if (
-          child.props.className === 'right-side' &&
+          // child.props.className === 'right-side' &&
+          child.props.className === 'mapbox-canvas' &&
           props.config
         ) {
           MapAndHeaderHeader = cloneElement(child, {
@@ -153,19 +171,25 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps) {
           // Just clone one
 
           return child.key === '1' ? (
-            props.listings.slice(-10).map((p: MLSProperty) => (
-              <RxPropertyCard key={p.MLS_ID} listing={p}>
-                {cloneElement(child, {
-                  ...child.props,
-                  className: classNames(
-                    child.props.className,
-                    styles.RxPropertyMap
-                  ),
-                  // Wrap grandchildren too
-                  children: <>{child.props.children}</>,
-                })}
-              </RxPropertyCard>
-            ))
+            props.listings
+              .slice(-10)
+              .map((p: MLSProperty, sequence_no) => (
+                <RxPropertyCard
+                  key={p.MLS_ID}
+                  listing={p}
+                  sequence={sequence_no}
+                >
+                  {cloneElement(child, {
+                    ...child.props,
+                    className: classNames(
+                      child.props.className,
+                      styles.RxPropertyMap
+                    ),
+                    // Wrap grandchildren too
+                    children: <>{child.props.children}</>,
+                  })}
+                </RxPropertyCard>
+              ))
           ) : (
             <></>
           );
@@ -207,10 +231,6 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
       });
     }
   }, [place]);
-
-  React.useEffect(() => {
-    console.log('listings changed', listings);
-  }, [listings]);
 
   return (
     <MapProvider>
