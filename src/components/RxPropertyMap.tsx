@@ -27,7 +27,6 @@ type RxPropertyMapProps = {
   recursive?: boolean;
   mapbox_params?: PlaceDetails;
   config?: {
-    mapbox_token: string;
     authorization: string;
     url: string;
   };
@@ -93,7 +92,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps) {
           headers={{
             Authorization: props.config.authorization,
           }}
-          token={props.config.mapbox_token}
+          token={process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string}
           search_url={props.config.url}
           params={props.mapbox_params}
           setListings={(listings: MLSProperty[]) => {
@@ -152,7 +151,9 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps) {
                   headers={{
                     Authorization: props.config.authorization,
                   }}
-                  token={props.config.mapbox_token}
+                  token={
+                    process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string
+                  }
                   search_url={props.config.url}
                   params={props.mapbox_params}
                   setListings={(listings: MLSProperty[]) => {

@@ -504,8 +504,6 @@ export function rexify(
                   authorization: `Basic ${Buffer.from(
                     `${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`
                   ).toString('base64')}`,
-                  mapbox_token: process.env
-                    .NEXT_APP_MAPBOX_TOKEN as string,
                   url: process.env
                     .NEXT_APP_LEGACY_PIPELINE_URL as string,
                 }}
