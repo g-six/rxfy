@@ -255,7 +255,6 @@ export function RxMapbox(props: RxMapboxProps) {
         new mapboxgl.Marker(createMapPin())
           .setLngLat(map.getCenter())
           .addTo(map);
-        retrieveAndRenderMapData();
       }
     },
     [map, props.headers, props.search_url]
