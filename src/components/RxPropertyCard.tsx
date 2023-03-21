@@ -81,7 +81,10 @@ export default function RxPropertyCard({
       >
         {children}
       </RxComponentChomper>
-      <a href='/' className='absolute top-0 left-0 w-full h-full'>
+      <a
+        href={`/property?mls=${listing.MLS_ID}`}
+        className='absolute top-0 left-0 w-full h-full'
+      >
         {' '}
       </a>
     </div>

@@ -16,8 +16,8 @@ type RxHomeAlertLayerProps = {
 export function RxHomeAlertComponents(children: React.ReactNode) {
   const [state, dispatch] = React.useReducer(formReducer, {
     form_1: true,
-    form_2: true,
-    confirmation: true,
+    form_2: false,
+    confirmation: false,
   });
 
   const rexified_components = (
