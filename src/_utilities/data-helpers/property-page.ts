@@ -111,6 +111,59 @@ export function getGqlForFilteredProperties(
   };
 }
 
+export function getGqlForInsertProperty(mls_data: MLSProperty) {
+  const {
+    lat,
+    lon,
+    ListingID: guid,
+    Address: title,
+    MLS_ID: mls_id,
+    Area: area,
+    City: city,
+    PricePerSQFT,
+    PropertyType: property_type,
+    AskingPrice: asking_price,
+  } = mls_data;
+
+  return {
+    query: `mutation createProperty($input: PropertyInput!) {
+          createProperty(data: $input) {
+              data {
+                  id
+                  attributes {
+                    lat,
+                    lon,
+                    guid,
+                    title,
+                    mls_id,
+                    area,
+                    city,
+                    price_per_sqft,
+                    property_type,
+                    asking_price,
+                    mls_data,
+                  }
+              }
+          }
+    }`,
+    variables: {
+      input: {
+        lat,
+        lon,
+        guid,
+        title,
+        mls_id,
+        area,
+        city,
+        price_per_sqft: Number(mls_data.price_per_sqft),
+        property_type,
+        asking_price,
+        mls_data,
+      },
+    },
+  };
+}
+
 // Let's only retrieve listings from 4 hours ago as
 // the Geocoding script might still be running on
 // the new entries (time here is UTC due to legacy server config)
@@ -404,12 +457,41 @@ export async function getSimilarHomes(
   return [];
 }
 
+async function upsertPropertyToCMS(mls_data: MLSProperty) {
+  const axios: AxiosStatic = (await import('axios')).default;
+  const xhr = await axios
+    .post(
+      process.env.NEXT_APP_CMS_GRAPHQL_URL as string,
+      getGqlForInsertProperty(mls_data),
+      {
+        headers: {
+          Authorization: `Bearer ${
+            process.env.NEXT_APP_CMS_API_KEY as string
+          }`,
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+    .catch((e) => {
+      console.log(
+        'ERROR in upsertPropertyToCMS.axios',
+        '\n',
+        e.message,
+        '\n\n'
+      );
+      console.log(
+        JSON.stringify(getGqlForInsertProperty(mls_data), null, 4)
+      );
+    });
+  return xhr;
+}
+
 export async function getPropertyData(
   property_id: number | string,
   id_is_mls = false
 ) {
   const axios: AxiosStatic = (await import('axios')).default;
-  const xhr = await axios
+  let xhr = await axios
     .post(
       process.env.NEXT_APP_CMS_GRAPHQL_URL as string,
       id_is_mls
@@ -437,6 +519,51 @@ export async function getPropertyData(
         '\n\n'
       );
     });
+
+  if (
+    id_is_mls &&
+    xhr &&
+    xhr.data.data?.properties?.data?.length === 0
+  ) {
+    // Data was not picked up by the integrations API,
+    // attempt to fix
+
+    const [mls_data] = await retrieveFromLegacyPipeline({
+      from: 0,
+      size: 1,
+      query: {
+        bool: {
+          filter: [
+            {
+              match: {
+                'data.MLS_ID': property_id,
+              },
+            },
+          ],
+        },
+      },
+    });
+
+    xhr = await upsertPropertyToCMS(mls_data);
+    /**
+     * {
+                    'guid': listing_id,
+                    'mls_id': mls_data['MLS_ID'],
+                    'title': mls_data['Address'] + ', ' + mls_data['PostalCode_Zip'],
+                    'lat': mls_data['lat'],
+                    'lon': mls_data['lng'],
+                    'area': mls_data['Area'],
+                    'asking_price': mls_data['AskingPrice'],
+                    'city': mls_data['City'],
+                    'price_per_sqft': price_per_sqft,
+                    'property_type': mls_data['PropertyType'],
+                    'mls_data': mls_data
+                }
+     */
+
+    console.log('Repaired');
+    console.log(JSON.stringify(xhr, null, 4));
+  }
 
   let clean: Record<string, unknown> | MLSProperty = {};
   const neighbours: MLSProperty[] = [];
