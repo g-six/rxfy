@@ -127,7 +127,7 @@ export function getGqlForInsertProperty(mls_data: MLSProperty) {
 
   return {
     query: `mutation createProperty($input: PropertyInput!) {
-          createProperty(data: $input) {
+          property: createProperty(data: $input) {
               data {
                   id
                   attributes {
@@ -479,10 +479,8 @@ async function upsertPropertyToCMS(mls_data: MLSProperty) {
         e.message,
         '\n\n'
       );
-      console.log(
-        JSON.stringify(getGqlForInsertProperty(mls_data), null, 4)
-      );
     });
+
   return xhr;
 }
 
@@ -545,24 +543,9 @@ export async function getPropertyData(
     });
 
     xhr = await upsertPropertyToCMS(mls_data);
-    /**
-     * {
-                    'guid': listing_id,
-                    'mls_id': mls_data['MLS_ID'],
-                    'title': mls_data['Address'] + ', ' + mls_data['PostalCode_Zip'],
-                    'lat': mls_data['lat'],
-                    'lon': mls_data['lng'],
-                    'area': mls_data['Area'],
-                    'asking_price': mls_data['AskingPrice'],
-                    'city': mls_data['City'],
-                    'price_per_sqft': price_per_sqft,
-                    'property_type': mls_data['PropertyType'],
-                    'mls_data': mls_data
-                }
-     */
 
     console.log('Repaired');
-    console.log(JSON.stringify(xhr, null, 4));
+    console.log(xhr && Object.keys(xhr.data.data));
   }
 
   let clean: Record<string, unknown> | MLSProperty = {};

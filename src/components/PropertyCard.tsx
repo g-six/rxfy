@@ -19,7 +19,7 @@ export function PropertyCardSmall(props: Record<string, string>) {
     <div
       className={classNames(
         props.className || '',
-        'property-card-small smaller'
+        'property-card-small smaller relative'
       )}
     >
       <div
@@ -90,6 +90,12 @@ export function PropertyCardSmall(props: Record<string, string>) {
           </div>
         </div>
       </div>
+      <a
+        href={`/property?mls=${props.MLS_ID}`}
+        className='absolute top-0 left-0 w-full h-full'
+      >
+        {' '}
+      </a>
     </div>
   );
 }
