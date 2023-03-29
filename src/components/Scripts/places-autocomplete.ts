@@ -3,16 +3,38 @@
  * @param props
  * @returns
  */
-export default function initializePlacesAutocomplete(
-  props: Record<string, string>
-) {
+export default function initializePlacesAutocomplete(props: Record<string, string>) {
   return `
     function objectToUrlParams(obj) {
         return Object.keys(obj).map(key => key + '=' + obj[key]).join('&');
     }
     // end of objectToUrlParams
+
+    function replaceDivWithTextInput(){
+        let div = document.querySelector(".section---search .input-text");
+        let textInput = document.createElement("input");
+        textInput.setAttribute("class", "input-text");
+        textInput.setAttribute("type", "text");
+        div.parentNode.replaceChild(textInput, div);
+        return textInput
+    }
+    
+    
+    function replaceFormWithDiv(){
+        let elements = document.getElementsByTagName("form");
+        [].slice.call(elements).forEach(function(form){
+            let div = document.createElement('div');
+            form.parentNode.replaceChild(div, form);
+            form.parentNode.addEventListener('submit', () => {
+                return void(0);
+            })
+        });
+    }
  
     function initializePlacesAutocomplete() {
+        // First we need to block all form submissions to WebFlow!
+        // replaceFormWithDiv()
+
         var gpaInput = document.getElementById('search-input');
 
         if (!gpaInput) gpaInput = document.querySelector('.section---search input, .map-search-block input')

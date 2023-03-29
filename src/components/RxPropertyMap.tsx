@@ -9,10 +9,7 @@ import styles from './RxPropertyMap.module.scss';
 import { Switch } from '@headlessui/react';
 import RxPropertyCard from './RxPropertyCard';
 import { MapProvider, useMapState } from '@/app/AppContext.module';
-import {
-  getPlaceDetails,
-  PlaceDetails,
-} from '@/_utilities/geocoding-helper';
+import { getPlaceDetails, PlaceDetails } from '@/_utilities/geocoding-helper';
 import { MLSProperty } from '@/_typings/property';
 
 type RxPropertyMapProps = {
@@ -35,57 +32,39 @@ type RxPropertyMapProps = {
 export function RxPropertyMapRecursive(props: RxPropertyMapProps) {
   let MapAndHeaderHeader;
   let SmallCard;
-  const wrappedChildren = Children.map(props.children, (child) => {
-    if (child.type === 'input') {
+  let LargeCard;
+  const wrappedChildren = Children.map(props.children, child => {
+    if (child.type === 'input' && child.props.className && child.props.className.indexOf('search-input-field') >= 0) {
       return (
         <RxSearchInput
           id='search-input'
           name='search-input'
-          className={child.className}
-          onPlaceSelected={(
-            selected_place: google.maps.places.AutocompletePrediction
-          ) => {
+          className={child.props.className}
+          onPlaceSelected={(selected_place: google.maps.places.AutocompletePrediction) => {
             props.setPlace && props.setPlace(selected_place);
           }}
         />
       );
     }
 
-    if (
-      child.type === 'div' &&
-      child.props &&
-      child.props.children
-    ) {
+    if (child.type === 'div' && child.props && child.props.children) {
       if (child.props.children === '{Agent Name}') {
         return <span>{props.agent_data?.full_name}</span>;
       }
     }
 
-    if (
-      child.props &&
-      child.props.className &&
-      child.props.className
-        .split(' ')
-        .includes('property-card-small')
-    ) {
+    if (child.props && child.props.className && child.props.className.split(' ').includes('property-card-small')) {
       // Just clone one
       SmallCard = cloneElement(child, {
         ...child.props,
-        className: classNames(
-          child.props.className,
-          styles.RxPropertyMapSmallCard
-        ),
+        className: classNames(child.props.className, styles.RxPropertyMapSmallCard),
         // Wrap grandchildren too
         children: <>{child.props.children}</>,
       });
       return <>{SmallCard}</>;
     }
 
-    if (
-      child.props &&
-      child.props.className === 'mapbox-canvas' &&
-      props.config
-    ) {
+    if (child.props && child.props.className === 'mapbox-canvas' && props.config) {
       return (
         <RxMapbox
           agent={props.agent_data}
@@ -110,21 +89,15 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps) {
               onChange={props.setHideOthers}
               className={classNames(
                 props.hide_others ? 'bg-indigo-600' : 'bg-gray-200',
-                'ml-1 relative inline-flex items-center h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none'
+                'ml-1 relative inline-flex items-center h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
               )}
             >
-              <span className='sr-only'>
-                {props.hide_others
-                  ? 'Other properties hidden'
-                  : 'Showing all properties'}
-              </span>
+              <span className='sr-only'>{props.hide_others ? 'Other properties hidden' : 'Showing all properties'}</span>
               <span
                 aria-hidden='true'
                 className={classNames(
-                  props.hide_others
-                    ? 'translate-x-4'
-                    : '-translate-x-1',
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+                  props.hide_others ? 'translate-x-4' : '-translate-x-1',
+                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
                 )}
               />
             </Switch>
@@ -138,10 +111,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps) {
         ) {
           MapAndHeaderHeader = cloneElement(child, {
             ...child.props,
-            className: classNames(
-              'right-side',
-              styles.RxPropertyMap
-            ),
+            className: classNames('right-side', styles.RxPropertyMap),
             // Wrap grandchildren too
             children: (
               <>
@@ -151,14 +121,11 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps) {
                   headers={{
                     Authorization: props.config.authorization,
                   }}
-                  token={
-                    process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string
-                  }
+                  token={process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string}
                   search_url={props.config.url}
                   params={props.mapbox_params}
                   setListings={(listings: MLSProperty[]) => {
-                    props.setListings &&
-                      props.setListings(listings);
+                    props.setListings && props.setListings(listings);
                   }}
                 ></RxMapbox>
               </>
@@ -170,16 +137,10 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps) {
 
         if (child.props.className === 'property-card-map') {
           // Just clone one
-
           return child.key === '1' ? (
-            props.listings
-              .slice(-10)
-              .map((p: MLSProperty, sequence_no) => (
-                <RxPropertyCard
-                  key={p.MLS_ID}
-                  listing={p}
-                  sequence={sequence_no}
-                >
+            props.listings.slice(-10).map((p: MLSProperty, sequence_no) => {
+              LargeCard = (
+                <RxPropertyCard key={p.MLS_ID} listing={p} sequence={sequence_no}>
                   {cloneElement(child, {
                     ...child.props,
                     className: classNames(child.props.className),
@@ -187,7 +148,9 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps) {
                     children: <>{child.props.children}</>,
                   })}
                 </RxPropertyCard>
-              ))
+              );
+              return LargeCard;
+            })
           ) : (
             <></>
           );
@@ -200,41 +163,34 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps) {
         {
           ...child.props,
           // Wrap grandchildren too
-          children: (
-            <RxPropertyMapRecursive {...props}>
-              {child.props.children}
-            </RxPropertyMapRecursive>
-          ),
-        }
+          children: <RxPropertyMapRecursive {...props}>{child.props.children}</RxPropertyMapRecursive>,
+        },
       );
     }
     return child;
   });
-
   return <>{wrappedChildren}</>;
 }
 
 export default function RxPropertyMap(props: RxPropertyMapProps) {
   const [hide_others, setHideOthers] = React.useState(false);
-  const [place, setPlace] =
-    React.useState<google.maps.places.AutocompletePrediction>();
+  const [place, setPlace] = React.useState<google.maps.places.AutocompletePrediction>();
   const [listings, setListings] = React.useState<MLSProperty[]>([]);
   const [map_params, setMapParams] = React.useState<PlaceDetails>();
 
   React.useEffect(() => {
-    console.log('state changed');
     if (place && props.agent_data !== undefined) {
       getPlaceDetails(place).then((details: PlaceDetails) => {
         setMapParams(details);
       });
     }
-  }, [place]);
+  }, [place, props.agent_data]);
 
   return (
     <MapProvider>
       <RxPropertyMapRecursive
         {...props}
-        setPlace={(p) => {
+        setPlace={p => {
           setPlace(p);
         }}
         place={place}

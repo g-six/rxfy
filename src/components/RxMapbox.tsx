@@ -1,19 +1,11 @@
 'use client';
 import styles from './RxMapbox.module.scss';
 import React from 'react';
-import mapboxgl, {
-  GeoJSONSource,
-  GeoJSONSourceRaw,
-  LngLatLike,
-  MapboxGeoJSONFeature,
-} from 'mapbox-gl';
+import mapboxgl, { GeoJSONSource, GeoJSONSourceRaw, LngLatLike, MapboxGeoJSONFeature } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { queryStringToObject } from '@/_utilities/url-helper';
 import { AgentData } from '@/_typings/agent';
-import {
-  must_not,
-  retrieveFromLegacyPipeline,
-} from '@/_utilities/data-helpers/property-page';
+import { must_not, retrieveFromLegacyPipeline } from '@/_utilities/data-helpers/property-page';
 import { MLSProperty } from '@/_typings/property';
 import { getShortPrice } from '@/_utilities/map-helper';
 import { Feature } from 'geojson';
@@ -48,33 +40,9 @@ function addClusterLayer(map: mapboxgl.Map) {
     source: 'map-source',
     filter: ['has', 'point_count'],
     paint: {
-      'circle-color': [
-        'step',
-        ['get', 'point_count'],
-        '#4f46e5',
-        5,
-        '#4f46e5',
-        10,
-        '#4f46e5',
-      ],
-      'circle-opacity': [
-        'step',
-        ['get', 'point_count'],
-        0.85,
-        5,
-        0.75,
-        10,
-        0.68,
-      ],
-      'circle-radius': [
-        'step',
-        ['get', 'point_count'],
-        12,
-        5,
-        16,
-        10,
-        18,
-      ],
+      'circle-color': ['step', ['get', 'point_count'], '#4f46e5', 5, '#4f46e5', 10, '#4f46e5'],
+      'circle-opacity': ['step', ['get', 'point_count'], 0.85, 5, 0.75, 10, 0.68],
+      'circle-radius': ['step', ['get', 'point_count'], 12, 5, 16, 10, 18],
     },
   });
 }
@@ -88,10 +56,7 @@ function addClusterHomeCountLayer(map: mapboxgl.Map) {
       filter: ['has', 'point_count'],
       layout: {
         'text-field': '{point_count_abbreviated}',
-        'text-font': [
-          'DIN Offc Pro Medium',
-          'Arial Unicode MS Bold',
-        ],
+        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
         'text-size': 14,
       },
       paint: {
@@ -123,10 +88,7 @@ function addSingleHomePins(map: mapboxgl.Map) {
       filter: ['!', ['has', 'point_count']],
       layout: {
         'text-field': '{price}',
-        'text-font': [
-          'DIN Offc Pro Medium',
-          'Arial Unicode MS Bold',
-        ],
+        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
         'text-size': 12,
       },
       paint: {
@@ -136,14 +98,10 @@ function addSingleHomePins(map: mapboxgl.Map) {
 }
 
 export function RxMapbox(props: RxMapboxProps) {
-  const [selected_cluster, setSelectedCluster] = React.useState<
-    Record<string, string | number | string[]>[]
-  >([]);
+  const [selected_cluster, setSelectedCluster] = React.useState<Record<string, string | number | string[]>[]>([]);
   const [is_loading, setLoading] = React.useState<boolean>(false);
   const [map, setMap] = React.useState<mapboxgl.Map>();
-  const [listings, setPropertyListings] = React.useState<
-    MLSProperty[]
-  >([]);
+  const [listings, setPropertyListings] = React.useState<MLSProperty[]>([]);
   const mapNode = React.useRef(null);
 
   const retrieveAndRenderMapData = () => {
@@ -154,61 +112,41 @@ export function RxMapbox(props: RxMapboxProps) {
     }
   };
 
-  const clickEventListener = (
-    e: mapboxgl.MapMouseEvent & mapboxgl.EventData
-  ) => {
+  const clickEventListener = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
     const features = e.target.queryRenderedFeatures(e.point, {
       layers: ['rx-clusters', 'rx-home-price-bg'],
     });
     if (features) {
       features.forEach(({ properties }: MapboxGeoJSONFeature) => {
         if (properties) {
-          const {
-            cluster_id,
-            point_count,
-            cluster: is_cluster,
-          } = properties;
-          const cluster_source: GeoJSONSource = e.target.getSource(
-            'map-source'
-          ) as GeoJSONSource;
+          const { cluster_id, point_count, cluster: is_cluster } = properties;
+          const cluster_source: GeoJSONSource = e.target.getSource('map-source') as GeoJSONSource;
 
           // Get children of the cluster
           // features: Feature<Geometry, GeoJsonProperties>[]
 
           if (is_cluster) {
-            cluster_source.getClusterLeaves(
-              cluster_id,
-              point_count,
-              0,
-              (error, feats: Feature[]) => {
-                // Refactor this into a standalone function
+            cluster_source.getClusterLeaves(cluster_id, point_count, 0, (error, feats: Feature[]) => {
+              // Refactor this into a standalone function
+              if (point_count <= 5) {
                 setSelectedCluster(
                   feats.map(
                     ({ id, properties }) =>
                       ({
                         ...properties,
                         id,
-                      } as unknown as Record<
-                        string,
-                        string | number | string[]
-                      >)
-                  )
+                      } as unknown as Record<string, string | number | string[]>),
+                  ),
                 );
               }
-            );
+            });
           } else {
             setSelectedCluster([
               {
                 ...properties,
                 id: properties.MLS_ID,
-                photos:
-                  typeof properties.photos === 'string'
-                    ? JSON.parse(properties.photos)
-                    : properties.photos,
-              } as unknown as Record<
-                string,
-                string | number | string[]
-              >,
+                photos: typeof properties.photos === 'string' ? JSON.parse(properties.photos) : properties.photos,
+              } as unknown as Record<string, string | number | string[]>,
             ]);
           }
         }
@@ -216,55 +154,8 @@ export function RxMapbox(props: RxMapboxProps) {
     }
   };
 
-  const registerMapClickHandler = (
-    property_listings: MLSProperty[]
-  ) => {
-    if (!map) return;
-    map.off('click', clickEventListener);
-    map.on('click', clickEventListener);
-  };
-
-  const [resizing, setResizing] = React.useState('no');
-  const resizing_state = useDebounce(resizing, 400);
-  if (map) {
-    map.on('dragend', retrieveAndRenderMapData);
-    map.on('zoomend', retrieveAndRenderMapData);
-    map.on('resize', () => {
-      setResizing('done');
-    });
-  }
-  React.useEffect(() => {
-    console.log(resizing_state);
-  }, [resizing_state]);
-
-  const repositionMap = React.useCallback(
-    (p?: LngLatLike) => {
-      if (map) {
-        if (p) {
-          map?.getStyle().layers.forEach((layer) => {
-            if (
-              layer.id.indexOf('rx-') === 0 ||
-              layer.type === 'symbol'
-            )
-              map.removeLayer(layer.id);
-          });
-
-          map?.setCenter(p);
-        }
-
-        new mapboxgl.Marker(createMapPin())
-          .setLngLat(map.getCenter())
-          .addTo(map);
-      }
-    },
-    [map, props.headers, props.search_url]
-  );
-
-  React.useEffect(() => {
-    setLoading(false);
-
-    is_loading &&
-      map &&
+  const populateMap = () => {
+    if (map)
       retrieveFromLegacyPipeline(
         {
           from: 0,
@@ -319,53 +210,93 @@ export function RxMapbox(props: RxMapboxProps) {
         {
           url: props.search_url,
           headers: props.headers as any,
-        }
+        },
       ).then((results: MLSProperty[]) => {
         if (window !== undefined) {
           const ne = map.getBounds().getNorthEast();
           const sw = map.getBounds().getSouthWest();
           const currentUrl = new URL(window.location.href);
-          currentUrl.searchParams.set(
-            'lat',
-            `${map.getCenter().lat}`
-          );
-          currentUrl.searchParams.set(
-            'lng',
-            `${map.getCenter().lng}`
-          );
+          currentUrl.searchParams.set('lat', `${map.getCenter().lat}`);
+          currentUrl.searchParams.set('lng', `${map.getCenter().lng}`);
           currentUrl.searchParams.set('nelat', `${ne.lat}`);
           currentUrl.searchParams.set('nelng', `${ne.lng}`);
           currentUrl.searchParams.set('swlat', `${sw.lat}`);
           currentUrl.searchParams.set('swlng', `${sw.lng}`);
           currentUrl.searchParams.set('zoom', `${map.getZoom()}`);
-          window.history.pushState(
-            {},
-            `${ne.lat}${ne.lng}${sw.lat}${sw.lng}`,
-            currentUrl.href
-          );
+          window.history.pushState({}, `${ne.lat}${ne.lng}${sw.lat}${sw.lng}`, currentUrl.href);
         }
         if (results.length) {
-          setPropertyListings(
-            mergeObjects(listings, results, 'MLS_ID')
-          );
+          setPropertyListings(mergeObjects(listings, results, 'MLS_ID'));
         } else {
           setPropertyListings([]);
         }
+
         setLoading(false);
       });
-  }, [is_loading]);
+  };
+
+  const registerMapClickHandler = (property_listings: MLSProperty[]) => {
+    if (!map) return;
+    map.off('click', clickEventListener);
+    map.on('click', clickEventListener);
+  };
+
+  const [resizing, setResizing] = React.useState('no');
+  const resizing_state = useDebounce(resizing, 400);
+  if (map) {
+    map.on('resize', () => {
+      setResizing('done');
+    });
+  }
+  React.useEffect(() => {
+    console.log(resizing_state);
+  }, [resizing_state]);
+
+  const repositionMap = React.useCallback(
+    (p?: LngLatLike) => {
+      if (map && !is_loading) {
+        if (p) {
+          map?.getStyle().layers.forEach(layer => {
+            if (layer.id.indexOf('rx-') === 0 || layer.type === 'symbol') map.removeLayer(layer.id);
+          });
+
+          map?.setCenter(p);
+        }
+
+        new mapboxgl.Marker(createMapPin()).setLngLat(map.getCenter()).addTo(map);
+
+        populateMap();
+      }
+    },
+    // If we add populateMap into the dependency, it would cause an infinite loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [map, is_loading],
+  );
 
   React.useEffect(() => {
     if (map) {
       const nav = new mapboxgl.NavigationControl();
-      map.addControl(nav, 'bottom-right');
-      retrieveAndRenderMapData();
+      // map.addControl(nav, 'bottom-right');
+      const populate = () => {
+        setLoading(true);
+        populateMap();
+      };
+      map.off('dragend', populate);
+      map.on('dragend', populate);
+
+      map.off('zoomend', populate);
+      map.on('zoomend', populate);
+
+      setLoading(true);
+      populateMap();
     }
+    // If we add populateMap into the dependency, it would cause an infinite loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map]);
 
   React.useEffect(() => {
     if (props.params && props.params.id) {
-      setLoading(false);
+      // setLoading(false);
       repositionMap([props.params.lng, props.params.lat]);
     }
   }, [props.params, map, repositionMap]);
@@ -376,7 +307,7 @@ export function RxMapbox(props: RxMapboxProps) {
         .filter(({ lat, lng }) => {
           return lat !== undefined && lng !== undefined;
         })
-        .map((p) => {
+        .map(p => {
           return {
             type: 'Feature' as unknown as Feature,
             properties: {
@@ -437,9 +368,7 @@ export function RxMapbox(props: RxMapboxProps) {
     if (typeof window === 'undefined' || node === null) return;
 
     if (window.location.search) {
-      const params = queryStringToObject(
-        window.location.search.substring(1)
-      );
+      const params = queryStringToObject(window.location.search.substring(1));
       if (params.lat && params.lng) {
         const mapbox = new mapboxgl.Map({
           container: node,
@@ -449,8 +378,11 @@ export function RxMapbox(props: RxMapboxProps) {
           zoom: 12,
         });
 
-        // onMapLoad(mapbox, 'burnaby');
         setMap(mapbox);
+        const nav = new mapboxgl.NavigationControl();
+        mapbox.addControl(nav, 'bottom-right');
+        setLoading(true);
+        populateMap();
 
         return () => {
           mapbox.remove();
@@ -460,13 +392,11 @@ export function RxMapbox(props: RxMapboxProps) {
   }, []);
 
   return (
-    <main
-      className={classNames(styles.MainWrapper, 'mapbox-canvas')}
-    >
+    <main className={classNames(styles.MainWrapper, 'mapbox-canvas')}>
       <div
         id='map'
         className={classNames(
-          styles.RxMapbox
+          styles.RxMapbox,
           //   is_loading ? 'opacity-40' : ''
         )}
         ref={mapNode}
@@ -481,13 +411,11 @@ export function RxMapbox(props: RxMapboxProps) {
   );
 }
 
-export function convertQueryStringToObject(
-  queryString: string
-): Record<string, string> {
+export function convertQueryStringToObject(queryString: string): Record<string, string> {
   const queryPairs = queryString.split('&');
   const queryObject: Record<string, string> = {};
 
-  queryPairs.forEach((pair) => {
+  queryPairs.forEach(pair => {
     const [key, value] = pair.split('=');
     queryObject[key] = value;
   });
