@@ -8,12 +8,14 @@
     "start": "next start",
     "lint": "next lint",
     "test": "cypress run --component",
-    "cypress": "cypress open"
+    "cypress": "cypress open",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.15.1",
     "@headlessui/react": "^1.7.13",
     "@heroicons/react": "^2.0.16",
+    "@react-spring/web": "^9.7.1",
     "@types/node": "18.14.6",
     "@types/react": "18.0.28",
     "@types/react-dom": "18.0.11",
@@ -34,7 +36,13 @@
     "@types/mapbox-gl": "^2.7.10",
     "autoprefixer": "^10.4.14",
     "cypress": "^12.7.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.0",
     "postcss": "^8.4.21",
+    "prettier": "2.8.7",
     "tailwindcss": "^3.2.7"
+  },
+  "lint-staged": {
+    "src/**/*": "prettier --write --ignore-unknown"
   }
 }
