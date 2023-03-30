@@ -1,10 +1,7 @@
-export type MapElementType =
-  | 'geometry'
-  | 'labels'
-  | 'labels.icon'
-  | 'labels.text.fill'
-  | 'labels.text.stroke'
-  | 'geometry';
+import { AgentData } from './agent';
+import { MLSProperty } from './property';
+
+export type MapElementType = 'geometry' | 'labels' | 'labels.icon' | 'labels.text.fill' | 'labels.text.stroke' | 'geometry';
 
 export type MapFeatureType =
   | 'administrative.land_parcel'
@@ -63,6 +60,29 @@ export interface Geolocation {
   types: AddressComponentType[];
 }
 
+export interface PlaceDetails {
+  id: number;
+  name: string;
+  lat: number;
+  lng: number;
+  ne_lat: number;
+  ne_lng: number;
+  sw_lat: number;
+  sw_lng: number;
+  zoom: number;
+  title: string;
+  agent: number;
+  place_id: string;
+  province_state: string;
+  metroarea: string;
+  country: string;
+  postal_code: string;
+  route: string;
+  street_number: string;
+  formatted_address: string;
+  vicinity: string;
+}
+
 export interface CreateNeighborhoodMapOptions {
   clickableIcons: false;
   mapTypeControl: false;
@@ -75,4 +95,21 @@ export type MapboxBoundaries = {
   nelng: number;
   swlat: number;
   swlng: number;
+};
+
+export type RxPropertyMapProps = {
+  hide_others?: boolean;
+  place?: google.maps.places.AutocompletePrediction;
+  setPlace?: (p: google.maps.places.AutocompletePrediction) => void;
+  listings: MLSProperty[];
+  setListings?: (p: MLSProperty[]) => void;
+  setHideOthers?: (hide: boolean) => void;
+  children: any;
+  agent_data: AgentData;
+  recursive?: boolean;
+  mapbox_params?: PlaceDetails;
+  config?: {
+    authorization: string;
+    url: string;
+  };
 };

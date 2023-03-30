@@ -10,10 +10,12 @@ import { MLSProperty } from '@/_typings/property';
 import { getShortPrice } from '@/_utilities/map-helper';
 import { Feature } from 'geojson';
 import { classNames } from '@/_utilities/html-helper';
-import { PlaceDetails } from '@/_utilities/geocoding-helper';
+import { PlaceDetails } from '@/_typings/maps';
 import PropertyListModal from './PropertyListModal';
 import { mergeObjects } from '@/_utilities/array-helper';
 import useDebounce from '@/hooks/useDebounce';
+import { MapStateContext, useMapState, useMapUpdater } from '@/app/AppContext.module';
+import { useSearchParams } from 'next/navigation';
 
 type RxMapboxProps = {
   agent: AgentData;
@@ -98,19 +100,14 @@ function addSingleHomePins(map: mapboxgl.Map) {
 }
 
 export function RxMapbox(props: RxMapboxProps) {
+  const state = useMapState();
+  const updater = useMapUpdater();
+  const search = useSearchParams();
   const [selected_cluster, setSelectedCluster] = React.useState<Record<string, string | number | string[]>[]>([]);
   const [is_loading, setLoading] = React.useState<boolean>(false);
   const [map, setMap] = React.useState<mapboxgl.Map>();
   const [listings, setPropertyListings] = React.useState<MLSProperty[]>([]);
   const mapNode = React.useRef(null);
-
-  const retrieveAndRenderMapData = () => {
-    if (!map) return;
-    if (!is_loading) {
-      console.log('setting it to true again');
-      setLoading(true);
-    }
-  };
 
   const clickEventListener = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
     const features = e.target.queryRenderedFeatures(e.point, {
@@ -155,63 +152,104 @@ export function RxMapbox(props: RxMapboxProps) {
   };
 
   const populateMap = () => {
-    if (map)
-      retrieveFromLegacyPipeline(
-        {
-          from: 0,
-          size: 1000,
-          sort: [{ 'data.ListingDate': 'desc' }],
-          fields: [
-            'data.Address',
-            'data.Area',
-            'data.City',
-            'data.AskingPrice',
-            'data.L_BedroomTotal',
-            'data.L_FloorArea_Total',
-            'data.L_TotalBaths',
-            'data.L_YearBuilt',
-            'data.photos',
-            'data.Status',
-            'data.MLS_ID',
-            'data.lat',
-            'data.lng',
-          ],
-          _source: false,
-          query: {
-            bool: {
-              filter: [
-                {
-                  range: {
-                    'data.lat': {
-                      gte: map.getBounds().getSouthWest().lat,
-                      lte: map.getBounds().getNorthEast().lat,
-                    },
-                  },
-                },
-                {
-                  range: {
-                    'data.lng': {
-                      gte: map.getBounds().getSouthWest().lng,
-                      lte: map.getBounds().getNorthEast().lng,
-                    },
-                  },
-                },
-                {
-                  match: {
-                    'data.Status': 'Active',
-                  },
-                },
-              ],
-              should: [],
-              must_not,
-            },
+    if (!map) return;
+
+    const filter: {
+      range?: {
+        [key: string]: {
+          gte?: number;
+          lte?: number;
+        };
+      };
+      match?: {
+        [key: string]: string;
+      };
+    }[] = [
+      {
+        range: {
+          'data.lat': {
+            gte: map.getBounds().getSouthWest().lat,
+            lte: map.getBounds().getNorthEast().lat,
           },
         },
-        {
-          url: props.search_url,
-          headers: props.headers as any,
+      },
+      {
+        range: {
+          'data.lng': {
+            gte: map.getBounds().getSouthWest().lng,
+            lte: map.getBounds().getNorthEast().lng,
+          },
         },
-      ).then((results: MLSProperty[]) => {
+      },
+      {
+        match: {
+          'data.Status': 'Active',
+        },
+      },
+    ];
+
+    if (search.toString()) {
+      search
+        .toString()
+        .split('&')
+        .forEach(kv => {
+          const [k, v] = kv.split('=');
+          if (k === 'beds') {
+            filter.push({
+              range: {
+                'data.L_BedroomTotal': {
+                  gte: Number(v),
+                },
+              },
+            });
+          }
+          if (k === 'baths') {
+            filter.push({
+              range: {
+                'data.L_TotalBaths': {
+                  gte: Number(v),
+                },
+              },
+            });
+          }
+        });
+    }
+
+    retrieveFromLegacyPipeline(
+      {
+        from: 0,
+        size: 1000,
+        sort: [{ 'data.ListingDate': 'desc' }],
+        fields: [
+          'data.Address',
+          'data.Area',
+          'data.City',
+          'data.AskingPrice',
+          'data.L_BedroomTotal',
+          'data.L_FloorArea_Total',
+          'data.L_TotalBaths',
+          'data.L_YearBuilt',
+          'data.photos',
+          'data.Status',
+          'data.MLS_ID',
+          'data.lat',
+          'data.lng',
+        ],
+        _source: false,
+        query: {
+          bool: {
+            filter,
+            should: [],
+            must_not,
+          },
+        },
+      },
+      {
+        url: props.search_url,
+        headers: props.headers as any,
+      },
+    )
+      .then((results: MLSProperty[]) => {
         if (window !== undefined) {
           const ne = map.getBounds().getNorthEast();
           const sw = map.getBounds().getSouthWest();
@@ -232,6 +270,9 @@ export function RxMapbox(props: RxMapboxProps) {
         }
 
         setLoading(false);
+      })
+      .finally(() => {
+        updater(state, 'is_loading', false);
       });
   };
 
@@ -243,17 +284,20 @@ export function RxMapbox(props: RxMapboxProps) {
 
   const [resizing, setResizing] = React.useState('no');
   const resizing_state = useDebounce(resizing, 400);
+
   if (map) {
     map.on('resize', () => {
       setResizing('done');
     });
   }
-  React.useEffect(() => {
-    console.log(resizing_state);
-  }, [resizing_state]);
+
+  // TODO when resized
+  // React.useEffect(() => {
+  //   console.log(resizing_state);
+  // }, [resizing_state]);
 
   const repositionMap = React.useCallback(
-    (p?: LngLatLike) => {
+    (p?: LngLatLike, filters?: string) => {
       if (map && !is_loading) {
         if (p) {
           map?.getStyle().layers.forEach(layer => {
@@ -264,7 +308,6 @@ export function RxMapbox(props: RxMapboxProps) {
         }
 
         new mapboxgl.Marker(createMapPin()).setLngLat(map.getCenter()).addTo(map);
-
         populateMap();
       }
     },
@@ -272,6 +315,26 @@ export function RxMapbox(props: RxMapboxProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [map, is_loading],
   );
+
+  React.useEffect(() => {
+    if (state.is_loading) {
+      let lat, lng;
+      setPropertyListings([]);
+
+      search
+        .toString()
+        .split('&')
+        .filter(kv => kv.indexOf('lat=') === 0 || kv.indexOf('lng=') === 0)
+        .map(kv => {
+          const [k, v] = kv.split('=');
+          if (k === 'lat') lat = Number(v);
+          if (k === 'lng') lng = Number(v);
+        });
+      if (typeof lat !== 'undefined' && typeof lng !== 'undefined') {
+        repositionMap([lng, lat]);
+      }
+    }
+  }, [state.is_loading]);
 
   React.useEffect(() => {
     if (map) {

@@ -1,6 +1,5 @@
 'use client';
 
-import { AgentData } from '@/_typings/agent';
 import { classNames } from '@/_utilities/html-helper';
 import React, { Children, cloneElement } from 'react';
 import RxMapbox from './RxMapbox';
@@ -9,25 +8,13 @@ import styles from './RxPropertyMap.module.scss';
 import { Switch } from '@headlessui/react';
 import RxPropertyCard from './RxPropertyCard';
 import { MapProvider, useMapState } from '@/app/AppContext.module';
-import { getPlaceDetails, PlaceDetails } from '@/_utilities/geocoding-helper';
+import { getPlaceDetails } from '@/_utilities/geocoding-helper';
 import { MLSProperty } from '@/_typings/property';
-
-type RxPropertyMapProps = {
-  hide_others?: boolean;
-  place?: google.maps.places.AutocompletePrediction;
-  setPlace?: (p: google.maps.places.AutocompletePrediction) => void;
-  listings: MLSProperty[];
-  setListings?: (p: MLSProperty[]) => void;
-  setHideOthers?: (hide: boolean) => void;
-  children: any;
-  agent_data: AgentData;
-  recursive?: boolean;
-  mapbox_params?: PlaceDetails;
-  config?: {
-    authorization: string;
-    url: string;
-  };
-};
+import { PlaceDetails, RxPropertyMapProps } from '@/_typings/maps';
+import RxLiveBedrooms from './RxLiveUrlBased/RxLiveBedrooms';
+import RxLiveNumericStep from './RxLiveUrlBased/RxLiveNumericStep';
+import RxLiveBathrooms from './RxLiveUrlBased/RxLiveBathrooms';
+import { RxSearchButton } from './RxLiveUrlBased/RxSearchButton';
 
 export function RxPropertyMapRecursive(props: RxPropertyMapProps) {
   let MapAndHeaderHeader;
@@ -47,8 +34,28 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps) {
       );
     }
 
-    if (child.type === 'div' && child.props && child.props.children) {
-      if (child.props.children === '{Agent Name}') {
+    if (child.props) {
+      if (child.props.className) {
+        if (child.props.className.indexOf('beds-more') >= 0 || child.props.className.indexOf('beds-less') >= 0) {
+          return <RxLiveNumericStep child={child} filter='beds' />;
+        }
+        if (child.props.className.indexOf('baths-more') >= 0 || child.props.className.indexOf('baths-less') >= 0) {
+          return <RxLiveNumericStep child={child} filter='baths' />;
+        }
+        if (child.props.className.indexOf('beds-min') >= 0) {
+          return <RxLiveBedrooms className={child.props.className} />;
+        }
+        if (child.props.className.indexOf('baths-min') >= 0) {
+          return <RxLiveBathrooms className={child.props.className} />;
+        }
+
+        // Search  button
+        if (child.props.className.indexOf('do-search') >= 0) {
+          return <RxSearchButton className={child.props.className}>{child.props.children}</RxSearchButton>;
+        }
+      }
+
+      if (child.props.children && child.props.children === '{Agent Name}') {
         return <span>{props.agent_data?.full_name}</span>;
       }
     }
