@@ -56,18 +56,6 @@ export function RxLiveCurrencyDD({
             const amount = Number(numbers) ? Number(numbers) * 1000 * (zeroes === 'M' ? 1000 : 1) : 0;
 
             updater(state, filter, amount);
-            // updater(state, 'minprice', amount)
-            // Object.keys(params).forEach(key => {
-            //   if (key === filter) {
-            //     search = `${search}&${key}=${counter}`;
-            //   } else {
-            //     search = `${search}&${key}=${params[key]}`;
-            //   }
-            // });
-
-            // search = search.substring(1);
-
-            // updater(state)
             toggleDropdown(false);
           },
         });

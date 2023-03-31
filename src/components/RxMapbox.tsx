@@ -55,11 +55,12 @@ function addSingleHomePins(map: mapboxgl.Map) {
 }
 
 export function RxMapbox(props: RxMapboxProps) {
+  const search = useSearchParams();
   const state = useMapState();
   const updater = useMapUpdater();
-  const search = useSearchParams();
   const [selected_cluster, setSelectedCluster] = React.useState<Record<string, string | number | string[]>[]>([]);
   const [is_loading, setLoading] = React.useState<boolean>(false);
+  const [is_reloading, setReloading] = React.useState<boolean>(state.reload || false);
   const [map, setMap] = React.useState<mapboxgl.Map>();
   const [listings, setPropertyListings] = React.useState<MLSProperty[]>([]);
   const mapNode = React.useRef(null);
@@ -108,6 +109,7 @@ export function RxMapbox(props: RxMapboxProps) {
 
   const populateMap = () => {
     if (!map) return;
+    let include_listings = listings;
 
     const filter: {
       range?: {
@@ -143,31 +145,59 @@ export function RxMapbox(props: RxMapboxProps) {
       },
     ];
 
-    if (search.toString()) {
-      search
-        .toString()
-        .split('&')
-        .forEach(kv => {
-          const [k, v] = kv.split('=');
-          if (k === 'beds') {
-            filter.push({
-              range: {
-                'data.L_BedroomTotal': {
-                  gte: Number(v),
-                },
-              },
-            });
-          }
-          if (k === 'baths') {
-            filter.push({
-              range: {
-                'data.L_TotalBaths': {
-                  gte: Number(v),
-                },
-              },
-            });
-          }
-        });
+    let updated_state = {
+      ...state,
+    };
+
+    search
+      .toString()
+      .split('&')
+      .map(kv => {
+        const [k, v] = kv.split('=');
+        // We want these fields to be the latest
+        if (['baths', 'beds', 'minprice', 'maxprice'].includes(k)) {
+          updated_state[k] = state[k];
+          include_listings = [];
+        }
+      });
+
+    if (updated_state.beds) {
+      filter.push({
+        range: {
+          'data.L_BedroomTotal': {
+            gte: updated_state.beds,
+          },
+        },
+      });
+    }
+
+    if (updated_state.baths) {
+      filter.push({
+        range: {
+          'data.L_TotalBaths': {
+            gte: updated_state.baths,
+          },
+        },
+      });
+    }
+
+    if (updated_state.minprice) {
+      filter.push({
+        range: {
+          'data.AskingPrice': {
+            gte: updated_state.minprice,
+          },
+        },
+      });
+    }
+    if (updated_state.maxprice) {
+      filter.push({
+        range: {
+          'data.AskingPrice': {
+            lte: updated_state.maxprice,
+          },
+        },
+      });
     }
 
     retrieveFromLegacyPipeline(
@@ -219,7 +249,7 @@ export function RxMapbox(props: RxMapboxProps) {
           window.history.pushState({}, `${ne.lat}${ne.lng}${sw.lat}${sw.lng}`, currentUrl.href);
         }
         if (results.length) {
-          setPropertyListings(mergeObjects(listings, results, 'MLS_ID'));
+          setPropertyListings(mergeObjects(include_listings, results, 'MLS_ID'));
         } else {
           setPropertyListings([]);
         }
@@ -275,7 +305,6 @@ export function RxMapbox(props: RxMapboxProps) {
     if (state.is_loading) {
       let lat, lng;
       setPropertyListings([]);
-
       search
         .toString()
         .split('&')
@@ -284,6 +313,9 @@ export function RxMapbox(props: RxMapboxProps) {
           const [k, v] = kv.split('=');
           if (k === 'lat') lat = Number(v);
           if (k === 'lng') lng = Number(v);
+          if (['baths', 'beds', 'minprice', 'maxprice'].includes(k)) {
+            updater(state, k, Number(v));
+          }
         });
       if (typeof lat !== 'undefined' && typeof lng !== 'undefined') {
         repositionMap([lng, lat]);
@@ -313,8 +345,24 @@ export function RxMapbox(props: RxMapboxProps) {
   }, [map]);
 
   React.useEffect(() => {
+    setReloading(false);
+    if (is_reloading) {
+      // When filters are updated, we wanna repop
+      setLoading(true);
+      populateMap();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [is_reloading]);
+
+  React.useEffect(() => {
+    console.log('state.reload', state.reload);
+    if (state.reload) {
+      setReloading(true);
+    }
+  }, [state.reload]);
+
+  React.useEffect(() => {
     if (props.params && props.params.id) {
-      // setLoading(false);
       repositionMap([props.params.lng, props.params.lat]);
     }
   }, [props.params, map, repositionMap]);

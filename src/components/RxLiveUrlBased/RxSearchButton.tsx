@@ -1,30 +1,34 @@
 'use client';
 import { MapStateContext, useMapUpdater } from '@/app/AppContext.module';
 import { useContext } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export function RxSearchButton({ children, className }: { className: string; children: React.ReactElement }) {
-  const router = useRouter();
-  const pathname = usePathname();
   const state = useContext(MapStateContext);
   const updater = useMapUpdater();
   const params = useSearchParams();
+  const router = useRouter();
 
   return (
     <button
       type='button'
       className={`${className} rexified`}
-      onClick={() => {
+      onClick={e => {
+        e.preventDefault();
         let { query } = state;
         if (!query) {
           query = params.toString();
+          const kvpairs: string[] = query.split('&').map(kvstr => {
+            const [key] = kvstr.split('=');
+            if (['minprice', 'maxprice', 'beds', 'baths', 'minsqft', 'maxsqft'].includes(key)) {
+              return `${key}=${state[key]}`;
+            }
+            return kvstr;
+          });
+          query = kvpairs.join('&');
         }
-        if (!state.is_loading) {
-          updater(state, 'query', query);
-          updater(state, 'is_loading', true);
-          router.push(`${pathname}?${query}`);
-        }
+        router.push(`/map?${query}`);
+        updater(state, 'reload', true);
       }}
     >
       {children}

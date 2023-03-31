@@ -2,8 +2,6 @@
 
 import { cloneElement } from 'react';
 import { RxPropertyMapProps } from '@/_typings/maps';
-import { RxLiveBedrooms } from '@/components/RxLiveUrlBased/RxLiveBedrooms';
-import { useRouter } from 'next/navigation';
 
 function descreaseBeds() {
   const currentUrl = new URL(window.location.href);

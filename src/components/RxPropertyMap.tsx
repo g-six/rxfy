@@ -11,9 +11,8 @@ import { MapProvider, useMapState } from '@/app/AppContext.module';
 import { getPlaceDetails } from '@/_utilities/geocoding-helper';
 import { MLSProperty } from '@/_typings/property';
 import { PlaceDetails, RxPropertyMapProps } from '@/_typings/maps';
-import RxLiveBedrooms from './RxLiveUrlBased/RxLiveBedrooms';
+import RxLiveNumber from './RxLiveUrlBased/RxLiveNumber';
 import RxLiveNumericStep from './RxLiveUrlBased/RxLiveNumericStep';
-import RxLiveBathrooms from './RxLiveUrlBased/RxLiveBathrooms';
 import { RxSearchButton } from './RxLiveUrlBased/RxSearchButton';
 import RxLiveCurrencyDD from './RxLiveUrlBased/RxLiveCurrencyDD';
 import RxLiveStringValue from './RxLiveUrlBased/RxLiveStringValue';
@@ -23,6 +22,9 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
   let SmallCard;
   let LargeCard;
   const wrappedChildren = Children.map(props.children, child => {
+    if (child.type === 'form') {
+      return <div className={`${child.props.className || ''} rexified-${child.type}`}>{child.props.children}</div>;
+    }
     if (child.type === 'input' && child.props.className && child.props.className.indexOf('search-input-field') >= 0) {
       return (
         <RxSearchInput
@@ -46,10 +48,10 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
           return <RxLiveNumericStep child={child} filter='baths' />;
         }
         if (child.props.className.indexOf('beds-min') >= 0) {
-          return <RxLiveBedrooms className={child.props.className} />;
+          return <RxLiveNumber className={child.props.className} filter='beds' />;
         }
         if (child.props.className.indexOf('baths-min') >= 0) {
-          return <RxLiveBathrooms className={child.props.className} />;
+          return <RxLiveNumber className={child.props.className} filter='baths' />;
         }
 
         // Min. price dropdown values
