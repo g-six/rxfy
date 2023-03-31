@@ -15,10 +15,6 @@ function descreaseBeds() {
   }
 }
 
-function getFilterValue(key: string) {
-  const currentUrl = new URL(window.location.href);
-  return currentUrl.searchParams.get(key);
-}
 function increaseBeds() {
   const currentUrl = new URL(window.location.href);
   let num_of_beds = Number(currentUrl.searchParams.get('beds') || '0');

@@ -6,22 +6,22 @@ import { getPlaceDetails } from '@/_utilities/geocoding-helper';
 import React, { Context, createContext, useEffect, useState } from 'react';
 
 // Initial value of context state
-export interface MapStateProps {
+interface BaseKeyValuePairStateProps {
+  [key: string]: string | number | boolean | undefined | google.maps.places.AutocompletePrediction | google.maps.places.AutocompletePrediction[] | PlaceDetails;
+}
+export interface MapStateProps extends BaseKeyValuePairStateProps {
   is_loading?: boolean;
   query: string;
+  minprice?: number;
+  maxprice?: number;
   place?: google.maps.places.AutocompletePrediction;
   suggestions: google.maps.places.AutocompletePrediction[];
   details?: PlaceDetails;
 }
-interface MapStateUpdaterProps {
-  setSelectedLocation(selectedLocation: {
-    query: string;
-    place?: google.maps.places.AutocompletePrediction;
-    suggestions: google.maps.places.AutocompletePrediction[];
-  }): void;
-}
 const initialState: MapStateProps = {
   query: '',
+  minprice: 300000,
+  maxprice: 800000,
   suggestions: [],
 };
 function updateAddressURL(address: PlaceDetails) {
@@ -38,8 +38,7 @@ function updateAddressURL(address: PlaceDetails) {
   }
 }
 // Create the Map context
-// export const MapContext = createContext(initialState);
-export const MapStateContext = createContext(initialState);
+export const MapStateContext: Context<MapStateProps> = createContext(initialState);
 export const MapUpdaterContext: Context<any> = createContext((state: MapStateProps, key: string, value: any) => {});
 
 export function useMapState() {

@@ -14,8 +14,9 @@ import { PlaceDetails } from '@/_typings/maps';
 import PropertyListModal from './PropertyListModal';
 import { mergeObjects } from '@/_utilities/array-helper';
 import useDebounce from '@/hooks/useDebounce';
-import { MapStateContext, useMapState, useMapUpdater } from '@/app/AppContext.module';
+import { useMapState, useMapUpdater } from '@/app/AppContext.module';
 import { useSearchParams } from 'next/navigation';
+import { renderClusterBgLayer, renderClusterTextLayer, renderHomePinBgLayer, renderHomePinTextLayer } from '@/_utilities/rx-map-style-helper';
 
 type RxMapboxProps = {
   agent: AgentData;
@@ -36,67 +37,21 @@ function createMapPin() {
 
 function addClusterLayer(map: mapboxgl.Map) {
   if (map.getLayer('rx-clusters')) return;
-  map.addLayer({
-    id: 'rx-clusters',
-    type: 'circle',
-    source: 'map-source',
-    filter: ['has', 'point_count'],
-    paint: {
-      'circle-color': ['step', ['get', 'point_count'], '#4f46e5', 5, '#4f46e5', 10, '#4f46e5'],
-      'circle-opacity': ['step', ['get', 'point_count'], 0.85, 5, 0.75, 10, 0.68],
-      'circle-radius': ['step', ['get', 'point_count'], 12, 5, 16, 10, 18],
-    },
-  });
+  map.addLayer(renderClusterBgLayer('rx-clusters'));
 }
 
 function addClusterHomeCountLayer(map: mapboxgl.Map) {
-  if (map.getLayer('rx-cluster-home-count') === undefined)
-    map.addLayer({
-      id: `rx-cluster-home-count`,
-      type: 'symbol',
-      source: 'map-source',
-      filter: ['has', 'point_count'],
-      layout: {
-        'text-field': '{point_count_abbreviated}',
-        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-        'text-size': 14,
-      },
-      paint: {
-        'text-color': '#ffffff',
-      },
-    });
+  if (map.getLayer('rx-cluster-home-count') === undefined) map.addLayer(renderClusterTextLayer('rx-cluster-home-count'));
 }
 
 function addSingleHomePins(map: mapboxgl.Map) {
-  if (map.getLayer('rx-home-price-bg') === undefined)
-    map.addLayer({
-      id: `rx-home-price-bg`,
-      type: 'circle',
-      source: 'map-source',
-      filter: ['!', ['has', 'point_count']],
-      paint: {
-        'circle-color': '#fff',
-        'circle-stroke-color': '#5349f0',
-        'circle-opacity': 1,
-        'circle-radius': 20,
-      },
-    });
+  if (map.getLayer('rx-home-price-bg') === undefined) {
+    const [outline, bg] = renderHomePinBgLayer('rx-home-price-bg');
+    map.addLayer(outline);
+    map.addLayer(bg);
+  }
 
-  if (map.getLayer('rx-home-price-text') === undefined)
-    map.addLayer({
-      id: 'rx-home-price-text',
-      type: 'symbol',
-      source: 'map-source',
-      filter: ['!', ['has', 'point_count']],
-      layout: {
-        'text-field': '{price}',
-        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-        'text-size': 12,
-      },
-      paint: {
-        'text-color': '#4f46e5',
-      },
-    });
+  if (map.getLayer('rx-home-price-text') === undefined) map.addLayer(renderHomePinTextLayer('rx-home-price-text'));
 }
 
 export function RxMapbox(props: RxMapboxProps) {

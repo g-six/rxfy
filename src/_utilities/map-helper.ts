@@ -1,16 +1,11 @@
-import {
-  CreateNeighborhoodMapOptions,
-  MapStyle,
-} from '@/_typings/maps';
+import { CreateNeighborhoodMapOptions, MapStyle } from '@/_typings/maps';
 
 /**
  *
  * @param isMobile boolean
  * @returns
  */
-export function createNeighborhoodMapOptions(
-  isMobile = false
-): CreateNeighborhoodMapOptions {
+export function createNeighborhoodMapOptions(isMobile = false): CreateNeighborhoodMapOptions {
   return {
     clickableIcons: false,
     mapTypeControl: false,
@@ -126,17 +121,17 @@ function mapStyles(): MapStyle[] {
   ];
 }
 
-export function getShortPrice(amount: number) {
+export function getShortPrice(amount: number, prefix = '$') {
   const str = `${Math.round(amount / 1000)}`;
   if (amount < 1000000) {
-    return `$${str}K`;
+    return `${prefix}${str}K`;
   }
 
   if (str.substring(1, 2) !== '0') {
     const x = Math.round(parseInt(str.substring(1), 10) / 100);
-    if (x < 10) return `$${str.substring(0, 1)}.${x}M`;
-    else return `$${str.substring(0, 1)}M`;
+    if (x < 10) return `${prefix}${str.substring(0, 1)}.${x}M`;
+    else return `${prefix}${str.substring(0, 1)}M`;
   }
 
-  return `$${Math.round(amount / 1000000)}M`;
+  return `${prefix}${Math.round(amount / 1000000)}M`;
 }
