@@ -1,7 +1,7 @@
 'use client';
 import React, { MouseEvent, ReactElement, useEffect, useState } from 'react';
 import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';
-import { MapStateProps, useMapState, useMapUpdater } from '@/app/AppContext.module';
+import { MapStateProps, useMapState, useMapMultiUpdater } from '@/app/AppContext.module';
 
 export function RxLiveCurrencyDD({
   className,
@@ -16,7 +16,7 @@ export function RxLiveCurrencyDD({
 }) {
   const search: ReadonlyURLSearchParams = useSearchParams();
   const state: MapStateProps = useMapState();
-  const updater = useMapUpdater();
+  const updater = useMapMultiUpdater();
   const [is_open, toggleDropdown] = useState<boolean>(true);
   let params: {
     [key: string]: string | number;
@@ -54,8 +54,23 @@ export function RxLiveCurrencyDD({
             const zeroes: 'k' | 'M' = (stripped_dollar?.substring(stripped_dollar.length - 1) || 'k') as 'k' | 'M';
             const numbers = stripped_dollar?.substring(0, stripped_dollar.length - 1);
             const amount = Number(numbers) ? Number(numbers) * 1000 * (zeroes === 'M' ? 1000 : 1) : 0;
+            let query = '';
+            params[filter] = amount;
+            Object.keys(params).forEach(key => {
+              if (key === filter) {
+                console.log(`${query}&${key}=${amount}`);
+                query = `${query}&${key}=${amount}`;
+              } else {
+                query = `${query}&${key}=${params[key]}`;
+              }
+            });
 
-            updater(state, filter, amount);
+            query = query.substring(1);
+            updater(state, {
+              query,
+              [filter]: amount,
+            });
+
             toggleDropdown(false);
           },
         });

@@ -14,7 +14,7 @@ import { PlaceDetails } from '@/_typings/maps';
 import PropertyListModal from './PropertyListModal';
 import { mergeObjects } from '@/_utilities/array-helper';
 import useDebounce from '@/hooks/useDebounce';
-import { useMapState, useMapUpdater } from '@/app/AppContext.module';
+import { useMapMultiUpdater, useMapState } from '@/app/AppContext.module';
 import { useSearchParams } from 'next/navigation';
 import { renderClusterBgLayer, renderClusterTextLayer, renderHomePinBgLayer, renderHomePinTextLayer } from '@/_utilities/rx-map-style-helper';
 
@@ -57,7 +57,7 @@ function addSingleHomePins(map: mapboxgl.Map) {
 export function RxMapbox(props: RxMapboxProps) {
   const search = useSearchParams();
   const state = useMapState();
-  const updater = useMapUpdater();
+  const updater = useMapMultiUpdater();
   const [selected_cluster, setSelectedCluster] = React.useState<Record<string, string | number | string[]>[]>([]);
   const [is_loading, setLoading] = React.useState<boolean>(false);
   const [is_reloading, setReloading] = React.useState<boolean>(state.reload || false);
@@ -257,7 +257,10 @@ export function RxMapbox(props: RxMapboxProps) {
         setLoading(false);
       })
       .finally(() => {
-        updater(state, 'is_loading', false);
+        updater(state, {
+          is_loading: false,
+          reload: false,
+        });
       });
   };
 
@@ -305,6 +308,7 @@ export function RxMapbox(props: RxMapboxProps) {
     if (state.is_loading) {
       let lat, lng;
       setPropertyListings([]);
+      let updates = {};
       search
         .toString()
         .split('&')
@@ -314,9 +318,17 @@ export function RxMapbox(props: RxMapboxProps) {
           if (k === 'lat') lat = Number(v);
           if (k === 'lng') lng = Number(v);
           if (['baths', 'beds', 'minprice', 'maxprice'].includes(k)) {
-            updater(state, k, Number(v));
+            updates = {
+              ...updates,
+              [k]: Number(v),
+            };
           }
         });
+
+      updater(state, {
+        is_loading: false,
+        reload: false,
+      });
       if (typeof lat !== 'undefined' && typeof lng !== 'undefined') {
         repositionMap([lng, lat]);
       }
