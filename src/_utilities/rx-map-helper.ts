@@ -89,11 +89,11 @@ export function getSelectedPropertyTypes(property_type: string) {
     case 'duplex':
       return ['Half Duplex', '1/2 Duplex', 'Duplex'];
     case 'nonstrata':
-      break;
+      return ['Row House (Non-Strata)'];
     case 'manufactured':
-      break;
+      return ['Manufactured', 'Manufactured with Land'];
     case 'others':
-      break;
+      return ['Other'];
     default:
       return [];
   }

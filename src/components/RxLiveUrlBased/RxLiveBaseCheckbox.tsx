@@ -27,7 +27,6 @@ export function RxLiveCheckbox({ child, filter, value }: { child: React.ReactEle
   });
 
   if (child.type === 'label' && child.props.className.split(' ').includes('w-checkbox')) {
-    console.log({ value });
     return React.cloneElement(child, {
       children: child.props.children.map((c: any) => {
         if (c.type === 'div') {
@@ -63,7 +62,6 @@ export function RxLiveCheckbox({ child, filter, value }: { child: React.ReactEle
 }
 
 function toggleValueState(str: string[], val: string, selected = false) {
-  console.log({ val });
   if (selected) {
     if (!str.includes(val)) return str.concat([val]);
   } else {

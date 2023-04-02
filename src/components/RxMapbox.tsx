@@ -7,7 +7,7 @@ import { queryStringToObject } from '@/_utilities/url-helper';
 import { AgentData } from '@/_typings/agent';
 import { must_not, retrieveFromLegacyPipeline } from '@/_utilities/data-helpers/property-page';
 import { MLSProperty } from '@/_typings/property';
-import { getShortPrice } from '@/_utilities/rx-map-helper';
+import { getSelectedPropertyTypes, getShortPrice } from '@/_utilities/rx-map-helper';
 import { Feature } from 'geojson';
 import { classNames } from '@/_utilities/html-helper';
 import { PlaceDetails } from '@/_typings/maps';
@@ -203,11 +203,18 @@ export function RxMapbox(props: RxMapboxProps) {
       });
     }
     if (updated_state.types && (updated_state.types as string[]).length) {
-      filter.push({
-        terms: {
-          'data.Type': updated_state.types as string[],
-        },
+      let property_types: string[] = [];
+      (updated_state.types as string[]).forEach((t: string) => {
+        property_types = property_types.concat(getSelectedPropertyTypes(t));
       });
+      console.log({ property_types });
+      if (property_types.length) {
+        filter.push({
+          terms: {
+            'data.Type': property_types,
+          },
+        });
+      }
     }
 
     let sort: {
@@ -420,7 +427,6 @@ export function RxMapbox(props: RxMapboxProps) {
   }, [is_reloading]);
 
   React.useEffect(() => {
-    console.log('state.reload', state.reload);
     if (state.reload) {
       setReloading(true);
     }
