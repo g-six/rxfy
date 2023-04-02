@@ -38,3 +38,28 @@ export default function rxfyBedsAndBaths({ parentProps, child }: { parentProps: 
     });
   }
 }
+
+export function getShortPrice(amount: number, prefix = '$') {
+  const str = `${Math.round(amount / 1000)}`;
+  if (amount < 1000000) {
+    return `${prefix}${str}K`;
+  }
+
+  if (str.substring(1, 2) !== '0') {
+    const x = Math.round(parseInt(str.substring(1), 10) / 100);
+    if (x < 10) return `${prefix}${str.substring(0, 1)}.${x}M`;
+    else return `${prefix}${str.substring(0, 1)}M`;
+  }
+
+  return `${prefix}${Math.round(amount / 1000000)}M`;
+}
+
+export function getSortingKey(class_name: string) {
+  if (class_name.indexOf('date-asc') >= 0) return 'date_asc';
+  if (class_name.indexOf('date-desc') >= 0) return 'date_desc';
+  if (class_name.indexOf('price-asc') >= 0) return 'price_asc';
+  if (class_name.indexOf('price-desc') >= 0) return 'price_desc';
+  if (class_name.indexOf('size-asc') >= 0) return 'size_asc';
+  if (class_name.indexOf('size-desc') >= 0) return 'size_desc';
+  return '';
+}

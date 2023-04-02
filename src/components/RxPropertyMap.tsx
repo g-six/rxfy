@@ -16,6 +16,8 @@ import RxLiveNumericStep from './RxLiveUrlBased/RxLiveNumericStep';
 import RxLiveNumber from './RxLiveUrlBased/RxLiveNumber';
 import RxLiveCurrencyDD from './RxLiveUrlBased/RxLiveCurrencyDD';
 import RxLiveStringValue from './RxLiveUrlBased/RxLiveStringValue';
+import { getSortingKey } from '@/_utilities/rx-map-helper';
+import RxLiveTextDDOption from './RxLiveUrlBased/RxLiveTextDropdownOption';
 
 export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?: string }) {
   let MapAndHeaderHeader;
@@ -56,7 +58,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
 
         // Min. price dropdown values
         if (child.props.className.indexOf('dropdown-wrap minprice') >= 0) {
-          return <RxLiveCurrencyDD child={child} filter='minprice' className={child.props.className} toggleClassName={props.className} />;
+          return <RxLiveCurrencyDD child={child} filter='minprice' />;
         }
         // Min. price selected value
         if (child.props.className.indexOf('propcard-stat map minprice') >= 0) {
@@ -65,11 +67,17 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
 
         // Max. price dropdown values
         if (child.props.className.indexOf('dropdown-wrap maxprice') >= 0) {
-          return <RxLiveCurrencyDD child={child} filter='maxprice' className={child.props.className} toggleClassName={props.className} />;
+          return <RxLiveCurrencyDD child={child} filter='maxprice' />;
         }
         // Max. price selected value
         if (child.props.className.indexOf('propcard-stat map maxprice') >= 0) {
           return <RxLiveStringValue filter='maxprice' className={child.props.className} />;
+        }
+
+        // Sorters
+        if (child.props.className.indexOf('-asc') >= 0 || child.props.className.indexOf('-desc') >= 0) {
+          const sorting = getSortingKey(child.props.className);
+          return <RxLiveTextDDOption child={child} filter='sorting' value={sorting} />;
         }
 
         // Search  button

@@ -3,17 +3,7 @@ import React, { MouseEvent, ReactElement, useEffect, useState } from 'react';
 import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';
 import { MapStateProps, useMapState, useMapMultiUpdater } from '@/app/AppContext.module';
 
-export function RxLiveCurrencyDD({
-  className,
-  toggleClassName,
-  child,
-  filter,
-}: {
-  toggleClassName?: string;
-  className?: string;
-  child: React.ReactElement;
-  filter: string;
-}) {
+export function RxLiveCurrencyDD({ child, filter }: { child: React.ReactElement; filter: string }) {
   const search: ReadonlyURLSearchParams = useSearchParams();
   const state: MapStateProps = useMapState();
   const updater = useMapMultiUpdater();
@@ -34,14 +24,6 @@ export function RxLiveCurrencyDD({
       };
     }
   });
-
-  useEffect(() => {
-    if (!is_open) {
-      document.querySelectorAll('.w-dropdown-toggle').forEach(e => {
-        // e.dispatchEvent(new Event('click'));
-      });
-    }
-  }, [is_open]);
 
   let options: ReactElement[] = [];
   if (child.props.children && Array.isArray(child.props.children)) {
@@ -83,26 +65,7 @@ export function RxLiveCurrencyDD({
   return React.cloneElement(child, {
     className: `${classNames.join(' ')} rexified transition-all${is_open ? '' : ''}`,
     children: options,
-    onClick: () => {
-      // toggleDropdown(false);
-      // console.log({ filter });
-      //   let search = '';
-      //   if (child.props.className.split(' ').includes(`${filter}-less`)) {
-      //     counter = counter - 1;
-      //   } else {
-      //     counter = counter + 1;
-      //   }
-      //   if (counter < 1) counter = 1;
-      //   Object.keys(params).forEach(key => {
-      //     if (key === filter) {
-      //       search = `${search}&${key}=${counter}`;
-      //     } else {
-      //       search = `${search}&${key}=${params[key]}`;
-      //     }
-      //   });
-      //   search = search.substring(1);
-      //   updater(state, 'query', search);
-    },
+    onClick: () => {},
   });
 }
 

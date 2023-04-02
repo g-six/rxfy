@@ -16,27 +16,17 @@ type RxHomeAlertLayerProps = {
 export function RxHomeAlertComponents(children: React.ReactNode) {
   const [state, dispatch] = React.useReducer(formReducer, {
     form_1: true,
-    form_2: false,
+    form_2: true,
     confirmation: false,
   });
 
-  const rexified_components = (
-    children as unknown as React.ReactElement[]
-  ).map((comp, idx: number) => {
+  const rexified_components = (children as unknown as React.ReactElement[]).map((comp, idx: number) => {
     const component = React.cloneElement(comp);
 
     // Rexify Step 1
-    if (
-      component.props.className.split(' ').includes('ha-step-1')
-    ) {
+    if (component.props.className.split(' ').includes('ha-step-1')) {
       return (
-        <div
-          key='step-1'
-          className={classNames(
-            component.props.className,
-            !state.form_1 && styles.HiddenHomeAlertComponent
-          )}
-        >
+        <div key='step-1' className={classNames(component.props.className, !state.form_1 && styles.HiddenHomeAlertComponent)}>
           {rxfyHomeAlertStep1(component, {
             onClose: () => {
               dispatch({ type: 'HIDE_FORM_1' });
@@ -50,17 +40,9 @@ export function RxHomeAlertComponents(children: React.ReactNode) {
     }
 
     // Rexify Step 2
-    if (
-      component.props.className.split(' ').includes('ha-step-2')
-    ) {
+    if (component.props.className.split(' ').includes('ha-step-2')) {
       return (
-        <div
-          key='step-2'
-          className={classNames(
-            component.props.className,
-            !state.form_2 && styles.HiddenHomeAlertComponent
-          )}
-        >
+        <div key='step-2' className={classNames(component.props.className, !state.form_2 && styles.HiddenHomeAlertComponent)}>
           {rxfyHomeAlertStep2(component, {
             onClose: () => {
               dispatch({ type: 'HIDE_FORM_2' });
@@ -74,9 +56,7 @@ export function RxHomeAlertComponents(children: React.ReactNode) {
     }
 
     // Rexify notification
-    if (
-      component.props.className.split(' ').includes('ha-step-3')
-    ) {
+    if (component.props.className.split(' ').includes('ha-step-3')) {
       return (
         <Transition
           key='confirmation'
@@ -99,17 +79,6 @@ export function RxHomeAlertComponents(children: React.ReactNode) {
   return rexified_components;
 }
 
-export default function RxHomeAlertLayer(
-  props: RxHomeAlertLayerProps
-) {
-  return (
-    <div
-      className={classNames(
-        props.className,
-        styles.RxHomeAlertLayer
-      )}
-    >
-      {RxHomeAlertComponents(props.children)}
-    </div>
-  );
+export default function RxHomeAlertLayer(props: RxHomeAlertLayerProps) {
+  return <div className={classNames(props.className, styles.RxHomeAlertLayer)}>{RxHomeAlertComponents(props.children)}</div>;
 }

@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { MapStateProps, useMapState } from '@/app/AppContext.module';
-import { getShortPrice } from '@/_utilities/map-helper';
+import { getShortPrice } from '@/_utilities/rx-map-helper';
 import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';
 
 export function RxLiveStringValue({ className, filter }: { className: string; filter: string }) {

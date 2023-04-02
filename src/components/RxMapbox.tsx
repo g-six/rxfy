@@ -7,7 +7,7 @@ import { queryStringToObject } from '@/_utilities/url-helper';
 import { AgentData } from '@/_typings/agent';
 import { must_not, retrieveFromLegacyPipeline } from '@/_utilities/data-helpers/property-page';
 import { MLSProperty } from '@/_typings/property';
-import { getShortPrice } from '@/_utilities/map-helper';
+import { getShortPrice } from '@/_utilities/rx-map-helper';
 import { Feature } from 'geojson';
 import { classNames } from '@/_utilities/html-helper';
 import { PlaceDetails } from '@/_typings/maps';
@@ -200,11 +200,54 @@ export function RxMapbox(props: RxMapboxProps) {
       });
     }
 
+    let sort: {
+      [key: string]: 'asc' | 'desc';
+    }[] = [{ 'data.ListingDate': 'desc' }];
+    if (updated_state.sorting) {
+      switch (updated_state.sorting) {
+        case 'date_asc':
+          sort = [
+            {
+              'data.ListingDate': 'asc',
+            },
+          ];
+          break;
+        case 'price_asc':
+          sort = [
+            {
+              'data.AskingPrice': 'asc',
+            },
+          ];
+          break;
+        case 'price_desc':
+          sort = [
+            {
+              'data.AskingPrice': 'desc',
+            },
+          ];
+          break;
+        case 'size_asc':
+          sort = [
+            {
+              'data.L_FloorArea_Total': 'asc',
+            },
+          ];
+          break;
+        case 'size_desc':
+          sort = [
+            {
+              'data.L_FloorArea_Total': 'desc',
+            },
+          ];
+          break;
+      }
+    }
+
     retrieveFromLegacyPipeline(
       {
         from: 0,
         size: 1000,
-        sort: [{ 'data.ListingDate': 'desc' }],
+        sort,
         fields: [
           'data.Address',
           'data.Area',
