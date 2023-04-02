@@ -158,7 +158,7 @@ export function RxMapbox(props: RxMapboxProps) {
       .map(kv => {
         const [k, v] = kv.split('=');
         // We want these fields to be the latest
-        if (['baths', 'beds', 'minprice', 'maxprice'].includes(k)) {
+        if (['baths', 'beds', 'minprice', 'maxprice', 'types'].includes(k)) {
           updated_state[k] = state[k];
           include_listings = [];
         }
@@ -207,7 +207,6 @@ export function RxMapbox(props: RxMapboxProps) {
       (updated_state.types as string[]).forEach((t: string) => {
         property_types = property_types.concat(getSelectedPropertyTypes(t));
       });
-      console.log({ property_types });
       if (property_types.length) {
         filter.push({
           terms: {

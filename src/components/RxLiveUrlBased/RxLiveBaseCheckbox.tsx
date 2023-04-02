@@ -8,7 +8,7 @@ export function RxLiveCheckbox({ child, filter, value }: { child: React.ReactEle
   const search: ReadonlyURLSearchParams = useSearchParams();
   const state: MapStateProps = useMapState();
   const updater = useMapMultiUpdater();
-  const [is_selected, toggleSelected] = useState<boolean>(false);
+  const [is_selected, toggleSelected] = useState<boolean>((state.types && state.types.includes(value)) as boolean);
   let params: {
     [key: string]: string[] | string;
   } = {};

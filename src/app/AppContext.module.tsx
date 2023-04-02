@@ -29,6 +29,7 @@ export interface MapStateProps extends BaseKeyValuePairStateProps {
   maxprice?: number;
   minsqft?: number;
   maxsqft?: number;
+  types?: string[];
   place?: google.maps.places.AutocompletePrediction;
   suggestions: google.maps.places.AutocompletePrediction[];
   details?: PlaceDetails;
@@ -146,6 +147,10 @@ export const MapProvider = (props: any) => {
     if (search.get('nelng')) {
       let value = Number(search.get('nelng'));
       if (!isNaN(value)) init.nelng = value;
+    }
+    if (search.get('types')) {
+      let value: string[] = (search.get('types') as string).split('%2F');
+      init.types = value;
     }
   };
 
