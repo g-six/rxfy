@@ -3,6 +3,7 @@ import React, { MouseEvent, useState } from 'react';
 import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';
 import { MapStateProps, useMapState, useMapMultiUpdater } from '@/app/AppContext.module';
 
+const SEPARATOR = '%2F';
 export function RxLiveCheckbox({ child, filter, value }: { child: React.ReactElement; filter: string; value: string }) {
   const search: ReadonlyURLSearchParams = useSearchParams();
   const state: MapStateProps = useMapState();
@@ -20,12 +21,13 @@ export function RxLiveCheckbox({ child, filter, value }: { child: React.ReactEle
       const [k, v] = kv.split('=');
       params = {
         ...params,
-        [k]: k === filter ? v.split('%2C') : v,
+        [k]: k === filter ? v.split(SEPARATOR) : v,
       };
     }
   });
 
   if (child.type === 'label' && child.props.className.split(' ').includes('w-checkbox')) {
+    console.log({ value });
     return React.cloneElement(child, {
       children: child.props.children.map((c: any) => {
         if (c.type === 'div') {
@@ -37,7 +39,7 @@ export function RxLiveCheckbox({ child, filter, value }: { child: React.ReactEle
               Object.keys(params).forEach(key => {
                 if (key === filter) {
                   if (params[filter]) {
-                    query = `${query}&${key}=${(params[filter] as string[]).join('%2C')}`;
+                    query = `${query}&${key}=${(params[filter] as string[]).join(SEPARATOR)}`;
                   }
                 } else {
                   query = `${query}&${key}=${params[key]}`;
@@ -61,7 +63,13 @@ export function RxLiveCheckbox({ child, filter, value }: { child: React.ReactEle
 }
 
 function toggleValueState(str: string[], val: string, selected = false) {
-  return str.filter(s => s !== val).concat(selected ? [val] : []);
+  console.log({ val });
+  if (selected) {
+    if (!str.includes(val)) return str.concat([val]);
+  } else {
+    return str.filter(v => v !== val);
+  }
+  return str;
 }
 
 export default RxLiveCheckbox;

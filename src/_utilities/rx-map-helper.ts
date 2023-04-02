@@ -65,12 +65,36 @@ export function getSortingKey(class_name: string) {
 }
 
 export function getPropertyTypeFromSelector(class_name: string) {
-  if (class_name.indexOf('ptype-house') >= 0) return ['Single Family Detached', 'Residential Detached', 'House with Acreage', 'House/Single Family'];
-  if (class_name.indexOf('ptype-aptcondo') >= 0) return ['Apartment/Condo'];
-  if (class_name.indexOf('ptype-tnhouse') >= 0) return ['Townhouse'];
-  if (class_name.indexOf('ptype-duplex') >= 0) return ['Half Duplex', '1/2 Duplex', 'Duplex'];
-  if (class_name.indexOf('ptype-nonstrata') >= 0) return ['Row House (Non-Strata)'];
-  if (class_name.indexOf('ptype-manufactured') >= 0) return ['Manufactured', 'Manufactured with Land'];
-  if (class_name.indexOf('ptype-others') >= 0) return ['Other', 'Mixed Use'];
-  return [];
+  let idx = class_name.indexOf('ptype-house');
+  if (idx === -1) idx = class_name.indexOf('ptype-aptcondo');
+  if (idx === -1) idx = class_name.indexOf('ptype-tnhouse');
+  if (idx === -1) idx = class_name.indexOf('ptype-duplex');
+  if (idx === -1) idx = class_name.indexOf('ptype-nonstrata');
+  if (idx === -1) idx = class_name.indexOf('ptype-manufactured');
+  if (idx === -1) idx = class_name.indexOf('ptype-others');
+
+  if (idx >= 0) {
+    return class_name.substring(idx + 6, idx + class_name.substring(idx).split(' ')[0].length);
+  }
+  return '';
+}
+export function getSelectedPropertyTypes(property_type: string) {
+  switch (property_type) {
+    case 'house':
+      return ['Single Family Detached', 'Residential Detached', 'House with Acreage', 'House/Single Family'];
+    case 'aptcondo':
+      return ['Apartment/Condo'];
+    case 'tnhouse':
+      return ['Townhouse'];
+    case 'duplex':
+      return ['Half Duplex', '1/2 Duplex', 'Duplex'];
+    case 'nonstrata':
+      break;
+    case 'manufactured':
+      break;
+    case 'others':
+      break;
+    default:
+      return [];
+  }
 }

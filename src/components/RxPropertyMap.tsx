@@ -86,8 +86,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
 
         // Property type
         if (child.props.className.indexOf(' ptype-') >= 0 && child.type === 'label') {
-          const types = getPropertyTypeFromSelector(child.props.className);
-          return <RxLiveCheckbox child={child} filter='types' value={types ? types.join('%2C').split(' ').join('+') : ''} />;
+          return <RxLiveCheckbox child={child} filter='types' value={getPropertyTypeFromSelector(child.props.className)} />;
         }
 
         // Sorters
