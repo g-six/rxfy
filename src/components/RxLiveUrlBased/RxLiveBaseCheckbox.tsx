@@ -1,0 +1,67 @@
+'use client';
+import React, { MouseEvent, useState } from 'react';
+import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';
+import { MapStateProps, useMapState, useMapMultiUpdater } from '@/app/AppContext.module';
+
+export function RxLiveCheckbox({ child, filter, value }: { child: React.ReactElement; filter: string; value: string }) {
+  const search: ReadonlyURLSearchParams = useSearchParams();
+  const state: MapStateProps = useMapState();
+  const updater = useMapMultiUpdater();
+  const [is_selected, toggleSelected] = useState<boolean>(false);
+  let params: {
+    [key: string]: string[] | string;
+  } = {};
+  let query = state.query;
+  if (!query) {
+    query = search.toString();
+  }
+  query.split('&').map(kv => {
+    if (kv) {
+      const [k, v] = kv.split('=');
+      params = {
+        ...params,
+        [k]: k === filter ? v.split('%2C') : v,
+      };
+    }
+  });
+
+  if (child.type === 'label' && child.props.className.split(' ').includes('w-checkbox')) {
+    return React.cloneElement(child, {
+      children: child.props.children.map((c: any) => {
+        if (c.type === 'div') {
+          return React.cloneElement(c, {
+            className: `${c.props.className} ${is_selected ? 'w--redirected-checked ' : ''}rexified RxLiveCheckbox`,
+            onClick: (e: MouseEvent) => {
+              let query = '';
+              params[filter] = toggleValueState((state[filter] as string[]) || [], value, !is_selected);
+              Object.keys(params).forEach(key => {
+                if (key === filter) {
+                  if (params[filter]) {
+                    query = `${query}&${key}=${(params[filter] as string[]).join('%2C')}`;
+                  }
+                } else {
+                  query = `${query}&${key}=${params[key]}`;
+                }
+              });
+              query = query.substring(1);
+              updater(state, {
+                query,
+                [filter]: params[filter] as string[],
+                reload: true,
+              });
+              toggleSelected(!is_selected);
+            },
+          });
+        }
+        return c;
+      }),
+    });
+  }
+  return child;
+}
+
+function toggleValueState(str: string[], val: string, selected = false) {
+  return str.filter(s => s !== val).concat(selected ? [val] : []);
+}
+
+export default RxLiveCheckbox;

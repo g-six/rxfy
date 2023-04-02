@@ -8,12 +8,21 @@ import React, { Context, createContext, useEffect, useState } from 'react';
 
 // Initial value of context state
 interface BaseKeyValuePairStateProps {
-  [key: string]: string | number | boolean | undefined | google.maps.places.AutocompletePrediction | google.maps.places.AutocompletePrediction[] | PlaceDetails;
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | undefined
+    | google.maps.places.AutocompletePrediction
+    | google.maps.places.AutocompletePrediction[]
+    | PlaceDetails
+    | string[];
 }
 export interface MapStateProps extends BaseKeyValuePairStateProps {
   is_loading?: boolean;
   reload?: boolean;
   query: string;
+  ptype?: string[];
   beds?: number;
   baths?: number;
   minprice?: number;
@@ -70,7 +79,7 @@ export function useMapMultiUpdater() {
     throw new Error('useMapUpdater must be used within a MapProvider');
   }
   const update = React.useCallback(
-    (map_state: MapStateProps, updates: { [key: string]: string | number | boolean }) => {
+    (map_state: MapStateProps, updates: { [key: string]: string | number | boolean | string[] }) => {
       return setState(() => {
         return {
           ...map_state,

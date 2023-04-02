@@ -63,3 +63,14 @@ export function getSortingKey(class_name: string) {
   if (class_name.indexOf('size-desc') >= 0) return 'size_desc';
   return '';
 }
+
+export function getPropertyTypeFromSelector(class_name: string) {
+  if (class_name.indexOf('ptype-house') >= 0) return ['Single Family Detached', 'Residential Detached', 'House with Acreage', 'House/Single Family'];
+  if (class_name.indexOf('ptype-aptcondo') >= 0) return ['Apartment/Condo'];
+  if (class_name.indexOf('ptype-tnhouse') >= 0) return ['Townhouse'];
+  if (class_name.indexOf('ptype-duplex') >= 0) return ['Half Duplex', '1/2 Duplex', 'Duplex'];
+  if (class_name.indexOf('ptype-nonstrata') >= 0) return ['Row House (Non-Strata)'];
+  if (class_name.indexOf('ptype-manufactured') >= 0) return ['Manufactured', 'Manufactured with Land'];
+  if (class_name.indexOf('ptype-others') >= 0) return ['Other', 'Mixed Use'];
+  return [];
+}

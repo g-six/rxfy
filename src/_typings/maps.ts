@@ -98,6 +98,7 @@ export type MapboxBoundaries = {
 };
 
 export type RxPropertyMapProps = {
+  type?: string;
   hide_others?: boolean;
   place?: google.maps.places.AutocompletePrediction;
   setPlace?: (p: google.maps.places.AutocompletePrediction) => void;

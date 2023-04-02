@@ -121,6 +121,9 @@ export function RxMapbox(props: RxMapboxProps) {
       match?: {
         [key: string]: string;
       };
+      terms?: {
+        [key: string]: string[];
+      };
     }[] = [
       {
         range: {
@@ -196,6 +199,13 @@ export function RxMapbox(props: RxMapboxProps) {
           'data.AskingPrice': {
             lte: updated_state.maxprice,
           },
+        },
+      });
+    }
+    if (updated_state.types && (updated_state.types as string[]).length) {
+      filter.push({
+        terms: {
+          'data.Type': updated_state.types as string[],
         },
       });
     }

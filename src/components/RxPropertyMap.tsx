@@ -16,8 +16,9 @@ import RxLiveNumericStep from './RxLiveUrlBased/RxLiveNumericStep';
 import RxLiveNumber from './RxLiveUrlBased/RxLiveNumber';
 import RxLiveCurrencyDD from './RxLiveUrlBased/RxLiveCurrencyDD';
 import RxLiveStringValue from './RxLiveUrlBased/RxLiveStringValue';
-import { getSortingKey } from '@/_utilities/rx-map-helper';
+import { getPropertyTypeFromSelector, getSortingKey } from '@/_utilities/rx-map-helper';
 import RxLiveTextDDOption from './RxLiveUrlBased/RxLiveTextDropdownOption';
+import RxLiveCheckbox from './RxLiveUrlBased/RxLiveBaseCheckbox';
 
 export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?: string }) {
   let MapAndHeaderHeader;
@@ -25,7 +26,16 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
   let LargeCard;
   const wrappedChildren = Children.map(props.children, child => {
     if (child.type === 'form') {
-      return <div className={`${child.props.className || ''} rexified-${child.type}`}>{child.props.children}</div>;
+      return (
+        <RxPropertyMapRecursive
+          listings={props.listings}
+          agent_data={props.agent_data}
+          type='div'
+          className={`${child.props.className || ''} rexified-${child.type}`}
+        >
+          {child.props.children}
+        </RxPropertyMapRecursive>
+      );
     }
     if (child.type === 'input' && child.props.className && child.props.className.indexOf('search-input-field') >= 0) {
       return (
@@ -72,6 +82,12 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
         // Max. price selected value
         if (child.props.className.indexOf('propcard-stat map maxprice') >= 0) {
           return <RxLiveStringValue filter='maxprice' className={child.props.className} />;
+        }
+
+        // Property type
+        if (child.props.className.indexOf(' ptype-') >= 0 && child.type === 'label') {
+          const types = getPropertyTypeFromSelector(child.props.className);
+          return <RxLiveCheckbox child={child} filter='types' value={types ? types.join('%2C').split(' ').join('+') : ''} />;
         }
 
         // Sorters
