@@ -266,7 +266,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
                 dangerouslySetInnerHTML={{
                   __html: `
                     var script = document.createElement('script');
-                    ${pathname.indexOf('datepicker') >= 0 ? 'script.defer = true;' : 'script.async = true;'}
+                    ${pathname.indexOf('webflow') >= 0 ? 'script.defer = true;' : 'script.async = true;'}
                     script.src = '${attribs.src}';
                     console.log('Loading ${attribs.src}')
                     script.onload = () => {

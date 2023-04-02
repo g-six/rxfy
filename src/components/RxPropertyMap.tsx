@@ -19,6 +19,8 @@ import RxLiveStringValue from './RxLiveUrlBased/RxLiveStringValue';
 import { getPropertyTypeFromSelector, getSortingKey } from '@/_utilities/rx-map-helper';
 import RxLiveTextDDOption from './RxLiveUrlBased/RxLiveTextDropdownOption';
 import RxLiveCheckbox from './RxLiveUrlBased/RxLiveBaseCheckbox';
+import RxLiveInput from './RxLiveUrlBased/RxLiveInput';
+import RxDatePicker from './RxLiveUrlBased/RxDatePicker';
 
 export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?: string }) {
   let MapAndHeaderHeader;
@@ -64,6 +66,20 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
         }
         if (child.props.className.indexOf('baths-min') >= 0) {
           return <RxLiveNumber className={child.props.className} filter='baths' />;
+        }
+        if (child.props.className.indexOf('sqft-min') >= 0) {
+          return <RxLiveInput className={child.props.className} filter='minsqft' inputType='number' />;
+        }
+        if (child.props.className.indexOf('sqft-max') >= 0) {
+          return <RxLiveInput className={child.props.className} filter='maxsqft' inputType='number' />;
+        }
+
+        // Date picker
+        if (child.props.className.indexOf('date-listed-since') >= 0) {
+          return <RxDatePicker {...child.props} filter='dt_to' />;
+        }
+        if (child.props.className.indexOf('date-newer-than') >= 0) {
+          return <RxDatePicker {...child.props} filter='dt_from' />;
         }
 
         // Min. price dropdown values

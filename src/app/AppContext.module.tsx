@@ -16,7 +16,8 @@ interface BaseKeyValuePairStateProps {
     | google.maps.places.AutocompletePrediction
     | google.maps.places.AutocompletePrediction[]
     | PlaceDetails
-    | string[];
+    | string[]
+    | Date;
 }
 export interface MapStateProps extends BaseKeyValuePairStateProps {
   is_loading?: boolean;
@@ -29,6 +30,8 @@ export interface MapStateProps extends BaseKeyValuePairStateProps {
   maxprice?: number;
   minsqft?: number;
   maxsqft?: number;
+  dt_from?: Date;
+  dt_to?: Date;
   types?: string[];
   place?: google.maps.places.AutocompletePrediction;
   suggestions: google.maps.places.AutocompletePrediction[];
@@ -80,7 +83,7 @@ export function useMapMultiUpdater() {
     throw new Error('useMapUpdater must be used within a MapProvider');
   }
   const update = React.useCallback(
-    (map_state: MapStateProps, updates: { [key: string]: string | number | boolean | string[] }) => {
+    (map_state: MapStateProps, updates: { [key: string]: string | number | boolean | string[] | Date }) => {
       return setState(() => {
         return {
           ...map_state,
