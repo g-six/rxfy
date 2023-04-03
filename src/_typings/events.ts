@@ -7,4 +7,5 @@ export enum Events {
 
 export interface EventsData {
   show?: boolean;
+  time?: number;
 }
