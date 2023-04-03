@@ -1,58 +1,7 @@
 'use client';
 
-import { cloneElement } from 'react';
-import { RxPropertyMapProps } from '@/_typings/maps';
-
-function descreaseBeds() {
-  const currentUrl = new URL(window.location.href);
-  let num_of_beds = Number(currentUrl.searchParams.get('beds') || '0');
-  if (num_of_beds > 1) {
-    num_of_beds = num_of_beds - 1;
-    currentUrl.searchParams.set('beds', `${num_of_beds}`);
-    window.history.pushState({}, `beds=${num_of_beds}`, currentUrl.href);
-  }
-}
-
-function increaseBeds() {
-  const currentUrl = new URL(window.location.href);
-  let num_of_beds = Number(currentUrl.searchParams.get('beds') || '0');
-  num_of_beds = num_of_beds + 1;
-  currentUrl.searchParams.set('beds', `${num_of_beds}`);
-  window.history.pushState({}, `beds=${num_of_beds}`, currentUrl.href);
-}
-
-export default function rxfyBedsAndBaths({ parentProps, child }: { parentProps: RxPropertyMapProps; child: any }) {
-  if (child.props.className && child.props.className?.indexOf('beds-less') >= 0) {
-    return cloneElement(child, {
-      onClick: () => {
-        descreaseBeds();
-      },
-    });
-  }
-
-  if (child.props.className && child.props.className?.indexOf('beds-more') >= 0) {
-    return cloneElement(child, {
-      onClick: () => {
-        increaseBeds();
-      },
-    });
-  }
-}
-
-export function getShortPrice(amount: number, prefix = '$') {
-  const str = `${Math.round(amount / 1000)}`;
-  if (amount < 1000000) {
-    return `${prefix}${str}K`;
-  }
-
-  if (str.substring(1, 2) !== '0') {
-    const x = Math.round(parseInt(str.substring(1), 10) / 100);
-    if (x < 10) return `${prefix}${str.substring(0, 1)}.${x}M`;
-    else return `${prefix}${str.substring(0, 1)}M`;
-  }
-
-  return `${prefix}${Math.round(amount / 1000000)}M`;
-}
+import { MapboxBoundaries, RxPropertyFilter } from '@/_typings/maps';
+import { PropertyAttributeFilters } from '@/_typings/property';
 
 export function getSortingKey(class_name: string) {
   if (class_name.indexOf('date-asc') >= 0) return 'date_asc';
@@ -97,4 +46,79 @@ export function getSelectedPropertyTypes(property_type: string) {
     default:
       return [];
   }
+}
+
+function includeGreaterOrEqualNumberFilter(filter: RxPropertyFilter[], field: string, count?: number): RxPropertyFilter[] {
+  if (count)
+    filter.push({
+      range: {
+        [`data.${field}`]: {
+          gte: count,
+        },
+      },
+    });
+  return filter;
+}
+
+function includeLesserOrEqualNumberFilter(filter: RxPropertyFilter[], field: string, count?: number): RxPropertyFilter[] {
+  if (count)
+    filter.push({
+      range: {
+        [`data.${field}`]: {
+          lte: count,
+        },
+      },
+    });
+  return filter;
+}
+
+function includeTermsFilter(filter: RxPropertyFilter[], field: 'Type', terms: string[]): RxPropertyFilter[] {
+  if (terms.length > 0)
+    filter.push({
+      terms: {
+        [`data.${field}`]: terms,
+      },
+    });
+  return filter;
+}
+
+export function getSearchPropertyFilters(q: MapboxBoundaries & PropertyAttributeFilters): RxPropertyFilter[] {
+  let results: RxPropertyFilter[] = [
+    {
+      range: {
+        'data.lat': {
+          gte: q.swlat,
+          lte: q.nelat,
+        },
+      },
+    },
+    {
+      range: {
+        'data.lng': {
+          gte: q.swlng,
+          lte: q.nelng,
+        },
+      },
+    },
+    {
+      match: {
+        'data.Status': 'Active',
+      },
+    },
+  ];
+
+  results = includeGreaterOrEqualNumberFilter(results, 'L_BedroomTotal', q.beds);
+  results = includeGreaterOrEqualNumberFilter(results, 'L_TotalBaths', q.baths);
+  results = includeGreaterOrEqualNumberFilter(results, 'AskingPrice', q.minprice);
+  results = includeLesserOrEqualNumberFilter(results, 'AskingPrice', q.maxprice);
+
+  if (q.types && q.types.length) {
+    let property_types: string[] = [];
+    q.types.forEach((t: string) => {
+      property_types = property_types.concat(getSelectedPropertyTypes(t));
+    });
+    results = includeTermsFilter(results, 'Type', property_types);
+  }
+
+  return results;
 }

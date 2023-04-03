@@ -1,3 +1,5 @@
+import { PlaceDetails } from './maps';
+
 export const DateFields = ['UpdateDate', 'ListingDate'];
 
 export const NumericFields = [
@@ -10,15 +12,9 @@ export const NumericFields = [
   'L_LotSize_SqMtrs',
 ];
 
-export const FinanceFields = [
-  'AskingPrice',
-  'PricePerSQFT',
-  'L_GrossTaxes',
-  'SoldPrice',
-];
+export const FinanceFields = ['AskingPrice', 'PricePerSQFT', 'L_GrossTaxes', 'SoldPrice'];
 
-export interface MLSProperty
-  extends Record<string, string | number | string[]> {
+export interface MLSProperty extends Record<string, string | number | string[]> {
   lat: number;
   lng: number;
   Address: string;
@@ -72,3 +68,40 @@ export interface MLSProperty
   Remarks: string;
   Zoning: string;
 }
+
+interface BaseKeyValuePairStateProps {
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | undefined
+    | google.maps.places.AutocompletePrediction
+    | google.maps.places.AutocompletePrediction[]
+    | PlaceDetails
+    | string[]
+    | Date;
+}
+
+export type PropertyAttributeFilters = {
+  beds?: number;
+  baths?: number;
+  minprice?: number;
+  maxprice?: number;
+  minsqft?: number;
+  maxsqft?: number;
+  types?: string[];
+  dt_from?: Date;
+  dt_to?: Date;
+};
+
+export interface MapStateProps extends BaseKeyValuePairStateProps {
+  is_loading?: boolean;
+  reload?: boolean;
+  query: string;
+  ptype?: string[];
+  place?: google.maps.places.AutocompletePrediction;
+  suggestions: google.maps.places.AutocompletePrediction[];
+  details?: PlaceDetails;
+}
+
+export type MapStatePropsWithFilters = MapStateProps & PropertyAttributeFilters;

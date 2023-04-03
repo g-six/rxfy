@@ -114,3 +114,18 @@ export type RxPropertyMapProps = {
     url: string;
   };
 };
+
+export type RxPropertyFilter = {
+  range?: {
+    [key: string]: {
+      gte?: number;
+      lte?: number;
+    };
+  };
+  match?: {
+    [key: string]: string;
+  };
+  terms?: {
+    [key: string]: string[];
+  };
+};

@@ -6,17 +6,18 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { queryStringToObject } from '@/_utilities/url-helper';
 import { AgentData } from '@/_typings/agent';
 import { must_not, retrieveFromLegacyPipeline } from '@/_utilities/data-helpers/property-page';
-import { MLSProperty } from '@/_typings/property';
-import { getSelectedPropertyTypes, getShortPrice } from '@/_utilities/rx-map-helper';
+import { MLSProperty, PropertyAttributeFilters } from '@/_typings/property';
+import { getSearchPropertyFilters, getSelectedPropertyTypes } from '@/_utilities/rx-map-helper';
 import { Feature } from 'geojson';
 import { classNames } from '@/_utilities/html-helper';
-import { PlaceDetails } from '@/_typings/maps';
+import { MapboxBoundaries, PlaceDetails, RxPropertyFilter } from '@/_typings/maps';
 import PropertyListModal from './PropertyListModal';
 import { mergeObjects } from '@/_utilities/array-helper';
 import useDebounce from '@/hooks/useDebounce';
 import { useMapMultiUpdater, useMapState } from '@/app/AppContext.module';
 import { useSearchParams } from 'next/navigation';
 import { renderClusterBgLayer, renderClusterTextLayer, renderHomePinBgLayer, renderHomePinTextLayer } from '@/_utilities/rx-map-style-helper';
+import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 
 type RxMapboxProps = {
   agent: AgentData;
@@ -53,6 +54,8 @@ function addSingleHomePins(map: mapboxgl.Map) {
 
   if (map.getLayer('rx-home-price-text') === undefined) map.addLayer(renderHomePinTextLayer('rx-home-price-text'));
 }
+
+function addFilters() {}
 
 export function RxMapbox(props: RxMapboxProps) {
   const search = useSearchParams();
@@ -110,43 +113,7 @@ export function RxMapbox(props: RxMapboxProps) {
   const populateMap = () => {
     if (!map) return;
     let include_listings = listings;
-
-    const filter: {
-      range?: {
-        [key: string]: {
-          gte?: number;
-          lte?: number;
-        };
-      };
-      match?: {
-        [key: string]: string;
-      };
-      terms?: {
-        [key: string]: string[];
-      };
-    }[] = [
-      {
-        range: {
-          'data.lat': {
-            gte: map.getBounds().getSouthWest().lat,
-            lte: map.getBounds().getNorthEast().lat,
-          },
-        },
-      },
-      {
-        range: {
-          'data.lng': {
-            gte: map.getBounds().getSouthWest().lng,
-            lte: map.getBounds().getNorthEast().lng,
-          },
-        },
-      },
-      {
-        match: {
-          'data.Status': 'Active',
-        },
-      },
-    ];
+    // ListingDate
 
     let updated_state = {
       ...state,
@@ -164,57 +131,15 @@ export function RxMapbox(props: RxMapboxProps) {
         }
       });
 
-    if (updated_state.beds) {
-      filter.push({
-        range: {
-          'data.L_BedroomTotal': {
-            gte: updated_state.beds,
-          },
-        },
-      });
-    }
+    let q: MapboxBoundaries & PropertyAttributeFilters = {
+      ...updated_state,
+      swlat: map.getBounds().getSouthWest().lat,
+      nelat: map.getBounds().getNorthEast().lat,
+      swlng: map.getBounds().getSouthWest().lng,
+      nelng: map.getBounds().getNorthEast().lng,
+    };
 
-    if (updated_state.baths) {
-      filter.push({
-        range: {
-          'data.L_TotalBaths': {
-            gte: updated_state.baths,
-          },
-        },
-      });
-    }
-
-    if (updated_state.minprice) {
-      filter.push({
-        range: {
-          'data.AskingPrice': {
-            gte: updated_state.minprice,
-          },
-        },
-      });
-    }
-    if (updated_state.maxprice) {
-      filter.push({
-        range: {
-          'data.AskingPrice': {
-            lte: updated_state.maxprice,
-          },
-        },
-      });
-    }
-    if (updated_state.types && (updated_state.types as string[]).length) {
-      let property_types: string[] = [];
-      (updated_state.types as string[]).forEach((t: string) => {
-        property_types = property_types.concat(getSelectedPropertyTypes(t));
-      });
-      if (property_types.length) {
-        filter.push({
-          terms: {
-            'data.Type': property_types,
-          },
-        });
-      }
-    }
+    const filter: RxPropertyFilter[] = getSearchPropertyFilters(q);
 
     let sort: {
       [key: string]: 'asc' | 'desc';

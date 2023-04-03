@@ -1,43 +1,12 @@
 'use client';
 /* eslint-disable react-hooks/exhaustive-deps */
 import useDebounce from '@/hooks/useDebounce';
-import { PlaceDetails } from '@/_typings/maps';
-import { getPlaceDetails } from '@/_utilities/geocoding-helper';
+import { MapStatePropsWithFilters } from '@/_typings/property';
 import { ReadonlyURLSearchParams, useRouter, useSearchParams } from 'next/navigation';
 import React, { Context, createContext, useEffect, useState } from 'react';
 
 // Initial value of context state
-interface BaseKeyValuePairStateProps {
-  [key: string]:
-    | string
-    | number
-    | boolean
-    | undefined
-    | google.maps.places.AutocompletePrediction
-    | google.maps.places.AutocompletePrediction[]
-    | PlaceDetails
-    | string[]
-    | Date;
-}
-export interface MapStateProps extends BaseKeyValuePairStateProps {
-  is_loading?: boolean;
-  reload?: boolean;
-  query: string;
-  ptype?: string[];
-  beds?: number;
-  baths?: number;
-  minprice?: number;
-  maxprice?: number;
-  minsqft?: number;
-  maxsqft?: number;
-  dt_from?: Date;
-  dt_to?: Date;
-  types?: string[];
-  place?: google.maps.places.AutocompletePrediction;
-  suggestions: google.maps.places.AutocompletePrediction[];
-  details?: PlaceDetails;
-}
-const initialState: MapStateProps = {
+const initialState: MapStatePropsWithFilters = {
   query: '',
   reload: false,
   beds: 2,
@@ -47,8 +16,8 @@ const initialState: MapStateProps = {
   suggestions: [],
 };
 // Create the Map context
-export const MapStateContext: Context<MapStateProps> = createContext(initialState);
-export const MapUpdaterContext: Context<any> = createContext((state: MapStateProps, key: string, value: any) => {});
+export const MapStateContext: Context<MapStatePropsWithFilters> = createContext(initialState);
+export const MapUpdaterContext: Context<any> = createContext((state: MapStatePropsWithFilters, key: string, value: any) => {});
 
 export function useMapState() {
   const map_state = React.useContext(MapStateContext);
@@ -64,7 +33,7 @@ export function useMapUpdater() {
     throw new Error('useMapUpdater must be used within a MapProvider');
   }
   const update = React.useCallback(
-    (map_state: MapStateProps, key: string, value: any) => {
+    (map_state: MapStatePropsWithFilters, key: string, value: any) => {
       return setState(() => {
         return {
           ...map_state,
@@ -83,7 +52,7 @@ export function useMapMultiUpdater() {
     throw new Error('useMapUpdater must be used within a MapProvider');
   }
   const update = React.useCallback(
-    (map_state: MapStateProps, updates: { [key: string]: string | number | boolean | string[] | Date }) => {
+    (map_state: MapStatePropsWithFilters, updates: { [key: string]: string | number | boolean | string[] | Date }) => {
       return setState(() => {
         return {
           ...map_state,
@@ -158,7 +127,7 @@ export const MapProvider = (props: any) => {
   };
 
   initializeFilters();
-  const [state, setState] = useState<MapStateProps>(init);
+  const [state, setState] = useState<MapStatePropsWithFilters>(init);
   const debounced = useDebounce(state.query, 400);
 
   useEffect(() => {
