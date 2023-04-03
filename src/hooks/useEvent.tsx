@@ -18,3 +18,6 @@ export default function useEvent(eventName: Events) {
 
   return { data, fireEvent };
 }
+
+export { Events } from "@/_typings/events";
+export type { EventsData } from "@/_typings/events";
