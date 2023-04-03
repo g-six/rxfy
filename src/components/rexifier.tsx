@@ -18,7 +18,7 @@ import PropertyCard from './PropertyCard';
 import { getCityFromGeolocation, getGeocode, getViewPortParamsFromGeolocation } from '@/_utilities/geocoding-helper';
 import { GeoLocation, MapboxBoundaries } from '@/_typings/maps';
 import RxPropertyMap from './RxPropertyMap';
-import RxHomeAlertLayer from './RxHomeAlertComponents/RxHomeAlertLayer';
+// import RxHomeAlertLayer from './RxHomeAlertComponents/RxHomeAlertLayer';
 import RxPropertyCarousel from './RxPropertyCarousel/RxPropertyCarousel';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
@@ -392,10 +392,9 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             </div>
           );
         }
-
-        // Home alerts
-        if (node.attribs.class && node.attribs.class.indexOf('home-alert---all-screens') >= 0) {
-          return <RxHomeAlertLayer className={`${node.attribs.class} home-alert-${home_alert_index++}`}>{domToReact(node.children)}</RxHomeAlertLayer>;
+        if (node.attribs.class.split(' ').includes('home-alert---all-screens')) {
+          // Hide Home Alerts for now
+          return <></>;
         }
 
         if ((node.children && node.children.length === 1) || node.name === 'input') {

@@ -12,7 +12,6 @@ export function RxLiveInput({ className, filter, inputType }: { className: strin
       defaultValue={state[filter] as string | number}
       onChange={e => {
         const num = Number(e.currentTarget.value);
-        console.log(num);
         update(state, filter, isNaN(num) ? e.currentTarget.value : num);
       }}
     />
