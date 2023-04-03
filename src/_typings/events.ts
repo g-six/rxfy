@@ -4,3 +4,7 @@ export enum Events {
   HomeAlertDismiss = 'event-home-alert-dismiss',
   HomeAlertSuccess = 'event-home-alert-success',
 }
+
+export interface EventsData {
+  show?: boolean;
+}
