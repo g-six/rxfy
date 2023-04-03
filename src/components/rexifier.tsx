@@ -392,7 +392,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             </div>
           );
         }
-        if (node.attribs.class.split(' ').includes('home-alert---all-screens')) {
+        if (node.attribs.class && node.attribs.class.split(' ').includes('home-alert---all-screens')) {
           // Hide Home Alerts for now
           return <></>;
         }
