@@ -321,12 +321,11 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         const { class: className, ...props } = attributesToProps(node.attribs);
 
         if (node.tagName === 'form') {
-          return <></>;
-          // return (
-          //   <div {...props} id='rex-form' data-class={className}>
-          //     {domToReact(node.children) as ReactElement[]}
-          //   </div>
-          // );
+          return (
+            <div {...props} id='rex-form' data-class={className}>
+              {domToReact(node.children) as ReactElement[]}
+            </div>
+          );
         }
 
         if (props['data-mls']) {
