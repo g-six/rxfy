@@ -1,11 +1,12 @@
 'use client';
 import React, { MouseEvent, ReactElement, useEffect, useState } from 'react';
 import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';
-import { MapStateProps, useMapState, useMapMultiUpdater } from '@/app/AppContext.module';
+import { useMapState, useMapMultiUpdater } from '@/app/AppContext.module';
+import { MapStatePropsWithFilters } from '@/_typings/property';
 
 export function RxLiveCurrencyDD({ child, filter }: { child: React.ReactElement; filter: string }) {
   const search: ReadonlyURLSearchParams = useSearchParams();
-  const state: MapStateProps = useMapState();
+  const state: MapStatePropsWithFilters = useMapState();
   const updater = useMapMultiUpdater();
   const [is_open, toggleDropdown] = useState<boolean>(true);
   let params: {

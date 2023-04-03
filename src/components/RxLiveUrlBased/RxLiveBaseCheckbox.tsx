@@ -1,12 +1,13 @@
 'use client';
 import React, { MouseEvent, useState } from 'react';
 import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';
-import { MapStateProps, useMapState, useMapMultiUpdater } from '@/app/AppContext.module';
+import { useMapState, useMapMultiUpdater } from '@/app/AppContext.module';
+import { MapStatePropsWithFilters } from '@/_typings/property';
 
 const SEPARATOR = '%2F';
 export function RxLiveCheckbox({ child, filter, value }: { child: React.ReactElement; filter: string; value: string }) {
   const search: ReadonlyURLSearchParams = useSearchParams();
-  const state: MapStateProps = useMapState();
+  const state: MapStatePropsWithFilters = useMapState();
   const updater = useMapMultiUpdater();
   const [is_selected, toggleSelected] = useState<boolean>((state.types && state.types.includes(value)) as boolean);
   let params: {

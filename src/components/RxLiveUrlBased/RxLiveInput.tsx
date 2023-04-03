@@ -1,9 +1,10 @@
 'use client';
 import React from 'react';
-import { MapStateProps, useMapState, useMapUpdater } from '@/app/AppContext.module';
+import { useMapState, useMapUpdater } from '@/app/AppContext.module';
+import { MapStatePropsWithFilters } from '@/_typings/property';
 
 export function RxLiveInput({ className, filter, inputType }: { className: string; filter: string; inputType?: string }) {
-  const state: MapStateProps = useMapState();
+  const state: MapStatePropsWithFilters = useMapState();
   const update = useMapUpdater();
   return (
     <input

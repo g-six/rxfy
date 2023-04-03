@@ -1,11 +1,12 @@
 'use client';
 import React from 'react';
 import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';
-import { MapStateProps, useMapState, useMapUpdater } from '@/app/AppContext.module';
+import { useMapState, useMapUpdater } from '@/app/AppContext.module';
+import { MapStatePropsWithFilters } from '@/_typings/property';
 
 export function RxLiveBaseComponent({ child, filter }: { child: React.ReactElement; filter: string }) {
   const search: ReadonlyURLSearchParams = useSearchParams();
-  const state: MapStateProps = useMapState();
+  const state: MapStatePropsWithFilters = useMapState();
   let params: {
     [key: string]: string | number;
   } = {};
