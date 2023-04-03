@@ -1,5 +1,6 @@
-import { MapStateProps, useMapMultiUpdater, useMapState } from '@/app/AppContext.module';
-import React, { ReactNode, useEffect, useRef, useState } from 'react';
+import { useMapMultiUpdater, useMapState } from '@/app/AppContext.module';
+import { MapStatePropsWithFilters } from '@/_typings/property';
+import React, { ReactNode, useRef, useState } from 'react';
 import DatePicker, { CalendarContainer } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -28,7 +29,7 @@ function getDate(dt: Date) {
 }
 
 export default function RxDatePicker(p: DatePickerProps) {
-  const state: MapStateProps = useMapState();
+  const state: MapStatePropsWithFilters = useMapState();
   const ref = useRef(null);
   const updater = useMapMultiUpdater();
   const [is_shown, togglePopup] = useState<boolean>(false);

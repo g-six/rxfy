@@ -111,6 +111,8 @@ export function getSearchPropertyFilters(q: MapboxBoundaries & PropertyAttribute
   results = includeGreaterOrEqualNumberFilter(results, 'L_TotalBaths', q.baths);
   results = includeGreaterOrEqualNumberFilter(results, 'AskingPrice', q.minprice);
   results = includeLesserOrEqualNumberFilter(results, 'AskingPrice', q.maxprice);
+  results = includeGreaterOrEqualNumberFilter(results, 'L_FloorArea_Total', q.minsqft);
+  results = includeLesserOrEqualNumberFilter(results, 'L_FloorArea_Total', q.maxsqft);
 
   if (q.types && q.types.length) {
     let property_types: string[] = [];
