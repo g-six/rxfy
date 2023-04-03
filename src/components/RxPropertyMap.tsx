@@ -30,6 +30,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
     if (child.type === 'form') {
       return (
         <RxPropertyMapRecursive
+          setPlace={props.setPlace}
           listings={props.listings}
           agent_data={props.agent_data}
           type='div'

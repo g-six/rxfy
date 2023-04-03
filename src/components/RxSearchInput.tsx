@@ -20,10 +20,10 @@ export default function SearchInput(p: SearchInputProps) {
   const updateMapState = useMapUpdater();
   const map_state = useMapState();
   const classnames = [styles['txt-search-input']];
-  const [query, setQuery] = useState('');
+  const [address, setAddressQuery] = useState('');
 
   function setValue(e: ChangeEvent<HTMLInputElement>) {
-    setQuery(e.currentTarget.value);
+    setAddressQuery(e.currentTarget.value);
   }
 
   const loader = new Loader({
@@ -60,17 +60,17 @@ export default function SearchInput(p: SearchInputProps) {
     >
       <div className='relative w-full'>
         <Combobox.Input
-          className={p.className}
+          className={[p.className, 'pr-10'].join(' ')}
           autoComplete='off'
           onChange={e => {
             setValue(e);
-            updateMapState(map_state, 'query', e.currentTarget.value);
+            updateMapState(map_state, 'address', e.currentTarget.value);
             // setSelectedLocation({
             //   ...selectedLocation,
             //   query: e.currentTarget.value,
             // });
           }}
-          displayValue={(p?: { description: string }) => p?.description || query}
+          displayValue={(p?: { description: string }) => p?.description || address}
         />
 
         {map_state.suggestions && map_state.suggestions.length > 0 && (
@@ -88,7 +88,7 @@ export default function SearchInput(p: SearchInputProps) {
                     <MapPinIcon
                       className={classNames('h-4 w-4 flex-shrink-0 rounded-full', selected ? 'fill-indigo-600' : active ? 'fill-slate-100' : 'fill-slate-400')}
                     />
-                    <span className={classNames('ml-3 truncate', selected && 'font-semibold')}>{suggestion?.description || query}</span>
+                    <span className={classNames('ml-3 truncate', selected && 'font-semibold')}>{suggestion?.description || address}</span>
 
                     {selected && (
                       <span className={classNames('absolute inset-y-0 right-0 flex items-center pr-4', active ? 'text-white' : 'text-indigo-600')}>

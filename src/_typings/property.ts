@@ -98,6 +98,7 @@ export interface MapStateProps extends BaseKeyValuePairStateProps {
   is_loading?: boolean;
   reload?: boolean;
   query: string;
+  address?: string;
   ptype?: string[];
   place?: google.maps.places.AutocompletePrediction;
   suggestions: google.maps.places.AutocompletePrediction[];

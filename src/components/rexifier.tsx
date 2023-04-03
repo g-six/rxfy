@@ -59,21 +59,23 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
     const areas = agent_data.metatags.search_highlights.labels;
 
     areas.forEach((area, i) => {
-      replaceSearchHighlights(
-        $,
-        `.address-chip:nth-child(${i + 2})`,
-        area.title,
-        {
-          nelat: area.ne.lat,
-          nelng: area.ne.lng,
-          swlat: area.sw.lat,
-          swlng: area.sw.lng,
-        },
-        {
-          lat: area.lat,
-          lng: area.lng,
-        },
-      );
+      if (area.ne && area.sw && area.lat && area.lng) {
+        replaceSearchHighlights(
+          $,
+          `.address-chip:nth-child(${i + 2})`,
+          area.title,
+          {
+            nelat: area.ne.lat,
+            nelng: area.ne.lng,
+            swlat: area.sw.lat,
+            swlng: area.sw.lng,
+          },
+          {
+            lat: area.lat,
+            lng: area.lng,
+          },
+        );
+      }
     });
 
     $('.address-chip[href="#"]').replaceWith('');

@@ -128,7 +128,7 @@ export const MapProvider = (props: any) => {
 
   initializeFilters();
   const [state, setState] = useState<MapStatePropsWithFilters>(init);
-  const debounced = useDebounce(state.query, 400);
+  const debounced = useDebounce(state.address || '', 400);
 
   useEffect(() => {
     if (debounced && typeof window !== undefined && typeof window.google !== undefined) {
@@ -148,19 +148,10 @@ export const MapProvider = (props: any) => {
   }, [debounced]);
 
   useEffect(() => {
-    if (state.query && state.place && state.place.place_id && !state.is_loading) {
-      setState({
-        ...state,
-        is_loading: true,
-      });
-    }
-  }, [state.place, state.is_loading]);
-
-  useEffect(() => {
     if (state.query) {
-      router.push(`/map?${state.query}`);
+      router.push(`/map?${state.address ? `address=${encodeURIComponent(state.address.replace(/ /g, '+'))}&` : ''}${state.query}`);
     }
-  }, [state.query]);
+  }, [state.query, state.address]);
 
   return (
     <MapStateContext.Provider value={state}>
