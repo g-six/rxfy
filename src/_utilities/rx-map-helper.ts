@@ -71,6 +71,17 @@ function includeLesserOrEqualNumberFilter(filter: RxPropertyFilter[], field: str
     });
   return filter;
 }
+function includeRangeFilter(filter: RxPropertyFilter[], field: string, min: number, max: number): RxPropertyFilter[] {
+  filter.push({
+    range: {
+      [`data.${field}`]: {
+        gte: min,
+        lte: max,
+      },
+    },
+  });
+  return filter;
+}
 
 function includeTermsFilter(filter: RxPropertyFilter[], field: 'Type', terms: string[]): RxPropertyFilter[] {
   if (terms.length > 0)
