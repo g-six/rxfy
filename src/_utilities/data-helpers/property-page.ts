@@ -417,6 +417,7 @@ export async function getSimilarHomes(property: MLSProperty, limit = 3): Promise
         bool: {
           filter,
           must_not: must_not.concat([{ match: { 'data.Address': property.Address } }]),
+          should: [],
         },
       },
     });
@@ -479,6 +480,7 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
               },
             },
           ],
+          should: [],
         },
       },
     });
