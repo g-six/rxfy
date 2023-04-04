@@ -1,13 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import Script from 'next/script';
-import parse, {
-  HTMLReactParserOptions,
-  Element,
-  attributesToProps,
-  DOMNode,
-  domToReact,
-  htmlToDOM,
-} from 'html-react-parser';
+import parse, { HTMLReactParserOptions, Element, attributesToProps, DOMNode, domToReact, htmlToDOM } from 'html-react-parser';
 import EmailAnchor from './A/Email';
 import { AgentData } from '@/_typings/agent';
 import PersonalTitle from './PersonalTitle';
@@ -17,33 +10,23 @@ import { RexifyStatBlock } from './PropertyInformationRow';
 import { MLSProperty } from '@/_typings/property';
 import { RexifyPropertyFeatureBlock } from './PropertyFeatureSection';
 import { HTMLNode } from '@/_typings/elements';
-import {
-  combineAndFormatValues,
-  formatValues,
-} from '@/_utilities/data-helpers/property-page';
+import { combineAndFormatValues, formatValues } from '@/_utilities/data-helpers/property-page';
 import RxTable from './RxTable';
 import { ReactElement } from 'react';
 import { Cheerio, CheerioAPI } from 'cheerio';
 import PropertyCard from './PropertyCard';
-import {
-  getCityFromGeolocation,
-  getGeocode,
-  getViewPortParamsFromGeolocation,
-} from '@/_utilities/geocoding-helper';
+import { getCityFromGeolocation, getGeocode, getViewPortParamsFromGeolocation } from '@/_utilities/geocoding-helper';
 import { GeoLocation, MapboxBoundaries } from '@/_typings/maps';
 import RxPropertyMap from './RxPropertyMap';
-import RxHomeAlertLayer from './RxHomeAlertComponents/RxHomeAlertLayer';
+// import RxHomeAlertLayer from './RxHomeAlertComponents/RxHomeAlertLayer';
+import RxPropertyCarousel from './RxPropertyCarousel/RxPropertyCarousel';
 
-async function replaceTargetCityComponents(
-  $: CheerioAPI,
-  target_city: string
-) {
+async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
   if (result && 'place_id' in result) {
     // Result is of a valid Google Geolocation (if it has a place_id)
     const city = getCityFromGeolocation(result);
-    const mapbox_boundaries =
-      getViewPortParamsFromGeolocation(result);
+    const mapbox_boundaries = getViewPortParamsFromGeolocation(result);
     const pin_location = result.geometry.location;
     replaceByCheerio($, '.address-chip:first-child', {
       city,
@@ -58,7 +41,7 @@ function replaceSearchHighlights(
   target_child = '.address-chip:nth-child(2)',
   city: string,
   mapbox_boundaries: MapboxBoundaries,
-  pin_location: GeoLocation
+  pin_location: GeoLocation,
 ) {
   replaceByCheerio($, target_child, {
     city,
@@ -67,39 +50,32 @@ function replaceSearchHighlights(
   });
 }
 
-export async function fillAgentInfo(
-  $: CheerioAPI,
-  agent_data: AgentData
-) {
+export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
   if (agent_data.metatags.target_city) {
-    await replaceTargetCityComponents(
-      $,
-      agent_data.metatags.target_city
-    );
+    await replaceTargetCityComponents($, agent_data.metatags.target_city);
   }
 
-  if (
-    agent_data.metatags.search_highlights &&
-    agent_data.metatags.search_highlights.labels
-  ) {
+  if (agent_data.metatags.search_highlights && agent_data.metatags.search_highlights.labels) {
     const areas = agent_data.metatags.search_highlights.labels;
 
     areas.forEach((area, i) => {
-      replaceSearchHighlights(
-        $,
-        `.address-chip:nth-child(${i + 2})`,
-        area.title,
-        {
-          nelat: area.ne.lat,
-          nelng: area.ne.lng,
-          swlat: area.sw.lat,
-          swlng: area.sw.lng,
-        },
-        {
-          lat: area.lat,
-          lng: area.lng,
-        }
-      );
+      if (area.ne && area.sw && area.lat && area.lng) {
+        replaceSearchHighlights(
+          $,
+          `.address-chip:nth-child(${i + 2})`,
+          area.title,
+          {
+            nelat: area.ne.lat,
+            nelng: area.ne.lng,
+            swlat: area.sw.lat,
+            swlng: area.sw.lng,
+          },
+          {
+            lat: area.lat,
+            lng: area.lng,
+          },
+        );
+      }
     });
 
     $('.address-chip[href="#"]').replaceWith('');
@@ -141,117 +117,55 @@ export async function fillAgentInfo(
   // });
 }
 
-export function fillPropertyGrid(
-  $: CheerioAPI,
-  properties: MLSProperty[],
-  selector = '.similar-homes-grid'
-) {
+export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], selector = '.similar-homes-grid') {
   properties.forEach((p: MLSProperty, i) => {
-    replaceByCheerio(
-      $,
-      `${selector} > .property-card-map:nth-child(${i + 1})`,
-      {
-        ['data-mls']: p.MLS_ID,
-      }
-    );
+    replaceByCheerio($, `${selector} > .property-card-map:nth-child(${i + 1})`, {
+      ['data-mls']: p.MLS_ID,
+    });
 
     // Photo
-    replaceByCheerio(
-      $,
-      `${selector} > .property-card-map:nth-child(${
-        i + 1
-      }) > .propcard-image`,
-      {
-        backgroundImage: (p.photos as string[])[0],
-      }
-    );
+    replaceByCheerio($, `${selector} > .property-card-map:nth-child(${i + 1}) > .propcard-image`, {
+      backgroundImage: (p.photos as string[])[0],
+    });
 
     // Area
-    replaceByCheerio(
-      $,
-      `${selector} > .property-card-map:nth-child(${
-        i + 1
-      }) .area-text`,
-      {
-        content: p.Area,
-      }
-    );
+    replaceByCheerio($, `${selector} > .property-card-map:nth-child(${i + 1}) .area-text`, {
+      content: p.Area,
+    });
 
     // Price
-    replaceByCheerio(
-      $,
-      `${selector} > .property-card-map:nth-child(${
-        i + 1
-      }) .propcard-price`,
-      {
-        content: `${formatValues(p, 'AskingPrice')}`,
-      }
-    );
+    replaceByCheerio($, `${selector} > .property-card-map:nth-child(${i + 1}) .propcard-price`, {
+      content: `${formatValues(p, 'AskingPrice')}`,
+    });
 
     // Address
-    replaceByCheerio(
-      $,
-      `${selector} > .property-card-map:nth-child(${
-        i + 1
-      }) .propcard-address`,
-      {
-        content: `${formatValues(p, 'Address')}`,
-      }
-    );
+    replaceByCheerio($, `${selector} > .property-card-map:nth-child(${i + 1}) .propcard-address`, {
+      content: `${formatValues(p, 'Address')}`,
+    });
 
     // Beds
-    replaceByCheerio(
-      $,
-      `${selector} > .property-card-map:nth-child(${
-        i + 1
-      }) .bedroom-stat`,
-      {
-        content: `${formatValues(p, 'L_BedroomTotal')}`,
-      }
-    );
+    replaceByCheerio($, `${selector} > .property-card-map:nth-child(${i + 1}) .bedroom-stat`, {
+      content: `${formatValues(p, 'L_BedroomTotal')}`,
+    });
 
     // Baths
     if (p.L_TotalBaths) {
-      replaceByCheerio(
-        $,
-        `${selector} > .property-card-map:nth-child(${
-          i + 1
-        }) .bath-stat`,
-        {
-          content: `${formatValues(p, 'L_TotalBaths')}`,
-        }
-      );
+      replaceByCheerio($, `${selector} > .property-card-map:nth-child(${i + 1}) .bath-stat`, {
+        content: `${formatValues(p, 'L_TotalBaths')}`,
+      });
     } else {
-      removeSection(
-        $,
-        `${selector} > .property-card-map:nth-child(${
-          i + 1
-        }) .bath-stat`,
-        '.propertycard-feature'
-      );
+      removeSection($, `${selector} > .property-card-map:nth-child(${i + 1}) .bath-stat`, '.propertycard-feature');
     }
 
     // Sqft
-    replaceByCheerio(
-      $,
-      `${selector} > .property-card-map:nth-child(${
-        i + 1
-      }) .sqft-stat`,
-      {
-        content: `${formatValues(p, 'L_FloorArea_Total')}`,
-      }
-    );
+    replaceByCheerio($, `${selector} > .property-card-map:nth-child(${i + 1}) .sqft-stat`, {
+      content: `${formatValues(p, 'L_FloorArea_Total')}`,
+    });
 
     // Year
-    replaceByCheerio(
-      $,
-      `${selector} > .property-card-map:nth-child(${
-        i + 1
-      }) .year-stat`,
-      {
-        content: `${formatValues(p, 'L_YearBuilt')}`,
-      }
-    );
+    replaceByCheerio($, `${selector} > .property-card-map:nth-child(${i + 1}) .year-stat`, {
+      content: `${formatValues(p, 'L_YearBuilt')}`,
+    });
   });
 }
 
@@ -266,28 +180,19 @@ type ReplacementOptions = {
   photo?: string;
   pin_location?: GeoLocation;
 };
-export function replaceByCheerio(
-  $: CheerioAPI,
-  target: string,
-  replacement: ReplacementOptions
-) {
+export function replaceByCheerio($: CheerioAPI, target: string, replacement: ReplacementOptions) {
   if (replacement && Object.keys(replacement).length) {
     if (target.indexOf('.propcard-image') >= 0) {
       const styles: string[] = [];
       if (replacement.backgroundImage) {
-        styles.push(
-          `background-image: url(${replacement.backgroundImage})`
-        );
+        styles.push(`background-image: url(${replacement.backgroundImage})`);
       }
 
       if (styles.length > 0) {
         $(target).attr('style', styles.join('; '));
       }
     } else if (replacement.backgroundImage) {
-      $(target).attr(
-        'style',
-        `background-image: url(${replacement.backgroundImage}); background-repeat: no-repeat;`
-      );
+      $(target).attr('style', `background-image: url(${replacement.backgroundImage}); background-repeat: no-repeat;`);
     } else if (replacement.photo) {
       $(target).attr('src', replacement.photo);
       $(target).removeAttr('srcset');
@@ -299,11 +204,7 @@ export function replaceByCheerio(
       $(target).prepend(replacement.prepend);
     } else if (replacement['data-mls']) {
       $(target).attr('data-mls', replacement['data-mls']);
-    } else if (
-      replacement.city &&
-      replacement.pin_location &&
-      replacement.mapbox_boundaries
-    ) {
+    } else if (replacement.city && replacement.pin_location && replacement.mapbox_boundaries) {
       const query_params = [
         `nelat=${replacement.mapbox_boundaries.nelat}`,
         `nelng=${replacement.mapbox_boundaries.nelng}`,
@@ -325,14 +226,8 @@ export function replaceByCheerio(
  * @param target className
  * @param parentClass className
  */
-export function removeSection(
-  $: CheerioAPI,
-  target: string,
-  parentClass = '.wf-section'
-) {
-  const [parent] = $(target).parents(
-    parentClass
-  ) as unknown as Cheerio<Element>[];
+export function removeSection($: CheerioAPI, target: string, parentClass = '.wf-section') {
+  const [parent] = $(target).parents(parentClass) as unknown as Cheerio<Element>[];
   if (parent) {
     $(parent).remove();
   }
@@ -344,22 +239,19 @@ export function replaceInlineScripts($: CheerioAPI) {
   });
 }
 
+export function replaceFormsWithDiv($: CheerioAPI) {}
+
 /**
  *
  * @param html_code
  * @param agent_data
  * @returns
  */
-export function rexify(
-  html_code: string,
-  agent_data: AgentData,
-  property: Record<string, unknown> = {}
-) {
-  // Cheerio
-
-  // React parser
+export function rexify(html_code: string, agent_data: AgentData, property: Record<string, unknown> = {}) {
+  // Parse and replace
+  let home_alert_index = 1;
   const options: HTMLReactParserOptions = {
-    replace: (node) => {
+    replace: node => {
       // Take out script / replace DOM placeholders with our Reidget
       if (node.type === 'script') {
         const { attribs } = node as unknown as {
@@ -376,17 +268,11 @@ export function rexify(
                 dangerouslySetInnerHTML={{
                   __html: `
                     var script = document.createElement('script');
-                    ${
-                      pathname.indexOf('datepicker') >= 0
-                        ? 'script.defer = true;'
-                        : 'script.async = true;'
-                    }
+                    ${pathname.indexOf('webflow') >= 0 ? 'script.defer = true;' : 'script.async = true;'}
                     script.src = '${attribs.src}';
                     console.log('Loading ${attribs.src}')
                     script.onload = () => {
-                        console.log('${attribs.src}', '${pathname
-                    .split('/')
-                    .pop()} loaded')
+                        console.log('${attribs.src}', '${pathname.split('/').pop()} loaded')
                         setTimeout(() => {
                             const badge = document.querySelector('.w-webflow-badge')
                             if (badge) {
@@ -396,11 +282,7 @@ export function rexify(
                         }, 1200)
                     }
                     
-                    ${
-                      attribs.src.indexOf('jquery')
-                        ? 'document.body.appendChild(script);'
-                        : ''
-                    }
+                    ${attribs.src.indexOf('jquery') ? 'document.body.appendChild(script);' : ''}
                   `,
                 }}
               />
@@ -410,28 +292,39 @@ export function rexify(
           if ((node as Element).children) {
             // Scripts that are inline...
             // Debugging purposes
-            // const { data } = (node as Element).children[0] as {
-            //   data: string;
-            // };
+            const { data } = (node as Element).children[0] as {
+              data: string;
+            };
+            if (data) {
+              try {
+                const property_image: {
+                  group: 'Property Images';
+                  items: {
+                    url: string;
+                    type: string;
+                  }[];
+                } = JSON.parse(data);
+                if (property_image.group === 'Property Images' && property_image.items[0]?.url) {
+                  return <div data-carousel-photo={property_image.items[0].url}></div>;
+                }
+              } catch (e) {
+                console.log('Not an image. Not to be worried about for now');
+                console.log(e);
+              }
+            }
+            return <script dangerouslySetInnerHTML={{ __html: data }} type='application/json' />;
+
             return <></>;
           }
         }
       } else if (node instanceof Element && node.attribs) {
-        const { class: className, ...props } = attributesToProps(
-          node.attribs
-        );
+        const { class: className, ...props } = attributesToProps(node.attribs);
 
         if (node.tagName === 'form') {
           return (
-            <form
-              {...props}
-              id='rex-form'
-              data-class={className}
-              method='get'
-              action='/#'
-            >
+            <div {...props} id='rex-form' data-class={className}>
               {domToReact(node.children) as ReactElement[]}
-            </form>
+            </div>
           );
         }
 
@@ -448,10 +341,7 @@ export function rexify(
           );
         }
 
-        if (
-          node.attribs['data-type'] === 'email' &&
-          node.tagName === 'a'
-        ) {
+        if (node.attribs['data-type'] === 'email' && node.tagName === 'a') {
           // Emai link
           return <EmailAnchor {...props} agent={agent_data} />;
         }
@@ -463,31 +353,21 @@ export function rexify(
 
         if (node.attribs['data-type'] === 'personal_bio') {
           // Personal bio <p>
-          return (
-            <PersonalBioParagraph {...props} agent={agent_data} />
-          );
+          return <PersonalBioParagraph {...props} agent={agent_data} />;
         }
 
         if (node.attribs['data-type'] === 'personal_bio') {
           // Personal bio <p>
-          return (
-            <PersonalBioParagraph {...props} agent={agent_data} />
-          );
+          return <PersonalBioParagraph {...props} agent={agent_data} />;
         }
 
-        if (
-          node.attribs['data-type'] === 'neighbourhood-link' &&
-          agent_data
-        ) {
+        if (node.attribs['data-type'] === 'neighbourhood-link' && agent_data) {
           node.parentNode?.childNodes.map((child, seq: number) => {
             console.log('neighbourhood-link', seq);
           });
         }
 
-        if (
-          node.attribs.class &&
-          node.attribs.class.indexOf('li-property') >= 0
-        ) {
+        if (node.attribs.class && node.attribs.class.indexOf('li-property') >= 0) {
           return <PropertyCarousel {...props} agent={agent_data} />;
         }
         /**
@@ -495,17 +375,17 @@ export function rexify(
          */
         if (node.attribs.class === 'map-div') {
           // Mapbox Voodoo here
+          // Check for improvement
           return (
             <div className={node.attribs.class} id='MapDiv'>
               <RxPropertyMap
                 agent_data={agent_data}
                 listings={[]}
                 config={{
-                  authorization: `Basic ${Buffer.from(
-                    `${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`
-                  ).toString('base64')}`,
-                  url: process.env
-                    .NEXT_APP_LEGACY_PIPELINE_URL as string,
+                  authorization: `Basic ${Buffer.from(`${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`).toString(
+                    'base64',
+                  )}`,
+                  url: process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
                 }}
               >
                 {domToReact(node.children) as ReactElement[]}
@@ -513,34 +393,20 @@ export function rexify(
             </div>
           );
         }
-
-        // Home alerts
-        if (
-          node.attribs.class &&
-          node.attribs.class.indexOf('home-alert---all-screens') >=
-            0
-        ) {
-          return (
-            <RxHomeAlertLayer className={node.attribs.class}>
-              {domToReact(node.children)}
-            </RxHomeAlertLayer>
-          );
+        if (node.attribs.class && node.attribs.class.split(' ').includes('home-alert---all-screens')) {
+          // Hide Home Alerts for now
+          return <></>;
         }
 
-        if (
-          (node.children && node.children.length === 1) ||
-          node.name === 'input'
-        ) {
+        if ((node.children && node.children.length === 1) || node.name === 'input') {
           const reX = rexifyOrSkip(
             node.children[0],
             {
-              ...(property && Object.keys(property).length
-                ? property
-                : {}),
+              ...(property && Object.keys(property).length ? property : {}),
               agent_data,
             },
             node.attribs.class,
-            node.name
+            node.name,
           );
           if (reX) return reX;
         }
@@ -548,75 +414,31 @@ export function rexify(
         if (property && Object.keys(property).length) {
           const record = property as unknown as MLSProperty;
           if (node.attribs && node.attribs.class) {
-            // Grouped data table sections
-            // Property Information, Financial, Dimensions, Construction
-            if (node.attribs.class.indexOf('propinfo') >= 0)
+            // Property images
+            if (node.attribs.class === 'section---top-images wf-section') {
               return (
-                <RexifyStatBlock
-                  node={node}
-                  record={record}
-                  groupName='propinfo'
-                />
-              );
-            else if (node.attribs.class.indexOf('financial') >= 0)
-              return (
-                <RexifyStatBlock
-                  node={node}
-                  record={record}
-                  groupName='financial'
-                />
-              );
-            else if (node.attribs.class.indexOf('dimensions') >= 0)
-              return (
-                <RexifyStatBlock
-                  node={node}
-                  record={record}
-                  groupName='dimensions'
-                />
-              );
-            else if (
-              node.attribs.class.indexOf('construction') >= 0
-            )
-              return (
-                <RexifyStatBlock
-                  node={node}
-                  record={record}
-                  groupName='construction'
-                />
-              );
-            else if (
-              node.attribs.class.indexOf('div-features-block') >= 0
-            ) {
-              return (
-                <RexifyPropertyFeatureBlock
-                  node={node}
-                  record={record}
-                />
+                <section className='section---top-images wf-section'>
+                  <RxPropertyCarousel>{domToReact(node.children)}</RxPropertyCarousel>
+                </section>
               );
             }
+
+            // Grouped data table sections
+            // Property Information, Financial, Dimensions, Construction
+            if (node.attribs.class.indexOf('propinfo') >= 0) return <RexifyStatBlock node={node} record={record} groupName='propinfo' />;
+            else if (node.attribs.class.indexOf('financial') >= 0) return <RexifyStatBlock node={node} record={record} groupName='financial' />;
+            else if (node.attribs.class.indexOf('dimensions') >= 0) return <RexifyStatBlock node={node} record={record} groupName='dimensions' />;
+            else if (node.attribs.class.indexOf('construction') >= 0) return <RexifyStatBlock node={node} record={record} groupName='construction' />;
+            else if (node.attribs.class.indexOf('div-features-block') >= 0) {
+              return <RexifyPropertyFeatureBlock node={node} record={record} />;
+            }
             // Building units section
-            else if (
-              node.lastChild &&
-              (node.lastChild as HTMLNode).attribs &&
-              (node.lastChild as HTMLNode).attribs.class
-            ) {
-              const child_class = (node.lastChild as HTMLNode)
-                .attribs.class;
-              if (
-                child_class.indexOf('div-building-units-on-sale') >=
-                  0 &&
-                node.attribs.class.indexOf(
-                  'building-and-sold-column'
-                ) >= 0
-              ) {
-                return property.neighbours &&
-                  (property.neighbours as MLSProperty[]).length ? (
+            else if (node.lastChild && (node.lastChild as HTMLNode).attribs && (node.lastChild as HTMLNode).attribs.class) {
+              const child_class = (node.lastChild as HTMLNode).attribs.class;
+              if (child_class.indexOf('div-building-units-on-sale') >= 0 && node.attribs.class.indexOf('building-and-sold-column') >= 0) {
+                return property.neighbours && (property.neighbours as MLSProperty[]).length ? (
                   property.AddressUnit ? (
-                    <RxTable
-                      rows={node.children}
-                      data={property.neighbours as MLSProperty[]}
-                      rowClassName='div-building-units-on-sale'
-                    />
+                    <RxTable rows={node.children} data={property.neighbours as MLSProperty[]} rowClassName='div-building-units-on-sale' />
                   ) : (
                     <></>
                   )
@@ -624,20 +446,9 @@ export function rexify(
                   <></>
                 );
               } // Sold history
-              else if (
-                child_class.indexOf('div-sold-history') >= 0 &&
-                node.attribs.class.indexOf(
-                  'building-and-sold-column'
-                ) >= 0
-              ) {
-                return property.sold_history &&
-                  (property.sold_history as MLSProperty[])
-                    .length ? (
-                  <RxTable
-                    rowClassName='div-sold-history'
-                    rows={node.children}
-                    data={property.sold_history as MLSProperty[]}
-                  />
+              else if (child_class.indexOf('div-sold-history') >= 0 && node.attribs.class.indexOf('building-and-sold-column') >= 0) {
+                return property.sold_history && (property.sold_history as MLSProperty[]).length ? (
+                  <RxTable rowClassName='div-sold-history' rows={node.children} data={property.sold_history as MLSProperty[]} />
                 ) : (
                   <></>
                 );
@@ -654,15 +465,8 @@ export function rexify(
   return elements;
 }
 
-export function injectLogo(
-  tagName: string,
-  className: string,
-  agent_data: AgentData
-): string {
-  if (
-    className.indexOf('logo-dark') >= 0 &&
-    agent_data.metatags?.logo_for_light_bg
-  ) {
+export function injectLogo(tagName: string, className: string, agent_data: AgentData): string {
+  if (className.indexOf('logo-dark') >= 0 && agent_data.metatags?.logo_for_light_bg) {
     const styles = [
       `background-image: url(${agent_data.metatags?.logo_for_light_bg})`,
       `background-size: 'contain'`,
@@ -682,60 +486,37 @@ export function injectLogo(
         </a>
       </h3>`;
   }
-  return `<${tagName || 'span'} class="${className}">${
-    agent_data.full_name
-  }</${tagName || 'span'}>`;
+  return `<${tagName || 'span'} class="${className}">${agent_data.full_name}</${tagName || 'span'}>`;
 }
 
-function rexifyOrSkip(
-  element: DOMNode,
-  record: unknown,
-  className = '',
-  tagName = ''
-): ReactElement | undefined {
+function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName = ''): ReactElement | undefined {
   const { agent_data } = record as { agent_data: AgentData };
   if (!element) return;
   const { data: placeholder } = element as { data: string };
   if (agent_data) {
-    if (
-      placeholder === '{Bio Title}' ||
-      placeholder === '{Agent Title}'
-    ) {
+    if (placeholder === '{Bio Title}' || placeholder === '{Agent Title}') {
       if (agent_data.metatags?.personal_title) {
         switch (tagName) {
           case 'h1':
-            return (
-              <h1 className={className}>
-                {agent_data.metatags?.personal_title}
-              </h1>
-            );
+            return <h1 className={className}>{agent_data.metatags?.personal_title}</h1>;
           default:
-            return (
-              <span className={className}>
-                {agent_data.metatags?.personal_title}
-              </span>
-            );
+            return <span className={className}>{agent_data.metatags?.personal_title}</span>;
         }
       }
     }
     if (placeholder === '{Bio}') {
       if (agent_data.metatags?.personal_bio) {
         return (
-          <p
-            className={className}
-            style={{ whiteSpace: 'pre-line' }}
-          >
-            {agent_data.metatags?.personal_bio
-              .split('\n')
-              .map((text, i) => {
-                return (
-                  <span key={`bio-${i + 1}`}>
-                    {text}
-                    <br />
-                    <br />
-                  </span>
-                );
-              })}
+          <p className={className} style={{ whiteSpace: 'pre-line' }}>
+            {agent_data.metatags?.personal_bio.split('\n').map((text, i) => {
+              return (
+                <span key={`bio-${i + 1}`}>
+                  {text}
+                  <br />
+                  <br />
+                </span>
+              );
+            })}
           </p>
         );
       }
@@ -750,8 +531,8 @@ function rexifyOrSkip(
             class="${className}"
           >
             ${agent_data.full_name}
-          </${tagName || 'span'}>`
-              )
+          </${tagName || 'span'}>`,
+              ),
             )}
           </>
         );
@@ -759,10 +540,7 @@ function rexifyOrSkip(
     }
     if (className.indexOf('phone-link-blockj') >= 0) {
       return (
-        <a
-          href={`tel:${agent_data.phone.replace(/[^0-9.]/g, '')}`}
-          className={className}
-        >
+        <a href={`tel:${agent_data.phone.replace(/[^0-9.]/g, '')}`} className={className}>
           {agent_data.phone}
         </a>
       );
@@ -770,43 +548,27 @@ function rexifyOrSkip(
       const { name: TagName } = element.parent as { name: string };
       switch (TagName) {
         case 'div':
-          return (
-            <div className={className}>{agent_data.phone}</div>
-          );
+          return <div className={className}>{agent_data.phone}</div>;
         default:
-          return (
-            <span className={className}>{agent_data.phone}</span>
-          );
+          return <span className={className}>{agent_data.phone}</span>;
       }
     } else if (placeholder === '{Agent Email}') {
       const { name: TagName } = element.parent as { name: string };
       switch (TagName) {
         case 'div':
-          return (
-            <div className={className}>{agent_data.email}</div>
-          );
+          return <div className={className}>{agent_data.email}</div>;
         default:
-          return (
-            <span className={className}>{agent_data.email}</span>
-          );
+          return <span className={className}>{agent_data.email}</span>;
       }
     }
   }
   const property = record as MLSProperty;
   switch (placeholder) {
     case '{Description}':
-      return (
-        <p className={className}>{property.L_PublicRemakrs}</p>
-      );
+      return <p className={className}>{property.L_PublicRemakrs}</p>;
 
     case '{Sqft}':
-      return (
-        <p className={className}>
-          {new Intl.NumberFormat(undefined).format(
-            property.L_LotSize_SqMtrs
-          )}
-        </p>
-      );
+      return <p className={className}>{new Intl.NumberFormat(undefined).format(property.L_LotSize_SqMtrs)}</p>;
 
     case '{Baths}':
       return <p className={className}>{property.L_TotalBaths}</p>;
@@ -824,38 +586,22 @@ function rexifyOrSkip(
       return <div className={className}>{property.Address}</div>;
 
     case '{Building Type}':
-      return (
-        <div className={className}>{property.PropertyType}</div>
-      );
+      return <div className={className}>{property.PropertyType}</div>;
 
     case '{Lot Size}':
-      return (
-        <div className={className}>
-          {formatValues(property, 'L_LotSize_SqMtrs')}
-        </div>
-      );
+      return <div className={className}>{formatValues(property, 'L_LotSize_SqMtrs')}</div>;
 
     case '{MLS Number}':
       return <span className={className}>{property.MLS_ID}</span>;
 
     case '{Land Title}':
-      return (
-        <span className={className}>{property.LandTitle}</span>
-      );
+      return <span className={className}>{property.LandTitle}</span>;
 
     case '{Price Per Sqft}':
-      return (
-        <span className={className}>
-          {formatValues(property, 'PricePerSQFT')}
-        </span>
-      );
+      return <span className={className}>{formatValues(property, 'PricePerSQFT')}</span>;
 
     case '{Price}':
-      return (
-        <div className={className}>
-          {formatValues(property, 'AskingPrice')}
-        </div>
-      );
+      return <div className={className}>{formatValues(property, 'AskingPrice')}</div>;
 
     case '{Property Tax}':
       return (

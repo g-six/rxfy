@@ -10,6 +10,9 @@ const nextConfig = {
     }, {
       protocol: 'https',
       hostname: 'leagent-strapi-s3.s3.us-west-2.amazonaws.com'
+    }, {
+      protocol: 'https',
+      hostname: 'e52tn40a.cdn.imgeng.in'
     }]
   }
 }
