@@ -1,10 +1,5 @@
 import { AgentData } from '@/_typings/agent';
-import {
-  DateFields,
-  FinanceFields,
-  MLSProperty,
-  NumericFields,
-} from '@/_typings/property';
+import { DateFields, FinanceFields, MLSProperty, NumericFields } from '@/_typings/property';
 import { AxiosStatic } from 'axios';
 import { dateStringToDMY } from './date-helper';
 
@@ -91,9 +86,7 @@ export function getGqlForPropertyId(id: number) {
   };
 }
 
-export function getGqlForFilteredProperties(
-  filters: Record<string, unknown>
-) {
+export function getGqlForFilteredProperties(filters: Record<string, unknown>) {
   return {
     query: `query getProperties($filters: PropertyFiltersInput!) {
           properties(filters: $filters) {
@@ -167,9 +160,7 @@ export function getGqlForInsertProperty(mls_data: MLSProperty) {
 // Let's only retrieve listings from 4 hours ago as
 // the Geocoding script might still be running on
 // the new entries (time here is UTC due to legacy server config)
-const gte = new Date(new Date().getTime() - 4 * 60 * 60000)
-  .toISOString()
-  .substring(0, 19);
+const gte = new Date(new Date().getTime() - 4 * 60 * 60000).toISOString().substring(0, 19);
 
 export const must_not: {
   match?: { [key: string]: string };
@@ -242,6 +233,7 @@ export async function retrieveFromLegacyPipeline(
           },
         ],
         must_not,
+        should: [],
       },
     },
     _source: true,
@@ -249,12 +241,10 @@ export async function retrieveFromLegacyPipeline(
   config = {
     url: process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
     headers: {
-      Authorization: `Basic ${Buffer.from(
-        `${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`
-      ).toString('base64')}`,
+      Authorization: `Basic ${Buffer.from(`${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`).toString('base64')}`,
       'Content-Type': 'application/json',
     },
-  }
+  },
 ) {
   const axios: AxiosStatic = (await import('axios')).default;
   const {
@@ -265,50 +255,36 @@ export async function retrieveFromLegacyPipeline(
     headers: config.headers,
   });
 
-  return hits.map(
-    ({
-      _source,
-      fields,
-    }: {
-      _source: unknown;
-      fields: Record<string, unknown>;
-    }) => {
-      let hit: Record<string, unknown>;
-      if (_source) {
-        hit = (
-          _source as {
-            data: Record<string, unknown>;
-          }
-        ).data;
-      } else {
-        hit = fields;
-      }
-
-      let property = {
-        Address: '',
-        Status: '',
-      };
-      Object.keys(hit as Record<string, unknown>).forEach((key) => {
-        if (hit[key]) {
-          property = {
-            ...property,
-            [_source ? key : key.split('.')[1]]:
-              _source || key === 'data.photos'
-                ? hit[key]
-                : (hit[key] as string[] | number[]).join(','),
-          };
+  return hits.map(({ _source, fields }: { _source: unknown; fields: Record<string, unknown> }) => {
+    let hit: Record<string, unknown>;
+    if (_source) {
+      hit = (
+        _source as {
+          data: Record<string, unknown>;
         }
-      });
-
-      return property as MLSProperty;
+      ).data;
+    } else {
+      hit = fields;
     }
-  );
+
+    let property = {
+      Address: '',
+      Status: '',
+    };
+    Object.keys(hit as Record<string, unknown>).forEach(key => {
+      if (hit[key]) {
+        property = {
+          ...property,
+          [_source ? key : key.split('.')[1]]: _source || key === 'data.photos' ? hit[key] : (hit[key] as string[] | number[]).join(','),
+        };
+      }
+    });
+
+    return property as MLSProperty;
+  });
 }
 
-export async function getRecentListings(
-  agent: AgentData,
-  limit = 3
-) {
+export async function getRecentListings(agent: AgentData, limit = 3) {
   let properties = await retrieveFromLegacyPipeline({
     from: 0,
     size: limit,
@@ -392,15 +368,8 @@ export async function getRecentListings(
   return properties;
 }
 
-export async function getSimilarHomes(
-  property: MLSProperty,
-  limit = 3
-): Promise<MLSProperty[]> {
-  if (
-    property.AskingPrice &&
-    property.L_BedroomTotal &&
-    property.PropertyType
-  ) {
+export async function getSimilarHomes(property: MLSProperty, limit = 3): Promise<MLSProperty[]> {
+  if (property.AskingPrice && property.L_BedroomTotal && property.PropertyType) {
     const filter: {
       match?: Record<string, string | number>;
       range?: {};
@@ -447,9 +416,7 @@ export async function getSimilarHomes(
       query: {
         bool: {
           filter,
-          must_not: must_not.concat([
-            { match: { 'data.Address': property.Address } },
-          ]),
+          must_not: must_not.concat([{ match: { 'data.Address': property.Address } }]),
         },
       },
     });
@@ -460,34 +427,20 @@ export async function getSimilarHomes(
 async function upsertPropertyToCMS(mls_data: MLSProperty) {
   const axios: AxiosStatic = (await import('axios')).default;
   const xhr = await axios
-    .post(
-      process.env.NEXT_APP_CMS_GRAPHQL_URL as string,
-      getGqlForInsertProperty(mls_data),
-      {
-        headers: {
-          Authorization: `Bearer ${
-            process.env.NEXT_APP_CMS_API_KEY as string
-          }`,
-          'Content-Type': 'application/json',
-        },
-      }
-    )
-    .catch((e) => {
-      console.log(
-        'ERROR in upsertPropertyToCMS.axios',
-        '\n',
-        e.message,
-        '\n\n'
-      );
+    .post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getGqlForInsertProperty(mls_data), {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+        'Content-Type': 'application/json',
+      },
+    })
+    .catch(e => {
+      console.log('ERROR in upsertPropertyToCMS.axios', '\n', e.message, '\n\n');
     });
 
   return xhr;
 }
 
-export async function getPropertyData(
-  property_id: number | string,
-  id_is_mls = false
-) {
+export async function getPropertyData(property_id: number | string, id_is_mls = false) {
   const axios: AxiosStatic = (await import('axios')).default;
   let xhr = await axios
     .post(
@@ -501,28 +454,16 @@ export async function getPropertyData(
         : getGqlForPropertyId(property_id as number),
       {
         headers: {
-          Authorization: `Bearer ${
-            process.env.NEXT_APP_CMS_API_KEY as string
-          }`,
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
           'Content-Type': 'application/json',
         },
-      }
+      },
     )
-    .catch((e) => {
-      console.log(
-        'ERROR in getPropertyData.axios for id',
-        property_id,
-        '\n',
-        e.message,
-        '\n\n'
-      );
+    .catch(e => {
+      console.log('ERROR in getPropertyData.axios for id', property_id, '\n', e.message, '\n\n');
     });
 
-  if (
-    id_is_mls &&
-    xhr &&
-    xhr.data.data?.properties?.data?.length === 0
-  ) {
+  if (id_is_mls && xhr && xhr.data.data?.properties?.data?.length === 0) {
     // Data was not picked up by the integrations API,
     // attempt to fix
 
@@ -552,13 +493,9 @@ export async function getPropertyData(
   const neighbours: MLSProperty[] = [];
   const sold_history: MLSProperty[] = [];
   if (xhr && xhr.data) {
-    const { property, properties } = id_is_mls
-      ? xhr.data.data
-      : xhr.data.data;
+    const { property, properties } = id_is_mls ? xhr.data.data : xhr.data.data;
 
-    const { mls_data } = id_is_mls
-      ? properties.data[0].attributes
-      : property.data.attributes;
+    const { mls_data } = id_is_mls ? properties.data[0].attributes : property.data.attributes;
     Object.keys(mls_data).map((key: string) => {
       if (mls_data[key]) {
         clean = {
@@ -596,12 +533,10 @@ export async function getPropertyData(
       },
       {
         headers: {
-          Authorization: `Basic ${Buffer.from(
-            `${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`
-          ).toString('base64')}`,
+          Authorization: `Basic ${Buffer.from(`${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`).toString('base64')}`,
           'Content-Type': 'application/json',
         },
-      }
+      },
     );
 
     hits.forEach(({ _source }: { _source: unknown }) => {
@@ -612,7 +547,7 @@ export async function getPropertyData(
         Address: '',
         Status: '',
       };
-      Object.keys(hit as Record<string, unknown>).forEach((key) => {
+      Object.keys(hit as Record<string, unknown>).forEach(key => {
         if (hit[key]) {
           property = {
             ...property,
@@ -620,13 +555,8 @@ export async function getPropertyData(
           };
         }
       });
-      if (
-        property.Status === 'Sold' &&
-        property.Address === clean.Address
-      )
-        sold_history.push(property as MLSProperty);
-      else if (property.Status === 'Active')
-        neighbours.push(property as MLSProperty);
+      if (property.Status === 'Sold' && property.Address === clean.Address) sold_history.push(property as MLSProperty);
+      else if (property.Status === 'Active') neighbours.push(property as MLSProperty);
     });
   }
 
@@ -637,22 +567,15 @@ export async function getPropertyData(
   };
 }
 
-export function formatValues(
-  obj: MLSProperty | Record<string, string>,
-  key: string
-): string {
+export function formatValues(obj: MLSProperty | Record<string, string>, key: string): string {
   if (!obj || !obj[key]) return '';
 
   if (NumericFields.includes(key)) {
-    return new Intl.NumberFormat(undefined).format(
-      parseInt((obj as Record<string, string>)[key], 10) as number
-    );
+    return new Intl.NumberFormat(undefined).format(parseInt((obj as Record<string, string>)[key], 10) as number);
   }
 
   if (FinanceFields.includes(key) && !isNaN(Number(obj[key]))) {
-    return `$${new Intl.NumberFormat(undefined).format(
-      obj[key] as number
-    )}`;
+    return `$${new Intl.NumberFormat(undefined).format(obj[key] as number)}`;
   }
 
   if (DateFields.includes(key)) {
@@ -661,20 +584,12 @@ export function formatValues(
   return obj[key] as unknown as string;
 }
 
-export function combineAndFormatValues(
-  values: Record<string, number | string>
-): string {
+export function combineAndFormatValues(values: Record<string, number | string>): string {
   // Last year taxes
-  if (
-    Object.keys(values).includes('L_GrossTaxes') &&
-    Object.keys(values).includes('ForTaxYear')
-  ) {
-    return `${formatValues(
-      values as MLSProperty,
-      'L_GrossTaxes'
-    )} (${values.ForTaxYear})`;
+  if (Object.keys(values).includes('L_GrossTaxes') && Object.keys(values).includes('ForTaxYear')) {
+    return `${formatValues(values as MLSProperty, 'L_GrossTaxes')} (${values.ForTaxYear})`;
   }
   return Object.keys(values)
-    .map((key) => values[key])
+    .map(key => values[key])
     .join(' ');
 }
