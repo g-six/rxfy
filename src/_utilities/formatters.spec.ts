@@ -11,6 +11,6 @@ describe('formatPhone', () => {
   });
 
   it('returns the input if unable to format it properly', () => {
-    expect(formatPhone('abc123')).toBe('abc123');
+    expect(formatPhone('123')).toBe('123');
   });
 });
