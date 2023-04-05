@@ -12,6 +12,7 @@ import { MLSProperty } from '@/_typings/property';
 import Script from 'next/script';
 import { addPropertyMapScripts } from '@/components/Scripts/google-street-map';
 import { AgentData } from '@/_typings/agent';
+import RxNotifications from '@/components/RxNotifications';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -129,7 +130,10 @@ export default async function Home({ params, searchParams }: { params: Record<st
   return (
     <>
       {webflow.body.code ? (
-        <main className={styles['rx-realm']}>{rexify(webflow.body.code, agent_data, property)}</main>
+        <main className={styles['rx-realm']}>
+          {rexify(webflow.body.code, agent_data, property)}
+          <RxNotifications />
+        </main>
       ) : (
         <main className={styles.main}>
           <div className={styles.description}>
