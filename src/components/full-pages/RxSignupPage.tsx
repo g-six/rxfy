@@ -1,14 +1,14 @@
 'use client';
 
+import axios, { AxiosResponse } from 'axios';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { NotificationCategory } from '@/_typings/events';
-import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
-import axios, { AxiosResponse } from 'axios';
 import React from 'react';
 import { RxButton } from '../RxButton';
 import { RxEmail } from '../RxEmail';
 import { RxPassword } from '../RxPassword';
 import { RxTextInput } from '../RxTextInput';
+import { hashPassword } from '@/_utilities/encryption-helper';
 
 type RxSignupPageProps = {
   type: string;
@@ -87,24 +87,69 @@ export function RxPageIterator(props: RxSignupPageProps) {
   return <>{wrappedChildren}</>;
 }
 
-const gql = `mutation SignUp ($data: UsersPermissionsUserInput!) {
-  createUsersPermissionsUser(
-    data: $data
-  ) {
+const gql = `mutation SignUp ($data: CustomerInput!) {
+  createCustomer(data: $data) {
     data {
       id
       attributes {
-        username
         email
         full_name
+        agents {
+          data {
+            id
+            attributes {
+              full_name
+            }
+          }
+        }
       }
     }
   }
 }`;
 
+function validInput(data: { email?: string; password?: string; full_name?: string; agent_id?: number }): {
+  data?: {
+    email: string;
+    password: string;
+    full_name: string;
+  };
+  errors?: {
+    email?: string;
+    password?: string;
+    full_name?: string;
+  };
+  error?: string;
+} {
+  let error = '';
+
+  if (!data.email) {
+    error = `${error}\nA valid email is required`;
+  }
+  if (!data.password) {
+    error = `${error}\nA hard-to-guess password with at least 10 characters is required`;
+  }
+  if (!data.full_name) {
+    error = `${error}\nYour realtor would need your name`;
+  }
+
+  if (error) {
+    return { error };
+  }
+
+  return {
+    data: {
+      ...data,
+    } as unknown as {
+      email: string;
+      password: string;
+      full_name: string;
+    },
+  };
+}
+
 export function RxSignupPage(props: RxSignupPageProps) {
   const { data, fireEvent } = useEvent(Events.SignUp);
-  const { data: notification, fireEvent: notify } = useEvent(Events.SystemNotification);
+  const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [is_processing, processing] = React.useState(false);
   const form_data: EventsData & {
     email?: string;
@@ -112,9 +157,15 @@ export function RxSignupPage(props: RxSignupPageProps) {
     full_name?: string;
   } = data;
 
-  React.useEffect(() => {
-    if (is_processing) {
-      processing(false);
+  const submitForm = () => {
+    const { data: valid_data, error } = validInput(form_data);
+
+    if (error) {
+      notify({
+        category: NotificationCategory.Error,
+        message: error,
+      });
+    } else if (valid_data)
       axios
         .post(
           `${process.env.NEXT_PUBLIC_CMS_GRAPHQL_URL}`,
@@ -122,11 +173,9 @@ export function RxSignupPage(props: RxSignupPageProps) {
             query: gql,
             variables: {
               data: {
-                username: form_data.email,
-                email: form_data.email,
-                password: form_data.password,
-                full_name: form_data.full_name,
-                role: 2, // Public,
+                email: valid_data.email,
+                encrypted_password: hashPassword(valid_data.password),
+                full_name: valid_data.full_name,
               },
             },
           },
@@ -138,28 +187,38 @@ export function RxSignupPage(props: RxSignupPageProps) {
           },
         )
         .then((response: AxiosResponse<SignUpResponse>) => {
-          let error = '';
+          let api_error = '';
           let confirmation = '';
           if (response.data.errors) {
             response.data.errors.forEach(({ message, extensions }) => {
               if (extensions) {
                 if (extensions.error?.details?.errors) {
                   extensions.error?.details?.errors.forEach(({ path, message }) => {
-                    error = `${error}${message}\n`;
+                    if (path.includes('email')) {
+                      api_error = `${api_error}Email is either invalid or already taken\n`;
+                    } else {
+                      api_error = `${api_error}${message}\n`;
+                    }
                   });
                 } else if (extensions.error?.message) {
-                  error = `${extensions.error.message}\n`;
+                  api_error = `${extensions.error.message}\n`;
+                } else if (message) {
+                  api_error = `${message}\n`;
                 }
               }
             });
           } else {
-            const { createUsersPermissionsUser: user } = response.data.data;
-            confirmation = 'Thanks for signing up!';
+            const { createCustomer: user } = response.data.data;
+            if (user) {
+              fireEvent({});
+              console.log({ user });
+              confirmation = 'Thanks for signing up!';
+            }
           }
-          if (error) {
+          if (api_error) {
             notify({
               category: NotificationCategory.Error,
-              message: error,
+              message: api_error,
             });
           } else if (confirmation) {
             notify({
@@ -171,26 +230,34 @@ export function RxSignupPage(props: RxSignupPageProps) {
         .catch(signup_error => {
           console.log('Errors in RxSignupPage');
           console.log(JSON.stringify(signup_error, null, 4));
-        })
-        .finally(() => {
-          fireEvent({
-            ...data,
-            clicked: undefined,
-          });
         });
+  };
+
+  React.useEffect(() => {
+    if (is_processing) {
+      processing(false);
+      fireEvent({
+        ...data,
+        clicked: undefined,
+      });
+      submitForm();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [is_processing]);
 
   React.useEffect(() => {
     if (data.clicked === 'signup-button') {
       processing(true);
+      fireEvent({
+        ...data,
+        clicked: undefined,
+      });
     }
   }, [data]);
 
   return (
     <form
-      id='rx-login-page'
-      data-wf-user-form-type={WEBFLOW_NODE_SELECTOR.SIGNUP}
+      id='rx-signup-page'
       onSubmit={e => {
         e.preventDefault();
         fireEvent({

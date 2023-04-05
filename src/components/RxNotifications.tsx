@@ -21,6 +21,8 @@ export default function RxNotifications() {
       message?: string;
       category?: 'error' | 'success';
     } = data;
+    setSuccessMessage('');
+    setErrorMessage('');
     if (category && message) {
       if (category === NotificationCategory.Error) {
         setErrorMessage(message);
