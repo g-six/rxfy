@@ -24,6 +24,29 @@ const gql = `query LogIn ($filters: CustomerFiltersInput!) {
   }
 }`;
 
+const session_gql = `mutation UpdateCustomerSession ($id: ID!, $logged_in_at: DateTime!) {
+  session: updateCustomer(id: $id, data: { logged_in_at: $logged_in_at, last_activity_at: $logged_in_at }) {
+    record: data {
+      id
+      attributes {
+        email
+        full_name
+        logged_in_at
+        last_activity_at
+        encrypted_password
+        agents {
+          data {
+            id
+            attributes {
+              full_name
+            }
+          }
+        }
+      }
+    }
+  }
+}`;
+
 function validateInput(data: { email?: string; password?: string; full_name?: string; agent_id?: number }): {
   data?: {
     email: string;
@@ -98,20 +121,33 @@ export async function POST(request: Request) {
       const [data] = response_data.data?.customers?.data || [];
 
       if (data && Object.keys(data).length > 0) {
-        const { id, attributes } = data;
+        const session = await createSession(data.id);
+
+        const { attributes } = data;
         const { email, full_name, agents } = attributes;
-        return new Response(JSON.stringify({ customer: { id, email, full_name, agents } }, null, 4), {
-          headers: {
-            'content-type': 'application/json',
+        return new Response(
+          JSON.stringify(
+            {
+              customer: { id: Number(data.id), email, full_name, agents, ...session },
+            },
+            null,
+            4,
+          ),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
           },
-          status: 200,
-        });
+        );
       }
+
+      const msg = 'Sorry, you may have inputted the wrong pair of credentials';
 
       return new Response(
         JSON.stringify(
           {
-            error: 'Sorry, you may have inputted the wrong pair of credentials',
+            error: msg,
           },
           null,
           4,
@@ -120,6 +156,8 @@ export async function POST(request: Request) {
           headers: {
             'content-type': 'application/json',
           },
+          status: 400,
+          statusText: msg,
         },
       );
     }
@@ -137,6 +175,44 @@ export async function POST(request: Request) {
       headers: {
         'content-type': 'application/json',
       },
+      status: 400,
+      statusText: 'Please enter your email and password',
     },
   );
+}
+
+async function createSession(id: number) {
+  try {
+    const {
+      data: {
+        data: {
+          session: { record },
+        },
+      },
+    } = await axios.post(
+      `${process.env.NEXT_PUBLIC_CMS_GRAPHQL_URL}`,
+      {
+        query: session_gql,
+        variables: {
+          id,
+          logged_in_at: new Date().toISOString(),
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_CMS_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    const { last_activity_at, encrypted_password } = record.attributes;
+
+    return {
+      session_key: `${encrypt(`${last_activity_at}`)}.${encrypt(encrypted_password)}`,
+    };
+  } catch (e) {
+    console.log('Error in createSession subroutine');
+    console.log(JSON.stringify(e, null, 4));
+  }
 }
