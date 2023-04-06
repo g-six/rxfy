@@ -8,7 +8,7 @@ import { RxButton } from '../RxButton';
 import { RxEmail } from '../RxEmail';
 import { RxPassword } from '../RxPassword';
 import { RxTextInput } from '../RxTextInput';
-import { hashPassword } from '@/_utilities/encryption-helper';
+import { encrypt } from '@/_utilities/encryption-helper';
 
 type RxSignupPageProps = {
   type: string;
@@ -174,7 +174,7 @@ export function RxSignupPage(props: RxSignupPageProps) {
             variables: {
               data: {
                 email: valid_data.email,
-                encrypted_password: hashPassword(valid_data.password),
+                encrypted_password: encrypt(valid_data.password),
                 full_name: valid_data.full_name,
               },
             },
