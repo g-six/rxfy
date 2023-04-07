@@ -22,6 +22,7 @@ import RxPropertyMap from './RxPropertyMap';
 import RxPropertyCarousel from './RxPropertyCarousel/RxPropertyCarousel';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { RxSignupPage } from './full-pages/RxSignupPage';
+import { RxLoginPage } from './full-pages/RxLoginPage';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -314,6 +315,13 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             <RxSignupPage {...props} type={node.type}>
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxSignupPage>
+          );
+        }
+        if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.LOGIN) {
+          return (
+            <RxLoginPage {...props} type={node.type}>
+              <>{domToReact(node.children) as ReactElement[]}</>
+            </RxLoginPage>
           );
         }
 
