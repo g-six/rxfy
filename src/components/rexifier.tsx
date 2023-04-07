@@ -18,11 +18,11 @@ import PropertyCard from './PropertyCard';
 import { getCityFromGeolocation, getGeocode, getViewPortParamsFromGeolocation } from '@/_utilities/geocoding-helper';
 import { GeoLocation, MapboxBoundaries } from '@/_typings/maps';
 import RxPropertyMap from './RxPropertyMap';
-// import RxHomeAlertLayer from './RxHomeAlertComponents/RxHomeAlertLayer';
 import RxPropertyCarousel from './RxPropertyCarousel/RxPropertyCarousel';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { RxSignupPage } from './full-pages/RxSignupPage';
 import { RxLoginPage } from './full-pages/RxLoginPage';
+import { RxResetPasswordPage } from './full-pages/RxResetPassword';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -322,6 +322,13 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             <RxLoginPage {...props} type={node.type}>
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxLoginPage>
+          );
+        }
+        if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.RESET_PASSWORD) {
+          return (
+            <RxResetPasswordPage {...props} type={node.type}>
+              <>{domToReact(node.children) as ReactElement[]}</>
+            </RxResetPasswordPage>
           );
         }
 
