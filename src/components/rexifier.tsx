@@ -20,6 +20,9 @@ import { GeoLocation, MapboxBoundaries } from '@/_typings/maps';
 import RxPropertyMap from './RxPropertyMap';
 // import RxHomeAlertLayer from './RxHomeAlertComponents/RxHomeAlertLayer';
 import RxPropertyCarousel from './RxPropertyCarousel/RxPropertyCarousel';
+import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
+import { RxSignupPage } from './full-pages/RxSignupPage';
+import { RxLoginPage } from './full-pages/RxLoginPage';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -98,23 +101,10 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
 
   if (agent_data.metatags?.logo_for_light_bg) {
     $('.navbar-wrapper-2 > a').remove();
-    // replaceByCheerio($, '.navbar-wrapper-2 > a', {
-    //   content: `<a href="/" class="flex justify-items-start"><img class="justify-self-start max-h-10" src="${agent_data.metatags.logo_for_light_bg}" /></a>`,
-    // });
     replaceByCheerio($, '.navbar-wrapper-2', {
       prepend: `<a href="/" class="flex justify-items-start"><img class="justify-self-start max-h-10" src="${agent_data.metatags.logo_for_light_bg}" /></a>`,
     });
   }
-
-  // $('.logo-dark').each((seq, tag) => {
-  //   $(`.logo-dark:nth-child(${seq + 1})`).html(
-  //     injectLogo(
-  //       tag.name,
-  //       tag.attribs && tag.attribs.class,
-  //       agent_data
-  //     )
-  //   );
-  // });
 }
 
 export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], selector = '.similar-homes-grid') {
@@ -270,7 +260,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
                     var script = document.createElement('script');
                     ${pathname.indexOf('webflow') >= 0 ? 'script.defer = true;' : 'script.async = true;'}
                     script.src = '${attribs.src}';
-                    console.log('Loading ${attribs.src}')
+
                     script.onload = () => {
                         console.log('${attribs.src}', '${pathname.split('/').pop()} loaded')
                         setTimeout(() => {
@@ -320,6 +310,21 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
       } else if (node instanceof Element && node.attribs) {
         const { class: className, ...props } = attributesToProps(node.attribs);
 
+        if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.SIGNUP) {
+          return (
+            <RxSignupPage {...props} type={node.type}>
+              <>{domToReact(node.children) as ReactElement[]}</>
+            </RxSignupPage>
+          );
+        }
+        if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.LOGIN) {
+          return (
+            <RxLoginPage {...props} type={node.type}>
+              <>{domToReact(node.children) as ReactElement[]}</>
+            </RxLoginPage>
+          );
+        }
+
         if (node.tagName === 'form') {
           return (
             <div {...props} id='rex-form' data-class={className}>
@@ -354,17 +359,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         if (node.attribs['data-type'] === 'personal_bio') {
           // Personal bio <p>
           return <PersonalBioParagraph {...props} agent={agent_data} />;
-        }
-
-        if (node.attribs['data-type'] === 'personal_bio') {
-          // Personal bio <p>
-          return <PersonalBioParagraph {...props} agent={agent_data} />;
-        }
-
-        if (node.attribs['data-type'] === 'neighbourhood-link' && agent_data) {
-          node.parentNode?.childNodes.map((child, seq: number) => {
-            console.log('neighbourhood-link', seq);
-          });
         }
 
         if (node.attribs.class && node.attribs.class.indexOf('li-property') >= 0) {

@@ -9,7 +9,6 @@ import { NotificationCategory } from '@/_typings/events';
 
 export default function RxNotifications() {
   const { data, fireEvent } = useEvent(Events.SystemNotification);
-  const [show, setShow] = useState(false);
   const [error, setErrorMessage] = useState('');
   const [success, setSuccessMessage] = useState('');
 
@@ -21,6 +20,8 @@ export default function RxNotifications() {
       message?: string;
       category?: 'error' | 'success';
     } = data;
+    setSuccessMessage('');
+    setErrorMessage('');
     if (category && message) {
       if (category === NotificationCategory.Error) {
         setErrorMessage(message);
@@ -28,7 +29,6 @@ export default function RxNotifications() {
       if (category === NotificationCategory.Success) {
         setSuccessMessage(message);
       }
-      setShow(true);
     }
   }, [data]);
 
@@ -39,7 +39,7 @@ export default function RxNotifications() {
         <div className='flex w-full flex-col items-center space-y-4 sm:items-end'>
           {/* Notification panel, dynamically insert this into the live region when it needs to be displayed */}
           <Transition
-            show={show}
+            show={data.category !== undefined}
             as={Fragment}
             enter='transform ease-out duration-300 transition'
             enterFrom='translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2'
@@ -74,7 +74,6 @@ export default function RxNotifications() {
                       type='button'
                       className='inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
                       onClick={() => {
-                        setShow(false);
                         fireEvent({});
                       }}
                     >
