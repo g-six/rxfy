@@ -10,13 +10,14 @@ type RxProps = {
   type?: 'button' | 'submit' | 'reset';
   className?: string;
   disabled?: boolean;
+  loading?: boolean;
   children: React.ReactElement;
   data?: Record<string, string>;
   ['rx-event']: Events;
 };
 export function RxButton(p: RxProps) {
   const { data, fireEvent } = useEvent(p['rx-event']);
-  const [loading, toggleLoader] = React.useState(false);
+  const [loading, toggleLoader] = React.useState(p.loading || false);
 
   React.useEffect(() => {
     if (!data.clicked) {
