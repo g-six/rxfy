@@ -6,8 +6,6 @@ import React from 'react';
 import { RxButton } from '../RxButton';
 import { RxEmail } from '../RxEmail';
 import { NotificationCategory } from '@/_typings/events';
-import { CustomerDataModel } from '@/_typings/customer';
-import { ErrorModel } from '@/_typings/error-model';
 
 type RxResetPasswordPageProps = {
   type: string;

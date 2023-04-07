@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import useEvent, { Events } from '@/hooks/useEvent';
 import React from 'react';
@@ -9,22 +8,12 @@ import { RxButton } from '../RxButton';
 import { RxEmail } from '../RxEmail';
 import { RxPassword } from '../RxPassword';
 import { NotificationCategory } from '@/_typings/events';
-import { CustomerDataModel } from '@/_typings/customer';
-import { ErrorModel } from '@/_typings/error-model';
 
 type RxLoginPageProps = {
   type: string;
   disabled?: boolean;
   loading?: boolean;
   children: React.ReactElement;
-};
-type LogInResponse = {
-  data: {
-    customers: {
-      data: CustomerDataModel[];
-    };
-  };
-  errors?: ErrorModel[];
 };
 
 export function RxLoginPageIterator(props: RxLoginPageProps) {
@@ -64,7 +53,6 @@ export function RxLoginPageIterator(props: RxLoginPageProps) {
 }
 
 export function RxLoginPage(props: RxLoginPageProps) {
-  const router = useRouter();
   const { data, fireEvent } = useEvent(Events.Login);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [is_loading, toggleLoading] = React.useState(false);
@@ -87,11 +75,10 @@ export function RxLoginPage(props: RxLoginPageProps) {
         };
       };
 
-      console.log(session);
       if (session.data?.session_key) {
         Cookies.set('session_key', session.data?.session_key);
         setTimeout(() => {
-          router.push('/my-profile');
+          location.href = '/my-profile';
         }, 700);
       }
     }
