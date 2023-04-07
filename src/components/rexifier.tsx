@@ -23,6 +23,7 @@ import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { RxSignupPage } from './full-pages/RxSignupPage';
 import { RxLoginPage } from './full-pages/RxLoginPage';
 import { RxResetPasswordPage } from './full-pages/RxResetPassword';
+import { RxUserSessionLink } from './Nav/RxUserSessionLink';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -330,6 +331,17 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxResetPasswordPage>
           );
+        }
+        if (node.attribs.class) {
+          if (
+            node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.USER_MENU) ||
+            node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.GUEST_MENU)
+          )
+            return (
+              <RxUserSessionLink {...props} className={node.attribs.class} href={node.attribs.href}>
+                <>{domToReact(node.children) as ReactElement[]}</>
+              </RxUserSessionLink>
+            );
         }
 
         if (node.tagName === 'form') {
