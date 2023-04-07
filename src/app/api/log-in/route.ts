@@ -1,7 +1,5 @@
-import { LogInResponse } from '@/_typings/customer';
-import { checkLogInResponse } from '@/_utilities/data-helpers/auth-helper';
+import axios from 'axios';
 import { encrypt } from '@/_utilities/encryption-helper';
-import axios, { AxiosResponse } from 'axios';
 
 const gql = `query LogIn ($filters: CustomerFiltersInput!) {
   customers(filters: $filters) {
@@ -33,7 +31,6 @@ const session_gql = `mutation UpdateCustomerSession ($id: ID!, $logged_in_at: Da
         full_name
         logged_in_at
         last_activity_at
-        encrypted_password
         agents {
           data {
             id
@@ -206,10 +203,16 @@ async function createSession(id: number) {
       },
     );
 
-    const { last_activity_at, encrypted_password } = record.attributes;
+    const { last_activity_at, email } = record.attributes;
+    const prefix = encrypt(`${last_activity_at}`);
+    const suffix = encrypt(email);
+    const session_key = `${prefix}.${suffix}`;
 
     return {
-      session_key: `${encrypt(`${last_activity_at}`)}.${encrypt(encrypted_password)}`,
+      id,
+      last_activity_at,
+      email,
+      session_key,
     };
   } catch (e) {
     console.log('Error in createSession subroutine');
