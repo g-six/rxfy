@@ -44,8 +44,9 @@ export default async function Home({ params, searchParams }: { params: Record<st
   if (!params || !params.slug || params.slug === '/') {
     if (agent_data && agent_data.agent_id) {
       listings = await getAgentListings(agent_data.agent_id);
-      if (listings.active?.length === 0) {
-        const recent_listings = await getRecentListings(agent_data);
+
+      if (!listings.active || listings.active?.length === 0) {
+        const recent_listings = await getRecentListings(agent_data, 12);
         listings = {
           ...listings,
           active: recent_listings,
@@ -65,7 +66,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
       property = await getPropertyData(searchParams.id || searchParams.mls, !!searchParams.mls);
     }
   }
-
   await fillAgentInfo($, agent_data);
   // Recent listings
   if (listings?.active?.length) {
