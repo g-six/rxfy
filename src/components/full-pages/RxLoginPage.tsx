@@ -1,6 +1,6 @@
 'use client';
 
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import useEvent, { Events } from '@/hooks/useEvent';
 import React from 'react';
 import Cookies from 'js-cookie';
@@ -88,11 +88,20 @@ export function RxLoginPage(props: RxLoginPageProps) {
     if (is_loading) return;
     toggleLoading(true);
     try {
-      const api_response = await axios.post('/api/log-in', data, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const api_response = await axios
+        .post('/api/log-in', data, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        .catch((e: AxiosError) => {
+          if (e.response && e.response.data) {
+            const { error } = e.response.data as { error: string };
+            if (error) {
+              throw { response: { statusText: error } };
+            }
+          }
+        });
       const session = api_response as unknown as {
         data?: {
           customer?: {
