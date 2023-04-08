@@ -285,6 +285,36 @@ export async function retrieveFromLegacyPipeline(
 }
 
 export async function getRecentListings(agent: AgentData, limit = 3) {
+  const should: {
+    match: {
+      [key: string]: string;
+    };
+  }[] = [
+    {
+      match: { 'data.LA1_LoginName': agent.agent_id },
+    },
+    {
+      match: {
+        'data.LA2_LoginName': agent.agent_id,
+      },
+    },
+    {
+      match: {
+        'data.LA3_LoginName': agent.agent_id,
+      },
+    },
+  ];
+  if (agent.metatags?.brokerage_id) {
+    should.push({
+      match: { 'data.ListOffice1': agent.metatags?.brokerage_id },
+    });
+    should.push({
+      match: { 'data.ListOffice2': agent.metatags?.brokerage_id },
+    });
+    should.push({
+      match: { 'data.ListOffice3': agent.metatags?.brokerage_id },
+    });
+  }
   let properties = await retrieveFromLegacyPipeline({
     from: 0,
     size: limit,
@@ -298,21 +328,7 @@ export async function getRecentListings(agent: AgentData, limit = 3) {
             },
           },
         ],
-        should: [
-          {
-            match: { 'data.LA1_LoginName': agent.agent_id },
-          },
-          {
-            match: {
-              'data.LA2_LoginName': agent.agent_id,
-            },
-          },
-          {
-            match: {
-              'data.LA3_LoginName': agent.agent_id,
-            },
-          },
-        ],
+        should,
         minimum_should_match: 1,
         must_not,
       },

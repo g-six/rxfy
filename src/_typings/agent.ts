@@ -1,11 +1,6 @@
 import { GeoLocation } from './maps';
 
-export type ThemeName =
-  | 'hamburg'
-  | 'lisbon'
-  | 'malaga'
-  | 'malta'
-  | 'oslo';
+export type ThemeName = 'hamburg' | 'lisbon' | 'malaga' | 'malta' | 'oslo';
 
 export interface Property {
   id: number;
@@ -44,6 +39,7 @@ export interface AgentMetatags {
     }[];
   };
   brokerage_name?: string;
+  brokerage_id?: string;
 }
 
 export interface AgentData {
