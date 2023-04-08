@@ -27,7 +27,7 @@ export async function sendTemplate(template_name: string, send_to: MailChimp.Mes
   const to: MailChimp.MessageRecipient[] = send_to;
   const merge_vars: MailChimp.RecipientMergeVar[] = send_to.map(({ email, name }: MailChimp.MessageRecipient) => {
     return {
-      rcpt: `${name} <${email}>`,
+      rcpt: email,
       vars: Object.keys(payload).map((k: string) => {
         return {
           name: k,
@@ -49,6 +49,8 @@ export async function sendTemplate(template_name: string, send_to: MailChimp.Mes
     merge_vars,
   };
 
+  console.log(JSON.stringify({ merge_vars }, null, 4));
+
   const xhr = await mailchimp.messages.sendTemplate({
     template_name,
     template_content: [],
@@ -58,8 +60,7 @@ export async function sendTemplate(template_name: string, send_to: MailChimp.Mes
   if (xhr) {
     const { reject_reason } = xhr as unknown as { reject_reason: string };
     if (!reject_reason) {
-      const mailchimp_response = xhr as MailChimp.MessagesSendResponse[];
-      console.log(mailchimp_response.toString(), null, 4);
+      const [mailchimp_response] = xhr as MailChimp.MessagesSendResponse[];
     } else {
       console.log({ reject_reason });
     }
