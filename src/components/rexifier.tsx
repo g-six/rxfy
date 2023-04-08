@@ -136,7 +136,7 @@ export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], selec
 
     // Beds
     replaceByCheerio($, `${selector} > .property-card-map:nth-child(${i + 1}) .bedroom-stat`, {
-      content: `${formatValues(p, 'L_BedroomTotal')}`,
+      content: `${formatValues(p, 'L_BedroomTotal') || '1'}`,
     });
 
     // Baths
