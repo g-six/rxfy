@@ -85,7 +85,6 @@ export async function PUT(request: Request) {
           client_url,
         });
 
-        console.log('client_url', client_url);
         return new Response(
           JSON.stringify(
             {
