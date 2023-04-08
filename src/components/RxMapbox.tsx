@@ -7,7 +7,7 @@ import { queryStringToObject } from '@/_utilities/url-helper';
 import { AgentData } from '@/_typings/agent';
 import { must_not, retrieveFromLegacyPipeline } from '@/_utilities/data-helpers/property-page';
 import { MLSProperty, PropertyAttributeFilters } from '@/_typings/property';
-import { getSearchPropertyFilters, getSelectedPropertyTypes } from '@/_utilities/rx-map-helper';
+import { getSearchPropertyFilters } from '@/_utilities/rx-map-helper';
 import { Feature } from 'geojson';
 import { classNames } from '@/_utilities/html-helper';
 import { MapboxBoundaries, PlaceDetails, RxPropertyFilter } from '@/_typings/maps';

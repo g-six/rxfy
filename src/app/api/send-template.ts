@@ -1,6 +1,4 @@
-import axios, { AxiosError } from 'axios';
 import MailChimp from '@mailchimp/mailchimp_transactional';
-import { encrypt } from '@/_utilities/encryption-helper';
 
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_PUBLIC_CMS_API_KEY as string}`,
