@@ -58,9 +58,8 @@ export async function getAgentListings(agent_id: string): Promise<{
         sold,
       };
     } else {
-      console.log('listings error');
-      console.log(res);
-      console.log('end listings error');
+      console.log('Error in getAgentListings subroutine');
+      console.log(' There might be no json file cached for listings');
     }
   } catch (e) {
     console.log('Error in getAgentListings subroutine');
