@@ -79,14 +79,13 @@ export async function PUT(request: Request) {
             name: customer.data.attributes.full_name,
           },
         ];
-        const client_url =
-          `${url.origin}/my-profile?key=${encrypt(customer.data.attributes.last_activity_at)}.${encrypt(email)}-${customer.data.id}` || request.url;
+        const client_url = `${url.origin}/my-profile?key=${encrypt(customer.data.attributes.last_activity_at)}.${encrypt(email)}-${customer.data.id}`;
         await sendTemplate('forgot-password', send_to, {
           subject: 'Leagent Password Recovery',
           client_url,
         });
 
-        console.log(client_url);
+        console.log('client_url', client_url);
         return new Response(
           JSON.stringify(
             {
