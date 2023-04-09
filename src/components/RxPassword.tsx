@@ -18,6 +18,15 @@ export function RxPassword(p: RxProps) {
       type='password'
       className={[p.className || '', 'rexified'].join(' ')}
       name={p.name}
+      onKeyDown={e => {
+        if (e.code && e.code.toLowerCase() === 'enter') {
+          evt.fireEvent({
+            ...evt.data,
+            clicked: `${p['rx-event']}-trigger`,
+            [p.name]: e.currentTarget.value,
+          });
+        }
+      }}
       onChange={e => {
         evt.fireEvent({
           ...evt.data,
