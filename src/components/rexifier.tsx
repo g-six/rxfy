@@ -314,7 +314,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
 
         if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.SIGNUP) {
           return (
-            <RxSignupPage {...props} type={node.type}>
+            <RxSignupPage {...props} agent={agent_data.id as number} logo={agent_data.metatags?.logo_for_light_bg} type={node.type}>
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxSignupPage>
           );
@@ -336,7 +336,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         if (node.attribs.class) {
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.MY_ACCOUNT_WRAPPER)) {
             return (
-              <RxMyAccountPage {...props} type={node.type}>
+              <RxMyAccountPage {...props} type={node.type} data={agent_data}>
                 <>{domToReact(node.children) as ReactElement[]}</>
               </RxMyAccountPage>
             );

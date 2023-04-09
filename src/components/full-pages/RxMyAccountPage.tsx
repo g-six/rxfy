@@ -28,10 +28,9 @@ type RxMyAccountPageProps = {
   children: React.ReactElement;
   className?: string;
   data: DataModel;
-  onSubmit: MouseEventHandler;
 };
 
-export function RxPageIterator(props: RxMyAccountPageProps) {
+export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit: MouseEventHandler }) {
   const wrappedChildren = React.Children.map(props.children, child => {
     const child_node = child as React.ReactElement;
     if (child_node.type === 'a' && child_node.props.className && child_node.props.className.split(' ').includes('button-primary')) {

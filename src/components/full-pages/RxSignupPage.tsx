@@ -1,6 +1,7 @@
 'use client';
 
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
+import { MessageRecipient } from '@mailchimp/mailchimp_transactional';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { NotificationCategory } from '@/_typings/events';
 import React from 'react';
@@ -8,10 +9,12 @@ import { RxButton } from '../RxButton';
 import { RxEmail } from '../RxEmail';
 import { RxPassword } from '../RxPassword';
 import { RxTextInput } from '../RxTextInput';
-import { encrypt } from '@/_utilities/encryption-helper';
+import { RxCheckBox } from '../RxCheckBox';
 
 type RxSignupPageProps = {
   type: string;
+  agent: number;
+  logo?: string;
   children: React.ReactElement;
 };
 
@@ -23,6 +26,7 @@ type SignUpResponse = {
         attributes: {
           email: string;
           full_name: string;
+          logo_for_light_bg?: string;
           agents: {
             id: number;
           }[];
@@ -68,50 +72,46 @@ export function RxPageIterator(props: RxSignupPageProps) {
       if (child_node.props.className.split(' ').includes('txt-name')) {
         return <RxTextInput {...child_node.props} rx-event={Events.SignUp} name='full_name' />;
       }
+      if (child_node.props.id === 'wf-sign-up-accept-communications') {
+        return <RxCheckBox {...child_node.props} rx-event={Events.SignUp} name='yes_to_marketing' />;
+      }
 
       return <input {...child_node.props} className={[child_node.props.className || '', 'rexified'].join(' ')} />;
-    } else if (child.props && child.props.children)
+    } else if (child.props && child.props.children) {
+      let style;
+      if (child_node.props.className && child_node.props.className.split(' ').includes('w-users-userformheader') && props.logo) {
+        style = {
+          backgroundImage: `url(${props.logo})`,
+          backgroundSize: '4rem',
+        };
+      }
       return React.cloneElement(
         {
           ...child,
         },
         {
           ...child.props,
+          className:
+            props.logo && child_node.props.className && child_node.props.className.split(' ').includes('w-users-userformheader')
+              ? `${child.props.className} rexified pt-12 bg-center bg-no-repeat`
+              : child.props.className || '',
+          style,
           // Wrap grandchildren too
           children: <RxPageIterator {...props}>{child.props.children}</RxPageIterator>,
         },
       );
-    else return child;
+    } else return child;
   });
 
   return <>{wrappedChildren}</>;
 }
 
-const gql = `mutation SignUp ($data: CustomerInput!) {
-  createCustomer(data: $data) {
-    data {
-      id
-      attributes {
-        email
-        full_name
-        agents {
-          data {
-            id
-            attributes {
-              full_name
-            }
-          }
-        }
-      }
-    }
-  }
-}`;
-
-function validInput(data: { email?: string; password?: string; full_name?: string; agent_id?: number }): {
+function validInput(data: { email?: string; password?: string; full_name?: string; agent_id?: number; yes_to_marketing?: boolean }): {
   data?: {
     email: string;
     password: string;
     full_name: string;
+    yes_to_marketing: boolean;
   };
   errors?: {
     email?: string;
@@ -143,6 +143,7 @@ function validInput(data: { email?: string; password?: string; full_name?: strin
       email: string;
       password: string;
       full_name: string;
+      yes_to_marketing: boolean;
     },
   };
 }
@@ -151,11 +152,12 @@ export function RxSignupPage(props: RxSignupPageProps) {
   const { data, fireEvent } = useEvent(Events.SignUp);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [is_processing, processing] = React.useState(false);
-  const form_data: EventsData & {
+  const form_data = data as unknown as {
     email?: string;
     password?: string;
     full_name?: string;
-  } = data;
+    yes_to_marketing?: boolean;
+  };
 
   const submitForm = () => {
     const { data: valid_data, error } = validInput(form_data);
@@ -165,72 +167,42 @@ export function RxSignupPage(props: RxSignupPageProps) {
         category: NotificationCategory.Error,
         message: error,
       });
-    } else if (valid_data)
+    } else if (valid_data) {
       axios
         .post(
-          `${process.env.NEXT_PUBLIC_CMS_GRAPHQL_URL}`,
+          '/api/sign-up',
           {
-            query: gql,
-            variables: {
-              data: {
-                email: valid_data.email,
-                encrypted_password: encrypt(valid_data.password),
-                full_name: valid_data.full_name,
-              },
-            },
+            ...valid_data,
+            agent: props.agent,
+            logo: props.logo,
           },
           {
             headers: {
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_CMS_API_KEY as string}`,
               'Content-Type': 'application/json',
             },
           },
         )
-        .then((response: AxiosResponse<SignUpResponse>) => {
-          let api_error = '';
-          let confirmation = '';
-          if (response.data.errors) {
-            response.data.errors.forEach(({ message, extensions }) => {
-              if (extensions) {
-                if (extensions.error?.details?.errors) {
-                  extensions.error?.details?.errors.forEach(({ path, message }) => {
-                    if (path.includes('email')) {
-                      api_error = `${api_error}Email is either invalid or already taken\n`;
-                    } else {
-                      api_error = `${api_error}${message}\n`;
-                    }
-                  });
-                } else if (extensions.error?.message) {
-                  api_error = `${extensions.error.message}\n`;
-                } else if (message) {
-                  api_error = `${message}\n`;
-                }
-              }
-            });
-          } else {
-            const { createCustomer: user } = response.data.data;
-            if (user) {
-              fireEvent({});
-              console.log({ user });
-              confirmation = 'Thanks for signing up!';
+        .then(response => {
+          notify({
+            category: NotificationCategory.Success,
+            message: "Great, you're all set! Forwarding you to our login portal.",
+          });
+          setTimeout(() => {
+            location.href = '/log-in';
+          }, 1400);
+        })
+        .catch((e: AxiosError) => {
+          if (e.response && e.response.data) {
+            const { error } = e.response.data as { error: string };
+            if (error) {
+              notify({
+                category: NotificationCategory.Error,
+                message: error,
+              });
             }
           }
-          if (api_error) {
-            notify({
-              category: NotificationCategory.Error,
-              message: api_error,
-            });
-          } else if (confirmation) {
-            notify({
-              category: NotificationCategory.Success,
-              message: confirmation,
-            });
-          }
-        })
-        .catch(signup_error => {
-          console.log('Errors in RxSignupPage');
-          console.log(JSON.stringify(signup_error, null, 4));
         });
+    }
   };
 
   React.useEffect(() => {
