@@ -22,7 +22,11 @@ const gql = `mutation UpdateCustomerSession ($id: ID!, $last_activity_at: DateTi
       id
       attributes {
         email
+        full_name
+        phone_number
+        birthday
         last_activity_at
+        yes_to_marketing
       }
     }
   }
@@ -80,12 +84,20 @@ export async function GET(request: Request) {
           );
 
           session_key = `${encrypt(dt)}.${encrypted_email}`;
+          const { birthday: birthdate, ...attributes } = record.attributes;
+          let birthday;
+          if (birthdate) {
+            birthday = new Intl.DateTimeFormat('en-CA').format(new Date(`${birthdate}T00:00:00`));
+          }
           return new Response(
             JSON.stringify(
               {
+                ...attributes,
+                birthday,
                 id,
+                email,
                 session_key,
-                message: 'Already logged in',
+                message: 'Logged in',
               },
               null,
               4,

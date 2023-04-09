@@ -75,11 +75,14 @@ export function RxLoginPage(props: RxLoginPageProps) {
         };
       };
 
-      if (session.data?.session_key) {
+      if (session && session.data?.session_key) {
         Cookies.set('session_key', session.data?.session_key);
         setTimeout(() => {
           location.href = '/my-profile';
         }, 700);
+      } else {
+        Cookies.remove('session_key');
+        Cookies.remove('cid');
       }
     }
   };
@@ -114,6 +117,9 @@ export function RxLoginPage(props: RxLoginPageProps) {
       if (session.data?.customer?.session_key) {
         Cookies.set('session_key', session.data.customer.session_key);
         Cookies.set('cid', session.data.customer.id);
+        setTimeout(() => {
+          location.href = '/my-profile';
+        }, 400);
       }
     } catch (e) {
       const error = e as { response: { statusText: string } };
@@ -132,6 +138,7 @@ export function RxLoginPage(props: RxLoginPageProps) {
       notify({});
       toggleLoading(true);
       fireEvent(evt_data);
+      submitForm();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
@@ -141,16 +148,8 @@ export function RxLoginPage(props: RxLoginPageProps) {
   }, []);
 
   return (
-    <form
-      id='rx-login-page'
-      onSubmit={e => {
-        e.preventDefault();
-        if (!is_loading) {
-          submitForm();
-        }
-      }}
-    >
+    <div id='rx-login-page'>
       <RxLoginPageIterator {...props} disabled={is_loading} loading={is_loading} />
-    </form>
+    </div>
   );
 }
