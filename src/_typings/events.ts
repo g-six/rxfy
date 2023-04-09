@@ -3,6 +3,7 @@ export enum Events {
   Loading = 'event-loading',
   ResetPassword = 'event-reset-password',
   SignUp = 'event-signup',
+  SaveAccountChanges = 'event-save-acct-changes',
   SystemNotification = 'system-notification',
   HomeAlertDismiss = 'event-home-alert-dismiss',
   HomeAlertSuccess = 'event-home-alert-success',
