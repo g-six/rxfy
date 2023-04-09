@@ -29,7 +29,7 @@ export function RxButton(p: RxProps) {
     <button
       type={p.type || 'button'}
       className={[p.className || '', 'rexified disabled:opacity-30 relative'].join(' ')}
-      disabled={p.disabled}
+      disabled={p.disabled || loading}
       onClick={() => {
         toggleLoader(true);
         fireEvent({
