@@ -6,6 +6,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   MY_ACCOUNT_WRAPPER = 'my-account-wrapper',
   USER_MENU = 'in-session',
   GUEST_MENU = 'out-session',
+  HOME_ALERTS_WRAPPER = 'home-alert---all-screens',
 }
 
 export interface WebFlow {
