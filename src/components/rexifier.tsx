@@ -25,6 +25,7 @@ import { RxLoginPage } from './full-pages/RxLoginPage';
 import { RxResetPasswordPage } from './full-pages/RxResetPassword';
 import { RxUserSessionLink } from './Nav/RxUserSessionLink';
 import { RxMyAccountPage } from './full-pages/RxMyAccountPage';
+import HomeAlertsReplacer from '@/_replacers/HomeAlerts/home-alerts';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -414,9 +415,9 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             </div>
           );
         }
-        if (node.attribs.class && node.attribs.class.split(' ').includes('home-alert---all-screens')) {
+        if (node.attribs.class && node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.HOME_ALERTS_WRAPPER)) {
           // Hide Home Alerts for now
-          return <></>;
+          return <HomeAlertsReplacer agent={agent_data} nodeClassName={className} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
         }
 
         if ((node.children && node.children.length === 1) || node.name === 'input') {
