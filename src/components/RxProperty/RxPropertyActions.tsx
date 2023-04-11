@@ -3,7 +3,7 @@ import React from 'react';
 
 import { MLSProperty } from '@/_typings/property';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
-import { transformMatchingElements } from '@/_helpers/findElements';
+import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 import useEvent, { Events } from '@/hooks/useEvent';
 
 type PropertyActionsProps = {

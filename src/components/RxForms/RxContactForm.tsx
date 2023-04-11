@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import useEvent, { Events } from '@/hooks/useEvent';
 import { ReplacerPageProps } from '@/_typings/forms';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
-import { transformMatchingElements } from '@/_helpers/findElements';
+import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 
 export default function RxContactForm({ nodes, agent, nodeProps, nodeClassName }: ReplacerPageProps) {
   const eventShow = useEvent(Events.ContactFormShow);

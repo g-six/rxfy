@@ -5,7 +5,7 @@ import { Transition } from '@headlessui/react';
 import { MLSProperty } from '@/_typings/property';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
-import { transformMatchingElements, replaceAllTextWithBraces } from '@/_helpers/findElements';
+import { transformMatchingElements, replaceAllTextWithBraces } from '@/_helpers/dom-manipulators';
 
 import RxPropertyActions from '@/components/RxProperty/RxPropertyActions';
 
