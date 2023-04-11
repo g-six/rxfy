@@ -3,7 +3,7 @@ import { ReactElement, Fragment, cloneElement, useState, useCallback, useEffect 
 import { Transition } from '@headlessui/react';
 
 import { ReplacerPageProps, HOME_ALERTS_DISMISS_TIMEOUT } from '@/_typings/forms';
-import { searchByClasses } from '@/_utilities/checkFnUtils';
+import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 
 import useEvent, { Events } from '@/hooks/useEvent';

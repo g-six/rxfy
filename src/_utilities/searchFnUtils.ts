@@ -11,3 +11,7 @@ export function searchByClasses(classes: string[]): (node: React.ReactElement) =
 export function searchById(id: string): (node: React.ReactElement) => boolean {
   return (node: React.ReactElement) => node?.props?.id === id;
 }
+
+export function searchByTagName(tag_name: string): (node: React.ReactElement) => boolean {
+  return (node: React.ReactElement) => node?.props?.type === tag_name;
+}
