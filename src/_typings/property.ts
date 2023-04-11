@@ -14,6 +14,22 @@ export const NumericFields = [
 
 export const FinanceFields = ['AskingPrice', 'PricePerSQFT', 'L_GrossTaxes', 'SoldPrice'];
 
+export enum PropertyStatus {
+  ACTIVE = 'active',
+  SOLD = 'sold',
+  ACTIVE_INDEX = '0',
+  SOLD_INDEX = '1',
+}
+
+export enum PropertySortBy {
+  DATE_ASC = 'date_asc',
+  DATE_DESC = 'date_desc',
+  PRICE_ASC = 'price_asc',
+  PRICE_DESC = 'price_desc',
+  SIZE_ASC = 'size_asc',
+  SIZE_DESC = 'size_desc',
+}
+
 export interface MLSProperty extends Record<string, string | number | string[]> {
   lat: number;
   lng: number;

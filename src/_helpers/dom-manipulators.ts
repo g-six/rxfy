@@ -11,6 +11,8 @@ interface Match {
   transformChild?: (child: React.ReactElement) => React.ReactElement;
 }
 
+export type BracesReplacements = { [key: string]: any };
+
 export function addPropsToMatchingElements(children: React.ReactNode, matches: Match[]): React.ReactNode {
   return Children.map(children, child => {
     if (React.isValidElement(child)) {
@@ -133,20 +135,18 @@ export function captureMatchingElements(
   return capturedElements;
 }
 
-export function replaceTextWithBrackets(element: React.ReactNode, replacement: string): React.ReactNode {
-  if (typeof element === 'string') {
-    return element.replace(/{.+}/, replacement);
-  } else if (Array.isArray(element)) {
-    return element.map(child => replaceTextWithBrackets(child, replacement));
-  } else if (React.isValidElement(element)) {
-    const props = { ...element.props };
-    if (props.children) {
-      props.children = replaceTextWithBrackets(props.children, replacement);
-    }
-    return React.cloneElement(element, props);
-  } else {
-    return element;
+export function replaceTextWithBraces(node: React.ReactNode, replacement: string): React.ReactNode {
+  if (typeof node === 'string') {
+    return node.replace(/{.+}/, replacement);
+  } else if (React.isValidElement(node)) {
+    const { children, ...props } = node.props;
+    const newChildren = React.Children.map(children, child => replaceTextWithBraces(child, replacement));
+    return React.createElement(node.type, props, newChildren);
+  } else if (Array.isArray(node)) {
+    return node.map(child => replaceTextWithBraces(child, replacement));
   }
+
+  return node;
 }
 
 export function removeKeys<T extends object, K extends keyof T>(obj: T, keysToRemove: K[]): Omit<T, K> {
@@ -157,4 +157,25 @@ export function removeKeys<T extends object, K extends keyof T>(obj: T, keysToRe
   });
 
   return newObj;
+}
+
+export function replaceAllTextWithBraces(element: React.ReactNode, replacements: BracesReplacements): React.ReactNode {
+  if (typeof element === 'string') {
+    let result = element;
+    Object.entries(replacements).forEach(([brValue, rValue]) => {
+      const pattern = new RegExp(`{${brValue}}`, 'g');
+      result = result.replace(pattern, rValue);
+    });
+    return result;
+  } else if (Array.isArray(element)) {
+    return element.map(child => replaceAllTextWithBraces(child, replacements));
+  } else if (React.isValidElement(element)) {
+    const props = { ...element.props };
+    if (props.children) {
+      props.children = replaceAllTextWithBraces(props.children, replacements);
+    }
+    return React.cloneElement(element, props);
+  } else {
+    return element;
+  }
 }
