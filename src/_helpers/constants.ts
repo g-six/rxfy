@@ -265,4 +265,5 @@ export const filterCompare = {
 export const webFlowAnchors = {
   propertyActions: 'section---top-stats',
   homeAlerts: 'home-alert---all-screens',
+  contactForm: 'contact-form-wrapper',
 };

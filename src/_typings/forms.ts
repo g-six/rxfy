@@ -1,12 +1,15 @@
-import { AgentData } from '@/_typings/agent';
-import { UserData } from '@/_typings/user';
 import { ReactElement } from 'react';
+
+import { AgentData } from '@/_typings/agent';
+import { MLSProperty } from '@/_typings/property';
+
 export interface ReplacerPageProps {
   nodeProps: any;
   nodeClassName: string;
   nodes?: ReactElement[];
   children?: ReactElement[];
   agent: AgentData;
+  property?: MLSProperty;
   config?: {
     authorization: string;
     url: string;

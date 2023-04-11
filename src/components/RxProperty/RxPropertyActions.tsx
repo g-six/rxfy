@@ -1,10 +1,10 @@
 'use client';
 import React from 'react';
-import { useRouter } from 'next/navigation';
 
 import { MLSProperty } from '@/_typings/property';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { transformMatchingElements } from '@/_helpers/findElements';
+import useEvent, { Events } from '@/hooks/useEvent';
 
 type PropertyActionsProps = {
   child: React.ReactElement;
@@ -12,16 +12,15 @@ type PropertyActionsProps = {
 };
 
 export default function RxPropertyActions(props: PropertyActionsProps) {
-  const router = useRouter();
-  const [origin, setOrigin] = React.useState('');
+  const eventFormShow = useEvent(Events.ContactFormShow);
 
+  const [origin, setOrigin] = React.useState('');
   React.useEffect(() => {
     const origin = typeof window !== 'undefined' && window.location.origin ? window.location.origin : '';
     setOrigin(origin);
   }, []);
 
   const propertyLink = `${origin}/property?mls=${props.property.MLS_ID}`;
-  console.log('propertyLink', propertyLink);
 
   const matches = [
     {
@@ -64,6 +63,14 @@ export default function RxPropertyActions(props: PropertyActionsProps) {
           href: `https://app.leagent.com/property/${props.property.MLS_ID}/pdf`,
           target: '_blank',
           rel: 'noopener noreferrer',
+        }),
+    },
+    {
+      searchFn: searchByClasses(['p-action-ask']),
+      transformChild: (child: React.ReactElement) =>
+        React.cloneElement(child, {
+          ...child.props,
+          onClick: () => eventFormShow.fireEvent({ show: true }),
         }),
     },
   ];

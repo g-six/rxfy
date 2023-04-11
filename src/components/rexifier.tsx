@@ -20,6 +20,7 @@ import PersonalBioParagraph from './PersonalBioParagraph';
 import PropertyCarousel from './PropertyCarousel/main';
 import HomeAlertsReplacer from '@/_replacers/HomeAlerts/home-alerts';
 import RxTable from './RxTable';
+import RxContactForm from '@/components/RxForms/RxContactForm';
 import { RxUserSessionLink } from './Nav/RxUserSessionLink';
 
 // TODO: @Rey, shall we move those next 3 items into "RxProperty", like the last ones in this group?
@@ -428,6 +429,9 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
         if (node.attribs.class && node.attribs.class.indexOf(webFlowAnchors.homeAlerts) >= 0) {
           return <HomeAlertsReplacer agent={agent_data} nodeClassName={className} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
+        }
+        if (node.attribs.class && node.attribs.class.indexOf(webFlowAnchors.contactForm) >= 0) {
+          return <RxContactForm agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
         }
 
         if ((node.children && node.children.length === 1) || node.name === 'input') {
