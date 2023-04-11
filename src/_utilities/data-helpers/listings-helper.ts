@@ -33,13 +33,14 @@ export async function getAgentListings(agent_id: string): Promise<{
     // Query cached listings first to save on latency in searching
     let url: string = `https://pages.leagent.com/listings/${agent_id}.json`;
     let res = await fetch(url);
-    if (!res.ok || res.headers.get('content-type') !== 'application/json') {
+    const content_type = res.headers.get('content-type') as string;
+    if (!res.ok || content_type.indexOf('/json') === -1) {
       console.log('Cache file not found', url);
       // If no cached listings results found, let's search
       url = `${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent_id}`;
       res = await fetch(url, { method: 'POST' });
     }
-    if (res.ok && res.headers.get('content-type') === 'application/json') {
+    if (res.ok && content_type.indexOf('/json') > 0) {
       const { hits: results } = await res.json();
 
       const { hits } = results as {

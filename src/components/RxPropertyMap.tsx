@@ -7,7 +7,7 @@ import RxSearchInput from './RxSearchInput';
 import styles from './RxPropertyMap.module.scss';
 import { Switch } from '@headlessui/react';
 import RxPropertyCard from './RxPropertyCard';
-import { MapProvider, useMapState } from '@/app/AppContext.module';
+import { MapProvider } from '@/app/AppContext.module';
 import { getPlaceDetails } from '@/_utilities/geocoding-helper';
 import { MLSProperty } from '@/_typings/property';
 import { PlaceDetails, RxPropertyMapProps } from '@/_typings/maps';
@@ -21,6 +21,8 @@ import RxLiveTextDDOption from './RxLiveUrlBased/RxLiveTextDropdownOption';
 import RxLiveCheckbox from './RxLiveUrlBased/RxLiveBaseCheckbox';
 import RxLiveInput from './RxLiveUrlBased/RxLiveInput';
 import RxDatePicker from './RxLiveUrlBased/RxDatePicker';
+import HomeAlertsReplacer from '@/_replacers/HomeAlerts/home-alerts';
+import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 
 export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?: string }) {
   let MapAndHeaderHeader;
@@ -39,6 +41,9 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
           {child.props.children}
         </RxPropertyMapRecursive>
       );
+    }
+    if (child.props && child.props.className && child.props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.HOME_ALERTS_WRAPPER)) {
+      return <HomeAlertsReplacer agent={props.agent_data} nodeClassName='absolute' nodeProps={child.props} nodes={child.props.children} />;
     }
     if (child.type === 'input' && child.props.className && child.props.className.indexOf('search-input-field') >= 0) {
       return (

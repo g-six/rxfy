@@ -9,7 +9,7 @@ import useEvent, { Events } from '@/hooks/useEvent';
 import useHomeAlert from '@/hooks/useHomeAlert';
 
 export default function HomeAlertsIcon({ child, agent, user, showIcon }: ReplacerHomeAlerts) {
-  const hook = useHomeAlert(user, agent);
+  const hook = useHomeAlert(agent);
   const eventHookDismiss = useEvent(Events.HomeAlertDismiss);
 
   const matches = [

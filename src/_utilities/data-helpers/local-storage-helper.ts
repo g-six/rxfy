@@ -4,12 +4,16 @@
  * @param data
  * @returns
  */
-export function setData(key: string, data: object) {
+export function setData(key: string, data?: string) {
   let res = null;
   try {
     const isBrowser: boolean = typeof window !== 'undefined' && typeof localStorage !== 'undefined';
-    res = isBrowser ? localStorage.setItem(key, JSON.stringify(data)) : null;
-    res = res === undefined;
+    if (isBrowser && data) {
+      res = localStorage.setItem(key, data);
+      res = res === undefined;
+    } else {
+      localStorage.removeItem(key);
+    }
   } catch (e) {
     console.log('Error: setData from local storage failed', e);
   }

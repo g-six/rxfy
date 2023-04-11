@@ -10,13 +10,13 @@ import useEvent from '@/hooks/useEvent';
 import { setData } from '@/_utilities/data-helpers/local-storage-helper';
 import Cookies from 'js-cookie';
 
-export default function useHomeAlert(/*userData: UserData, */ agentData: AgentData) {
+export default function useHomeAlert(agentData: AgentData) {
   const searchParams = useSearchParams();
   const eventHookSuccess = useEvent(Events.HomeAlertSuccess);
   const eventHookLoader = useEvent(Events.Loading);
 
   const onAction = useCallback(
-    (user: UserData, pass: string | undefined) => {
+    (user: UserData) => {
       // const obj = user && user.jwt ? user : userData;
       if (Cookies.get('session_key')) {
         // const queryStr = searchParams.toString();
@@ -36,10 +36,20 @@ export default function useHomeAlert(/*userData: UserData, */ agentData: AgentDa
         //     }
         //   });
       } else {
-        setData('dismissSavedSearch', { dismissed_at: new Date().toISOString() });
+        setData(
+          'dismissSavedSearch',
+          JSON.stringify(
+            {
+              dismissed_at: new Date().toISOString(),
+              step,
+            },
+            null,
+            2,
+          ),
+        );
       }
     },
-    [userData, agentData, searchParams, eventHookSuccess, eventHookLoader],
+    [agentData, searchParams, eventHookSuccess, eventHookLoader],
   );
 
   return { onAction };

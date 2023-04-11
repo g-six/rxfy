@@ -12,7 +12,6 @@ import Cookies from 'js-cookie';
 import { useSearchParams } from 'next/navigation';
 import { RxCheckBox } from '../RxCheckBox';
 import { RxPhoneInput } from '../RxPhoneInput';
-import RxDatePicker from '../RxLiveUrlBased/RxDatePicker';
 import { formatShortDate } from '@/_utilities/formatters';
 
 type DataModel = {

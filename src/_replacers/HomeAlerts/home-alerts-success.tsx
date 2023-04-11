@@ -18,7 +18,16 @@ export default function HomeAlertsSuccess({ child }: ReplacerHomeAlerts) {
         setTimeout(() => {
           eventHook.fireEvent({ show: false });
           setTimeout(() => {
-            setData('dismissSavedSearch', { dismissed_at: new Date().toISOString() });
+            setData(
+              'dismissSavedSearch',
+              JSON.stringify(
+                {
+                  dismissed_at: new Date().toISOString(),
+                },
+                null,
+                2,
+              ),
+            );
           }, 5);
         }, 3000);
       }
