@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import useEvent, { Events } from '@/hooks/useEvent';
 import { ReplacerPageProps } from '@/_typings/forms';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
-import { transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { replaceAllTextWithBraces, transformMatchingElements } from '@/_helpers/dom-manipulators';
 
 export default function RxContactForm({ nodes, agent, nodeProps, nodeClassName }: ReplacerPageProps) {
   const eventShow = useEvent(Events.ContactFormShow);
@@ -24,6 +24,13 @@ export default function RxContactForm({ nodes, agent, nodeProps, nodeClassName }
           ...child.props,
           onClick: () => eventShow.fireEvent({ show: false }),
         }),
+    },
+    {
+      searchFn: searchByClasses(['contact-div']),
+      transformChild: (child: React.ReactElement) =>
+        replaceAllTextWithBraces(child, {
+          ['Agent Name']: agent.full_name,
+        }) as React.ReactElement,
     },
   ];
 
