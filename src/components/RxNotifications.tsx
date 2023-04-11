@@ -18,7 +18,6 @@ export default function RxNotifications() {
       category,
     }: EventsData & {
       message?: string;
-      category?: 'error' | 'success';
     } = data;
     setSuccessMessage('');
     setErrorMessage('');
