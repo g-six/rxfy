@@ -91,7 +91,7 @@ export async function POST(request: Request) {
 
     if (valid_data) {
       const { data: response_data } = await axios.post(
-        `${process.env.NEXT_PUBLIC_CMS_GRAPHQL_URL}`,
+        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
         {
           query: gql,
           variables: {
@@ -109,7 +109,7 @@ export async function POST(request: Request) {
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_CMS_API_KEY as string}`,
+            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
             'Content-Type': 'application/json',
           },
         },
@@ -187,7 +187,7 @@ async function createSession(id: number) {
         },
       },
     } = await axios.post(
-      `${process.env.NEXT_PUBLIC_CMS_GRAPHQL_URL}`,
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
       {
         query: session_gql,
         variables: {
@@ -197,7 +197,7 @@ async function createSession(id: number) {
       },
       {
         headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_CMS_API_KEY as string}`,
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
           'Content-Type': 'application/json',
         },
       },

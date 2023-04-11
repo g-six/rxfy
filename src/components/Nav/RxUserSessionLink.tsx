@@ -37,6 +37,7 @@ export function RxUserSessionLink(props: RxUserSessionLinkProps) {
           if (props.children.type === 'div' && typeof props.children.props.children === 'string') {
             if (props.children.props.children.toLowerCase() === 'logout') {
               Cookies.remove('session_key');
+              Cookies.remove('cid');
               Cookies.remove('last_activity_at');
             }
           }

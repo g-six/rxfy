@@ -1,7 +1,7 @@
 import MailChimp from '@mailchimp/mailchimp_transactional';
 
 const headers = {
-  Authorization: `Bearer ${process.env.NEXT_PUBLIC_CMS_API_KEY as string}`,
+  Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
 };
 const gqlFindCustomer = `query FindCustomer($id: ID!) {

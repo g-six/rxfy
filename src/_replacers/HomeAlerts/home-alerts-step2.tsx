@@ -20,6 +20,7 @@ import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 
 export default function HomeAlertsStep2({ child, agent, onClose, showIcon }: ReplacerHomeAlerts) {
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
+  const { fireEvent: notifySavedSearchSuccess } = useEvent(Events.HomeAlertSuccess);
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [show, toggleShow] = useState(false);
@@ -33,61 +34,13 @@ export default function HomeAlertsStep2({ child, agent, onClose, showIcon }: Rep
       } else {
         const em = email.toLowerCase();
         const name = em.replaceAll('@', ' ').replaceAll('.', '').replaceAll(/[0-9]/g, '');
-        const pass = randomString(6);
-        const host = typeof window !== 'undefined' ? window.location.host : '';
-        const data = {
-          username: em,
-          email: em,
-          password: pass,
-          phone_number: '000-000-0000',
-          user_type: 'user',
-          name: name,
-          signup_host: host,
-        };
         //setLoading(true);
         eventHookLoading.fireEvent({ show: true });
-        axios
-          .post(
-            '/api/sign-up',
-            {
-              agent: Number(agent.id),
-              logo: agent.metatags?.logo_for_light_bg,
-              email,
-              full_name: capitalizeFirstLetter(email.split('@')[0]),
-              password: randomString(6),
-              yes_to_marketing: true,
-              search_url: location.href,
-            },
-            {
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            },
-          )
-          .then(response => {
-            eventHookLoading.fireEvent({ show: false });
-            // hook.onAction(response, pass)
-          })
-          .catch(({ response }) => {
-            notify({
-              category: NotificationCategory.Error,
-              message: response?.data?.error || 'Sorry, please try again later',
-            });
-          });
-        // registerUser(data, agent)
-        //   .then(user => {
-        //     updateUser(user, (obj: UserData) => {
-        //       eventHookLoading.fireEvent({ show: false });
-        //       hook.onAction(obj, pass);
-        //     });
-        //   })
-        //   .catch(e => {
-        //     if (e && !!e.msg) {
-        //       setError(e.msg);
-        //     } else {
-        //       setError('Something went wrong.');
-        //     }
-        //   });
+
+        notify({});
+        hook.onAction(2, {
+          email,
+        });
       }
     },
     [hook.onAction],
