@@ -260,10 +260,3 @@ export const filterCompare = {
   keysOfTextFields: ['features', 'amenities', 'f_3195'],
   keysOfHidden: ['field_3144', 'f_137', 'field_3145', 'field_3166', 'f_3024', 'field_3002', 'price_sqft'],
 };
-
-// constant for replacers root nodes names of ids,classes,etc
-export const webFlowAnchors = {
-  propertyActions: 'section---top-stats',
-  homeAlerts: 'home-alert---all-screens',
-  contactForm: 'contact-form-wrapper',
-};
