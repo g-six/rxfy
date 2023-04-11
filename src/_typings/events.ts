@@ -21,5 +21,5 @@ export interface EventsData {
   show?: boolean;
   time?: number;
   message?: string;
-  category?: 'error' | 'success';
+  category?: NotificationCategory;
 }
