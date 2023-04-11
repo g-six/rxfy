@@ -7,8 +7,9 @@ import { searchByClasses } from '@/_utilities/checkFnUtils';
 import { ReplacerHomeAlerts } from '@/_typings/forms';
 import useEvent, { Events } from '@/hooks/useEvent';
 import useHomeAlert from '@/hooks/useHomeAlert';
+import Cookies from 'js-cookie';
 
-export default function HomeAlertsIcon({ child, agent, user, showIcon }: ReplacerHomeAlerts) {
+export default function HomeAlertsIcon({ child, agent, showIcon }: ReplacerHomeAlerts) {
   const hook = useHomeAlert(agent);
   const eventHookDismiss = useEvent(Events.HomeAlertDismiss);
 
@@ -21,7 +22,7 @@ export default function HomeAlertsIcon({ child, agent, user, showIcon }: Replace
           {
             ...child.props,
             onClick: () => {
-              if (user && user.jwt) {
+              if (Cookies.get('session_key')) {
                 // getUserData
                 // hook.onAction(getUserData(), undefined);
               } else {
