@@ -7,6 +7,10 @@ export interface ReplacerPageProps {
   nodes?: ReactElement[];
   children?: ReactElement[];
   agent: AgentData;
+  config?: {
+    authorization: string;
+    url: string;
+  };
 }
 
 // for DEV 15mins in millisec, for PROD 48 hours in millisec;

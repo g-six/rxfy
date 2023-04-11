@@ -5,7 +5,7 @@ import axios from 'axios';
 
 import { ReplacerPageProps, HOME_ALERTS_DISMISS_TIMEOUT } from '@/_typings/forms';
 import { searchByClasses } from '@/_utilities/checkFnUtils';
-import { transformMatchingElements } from '@/_helpers/findElements';
+import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 
 import useEvent, { Events } from '@/hooks/useEvent';
 import HomeAlertsStep1 from '@/_replacers/HomeAlerts/home-alerts-step1';

@@ -6,7 +6,7 @@ import { Transition } from '@headlessui/react';
 import { ReplacerHomeAlerts } from '@/_typings/forms';
 import { randomString } from '@/_utilities/data-helpers/auth-helper';
 import { searchByClasses, searchById, searchByTagName } from '@/_utilities/checkFnUtils';
-import { transformMatchingElements } from '@/_helpers/findElements';
+import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 // import { UserData } from '@/_typings/user';
 // import { updateUser } from '@/_apollo/cache';
 
