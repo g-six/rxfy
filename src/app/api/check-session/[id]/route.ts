@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { encrypt } from '@/_utilities/encryption-helper';
 const headers = {
-  Authorization: `Bearer ${process.env.NEXT_PUBLIC_CMS_API_KEY as string}`,
+  Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
 };
 const gqlFindCustomer = `query FindCustomer($id: ID!) {
@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     if (prefix.toLowerCase() === 'bearer') {
       session_key = value;
       const { data: response_data } = await axios.post(
-        `${process.env.NEXT_PUBLIC_CMS_GRAPHQL_URL}`,
+        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
         {
           query: gqlFindCustomer,
           variables: {
@@ -67,7 +67,7 @@ export async function GET(request: Request) {
               },
             },
           } = await axios.post(
-            `${process.env.NEXT_PUBLIC_CMS_GRAPHQL_URL}`,
+            `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
             {
               query: gql,
               variables: {
@@ -77,7 +77,7 @@ export async function GET(request: Request) {
             },
             {
               headers: {
-                Authorization: `Bearer ${process.env.NEXT_PUBLIC_CMS_API_KEY as string}`,
+                Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
                 'Content-Type': 'application/json',
               },
             },

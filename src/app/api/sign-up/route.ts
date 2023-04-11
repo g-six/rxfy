@@ -30,7 +30,7 @@ const gql = `mutation SignUp ($data: CustomerInput!) {
   }
 }`;
 
-const gql_saved_seach = `mutation CreateSavedSearch ($data: SavedSearchInput!) {
+const gql_saved_search = `mutation CreateSavedSearch ($data: SavedSearchInput!) {
   createSavedSearch(data: $data) {
     data {
       id
@@ -75,9 +75,175 @@ function validateInput(data: { email?: string; password?: string; full_name?: st
   };
 }
 
+async function createLegacyRecords(record: {
+  email: string;
+  password: string;
+  agent_id: number;
+  full_name?: string;
+  phone_number?: string;
+  search_url?: string;
+}): Promise<{
+  error?: string;
+  jwt?: string;
+  client?: {
+    [key: string]:
+      | string
+      | number
+      | Date
+      | {
+          [key: string]: string;
+        };
+  };
+  saved_search?: {
+    [key: string]:
+      | string
+      | number
+      | Date
+      | {
+          [key: string]: string;
+        };
+  };
+  user?: {
+    [key: string]:
+      | string
+      | number
+      | Date
+      | {
+          [key: string]: string;
+        };
+  };
+}> {
+  // First, create auth user record
+  const new_user_res = await fetch(`${process.env.NEXT_APP_STRAPI_URL}/auth/local/register`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    method: 'POST',
+    body: JSON.stringify({
+      email: record.email,
+      username: record.email,
+      name: record.full_name,
+      password: record.password,
+      user_type: 'user',
+    }),
+  });
+
+  if (new_user_res.status >= 400) {
+    return {
+      error: `Unable to create legacy user record:\n\n${new_user_res.statusText}`,
+    };
+  } else {
+    const { jwt, user } = await (<Promise<{ jwt: string; user: { id: number } }>>new_user_res.json());
+
+    if (user && user.id) {
+      // Next, create client record
+      const names = (record.full_name || '').split(' ');
+
+      const client_input = {
+        last_name: names.pop(),
+        first_name: names.join(' '),
+        email: record.email,
+        active: true,
+        client_user: user.id,
+      };
+
+      const client_xhr = await fetch(`${process.env.NEXT_APP_STRAPI_URL}/clients`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(client_input),
+      });
+
+      const client = await (<Promise<{ id: number }>>client_xhr.json());
+
+      // If search url was added
+      if (record.search_url) {
+        try {
+          const url = new URL(record.search_url);
+
+          const saved_search_input = {
+            alert_active: true,
+            Search_query: url.search[0] === '?' ? url.search.substring(1) : url.search,
+            Client_profile: client.id,
+            users_permissions_user: user.id,
+          };
+
+          const saved_search_xhr = await fetch(`${process.env.NEXT_APP_STRAPI_URL}/saved-searches`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${jwt}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(saved_search_input),
+          });
+
+          if (saved_search_xhr.ok) {
+            const saved_search = await (<
+              Promise<{
+                [key: string]:
+                  | string
+                  | number
+                  | Date
+                  | {
+                      [key: string]: string;
+                    };
+              }>
+            >saved_search_xhr.json());
+            return {
+              client,
+              saved_search,
+              user,
+            };
+          } else {
+            const error = await (<Promise<string>>saved_search_xhr.text());
+            console.log({
+              error,
+            });
+            return {
+              error: 'Legacy API request went OK but Saved Search failed',
+            };
+          }
+        } catch (e) {
+          return {
+            error: 'Legacy API request went OK but Saved Search failed',
+          };
+        }
+      }
+      return {
+        client,
+        user,
+      };
+    } else {
+      return {
+        jwt,
+        user,
+        error: 'Legacy API request went OK but there are no JWT or user record returned',
+      };
+    }
+  }
+}
+
 export async function POST(request: Request) {
   const { email, full_name, password, agent, logo, yes_to_marketing, search_url } = await request.json();
-
+  if (!yes_to_marketing) {
+    return new Response(
+      JSON.stringify(
+        {
+          error: 'Please accept our marketing emails to sign up for free',
+        },
+        null,
+        4,
+      ),
+      {
+        headers: {
+          'content-type': 'application/json',
+        },
+        status: 400,
+      },
+    );
+  }
   try {
     if (email && password && full_name && yes_to_marketing) {
       const { data: valid_data, error: input_error } = validateInput({
@@ -91,7 +257,7 @@ export async function POST(request: Request) {
 
       if (valid_data) {
         const { data: response_data } = await axios.post(
-          `${process.env.NEXT_PUBLIC_CMS_GRAPHQL_URL}`,
+          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
           {
             query: gql,
             variables: {
@@ -106,7 +272,7 @@ export async function POST(request: Request) {
           },
           {
             headers: {
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_CMS_API_KEY as string}`,
+              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
               'Content-Type': 'application/json',
             },
           },
@@ -139,9 +305,9 @@ export async function POST(request: Request) {
           let saved_search;
           if (search_url) {
             const { data: search_response } = await axios.post(
-              `${process.env.NEXT_PUBLIC_CMS_GRAPHQL_URL}`,
+              `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
               {
-                query: gql_saved_seach,
+                query: gql_saved_search,
                 variables: {
                   data: {
                     customer: data.id,
@@ -151,7 +317,7 @@ export async function POST(request: Request) {
               },
               {
                 headers: {
-                  Authorization: `Bearer ${process.env.NEXT_PUBLIC_CMS_API_KEY as string}`,
+                  Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
                   'Content-Type': 'application/json',
                 },
               },
@@ -163,8 +329,13 @@ export async function POST(request: Request) {
                 id,
               };
             }
-            console.log('saved search', JSON.stringify(search_response, null, 4));
           }
+
+          await createLegacyRecords({
+            ...valid_data,
+            agent_id: Number(agent),
+            search_url,
+          });
 
           await sendTemplate(
             'welcome-buyer',
@@ -251,7 +422,6 @@ export async function POST(request: Request) {
         'content-type': 'application/json',
       },
       status: 400,
-      statusText: 'Please enter your email and password',
     },
   );
 }
