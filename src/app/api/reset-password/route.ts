@@ -35,7 +35,7 @@ export async function PUT(request: Request) {
 
     if (email) {
       const { data: response_data } = await axios.post(
-        `${process.env.NEXT_PUBLIC_CMS_GRAPHQL_URL}`,
+        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
         {
           query: gql,
           variables: {
@@ -44,7 +44,7 @@ export async function PUT(request: Request) {
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_CMS_API_KEY as string}`,
+            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
             'Content-Type': 'application/json',
           },
         },
@@ -57,7 +57,7 @@ export async function PUT(request: Request) {
             data: { customer },
           },
         } = await axios.post(
-          `${process.env.NEXT_PUBLIC_CMS_GRAPHQL_URL}`,
+          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
           {
             query: mutation_gql,
             variables: {
@@ -67,7 +67,7 @@ export async function PUT(request: Request) {
           },
           {
             headers: {
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_CMS_API_KEY as string}`,
+              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
               'Content-Type': 'application/json',
             },
           },
