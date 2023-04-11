@@ -26,7 +26,6 @@ export default function HomeAlertsStep2({ child, agent, onClose, showIcon }: Rep
 
   const hook = useHomeAlert(agent);
   const eventHookLoading = useEvent(Events.Loading);
-
   const onRegister = useCallback(
     (email: string) => {
       if (!validateEmail(email)) {
@@ -152,6 +151,17 @@ export default function HomeAlertsStep2({ child, agent, onClose, showIcon }: Rep
         ),
     },
   ];
+
+  // hook
+
+  useEffect(() => {
+    if (getData('dismissSavedSearch') && getData('dismissSavedSearch') !== null) {
+      const { step } = getData('dismissSavedSearch') as unknown as { step: number };
+      toggleShow(step === 2);
+    } else {
+      toggleShow(false);
+    }
+  }, [hook]);
 
   useEffect(() => {
     toggleShow(!showIcon && !Cookies.get('session_key') && getData('dismissSavedSearch') !== null);

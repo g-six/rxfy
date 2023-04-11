@@ -16,11 +16,22 @@ export default function useHomeAlert(agentData: AgentData) {
 
   const onAction = useCallback(
     (step: number) => {
+      setData(
+        'dismissSavedSearch',
+        JSON.stringify(
+          {
+            dismissed_at: new Date().toISOString(),
+            step,
+          },
+          null,
+          2,
+        ),
+      );
+      eventHookLoader.fireEvent({ show: true });
       // const obj = user && user.jwt ? user : userData;
       if (Cookies.get('session_key')) {
         // const queryStr = searchParams.toString();
         // const id = obj && obj.client_profile ? obj.client_profile.id : 0;
-        eventHookLoader.fireEvent({ show: true });
         // saveSearch(id, queryStr, obj.jwt)
         //   .then(() => {
         //     eventHookLoader.fireEvent({ show: false });
@@ -34,18 +45,6 @@ export default function useHomeAlert(agentData: AgentData) {
         //       console.error('Something went wrong.');
         //     }
         //   });
-      } else {
-        setData(
-          'dismissSavedSearch',
-          JSON.stringify(
-            {
-              dismissed_at: new Date().toISOString(),
-              step,
-            },
-            null,
-            2,
-          ),
-        );
       }
     },
     [agentData, searchParams, eventHookSuccess, eventHookLoader],

@@ -44,13 +44,20 @@ export default function HomeAlertsStep1({ child, agent, onClose, showIcon }: Rep
                   2,
                 ),
               );
-              hook.onAction(1);
+              hook.onAction(2);
             },
           },
           child.props.children,
         ),
     },
   ];
+
+  useEffect(() => {
+    if (getData('dismissSavedSearch') && getData('dismissSavedSearch') !== null) {
+      const { step } = getData('dismissSavedSearch') as unknown as { step: number };
+      toggleShow(step === 1);
+    }
+  }, [hook]);
 
   useEffect(() => {
     toggleShow(!showIcon);
