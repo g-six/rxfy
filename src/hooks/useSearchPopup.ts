@@ -6,7 +6,6 @@ import { keyCodes, generic } from '../_helpers/constants';
 import { loadAddressCoords } from '../_helpers/api';
 
 import { getRouteUsingAgent } from '../_helpers/functions';
-import { PropertyStatus } from '@/_typings/property';
 
 type Dataset = {
   [key: string]: any;
@@ -93,12 +92,7 @@ export function useSearchPopup({ items, handleClose, dataset = {}, config }: Use
           lat: location.mapView.north,
           lng: location.mapView.east,
         };
-        const params = {
-          sw: sw,
-          ne: ne,
-          status: PropertyStatus.ACTIVE_INDEX,
-          type: 'R',
-        };
+
         const filter: {
           range?: {
             [key: string]: {
