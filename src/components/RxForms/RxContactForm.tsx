@@ -25,6 +25,14 @@ export default function RxContactForm({ nodes, agent, nodeProps, nodeClassName }
           onClick: () => eventShow.fireEvent({ show: false }),
         }),
     },
+    {
+      searchFn: searchByClasses(['send-message-button']),
+      transformChild: (child: React.ReactElement) =>
+        React.cloneElement(child, {
+          ...child.props,
+          onClick: () => eventShow.fireEvent({ show: false }),
+        }),
+    },
   ];
 
   const style = Object.assign({}, nodeProps.style, { display: show ? 'inherit' : 'none' });
