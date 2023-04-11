@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { UserData } from '@/_typings/user';
 import { AgentData } from '@/_typings/agent';
 import { Events } from '@/_typings/events';
 // import { sendHomeAlertConfirm } from '@/_helpers/sendEmail';
@@ -16,7 +15,7 @@ export default function useHomeAlert(agentData: AgentData) {
   const eventHookLoader = useEvent(Events.Loading);
 
   const onAction = useCallback(
-    (user: UserData) => {
+    (step: number) => {
       // const obj = user && user.jwt ? user : userData;
       if (Cookies.get('session_key')) {
         // const queryStr = searchParams.toString();

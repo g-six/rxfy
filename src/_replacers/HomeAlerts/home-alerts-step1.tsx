@@ -44,7 +44,7 @@ export default function HomeAlertsStep1({ child, agent, onClose, showIcon }: Rep
                   2,
                 ),
               );
-              hook.onAction(agent, 1);
+              hook.onAction(1);
             },
           },
           child.props.children,
