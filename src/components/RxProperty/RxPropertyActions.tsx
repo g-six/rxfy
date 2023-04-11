@@ -66,6 +66,14 @@ export default function RxPropertyActions(props: PropertyActionsProps) {
         }),
     },
     {
+      searchFn: searchByClasses(['p-action-compare']),
+      transformChild: (child: React.ReactElement) =>
+        React.cloneElement(child, {
+          ...child.props,
+          href: '/compare', //temporally, until compare-page is not finished and merged into main
+        }),
+    },
+    {
       searchFn: searchByClasses(['p-action-ask']),
       transformChild: (child: React.ReactElement) =>
         React.cloneElement(child, {
