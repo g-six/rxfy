@@ -8,7 +8,6 @@ export enum Events {
   HomeAlertDismiss = 'event-home-alert-dismiss',
   HomeAlertSuccess = 'event-home-alert-success',
   ContactFormShow = 'event-contact-form-show',
-  ContactFormHide = 'event-contact-form-hide',
   ContactFormSubmit = 'event-contact-form-submit',
 }
 
