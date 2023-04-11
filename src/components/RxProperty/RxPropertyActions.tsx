@@ -1,42 +1,72 @@
 'use client';
 import React from 'react';
-import { Transition } from '@headlessui/react';
+import { useRouter } from 'next/navigation';
 
 import { MLSProperty } from '@/_typings/property';
-import { formatValues } from '@/_utilities/data-helpers/property-page';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
-import { transformMatchingElements, replaceAllTextWithBraces } from '@/_helpers/findElements';
+import { transformMatchingElements } from '@/_helpers/findElements';
 
 type PropertyActionsProps = {
-  children: React.ReactNode;
+  child: React.ReactElement;
   property: MLSProperty;
-  className?: string;
 };
 
 export default function RxPropertyActions(props: PropertyActionsProps) {
+  const router = useRouter();
+  const [origin, setOrigin] = React.useState('');
+
+  React.useEffect(() => {
+    const origin = typeof window !== 'undefined' && window.location.origin ? window.location.origin : '';
+    setOrigin(origin);
+  }, []);
+
+  const propertyLink = `${origin}/property?mls=${props.property.MLS_ID}`;
+  console.log('propertyLink', propertyLink);
+
   const matches = [
     {
-      searchFn: searchByClasses(['price-n-address']),
+      searchFn: searchByClasses(['copy-link-to-property']),
       transformChild: (child: React.ReactElement) =>
-        replaceAllTextWithBraces(child, {
-          Price: formatValues(props.property, 'AskingPrice'),
-          Address: props.property.Address,
-        }) as React.ReactElement,
+        React.cloneElement(child, {
+          ...child.props,
+          onClick: () => navigator.clipboard.writeText(propertyLink),
+        }),
+    },
+    {
+      searchFn: searchByClasses(['share-on-facebook']),
+      transformChild: (child: React.ReactElement) =>
+        React.cloneElement(child, {
+          ...child.props,
+          href: `https://www.facebook.com/sharer/sharer.php?u=${propertyLink}`,
+          target: '_blank',
+          onClick: () => 'javascript:window.open(this.href,"", "menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600");return false;',
+          rel: 'noopener noreferrer',
+        }),
+    },
+    {
+      searchFn: searchByClasses(['share-via-email']),
+      transformChild: (child: React.ReactElement) =>
+        React.cloneElement(child, {
+          ...child.props,
+          href: `mailto:?subject=Very lovely property on Leagent&body=Very lovely property at ${props.property.Address} on Leagent ${
+            typeof window !== 'undefined' ? window.location.href : ''
+          }`,
+          target: '_blank',
+          onClick: () => 'javascript:window.open(this.href,"", "menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600");return false;',
+          rel: 'noopener noreferrer',
+        }),
+    },
+    {
+      searchFn: searchByClasses(['p-action-pdf']),
+      transformChild: (child: React.ReactElement) =>
+        React.cloneElement(child, {
+          ...child.props,
+          href: `https://app.leagent.com/property/${props.property.MLS_ID}/pdf`,
+          target: '_blank',
+          rel: 'noopener noreferrer',
+        }),
     },
   ];
-  return (
-    <Transition
-      key='confirmation'
-      show={true}
-      as={React.Fragment}
-      enter='transform ease-out duration-300 transition'
-      enterFrom='translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2'
-      enterTo='translate-y-0 opacity-100 sm:translate-x-0'
-      leave='transition ease-in duration-100'
-      leaveFrom='opacity-100'
-      leaveTo='opacity-0'
-    >
-      <section className={props.className}>{transformMatchingElements(props.children, matches)}</section>
-    </Transition>
-  );
+
+  return <>{transformMatchingElements(props.child, matches)}</>;
 }

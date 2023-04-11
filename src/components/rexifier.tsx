@@ -18,6 +18,7 @@ import EmailAnchor from './A/Email';
 import PersonalTitle from './PersonalTitle';
 import PersonalBioParagraph from './PersonalBioParagraph';
 import PropertyCarousel from './PropertyCarousel/main';
+import HomeAlertsReplacer from '@/_replacers/HomeAlerts/home-alerts';
 import RxTable from './RxTable';
 import { RxUserSessionLink } from './Nav/RxUserSessionLink';
 
@@ -26,7 +27,7 @@ import { RexifyStatBlock } from './PropertyInformationRow';
 import { RexifyPropertyFeatureBlock } from './PropertyFeatureSection';
 import PropertyCard from './PropertyCard';
 import RxPropertyCarousel from './RxProperty/RxPropertyCarousel';
-import RxPropertyActions from './RxProperty/RxPropertyActions';
+import RxPropertyTopStats from './RxProperty/RxPropertyTopStats';
 
 // TODO: should RxPropertyMap be under "full-pages"?
 import RxPropertyMap from './RxPropertyMap';
@@ -425,6 +426,9 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             </div>
           );
         }
+        if (node.attribs.class && node.attribs.class.indexOf(webFlowAnchors.homeAlerts) >= 0) {
+          return <HomeAlertsReplacer agent={agent_data} nodeClassName={className} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
+        }
 
         if ((node.children && node.children.length === 1) || node.name === 'input') {
           const reX = rexifyOrSkip(
@@ -454,9 +458,9 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             // Property action buttons (PDF, Share links, etc)
             if (node.attribs.class && node.attribs.class.indexOf(webFlowAnchors.propertyActions) >= 0) {
               return (
-                <RxPropertyActions property={record} className={node.attribs.class}>
+                <RxPropertyTopStats property={record} className={node.attribs.class}>
                   {domToReact(node.children)}
-                </RxPropertyActions>
+                </RxPropertyTopStats>
               );
             }
 
