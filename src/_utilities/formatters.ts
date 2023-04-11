@@ -1,3 +1,11 @@
+export function capitalizeFirstLetter(str: string): string {
+  let result = str.split(' ');
+  for (let i = 0; i < result.length; i++) {
+    result[i] = result[i].charAt(0).toUpperCase() + result[i].slice(1);
+  }
+  return result.join(' ');
+}
+
 export function formatPhone(input: string): string {
   if (!input) return '';
 
@@ -59,4 +67,10 @@ export function formatShortDate(input: string): string {
   if (grouped === null) return input;
 
   return !grouped[2] ? grouped[1] : grouped[1] + '/' + grouped[2] + (grouped[3] ? '/' + grouped[3] : '');
+}
+
+export function validateEmail(email: string) {
+  const re =
+    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(String(email).toLowerCase());
 }

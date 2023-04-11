@@ -54,3 +54,16 @@ export function checkLogInResponse(response: AxiosResponse<LogInResponse>): {
 
   return { error: api_error };
 }
+
+/**
+ * Create a random string with specified length
+ * @param length
+ * @returns
+ */
+export function randomString(length = 40) {
+  const arr = new Uint8Array(length / 2);
+  if (typeof window === 'object' && window.crypto) {
+    window.crypto.getRandomValues(arr);
+  }
+  return Array.from(arr, dec => dec.toString(16).padStart(2, '0')).join('');
+}
