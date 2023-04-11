@@ -1,11 +1,9 @@
-import { FILTERS } from '../_helpers/constants';
-import { must_not, retrieveFromLegacyPipeline } from '@/_utilities/data-helpers/property-page';
 import React from 'react';
 
-import { keyCodes, generic } from '../_helpers/constants';
-import { loadAddressCoords } from '../_helpers/api';
-
-import { getRouteUsingAgent } from '../_helpers/functions';
+import { keyCodes, generic, FILTERS } from '@/_helpers/constants';
+import { loadAddressCoords } from '@/_helpers/api-get-address-coords';
+import { must_not, retrieveFromLegacyPipeline } from '@/_utilities/data-helpers/property-page';
+import { getRouteUsingAgent } from '@/_helpers/functions';
 
 type Dataset = {
   [key: string]: any;
