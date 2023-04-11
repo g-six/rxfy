@@ -343,6 +343,15 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             </RxResetPasswordPage>
           );
         }
+
+        if (node.tagName === 'form') {
+          return (
+            <div {...props} id='rex-form' data-class={className}>
+              {domToReact(node.children) as ReactElement[]}
+            </div>
+          );
+        }
+
         if (node.attribs.class) {
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.MY_ACCOUNT_WRAPPER)) {
             return (
@@ -360,14 +369,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
                 <>{domToReact(node.children) as ReactElement[]}</>
               </RxUserSessionLink>
             );
-        }
-
-        if (node.tagName === 'form') {
-          return (
-            <div {...props} id='rex-form' data-class={className}>
-              {domToReact(node.children) as ReactElement[]}
-            </div>
-          );
         }
 
         if (props['data-mls']) {
@@ -423,10 +424,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
               </RxPropertyMap>
             </div>
           );
-        }
-        if (node.attribs.class && node.attribs.class.split(' ').includes('home-alert---all-screens')) {
-          // Hide Home Alerts for now
-          return <></>;
         }
 
         if ((node.children && node.children.length === 1) || node.name === 'input') {

@@ -1,5 +1,12 @@
 import { expect, describe, it } from 'vitest';
-import { formatPhone, formatShortDate } from '@/_utilities/formatters';
+import { capitalizeFirstLetter, formatPhone, formatShortDate } from '@/_utilities/formatters';
+
+describe('capitalizeFirstLetter', () => {
+  it('should capitalize the first letter of each word in a string', () => {
+    const result = capitalizeFirstLetter('hello world');
+    expect(result).toBe('Hello World');
+  });
+});
 
 describe('formatPhone', () => {
   it('returns a properly formatted phone number', () => {

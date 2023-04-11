@@ -55,8 +55,6 @@ function addSingleHomePins(map: mapboxgl.Map) {
   if (map.getLayer('rx-home-price-text') === undefined) map.addLayer(renderHomePinTextLayer('rx-home-price-text'));
 }
 
-function addFilters() {}
-
 export function RxMapbox(props: RxMapboxProps) {
   const search = useSearchParams();
   const state = useMapState();
@@ -262,11 +260,6 @@ export function RxMapbox(props: RxMapboxProps) {
       setResizing('done');
     });
   }
-
-  // TODO when resized
-  // React.useEffect(() => {
-  //   console.log(resizing_state);
-  // }, [resizing_state]);
 
   const repositionMap = React.useCallback(
     (p?: LngLatLike, filters?: string) => {

@@ -30,6 +30,19 @@ const gql = `mutation SignUp ($data: CustomerInput!) {
   }
 }`;
 
+const gql_saved_seach = `mutation CreateSavedSearch ($data: SavedSearchInput!) {
+  createSavedSearch(data: $data) {
+    data {
+      id
+      attributes {
+        search_url
+        last_email_at
+        is_active
+      }
+    }
+  }
+}`;
+
 function validateInput(data: { email?: string; password?: string; full_name?: string; agent?: number }): {
   data?: SignUpModel;
   errors?: {
@@ -63,7 +76,7 @@ function validateInput(data: { email?: string; password?: string; full_name?: st
 }
 
 export async function POST(request: Request) {
-  const { email, full_name, password, agent, logo, yes_to_marketing } = await request.json();
+  const { email, full_name, password, agent, logo, yes_to_marketing, search_url } = await request.json();
 
   try {
     if (email && password && full_name && yes_to_marketing) {
@@ -122,6 +135,37 @@ export async function POST(request: Request) {
           const { email, full_name, agents, last_activity_at } = attributes;
           const url = new URL(request.url);
 
+          // request.url
+          let saved_search;
+          if (search_url) {
+            const { data: search_response } = await axios.post(
+              `${process.env.NEXT_PUBLIC_CMS_GRAPHQL_URL}`,
+              {
+                query: gql_saved_seach,
+                variables: {
+                  data: {
+                    customer: data.id,
+                    search_url,
+                  },
+                },
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${process.env.NEXT_PUBLIC_CMS_API_KEY as string}`,
+                  'Content-Type': 'application/json',
+                },
+              },
+            );
+            if (search_response.data?.createSavedSearch?.data?.id) {
+              const { id, attributes } = search_response.data?.createSavedSearch?.data;
+              saved_search = {
+                ...attributes,
+                id,
+              };
+            }
+            console.log('saved search', JSON.stringify(search_response, null, 4));
+          }
+
           await sendTemplate(
             'welcome-buyer',
             [
@@ -135,10 +179,12 @@ export async function POST(request: Request) {
               agent_logo: logo,
             },
           ).catch(console.log);
+
           return new Response(
             JSON.stringify(
               {
                 customer: { id: Number(data.id), email, full_name, agents, session_key: `${encrypt(last_activity_at)}.${encrypt(email)}` },
+                saved_search,
               },
               null,
               4,
