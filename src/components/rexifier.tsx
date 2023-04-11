@@ -10,7 +10,6 @@ import { GeoLocation, MapboxBoundaries } from '@/_typings/maps';
 import { MLSProperty } from '@/_typings/property';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 
-import { webFlowAnchors } from '@/_helpers/constants';
 import { combineAndFormatValues, formatValues } from '@/_utilities/data-helpers/property-page';
 import { getCityFromGeolocation, getGeocode, getViewPortParamsFromGeolocation } from '@/_utilities/geocoding-helper';
 
@@ -427,10 +426,10 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             </div>
           );
         }
-        if (node.attribs.class && node.attribs.class.indexOf(webFlowAnchors.homeAlerts) >= 0) {
+        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.HOME_ALERTS_WRAPPER) >= 0) {
           return <HomeAlertsReplacer agent={agent_data} nodeClassName={className} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
         }
-        if (node.attribs.class && node.attribs.class.indexOf(webFlowAnchors.contactForm) >= 0) {
+        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CONTACT_FORM) >= 0) {
           return <RxContactForm agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
         }
 
@@ -460,7 +459,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             }
 
             // Property action buttons (PDF, Share links, etc)
-            if (node.attribs.class && node.attribs.class.indexOf(webFlowAnchors.propertyActions) >= 0) {
+            if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS) >= 0) {
               return (
                 <RxPropertyTopStats property={record} className={node.attribs.class}>
                   {domToReact(node.children)}
