@@ -2,7 +2,7 @@
 import { cloneElement, Fragment, ReactElement } from 'react';
 import { Transition } from '@headlessui/react';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
-import { searchByClasses } from '@/_utilities/checkFnUtils';
+import { searchByClasses } from '@/_utilities/searchFnUtils';
 
 import { ReplacerHomeAlerts } from '@/_typings/forms';
 import useEvent, { Events } from '@/hooks/useEvent';

@@ -1,10 +1,9 @@
 'use client';
 import { ReactElement, Fragment, cloneElement, useState, useCallback, useEffect } from 'react';
 import { Transition } from '@headlessui/react';
-import axios from 'axios';
 
 import { ReplacerPageProps, HOME_ALERTS_DISMISS_TIMEOUT } from '@/_typings/forms';
-import { searchByClasses } from '@/_utilities/checkFnUtils';
+import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 
 import useEvent, { Events } from '@/hooks/useEvent';
@@ -12,7 +11,6 @@ import HomeAlertsStep1 from '@/_replacers/HomeAlerts/home-alerts-step1';
 import HomeAlertsStep2 from '@/_replacers/HomeAlerts/home-alerts-step2';
 import HomeAlertsSuccess from '@/_replacers/HomeAlerts/home-alerts-success';
 import HomeAlertsIcon from '@/_replacers/HomeAlerts/home-alerts-icon';
-import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 
 export default function HomeAlertsReplacer({ nodes, agent }: ReplacerPageProps) {

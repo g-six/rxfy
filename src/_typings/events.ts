@@ -7,6 +7,8 @@ export enum Events {
   SystemNotification = 'system-notification',
   HomeAlertDismiss = 'event-home-alert-dismiss',
   HomeAlertSuccess = 'event-home-alert-success',
+  ContactFormShow = 'event-contact-form-show',
+  ContactFormSubmit = 'event-contact-form-submit',
 }
 
 export enum NotificationCategory {

@@ -4,7 +4,7 @@ import { Transition } from '@headlessui/react';
 
 import { ReplacerHomeAlerts } from '@/_typings/forms';
 // import { getUserData } from '@/_helpers/storeCore';
-import { searchByClasses } from '@/_utilities/checkFnUtils';
+import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 import useHomeAlert from '@/hooks/useHomeAlert';
 import Cookies from 'js-cookie';

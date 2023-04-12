@@ -1,29 +1,40 @@
 /* eslint-disable @next/next/no-img-element */
 import Script from 'next/script';
+import { ReactElement } from 'react';
+import { Cheerio, CheerioAPI } from 'cheerio';
 import parse, { HTMLReactParserOptions, Element, attributesToProps, DOMNode, domToReact, htmlToDOM } from 'html-react-parser';
-import EmailAnchor from './A/Email';
+
+import { HTMLNode } from '@/_typings/elements';
 import { AgentData } from '@/_typings/agent';
+import { GeoLocation, MapboxBoundaries } from '@/_typings/maps';
+import { MLSProperty } from '@/_typings/property';
+import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
+
+import { combineAndFormatValues, formatValues } from '@/_utilities/data-helpers/property-page';
+import { getCityFromGeolocation, getGeocode, getViewPortParamsFromGeolocation } from '@/_utilities/geocoding-helper';
+
+import EmailAnchor from './A/Email';
 import PersonalTitle from './PersonalTitle';
 import PersonalBioParagraph from './PersonalBioParagraph';
 import PropertyCarousel from './PropertyCarousel/main';
-import { RexifyStatBlock } from './PropertyInformationRow';
-import { MLSProperty } from '@/_typings/property';
-import { RexifyPropertyFeatureBlock } from './PropertyFeatureSection';
-import { HTMLNode } from '@/_typings/elements';
-import { combineAndFormatValues, formatValues } from '@/_utilities/data-helpers/property-page';
+import HomeAlertsReplacer from '@/_replacers/HomeAlerts/home-alerts';
 import RxTable from './RxTable';
-import { ReactElement } from 'react';
-import { Cheerio, CheerioAPI } from 'cheerio';
+import RxContactForm from '@/components/RxForms/RxContactForm';
+import { RxUserSessionLink } from './Nav/RxUserSessionLink';
+
+// TODO: @Rey, shall we move those next 3 items into "RxProperty", like the last ones in this group?
+import { RexifyStatBlock } from './PropertyInformationRow';
+import { RexifyPropertyFeatureBlock } from './PropertyFeatureSection';
 import PropertyCard from './PropertyCard';
-import { getCityFromGeolocation, getGeocode, getViewPortParamsFromGeolocation } from '@/_utilities/geocoding-helper';
-import { GeoLocation, MapboxBoundaries } from '@/_typings/maps';
+import RxPropertyCarousel from './RxProperty/RxPropertyCarousel';
+import RxPropertyTopStats from './RxProperty/RxPropertyTopStats';
+
+// TODO: should RxPropertyMap be under "full-pages"?
 import RxPropertyMap from './RxPropertyMap';
-import RxPropertyCarousel from './RxPropertyCarousel/RxPropertyCarousel';
-import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
+
 import { RxSignupPage } from './full-pages/RxSignupPage';
 import { RxLoginPage } from './full-pages/RxLoginPage';
 import { RxResetPasswordPage } from './full-pages/RxResetPassword';
-import { RxUserSessionLink } from './Nav/RxUserSessionLink';
 import { RxMyAccountPage } from './full-pages/RxMyAccountPage';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
@@ -415,6 +426,12 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             </div>
           );
         }
+        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.HOME_ALERTS_WRAPPER) >= 0) {
+          return <HomeAlertsReplacer agent={agent_data} nodeClassName={className} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
+        }
+        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CONTACT_FORM) >= 0) {
+          return <RxContactForm agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
+        }
 
         if ((node.children && node.children.length === 1) || node.name === 'input') {
           const reX = rexifyOrSkip(
@@ -435,9 +452,18 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             // Property images
             if (node.attribs.class === 'section---top-images wf-section') {
               return (
-                <section className='section---top-images wf-section'>
+                <section className={node.attribs.class}>
                   <RxPropertyCarousel>{domToReact(node.children)}</RxPropertyCarousel>
                 </section>
+              );
+            }
+
+            // Property action buttons (PDF, Share links, etc)
+            if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS) >= 0) {
+              return (
+                <RxPropertyTopStats property={record} className={node.attribs.class}>
+                  {domToReact(node.children)}
+                </RxPropertyTopStats>
               );
             }
 
