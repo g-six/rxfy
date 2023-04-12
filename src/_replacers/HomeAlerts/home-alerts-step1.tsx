@@ -9,9 +9,12 @@ import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 import useHomeAlert from '@/hooks/useHomeAlert';
 import Cookies from 'js-cookie';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
+import useEvent, { Events } from '@/hooks/useEvent';
+import { HomeAlertStep } from '@/_typings/home-alert';
 
-export default function HomeAlertsStep1({ child, agent, onClose, showIcon }: ReplacerHomeAlerts) {
+export default function HomeAlertsStep1({ child, agent }: ReplacerHomeAlerts) {
   const hook = useHomeAlert(agent);
+  const eventHookDismiss = useEvent(Events.HomeAlertDismiss);
   const [show, toggleShow] = useState(false);
   const matches = [
     {
@@ -21,7 +24,10 @@ export default function HomeAlertsStep1({ child, agent, onClose, showIcon }: Rep
           child,
           {
             ...child.props,
-            onClick: () => onClose(),
+            onClick: () => {
+              hook.onDismiss(HomeAlertStep.STEP_1);
+              toggleShow(false);
+            },
           },
           child.props.children,
         ),
@@ -34,17 +40,7 @@ export default function HomeAlertsStep1({ child, agent, onClose, showIcon }: Rep
           {
             ...child.props,
             onClick: () => {
-              setData(
-                'dismissSavedSearch',
-                JSON.stringify(
-                  {
-                    dismissed_at: new Date().toISOString(),
-                  },
-                  null,
-                  2,
-                ),
-              );
-              hook.onAction(2);
+              hook.onAction(HomeAlertStep.STEP_2);
             },
           },
           child.props.children,
@@ -54,17 +50,26 @@ export default function HomeAlertsStep1({ child, agent, onClose, showIcon }: Rep
 
   useEffect(() => {
     if (getData('dismissSavedSearch') && getData('dismissSavedSearch') !== null) {
-      const { step } = getData('dismissSavedSearch') as unknown as { step: number };
-      toggleShow(step === 1);
+      const { dismissed_at, show_step } = getData('dismissSavedSearch') as unknown as { show_step: number; dismissed_at?: string };
+      toggleShow(show_step === 1 || (!dismissed_at && !show_step));
     }
   }, [hook]);
 
   useEffect(() => {
-    toggleShow(!showIcon);
-  }, [showIcon]);
+    if (eventHookDismiss.data?.show) {
+      toggleShow(true);
+    }
+  }, [eventHookDismiss.data]);
 
   useEffect(() => {
-    toggleShow(!Cookies.get('session_key') && getData('dismissSavedSearch') === null);
+    if (getData('dismissSavedSearch') !== null) {
+      const { dismissed_at } = getData('dismissSavedSearch') as unknown as { dismissed_at?: string };
+      if (Cookies.get('session_key') !== undefined && Cookies.get('cid') !== undefined) {
+        toggleShow(!dismissed_at);
+      } else {
+        toggleShow(!dismissed_at);
+      }
+    }
   }, []);
 
   return (

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { AgentData } from '@/_typings/agent';
@@ -11,6 +11,7 @@ import axios from 'axios';
 import { randomString } from '@/_utilities/data-helpers/auth-helper';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { BaseUser } from '@/_typings/base-user';
+import { HomeAlertStep } from '@/_typings/home-alert';
 
 export default function useHomeAlert(agentData: AgentData) {
   const searchParams = useSearchParams();
@@ -18,14 +19,28 @@ export default function useHomeAlert(agentData: AgentData) {
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const eventHookLoader = useEvent(Events.Loading);
 
+  const onDismiss = useCallback((step: HomeAlertStep) => {
+    setData(
+      'dismissSavedSearch',
+      JSON.stringify(
+        {
+          dismissed_at: new Date().toISOString(),
+          step,
+        },
+        null,
+        2,
+      ),
+    );
+  }, []);
+
   const onAction = useCallback(
-    (step: number, data?: BaseUser) => {
+    (step: HomeAlertStep, data?: BaseUser) => {
       setData(
         'dismissSavedSearch',
         JSON.stringify(
           {
-            dismissed_at: new Date().toISOString(),
             step,
+            data,
           },
           null,
           2,
@@ -62,27 +77,37 @@ export default function useHomeAlert(agentData: AgentData) {
               message: response?.data?.error || 'Sorry, please try again later',
             });
           });
-      }
-      if (Cookies.get('session_key')) {
-        // const queryStr = searchParams.toString();
-        // const id = obj && obj.client_profile ? obj.client_profile.id : 0;
-        // saveSearch(id, queryStr, obj.jwt)
-        //   .then(() => {
-        //     eventHookLoader.fireEvent({ show: false });
-        //     eventHookSuccess.fireEvent({ show: true });
-        //     sendHomeAlertConfirm(obj.user.email, agentData, pass);
-        //   })
-        //   .catch(e => {
-        //     if (e && !!e.msg) {
-        //       console.error(e.msg);
-        //     } else {
-        //       console.error('Something went wrong.');
-        //     }
-        //   });
+      } else if (Cookies.get('session_key') && Cookies.get('cid')) {
+        axios
+          .post(
+            `/api/saved-searches/${Cookies.get('cid')}`,
+            {
+              ...data,
+              agent: Number(agentData.id),
+              logo: agentData.metatags?.logo_for_light_bg,
+              search_url: searchParams.toString(),
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${Cookies.get('session_key')}`,
+                'Content-Type': 'application/json',
+              },
+            },
+          )
+          .then(response => {
+            eventHookLoader.fireEvent({ show: false });
+            eventHookSuccess.fireEvent({ ...response, show: true });
+          })
+          .catch(({ response }) => {
+            notify({
+              category: NotificationCategory.Error,
+              message: response?.data?.error || 'Sorry, please try again later',
+            });
+          });
       }
     },
     [agentData, searchParams, eventHookSuccess, eventHookLoader],
   );
 
-  return { onAction };
+  return { onAction, onDismiss };
 }

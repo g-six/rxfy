@@ -21,8 +21,6 @@ export const HOME_ALERTS_DISMISS_TIMEOUT = process.env.NODE_ENV === 'development
 export interface ReplacerHomeAlerts {
   child?: ReactElement;
   agent: AgentData;
-  // user: UserData;
-  onClose: () => void;
   showIcon?: boolean;
   isLoggedIn?: boolean;
 }

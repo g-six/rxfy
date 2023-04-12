@@ -1,33 +1,36 @@
 'use client';
-import { cloneElement, Fragment, ReactElement } from 'react';
+import { cloneElement, Fragment, ReactElement, useEffect, useState } from 'react';
 import { Transition } from '@headlessui/react';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 
 import { ReplacerHomeAlerts } from '@/_typings/forms';
-import useEvent, { Events } from '@/hooks/useEvent';
-import useHomeAlert from '@/hooks/useHomeAlert';
 import Cookies from 'js-cookie';
+import { getData } from '@/_utilities/data-helpers/local-storage-helper';
+import useHomeAlert from '@/hooks/useHomeAlert';
+import { HomeAlertStep } from '@/_typings/home-alert';
 
-export default function HomeAlertsIcon({ child, agent, showIcon }: ReplacerHomeAlerts) {
+export default function HomeAlertsIcon({ agent, child }: ReplacerHomeAlerts) {
   const hook = useHomeAlert(agent);
-  const eventHookDismiss = useEvent(Events.HomeAlertDismiss);
+  const [show, toggleShow] = useState(false);
 
   const matches = [
     {
       searchFn: searchByClasses(['ha-icon']),
       transformChild: (child: ReactElement) =>
         cloneElement(
-          child,
+          <button type='button' />,
           {
             ...child.props,
             onClick: () => {
-              if (Cookies.get('session_key')) {
-                // getUserData
-                // hook.onAction(getUserData(), undefined);
-              } else {
-                eventHookDismiss.fireEvent({ show: true });
+              let step: HomeAlertStep = HomeAlertStep.STEP_1;
+              if (getData('dismissSavedSearch')) {
+                const d = getData('dismissSavedSearch') as unknown as { step: number };
+                step = d.step;
+              } else if (Cookies.get('session_key')) {
+                step = HomeAlertStep.STEP_1;
               }
+              hook.onAction(step);
             },
           },
           child.props.children,
@@ -35,13 +38,29 @@ export default function HomeAlertsIcon({ child, agent, showIcon }: ReplacerHomeA
     },
   ];
 
-  return !showIcon ? (
-    <></>
-  ) : (
+  useEffect(() => {
+    if (getData('dismissSavedSearch') && getData('dismissSavedSearch') !== null) {
+      const { dismissed_at } = getData('dismissSavedSearch') as unknown as { dismissed_at: string; step: number };
+      toggleShow(dismissed_at !== undefined);
+    } else {
+      toggleShow(false);
+    }
+  }, [hook]);
+
+  // useEffect(() => {
+  //   if (getData('dismissSavedSearch') && getData('dismissSavedSearch') !== null) {
+  //     const { dismissed_at } = getData('dismissSavedSearch') as unknown as { dismissed_at?: string };
+  //     toggleShow(dismissed_at !== undefined);
+  //   } else {
+  //     toggleShow(false);
+  //   }
+  // }, []);
+
+  return (
     <Transition
       key='confirmation'
-      show={true}
-      as={Fragment}
+      show={show}
+      as='div'
       enter='transform ease-out duration-300 transition'
       enterFrom='translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2'
       enterTo='translate-y-0 opacity-100 sm:translate-x-0'
@@ -49,7 +68,7 @@ export default function HomeAlertsIcon({ child, agent, showIcon }: ReplacerHomeA
       leaveFrom='opacity-100'
       leaveTo='opacity-0'
     >
-      <div className={'ha-success'}>{transformMatchingElements([child], matches)}</div>
+      <div className='ha-success'>{transformMatchingElements([child], matches)}</div>
     </Transition>
   );
 }
