@@ -15,7 +15,6 @@ import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
 
 export default function HomeAlertsStep2({ child, agent }: ReplacerHomeAlerts) {
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
-  const { fireEvent: error } = useEvent(Events.HomeAlertError);
   const [email, setEmail] = useState('');
   const [show, toggleShow] = useState(false);
 
@@ -23,8 +22,8 @@ export default function HomeAlertsStep2({ child, agent }: ReplacerHomeAlerts) {
   const onRegister = useCallback(
     (email: string) => {
       if (!validateEmail(email)) {
-        error({
-          show: true,
+        notify({
+          timeout: 5000,
           category: NotificationCategory.Error,
           message: 'Please use correct email format.',
         });

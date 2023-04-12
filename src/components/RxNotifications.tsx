@@ -31,6 +31,12 @@ export default function RxNotifications() {
     }
   }, [data]);
 
+  useEffect(() => {
+    if (data?.timeout) {
+      setTimeout(() => fireEvent({}), data.timeout);
+    }
+  }, [data]);
+
   return (
     <>
       {/* Global notification live region, render this permanently at the end of the document */}
