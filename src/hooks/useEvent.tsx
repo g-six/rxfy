@@ -1,6 +1,6 @@
-import React from "react";
+import React from 'react';
 
-import { Events, EventsData } from "@/_typings/events";
+import { Events, EventsData } from '@/_typings/events';
 
 export default function useEvent(eventName: Events) {
   const [data, setData] = React.useState({} as EventsData);
@@ -12,12 +12,16 @@ export default function useEvent(eventName: Events) {
     return () => document.removeEventListener(eventName.toString(), onEvent as EventListener, false);
   }, [eventName]);
 
-  const fireEvent = React.useCallback((data: EventsData = {}) => {
-    document.dispatchEvent(new CustomEvent(eventName, { detail: data }));
-  }, [eventName]);
+  const fireEvent = React.useCallback(
+    (data: EventsData = {}) => {
+      document.dispatchEvent(new CustomEvent(eventName, { detail: data }));
+    },
+    [eventName],
+  );
 
   return { data, fireEvent };
 }
 
-export { Events } from "@/_typings/events";
-export type { EventsData } from "@/_typings/events";
+export { Events } from '@/_typings/events';
+export type { EventsData } from '@/_typings/events';
+export { NotificationCategory } from '@/_typings/events';

@@ -1,17 +1,17 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-
-import { AgentData } from '@/_typings/agent';
-import { Events, NotificationCategory } from '@/_typings/events';
-import useEvent from '@/hooks/useEvent';
-import { setData } from '@/_utilities/data-helpers/local-storage-helper';
-import Cookies from 'js-cookie';
-import { CustomerBySearch } from '@/_typings/customer';
 import axios from 'axios';
-import { randomString } from '@/_utilities/data-helpers/auth-helper';
-import { capitalizeFirstLetter } from '@/_utilities/formatters';
+import Cookies from 'js-cookie';
+
 import { BaseUser } from '@/_typings/base-user';
 import { HomeAlertStep } from '@/_typings/home-alert';
+import { AgentData } from '@/_typings/agent';
+
+import { setData } from '@/_utilities/data-helpers/local-storage-helper';
+import { randomString } from '@/_utilities/data-helpers/auth-helper';
+import { capitalizeFirstLetter } from '@/_utilities/formatters';
+
+import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
 
 export default function useHomeAlert(agentData: AgentData) {
   const searchParams = useSearchParams();

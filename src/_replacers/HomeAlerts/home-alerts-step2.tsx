@@ -1,31 +1,32 @@
 'use client';
-import React, { ReactElement, cloneElement, useCallback, useState, Fragment, useEffect } from 'react';
-import axios from 'axios';
+import React, { ReactElement, cloneElement, useCallback, useState, useEffect } from 'react';
 import { Transition } from '@headlessui/react';
+import Cookies from 'js-cookie';
 
 import { ReplacerHomeAlerts } from '@/_typings/forms';
+import { HomeAlertStep } from '@/_typings/home-alert';
 import { searchByClasses, searchById } from '@/_utilities/searchFnUtils';
+import { validateEmail } from '@/_utilities/validation-helper';
+import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 
 import useHomeAlert from '@/hooks/useHomeAlert';
-import useEvent, { Events } from '@/hooks/useEvent';
-import { validateEmail } from '@/_utilities/validation-helper';
-import Cookies from 'js-cookie';
-import { getData } from '@/_utilities/data-helpers/local-storage-helper';
-import { HomeAlertStep } from '@/_typings/home-alert';
+import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
 
 export default function HomeAlertsStep2({ child, agent }: ReplacerHomeAlerts) {
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
-  const { fireEvent: notifySavedSearchSuccess } = useEvent(Events.HomeAlertSuccess);
   const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
   const [show, toggleShow] = useState(false);
 
   const hook = useHomeAlert(agent);
   const onRegister = useCallback(
     (email: string) => {
       if (!validateEmail(email)) {
-        setError('Please use correct email format.');
+        notify({
+          timeout: 5000,
+          category: NotificationCategory.Error,
+          message: 'Please use correct email format.',
+        });
       } else {
         notify({});
         hook.onAction(2, {

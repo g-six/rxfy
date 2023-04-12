@@ -8,7 +8,7 @@ export enum Events {
   HomeAlertDismiss = 'event-home-alert-dismiss',
   HomeAlertSuccess = 'event-home-alert-success',
   ContactFormShow = 'event-contact-form-show',
-  ContactFormSubmit = 'event-contact-form-submit',
+  //ContactFormSubmit = 'event-contact-form-submit',
 }
 
 export enum NotificationCategory {
@@ -21,6 +21,7 @@ export enum NotificationCategory {
 export interface EventsData {
   clicked?: string;
   show?: boolean;
+  timeout?: number;
   time?: number;
   message?: string;
   category?: NotificationCategory;
