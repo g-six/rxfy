@@ -23,6 +23,7 @@ import RxLiveInput from './RxLiveUrlBased/RxLiveInput';
 import RxDatePicker from './RxLiveUrlBased/RxDatePicker';
 import HomeAlertsReplacer from '@/_replacers/HomeAlerts/home-alerts';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
+import { RxUserSessionLink } from './Nav/RxUserSessionLink';
 
 export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?: string }) {
   let MapAndHeaderHeader;
@@ -228,6 +229,17 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
             })
           ) : (
             <></>
+          );
+        }
+
+        if (
+          child.props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.USER_MENU) ||
+          child.props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.GUEST_MENU)
+        ) {
+          return (
+            <RxUserSessionLink {...child.props} className={child.props.className} href={child.props.href}>
+              <>{child.props.children}</>
+            </RxUserSessionLink>
           );
         }
       }

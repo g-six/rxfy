@@ -29,7 +29,7 @@ export function RxUserSessionLink(props: RxUserSessionLinkProps) {
   return (
     <a
       {...props}
-      className={[props.className, 'rexified flex w-36', selector].join(' ')}
+      className={[props.className, 'rexified flex w-full', selector].join(' ')}
       onClick={e => {
         // Logout button clicked
         // Also a workaround to the wrong logout link (designer bug)
