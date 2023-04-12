@@ -9,6 +9,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   HOME_ALERTS_WRAPPER = 'home-alert---all-screens',
   CONTACT_FORM = 'contact-form-wrapper',
   PROPERTY_TOP_STATS = 'section---top-stats',
+  FOOTER_SOCIAL_LINKS = 'footer-social-block',
 }
 
 export interface WebFlow {

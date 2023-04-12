@@ -14,6 +14,7 @@ import { combineAndFormatValues, formatValues } from '@/_utilities/data-helpers/
 import { getCityFromGeolocation, getGeocode, getViewPortParamsFromGeolocation } from '@/_utilities/geocoding-helper';
 
 import EmailAnchor from './A/Email';
+import FooterSocialLinks from './A/FooterSocialLinks';
 import PersonalTitle from './PersonalTitle';
 import PersonalBioParagraph from './PersonalBioParagraph';
 import PropertyCarousel from './PropertyCarousel/main';
@@ -433,6 +434,11 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
         if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CONTACT_FORM) >= 0) {
           return <RxContactForm agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
+        }
+        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.FOOTER_SOCIAL_LINKS) >= 0) {
+          return (
+            <FooterSocialLinks agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />
+          );
         }
 
         if ((node.children && node.children.length === 1) || node.name === 'input') {
