@@ -51,23 +51,21 @@ export default function HomeAlertsStep1({ child, agent }: ReplacerHomeAlerts) {
   useEffect(() => {
     if (getData('dismissSavedSearch') && getData('dismissSavedSearch') !== null) {
       const { dismissed_at, show_step } = getData('dismissSavedSearch') as unknown as { show_step: number; dismissed_at?: string };
-      toggleShow(show_step === 1 || (!dismissed_at && !show_step));
+      if (Cookies.get('session_key') !== undefined && Cookies.get('cid') !== undefined) {
+        toggleShow(!dismissed_at);
+      } else {
+        toggleShow(show_step === 1 || (!dismissed_at && !show_step));
+      }
     }
   }, [hook]);
 
   useEffect(() => {
-    if (eventHookDismiss.data?.show) {
-      toggleShow(true);
-    }
-  }, [eventHookDismiss.data]);
-
-  useEffect(() => {
     if (getData('dismissSavedSearch') !== null) {
-      const { dismissed_at } = getData('dismissSavedSearch') as unknown as { dismissed_at?: string };
+      const { dismissed_at, step } = getData('dismissSavedSearch') as unknown as { dismissed_at?: string; step: number };
       if (Cookies.get('session_key') !== undefined && Cookies.get('cid') !== undefined) {
-        toggleShow(!dismissed_at);
+        toggleShow(false);
       } else {
-        toggleShow(!dismissed_at);
+        toggleShow(!dismissed_at && step === 1);
       }
     }
   }, []);

@@ -354,7 +354,8 @@ export async function POST(request: Request) {
           return new Response(
             JSON.stringify(
               {
-                customer: { id: Number(data.id), email, full_name, agents, session_key: `${encrypt(last_activity_at)}.${encrypt(email)}` },
+                customer: { id: Number(data.id), email, full_name, agents },
+                session_key: `${encrypt(last_activity_at)}.${encrypt(email)}`,
                 saved_search,
               },
               null,
