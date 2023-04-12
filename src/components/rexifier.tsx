@@ -463,7 +463,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             // Property action buttons (PDF, Share links, etc)
             if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS) >= 0) {
               return (
-                <RxPropertyTopStats property={record} className={node.attribs.class}>
+                <RxPropertyTopStats property={record} className={node.attribs.class} agent={agent_data}>
                   {domToReact(node.children)}
                 </RxPropertyTopStats>
               );
