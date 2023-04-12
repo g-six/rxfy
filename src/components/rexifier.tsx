@@ -361,15 +361,17 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
               </RxMyAccountPage>
             );
           }
+
           if (
             node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.USER_MENU) ||
             node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.GUEST_MENU)
-          )
+          ) {
             return (
               <RxUserSessionLink {...props} className={node.attribs.class} href={node.attribs.href}>
                 <>{domToReact(node.children) as ReactElement[]}</>
               </RxUserSessionLink>
             );
+          }
         }
 
         if (props['data-mls']) {
