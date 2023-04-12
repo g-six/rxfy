@@ -15,7 +15,7 @@ type PropertyActionsProps = {
 };
 
 function linkToLegacyApp(agent: AgentData) {
-  const urlFromSlug = agent.profile_slug ? getAgentUrlFromSlug(agent.profile_slug) : '';
+  const urlFromSlug = agent.metatags.profile_slug ? getAgentUrlFromSlug(agent.metatags.profile_slug) : '';
   const urlFromName = agent.first_name && agent.last_name ? getAgentUrlFromName(agent.first_name + '_' + agent.last_name) : '';
   return 'https://app.leagent.com' + (urlFromSlug ? urlFromSlug : urlFromName);
 }
