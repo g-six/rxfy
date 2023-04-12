@@ -36,6 +36,7 @@ import { RxSignupPage } from './full-pages/RxSignupPage';
 import { RxLoginPage } from './full-pages/RxLoginPage';
 import { RxResetPasswordPage } from './full-pages/RxResetPassword';
 import { RxMyAccountPage } from './full-pages/RxMyAccountPage';
+import DocumentsReplacer from '@/_replacers/Documents/documents';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -370,6 +371,14 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
               <RxUserSessionLink {...props} className={node.attribs.class} href={node.attribs.href}>
                 <>{domToReact(node.children) as ReactElement[]}</>
               </RxUserSessionLink>
+            );
+          }
+          if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.DOCUMENTS)) {
+            return (
+              <DocumentsReplacer nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />
+              // <RxMyAccountPage {...props} type={node.type} data={agent_data}>
+              //   <>{domToReact(node.children) as ReactElement[]}</>
+              // </RxMyAccountPage>
             );
           }
         }
