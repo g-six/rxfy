@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 
+import { AgentData } from '@/_typings/agent';
 import { MLSProperty } from '@/_typings/property';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
@@ -9,6 +10,7 @@ import useEvent, { Events } from '@/hooks/useEvent';
 type PropertyActionsProps = {
   child: React.ReactElement;
   property: MLSProperty;
+  agent: AgentData;
 };
 
 export default function RxPropertyActions(props: PropertyActionsProps) {
@@ -60,7 +62,7 @@ export default function RxPropertyActions(props: PropertyActionsProps) {
       transformChild: (child: React.ReactElement) =>
         React.cloneElement(child, {
           ...child.props,
-          href: `https://app.leagent.com/property/${props.property.MLS_ID}/pdf`,
+          href: `https://app.leagent.com/p/${props.agent.slug}/property/${props.property.MLS_ID}/pdf`,
           target: '_blank',
           rel: 'noopener noreferrer',
         }),

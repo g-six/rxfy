@@ -2,6 +2,7 @@
 import React from 'react';
 import { Transition } from '@headlessui/react';
 
+import { AgentData } from '@/_typings/agent';
 import { MLSProperty } from '@/_typings/property';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
@@ -11,6 +12,7 @@ import RxPropertyActions from '@/components/RxProperty/RxPropertyActions';
 
 type PropertyTopStatsProps = {
   children: React.ReactNode;
+  agent: AgentData;
   property: MLSProperty;
   className?: string;
 };
@@ -28,7 +30,7 @@ export default function RxPropertyTopStats(props: PropertyTopStatsProps) {
     {
       searchFn: searchByClasses(['actions-on-property']),
       transformChild: (child: React.ReactElement) => {
-        return <RxPropertyActions property={props.property} child={child} />;
+        return <RxPropertyActions property={props.property} child={child} agent={props.agent} />;
       },
     },
   ];
