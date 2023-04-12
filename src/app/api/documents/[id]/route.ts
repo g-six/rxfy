@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { encrypt } from '@/_utilities/encryption-helper';
+
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -44,67 +45,14 @@ const gql_document = `mutation CreateDocument ($data: DocumentInput!) {
   }
 }`;
 
-export async function getNewSessionKey(id: number, previous_token: string) {
-  const { data: response_data } = await axios.post(
-    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-    {
-      query: gqlFindCustomer,
-      variables: {
-        id,
-      },
-    },
-    {
-      headers,
-    },
-  );
-
-  if (response_data.data?.customer?.data?.attributes) {
-    const { email, last_activity_at } = response_data.data?.customer?.data?.attributes;
-    const encrypted_email = encrypt(email);
-    const compare_key = `${encrypt(last_activity_at)}.${encrypted_email}`;
-
-    if (compare_key === previous_token) {
-      const dt = new Date().toISOString();
-      const {
-        data: {
-          data: {
-            session: { record },
-          },
-        },
-      } = await axios.post(
-        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-        {
-          query: gql_update_session,
-          variables: {
-            id,
-            last_activity_at: dt,
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-
-      const { birthday: birthdate, ...attributes } = record.attributes;
-      let birthday;
-      if (birthdate) {
-        birthday = new Intl.DateTimeFormat('en-CA').format(new Date(`${birthdate}T00:00:00`));
-      }
-
-      return {
-        ...attributes,
-        session_key: `${encrypt(dt)}.${encrypted_email}`,
-        birthday,
-        id,
-        email,
-      };
-    }
-  }
-}
-
+/**
+ * Creates a document record
+ * POST /api/documents/<Cookies.get('cid')>
+ *      headers { Authorization: Bearer <Cookies.get('session_key')> }
+ *      payload { name: 'filename or title', url: 'URL to file in S3', agent: 'agent.id (not agent_id)' }
+ * @param request
+ * @returns
+ */
 export async function POST(request: Request) {
   const authorization = await request.headers.get('authorization');
   const { name, url, agent } = await request.json();
@@ -222,4 +170,65 @@ export async function POST(request: Request) {
       statusText: 'Please login',
     },
   );
+}
+
+export async function getNewSessionKey(id: number, previous_token: string) {
+  const { data: response_data } = await axios.post(
+    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+    {
+      query: gqlFindCustomer,
+      variables: {
+        id,
+      },
+    },
+    {
+      headers,
+    },
+  );
+
+  if (response_data.data?.customer?.data?.attributes) {
+    const { email, last_activity_at } = response_data.data?.customer?.data?.attributes;
+    const encrypted_email = encrypt(email);
+    const compare_key = `${encrypt(last_activity_at)}.${encrypted_email}`;
+
+    if (compare_key === previous_token) {
+      const dt = new Date().toISOString();
+      const {
+        data: {
+          data: {
+            session: { record },
+          },
+        },
+      } = await axios.post(
+        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+        {
+          query: gql_update_session,
+          variables: {
+            id,
+            last_activity_at: dt,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      const { birthday: birthdate, ...attributes } = record.attributes;
+      let birthday;
+      if (birthdate) {
+        birthday = new Intl.DateTimeFormat('en-CA').format(new Date(`${birthdate}T00:00:00`));
+      }
+
+      return {
+        ...attributes,
+        session_key: `${encrypt(dt)}.${encrypted_email}`,
+        birthday,
+        id,
+        email,
+      };
+    }
+  }
 }
