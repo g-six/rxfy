@@ -5,6 +5,7 @@ import { AgentData } from '@/_typings/agent';
 import { MLSProperty } from '@/_typings/property';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { getAgentUrlFromSlug, getAgentUrlFromName } from '@/_helpers/functions';
 import useEvent, { Events } from '@/hooks/useEvent';
 
 type PropertyActionsProps = {
@@ -12,6 +13,12 @@ type PropertyActionsProps = {
   property: MLSProperty;
   agent: AgentData;
 };
+
+function linkToLegacyApp(agent: AgentData) {
+  const urlFromSlug = agent.profile_slug ? getAgentUrlFromSlug(agent.profile_slug) : '';
+  const urlFromName = agent.first_name && agent.last_name ? getAgentUrlFromName(agent.first_name + '_' + agent.last_name) : '';
+  return 'https://app.leagent.com' + (urlFromSlug ? urlFromSlug : urlFromName);
+}
 
 export default function RxPropertyActions(props: PropertyActionsProps) {
   const eventFormShow = useEvent(Events.ContactFormShow);
@@ -62,7 +69,7 @@ export default function RxPropertyActions(props: PropertyActionsProps) {
       transformChild: (child: React.ReactElement) =>
         React.cloneElement(child, {
           ...child.props,
-          href: `https://app.leagent.com/p/${props.agent.slug}/property/${props.property.MLS_ID}/pdf`,
+          href: `${linkToLegacyApp(props.agent)}/property/${props.property.MLS_ID}/pdf`,
           target: '_blank',
           rel: 'noopener noreferrer',
         }),

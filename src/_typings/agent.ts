@@ -47,7 +47,7 @@ export interface AgentData {
   agent_id: string;
   email: string;
   phone: string;
-  slug: string;
+  profile_slug: string;
   first_name: string;
   last_name: string;
   full_name: string;
