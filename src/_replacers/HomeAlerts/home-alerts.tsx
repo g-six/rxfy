@@ -1,63 +1,40 @@
 'use client';
-import { ReactElement, Fragment, cloneElement, useState, useCallback, useEffect } from 'react';
+import { ReactElement, Fragment, cloneElement } from 'react';
 import { Transition } from '@headlessui/react';
 
 import { ReplacerPageProps, HOME_ALERTS_DISMISS_TIMEOUT } from '@/_typings/forms';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 
-import useEvent, { Events } from '@/hooks/useEvent';
 import HomeAlertsStep1 from '@/_replacers/HomeAlerts/home-alerts-step1';
 import HomeAlertsStep2 from '@/_replacers/HomeAlerts/home-alerts-step2';
 import HomeAlertsSuccess from '@/_replacers/HomeAlerts/home-alerts-success';
 import HomeAlertsIcon from '@/_replacers/HomeAlerts/home-alerts-icon';
-import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 
 export default function HomeAlertsReplacer({ nodes, agent }: ReplacerPageProps) {
-  const timeNow = Date.now();
-  const timeDismiss = getData('dismissSavedSearch');
-  const dismissTimeout = timeNow - (!timeDismiss ? 0 : timeDismiss);
-
-  const eventHookDismiss = useEvent(Events.HomeAlertDismiss);
-
-  const showIcon = dismissTimeout < HOME_ALERTS_DISMISS_TIMEOUT && typeof window !== 'undefined';
-  const [doHide, setHide] = useState(showIcon);
-
-  const onDismiss = useCallback(() => {
-    setData('dismissSavedSearch');
-    setHide(true);
-    eventHookDismiss.fireEvent({ time: Date.now(), show: false });
-  }, [eventHookDismiss]);
-
-  useEffect(() => {
-    if (eventHookDismiss && eventHookDismiss.data.show) {
-      setHide(false);
-    }
-  }, [eventHookDismiss]);
-
   const matches = [
     {
       searchFn: searchByClasses(['ha-step-1']),
       transformChild: (child: ReactElement) => {
-        return <HomeAlertsStep1 child={cloneElement(child, { ...child.props })} agent={agent} onClose={() => onDismiss()} showIcon={doHide} />;
+        return <HomeAlertsStep1 child={cloneElement(child, { ...child.props })} agent={agent} />;
       },
     },
     {
       searchFn: searchByClasses(['ha-step-2']),
       transformChild: (child: ReactElement) => {
-        return <HomeAlertsStep2 child={cloneElement(child, { ...child.props })} agent={agent} onClose={() => onDismiss()} showIcon={doHide} />;
+        return <HomeAlertsStep2 child={cloneElement(child, { ...child.props })} agent={agent} />;
       },
     },
     {
       searchFn: searchByClasses(['ha-step-3']),
       transformChild: (child: ReactElement) => {
-        return <HomeAlertsSuccess child={cloneElement(child, { ...child.props })} agent={agent} onClose={() => onDismiss()} />;
+        return <HomeAlertsSuccess child={cloneElement(child, { ...child.props })} agent={agent} />;
       },
     },
     {
       searchFn: searchByClasses(['ha-icon']),
       transformChild: (child: ReactElement) => {
-        return <HomeAlertsIcon child={cloneElement(child, { ...child.props })} agent={agent} onClose={() => onDismiss()} showIcon={doHide} />;
+        return <HomeAlertsIcon child={cloneElement(child, { ...child.props })} agent={agent} />;
       },
     },
   ];

@@ -4,21 +4,17 @@ import axios from 'axios';
 import { Transition } from '@headlessui/react';
 
 import { ReplacerHomeAlerts } from '@/_typings/forms';
-import { randomString } from '@/_utilities/data-helpers/auth-helper';
 import { searchByClasses, searchById } from '@/_utilities/searchFnUtils';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
-// import { UserData } from '@/_typings/user';
-// import { updateUser } from '@/_apollo/cache';
 
 import useHomeAlert from '@/hooks/useHomeAlert';
 import useEvent, { Events } from '@/hooks/useEvent';
 import { validateEmail } from '@/_utilities/validation-helper';
-import { capitalizeFirstLetter } from '@/_utilities/formatters';
-import { NotificationCategory } from '@/_typings/events';
 import Cookies from 'js-cookie';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
+import { HomeAlertStep } from '@/_typings/home-alert';
 
-export default function HomeAlertsStep2({ child, agent, onClose, showIcon }: ReplacerHomeAlerts) {
+export default function HomeAlertsStep2({ child, agent }: ReplacerHomeAlerts) {
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const { fireEvent: notifySavedSearchSuccess } = useEvent(Events.HomeAlertSuccess);
   const [email, setEmail] = useState('');
@@ -26,17 +22,11 @@ export default function HomeAlertsStep2({ child, agent, onClose, showIcon }: Rep
   const [show, toggleShow] = useState(false);
 
   const hook = useHomeAlert(agent);
-  const eventHookLoading = useEvent(Events.Loading);
   const onRegister = useCallback(
     (email: string) => {
       if (!validateEmail(email)) {
         setError('Please use correct email format.');
       } else {
-        const em = email.toLowerCase();
-        const name = em.replaceAll('@', ' ').replaceAll('.', '').replaceAll(/[0-9]/g, '');
-        //setLoading(true);
-        eventHookLoading.fireEvent({ show: true });
-
         notify({});
         hook.onAction(2, {
           email,
@@ -54,7 +44,10 @@ export default function HomeAlertsStep2({ child, agent, onClose, showIcon }: Rep
           child,
           {
             ...child.props,
-            onClick: () => onClose(),
+            onClick: () => {
+              hook.onDismiss(HomeAlertStep.STEP_2);
+              toggleShow(false);
+            },
           },
           child.props.children,
         ),
@@ -109,15 +102,15 @@ export default function HomeAlertsStep2({ child, agent, onClose, showIcon }: Rep
 
   useEffect(() => {
     if (getData('dismissSavedSearch') && getData('dismissSavedSearch') !== null) {
-      const { step } = getData('dismissSavedSearch') as unknown as { step: number };
-      toggleShow(step === 2);
+      const { dismissed_at, step } = getData('dismissSavedSearch') as unknown as { dismissed_at: string; step: number };
+      toggleShow(step === HomeAlertStep.STEP_2 && dismissed_at === undefined);
     } else {
       toggleShow(false);
     }
   }, [hook]);
 
   useEffect(() => {
-    toggleShow(!showIcon && !Cookies.get('session_key') && getData('dismissSavedSearch') !== null);
+    toggleShow(!Cookies.get('session_key') && getData('dismissSavedSearch') !== null);
   }, []);
 
   return (
