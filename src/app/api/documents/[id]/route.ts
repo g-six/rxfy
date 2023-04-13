@@ -40,7 +40,11 @@ const gql_document = `mutation CreateDocument ($data: DocumentInput!) {
       id
       attributes {
         name
-        url
+        agent {
+          data {
+            id
+          }
+        }
       }
     }
   }
@@ -72,7 +76,7 @@ const gql_retrieve_documents = `query RetrieveDocuments ($filters: DocumentFilte
  */
 export async function POST(request: Request) {
   const authorization = await request.headers.get('authorization');
-  const { name, url, agent } = await request.json();
+  const { name, agent } = await request.json();
   const id = Number(request.url.split('/').pop());
   let session_key = '';
 
@@ -92,7 +96,7 @@ export async function POST(request: Request) {
         status: 401,
       },
     );
-  } else if (url && agent && name) {
+  } else if (agent && agent.id && name) {
     const [prefix, previous_token] = authorization.split(' ');
     if (prefix.toLowerCase() === 'bearer') {
       const user = await getNewSessionKey(id, previous_token);
@@ -106,7 +110,6 @@ export async function POST(request: Request) {
                 customer: id,
                 agent: agent.id,
                 name,
-                url,
               },
             },
           },
@@ -145,8 +148,7 @@ export async function POST(request: Request) {
     }
   } else {
     const errors = [];
-    if (!url) errors.push('upload a document');
-    if (!agent) errors.push('select an agent');
+    if (!agent || !agent.id) errors.push('select an agent');
     if (!name) errors.push('name this document');
 
     return new Response(
