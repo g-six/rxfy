@@ -4,17 +4,18 @@ import axios from 'axios';
 import useEvent, { Events } from '@/hooks/useEvent';
 import React from 'react';
 import { RxButton } from '../RxButton';
-import { RxEmail } from '../RxEmail';
 import { NotificationCategory } from '@/_typings/events';
+import { RxPassword } from '../RxPassword';
+import { updateAccount } from '@/_utilities/api-calls/call-update-account';
 
-type RxResetPasswordPageProps = {
+type RxUpdatePasswordPageProps = {
   type: string;
   disabled?: boolean;
   loading?: boolean;
   children: React.ReactElement;
 };
 
-export function RxResetPasswordPageIterator(props: RxResetPasswordPageProps) {
+export function RxUpdatePasswordPageIterator(props: RxUpdatePasswordPageProps) {
   const wrappedChildren = React.Children.map(props.children, child => {
     const child_node = child as React.ReactElement;
 
@@ -23,8 +24,8 @@ export function RxResetPasswordPageIterator(props: RxResetPasswordPageProps) {
         return (
           <RxButton
             {...child_node.props}
-            rx-event={Events.ResetPassword}
-            id={`${Events.ResetPassword}-trigger`}
+            rx-event={Events.UpdatePassword}
+            id={`${Events.UpdatePassword}-trigger`}
             disabled={props.disabled}
             loading={props.loading}
           >
@@ -32,8 +33,8 @@ export function RxResetPasswordPageIterator(props: RxResetPasswordPageProps) {
           </RxButton>
         );
       }
-      if (child_node.props.className.split(' ').includes('txt-email')) {
-        return <RxEmail {...child_node.props} rx-event={Events.ResetPassword} name='email' />;
+      if (child_node.props.className.split(' ').includes('txt-password')) {
+        return <RxPassword {...child_node.props} rx-event={Events.UpdatePassword} name='password' />;
       }
       return <input {...child_node.props} className={[child_node.props.className || '', 'rexified'].join(' ')} />;
     } else if (child.props && child.props.children)
@@ -44,7 +45,7 @@ export function RxResetPasswordPageIterator(props: RxResetPasswordPageProps) {
         {
           ...child.props,
           // Wrap grandchildren too
-          children: <RxResetPasswordPageIterator {...props}>{child.props.children}</RxResetPasswordPageIterator>,
+          children: <RxUpdatePasswordPageIterator {...props}>{child.props.children}</RxUpdatePasswordPageIterator>,
         },
       );
     else return child;
@@ -53,29 +54,26 @@ export function RxResetPasswordPageIterator(props: RxResetPasswordPageProps) {
   return <>{wrappedChildren}</>;
 }
 
-export function RxResetPasswordPage(props: RxResetPasswordPageProps) {
-  const { data, fireEvent } = useEvent(Events.ResetPassword);
+export function RxUpdatePasswordPage(props: RxUpdatePasswordPageProps) {
+  const { data, fireEvent } = useEvent(Events.UpdatePassword);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [is_loading, toggleLoading] = React.useState(false);
 
-  const submitForm = async (email: string) => {
+  const submitForm = async (password: string) => {
     if (is_loading) return;
     toggleLoading(true);
     try {
-      const api_response = await axios.put(
-        '/api/reset-password',
-        { email },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-      if (api_response.data.message) {
+      const { searchParams } = new URL(location.href);
+      const { user } = await updateAccount(searchParams.get('key') as string, { password });
+      if (user) {
         notify({
           category: NotificationCategory.Success,
-          message: api_response.data.message,
+          message: 'Your password has been updated.  Log in using your new password',
+          timeout: 3500,
         });
+        setTimeout(() => {
+          location.href = '/log-in';
+        }, 6000);
       }
     } catch (e) {
       const error = e as { response: { statusText: string } };
@@ -90,12 +88,12 @@ export function RxResetPasswordPage(props: RxResetPasswordPageProps) {
 
   React.useEffect(() => {
     const { clicked, ...evt_data } = data;
-    if (clicked === `${Events.ResetPassword}-trigger`) {
+    if (clicked === `${Events.UpdatePassword}-trigger`) {
       notify({});
       fireEvent(evt_data);
-      const { email } = evt_data as unknown as { email?: string };
-      if (email) {
-        submitForm(email);
+      const { password } = evt_data as unknown as { password?: string };
+      if (password) {
+        submitForm(password);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -103,14 +101,14 @@ export function RxResetPasswordPage(props: RxResetPasswordPageProps) {
 
   return (
     <form
-      id='rx-reset-password-page'
+      id='rx-update-password-page'
       onSubmit={e => {
         e.preventDefault();
         if (data) {
         }
       }}
     >
-      <RxResetPasswordPageIterator {...props} disabled={is_loading} loading={is_loading} />
+      <RxUpdatePasswordPageIterator {...props} disabled={is_loading} loading={is_loading} />
     </form>
   );
 }

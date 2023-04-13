@@ -2,6 +2,7 @@ export enum Events {
   Login = 'event-login',
   Loading = 'event-loading',
   ResetPassword = 'event-reset-password',
+  UpdatePassword = 'event-update-password',
   SignUp = 'event-signup',
   SaveAccountChanges = 'event-save-acct-changes',
   SystemNotification = 'system-notification',
