@@ -16,9 +16,9 @@ type RxProps = {
 export function RxBirthdayTextInput(p: RxProps) {
   const evt = useEvent(p['rx-event']);
   const years: number[] = [];
-  const [d, setDay] = useState(p.defaultValue ? Number(p.defaultValue.split('/')[0]) : 1);
-  const [m, setMonth] = useState(p.defaultValue ? Number(p.defaultValue.split('/')[1]) : 1);
-  const [y, setYear] = useState(p.defaultValue ? Number(p.defaultValue.split('/')[2]) : new Date().getFullYear() - 21);
+  const [d, setDay] = useState<string>();
+  const [m, setMonth] = useState<string>();
+  const [y, setYear] = useState<string>();
   const [days, setDays] = useState<number[]>([]);
 
   for (let i = new Date().getFullYear() - 16; i > new Date().getFullYear() - 100; i--) {
@@ -32,27 +32,50 @@ export function RxBirthdayTextInput(p: RxProps) {
     });
   };
 
-  useEffect(() => {
-    const dt = new Date(y, m - 1, 1);
-    dt.setMonth(m);
-    dt.setDate(0);
-    const ds = [];
-    for (let i = 1; i <= dt.getDate(); i++) {
-      ds.push(i);
-    }
-    setDays(ds);
+  // useEffect(() => {
+  //   const dt = new Date(y, m - 1, 1);
+  //   dt.setMonth(m);
+  //   dt.setDate(0);
+  //   const ds = [];
+  //   for (let i = 1; i <= dt.getDate(); i++) {
+  //     ds.push(i);
+  //   }
+  //   setDays(ds);
 
-    updateValue({ d, m, y });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [d, m, y]);
+  // updateValue({ d, m, y });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [d, m, y]);
 
-  useEffect(() => {
+  const updateAndSet = () => {
     if (p.defaultValue) {
-      setDay(Number(p.defaultValue.split('/')[0]));
-      setMonth(Number(p.defaultValue.split('/')[1]));
-      setYear(Number(p.defaultValue.split('/')[2]));
-      updateValue({ d: Number(p.defaultValue.split('/')[0]), m: Number(p.defaultValue.split('/')[1]), y: Number(p.defaultValue.split('/')[2]) });
+      const dmy = [Number(p.defaultValue.split('/')[0]), Number(p.defaultValue.split('/')[1]), Number(p.defaultValue.split('/')[2])];
+      const dt = new Date(dmy[2], dmy[1] - 1, dmy[2]);
+      dt.setMonth(dmy[1]);
+      dt.setDate(0);
+      const ds = [];
+
+      for (let i = 1; i <= dt.getDate(); i++) {
+        ds.push(i);
+      }
+      setDay(`${dmy[0] < 10 ? '0' : ''}${dmy[0]}`);
+      setMonth(`${dmy[1] < 10 ? '0' : ''}${dmy[1]}`);
+      setYear(`${dmy[2]}`);
+      setDays(ds);
     }
+  };
+
+  useEffect(() => {
+    updateAndSet();
+  }, [p.defaultValue]);
+
+  useEffect(() => {
+    if (days.length) {
+      console.log({ d, m, y });
+    }
+  }, [days, d, m, y]);
+
+  useEffect(() => {
+    updateAndSet();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -63,12 +86,12 @@ export function RxBirthdayTextInput(p: RxProps) {
         name='bday'
         className='rexified w-10 border-0 p-0 text-gray-900 outline-0 ring-0 ring-inset ring-gray-300 focus:ring-0 sm:text-sm sm:leading-6'
         onChange={e => {
-          setDay(Number(e.currentTarget.value));
+          setDay(e.currentTarget.value);
         }}
-        defaultValue={d}
+        value={d}
       >
         {days.map(day => (
-          <option value={day} key={day}>
+          <option value={`${day < 10 ? '0' : ''}${day}`} key={day}>
             {day}
           </option>
         ))}
@@ -79,9 +102,9 @@ export function RxBirthdayTextInput(p: RxProps) {
         name='bmonth'
         className='rexified w-24 border-0 p-0 text-gray-900 outline-0 ring-0 ring-inset ring-gray-300 focus:ring-0 sm:text-sm sm:leading-6'
         onChange={e => {
-          setMonth(Number(e.currentTarget.value));
+          setMonth(e.currentTarget.value);
         }}
-        defaultValue={m}
+        value={m}
       >
         <option value='01'>January</option>
         <option value='02'>February</option>
@@ -102,8 +125,9 @@ export function RxBirthdayTextInput(p: RxProps) {
         name='byear'
         className='rexified w-16 border-0 p-0 text-gray-900 outline-0 ring-0 ring-inset ring-gray-300 focus:ring-0 sm:text-sm sm:leading-6'
         onChange={e => {
-          setYear(Number(e.currentTarget.value));
+          setYear(e.currentTarget.value);
         }}
+        value={y}
       >
         {years.map(year => (
           <option value={year} key={year}>
