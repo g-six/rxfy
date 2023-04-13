@@ -13,20 +13,14 @@ import { useSearchParams } from 'next/navigation';
 import { RxCheckBox } from '../RxCheckBox';
 import { RxPhoneInput } from '../RxPhoneInput';
 import { formatShortDate } from '@/_utilities/formatters';
-
-type DataModel = {
-  email?: string;
-  full_name?: string;
-  phone_number?: string;
-  birthday?: string;
-  yes_to_marketing?: boolean;
-};
+import { CustomerInputModel } from '@/_typings/customer';
+import { RxBirthdayTextInput } from '../RxForms/RxBirthdayTextInput';
 
 type RxMyAccountPageProps = {
   type: string;
   children: React.ReactElement;
   className?: string;
-  data: DataModel;
+  data: CustomerInputModel;
 };
 
 export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit: MouseEventHandler }) {
@@ -69,15 +63,7 @@ export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit: MouseEv
           return <RxPhoneInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='phone_number' defaultValue={props.data.phone_number} />;
         }
         if (child_node.props.className.split(' ').includes('txt-birthday')) {
-          return (
-            <RxTextInput
-              {...child_node.props}
-              rx-event={Events.SaveAccountChanges}
-              name='birthday'
-              defaultValue={props.data.birthday && formatShortDate(props.data.birthday)}
-              formatter={formatShortDate}
-            />
-          );
+          return <RxBirthdayTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='birthday' defaultValue={props.data.birthday || ''} />;
         }
       }
 
@@ -103,8 +89,8 @@ export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit: MouseEv
   return <>{wrappedChildren}</>;
 }
 
-function validInput(data: DataModel & { agent_id?: number }): {
-  data?: DataModel;
+function validInput(data: CustomerInputModel & { agent_id?: number }): {
+  data?: CustomerInputModel;
   errors?: {
     email?: string;
     // password?: string;
@@ -137,7 +123,7 @@ function validInput(data: DataModel & { agent_id?: number }): {
       full_name,
       phone_number,
       birthday,
-    } as unknown as DataModel,
+    },
   };
 }
 
@@ -169,7 +155,7 @@ async function loadSession(search_params: string[]) {
         console.log('User not logged in');
       });
     const session = api_response as unknown as {
-      data?: DataModel & {
+      data?: CustomerInputModel & {
         session_key: string;
       };
     };
@@ -203,6 +189,7 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
     EventsData & {
       email?: string;
       password?: string;
+      birthday?: string;
       full_name?: string;
       yes_to_marketing?: boolean;
     }
@@ -231,7 +218,7 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
           '/api/update-account',
           {
             ...valid_data,
-            id: Cookies.get('cid'),
+            id: Number(Cookies.get('cid')),
           },
           {
             headers: {
@@ -239,7 +226,7 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
             },
           },
         )
-        .then(({ data: { data: record } }) => {
+        .then(({ data: { user: record } }) => {
           const { session_key } = record as { session_key: string };
           Cookies.set('session_key', session_key);
           notify({

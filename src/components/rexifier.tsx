@@ -14,6 +14,7 @@ import { combineAndFormatValues, formatValues } from '@/_utilities/data-helpers/
 import { getCityFromGeolocation, getGeocode, getViewPortParamsFromGeolocation } from '@/_utilities/geocoding-helper';
 
 import EmailAnchor from './A/Email';
+import FooterSocialLinks from './A/FooterSocialLinks';
 import PersonalTitle from './PersonalTitle';
 import PersonalBioParagraph from './PersonalBioParagraph';
 import PropertyCarousel from './PropertyCarousel/main';
@@ -37,6 +38,7 @@ import { RxLoginPage } from './full-pages/RxLoginPage';
 import { RxResetPasswordPage } from './full-pages/RxResetPassword';
 import { RxMyAccountPage } from './full-pages/RxMyAccountPage';
 import DocumentsReplacer from '@/_replacers/Documents/documents';
+import { RxUpdatePasswordPage } from './full-pages/RxUpdatePassword';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -345,6 +347,13 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             </RxResetPasswordPage>
           );
         }
+        if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.UPDATE_PASSWORD) {
+          return (
+            <RxUpdatePasswordPage {...props} type={node.type}>
+              <>{domToReact(node.children) as ReactElement[]}</>
+            </RxUpdatePasswordPage>
+          );
+        }
 
         if (node.tagName === 'form') {
           return (
@@ -443,6 +452,11 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CONTACT_FORM) >= 0) {
           return <RxContactForm agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
         }
+        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.FOOTER_SOCIAL_LINKS) >= 0) {
+          return (
+            <FooterSocialLinks agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />
+          );
+        }
 
         if ((node.children && node.children.length === 1) || node.name === 'input') {
           const reX = rexifyOrSkip(
@@ -472,7 +486,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             // Property action buttons (PDF, Share links, etc)
             if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS) >= 0) {
               return (
-                <RxPropertyTopStats property={record} className={node.attribs.class}>
+                <RxPropertyTopStats property={record} className={node.attribs.class} agent={agent_data}>
                   {domToReact(node.children)}
                 </RxPropertyTopStats>
               );

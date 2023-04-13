@@ -1,3 +1,4 @@
+import { convertDateStringToDateObject } from '@/_utilities/data-helpers/date-helper';
 import { encrypt } from '@/_utilities/encryption-helper';
 import axios from 'axios';
 
@@ -30,7 +31,8 @@ const mutation_gql = `mutation UpdateAccount ($id: ID!, $data: CustomerInput!) {
 }`;
 
 export async function PUT(request: Request) {
-  const { id, email, full_name, phone_number, birthday } = await request.json();
+  const { id, email, full_name, phone_number, birthday, password } = await request.json();
+
   try {
     let updates: { [key: string]: Date | string | number | boolean } = {
       last_activity_at: new Date().toISOString(),
@@ -56,7 +58,6 @@ export async function PUT(request: Request) {
           },
         );
         const record = response_data.data?.customer?.data?.attributes || {};
-
         if (!record.email || !record.last_activity_at || `${encrypt(record.last_activity_at)}.${encrypt(record.email)}` !== token) {
           return new Response(
             JSON.stringify(
@@ -73,7 +74,7 @@ export async function PUT(request: Request) {
               status: 400,
             },
           );
-        } else if (email && record.email !== email) {
+        } else if (email !== undefined && record.email !== email) {
           updates = {
             ...updates,
             email,
@@ -113,24 +114,32 @@ export async function PUT(request: Request) {
     if (birthday) {
       updates = {
         ...updates,
-        birthday: new Date(birthday).toISOString().substring(0, 10),
+        birthday: convertDateStringToDateObject(birthday).toISOString().split('T')[0],
       };
     }
 
+    if (password) {
+      updates = {
+        ...updates,
+        encrypted_password: encrypt(password),
+      };
+    }
+
+    const variables = {
+      id,
+      data: updates,
+    };
+
+    console.log(JSON.stringify({ variables }, null, 4));
     const {
       data: {
-        data: {
-          customer: { record },
-        },
+        data: { customer },
       },
     } = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
       {
         query: mutation_gql,
-        variables: {
-          id,
-          data: updates,
-        },
+        variables,
       },
       {
         headers: {
@@ -139,14 +148,15 @@ export async function PUT(request: Request) {
         },
       },
     );
+
     return new Response(
       JSON.stringify(
         {
-          data: {
+          user: {
             id,
-            ...record.attributes,
-            session_key: `${encrypt(record.attributes.last_activity_at as string)}.${encrypt(email)}`,
+            ...customer.record.attributes,
           },
+          session_key: `${encrypt(customer.record.attributes.last_activity_at as string)}.${encrypt(customer.record.attributes.email)}`,
         },
         null,
         4,

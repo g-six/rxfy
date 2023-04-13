@@ -40,6 +40,7 @@ export interface AgentMetatags {
   };
   brokerage_name?: string;
   brokerage_id?: string;
+  profile_slug?: string;
 }
 
 export interface AgentData {

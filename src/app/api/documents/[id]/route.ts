@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { encrypt } from '@/_utilities/encryption-helper';
+import { DocumentDataModel } from '@/_typings/document';
 
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
@@ -40,6 +41,22 @@ const gql_document = `mutation CreateDocument ($data: DocumentInput!) {
       attributes {
         name
         url
+      }
+    }
+  }
+}`;
+const gql_retrieve_documents = `query RetrieveDocuments ($filters: DocumentFiltersInput!, $pagination: PaginationArg) {
+  documents(filters: $filters, pagination: $pagination) {
+    data {
+      id
+      attributes {
+        name
+        url
+        agent {
+          data {
+            id
+          }
+        }
       }
     }
   }
@@ -87,7 +104,7 @@ export async function POST(request: Request) {
             variables: {
               data: {
                 customer: id,
-                agent,
+                agent: agent.id,
                 name,
                 url,
               },
@@ -101,7 +118,7 @@ export async function POST(request: Request) {
           },
         );
         let document;
-        if (doc_response.data?.createSavedSearch?.data?.id) {
+        if (doc_response.data?.createDocument?.data?.id) {
           const { id, attributes } = doc_response.data?.createDocument?.data;
           document = {
             ...attributes,
@@ -111,10 +128,6 @@ export async function POST(request: Request) {
         return new Response(
           JSON.stringify(
             {
-              user: {
-                ...user,
-                session_key: undefined,
-              },
               document,
               session_key: user.session_key,
             },
@@ -152,6 +165,108 @@ export async function POST(request: Request) {
         statusText: 'Sorry, please login',
       },
     );
+  }
+
+  return new Response(
+    JSON.stringify(
+      {
+        error: 'Please login',
+      },
+      null,
+      4,
+    ),
+    {
+      headers: {
+        'content-type': 'application/json',
+      },
+      status: 401,
+      statusText: 'Please login',
+    },
+  );
+}
+
+/**
+ * Retrieves all documents for a user
+ * GET /api/documents/<Cookies.get('cid')>
+ *      headers { Authorization: Bearer <Cookies.get('session_key')> }
+ * @param request
+ * @returns
+ */
+export async function GET(request: Request) {
+  const authorization = await request.headers.get('authorization');
+  const id = Number(request.url.split('/').pop());
+  let session_key = '';
+
+  if (isNaN(id) || !authorization) {
+    return new Response(
+      JSON.stringify(
+        {
+          error: 'Sorry, please login',
+        },
+        null,
+        4,
+      ),
+      {
+        headers: {
+          'content-type': 'application/json',
+        },
+        status: 401,
+      },
+    );
+  } else {
+    const [prefix, previous_token] = authorization.split(' ');
+    if (prefix.toLowerCase() === 'bearer') {
+      const user = await getNewSessionKey(id, previous_token);
+      if (user) {
+        const { data: doc_response } = await axios.post(
+          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+          {
+            query: gql_retrieve_documents,
+            variables: {
+              filters: {
+                customer: {
+                  id: {
+                    eq: id,
+                  },
+                },
+              },
+            },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+        let documents = [];
+        if (doc_response.data?.documents?.data) {
+          documents = doc_response.data?.documents?.data.map((doc: DocumentDataModel) => {
+            return {
+              ...doc.attributes,
+              id: doc.id,
+            };
+          });
+        }
+
+        return new Response(
+          JSON.stringify(
+            {
+              documents,
+              session_key: user.session_key,
+            },
+            null,
+            4,
+          ),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
+          },
+        );
+      }
+    }
   }
 
   return new Response(

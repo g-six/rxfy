@@ -51,6 +51,7 @@ export async function PUT(request: Request) {
       );
 
       const [data] = response_data.data?.customers?.data || [];
+      console.log(data);
       if (data && data.id) {
         const {
           data: {
@@ -79,7 +80,7 @@ export async function PUT(request: Request) {
             name: customer.data.attributes.full_name,
           },
         ];
-        const client_url = `${url.origin}/my-profile?key=${encrypt(customer.data.attributes.last_activity_at)}.${encrypt(email)}-${customer.data.id}`;
+        const client_url = `${url.origin}/update-password?key=${encrypt(customer.data.attributes.last_activity_at)}.${encrypt(email)}-${customer.data.id}`;
         await sendTemplate('forgot-password', send_to, {
           subject: 'Leagent Password Recovery',
           client_url,
@@ -104,7 +105,7 @@ export async function PUT(request: Request) {
     }
   } catch (e) {
     console.log('Error in Reset Password API request');
-    console.log(e);
+    // console.log(e);
   }
 
   return new Response(
