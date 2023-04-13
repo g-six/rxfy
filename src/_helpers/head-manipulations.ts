@@ -43,6 +43,5 @@ export function replaceMetaTags(headCode: string, agent: AgentData, property?: o
       }
     });
   }
-  console.log('headCode', headCode);
   return headCode;
 }
