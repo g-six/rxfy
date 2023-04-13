@@ -21,6 +21,16 @@ export interface CustomerDataModel {
   attributes: Customer;
 }
 
+export interface CustomerInputModel {
+  email?: string;
+  full_name?: string;
+  phone_number?: string;
+  encrypted_password?: string;
+  password?: string;
+  birthday?: string;
+  yes_to_marketing?: boolean;
+}
+
 export type LogInResponse = {
   data: {
     customers: {

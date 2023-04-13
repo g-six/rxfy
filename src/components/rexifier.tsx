@@ -36,6 +36,7 @@ import { RxSignupPage } from './full-pages/RxSignupPage';
 import { RxLoginPage } from './full-pages/RxLoginPage';
 import { RxResetPasswordPage } from './full-pages/RxResetPassword';
 import { RxMyAccountPage } from './full-pages/RxMyAccountPage';
+import { RxUpdatePasswordPage } from './full-pages/RxUpdatePassword';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -342,6 +343,13 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             <RxResetPasswordPage {...props} type={node.type}>
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxResetPasswordPage>
+          );
+        }
+        if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.UPDATE_PASSWORD) {
+          return (
+            <RxUpdatePasswordPage {...props} type={node.type}>
+              <>{domToReact(node.children) as ReactElement[]}</>
+            </RxUpdatePasswordPage>
           );
         }
 

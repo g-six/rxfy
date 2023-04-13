@@ -2,6 +2,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   LOGIN = 'login',
   SIGNUP = 'signup',
   RESET_PASSWORD = 'resetPassword',
+  UPDATE_PASSWORD = 'updatePassword',
   COMPARE_WRAPPER = 'compare-wrapper',
   MY_ACCOUNT_WRAPPER = 'my-account-wrapper',
   USER_MENU = 'in-session',
