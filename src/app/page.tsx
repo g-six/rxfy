@@ -19,7 +19,7 @@ const inter = Inter({ subsets: ['latin'] });
 export default async function Home({ params, searchParams }: { params: Record<string, unknown>; searchParams: Record<string, string> }) {
   const axios = (await import('axios')).default;
   const { TEST_DOMAIN } = process.env;
-  const url = headers().get('x-url') || '';
+  const url = headers().get('x-url') || (TEST_DOMAIN as string);
   console.log('url:', url);
   const { hostname, origin } = new URL(url);
 
