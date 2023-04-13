@@ -232,6 +232,7 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
           notify({
             category: NotificationCategory.Success,
             message: 'Profile updates saved',
+            timeout: 5000,
           });
         })
         .finally(() => {
