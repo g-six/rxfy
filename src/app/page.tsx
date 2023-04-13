@@ -23,15 +23,13 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
   const { hostname, origin } = new URL(url);
 
-  let webflow_page_url = '';
   let hostname_query = hostname;
   if (hostname_query === 'localhost') {
-    const local_url = new URL(TEST_DOMAIN as string);
-    hostname_query = local_url.hostname;
-    webflow_page_url = params && params.slug ? `${TEST_DOMAIN}/${params.slug}` : `${TEST_DOMAIN}`;
-  } else {
-    webflow_page_url = params && params.slug ? `${origin}/${params.slug}` : origin;
+    hostname_query = TEST_DOMAIN as string;
   }
+
+  const agent_data: AgentData = await getAgentDataFromWebflowDomain(hostname_query);
+  let webflow_page_url = params && params.slug ? `https://${agent_data.webflow_domain}/${params.slug}` : `https://${agent_data.webflow_domain}`;
 
   if (params && params.slug === 'property') {
     webflow_page_url = `${webflow_page_url}/${params.slug}id`;
@@ -45,7 +43,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
     prepend: `<input class="txt-search-input" name="search-input" id="search-input" type="text" value="${(searchParams && searchParams.city) || ''}" />`,
   });
 
-  const agent_data: AgentData = await getAgentDataFromWebflowDomain(hostname_query);
   let listings, property;
 
   if (!params || !params.slug || params.slug === '/') {

@@ -17,16 +17,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const url = headers().get('origin') || headers().get('referer') || '';
   const { hostname, origin, pathname } = new URL(url);
 
-  let webflow_site_url = '';
+  let leagent_host = origin;
   if (hostname === 'localhost') {
-    webflow_site_url = TEST_DOMAIN as string;
-  } else {
-    webflow_site_url = origin;
+    leagent_host = TEST_DOMAIN as string;
   }
 
-  const { data } = await axios.get(`${webflow_site_url}${pathname && pathname}`);
+  const agent_data: AgentData = await getAgentDataFromWebflowDomain(leagent_host);
 
-  const agent_data: AgentData = await getAgentDataFromWebflowDomain(hostname);
+  const { data } = await axios.get(`https://${agent_data.webflow_domain}${pathname && pathname}`);
+
   const requestLink = headers().get('x-url') || '';
   const requestUrl = new URL(requestLink);
   const searchParams = Object.fromEntries(requestUrl.searchParams);
