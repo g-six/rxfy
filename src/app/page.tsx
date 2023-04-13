@@ -76,7 +76,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   await fillAgentInfo($, agent_data);
   // Recent listings
   if (listings?.active?.length) {
-    fillPropertyGrid($, listings.active, '.recent-listings-grid', '.p-propcard');
+    fillPropertyGrid($, listings.active, '.recent-listings-grid');
   } else {
     removeSection($, '.recent-listings-grid');
   }
