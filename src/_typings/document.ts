@@ -1,7 +1,11 @@
 export interface DocumentDataModel {
   id: number;
   attributes: {
-    url: string;
     name?: string;
   };
+}
+
+export interface DocumentUploadDataModel {
+  id: number;
+  document: DocumentDataModel;
 }
