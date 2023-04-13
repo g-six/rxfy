@@ -9,6 +9,7 @@ export enum Events {
   HomeAlertDismiss = 'event-home-alert-dismiss',
   HomeAlertSuccess = 'event-home-alert-success',
   ContactFormShow = 'event-contact-form-show',
+  CreateDocFolderShow = 'event-create-docfolder-show',
   //ContactFormSubmit = 'event-contact-form-submit',
 }
 

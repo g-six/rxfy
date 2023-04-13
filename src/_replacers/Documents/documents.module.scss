@@ -1,0 +1,11 @@
+.docRow {
+  .cta {
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  &:hover {
+    .cta {
+      opacity: 1;
+    }
+  }
+}
