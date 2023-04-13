@@ -124,7 +124,6 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
 
 export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapper_selector = '.similar-homes-grid', card_selector = '.property-card') {
   properties.forEach((p: MLSProperty, i) => {
-    console.log(p);
     replaceByCheerio($, `${wrapper_selector} > ${card_selector}:nth-child(${i + 1})`, {
       ['data-mls']: p.MLS_ID,
     });
