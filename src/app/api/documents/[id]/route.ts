@@ -66,6 +66,24 @@ const gql_document = `mutation CreateDocument ($data: DocumentInput!) {
     }
   }
 }`;
+
+const gql_delete_document = `mutation DeleteDocumentUpload ($id: ID!) {
+  record: deleteDocumentUpload(id: $id) {
+    data {
+      id
+      attributes {
+        file_name
+        url
+        document {
+          data {
+            id
+          }
+        }
+      }
+    }
+  }
+}`;
+
 const gql_retrieve_documents = `query RetrieveDocuments ($filters: DocumentFiltersInput!, $pagination: PaginationArg) {
   documents(filters: $filters, pagination: $pagination) {
     data {
@@ -300,6 +318,156 @@ export async function PUT(request: Request) {
       if (!upload.url) errors.push('provide the url to this document upload');
       if (!upload.file_name) errors.push('name this document upload');
     }
+
+    return new Response(
+      JSON.stringify(
+        {
+          error: `Sorry, please: \n${errors.join('\n • ')}`,
+        },
+        null,
+        4,
+      ),
+      {
+        headers: {
+          'content-type': 'application/json',
+        },
+        status: 401,
+        statusText: 'Sorry, please login',
+      },
+    );
+  }
+
+  return new Response(
+    JSON.stringify(
+      {
+        error: 'Please login',
+      },
+      null,
+      4,
+    ),
+    {
+      headers: {
+        'content-type': 'application/json',
+      },
+      status: 401,
+      statusText: 'Please login',
+    },
+  );
+}
+
+/**
+ * Deletes an upload from a document folder
+ * DELETE /api/documents/<Cookies.get('cid')>?model=document-upload&id=x
+ *      headers { Authorization: Bearer <Cookies.get('session_key')> }
+ * @param request
+ * @returns
+ */
+export async function DELETE(request: Request) {
+  const authorization = await request.headers.get('authorization');
+  const url = new URL(request.url);
+  const paths = url.pathname.split('/');
+  const user_id = Number(paths.pop());
+
+  let session_key = '';
+
+  if (isNaN(user_id) || !authorization) {
+    return new Response(
+      JSON.stringify(
+        {
+          error: 'Sorry, please login',
+        },
+        null,
+        4,
+      ),
+      {
+        headers: {
+          'content-type': 'application/json',
+        },
+        status: 401,
+      },
+    );
+  } else if (url.searchParams.get('model') && url.searchParams.get('id')) {
+    const [prefix, previous_token] = authorization.split(' ');
+    if (prefix.toLowerCase() === 'bearer') {
+      const user = await getNewSessionKey(user_id, previous_token);
+      try {
+        if (user) {
+          let query = '';
+          let variables = {};
+          if (url.searchParams.get('model') === 'document-uploads') {
+            query = gql_delete_document;
+            variables = {
+              ...variables,
+              id: url.searchParams.get('id'),
+            };
+          }
+          if (!query) {
+            return new Response(
+              JSON.stringify(
+                {
+                  error: `Sorry, please provide a valid record type`,
+                },
+                null,
+                4,
+              ),
+              {
+                headers: {
+                  'content-type': 'application/json',
+                },
+                status: 401,
+                statusText: 'Sorry, please login',
+              },
+            );
+          }
+          const { data: doc_response } = await axios.post(
+            `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+            {
+              query,
+              variables,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+                'Content-Type': 'application/json',
+              },
+            },
+          );
+          let document_upload;
+          if (doc_response.data?.record?.data?.id) {
+            const { id: upload_id, attributes } = doc_response.data?.record?.data;
+            document_upload = {
+              ...attributes,
+              id: upload_id,
+              document: attributes.document.data || {},
+            };
+          }
+          return new Response(
+            JSON.stringify(
+              {
+                document_upload,
+                session_key: user.session_key,
+              },
+              null,
+              4,
+            ),
+            {
+              headers: {
+                'content-type': 'application/json',
+              },
+              status: 200,
+            },
+          );
+        }
+      } catch (e) {
+        console.log(JSON.stringify(e, null, 4));
+      } finally {
+        console.log(JSON.stringify({ user }, null, 4));
+      }
+    }
+  } else {
+    const errors = [];
+    if (!url.searchParams.get('id')) errors.push('provide the record id to be deleted');
+    if (!url.searchParams.get('model')) errors.push('the type of record you would like to delete');
 
     return new Response(
       JSON.stringify(

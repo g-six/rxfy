@@ -65,6 +65,29 @@ export async function saveDocumentUpload(document_id: number, url: string, file_
 }
 
 /**
+ * Remove a document
+ * @param number id (document_upload.id)
+ * @param url string
+ * @returns document data object and session_key string
+ */
+export async function removeDocumentUpload(id: number) {
+  const response = await axios.delete(`/api/documents/document-uploads/${id}/${Cookies.get('cid')}`, {
+    headers: {
+      Authorization: `Bearer ${Cookies.get('session_key')}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (response.status === 200) {
+    const { session_key, ...record } = response.data;
+    Cookies.set('session_key', session_key);
+    return record;
+  }
+
+  return response;
+}
+
+/**
  * Retrieves all documents
  * @returns documents data object array and session_key string
  */
