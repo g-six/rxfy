@@ -15,7 +15,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const axios = (await import('axios')).default;
   const { TEST_DOMAIN, NEXT_APP_GOOGLE_API_KEY } = process.env;
   const url = headers().get('origin') || headers().get('referer') || headers().get('x-url') || '';
-  console.log('url:', url);
+
+  console.log('url', url);
+  console.log('url');
+  console.log('url');
+  console.log('url');
+  console.log('url');
+  console.log('url');
+
   const { hostname, origin, pathname } = new URL(url);
 
   let leagent_host = origin;
