@@ -33,17 +33,19 @@ export async function saveDocument(agent: { id: number; logo?: string }, name?: 
 
 /**
  * Save a document
- * @param agent { id, logo? }
- * @param document { name, url }
+ * @param number document_id (folder)
+ * @param url string
  * @returns document data object and session_key string
  */
-export async function saveDocumentUpload(document_id: number, url: string, file_name?: string) {
-  const response = await axios.post(
-    `/api/document-uploads/${Cookies.get('cid')}`,
+export async function saveDocumentUpload(document_id: number, url: string, file_name: string) {
+  const response = await axios.put(
+    `/api/documents/${Cookies.get('cid')}`,
     {
-      url,
-      file_name,
-      document: document_id,
+      id: document_id,
+      upload: {
+        url,
+        file_name,
+      },
     },
     {
       headers: {

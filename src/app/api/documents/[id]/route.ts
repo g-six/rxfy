@@ -34,6 +34,23 @@ const gql_update_session = `mutation UpdateCustomerSession ($id: ID!, $last_acti
   }
 }`;
 
+const gql_upload = `mutation UploadDocument ($data: DocumentUploadInput!) {
+  createDocumentUpload(data: $data) {
+    data {
+      id
+      attributes {
+        file_name
+        url
+        document {
+          data {
+            id
+          }
+        }
+      }
+    }
+  }
+}`;
+
 const gql_document = `mutation CreateDocument ($data: DocumentInput!) {
   createDocument(data: $data) {
     data {
@@ -150,6 +167,139 @@ export async function POST(request: Request) {
     const errors = [];
     if (!agent || !agent.id) errors.push('select an agent');
     if (!name) errors.push('name this document');
+
+    return new Response(
+      JSON.stringify(
+        {
+          error: `Sorry, please: \n${errors.join('\n • ')}`,
+        },
+        null,
+        4,
+      ),
+      {
+        headers: {
+          'content-type': 'application/json',
+        },
+        status: 401,
+        statusText: 'Sorry, please login',
+      },
+    );
+  }
+
+  return new Response(
+    JSON.stringify(
+      {
+        error: 'Please login',
+      },
+      null,
+      4,
+    ),
+    {
+      headers: {
+        'content-type': 'application/json',
+      },
+      status: 401,
+      statusText: 'Please login',
+    },
+  );
+}
+
+/**
+ * Updates a document folder and if payload includes it, appends a document upload
+ * PUT /api/documents/<Cookies.get('cid')>
+ *      headers { Authorization: Bearer <Cookies.get('session_key')> }
+ *      payload { name: 'folder name', upload?: { file_name: 'filename or title', url: 'URL to file in S3' } }
+ * @param request
+ * @returns
+ */
+export async function PUT(request: Request) {
+  const authorization = await request.headers.get('authorization');
+  const { name, upload, id: document } = await request.json();
+  const id = Number(request.url.split('/').pop());
+  let session_key = '';
+
+  if (isNaN(id) || !authorization) {
+    return new Response(
+      JSON.stringify(
+        {
+          error: 'Sorry, please login',
+        },
+        null,
+        4,
+      ),
+      {
+        headers: {
+          'content-type': 'application/json',
+        },
+        status: 401,
+      },
+    );
+  } else if (document && upload?.file_name && upload?.url) {
+    const [prefix, previous_token] = authorization.split(' ');
+    if (prefix.toLowerCase() === 'bearer') {
+      const user = await getNewSessionKey(id, previous_token);
+      try {
+        if (user) {
+          const { data: doc_response } = await axios.post(
+            `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+            {
+              query: gql_upload,
+              variables: {
+                data: {
+                  ...upload,
+                  document,
+                },
+              },
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+                'Content-Type': 'application/json',
+              },
+            },
+          );
+          let document_upload;
+          if (doc_response.data?.createDocumentUpload?.data?.id) {
+            const { id: upload_id, attributes } = doc_response.data?.createDocumentUpload?.data;
+            document_upload = {
+              ...attributes,
+              id: upload_id,
+              document: attributes.document.data,
+            };
+          }
+          return new Response(
+            JSON.stringify(
+              {
+                document_upload,
+                session_key: user.session_key,
+              },
+              null,
+              4,
+            ),
+            {
+              headers: {
+                'content-type': 'application/json',
+              },
+              status: 200,
+            },
+          );
+        }
+      } catch (e) {
+        console.log(JSON.stringify(e, null, 4));
+      } finally {
+        console.log(JSON.stringify({ user }, null, 4));
+      }
+    }
+  } else {
+    const errors = [];
+    if (!document_id) errors.push('provide the folder id (document_id)');
+    if (!name) errors.push('name this document folder');
+    if (!upload) {
+      errors.push('attach an upload');
+    } else {
+      if (!upload.url) errors.push('provide the url to this document upload');
+      if (!upload.file_name) errors.push('name this document upload');
+    }
 
     return new Response(
       JSON.stringify(
