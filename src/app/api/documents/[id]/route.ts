@@ -445,7 +445,7 @@ export async function DELETE(request: Request) {
             },
           );
           let record;
-          console.log(doc_response.data?.record);
+
           if (doc_response.data?.record?.data?.id) {
             const { id: upload_id, attributes } = doc_response.data?.record?.data;
             record = {
