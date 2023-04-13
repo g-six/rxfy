@@ -19,12 +19,19 @@ const inter = Inter({ subsets: ['latin'] });
 export default async function Home({ params, searchParams }: { params: Record<string, unknown>; searchParams: Record<string, string> }) {
   const axios = (await import('axios')).default;
   const { TEST_DOMAIN } = process.env;
-  const url = TEST_DOMAIN || headers().get('origin') || '';
+  const url = headers().get('origin') || headers().get('referer') || '';
 
   const { hostname, origin } = new URL(url);
 
-  // Get Webflow page html
-  let webflow_page_url = params && params.slug ? `${origin}/${params.slug}` : origin;
+  let webflow_page_url = '';
+  let hostname_query = hostname;
+  if (hostname_query === 'localhost') {
+    const local_url = new URL(TEST_DOMAIN as string);
+    hostname_query = local_url.hostname;
+    webflow_page_url = params && params.slug ? `${TEST_DOMAIN}/${params.slug}` : `${TEST_DOMAIN}`;
+  } else {
+    webflow_page_url = params && params.slug ? `${origin}/${params.slug}` : origin;
+  }
 
   if (params && params.slug === 'property') {
     webflow_page_url = `${webflow_page_url}/${params.slug}id`;
@@ -38,7 +45,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     prepend: `<input class="txt-search-input" name="search-input" id="search-input" type="text" value="${(searchParams && searchParams.city) || ''}" />`,
   });
 
-  const agent_data: AgentData = await getAgentDataFromWebflowDomain(hostname);
+  const agent_data: AgentData = await getAgentDataFromWebflowDomain(hostname_query);
   let listings, property;
 
   if (!params || !params.slug || params.slug === '/') {
@@ -69,7 +76,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   await fillAgentInfo($, agent_data);
   // Recent listings
   if (listings?.active?.length) {
-    fillPropertyGrid($, listings.active, '.recent-listings-grid');
+    fillPropertyGrid($, listings.active, '.recent-listings-grid', '.p-propcard');
   } else {
     removeSection($, '.recent-listings-grid');
   }
