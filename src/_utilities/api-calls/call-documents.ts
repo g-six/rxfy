@@ -3,8 +3,8 @@ import Cookies from 'js-cookie';
 
 /**
  * Save a folder
- * @param agent { id, logo? }
- * @param document { name, url }
+ * @param object agent { id, logo? }
+ * @param string document name
  * @returns document data object and session_key string
  */
 export async function saveDocument(agent: { id: number; logo?: string }, name?: string) {
