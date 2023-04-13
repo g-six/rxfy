@@ -1,16 +1,25 @@
 import { captureMatchingElements, transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { AgentData } from '@/_typings/agent';
+import { DocumentInterface } from '@/_typings/document';
+import { saveDocument } from '@/_utilities/api-calls/call-documents';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import useEvent, { Events } from '@/hooks/useEvent';
-import React, { ChangeEvent, ReactElement, cloneElement, createElement, useEffect, useState } from 'react';
+import React, { ChangeEvent, Dispatch, ReactElement, SetStateAction, cloneElement, createElement, useEffect, useState } from 'react';
 
 type Props = {
   child: ReactElement;
+  agent_data: AgentData;
+  setDocuments: Dispatch<SetStateAction<any[]>>;
 };
 
-export default function DocumentsCreateFolder({ child }: Props) {
+export default function DocumentsCreateFolder({ child, agent_data, setDocuments }: Props) {
   const [show, setShow] = useState<boolean>(false);
   const [folderName, setFolderName] = useState<string>('');
   const event = useEvent(Events.CreateDocFolderShow);
+  const handleClose = () => {
+    setFolderName('');
+    event.fireEvent({ show: false });
+  };
   const searcFor = [
     { searchFn: searchByClasses(['icon-5', 'w-embed']), elementName: 'icon' },
     { searchFn: searchByClasses(['input-placeholder']), elementName: 'placeholder' },
@@ -29,9 +38,7 @@ export default function DocumentsCreateFolder({ child }: Props) {
       searchFn: searchByClasses(['new-dr-close']),
       transformChild: (child: ReactElement) => {
         return cloneElement(child, {
-          onClick: () => {
-            event.fireEvent({ show: false });
-          },
+          onClick: handleClose,
         });
       },
     },
@@ -56,7 +63,18 @@ export default function DocumentsCreateFolder({ child }: Props) {
           { className: 'input-wrapper', key: '0213123', style: { position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center' } },
           [cloneElement(inputElements.icon, { style: { position: 'relative', marginLeft: '6px', zIndex: 1 } }), input],
         );
-        return cloneElement(child, {}, [inputWrapper, inputElements.submit]);
+        return cloneElement(child, {}, [
+          inputWrapper,
+          cloneElement(inputElements.submit, {
+            onClick: () => {
+              saveDocument(agent_data, folderName).then((res: { document: DocumentInterface }) => {
+                console.log(res.document);
+                handleClose();
+                setDocuments(prev => [...prev, res.document]);
+              });
+            },
+          }),
+        ]);
       },
     },
   ];

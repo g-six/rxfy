@@ -56,6 +56,17 @@ const gql_document = `mutation CreateDocument ($data: DocumentInput!) {
     data {
       id
       attributes {
+        document_uploads {
+          data {
+            id 
+            attributes {
+              url
+              file_name
+              createdAt
+              updatedAt
+            }
+          }
+        }
         name
         agent {
           data {

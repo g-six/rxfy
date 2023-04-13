@@ -79,7 +79,7 @@ export async function retrieveDocuments() {
   if (response.status === 200) {
     const { session_key, documents } = response.data;
     Cookies.set('session_key', session_key);
-    console.log(documents);
+
     return documents;
   }
 

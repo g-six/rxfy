@@ -3,9 +3,10 @@ import { classNames } from '@/_utilities/html-helper';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import React, { ReactElement, cloneElement } from 'react';
 import styles from './documents.module.scss';
+import { DocumentInterface } from '@/_typings/document';
 type Props = {
   template: ReactElement;
-  docData: any;
+  docData: DocumentInterface;
 };
 
 export default function DocumentRow({ template, docData }: Props) {
@@ -68,9 +69,7 @@ export default function DocumentRow({ template, docData }: Props) {
       searchFn: searchByClasses(['doc-preview']),
       transformChild: (child: ReactElement) => {
         return cloneElement(child, {
-          onClick: () => {
-            console.log('preview click');
-          },
+          href: url,
         });
       },
     },

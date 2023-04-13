@@ -384,7 +384,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           }
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.DOCUMENTS)) {
             return (
-              <DocumentsReplacer nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />
+              <DocumentsReplacer nodeProps={props} agent_data={agent_data} nodes={domToReact(node.children) as ReactElement[]} />
               // <RxMyAccountPage {...props} type={node.type} data={agent_data}>
               //   <>{domToReact(node.children) as ReactElement[]}</>
               // </RxMyAccountPage>
