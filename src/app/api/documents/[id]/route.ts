@@ -67,6 +67,17 @@ const gql_document = `mutation CreateDocument ($data: DocumentInput!) {
   }
 }`;
 
+const gql_delete_folder = `mutation DeleteDocument ($id: ID!) {
+  record: deleteDocument(id: $id) {
+    data {
+      id
+      attributes {
+        name
+      }
+    }
+  }
+}`;
+
 const gql_delete_document = `mutation DeleteDocumentUpload ($id: ID!) {
   record: deleteDocumentUpload(id: $id) {
     data {
@@ -394,31 +405,35 @@ export async function DELETE(request: Request) {
         if (user) {
           let query = '';
           let variables = {};
-          if (url.searchParams.get('model') === 'document-uploads') {
-            query = gql_delete_document;
-            variables = {
-              ...variables,
-              id: url.searchParams.get('id'),
-            };
-          }
-          if (!query) {
-            return new Response(
-              JSON.stringify(
+          switch (url.searchParams.get('model')) {
+            case 'document-upload':
+              query = gql_delete_document;
+              break;
+            case 'document':
+              query = gql_delete_folder;
+              break;
+            default:
+              return new Response(
+                JSON.stringify(
+                  {
+                    error: `Sorry, please provide a valid record type`,
+                  },
+                  null,
+                  4,
+                ),
                 {
-                  error: `Sorry, please provide a valid record type`,
+                  headers: {
+                    'content-type': 'application/json',
+                  },
+                  status: 401,
                 },
-                null,
-                4,
-              ),
-              {
-                headers: {
-                  'content-type': 'application/json',
-                },
-                status: 401,
-                statusText: 'Sorry, please login',
-              },
-            );
+              );
           }
+          variables = {
+            ...variables,
+            id: url.searchParams.get('id'),
+          };
+
           const { data: doc_response } = await axios.post(
             `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
             {
