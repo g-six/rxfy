@@ -19,8 +19,8 @@ const inter = Inter({ subsets: ['latin'] });
 export default async function Home({ params, searchParams }: { params: Record<string, unknown>; searchParams: Record<string, string> }) {
   const axios = (await import('axios')).default;
   const { TEST_DOMAIN } = process.env;
-  const url = TEST_DOMAIN || headers().get('origin') || '';
-
+  const url = TEST_DOMAIN || headers().get('x-url') || '';
+  console.log('x-url', headers().get('x-url'));
   const { hostname, origin } = new URL(url);
 
   // Get Webflow page html
