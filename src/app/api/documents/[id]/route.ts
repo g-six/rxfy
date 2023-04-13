@@ -404,7 +404,6 @@ export async function DELETE(request: Request) {
       try {
         if (user) {
           let query = '';
-          let variables = {};
           switch (url.searchParams.get('model')) {
             case 'document-upload':
               query = gql_delete_document;
@@ -429,16 +428,14 @@ export async function DELETE(request: Request) {
                 },
               );
           }
-          variables = {
-            ...variables,
-            id: url.searchParams.get('id'),
-          };
 
           const { data: doc_response } = await axios.post(
             `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
             {
               query,
-              variables,
+              variables: {
+                id: url.searchParams.get('id'),
+              },
             },
             {
               headers: {
@@ -447,19 +444,19 @@ export async function DELETE(request: Request) {
               },
             },
           );
-          let document_upload;
+          let record;
+          console.log(doc_response.data?.record);
           if (doc_response.data?.record?.data?.id) {
             const { id: upload_id, attributes } = doc_response.data?.record?.data;
-            document_upload = {
+            record = {
               ...attributes,
               id: upload_id,
-              document: attributes.document.data || {},
             };
           }
           return new Response(
             JSON.stringify(
               {
-                document_upload,
+                record,
                 session_key: user.session_key,
               },
               null,
