@@ -20,8 +20,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const axios = (await import('axios')).default;
   const { TEST_DOMAIN } = process.env;
   const url = headers().get('x-url') || (TEST_DOMAIN as string);
-  console.log('url:', url);
-  const { hostname, origin } = new URL(url);
+  const { hostname } = new URL(url);
 
   let hostname_query = hostname;
   if (hostname_query === 'localhost') {
