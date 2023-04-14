@@ -22,15 +22,20 @@ export function replaceMetaTags(headCode: string, agent: AgentData, property?: o
         regex: /<title>[^<]*<\/title>/gi,
         data: `<title>${title}</title>`,
       },
-      {
-        regex: /<meta name="description" content="[^"]*"[^>]*>/gi,
+    ];
+    if (description) {
+      replacers.push({
+        regex: /<meta name="description" content="(.*)">/,
         data: `<meta name="description" content="${description}">`,
-      },
-      {
+      });
+    }
+
+    if (image) {
+      replacers.push({
         regex: /<meta property="og:image" content="[^"]*"[^>]*>/gi,
         data: `<meta property="og:image" content="${image}">`,
-      },
-    ];
+      });
+    }
 
     replacers.forEach(replacer => {
       if (replacer.regex.test(headCode)) {
@@ -38,7 +43,7 @@ export function replaceMetaTags(headCode: string, agent: AgentData, property?: o
         headCode = headCode.replaceAll(replacer.regex, replacer.data);
       } else {
         // If the description meta tag does not exist, add it to the head section
-        const headEndTagIndex = headCode.indexOf('</head>');
+        const headEndTagIndex = headCode.indexOf('</head>') + 1;
         headCode = [headCode.slice(0, headEndTagIndex), replacer.data, headCode.slice(headEndTagIndex)].join('');
       }
     });
