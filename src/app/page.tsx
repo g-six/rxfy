@@ -47,6 +47,11 @@ export default async function Home({ params, searchParams }: { params: Record<st
     if (agent_data && agent_data.agent_id) {
       listings = await getAgentListings(agent_data.agent_id);
 
+      console.log('');
+      console.log('----- Recent listings source----');
+      console.log(JSON.stringify(listings, null, 4));
+      console.log('--------------------\n\n');
+
       if (!listings.active || listings.active?.length === 0) {
         const recent_listings = await getRecentListings(agent_data, 12);
         listings = {
