@@ -17,7 +17,7 @@ function RxComponentChomper({ config, children }: any): any {
         let onClick = () => {};
         if (RxElement.props.className.indexOf('heart-full') >= 0) {
           if (config.loved) {
-            opacity_class = 'opacity-100 group-hover:opacity-0';
+            opacity_class = 'opacity-100';
             onClick = () => {
               config.onLoveItem(true);
             };
