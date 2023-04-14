@@ -13,17 +13,12 @@ import initializePlacesAutocomplete from '@/components/Scripts/places-autocomple
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const axios = (await import('axios')).default;
-  const { TEST_DOMAIN, NEXT_APP_GOOGLE_API_KEY } = process.env;
-  const url = headers().get('x-url') || (TEST_DOMAIN as string);
+  const { NEXT_APP_GOOGLE_API_KEY } = process.env;
+  const url = headers().get('x-url') as string;
 
-  const { hostname, origin, pathname } = new URL(url);
+  const { hostname, pathname } = new URL(url);
 
-  let leagent_host = origin;
-  if (hostname === 'localhost') {
-    leagent_host = TEST_DOMAIN as string;
-  }
-
-  const agent_data: AgentData = await getAgentDataFromWebflowDomain(leagent_host);
+  const agent_data: AgentData = await getAgentDataFromWebflowDomain(hostname === 'localhost' ? 'rx.leagent.com' : hostname);
 
   const { data } = await axios.get(`https://${agent_data.webflow_domain}${pathname && pathname}`);
 
@@ -64,6 +59,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {webflow.head.code ? (
           <head suppressHydrationWarning dangerouslySetInnerHTML={{ __html: replaceMetaTags(webflow.head.code, agent_data, property) }} />
         ) : (
+          // <head suppressHydrationWarning dangerouslySetInnerHTML={{ __html: webflow.head.code }} />
           ''
         )}
         {webflow.body ? (
