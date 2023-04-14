@@ -98,8 +98,6 @@ export const MapProvider = (props: any) => {
     }
   };
 
-  console.log(init.query);
-
   const initializeFilters = () => {
     if (search.get('baths')) {
       let value = Number(search.get('baths'));
