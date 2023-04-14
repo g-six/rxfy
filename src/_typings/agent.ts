@@ -61,4 +61,6 @@ export interface AgentData {
   api_key: string;
   vcard: string;
   metatags: AgentMetatags;
+  domain_name: string;
+  webflow_domain: string;
 }
