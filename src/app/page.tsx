@@ -48,16 +48,11 @@ export default async function Home({ params, searchParams }: { params: Record<st
       listings = await getAgentListings(agent_data.agent_id);
 
       if (!listings.active || listings.active?.length === 0) {
-        const recent_listings = await getRecentListings(agent_data, 12);
-        listings = {
-          ...listings,
-          active: recent_listings,
-        };
-      } else {
-        console.log('');
-        console.log('----- Recent listings source----');
-        console.log(JSON.stringify(listings.active[0], null, 4));
-        console.log('--------------------\n\n');
+        // const recent_listings = await getRecentListings(agent_data, 12);
+        // listings = {
+        //   ...listings,
+        //   active: recent_listings,
+        // };
       }
     } else {
       console.log('\n\nHome.agent_data not available');

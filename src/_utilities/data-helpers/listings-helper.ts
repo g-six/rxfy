@@ -8,7 +8,6 @@ export function getSegregatedListings(hits: Hit[]) {
   hits.forEach((hit: Hit) => {
     const { fields } = hit;
     let data: PropertyIndexNode | {} = {};
-    console.log('\n\n');
     Object.keys(fields).forEach(key => {
       const k = key.substring(0, 5) === 'data.' ? key.substring(5) : key;
       data = {
@@ -17,16 +16,10 @@ export function getSegregatedListings(hits: Hit[]) {
       };
     });
     if ((data as PropertyIndexNode).Status.includes('Active')) {
-      console.log('Push active');
-      console.log(JSON.stringify(data, null, 4));
       active.push(data as PropertyIndexNode);
     } else {
-      console.log('Push sold');
-      console.log(JSON.stringify(data, null, 4));
-
       sold.push(data as PropertyIndexNode);
     }
-    console.log('\n\n');
   });
 
   return [active, sold];
