@@ -6,7 +6,7 @@ export function replaceMetaTags(headCode: string, agent: AgentData, property?: o
   if (headCode.length) {
     // fields to place
     const title = prop ? prop.Address : agent.full_name;
-    const description = prop ? prop.Remarks : agent.metatags.personal_bio;
+    const description = prop ? prop.L_PublicRemakrs : agent.metatags.personal_bio;
     let image;
     if (prop) {
       const [photo] = (prop.photos || []) as unknown as string[];
