@@ -23,7 +23,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   console.log({ hostname });
   console.log('--------------------\n\n');
 
-  const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? 'rx.leagent.com' : hostname);
+  const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? 'pacific.leagent.com' : hostname);
 
   const { data } = await axios.get(`https://${agent_data.webflow_domain}${pathname && pathname}`);
 

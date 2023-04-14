@@ -26,7 +26,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   console.log({ hostname });
   console.log('--------------------\n\n');
 
-  const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? 'rx.leagent.com' : hostname);
+  const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? 'pacific.leagent.com' : hostname);
   let webflow_page_url = params && params.slug ? `https://${agent_data.webflow_domain}/${params.slug}` : `https://${agent_data.webflow_domain}`;
 
   if (params && params.slug === 'property') {
@@ -47,17 +47,17 @@ export default async function Home({ params, searchParams }: { params: Record<st
     if (agent_data && agent_data.agent_id) {
       listings = await getAgentListings(agent_data.agent_id);
 
-      console.log('');
-      console.log('----- Recent listings source----');
-      console.log(JSON.stringify(listings, null, 4));
-      console.log('--------------------\n\n');
-
       if (!listings.active || listings.active?.length === 0) {
         const recent_listings = await getRecentListings(agent_data, 12);
         listings = {
           ...listings,
           active: recent_listings,
         };
+      } else {
+        console.log('');
+        console.log('----- Recent listings source----');
+        console.log(JSON.stringify(listings.active[0], null, 4));
+        console.log('--------------------\n\n');
       }
     } else {
       console.log('\n\nHome.agent_data not available');
