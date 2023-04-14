@@ -39,6 +39,8 @@ export async function getAgentListings(agent_id: string): Promise<{
       // If no cached listings results found, let's search
       url = `${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent_id}`;
       res = await fetch(url, { method: 'POST' });
+    } else {
+      console.log('Cache file for featured listings grid found', url);
     }
     if (res.ok && content_type.indexOf('/json') > 0) {
       const { hits: results } = await res.json();
