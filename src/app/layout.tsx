@@ -61,6 +61,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         ) : (
           // <head suppressHydrationWarning dangerouslySetInnerHTML={{ __html: webflow.head.code }} />
           ''
+          // <head suppressHydrationWarning dangerouslySetInnerHTML={{ __html: webflow.head.code }} />
         )}
         {webflow.body ? (
           <body {...body_props} className={bodyClassName} suppressHydrationWarning>

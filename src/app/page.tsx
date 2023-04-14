@@ -21,7 +21,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const url = headers().get('x-url') as string;
   const { hostname, origin } = new URL(url);
 
-  const agent_data: AgentData = await getAgentDataFromWebflowDomain(hostname === 'localhost' ? 'rx.leagent.com' : '');
+  const agent_data: AgentData = await getAgentDataFromWebflowDomain(hostname === 'localhost' ? 'rx.leagent.com' : hostname);
   let webflow_page_url = params && params.slug ? `https://${agent_data.webflow_domain}/${params.slug}` : `https://${agent_data.webflow_domain}`;
 
   if (params && params.slug === 'property') {
