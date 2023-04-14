@@ -71,31 +71,35 @@ export const MapProvider = (props: any) => {
   const router = useRouter();
   let init = initialState;
 
-  const setDefaultQueryKeyValue = (key: string) => {
-    let default_location;
+  const setDefaultQueryKeyValues = () => {
+    let query = '?beds=2&baths=1&minprice=750000&maxprice=20000000';
     if (props.children.props.agent_data?.metatags.search_highlights?.labels) {
-      default_location = props.children.props.agent_data.metatags.search_highlights.labels[0];
-      switch (key) {
-        case 'nelat':
-          init[key] = default_location.ne.lat;
-          break;
-        case 'nelng':
-          init[key] = default_location.ne.lng;
-          break;
-        case 'swlat':
-          init[key] = default_location.sw.lat;
-          break;
-        case 'swlng':
-          init[key] = default_location.sw.lng;
-          break;
-        default:
-          init[key] = default_location[key];
-      }
-      init.query = `${init.query}${key}=${init[key]}&`;
-      if (!init.zoom) {
-        init.zoom = default_location.zoom;
-      }
+      const default_location = props.children.props.agent_data.metatags.search_highlights.labels[0];
+      query = [
+        query,
+        `lat=${default_location.lat}`,
+        `lng=${default_location.lng}`,
+        `nelat=${default_location.ne.lat}`,
+        `nelng=${default_location.ne.lng}`,
+        `swlat=${default_location.sw.lat}`,
+        `swlng=${default_location.sw.lng}`,
+        `zoom=${default_location.zoom}`,
+        `type=R`,
+      ].join('&');
+    } else {
+      query = [
+        query,
+        'lat=49.20409088889508',
+        'lng=-122.97137998744913',
+        'nelat=49.3959558143803',
+        'nelng=-122.41354488536757',
+        'swlat=49.01147862138842',
+        'swlng=-123.52921508953003',
+        'zoom=10',
+        'type=R',
+      ].join('&');
     }
+    location.href = query;
   };
 
   const initializeFilters = () => {
@@ -128,38 +132,26 @@ export const MapProvider = (props: any) => {
     if (search.get('lat')) {
       let value = Number(search.get('lat'));
       if (!isNaN(value)) init.lat = value;
-    } else {
-      setDefaultQueryKeyValue('lat');
     }
     if (search.get('lng')) {
       let value = Number(search.get('lng'));
       if (!isNaN(value)) init.lng = value;
-    } else {
-      setDefaultQueryKeyValue('lng');
     }
     if (search.get('swlat')) {
       let value = Number(search.get('swlat'));
       if (!isNaN(value)) init.swlat = value;
-    } else {
-      setDefaultQueryKeyValue('swlat');
     }
     if (search.get('swlng')) {
       let value = Number(search.get('swlng'));
       if (!isNaN(value)) init.swlng = value;
-    } else {
-      setDefaultQueryKeyValue('swlng');
     }
     if (search.get('nelat')) {
       let value = Number(search.get('nelat'));
       if (!isNaN(value)) init.nelat = value;
-    } else {
-      setDefaultQueryKeyValue('nelat');
     }
     if (search.get('nelng')) {
       let value = Number(search.get('nelng'));
       if (!isNaN(value)) init.nelng = value;
-    } else {
-      setDefaultQueryKeyValue('nelng');
     }
     if (search.get('types')) {
       let value: string[] = (search.get('types') as string).split('%2F');
@@ -169,7 +161,13 @@ export const MapProvider = (props: any) => {
     }
   };
 
-  initializeFilters();
+  if (search.toString().trim().length === 0) {
+    // No map filter params on URL, let's redirect
+    setDefaultQueryKeyValues();
+  } else {
+    initializeFilters();
+  }
+
   const [state, setState] = useState<MapStatePropsWithFilters>(init);
   const debounced = useDebounce(state.address || '', 400);
 
