@@ -79,7 +79,7 @@ function RxComponentChomper({ config, children }: any): any {
   return <>{cloneChildren}</>;
 }
 
-export default function RxPropertyCard({ sequence, children, listing }: { sequence?: number; children: any; listing: MLSProperty }) {
+export default function RxPropertyCard({ sequence, children, listing, agent }: { agent?: number; sequence?: number; children: any; listing: MLSProperty }) {
   const [loved_items, setLovedItems] = React.useState(getData(Events.LovedItem) as unknown as string[]);
   const evt = useLove();
 
@@ -90,9 +90,13 @@ export default function RxPropertyCard({ sequence, children, listing }: { sequen
   }, [evt.data]);
 
   return (
-    <div className={classNames('group absolute ml-1 w-11/12 sm:ml-4 md:w-full md:ml-auto md:relative', sequence === 0 ? `` : 'hidden sm:block')}>
+    <div
+      data-agent={agent}
+      className={classNames('group absolute ml-1 w-11/12 sm:ml-4 md:w-full md:ml-auto md:relative', sequence === 0 ? `` : 'hidden sm:block')}
+    >
       <RxComponentChomper
         config={{
+          '{PropCard Address}': listing.Address,
           '{PropertyCard Address}': listing.Address,
           '{PropertyCard Price}': formatValues(listing, 'AskingPrice'),
           '{PArea}': listing.Area || listing.City || 'N/A',
@@ -103,7 +107,9 @@ export default function RxPropertyCard({ sequence, children, listing }: { sequen
           '{PYear}': listing.L_YearBuilt || ' ',
           loved: loved_items && loved_items.includes(listing.MLS_ID),
           onLoveItem: (remove: boolean) => {
-            evt.fireEvent(listing, remove);
+            if (agent) {
+              evt.fireEvent(listing, agent, remove);
+            }
           },
         }}
       >

@@ -4,6 +4,8 @@ import { Events } from '@/_typings/events';
 import { MLSProperty } from '@/_typings/property';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 import Cookies from 'js-cookie';
+import { loveHome } from '@/_utilities/api-calls/call-love-home';
+import axios from 'axios';
 
 export default function useLove() {
   const [data, setLovedData] = React.useState<{
@@ -35,10 +37,11 @@ export default function useLove() {
     return () => document.removeEventListener(Events.LovedItem, onEvent as EventListener, false);
   }, []);
 
-  const fireEvent = React.useCallback((item: MLSProperty, remove = false) => {
+  const fireEvent = React.useCallback((item: MLSProperty, agent: number, remove = false) => {
     // if user is in session, let's update
     if (Cookies.get('cid') && Cookies.get('session_key')) {
-      console.log(item.MLS_ID);
+      axios.post(`/property?mls=${item.MLS_ID}`).catch(console.log);
+      loveHome(item.MLS_ID, agent);
     }
 
     document.dispatchEvent(

@@ -216,7 +216,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
           return child.key === '1' ? (
             props.listings.slice(-10).map((p: MLSProperty, sequence_no) => {
               LargeCard = (
-                <RxPropertyCard key={p.MLS_ID} listing={p} sequence={sequence_no}>
+                <RxPropertyCard key={p.MLS_ID} listing={p} sequence={sequence_no} agent={props.agent_data.id}>
                   {cloneElement(child, {
                     ...child.props,
                     className: classNames(child.props.className),
