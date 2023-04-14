@@ -19,7 +19,12 @@ const inter = Inter({ subsets: ['latin'] });
 export default async function Home({ params, searchParams }: { params: Record<string, unknown>; searchParams: Record<string, string> }) {
   const axios = (await import('axios')).default;
   const url = headers().get('x-url') as string;
-  const { hostname, origin } = new URL(url);
+  const { hostname } = new URL(url);
+
+  console.log();
+  console.log('----- Source for----');
+  console.log({ hostname });
+  console.log();
 
   const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? 'rx.leagent.com' : hostname);
   let webflow_page_url = params && params.slug ? `https://${agent_data.webflow_domain}/${params.slug}` : `https://${agent_data.webflow_domain}`;
