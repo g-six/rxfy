@@ -18,6 +18,11 @@ export function getSegregatedListings(hits: Hit[]) {
     if ((data as PropertyIndexNode).Status.includes('Active')) {
       active.push(data as PropertyIndexNode);
     } else {
+      console.log('\n\n');
+      console.log('Push sold');
+      console.log(JSON.stringify(data, null, 4));
+      console.log('\n\n');
+
       sold.push(data as PropertyIndexNode);
     }
   });
