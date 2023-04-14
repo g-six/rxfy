@@ -6,7 +6,7 @@ import { AgentData } from '@/_typings/agent';
 import { DocumentInterface, DocumentsFolderInterface } from '@/_typings/document';
 
 import DocumentsFolderDropdown from './DocumentsFolderDropdown';
-import useEvent, { Events } from '@/hooks/useEvent';
+import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
 import { removeDocument, removeDocumentUpload } from '@/_utilities/api-calls/call-documents';
 
 type Props = {
@@ -19,9 +19,15 @@ type Props = {
 export default function DocumentsFolder({ template, docFolderData, agent_data, setDocuments }: Props) {
   const templates = captureMatchingElements(template, [{ searchFn: searchByClasses(['one-doc-description']), elementName: 'docRow' }]);
   const event = useEvent(Events.DocFolderShow);
+  const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const deleteFolder = () => {
     removeDocument(parseInt(docFolderData.id)).then(res => {
       setDocuments(prev => [...prev.filter(docFolder => docFolder.id !== res.record.id)]);
+      notify({
+        timeout: 5000,
+        category: NotificationCategory.Success,
+        message: 'Folder has been deleted',
+      });
     });
   };
   const deleteDocumentUpload = (id: string) => {
@@ -34,6 +40,11 @@ export default function DocumentsFolder({ template, docFolderData, agent_data, s
             return { ...docFolderData, document_uploads: { data: [...filteredData] } };
           }),
         ]);
+        notify({
+          timeout: 5000,
+          category: NotificationCategory.Success,
+          message: 'Document has been deleted',
+        });
       }
     });
   };
