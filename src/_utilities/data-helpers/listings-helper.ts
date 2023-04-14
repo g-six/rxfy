@@ -14,17 +14,19 @@ export function getSegregatedListings(hits: Hit[]) {
         ...data,
         [k]: Array.isArray(fields[key]) && !keep_as_array.includes(k) ? Array(fields[key]).join(',') : fields[key],
       };
+      console.log('\n\n');
     });
     if ((data as PropertyIndexNode).Status.includes('Active')) {
+      console.log('Push active');
+      console.log(JSON.stringify(data, null, 4));
       active.push(data as PropertyIndexNode);
     } else {
-      console.log('\n\n');
       console.log('Push sold');
       console.log(JSON.stringify(data, null, 4));
-      console.log('\n\n');
 
       sold.push(data as PropertyIndexNode);
     }
+    console.log('\n\n');
   });
 
   return [active, sold];
