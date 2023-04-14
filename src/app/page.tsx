@@ -15,20 +15,30 @@ import { AgentData } from '@/_typings/agent';
 import RxNotifications from '@/components/RxNotifications';
 
 const inter = Inter({ subsets: ['latin'] });
-
+const skip_slugs = ['favicon.ico'];
 export default async function Home({ params, searchParams }: { params: Record<string, unknown>; searchParams: Record<string, string> }) {
   const axios = (await import('axios')).default;
   const url = headers().get('x-url') as string;
   const { hostname } = new URL(url);
 
   const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? 'pacific.leagent.com' : hostname);
-  let webflow_page_url = params && params.slug ? `https://${agent_data.webflow_domain}/${params.slug}` : `https://${agent_data.webflow_domain}`;
+  let webflow_page_url =
+    params && params.slug && !skip_slugs.includes(params.slug as string)
+      ? `https://${agent_data.webflow_domain}/${params.slug}`
+      : `https://${agent_data.webflow_domain}`;
 
   if (params && params.slug === 'property') {
     webflow_page_url = `${webflow_page_url}/${params.slug}id`;
+    console.log('fetching property page', webflow_page_url);
   }
+  let data;
 
-  const { data } = await axios.get(webflow_page_url);
+  try {
+    const req_page_html = await axios.get(webflow_page_url);
+    data = req_page_html.data;
+  } catch (e) {
+    console.log('Unable to fetch page html for', webflow_page_url);
+  }
 
   const $: CheerioAPI = load(data);
 
@@ -100,6 +110,23 @@ export default async function Home({ params, searchParams }: { params: Record<st
         }
       });
     });
+    if ($('a.link').length < photos.length) {
+      photos.slice(2).forEach(url => {
+        $('a.link:first').parentsUntil('#propertyimages')
+          .append(`<a href="#" class="lightbox-link link w-inline-block w-lightbox hidden" aria-label="open lightbox" aria-haspopup="dialog">
+        <img src="${url}" loading="eager" alt="" class="cardimage" />
+        <script class="w-json" type="application/json">{
+          "items": [
+              {
+                  "url": "${url}",
+                  "type": "image"
+              }
+          ],
+          "group": "Property Images"
+      }</script>        
+        </a>`);
+      });
+    }
   }
 
   $('.w-webflow-badge').remove();

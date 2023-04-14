@@ -8,6 +8,7 @@ type CarouselPhoto = {
 };
 type PropertyCarouselProps = {
   children: ReactNode;
+  photos: string[];
 };
 export default function RxPropertyCarousel(props: PropertyCarouselProps) {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
@@ -25,10 +26,6 @@ export default function RxPropertyCarousel(props: PropertyCarouselProps) {
     });
     setPhotos(phts);
   }, []);
-
-  useEffect(() => {
-    console.log(photos.length);
-  }, [photos]);
 
   const handlePrevClick = () => {
     if (currentPhotoIndex === 0) {
