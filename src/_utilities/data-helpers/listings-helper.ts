@@ -46,10 +46,6 @@ export async function getAgentListings(agent_id: string): Promise<{
       const { hits } = results as {
         hits: Hit[];
       };
-      console.log('');
-      console.log('----- getAgentListings ----');
-      console.log(JSON.stringify(hits[0], null, 4));
-      console.log('--------------------\n\n');
 
       const [active, sold] = getSegregatedListings(
         hits.filter(hit => {

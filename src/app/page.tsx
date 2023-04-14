@@ -21,11 +21,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const url = headers().get('x-url') as string;
   const { hostname } = new URL(url);
 
-  console.log('');
-  console.log('----- Page source for----');
-  console.log({ hostname });
-  console.log('--------------------\n\n');
-
   const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? 'pacific.leagent.com' : hostname);
   let webflow_page_url = params && params.slug ? `https://${agent_data.webflow_domain}/${params.slug}` : `https://${agent_data.webflow_domain}`;
 
@@ -46,6 +41,19 @@ export default async function Home({ params, searchParams }: { params: Record<st
   if (!params || !params.slug || params.slug === '/') {
     if (agent_data && agent_data.agent_id) {
       listings = await getAgentListings(agent_data.agent_id);
+      // Recent listings
+      if (listings?.active?.length) {
+        fillPropertyGrid($, listings.active, '.recent-listings-grid');
+      } else {
+        removeSection($, '.recent-listings-grid');
+      }
+
+      // Sold listings
+      if (listings?.sold?.length) {
+        fillPropertyGrid($, listings.sold, '.sold-listings-grid');
+      } else {
+        removeSection($, '.sold-listings-grid');
+      }
     } else {
       console.log('\n\nHome.agent_data not available');
     }
@@ -61,20 +69,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
     }
   }
   await fillAgentInfo($, agent_data);
-  // Recent listings
-  if (listings?.active?.length) {
-    console.log(JSON.stringify(listings.active[0], null, 4));
-    fillPropertyGrid($, listings.active, '.recent-listings-grid');
-  } else {
-    removeSection($, '.recent-listings-grid');
-  }
-
-  // Sold listings
-  if (listings?.sold?.length) {
-    fillPropertyGrid($, listings.sold, '.sold-listings-grid');
-  } else {
-    removeSection($, '.sold-listings-grid');
-  }
 
   if (property) {
     // Photo gallery for properties

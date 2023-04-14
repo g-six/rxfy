@@ -211,8 +211,9 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
           return MapAndHeaderHeader;
         }
 
-        if (child.props.className === 'property-card-map') {
+        if (child.props.className.indexOf('property-card-map') >= 0) {
           // Just clone one
+          console.log(props.listings);
           return child.key === '1' ? (
             props.listings.slice(-10).map((p: MLSProperty, sequence_no) => {
               LargeCard = (
