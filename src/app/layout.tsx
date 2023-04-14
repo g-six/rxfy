@@ -59,6 +59,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {webflow.head.code ? (
           <head suppressHydrationWarning dangerouslySetInnerHTML={{ __html: replaceMetaTags(webflow.head.code, agent_data, property) }} />
         ) : (
+          // <head suppressHydrationWarning dangerouslySetInnerHTML={{ __html: webflow.head.code }} />
           ''
           // <head suppressHydrationWarning dangerouslySetInnerHTML={{ __html: webflow.head.code }} />
         )}
