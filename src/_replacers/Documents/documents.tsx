@@ -33,7 +33,7 @@ export default function DocumentsReplacer({ nodes, nodeProps, agent_data }: Prop
       transformChild: (child: ReactElement) => {
         return cloneElement(child, {}, [
           documents.map((doc: DocumentsFolderInterface) => (
-            <DocumentsFolder key={doc.id} template={templates.docFolder} docFolderData={doc} agent_data={agent_data} />
+            <DocumentsFolder key={doc.id} template={templates.docFolder} docFolderData={doc} agent_data={agent_data} setDocuments={setDocuments} />
           )),
         ]);
       },

@@ -7,9 +7,10 @@ import { DocumentInterface } from '@/_typings/document';
 type Props = {
   template: ReactElement;
   docData: DocumentInterface;
+  deleteRow: (id: string) => void;
 };
 
-export default function DocumentRow({ template, docData }: Props) {
+export default function DocumentRow({ template, docData, deleteRow }: Props) {
   const { updatedAt, file_name, url } = docData?.attributes ?? {};
   const handleDownload = () => {
     const xhr = new XMLHttpRequest();
@@ -59,7 +60,8 @@ export default function DocumentRow({ template, docData }: Props) {
       transformChild: (child: ReactElement) => {
         return cloneElement(child, {
           onClick: () => {
-            console.log('delete click');
+            console.log('delete click', docData.id);
+            deleteRow(docData.id);
           },
         });
       },
