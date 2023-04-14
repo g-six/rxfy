@@ -20,6 +20,13 @@ export default function DocumentsCreateFolder({ child, agent_data, setDocuments 
     setFolderName('');
     event.fireEvent({ show: false });
   };
+  const createNewDocFolder = () => {
+    saveDocument(agent_data, folderName).then((res: { document: DocumentInterface }) => {
+      console.log(res.document);
+      handleClose();
+      setDocuments(prev => [...prev, res.document]);
+    });
+  };
   const searcFor = [
     { searchFn: searchByClasses(['icon-5', 'w-embed']), elementName: 'icon' },
     { searchFn: searchByClasses(['input-placeholder']), elementName: 'placeholder' },
@@ -29,12 +36,14 @@ export default function DocumentsCreateFolder({ child, agent_data, setDocuments 
   const inputElements = captureMatchingElements(child, searcFor);
   const matches = [
     {
+      //new folder popup
       searchFn: searchByClasses(['new-doc-div']),
       transformChild: (child: ReactElement) => {
         return cloneElement(child, { style: { display: show ? 'flex' : 'none' } });
       },
     },
     {
+      //new folder popup close icon
       searchFn: searchByClasses(['new-dr-close']),
       transformChild: (child: ReactElement) => {
         return cloneElement(child, {
@@ -43,6 +52,7 @@ export default function DocumentsCreateFolder({ child, agent_data, setDocuments 
       },
     },
     {
+      //transforming 'input-like' div to real input
       searchFn: searchByClasses(['input-row']),
       transformChild: (child: ReactElement) => {
         const input = createElement('input', {
@@ -50,6 +60,11 @@ export default function DocumentsCreateFolder({ child, agent_data, setDocuments 
           key: '012123',
           type: 'text',
           value: folderName,
+          onKeyUp: (e: KeyboardEvent) => {
+            if (e.code === 'Enter') {
+              createNewDocFolder();
+            }
+          },
           onChange: (e: ChangeEvent<HTMLInputElement>) => {
             setFolderName(e.currentTarget.value);
           },
@@ -66,13 +81,8 @@ export default function DocumentsCreateFolder({ child, agent_data, setDocuments 
         return cloneElement(child, {}, [
           inputWrapper,
           cloneElement(inputElements.submit, {
-            onClick: () => {
-              saveDocument(agent_data, folderName).then((res: { document: DocumentInterface }) => {
-                console.log(res.document);
-                handleClose();
-                setDocuments(prev => [...prev, res.document]);
-              });
-            },
+            //getting sumbit work
+            onClick: createNewDocFolder,
           }),
         ]);
       },
