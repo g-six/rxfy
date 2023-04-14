@@ -6,7 +6,7 @@ import './globals.css';
 import React from 'react';
 import { WebFlow } from '@/_typings/webflow';
 import { AgentData } from '@/_typings/agent';
-import { getAgentDataFromWebflowDomain } from '@/_utilities/data-helpers/agent-helper';
+import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getPrivatePropertyData, getPropertyData } from '@/_utilities/data-helpers/property-page';
 import { replaceMetaTags } from '@/_helpers/head-manipulations';
 import initializePlacesAutocomplete from '@/components/Scripts/places-autocomplete';
@@ -18,7 +18,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const { hostname, pathname } = new URL(url);
 
-  const agent_data: AgentData = await getAgentDataFromWebflowDomain(hostname === 'localhost' ? 'rx.leagent.com' : hostname);
+  const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? 'rx.leagent.com' : hostname);
 
   const { data } = await axios.get(`https://${agent_data.webflow_domain}${pathname && pathname}`);
 

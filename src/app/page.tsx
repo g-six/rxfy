@@ -5,7 +5,7 @@ import { Inter } from 'next/font/google';
 import styles from './page.module.scss';
 import { fillAgentInfo, fillPropertyGrid, removeSection, replaceByCheerio, rexify } from '@/components/rexifier';
 import { WebFlow } from '@/_typings/webflow';
-import { getAgentDataFromWebflowDomain } from '@/_utilities/data-helpers/agent-helper';
+import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
 import { getPrivatePropertyData, getPropertyData, getRecentListings, getSimilarHomes } from '@/_utilities/data-helpers/property-page';
 import { MLSProperty } from '@/_typings/property';
@@ -21,7 +21,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const url = headers().get('x-url') as string;
   const { hostname, origin } = new URL(url);
 
-  const agent_data: AgentData = await getAgentDataFromWebflowDomain(hostname === 'localhost' ? 'rx.leagent.com' : hostname);
+  const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? 'rx.leagent.com' : hostname);
   let webflow_page_url = params && params.slug ? `https://${agent_data.webflow_domain}/${params.slug}` : `https://${agent_data.webflow_domain}`;
 
   if (params && params.slug === 'property') {
