@@ -11,7 +11,7 @@ export default function useLove() {
     remove?: boolean;
   }>();
 
-  const onEvent = React.useCallback((e: CustomEvent) => setLovedData(e.detail as MLSProperty), []);
+  const onEvent = React.useCallback((e: CustomEvent) => setLovedData(e.detail as { item: MLSProperty; remove?: boolean }), []);
 
   React.useEffect(() => {
     if (data && data.item) {
