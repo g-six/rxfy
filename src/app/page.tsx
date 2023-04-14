@@ -71,14 +71,14 @@ export default async function Home({ params, searchParams }: { params: Record<st
   await fillAgentInfo($, agent_data);
   // Recent listings
   if (listings?.active?.length) {
-    fillPropertyGrid($, listings.active, '.recent-listings-grid');
+    fillPropertyGrid($, listings.active, '.recxent-listings-grid');
   } else {
     removeSection($, '.recent-listings-grid');
   }
 
   // Sold listings
   if (listings?.sold?.length) {
-    fillPropertyGrid($, listings.sold as unknown as MLSProperty[], '.sold-listings-grid');
+    fillPropertyGrid($, listings.sold, '.sold-listings-grid');
   } else {
     removeSection($, '.sold-listings-grid');
   }
