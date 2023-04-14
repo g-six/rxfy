@@ -8,13 +8,13 @@ export function getSegregatedListings(hits: Hit[]) {
   hits.forEach((hit: Hit) => {
     const { fields } = hit;
     let data: PropertyIndexNode | {} = {};
+    console.log('\n\n');
     Object.keys(fields).forEach(key => {
       const k = key.substring(0, 5) === 'data.' ? key.substring(5) : key;
       data = {
         ...data,
         [k]: Array.isArray(fields[key]) && !keep_as_array.includes(k) ? Array(fields[key]).join(',') : fields[key],
       };
-      console.log('\n\n');
     });
     if ((data as PropertyIndexNode).Status.includes('Active')) {
       console.log('Push active');
