@@ -72,6 +72,12 @@ export const MapProvider = (props: any) => {
   let init = initialState;
 
   const initializeFilters = () => {
+    let default_location;
+
+    if (props.children.props.agent_data?.metatags.search_highlights?.labels) {
+      default_location = props.children.props.agent_data.metatags.search_highlights.labels[0];
+    }
+
     if (search.get('baths')) {
       let value = Number(search.get('baths'));
       if (!isNaN(value)) init.baths = value;
@@ -99,26 +105,38 @@ export const MapProvider = (props: any) => {
     if (search.get('lat')) {
       let value = Number(search.get('lat'));
       if (!isNaN(value)) init.lat = value;
+    } else if (default_location) {
+      init.lat = default_location.lat;
     }
     if (search.get('lng')) {
       let value = Number(search.get('lng'));
       if (!isNaN(value)) init.lng = value;
+    } else if (default_location) {
+      init.lng = default_location.lng;
     }
     if (search.get('swlat')) {
       let value = Number(search.get('swlat'));
       if (!isNaN(value)) init.swlat = value;
+    } else if (default_location) {
+      init.swlat = default_location.sw?.lat;
     }
     if (search.get('swlng')) {
       let value = Number(search.get('swlng'));
       if (!isNaN(value)) init.swlng = value;
+    } else if (default_location) {
+      init.swlng = default_location.sw?.lng;
     }
     if (search.get('nelat')) {
       let value = Number(search.get('nelat'));
       if (!isNaN(value)) init.nelat = value;
+    } else if (default_location) {
+      init.nelat = default_location.ne?.lat;
     }
     if (search.get('nelng')) {
       let value = Number(search.get('nelng'));
       if (!isNaN(value)) init.nelng = value;
+    } else if (default_location) {
+      init.nelng = default_location.ne?.lng;
     }
     if (search.get('types')) {
       let value: string[] = (search.get('types') as string).split('%2F');
@@ -127,6 +145,7 @@ export const MapProvider = (props: any) => {
   };
 
   initializeFilters();
+  console.log({ init });
   const [state, setState] = useState<MapStatePropsWithFilters>(init);
   const debounced = useDebounce(state.address || '', 400);
 
