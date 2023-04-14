@@ -56,6 +56,17 @@ const gql_document = `mutation CreateDocument ($data: DocumentInput!) {
     data {
       id
       attributes {
+        document_uploads {
+          data {
+            id 
+            attributes {
+              url
+              file_name
+              createdAt
+              updatedAt
+            }
+          }
+        }
         name
         agent {
           data {
@@ -101,7 +112,17 @@ const gql_retrieve_documents = `query RetrieveDocuments ($filters: DocumentFilte
       id
       attributes {
         name
-        url
+        document_uploads {
+          data {
+            id 
+            attributes {
+              url
+              file_name
+              createdAt
+              updatedAt
+            }
+          }
+        }
         agent {
           data {
             id
