@@ -24,6 +24,10 @@ import RxDatePicker from './RxLiveUrlBased/RxDatePicker';
 import HomeAlertsReplacer from '@/_replacers/HomeAlerts/home-alerts';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { RxUserSessionLink } from './Nav/RxUserSessionLink';
+import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
+import { LoveDataModel } from '@/_typings/love';
+import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
+import { Events } from '@/_typings/events';
 
 export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?: string }) {
   let MapAndHeaderHeader;
@@ -265,19 +269,30 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
   const [listings, setListings] = React.useState<MLSProperty[]>([]);
   const [map_params, setMapParams] = React.useState<PlaceDetails>();
 
+  const processLovedHomes = (records: LoveDataModel[]) => {
+    const local_loves = (getData(Events.LovedItem) as unknown as string[]) || [];
+    records.forEach(({ property }) => {
+      if (!local_loves.includes(property.mls_id)) {
+        local_loves.push(property.mls_id);
+      }
+    });
+    setData(Events.LovedItem, JSON.stringify(local_loves));
+  };
+
   React.useEffect(() => {
     if (place && props.agent_data !== undefined) {
       getPlaceDetails(place).then((details: PlaceDetails) => {
         setMapParams(details);
       });
-    } else {
     }
   }, [place, props.agent_data]);
 
   React.useEffect(() => {
-    if (props.agent_data.metatags?.search_highlights?.labels) {
-      const [default_place] = props.agent_data.metatags.search_highlights.labels;
-    }
+    getLovedHomes().then(response => {
+      if (response && response.records) {
+        processLovedHomes(response.records);
+      }
+    });
   }, []);
 
   return (

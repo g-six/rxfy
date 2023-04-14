@@ -30,6 +30,17 @@ export enum PropertySortBy {
   SIZE_DESC = 'size_desc',
 }
 
+export interface PropertyDataModel {
+  id: number;
+  title: string;
+  area: string;
+  asking_price: number;
+  city: string;
+  mls_id: string;
+  property_type: string;
+  price_per_sqft?: number;
+}
+
 export interface MLSProperty extends Record<string, string | number | string[]> {
   lat: number;
   lng: number;
