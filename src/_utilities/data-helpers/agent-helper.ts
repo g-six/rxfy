@@ -57,7 +57,7 @@ export async function getAgentDataFromWebflowDomain(domain: string): Promise<Age
   // Firstly, we don't want to add to dependencies.
   // We should have this working even if ElasticSearch is down.
   if (!data || Object.keys(data).length === 0 || !data.agent_id) {
-    url = `${process.env.NEXT_PUBLIC_API}/agent-websites/webflow/${encodeURIComponent(domain)}`;
+    url = `${process.env.NEXT_PUBLIC_API}/agent-websites/domain/${encodeURIComponent(domain)}`;
     console.log('axios', url);
     xhr = await axios.get(url).catch(e => {
       console.log(url, 'not found');
