@@ -11,6 +11,14 @@ import { getPrivatePropertyData, getPropertyData } from '@/_utilities/data-helpe
 import { replaceMetaTags } from '@/_helpers/head-manipulations';
 import initializePlacesAutocomplete from '@/components/Scripts/places-autocomplete';
 
+const skip_pathnames = ['/favicon.ico'];
+
+function getFullWebflowPagePath(pathname: string) {
+  if (!pathname || pathname === '/' || skip_pathnames.includes(pathname)) return '/';
+  if (pathname === '/property') return '/property/propertyid';
+  return pathname;
+}
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const axios = (await import('axios')).default;
   const { NEXT_APP_GOOGLE_API_KEY } = process.env;
@@ -19,8 +27,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const { hostname, pathname } = new URL(url);
 
   const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? 'pacific.leagent.com' : hostname);
-
-  const { data } = await axios.get(`https://${agent_data.webflow_domain}${pathname && pathname}`);
+  let data;
+  const page_url = `https://${agent_data.webflow_domain}${getFullWebflowPagePath(pathname)}`;
+  try {
+    const req_page_html = await axios.get(page_url);
+    data = req_page_html.data;
+  } catch (e) {
+    console.log('Layout.tsx ERROR.  Unable to fetch page html for', page_url);
+  }
 
   const requestLink = headers().get('x-url') || '';
   const requestUrl = new URL(requestLink);
@@ -59,9 +73,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {webflow.head.code ? (
           <head suppressHydrationWarning dangerouslySetInnerHTML={{ __html: replaceMetaTags(webflow.head.code, agent_data, property) }} />
         ) : (
-          // <head suppressHydrationWarning dangerouslySetInnerHTML={{ __html: webflow.head.code }} />
           ''
-          // <head suppressHydrationWarning dangerouslySetInnerHTML={{ __html: webflow.head.code }} />
         )}
         {webflow.body ? (
           <body {...body_props} className={bodyClassName} suppressHydrationWarning>

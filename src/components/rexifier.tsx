@@ -125,7 +125,10 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
 export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapper_selector = '.similar-homes-grid', card_selector = '.property-card') {
   properties.forEach((p: MLSProperty, i) => {
     replaceByCheerio($, `${wrapper_selector} > ${card_selector}:nth-child(${i + 1})`, {
-      ['data-mls']: p.MLS_ID,
+      className: 'group',
+    });
+    replaceByCheerio($, `${wrapper_selector} > ${card_selector}:nth-child(${i + 1}) .heart-on-small-card`, {
+      className: 'group-hover:block',
     });
 
     // Photo
@@ -178,6 +181,7 @@ type ReplacementOptions = {
   backgroundImage?: string;
   content?: string;
   prepend?: string;
+  className?: string;
   ['data-mls']?: string;
   city?: string;
   mapbox_boundaries?: MapboxBoundaries;
@@ -201,6 +205,8 @@ export function replaceByCheerio($: CheerioAPI, target: string, replacement: Rep
     } else if (replacement.photo) {
       $(target).attr('src', replacement.photo);
       $(target).removeAttr('srcset');
+    } else if (replacement.className) {
+      $(target).attr('class', `${$(target).attr('class')} ${replacement.className}`);
     } else if (replacement.content) {
       // Replace the whole tag
       $(target).html(replacement.content);
@@ -286,7 +292,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
                             }
                         }, 1200)
                     }
-                    
+
                     ${attribs.src.indexOf('jquery') ? 'document.body.appendChild(script);' : ''}
                   `,
                 }}
@@ -296,30 +302,15 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         } else {
           if ((node as Element).children) {
             // Scripts that are inline...
-            // Debugging purposes
+
             const { data } = (node as Element).children[0] as {
               data: string;
             };
-            if (data) {
-              try {
-                const property_image: {
-                  group: 'Property Images';
-                  items: {
-                    url: string;
-                    type: string;
-                  }[];
-                } = JSON.parse(data);
-                if (property_image.group === 'Property Images' && property_image.items[0]?.url) {
-                  return <div data-carousel-photo={property_image.items[0].url}></div>;
-                }
-              } catch (e) {
-                console.log('Not an image. Not to be worried about for now');
-                console.log(e);
-              }
+
+            if (data && data.indexOf('"Property Images"') > 0) {
+              return <div data-carousel-photo='https://assets.website-files.com/642bc0505141b84f69254283/642bc0505141b84848254288_Prop%20Page%2001.jpg'></div>;
             }
             return <script dangerouslySetInnerHTML={{ __html: data }} type='application/json' />;
-
-            return <></>;
           }
         }
       } else if (node instanceof Element && node.attribs) {
@@ -469,7 +460,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             if (node.attribs.class === 'section---top-images wf-section') {
               return (
                 <section className={node.attribs.class}>
-                  <RxPropertyCarousel>{domToReact(node.children)}</RxPropertyCarousel>
+                  <RxPropertyCarousel photos={(record.photos || []) as string[]}>{domToReact(node.children)}</RxPropertyCarousel>
                 </section>
               );
             }

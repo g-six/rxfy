@@ -213,7 +213,6 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
 
         if (child.props.className.indexOf('property-card-map') >= 0) {
           // Just clone one
-          console.log(props.listings);
           return child.key === '1' ? (
             props.listings.slice(-10).map((p: MLSProperty, sequence_no) => {
               LargeCard = (
@@ -271,8 +270,16 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
       getPlaceDetails(place).then((details: PlaceDetails) => {
         setMapParams(details);
       });
+    } else {
     }
   }, [place, props.agent_data]);
+
+  React.useEffect(() => {
+    if (props.agent_data.metatags?.search_highlights?.labels) {
+      const [default_place] = props.agent_data.metatags.search_highlights.labels;
+      console.log('props.agent_data', default_place);
+    }
+  }, []);
 
   return (
     <MapProvider>
