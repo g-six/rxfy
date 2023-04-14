@@ -48,11 +48,11 @@ export default async function Home({ params, searchParams }: { params: Record<st
       listings = await getAgentListings(agent_data.agent_id);
 
       if (!listings.active || listings.active?.length === 0) {
-        // const recent_listings = await getRecentListings(agent_data, 12);
-        // listings = {
-        //   ...listings,
-        //   active: recent_listings,
-        // };
+        const recent_listings = await getRecentListings(agent_data, 12);
+        listings = {
+          ...listings,
+          active: recent_listings,
+        };
       }
     } else {
       console.log('\n\nHome.agent_data not available');
@@ -71,7 +71,8 @@ export default async function Home({ params, searchParams }: { params: Record<st
   await fillAgentInfo($, agent_data);
   // Recent listings
   if (listings?.active?.length) {
-    fillPropertyGrid($, listings.active, '.recxent-listings-grid');
+    console.log(JSON.stringify(listings.active[0], null, 4));
+    fillPropertyGrid($, listings.active, '.recent-listings-grid');
   } else {
     removeSection($, '.recent-listings-grid');
   }
