@@ -1,12 +1,35 @@
 import { AgentData } from '@/_typings/agent';
 import { MLSProperty } from '@/_typings/property';
+import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 
 export function replaceMetaTags(headCode: string, agent: AgentData, property?: object) {
   const prop = property as MLSProperty;
   if (headCode.length) {
     // fields to place
-    const title = prop ? prop.Address : agent.full_name;
-    const description = prop ? prop.Remarks : agent.metatags.personal_bio;
+    let title = agent.full_name;
+    let description = agent.metatags.personal_bio;
+
+    if (prop) {
+      // If there's a property model
+      const title_segments = [];
+      if (prop.AskingPrice) {
+        title_segments.push(getShortPrice(prop.AskingPrice));
+      }
+      if (prop.L_BedroomTotal) {
+        title_segments.push(`${prop.L_BedroomTotal} Beds`);
+      }
+      if (prop.L_TotalBaths) {
+        title_segments.push(`${prop.L_TotalBaths} Baths`);
+      }
+      if (prop.Address) {
+        title_segments.push(prop.Address);
+      }
+
+      title = title_segments.join(' | ');
+
+      description = prop.L_PublicRemakrs;
+    }
+
     let image;
     if (prop) {
       const [photo] = (prop.photos || []) as unknown as string[];
