@@ -18,10 +18,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const { hostname, pathname } = new URL(url);
 
-  console.log();
-  console.log('----- Source for----');
+  console.log('');
+  console.log('----- Layout source for----');
   console.log({ hostname });
-  console.log();
+  console.log('--------------------\n\n');
 
   const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? 'rx.leagent.com' : hostname);
 

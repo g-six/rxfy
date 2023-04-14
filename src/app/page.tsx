@@ -21,10 +21,10 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const url = headers().get('x-url') as string;
   const { hostname } = new URL(url);
 
-  console.log();
-  console.log('----- Source for----');
+  console.log('');
+  console.log('----- Page source for----');
   console.log({ hostname });
-  console.log();
+  console.log('--------------------\n\n');
 
   const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? 'rx.leagent.com' : hostname);
   let webflow_page_url = params && params.slug ? `https://${agent_data.webflow_domain}/${params.slug}` : `https://${agent_data.webflow_domain}`;
