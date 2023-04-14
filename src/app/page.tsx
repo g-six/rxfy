@@ -47,13 +47,13 @@ export default async function Home({ params, searchParams }: { params: Record<st
     if (agent_data && agent_data.agent_id) {
       listings = await getAgentListings(agent_data.agent_id);
 
-      if (!listings.active || listings.active?.length === 0) {
-        const recent_listings = await getRecentListings(agent_data, 12);
-        listings = {
-          ...listings,
-          active: recent_listings,
-        };
-      }
+      // if (!listings.active || listings.active?.length === 0) {
+      //   const recent_listings = await getRecentListings(agent_data, 12);
+      //   listings = {
+      //     ...listings,
+      //     active: recent_listings,
+      //   };
+      // }
     } else {
       console.log('\n\nHome.agent_data not available');
     }
