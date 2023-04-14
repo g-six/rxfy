@@ -1,13 +1,14 @@
-import { Hit, PropertyIndexNode } from '@/_typings/pipeline';
+import { Hit } from '@/_typings/pipeline';
+import { MLSProperty } from '@/_typings/property';
 
 const keep_as_array = ['Status', 'photos'];
 
 export function getSegregatedListings(hits: Hit[]) {
-  const active: PropertyIndexNode[] = [];
-  const sold: PropertyIndexNode[] = [];
+  const active: MLSProperty[] = [];
+  const sold: MLSProperty[] = [];
   hits.forEach((hit: Hit) => {
     const { fields } = hit;
-    let data: PropertyIndexNode | {} = {};
+    let data: MLSProperty | {} = {};
     Object.keys(fields).forEach(key => {
       const k = key.substring(0, 5) === 'data.' ? key.substring(5) : key;
       data = {
@@ -15,10 +16,10 @@ export function getSegregatedListings(hits: Hit[]) {
         [k]: Array.isArray(fields[key]) && !keep_as_array.includes(k) ? Array(fields[key]).join(',') : fields[key],
       };
     });
-    if ((data as PropertyIndexNode).Status.includes('Active')) {
-      active.push(data as PropertyIndexNode);
+    if ((data as MLSProperty).Status.includes('Active')) {
+      active.push(data as MLSProperty);
     } else {
-      sold.push(data as PropertyIndexNode);
+      sold.push(data as MLSProperty);
     }
   });
 
@@ -26,8 +27,8 @@ export function getSegregatedListings(hits: Hit[]) {
 }
 
 export async function getAgentListings(agent_id: string): Promise<{
-  active?: PropertyIndexNode[];
-  sold?: PropertyIndexNode[];
+  active?: MLSProperty[];
+  sold?: MLSProperty[];
 }> {
   try {
     // Query cached listings first to save on latency in searching
