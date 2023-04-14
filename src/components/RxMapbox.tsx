@@ -280,7 +280,7 @@ export function RxMapbox(props: RxMapboxProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [map, is_loading],
   );
-  console.log('state.is_loading', state.is_loading);
+
   React.useEffect(() => {
     if (state.is_loading) {
       let lat, lng;

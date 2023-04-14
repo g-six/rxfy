@@ -277,7 +277,6 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
   React.useEffect(() => {
     if (props.agent_data.metatags?.search_highlights?.labels) {
       const [default_place] = props.agent_data.metatags.search_highlights.labels;
-      console.log('props.agent_data', default_place);
     }
   }, []);
 
