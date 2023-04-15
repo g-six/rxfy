@@ -43,6 +43,7 @@ import DocumentsReplacer from '@/_replacers/Documents/documents';
 import { RxUpdatePasswordPage } from './full-pages/RxUpdatePassword';
 import RxMyCompareDashboardPage from './full-pages/RxMyCompareDashboardPage';
 import { RxWebflowScript } from './Scripts/RxWebflowScript';
+import RxDropdownMenu from './Nav/RxDropdownMenu';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -338,6 +339,14 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
               <RxMyAccountPage {...props} type={node.type} data={agent_data}>
                 <>{domToReact(node.children) as ReactElement[]}</>
               </RxMyAccountPage>
+            );
+          }
+
+          if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.USER_MENU_DROPDOWN)) {
+            return (
+              <RxDropdownMenu {...props} className={className} agent-data={agent_data}>
+                {domToReact(node.children) as ReactElement[]}
+              </RxDropdownMenu>
             );
           }
 

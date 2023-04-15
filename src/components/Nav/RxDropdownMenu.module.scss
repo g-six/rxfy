@@ -1,0 +1,8 @@
+.dropdown {
+  @apply w-36 flex;
+
+  min-width: 0;
+  > div {
+    @apply w-full;
+  }
+}

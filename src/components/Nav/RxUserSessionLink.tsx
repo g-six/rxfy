@@ -2,6 +2,7 @@
 import React from 'react';
 import Cookies from 'js-cookie';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
+import { useRouter } from 'next/navigation';
 
 type RxUserSessionLinkProps = {
   children: React.ReactElement;
@@ -9,9 +10,16 @@ type RxUserSessionLinkProps = {
   tabindex?: string;
   href: string;
 };
-
 export function RxUserSessionLink(props: RxUserSessionLinkProps) {
+  const router = useRouter();
   const [selector, toggleShow] = React.useState('hidden');
+
+  const logout = () => {
+    Cookies.remove('session_key');
+    Cookies.remove('cid');
+    Cookies.remove('last_activity_at');
+    router.push('/');
+  };
 
   React.useEffect(() => {
     if (props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.USER_MENU)) {
@@ -36,10 +44,12 @@ export function RxUserSessionLink(props: RxUserSessionLinkProps) {
         if (props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.USER_MENU)) {
           if (props.children.type === 'div' && typeof props.children.props.children === 'string') {
             if (props.children.props.children.toLowerCase() === 'logout') {
-              Cookies.remove('session_key');
-              Cookies.remove('cid');
-              Cookies.remove('last_activity_at');
+              e.preventDefault();
+              logout();
             }
+          } else if (e.currentTarget.innerText === 'Logout') {
+            e.preventDefault();
+            logout();
           }
         }
       }}
