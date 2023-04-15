@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { PutObjectCommand, S3Client, S3ClientConfig } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { encrypt } from '@/_utilities/encryption-helper';
 import { DocumentDataModel } from '@/_typings/document';
 
@@ -145,7 +147,7 @@ export async function POST(request: Request) {
   const authorization = await request.headers.get('authorization');
   const { name, agent } = await request.json();
   const id = Number(request.url.split('/').pop());
-  let session_key = '';
+  let session_key = undefined;
 
   if (isNaN(id) || !authorization) {
     return new Response(
@@ -168,6 +170,7 @@ export async function POST(request: Request) {
     if (prefix.toLowerCase() === 'bearer') {
       const user = await getNewSessionKey(id, previous_token);
       if (user) {
+        session_key = user.session_key;
         const { data: doc_response } = await axios.post(
           `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
           {
@@ -239,7 +242,8 @@ export async function POST(request: Request) {
   return new Response(
     JSON.stringify(
       {
-        error: 'Please login',
+        error: 'Please login to create a document folder',
+        session_key,
       },
       null,
       4,
@@ -249,7 +253,6 @@ export async function POST(request: Request) {
         'content-type': 'application/json',
       },
       status: 401,
-      statusText: 'Please login',
     },
   );
 }
@@ -264,9 +267,9 @@ export async function POST(request: Request) {
  */
 export async function PUT(request: Request) {
   const authorization = await request.headers.get('authorization');
-  const { name, upload, id: document } = await request.json();
+  const { upload, id: document } = await request.json();
   const id = Number(request.url.split('/').pop());
-  let session_key = '';
+  let session_key = undefined;
 
   if (isNaN(id) || !authorization) {
     return new Response(
@@ -284,19 +287,58 @@ export async function PUT(request: Request) {
         status: 401,
       },
     );
-  } else if (document && upload?.file_name && upload?.url) {
+  } else if (document && upload?.name && upload?.size && upload?.type) {
     const [prefix, previous_token] = authorization.split(' ');
-    if (prefix.toLowerCase() === 'bearer') {
+
+    if (prefix.toLowerCase() === 'bearer' && upload?.name && upload?.size && upload?.type) {
       const user = await getNewSessionKey(id, previous_token);
       try {
         if (user) {
+          session_key = user.session_key;
+          // const client = new S3Client({
+          //   region: 'us-west-2',
+          //   credentials: {
+          //     accessKeyId: process.env.NEXT_APP_UPLOADER_KEY_ID as string,
+          //     secretAccessKey: process.env.NEXT_APP_UPLOAD_SECRET_KEY as string,
+          //   },
+          // });
+          // const command = new PutObjectCommand({
+          //   Bucket: process.env.NEXT_APP_S3_UPLOADS_BUCKET as string,
+          //   Key: upload.name,
+          //   Body: upload.contents,
+          //   ContentType: upload.type,
+          // });
+
+          // try {
+          //   const uploaded = await client.send(command);
+          //   let document_upload;
+          // } catch (err) {
+          //   console.error(err);
+          // }
+
+          const command = new PutObjectCommand({
+            Bucket: process.env.NEXT_APP_S3_UPLOADS_BUCKET as string,
+            Key: upload.name,
+            ContentType: upload.type,
+          });
+          const config: S3ClientConfig = {
+            region: 'us-west-2',
+            credentials: {
+              accessKeyId: process.env.NEXT_APP_UPLOADER_KEY_ID as string,
+              secretAccessKey: process.env.NEXT_APP_UPLOAD_SECRET_KEY as string,
+            },
+          };
+          const client = new S3Client(config);
+          const upload_url = await getSignedUrl(client, command, { expiresIn: 3600 });
+
           const { data: doc_response } = await axios.post(
             `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
             {
               query: gql_upload,
               variables: {
                 data: {
-                  ...upload,
+                  file_name: upload.name,
+                  url: upload.name,
                   document,
                 },
               },
@@ -308,31 +350,30 @@ export async function PUT(request: Request) {
               },
             },
           );
-          let document_upload;
           if (doc_response.data?.createDocumentUpload?.data?.id) {
             const { id: upload_id, attributes } = doc_response.data?.createDocumentUpload?.data;
-            document_upload = {
-              ...attributes,
-              id: upload_id,
-              document: attributes.document.data,
-            };
-          }
-          return new Response(
-            JSON.stringify(
+            return new Response(
+              JSON.stringify(
+                {
+                  session_key,
+                  document_upload: {
+                    ...attributes,
+                    id: upload_id,
+                    document: attributes.document.data,
+                    upload_url,
+                  },
+                },
+                null,
+                4,
+              ),
               {
-                document_upload,
-                session_key: user.session_key,
+                headers: {
+                  'content-type': 'application/json',
+                },
+                status: 200,
               },
-              null,
-              4,
-            ),
-            {
-              headers: {
-                'content-type': 'application/json',
-              },
-              status: 200,
-            },
-          );
+            );
+          }
         }
       } catch (e) {
         console.log(JSON.stringify(e, null, 4));
@@ -372,7 +413,8 @@ export async function PUT(request: Request) {
   return new Response(
     JSON.stringify(
       {
-        error: 'Please login',
+        error: session_key ? 'An error has occurred in uploading a file' : 'Please login to upload a document',
+        session_key,
       },
       null,
       4,
@@ -381,8 +423,7 @@ export async function PUT(request: Request) {
       headers: {
         'content-type': 'application/json',
       },
-      status: 401,
-      statusText: 'Please login',
+      status: session_key ? 400 : 401,
     },
   );
 }
@@ -523,7 +564,7 @@ export async function DELETE(request: Request) {
   return new Response(
     JSON.stringify(
       {
-        error: 'Please login',
+        error: 'Please login to delete your document',
       },
       null,
       4,
@@ -533,7 +574,6 @@ export async function DELETE(request: Request) {
         'content-type': 'application/json',
       },
       status: 401,
-      statusText: 'Please login',
     },
   );
 }
@@ -625,7 +665,7 @@ export async function GET(request: Request) {
   return new Response(
     JSON.stringify(
       {
-        error: 'Please login',
+        error: 'Please login to retrieve documents',
       },
       null,
       4,
@@ -635,7 +675,6 @@ export async function GET(request: Request) {
         'content-type': 'application/json',
       },
       status: 401,
-      statusText: 'Please login',
     },
   );
 }
