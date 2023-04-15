@@ -18,7 +18,7 @@ type MyCompareDashboardPage = {
   disabled?: boolean;
   loading?: boolean;
   ['agent-data']: AgentData;
-  ['data-loved']: PropertyDataModel[];
+  ['data-loved']?: PropertyDataModel[];
 };
 
 function PageIterator(props: MyCompareDashboardPage) {
@@ -53,28 +53,29 @@ function PageIterator(props: MyCompareDashboardPage) {
             {child_node.props.children.filter((c: React.ReactElement) => {
               return c.props.className && !c.props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.PROPERTY_CARD);
             })}
-            {props['data-loved'].map((p: PropertyDataModel, sequence_no: number) => {
-              const { mls_id: MLS_ID, title: Address, asking_price: AskingPrice, area: Area, beds, baths, sqft, ...listing } = p;
-              return (
-                <RxPropertyCard
-                  key={p.mls_id}
-                  listing={{
-                    ...(listing as unknown as MLSProperty),
-                    MLS_ID,
-                    Address,
-                    AskingPrice,
-                    Area,
-                    L_BedroomTotal: beds || 1,
-                    L_TotalBaths: baths || 1,
-                    L_FloorArea_Total: sqft || 0,
-                  }}
-                  sequence={sequence_no}
-                  agent={props['agent-data'].id}
-                >
-                  {PlaceholderCard}
-                </RxPropertyCard>
-              );
-            })}
+            {props['data-loved'] &&
+              props['data-loved'].map((p: PropertyDataModel, sequence_no: number) => {
+                const { mls_id: MLS_ID, title: Address, asking_price: AskingPrice, area: Area, beds, baths, sqft, ...listing } = p;
+                return (
+                  <RxPropertyCard
+                    key={p.mls_id}
+                    listing={{
+                      ...(listing as unknown as MLSProperty),
+                      MLS_ID,
+                      Address,
+                      AskingPrice,
+                      Area,
+                      L_BedroomTotal: beds || 1,
+                      L_TotalBaths: baths || 1,
+                      L_FloorArea_Total: sqft || 0,
+                    }}
+                    sequence={sequence_no}
+                    agent={props['agent-data'].id}
+                  >
+                    {PlaceholderCard}
+                  </RxPropertyCard>
+                );
+              })}
           </section>
         );
       }
