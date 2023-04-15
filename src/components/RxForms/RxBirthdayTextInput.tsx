@@ -25,30 +25,16 @@ export function RxBirthdayTextInput(p: RxProps) {
     years.push(i);
   }
 
-  const updateValue = ({ d, m, y }: { [key: string]: number }) => {
+  const updateValue = ({ d, m, y }: { [key: string]: string }) => {
     evt.fireEvent({
       ...evt.data,
       [`${p.name}`]: `${d}/${m}/${y}`,
     });
   };
 
-  // useEffect(() => {
-  //   const dt = new Date(y, m - 1, 1);
-  //   dt.setMonth(m);
-  //   dt.setDate(0);
-  //   const ds = [];
-  //   for (let i = 1; i <= dt.getDate(); i++) {
-  //     ds.push(i);
-  //   }
-  //   setDays(ds);
-
-  // updateValue({ d, m, y });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [d, m, y]);
-
   const updateAndSet = () => {
     if (p.defaultValue) {
-      const dmy = [Number(p.defaultValue.split('/')[0]), Number(p.defaultValue.split('/')[1]), Number(p.defaultValue.split('/')[2])];
+      const dmy = [Number(p.defaultValue.split('-')[2]), Number(p.defaultValue.split('-')[1]), Number(p.defaultValue.split('-')[0])];
       const dt = new Date(dmy[2], dmy[1] - 1, dmy[2]);
       dt.setMonth(dmy[1]);
       dt.setDate(0);
@@ -66,11 +52,12 @@ export function RxBirthdayTextInput(p: RxProps) {
 
   useEffect(() => {
     updateAndSet();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.defaultValue]);
 
   useEffect(() => {
-    if (days.length) {
-      console.log({ d, m, y });
+    if (days.length && d && m && y) {
+      updateValue({ d, m, y });
     }
   }, [days, d, m, y]);
 

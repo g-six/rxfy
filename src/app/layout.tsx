@@ -21,12 +21,12 @@ function getFullWebflowPagePath(pathname: string) {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const axios = (await import('axios')).default;
-  const { NEXT_APP_GOOGLE_API_KEY } = process.env;
+  const { NEXT_APP_GOOGLE_API_KEY, TEST_DOMAIN } = process.env;
   const url = headers().get('x-url') as string;
 
   const { hostname, pathname } = new URL(url);
 
-  const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? 'rx.leagent.com' : hostname);
+  const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? `${TEST_DOMAIN}` : hostname);
   let data;
   const page_url = `https://${agent_data.webflow_domain}${getFullWebflowPagePath(pathname)}`;
   try {

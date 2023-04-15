@@ -130,7 +130,6 @@ export async function PUT(request: Request) {
       data: updates,
     };
 
-    console.log(JSON.stringify({ variables }, null, 4));
     const {
       data: {
         data: { customer },
@@ -152,7 +151,7 @@ export async function PUT(request: Request) {
     return new Response(
       JSON.stringify(
         {
-          user: {
+          customer: {
             id,
             ...customer.record.attributes,
           },

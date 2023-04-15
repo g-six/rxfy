@@ -117,9 +117,7 @@ export function RxLoginPage(props: RxLoginPageProps) {
       if (session.data?.customer?.session_key) {
         Cookies.set('session_key', session.data.customer.session_key);
         Cookies.set('cid', session.data.customer.id);
-        setTimeout(() => {
-          location.href = '/my-profile';
-        }, 400);
+        location.href = '/my-profile';
       }
     } catch (e) {
       const error = e as { response: { statusText: string } };
