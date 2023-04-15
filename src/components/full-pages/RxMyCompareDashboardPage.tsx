@@ -15,6 +15,8 @@ import { MLSProperty, PropertyDataModel } from '@/_typings/property';
 type MyCompareDashboardPage = {
   className: string;
   children: React.ReactNode;
+  disabled?: boolean;
+  loading?: boolean;
   ['agent-data']: AgentData;
   ['data-loved']: PropertyDataModel[];
 };
