@@ -270,31 +270,6 @@ export async function GET(request: Request) {
               status: 400,
             },
           );
-
-          return new Response(
-            JSON.stringify(
-              {
-                session_key,
-                record: {
-                  id: Number(love_response.data.data.love.record.id),
-                  ...love_response.data.data.loves.data.map(item => {
-                    return {
-                      id: item.id,
-                      ...item.attributes,
-                    };
-                  }),
-                },
-              },
-              null,
-              4,
-            ),
-            {
-              headers: {
-                'content-type': 'application/json',
-              },
-              status: 200,
-            },
-          );
         }
       }
     }
