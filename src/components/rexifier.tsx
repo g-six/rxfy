@@ -39,6 +39,7 @@ import { RxResetPasswordPage } from './full-pages/RxResetPassword';
 import { RxMyAccountPage } from './full-pages/RxMyAccountPage';
 import DocumentsReplacer from '@/_replacers/Documents/documents';
 import { RxUpdatePasswordPage } from './full-pages/RxUpdatePassword';
+import RxMyCompareDashboardPage from './full-pages/RxMyCompareDashboardPage';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -374,11 +375,20 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             );
           }
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.DOCUMENTS)) {
+            return <DocumentsReplacer nodeProps={props} agent_data={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
+          }
+          if (node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_COMPARE_DASHBOARD) {
             return (
-              <DocumentsReplacer nodeProps={props} agent_data={agent_data} nodes={domToReact(node.children) as ReactElement[]} />
-              // <RxMyAccountPage {...props} type={node.type} data={agent_data}>
-              //   <>{domToReact(node.children) as ReactElement[]}</>
-              // </RxMyAccountPage>
+              <RxMyCompareDashboardPage agent-data={agent_data} className={node.attribs.class}>
+                {domToReact(node.children)}
+              </RxMyCompareDashboardPage>
+            );
+          }
+          if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.SIGNUP) {
+            return (
+              <RxSignupPage {...props} agent={agent_data.id as number} logo={agent_data.metatags?.logo_for_light_bg} type={node.type}>
+                <>{domToReact(node.children) as ReactElement[]}</>
+              </RxSignupPage>
             );
           }
         }
