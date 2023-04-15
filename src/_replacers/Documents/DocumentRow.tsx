@@ -1,9 +1,10 @@
+import { MouseEvent, ReactElement, cloneElement } from 'react';
 import { replaceAllTextWithBraces, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { classNames } from '@/_utilities/html-helper';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
-import React, { ReactElement, cloneElement } from 'react';
 import styles from './documents.module.scss';
 import { DocumentInterface } from '@/_typings/document';
+import { getDocumentSignedUrl } from '@/_utilities/api-calls/call-documents';
 type Props = {
   template: ReactElement;
   docData: DocumentInterface;
@@ -12,23 +13,26 @@ type Props = {
 
 export default function DocumentRow({ template, docData, deleteRow }: Props) {
   const { updatedAt, file_name, url } = docData?.attributes ?? {};
-  const handleDownload = () => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.responseType = 'blob';
-    xhr.onload = () => {
-      if (xhr.status === 200) {
-        const blob = xhr.response;
-        const downloadUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = file_name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
-    };
-    xhr.send();
+  const handleDownload = (e: MouseEvent) => {
+    getDocumentSignedUrl(file_name).then(signed => {
+      (e.currentTarget as HTMLAnchorElement).setAttribute('href', signed);
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', signed, true);
+      xhr.responseType = 'blob';
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          const blob = xhr.response;
+          const downloadUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = downloadUrl;
+          a.download = file_name;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+      };
+      xhr.send();
+    });
   };
   const matches = [
     {
@@ -50,7 +54,17 @@ export default function DocumentRow({ template, docData, deleteRow }: Props) {
       transformChild: (child: ReactElement) => {
         return cloneElement(child, {
           href: '#',
-          onClick: handleDownload,
+          download: true,
+          onClick: async (e: MouseEvent<HTMLAnchorElement>) => {
+            if (e.currentTarget.href === '#') e.preventDefault();
+
+            const a = document.createElement('a');
+            a.href = await getDocumentSignedUrl(file_name);
+            a.setAttribute('download', 'true');
+            document.body.append(a);
+            a.click();
+            a.remove();
+          },
         });
       },
     },
@@ -60,7 +74,6 @@ export default function DocumentRow({ template, docData, deleteRow }: Props) {
       transformChild: (child: ReactElement) => {
         return cloneElement(child, {
           onClick: () => {
-            console.log('delete click', docData.id);
             deleteRow(docData.id);
           },
         });
@@ -72,6 +85,13 @@ export default function DocumentRow({ template, docData, deleteRow }: Props) {
       transformChild: (child: ReactElement) => {
         return cloneElement(child, {
           href: url,
+          ['data-key']: file_name,
+          onClick: (e: MouseEvent) => {
+            e.preventDefault();
+            getDocumentSignedUrl(file_name).then(url => {
+              window.open(url);
+            });
+          },
         });
       },
     },

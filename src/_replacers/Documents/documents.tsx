@@ -6,9 +6,10 @@ import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import { retrieveDocuments } from '@/_utilities/api-calls/call-documents';
 import DocumentsFolder from './DocumentsFolder';
 import DocumentsCreateFolder from './DocumentsCreateFolder';
-import { Events } from '@/_typings/events';
+import { Events, NotificationMessages } from '@/_typings/events';
 import { AgentData } from '@/_typings/agent';
 import { DocumentsFolderInterface } from '@/_typings/document';
+import useEvent from '@/hooks/useEvent';
 interface Props {
   nodeProps: any;
   nodes?: ReactElement[];
@@ -19,11 +20,19 @@ export default function DocumentsReplacer({ nodes, nodeProps, agent_data }: Prop
   const [documents, setDocuments] = useState<DocumentsFolderInterface[]>([]);
   const templatesToFind = [{ searchFn: searchByClasses(['document-div']), elementName: 'docFolder' }];
   const templates = captureMatchingElements(nodes, templatesToFind);
+  const { data: notification } = useEvent(Events.SystemNotification);
+
+  useEffect(() => {
+    if (notification.message === NotificationMessages.DOC_UPLOAD_COMPLETE) {
+      retrieveDocuments().then(documents => {
+        setDocuments(documents);
+      });
+    }
+  }, [notification]);
 
   useEffect(() => {
     retrieveDocuments().then(documents => {
       setDocuments(documents);
-      console.log(documents);
     });
   }, []);
   const matches = [

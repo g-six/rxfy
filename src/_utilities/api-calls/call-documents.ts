@@ -34,18 +34,15 @@ export async function saveDocument(agent: { id: number; logo?: string }, name?: 
 /**
  * Save a document
  * @param number document_id (folder)
- * @param url string
+ * @param file File
  * @returns document data object and session_key string
  */
-export async function saveDocumentUpload(document_id: number, url: string, file_name: string) {
+export async function saveDocumentUpload(document_id: number, file: { file: File; name: string; size: number; type: string }) {
   const response = await axios.put(
     `/api/documents/${Cookies.get('cid')}`,
     {
       id: document_id,
-      upload: {
-        url,
-        file_name,
-      },
+      upload: file,
     },
     {
       headers: {
@@ -55,10 +52,39 @@ export async function saveDocumentUpload(document_id: number, url: string, file_
     },
   );
 
-  if (response.status === 200) {
-    const { session_key, ...record } = response.data;
+  const { session_key, ...record } = response.data;
+  if (session_key) {
     Cookies.set('session_key', session_key);
-    return record;
+    if (record) {
+      console.log({ record });
+    }
+  } else {
+    console.log('Warning: no new session key has bee issued in saveDocumentUpload()');
+  }
+
+  return record;
+}
+
+/**
+ * Retrieves all documents
+ * @returns documents data object array and session_key string
+ */
+export async function getDocumentSignedUrl(file_name: string) {
+  const response = await axios.get(`/api/document-uploads/${file_name}`, {
+    headers: {
+      Authorization: `Bearer ${Cookies.get('session_key')}-${Cookies.get('cid')}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (response.status === 200) {
+    const { session_key, url } = response.data;
+    if (session_key) {
+      Cookies.set('session_key', session_key);
+    } else {
+      console.log('Warning: no new session key has been issued in getDocumentSignedUrl()');
+    }
+    return url;
   }
 
   return response;
@@ -80,7 +106,11 @@ export async function removeDocument(id: number) {
 
   if (response.status === 200) {
     const { session_key, ...record } = response.data;
-    Cookies.set('session_key', session_key);
+    if (session_key) {
+      Cookies.set('session_key', session_key);
+    } else {
+      console.log('Warning: no new session key has bee issued in removeDocument()');
+    }
     return record;
   }
 
@@ -103,7 +133,11 @@ export async function removeDocumentUpload(id: number) {
 
   if (response.status === 200) {
     const { session_key, ...record } = response.data;
-    Cookies.set('session_key', session_key);
+    if (session_key) {
+      Cookies.set('session_key', session_key);
+    } else {
+      console.log('Warning: no new session key has bee issued in removeDocumentUpload()');
+    }
     return record;
   }
 
@@ -124,7 +158,12 @@ export async function retrieveDocuments() {
 
   if (response.status === 200) {
     const { session_key, documents } = response.data;
-    Cookies.set('session_key', session_key);
+
+    if (session_key) {
+      Cookies.set('session_key', session_key);
+    } else {
+      console.log('Warning: no new session key has bee issued in retrieveDocuments()');
+    }
 
     return documents;
   }

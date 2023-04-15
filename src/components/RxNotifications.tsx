@@ -22,10 +22,10 @@ export default function RxNotifications() {
     setSuccessMessage('');
     setErrorMessage('');
     if (category && message) {
-      if (category === NotificationCategory.Error) {
+      if (category === NotificationCategory.ERROR) {
         setErrorMessage(message);
       }
-      if (category === NotificationCategory.Success) {
+      if (category === NotificationCategory.SUCCESS) {
         setSuccessMessage(message);
       }
     }
