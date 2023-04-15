@@ -280,7 +280,7 @@ export function RxMapbox(props: RxMapboxProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [map, is_loading],
   );
-  console.log('state.is_loading', state.is_loading);
+
   React.useEffect(() => {
     if (state.is_loading) {
       let lat, lng;
@@ -429,7 +429,7 @@ export function RxMapbox(props: RxMapboxProps) {
           accessToken: props.token,
           style: 'mapbox://styles/mapbox/streets-v11',
           center: [Number(params.lng), Number(params.lat)],
-          zoom: 12,
+          zoom: (params.zoom as unknown as number) || 12,
         });
 
         setMap(mapbox);

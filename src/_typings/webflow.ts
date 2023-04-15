@@ -5,6 +5,8 @@ export enum WEBFLOW_NODE_SELECTOR {
   UPDATE_PASSWORD = 'updatePassword',
   COMPARE_WRAPPER = 'compare-wrapper',
   MY_ACCOUNT_WRAPPER = 'my-account-wrapper',
+  MY_COMPARE_DASHBOARD = 'cd---compare wf-section',
+  MY_COMPARE_DASHBOARD_LEFT = 'compare-left-bar',
   USER_MENU = 'in-session',
   GUEST_MENU = 'out-session',
   HOME_ALERTS_WRAPPER = 'home-alert---all-screens',
@@ -13,6 +15,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   DOCUMENTS = 'docs-section',
   FOOTER_SOCIAL_LINKS = 'footer-social-block',
   HEART_ICON = 'heart-on-small-card',
+  PROPERTY_CARD = 'property-card',
 }
 
 export interface WebFlow {

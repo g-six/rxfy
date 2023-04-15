@@ -11,6 +11,7 @@ export enum Events {
   ContactFormShow = 'event-contact-form-show',
   CreateDocFolderShow = 'event-create-docfolder-show',
   DocFolderShow = 'event-docfolder-show',
+  LovedItem = 'event-loved-item',
   //ContactFormSubmit = 'event-contact-form-submit',
 }
 
