@@ -10,9 +10,7 @@ import {
 } from '@/_utilities/data-helpers/property-page';
 import { Element } from 'domhandler';
 
-export function PropertyInformationRow(
-  props: Record<string, string>
-) {
+export function PropertyInformationRow(props: Record<string, string>) {
   return (
     <div className={props.wrapper_class}>
       <div className={props.label_class}>{props.label}</div>
@@ -28,11 +26,7 @@ export function RexifyStatBlock({
 }: {
   node: Element;
   record: MLSProperty;
-  groupName:
-    | 'propinfo'
-    | 'financial'
-    | 'dimensions'
-    | 'construction';
+  groupName: 'propinfo' | 'financial' | 'dimensions' | 'construction';
 }) {
   let stat_keys = general_stats;
   switch (groupName) {
@@ -48,45 +42,29 @@ export function RexifyStatBlock({
   }
 
   if (node instanceof Element && node.attribs) {
-    if (
-      node.attribs &&
-      node.attribs.class &&
-      node.attribs.class.indexOf(groupName) >= 0
-    ) {
-      const RowItem = node.children.find((child) => {
+    if (node.attribs && node.attribs.class && node.attribs.class.indexOf(groupName) >= 0) {
+      const RowItem = node.children.find(child => {
         const { attribs: wrapper_attribs } = child as {
           attribs: Record<string, string>;
         };
 
-        return (
-          wrapper_attribs.class &&
-          wrapper_attribs.class.indexOf(
-            'div-stat-name-and-result'
-          ) >= 0
-        );
+        return wrapper_attribs.class && wrapper_attribs.class.indexOf('div-stat-name-and-result') >= 0;
       }) as HTMLNode | undefined;
-      const SectionTitle = node.children.find((child) => {
+      const SectionTitle = node.children.find(child => {
         const { attribs: wrapper_attribs } = child as {
           attribs: Record<string, string>;
         };
 
-        return (
-          wrapper_attribs.class &&
-          wrapper_attribs.class.indexOf('stat-name') >= 0
-        );
+        return wrapper_attribs.class && wrapper_attribs.class.indexOf('stat-name') >= 0;
       }) as HTMLNode | undefined;
 
       if (node.attribs.class && RowItem && SectionTitle) {
         return (
           <div className={node.attribs.class}>
             <div className={SectionTitle.attribs.class}>
-              <div
-                className={SectionTitle.firstChild.attribs.class}
-              >
-                {SectionTitle.firstChild.firstChild?.data}
-              </div>
+              <div className={SectionTitle.firstChild.attribs.class}>{SectionTitle.firstChild.firstChild?.data}</div>
             </div>
-            {Object.keys(stat_keys).map((key) => {
+            {Object.keys(stat_keys).map(key => {
               let value = formatValues(record, key);
               if (!value) return;
 
@@ -104,9 +82,7 @@ export function RexifyStatBlock({
               return value ? (
                 <PropertyInformationRow
                   key={key}
-                  wrapper_class={[RowItem.attribs.class, key].join(
-                    ' '
-                  )}
+                  wrapper_class={[RowItem.attribs.class, key].join(' ')}
                   label_class={RowItem.firstChild.attribs.class}
                   value_class={RowItem.lastChild.attribs.class}
                   label={stat_keys[key] as string}
