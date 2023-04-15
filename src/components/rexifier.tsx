@@ -1,5 +1,4 @@
 /* eslint-disable @next/next/no-img-element */
-import Script from 'next/script';
 import { ReactElement } from 'react';
 import { Cheerio, CheerioAPI } from 'cheerio';
 import parse, { HTMLReactParserOptions, Element, attributesToProps, DOMNode, domToReact, htmlToDOM } from 'html-react-parser';
@@ -24,9 +23,12 @@ import RxContactForm from '@/components/RxForms/RxContactForm';
 import { RxUserSessionLink } from './Nav/RxUserSessionLink';
 
 // TODO: @Rey, shall we move those next 3 items into "RxProperty", like the last ones in this group?
-import { RexifyStatBlock } from './PropertyInformationRow';
-import { RexifyPropertyFeatureBlock } from './PropertyFeatureSection';
-import PropertyCard from './PropertyCard';
+// ANSWER @Rosty
+//    yes except for the 3rd one because The property card would not be restricted to the property page
+//    Great catch!
+import PropertyCard from './RxCards/RxPropertyCard';
+import { RexifyStatBlock } from './RxProperty/PropertyInformationRow';
+import { RexifyPropertyFeatureBlock } from './RxProperty/PropertyFeatureSection';
 import RxPropertyCarousel from './RxProperty/RxPropertyCarousel';
 import RxPropertyTopStats from './RxProperty/RxPropertyTopStats';
 
@@ -40,6 +42,7 @@ import { RxMyAccountPage } from './full-pages/RxMyAccountPage';
 import DocumentsReplacer from '@/_replacers/Documents/documents';
 import { RxUpdatePasswordPage } from './full-pages/RxUpdatePassword';
 import RxMyCompareDashboardPage from './full-pages/RxMyCompareDashboardPage';
+import { RxWebflowScript } from './Scripts/RxWebflowScript';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -276,7 +279,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
 
           return (
             <>
-              <Script
+              {/* <Script
                 id={pathname.split('/').pop()}
                 dangerouslySetInnerHTML={{
                   __html: `
@@ -298,7 +301,8 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
                     ${attribs.src.indexOf('jquery') ? 'document.body.appendChild(script);' : ''}
                   `,
                 }}
-              />
+              /> */}
+              <RxWebflowScript script-src={attribs.src} script-name={pathname} />
             </>
           );
         } else {
