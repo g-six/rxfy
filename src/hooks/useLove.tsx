@@ -10,10 +10,18 @@ import axios from 'axios';
 export default function useLove() {
   const [data, setLovedData] = React.useState<{
     item: MLSProperty;
+    items: string[];
     remove?: boolean;
   }>();
 
-  const onEvent = React.useCallback((e: CustomEvent) => setLovedData(e.detail as { item: MLSProperty; remove?: boolean }), []);
+  const onEvent = React.useCallback(
+    (e: CustomEvent) =>
+      setLovedData({
+        ...(e.detail as { item: MLSProperty; remove?: boolean }),
+        items: data?.items || [],
+      }),
+    [],
+  );
 
   React.useEffect(() => {
     if (data && data.item) {
