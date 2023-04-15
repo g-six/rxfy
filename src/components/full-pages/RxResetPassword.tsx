@@ -73,14 +73,14 @@ export function RxResetPasswordPage(props: RxResetPasswordPageProps) {
       );
       if (api_response.data.message) {
         notify({
-          category: NotificationCategory.Success,
+          category: NotificationCategory.SUCCESS,
           message: api_response.data.message,
         });
       }
     } catch (e) {
       const error = e as { response: { statusText: string } };
       notify({
-        category: NotificationCategory.Error,
+        category: NotificationCategory.ERROR,
         message: error.response.statusText,
       });
     }

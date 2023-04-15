@@ -24,7 +24,7 @@ export default function HomeAlertsStep2({ child, agent }: ReplacerHomeAlerts) {
       if (!validateEmail(email)) {
         notify({
           timeout: 5000,
-          category: NotificationCategory.Error,
+          category: NotificationCategory.ERROR,
           message: 'Please use correct email format.',
         });
       } else {
