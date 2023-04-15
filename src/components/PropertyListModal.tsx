@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { PropertyCardSmall } from './PropertyCard';
+import { PropertyCardSmall } from './RxCards/RxPropertyCard';
 import { classNames } from '@/_utilities/html-helper';
 
 type PropertyListProps = {

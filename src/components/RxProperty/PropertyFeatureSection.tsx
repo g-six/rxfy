@@ -4,42 +4,23 @@ import { property_features } from '@/_utilities/data-helpers/property-page';
 import { Element } from 'domhandler';
 import Image from 'next/image';
 
-export function SinglePropertyFeature(
-  props: Record<string, string>
-) {
+export function SinglePropertyFeature(props: Record<string, string>) {
   return (
-    <div
-      className='single-feature-block'
-      style={{ width: 150, textAlign: 'center' }}
-    >
-      <Image
-        alt={props.label}
-        src={`/icons/features/feature_${props.icon}.svg`}
-        width={48}
-        height={48}
-      />
+    <div className='single-feature-block' style={{ width: 150, textAlign: 'center' }}>
+      <Image alt={props.label} src={`/icons/features/feature_${props.icon}.svg`} width={48} height={48} />
       <div className='feature-description'>{props.label}</div>
     </div>
   );
 }
 
-export function RexifyPropertyFeatureBlock({
-  node,
-  record,
-}: {
-  node: Element;
-  record: MLSProperty;
-}) {
+export function RexifyPropertyFeatureBlock({ node, record }: { node: Element; record: MLSProperty }) {
   if (node instanceof Element && node.attribs) {
-    const RowItem = node.children.find((child) => {
+    const RowItem = node.children.find(child => {
       const { attribs: wrapper_attribs } = child as {
         attribs: Record<string, string>;
       };
 
-      return (
-        wrapper_attribs.class &&
-        wrapper_attribs.class.indexOf('single-feature-block') >= 0
-      );
+      return wrapper_attribs.class && wrapper_attribs.class.indexOf('single-feature-block') >= 0;
     }) as HTMLNode | undefined;
     if (node.attribs.class && RowItem) {
       const features: Record<string, string> = {};
@@ -78,10 +59,7 @@ export function RexifyPropertyFeatureBlock({
           if (feature.toLowerCase().indexOf('torch-on') >= 0) {
             features['Torch On'] = 'torch';
           }
-          if (
-            key === 'B_WaterSupply' &&
-            feature.toLowerCase().indexOf('city/municipal') >= 0
-          ) {
+          if (key === 'B_WaterSupply' && feature.toLowerCase().indexOf('city/municipal') >= 0) {
             features['City/Municipal Water'] = 'city-municipal';
           }
           if (feature.indexOf('Park') >= 0) {
@@ -99,13 +77,7 @@ export function RexifyPropertyFeatureBlock({
           {Object.keys(features)
             .sort()
             .map((feature: string) => {
-              return (
-                <SinglePropertyFeature
-                  key={features[feature]}
-                  icon={features[feature]}
-                  label={feature}
-                />
-              );
+              return <SinglePropertyFeature key={features[feature]} icon={features[feature]} label={feature} />;
             })}
         </div>
       );

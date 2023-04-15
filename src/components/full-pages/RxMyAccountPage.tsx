@@ -12,9 +12,9 @@ import Cookies from 'js-cookie';
 import { useSearchParams } from 'next/navigation';
 import { RxCheckBox } from '../RxCheckBox';
 import { RxPhoneInput } from '../RxPhoneInput';
-import { formatShortDate } from '@/_utilities/formatters';
 import { CustomerInputModel } from '@/_typings/customer';
 import { RxBirthdayTextInput } from '../RxForms/RxBirthdayTextInput';
+import { updateAccount } from '@/_utilities/api-calls/call-update-account';
 
 type RxMyAccountPageProps = {
   type: string;
@@ -106,9 +106,7 @@ function validInput(data: CustomerInputModel & { agent_id?: number }): {
   if (!email) {
     error = `${error}\nA valid email is required`;
   }
-  //   if (!data.password) {
-  //     error = `${error}\nA hard-to-guess password with at least 10 characters is required`;
-  //   }
+
   if (!full_name) {
     error = `${error}\nYour realtor would need your name`;
   }
@@ -203,6 +201,7 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
       email?: string;
       password?: string;
       full_name?: string;
+      birthday?: string;
       yes_to_marketing?: boolean;
     };
     const { data: valid_data, error } = validInput(updates);
@@ -213,22 +212,13 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
         message: error,
       });
     } else if (valid_data) {
-      axios
-        .put(
-          '/api/update-account',
-          {
-            ...valid_data,
-            id: Number(Cookies.get('cid')),
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${Cookies.get('session_key')}`,
-            },
-          },
-        )
-        .then(({ data: { user: record } }) => {
-          const { session_key } = record as { session_key: string };
-          Cookies.set('session_key', session_key);
+      updateAccount(`${Cookies.get('session_key')}-${Cookies.get('cid')}`, valid_data)
+        .then(({ customer }) => {
+          fireEvent({
+            ...data,
+            ...customer,
+            clicked: undefined,
+          });
           notify({
             category: NotificationCategory.SUCCESS,
             message: 'Profile updates saved',
@@ -236,10 +226,12 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
           });
         })
         .finally(() => {
-          fireEvent({
-            ...data,
-            clicked: undefined,
-          });
+          if (data.clicked) {
+            fireEvent({
+              ...data,
+              clicked: undefined,
+            });
+          }
         });
     }
   };

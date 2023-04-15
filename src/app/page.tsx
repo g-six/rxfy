@@ -17,11 +17,12 @@ import RxNotifications from '@/components/RxNotifications';
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico'];
 export default async function Home({ params, searchParams }: { params: Record<string, unknown>; searchParams: Record<string, string> }) {
+  const { TEST_DOMAIN } = process.env as unknown as { [key: string]: string };
   const axios = (await import('axios')).default;
   const url = headers().get('x-url') as string;
   const { hostname } = new URL(url);
 
-  const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? 'rx.leagent.com' : hostname);
+  const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? TEST_DOMAIN : hostname);
   let webflow_page_url =
     params && params.slug && !skip_slugs.includes(params.slug as string)
       ? `https://${agent_data.webflow_domain}/${params.slug}`

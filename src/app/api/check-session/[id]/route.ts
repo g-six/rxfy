@@ -84,16 +84,10 @@ export async function GET(request: Request) {
           );
 
           session_key = `${encrypt(dt)}.${encrypted_email}`;
-          const { birthday: birthdate, ...attributes } = record.attributes;
-          let birthday;
-          if (birthdate) {
-            birthday = new Intl.DateTimeFormat('en-CA').format(new Date(`${birthdate}T00:00:00`));
-          }
           return new Response(
             JSON.stringify(
               {
-                ...attributes,
-                birthday,
+                ...record.attributes,
                 id,
                 email,
                 session_key,
