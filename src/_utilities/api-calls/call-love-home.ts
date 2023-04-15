@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import Cookies from 'js-cookie';
 
 /**
@@ -20,11 +20,20 @@ export async function getLovedHomes() {
         Cookies.set('session_key', session_key);
       }
       return records;
+    } else if (response.status === 401) {
+      Cookies.remove('session_key');
+      Cookies.remove('cid');
+      Cookies.remove('last_activity_at');
     }
 
     return response;
   } catch (e) {
-    console.log(e);
+    const axerr = e as AxiosError;
+    if (axerr.response?.status === 401) {
+      Cookies.remove('session_key');
+      Cookies.remove('cid');
+      Cookies.remove('last_activity_at');
+    }
   }
 }
 

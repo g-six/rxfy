@@ -164,10 +164,36 @@ export async function GET(request: Request) {
 
           if (love_response?.data) {
             const { data: response_data } = love_response.data;
-            console.log(response_data);
+            const dt = new Date().toISOString();
+
+            const {
+              data: {
+                data: {
+                  session: { record },
+                },
+              },
+            } = await axios.post(
+              `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+              {
+                query: gql_update_session,
+                variables: {
+                  id: customer,
+                  last_activity_at: dt,
+                },
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+                  'Content-Type': 'application/json',
+                },
+              },
+            );
+
+            session_key = `${encrypt(dt)}.${encrypted_email}`;
             return new Response(
               JSON.stringify(
                 {
+                  session_key,
                   records: response_data.loves.data.map(
                     (
                       love: Record<
@@ -177,20 +203,43 @@ export async function GET(request: Request) {
                             data: {
                               id: number;
                               attributes: Record<string, string | number> & {
-                                mls_data: Record<string, unknown>;
+                                mls_data: MLSProperty;
                               };
                             };
                           };
                         }
                       >,
-                    ) => ({
-                      id: Number(love.id),
-                      property: {
-                        id: Number(love.attributes.property.data.id),
-                        ...love.attributes.property.data.attributes,
-                        mls_data: undefined, // Hide prized data
-                      },
-                    }),
+                    ) => {
+                      const {
+                        asking_price,
+                        AskingPrice,
+                        photos,
+                        L_BedroomTotal: beds,
+                        L_TotalBaths: baths,
+                        L_FloorArea_Total: sqft,
+                      } = love.attributes.property.data.attributes.mls_data;
+                      let [thumb] = photos ? (photos as string[]).slice(0, 1) : [];
+                      if (thumb === undefined) {
+                        thumb = 'https://assets.website-files.com/6410ad8373b7fc352794333b/642df6a57f39e6607acedd7f_Home%20Placeholder-p-500.png';
+                      }
+                      return {
+                        id: Number(love.id),
+                        property: {
+                          id: Number(love.attributes.property.data.id),
+                          ...love.attributes.property.data.attributes,
+                          asking_price: asking_price || AskingPrice,
+                          beds,
+                          baths,
+                          sqft,
+                          photos: [thumb],
+                          area:
+                            love.attributes.property.data.attributes.area ||
+                            love.attributes.property.data.attributes.mls_data.City ||
+                            love.attributes.property.data.attributes.mls_data.Area,
+                          mls_data: undefined, // Hide prized data
+                        },
+                      };
+                    },
                   ),
                 },
                 null,
@@ -221,33 +270,6 @@ export async function GET(request: Request) {
               status: 400,
             },
           );
-
-          // const dt = new Date().toISOString();
-
-          // const {
-          //   data: {
-          //     data: {
-          //       session: { record },
-          //     },
-          //   },
-          // } = await axios.post(
-          //   `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-          //   {
-          //     query: gql_update_session,
-          //     variables: {
-          //       id: customer,
-          //       last_activity_at: dt,
-          //     },
-          //   },
-          //   {
-          //     headers: {
-          //       Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-          //       'Content-Type': 'application/json',
-          //     },
-          //   },
-          // );
-
-          // session_key = `${encrypt(dt)}.${encrypted_email}`;
 
           return new Response(
             JSON.stringify(

@@ -429,7 +429,7 @@ export function RxMapbox(props: RxMapboxProps) {
           accessToken: props.token,
           style: 'mapbox://styles/mapbox/streets-v11',
           center: [Number(params.lng), Number(params.lat)],
-          zoom: 12,
+          zoom: (params.zoom as unknown as number) || 12,
         });
 
         setMap(mapbox);

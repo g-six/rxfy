@@ -28,6 +28,7 @@ import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
 import { LoveDataModel } from '@/_typings/love';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 import { Events } from '@/_typings/events';
+import { useSearchParams } from 'next/navigation';
 
 export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?: string }) {
   let MapAndHeaderHeader;
@@ -264,6 +265,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
 }
 
 export default function RxPropertyMap(props: RxPropertyMapProps) {
+  const search = useSearchParams();
   const [hide_others, setHideOthers] = React.useState(false);
   const [place, setPlace] = React.useState<google.maps.places.AutocompletePrediction>();
   const [listings, setListings] = React.useState<MLSProperty[]>([]);
@@ -288,11 +290,13 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
   }, [place, props.agent_data]);
 
   React.useEffect(() => {
-    getLovedHomes().then(response => {
-      if (response && response.records) {
-        processLovedHomes(response.records);
-      }
-    });
+    if (search.toString()) {
+      getLovedHomes().then(response => {
+        if (response && response.records) {
+          processLovedHomes(response.records);
+        }
+      });
+    }
   }, []);
 
   return (

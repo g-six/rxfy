@@ -38,6 +38,9 @@ export interface PropertyDataModel {
   city: string;
   mls_id: string;
   property_type: string;
+  beds?: number;
+  baths?: number;
+  sqft?: number;
   price_per_sqft?: number;
 }
 
