@@ -384,7 +384,6 @@ export async function PUT(request: Request) {
   } else {
     const errors = [];
     if (!document) errors.push('provide the folder id (document_id)');
-    if (!name) errors.push('name this document folder');
     if (!upload) {
       errors.push('attach an upload');
     } else {
