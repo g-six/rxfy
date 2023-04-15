@@ -13,6 +13,9 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.312.0",
+    "@aws-sdk/s3-request-presigner": "^3.312.0",
+    "@aws-sdk/signature-v4-crt": "^3.310.0",
     "@googlemaps/js-api-loader": "^1.15.1",
     "@headlessui/react": "^1.7.13",
     "@heroicons/react": "^2.0.17",
