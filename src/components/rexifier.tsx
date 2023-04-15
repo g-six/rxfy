@@ -277,34 +277,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         if (attribs.src) {
           const { pathname } = new URL(attribs.src);
 
-          return (
-            <>
-              {/* <Script
-                id={pathname.split('/').pop()}
-                dangerouslySetInnerHTML={{
-                  __html: `
-                    var script = document.createElement('script');
-                    ${pathname.indexOf('webflow') >= 0 ? 'script.defer = true;' : 'script.async = true;'}
-                    script.src = '${attribs.src}';
-
-                    script.onload = () => {
-                        console.log('${attribs.src}', '${pathname.split('/').pop()} loaded')
-                        setTimeout(() => {
-                            const badge = document.querySelector('.w-webflow-badge')
-                            if (badge) {
-                                badge.remove();
-                                console.log('badge found and removed');
-                            }
-                        }, 1200)
-                    }
-
-                    ${attribs.src.indexOf('jquery') ? 'document.body.appendChild(script);' : ''}
-                  `,
-                }}
-              /> */}
-              <RxWebflowScript script-src={attribs.src} script-name={pathname} />
-            </>
-          );
+          return <RxWebflowScript script-src={attribs.src} script-name={pathname} />;
         } else {
           if ((node as Element).children) {
             // Scripts that are inline...
