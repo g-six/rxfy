@@ -164,7 +164,7 @@ export function RxSignupPage(props: RxSignupPageProps) {
 
     if (error) {
       notify({
-        category: NotificationCategory.Error,
+        category: NotificationCategory.ERROR,
         message: error,
       });
     } else if (valid_data) {
@@ -184,7 +184,7 @@ export function RxSignupPage(props: RxSignupPageProps) {
         )
         .then(response => {
           notify({
-            category: NotificationCategory.Success,
+            category: NotificationCategory.SUCCESS,
             message: "Great, you're all set! Forwarding you to our login portal.",
           });
           setTimeout(() => {
@@ -196,7 +196,7 @@ export function RxSignupPage(props: RxSignupPageProps) {
             const { error } = e.response.data as { error: string };
             if (error) {
               notify({
-                category: NotificationCategory.Error,
+                category: NotificationCategory.ERROR,
                 message: error,
               });
             }

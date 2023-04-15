@@ -124,7 +124,7 @@ export function RxLoginPage(props: RxLoginPageProps) {
     } catch (e) {
       const error = e as { response: { statusText: string } };
       notify({
-        category: NotificationCategory.Error,
+        category: NotificationCategory.ERROR,
         message: error.response.statusText,
       });
     }

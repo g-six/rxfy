@@ -68,7 +68,7 @@ export default function useHomeAlert(agentData: AgentData) {
           })
           .catch(({ response }) => {
             notify({
-              category: NotificationCategory.Error,
+              category: NotificationCategory.ERROR,
               message: response?.data?.error || 'Sorry, please try again later',
             });
           });
@@ -88,7 +88,7 @@ export default function useHomeAlert(agentData: AgentData) {
           })
           .catch(({ response }) => {
             notify({
-              category: NotificationCategory.Error,
+              category: NotificationCategory.ERROR,
               message: response?.data?.error || 'Sorry, please try again later',
             });
           });

@@ -209,7 +209,7 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
 
     if (error) {
       notify({
-        category: NotificationCategory.Error,
+        category: NotificationCategory.ERROR,
         message: error,
       });
     } else if (valid_data) {
@@ -230,7 +230,7 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
           const { session_key } = record as { session_key: string };
           Cookies.set('session_key', session_key);
           notify({
-            category: NotificationCategory.Success,
+            category: NotificationCategory.SUCCESS,
             message: 'Profile updates saved',
             timeout: 5000,
           });

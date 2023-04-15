@@ -16,10 +16,13 @@ export enum Events {
 }
 
 export enum NotificationCategory {
-  Error = 'error',
-  Success = 'success',
-  Warning = 'warning',
-  Info = 'info',
+  ERROR = 'error',
+  SUCCESS = 'success',
+  WARNING = 'warning',
+  INFO = 'info',
+}
+export enum NotificationMessages {
+  DOC_UPLOAD_COMPLETE = 'Document upload complete.',
 }
 
 export interface EventsData {

@@ -8,6 +8,7 @@ import { DocumentInterface, DocumentsFolderInterface } from '@/_typings/document
 import DocumentsFolderDropdown from './DocumentsFolderDropdown';
 import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
 import { removeDocument, removeDocumentUpload } from '@/_utilities/api-calls/call-documents';
+import RxFileUploader from '@/components/RxForms/RxFileUploader';
 
 type Props = {
   template: ReactElement;
@@ -25,14 +26,13 @@ export default function DocumentsFolder({ template, docFolderData, agent_data, s
       setDocuments(prev => [...prev.filter(docFolder => docFolder.id !== res.record.id)]);
       notify({
         timeout: 5000,
-        category: NotificationCategory.Success,
+        category: NotificationCategory.SUCCESS,
         message: 'Folder has been deleted',
       });
     });
   };
   const deleteDocumentUpload = (id: string) => {
     removeDocumentUpload(parseInt(id)).then(res => {
-      console.log('res deleteUpload', res);
       if (res?.record?.id) {
         setDocuments(prev => [
           ...prev.map((docFolder: DocumentsFolderInterface) => {
@@ -42,7 +42,7 @@ export default function DocumentsFolder({ template, docFolderData, agent_data, s
         ]);
         notify({
           timeout: 5000,
-          category: NotificationCategory.Success,
+          category: NotificationCategory.SUCCESS,
           message: 'Document has been deleted',
         });
       }
@@ -72,6 +72,18 @@ export default function DocumentsFolder({ template, docFolderData, agent_data, s
       searchFn: searchByClasses(['doc-folder-dropdown']),
       transformChild: (child: ReactElement) => {
         return <DocumentsFolderDropdown deleteFolder={deleteFolder} id={parseInt(docFolderData.id)} key={`${docFolderData.id}_dd`} child={child} />;
+      },
+    },
+    {
+      // adding opacity to doc-upload on hover
+      searchFn: searchByClasses(['doc-upload']),
+      transformChild: (child: ReactElement) => {
+        return cloneElement(
+          <RxFileUploader className={child.props.className} data={{ document_id: docFolderData.id }}>
+            {cloneElement(child, { className: '' })}
+          </RxFileUploader>,
+          { style: {} },
+        );
       },
     },
   ];

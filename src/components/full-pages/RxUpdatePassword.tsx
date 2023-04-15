@@ -67,7 +67,7 @@ export function RxUpdatePasswordPage(props: RxUpdatePasswordPageProps) {
       const { user } = await updateAccount(searchParams.get('key') as string, { password });
       if (user) {
         notify({
-          category: NotificationCategory.Success,
+          category: NotificationCategory.SUCCESS,
           message: 'Your password has been updated.  Log in using your new password',
           timeout: 3500,
         });
@@ -78,7 +78,7 @@ export function RxUpdatePasswordPage(props: RxUpdatePasswordPageProps) {
     } catch (e) {
       const error = e as { response: { statusText: string } };
       notify({
-        category: NotificationCategory.Error,
+        category: NotificationCategory.ERROR,
         message: error.response.statusText,
       });
     }
