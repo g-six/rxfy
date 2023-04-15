@@ -26,7 +26,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const { hostname, pathname } = new URL(url);
 
-  const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? 'pacific.leagent.com' : hostname);
+  const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? 'rx.leagent.com' : hostname);
   let data;
   const page_url = `https://${agent_data.webflow_domain}${getFullWebflowPagePath(pathname)}`;
   try {
