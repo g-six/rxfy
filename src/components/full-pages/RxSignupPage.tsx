@@ -1,7 +1,6 @@
 'use client';
 
-import axios, { AxiosError, AxiosResponse } from 'axios';
-import { MessageRecipient } from '@mailchimp/mailchimp_transactional';
+import { AxiosError } from 'axios';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { NotificationCategory } from '@/_typings/events';
 import React from 'react';
@@ -10,45 +9,14 @@ import { RxEmail } from '../RxEmail';
 import { RxPassword } from '../RxPassword';
 import { RxTextInput } from '../RxTextInput';
 import { RxCheckBox } from '../RxCheckBox';
+import { signUp } from '@/_utilities/api-calls/call-signup';
 
 type RxSignupPageProps = {
   type: string;
   agent: number;
   logo?: string;
   children: React.ReactElement;
-};
-
-type SignUpResponse = {
-  data: {
-    createCustomer: {
-      data: {
-        id: number;
-        attributes: {
-          email: string;
-          full_name: string;
-          logo_for_light_bg?: string;
-          agents: {
-            id: number;
-          }[];
-        };
-      };
-    };
-  };
-  errors?: {
-    message: string;
-    extensions: {
-      error: {
-        name: string;
-        message?: string;
-        details?: {
-          errors: {
-            path: string[];
-            message: string;
-          }[];
-        };
-      };
-    };
-  }[];
+  className: string;
 };
 
 export function RxPageIterator(props: RxSignupPageProps) {
@@ -168,20 +136,14 @@ export function RxSignupPage(props: RxSignupPageProps) {
         message: error,
       });
     } else if (valid_data) {
-      axios
-        .post(
-          '/api/sign-up',
-          {
-            ...valid_data,
-            agent: props.agent,
-            logo: props.logo,
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          },
-        )
+      signUp(
+        {
+          id: Number(props.agent),
+          email: props.className.split(' ').includes('use-agent') ? valid_data.email : undefined,
+          logo: props.logo,
+        },
+        valid_data,
+      )
         .then(response => {
           notify({
             category: NotificationCategory.SUCCESS,
@@ -230,6 +192,7 @@ export function RxSignupPage(props: RxSignupPageProps) {
   return (
     <form
       id='rx-signup-page'
+      className={props.className}
       onSubmit={e => {
         e.preventDefault();
         fireEvent({
