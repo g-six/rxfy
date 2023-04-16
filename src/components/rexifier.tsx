@@ -301,22 +301,20 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
 
         if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.SIGNUP) {
           return (
-            <RxSignupPage {...props} agent={agent_data.id as number} logo={agent_data.metatags?.logo_for_light_bg} type={node.type}>
-              <>{domToReact(node.children) as ReactElement[]}</>
-            </RxSignupPage>
-          );
-        }
-
-        if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.SIGNUP) {
-          return (
-            <RxSignupPage {...props} agent={agent_data.id as number} logo={agent_data.metatags?.logo_for_light_bg} type={node.type}>
+            <RxSignupPage
+              {...props}
+              agent={agent_data.id as number}
+              logo={agent_data.metatags?.logo_for_light_bg}
+              type={node.type}
+              className={node.attribs?.class || className}
+            >
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxSignupPage>
           );
         }
         if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.LOGIN) {
           return (
-            <RxLoginPage {...props} type={node.type}>
+            <RxLoginPage {...props} className={node.attribs?.class || className}>
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxLoginPage>
           );

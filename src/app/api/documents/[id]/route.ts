@@ -137,7 +137,7 @@ const gql_retrieve_documents = `query RetrieveDocuments ($filters: DocumentFilte
 
 /**
  * Creates a document record
- * POST /api/documents/<Cookies.get('cid')>
+ * POST /api/documents/<Cookies.get('guid')>
  *      headers { Authorization: Bearer <Cookies.get('session_key')> }
  *      payload { name: 'filename or title', url: 'URL to file in S3', agent: 'agent.id (not agent_id)' }
  * @param request
@@ -259,7 +259,7 @@ export async function POST(request: Request) {
 
 /**
  * Updates a document folder and if payload includes it, appends a document upload
- * PUT /api/documents/<Cookies.get('cid')>
+ * PUT /api/documents/<Cookies.get('guid')>
  *      headers { Authorization: Bearer <Cookies.get('session_key')> }
  *      payload { name: 'folder name', upload?: { file_name: 'filename or title', url: 'URL to file in S3' } }
  * @param request
@@ -429,7 +429,7 @@ export async function PUT(request: Request) {
 
 /**
  * Deletes an upload from a document folder
- * DELETE /api/documents/<Cookies.get('cid')>?model=document-upload&id=x
+ * DELETE /api/documents/<Cookies.get('guid')>?model=document-upload&id=x
  *      headers { Authorization: Bearer <Cookies.get('session_key')> }
  * @param request
  * @returns
@@ -579,7 +579,7 @@ export async function DELETE(request: Request) {
 
 /**
  * Retrieves all documents for a user
- * GET /api/documents/<Cookies.get('cid')>
+ * GET /api/documents/<Cookies.get('guid')>
  *      headers { Authorization: Bearer <Cookies.get('session_key')> }
  * @param request
  * @returns

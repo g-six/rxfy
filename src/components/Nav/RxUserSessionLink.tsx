@@ -16,7 +16,7 @@ export function RxUserSessionLink(props: RxUserSessionLinkProps) {
 
   const logout = () => {
     Cookies.remove('session_key');
-    Cookies.remove('cid');
+    Cookies.remove('guid');
     Cookies.remove('last_activity_at');
     router.push('/');
   };
