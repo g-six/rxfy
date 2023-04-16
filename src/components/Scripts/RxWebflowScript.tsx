@@ -8,7 +8,7 @@ type ScriptProps = {
 };
 export function RxWebflowScript(p: ScriptProps) {
   const onScriptLoad = () => {
-    if (p['script-name'].indexOf('webflow') >= 0) {
+    if (p['script-name'].indexOf('jquery') === -1) {
       let start = Date.now();
       const t = setInterval(() => {
         const badge = document.querySelector('.w-webflow-badge');
@@ -16,7 +16,7 @@ export function RxWebflowScript(p: ScriptProps) {
           badge.remove();
           console.log('badge found and removed');
         }
-        if (start < Date.now() - 2000) {
+        if (start < Date.now() - 10000) {
           clearInterval(t);
           console.log('Rexifier can now rest from watching that badger!');
         }
