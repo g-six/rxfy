@@ -10,6 +10,7 @@ import { RxPassword } from '../RxPassword';
 import { NotificationCategory } from '@/_typings/events';
 import { login } from '@/_utilities/api-calls/call-login';
 import { hasClassName } from '@/_utilities/html-helper';
+import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 
 type RxLoginPageProps = {
   disabled?: boolean;
@@ -85,8 +86,7 @@ export function RxLoginPage(props: RxLoginPageProps) {
           location.href = '/my-profile';
         }, 700);
       } else {
-        Cookies.remove('session_key');
-        Cookies.remove('guid');
+        clearSessionCookies();
       }
     }
   };

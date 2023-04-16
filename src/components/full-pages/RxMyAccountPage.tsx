@@ -15,6 +15,7 @@ import { RxPhoneInput } from '../RxPhoneInput';
 import { CustomerInputModel } from '@/_typings/customer';
 import { RxBirthdayTextInput } from '../RxForms/RxBirthdayTextInput';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
+import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 
 type RxMyAccountPageProps = {
   type: string;
@@ -168,8 +169,7 @@ async function loadSession(search_params: string[]) {
       Cookies.set('guid', customer_id);
       return session.data;
     } else {
-      Cookies.remove('session_key');
-      Cookies.remove('guid');
+      clearSessionCookies();
       location.href = '/log-in';
     }
   } else {

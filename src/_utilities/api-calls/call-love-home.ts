@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import Cookies from 'js-cookie';
+import { clearSessionCookies } from './call-logout';
 
 /**
  * Retrieve customer saved homes
@@ -21,18 +22,14 @@ export async function getLovedHomes() {
       }
       return records;
     } else if (response.status === 401) {
-      Cookies.remove('session_key');
-      Cookies.remove('guid');
-      Cookies.remove('last_activity_at');
+      clearSessionCookies();
     }
 
     return response;
   } catch (e) {
     const axerr = e as AxiosError;
     if (axerr.response?.status === 401) {
-      Cookies.remove('session_key');
-      Cookies.remove('guid');
-      Cookies.remove('last_activity_at');
+      clearSessionCookies();
     }
   }
 }
