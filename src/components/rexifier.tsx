@@ -121,9 +121,9 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
   }
 
   if (agent_data.metatags?.logo_for_light_bg) {
-    $('.navbar-wrapper-2 > a').remove();
-    replaceByCheerio($, '.navbar-wrapper-2', {
-      prepend: `<a href="/" class="flex justify-items-start"><img class="justify-self-start max-h-10" src="${agent_data.metatags.logo_for_light_bg}" /></a>`,
+    $('.navbar-wrapper-2 a[href="/"] img').remove();
+    replaceByCheerio($, '.navbar-wrapper-2 a[href="/"]', {
+      content: `<img class="justify-self-start max-h-10" src="${agent_data.metatags.logo_for_light_bg}" />`,
     });
   }
 }
@@ -519,30 +519,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
   const elements = parse(html_code, options);
 
   return elements;
-}
-
-export function injectLogo(tagName: string, className: string, agent_data: AgentData): string {
-  if (className.indexOf('logo-dark') >= 0 && agent_data.metatags?.logo_for_light_bg) {
-    const styles = [
-      `background-image: url(${agent_data.metatags?.logo_for_light_bg})`,
-      `background-size: 'contain'`,
-      `background-repeat: 'no-repeat'`,
-      'flex: 1',
-      `display: 'flex'`,
-    ];
-    return `<h3
-        class="${className}"
-        style="${styles.join('; ')}"
-      >
-        <a
-          href='/'
-          style="display: inline-block; opacity: 0; width: 100%; textIndent: -100em"
-        >
-          ${agent_data.full_name || '{Agent Name}'}
-        </a>
-      </h3>`;
-  }
-  return `<${tagName || 'span'} class="${className}">${agent_data.full_name}</${tagName || 'span'}>`;
 }
 
 function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName = ''): ReactElement | undefined {
