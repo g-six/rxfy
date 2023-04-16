@@ -32,6 +32,23 @@ const gql = `mutation UpdateCustomerSession ($id: ID!, $last_activity_at: DateTi
   }
 }`;
 
+export async function getUserById(id: number) {
+  const { data } = await axios.post(
+    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+    {
+      query: gqlFindCustomer,
+      variables: {
+        id,
+      },
+    },
+    {
+      headers,
+    },
+  );
+
+  return data;
+}
+
 export async function GET(request: Request) {
   const authorization = await request.headers.get('authorization');
   const id = Number(request.url.split('/').pop());
@@ -41,18 +58,7 @@ export async function GET(request: Request) {
     const [prefix, value] = authorization.split(' ');
     if (prefix.toLowerCase() === 'bearer') {
       session_key = value;
-      const { data: response_data } = await axios.post(
-        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-        {
-          query: gqlFindCustomer,
-          variables: {
-            id,
-          },
-        },
-        {
-          headers,
-        },
-      );
+      const response_data = await getUserById(id);
 
       if (response_data.data?.customer?.data?.attributes) {
         const { email, last_activity_at } = response_data.data?.customer?.data?.attributes;
