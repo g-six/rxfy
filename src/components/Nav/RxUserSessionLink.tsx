@@ -3,6 +3,7 @@ import React from 'react';
 import Cookies from 'js-cookie';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { useRouter } from 'next/navigation';
+import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 
 type RxUserSessionLinkProps = {
   children: React.ReactElement;
@@ -15,9 +16,7 @@ export function RxUserSessionLink(props: RxUserSessionLinkProps) {
   const [selector, toggleShow] = React.useState('hidden');
 
   const logout = () => {
-    Cookies.remove('session_key');
-    Cookies.remove('cid');
-    Cookies.remove('last_activity_at');
+    clearSessionCookies();
     router.push('/');
   };
 

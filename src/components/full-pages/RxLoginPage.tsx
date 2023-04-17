@@ -8,12 +8,15 @@ import { RxButton } from '../RxButton';
 import { RxEmail } from '../RxEmail';
 import { RxPassword } from '../RxPassword';
 import { NotificationCategory } from '@/_typings/events';
+import { login } from '@/_utilities/api-calls/call-login';
+import { hasClassName } from '@/_utilities/html-helper';
+import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 
 type RxLoginPageProps = {
-  type: string;
   disabled?: boolean;
   loading?: boolean;
   children: React.ReactElement;
+  className: string;
 };
 
 export function RxLoginPageIterator(props: RxLoginPageProps) {
@@ -35,7 +38,7 @@ export function RxLoginPageIterator(props: RxLoginPageProps) {
         return <RxPassword {...child_node.props} rx-event={Events.Login} name='password' />;
       }
       return <input {...child_node.props} className={[child_node.props.className || '', 'rexified'].join(' ')} />;
-    } else if (child.props && child.props.children)
+    } else if (child.props && child.props.children) {
       return React.cloneElement(
         {
           ...child,
@@ -46,7 +49,9 @@ export function RxLoginPageIterator(props: RxLoginPageProps) {
           children: <RxLoginPageIterator {...props}>{child.props.children}</RxLoginPageIterator>,
         },
       );
-    else return child;
+    } else {
+      return child;
+    }
   });
 
   return <>{wrappedChildren}</>;
@@ -58,9 +63,9 @@ export function RxLoginPage(props: RxLoginPageProps) {
   const [is_loading, toggleLoading] = React.useState(false);
 
   const checkSession = async () => {
-    if (Cookies.get('cid') && Cookies.get('session_key')) {
+    if (Cookies.get('guid') && Cookies.get('session_key')) {
       const api_response = await axios
-        .get(`/api/check-session/${Cookies.get('cid')}`, {
+        .get(`/api/check-session/${Cookies.get('guid')}`, {
           headers: {
             Authorization: `Bearer ${Cookies.get('session_key')}`,
           },
@@ -81,8 +86,7 @@ export function RxLoginPage(props: RxLoginPageProps) {
           location.href = '/my-profile';
         }, 700);
       } else {
-        Cookies.remove('session_key');
-        Cookies.remove('cid');
+        clearSessionCookies();
       }
     }
   };
@@ -91,39 +95,39 @@ export function RxLoginPage(props: RxLoginPageProps) {
     if (is_loading) return;
     toggleLoading(true);
     try {
-      const api_response = await axios
-        .post('/api/log-in', data, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-        .catch((e: AxiosError) => {
-          if (e.response && e.response.data) {
-            const { error } = e.response.data as { error: string };
-            if (error) {
-              throw { response: { statusText: error } };
-            }
+      const { email, password } = data as unknown as { [key: string]: string };
+      const api_response = await login(email, password, { is_agent: hasClassName(props.className || '', 'use-agent') }).catch((e: AxiosError) => {
+        if (e.response && e.response.data) {
+          const { error } = e.response.data as { error: string };
+          if (error) {
+            throw { response: { statusText: error } };
           }
-        });
+        }
+      });
+
       const session = api_response as unknown as {
-        data?: {
-          customer?: {
-            id: string;
-            email: string;
-            session_key: string;
-          };
+        user?: {
+          id: string;
+          email: string;
+          session_key: string;
         };
       };
-      if (session.data?.customer?.session_key) {
-        Cookies.set('session_key', session.data.customer.session_key);
-        Cookies.set('cid', session.data.customer.id);
+      if (session?.user?.session_key) {
+        Cookies.set('session_key', session.user.session_key);
+        Cookies.set('guid', session.user.id);
         location.href = '/my-profile';
+      } else {
+        notify({
+          category: NotificationCategory.ERROR,
+          message: 'Wrong email or password. Please try again',
+        });
       }
     } catch (e) {
       const error = e as { response: { statusText: string } };
+      console.log(error);
       notify({
         category: NotificationCategory.ERROR,
-        message: error.response.statusText,
+        message: error.response?.statusText,
       });
     }
 
@@ -146,8 +150,14 @@ export function RxLoginPage(props: RxLoginPageProps) {
   }, []);
 
   return (
-    <div id='rx-login-page'>
+    <form
+      id='rx-login-form'
+      {...props}
+      onSubmit={({ preventDefault }) => {
+        preventDefault();
+      }}
+    >
       <RxLoginPageIterator {...props} disabled={is_loading} loading={is_loading} />
-    </div>
+    </form>
   );
 }

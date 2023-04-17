@@ -44,6 +44,7 @@ import { RxUpdatePasswordPage } from './full-pages/RxUpdatePassword';
 import RxMyCompareDashboardPage from './full-pages/RxMyCompareDashboardPage';
 import { RxWebflowScript } from './Scripts/RxWebflowScript';
 import RxDropdownMenu from './Nav/RxDropdownMenu';
+import { RxMyClients } from './full-pages/RxMyClients';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -122,7 +123,9 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
 
   if (agent_data.metatags?.logo_for_light_bg) {
     $('.navbar-wrapper-2 a[href="/"] img').remove();
-    replaceByCheerio($, '.navbar-wrapper-2 a[href="/"]', {
+    $('.navbar-wrapper-2 > a[href="#"]').attr('href', '/');
+    $('.navbar-wrapper-2 > a h3').remove();
+    replaceByCheerio($, '.navbar-wrapper-2 > a', {
       content: `<img class="justify-self-start max-h-10" src="${agent_data.metatags.logo_for_light_bg}" />`,
     });
   }
@@ -298,14 +301,20 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
 
         if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.SIGNUP) {
           return (
-            <RxSignupPage {...props} agent={agent_data.id as number} logo={agent_data.metatags?.logo_for_light_bg} type={node.type}>
+            <RxSignupPage
+              {...props}
+              agent={agent_data.id as number}
+              logo={agent_data.metatags?.logo_for_light_bg}
+              type={node.type}
+              className={node.attribs?.class || className}
+            >
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxSignupPage>
           );
         }
         if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.LOGIN) {
           return (
-            <RxLoginPage {...props} type={node.type}>
+            <RxLoginPage {...props} className={`rexified ${className || ''} ${node.attribs?.class || ''}`.trim()}>
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxLoginPage>
           );
@@ -341,6 +350,13 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
               </RxMyAccountPage>
             );
           }
+          if (node.attribs?.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.CLIENTS_CARDS)) {
+            return (
+              <RxMyClients {...props}>
+                <>{domToReact(node.children) as ReactElement[]}</>
+              </RxMyClients>
+            );
+          }
 
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.USER_MENU_DROPDOWN)) {
             return (
@@ -372,7 +388,13 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           }
           if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.SIGNUP) {
             return (
-              <RxSignupPage {...props} agent={agent_data.id as number} logo={agent_data.metatags?.logo_for_light_bg} type={node.type}>
+              <RxSignupPage
+                {...props}
+                className={className || ''}
+                agent={agent_data.id as number}
+                logo={agent_data.metatags?.logo_for_light_bg}
+                type={node.type}
+              >
                 <>{domToReact(node.children) as ReactElement[]}</>
               </RxSignupPage>
             );

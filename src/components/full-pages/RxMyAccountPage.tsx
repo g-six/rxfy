@@ -15,6 +15,7 @@ import { RxPhoneInput } from '../RxPhoneInput';
 import { CustomerInputModel } from '@/_typings/customer';
 import { RxBirthdayTextInput } from '../RxForms/RxBirthdayTextInput';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
+import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 
 type RxMyAccountPageProps = {
   type: string;
@@ -139,7 +140,7 @@ async function loadSession(search_params: string[]) {
       customer_id = key_from_params.split('-')[1];
     }
   }
-  if (!customer_id) customer_id = Cookies.get('cid') as string;
+  if (!customer_id) customer_id = Cookies.get('guid') as string;
   if (!session_key) session_key = Cookies.get('session_key') as string;
 
   if (customer_id && session_key) {
@@ -165,11 +166,10 @@ async function loadSession(search_params: string[]) {
         }, 300);
       }
       Cookies.set('session_key', session.data?.session_key);
-      Cookies.set('cid', customer_id);
+      Cookies.set('guid', customer_id);
       return session.data;
     } else {
-      Cookies.remove('session_key');
-      Cookies.remove('cid');
+      clearSessionCookies();
       location.href = '/log-in';
     }
   } else {
@@ -212,7 +212,7 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
         message: error,
       });
     } else if (valid_data) {
-      updateAccount(`${Cookies.get('session_key')}-${Cookies.get('cid')}`, valid_data)
+      updateAccount(`${Cookies.get('session_key')}-${Cookies.get('guid')}`, valid_data)
         .then(({ customer }) => {
           fireEvent({
             ...data,

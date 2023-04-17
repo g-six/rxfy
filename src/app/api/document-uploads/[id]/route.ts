@@ -3,7 +3,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 /**
  * Retrieves signed document url
- * GET /api/documents/<Cookies.get('cid')>
+ * GET /api/documents/<Cookies.get('guid')>
  *      headers { Authorization: Bearer <Cookies.get('session_key')> }
  * @param request
  * @returns

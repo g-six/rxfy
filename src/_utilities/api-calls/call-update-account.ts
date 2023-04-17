@@ -27,7 +27,7 @@ export async function updateAccount(token: string, data: CustomerInputModel) {
     );
 
     if (response.data?.customer?.id && response.data?.session_key) {
-      Cookies.set('cid', response.data.customer.id);
+      Cookies.set('guid', response.data.customer.id);
       Cookies.set('session_key', response.data.session_key);
     }
 

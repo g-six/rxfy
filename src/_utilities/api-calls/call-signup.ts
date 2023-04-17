@@ -11,14 +11,14 @@ import Cookies from 'js-cookie';
  * @returns
  */
 export async function signUp(
-  agent: { id: number; logo?: string },
+  agent: { id: number; logo?: string; email?: string },
   customer: { email: string; full_name?: string; password?: string },
   opts?: { search_url?: string },
 ) {
   const password = customer.password || randomString(6);
   const full_name = customer.full_name || capitalizeFirstLetter(customer.email.split('@')[0].replace(/[^\w\s!?]/g, ''));
   const response = await axios.post(
-    '/api/sign-up',
+    agent.email ? '/api/agents/sign-up' : '/api/sign-up',
     {
       ...opts,
       ...customer,
@@ -36,7 +36,7 @@ export async function signUp(
   );
 
   if (response.data?.customer?.id && response.data?.session_key) {
-    Cookies.set('cid', response.data.customer.id);
+    Cookies.set('guid', response.data.customer.id);
     Cookies.set('session_key', response.data.session_key);
   }
 

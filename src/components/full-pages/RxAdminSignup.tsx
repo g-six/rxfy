@@ -1,7 +1,7 @@
 'use client';
 
-import { AxiosError } from 'axios';
-import useEvent, { Events, EventsData } from '@/hooks/useEvent';
+import axios, { AxiosError } from 'axios';
+import useEvent, { Events } from '@/hooks/useEvent';
 import { NotificationCategory } from '@/_typings/events';
 import React from 'react';
 import { RxButton } from '../RxButton';
@@ -9,17 +9,48 @@ import { RxEmail } from '../RxEmail';
 import { RxPassword } from '../RxPassword';
 import { RxTextInput } from '../RxTextInput';
 import { RxCheckBox } from '../RxCheckBox';
-import { signUp } from '@/_utilities/api-calls/call-signup';
 
 type RxSignupPageProps = {
   type: string;
   agent: number;
   logo?: string;
   children: React.ReactElement;
-  className: string;
 };
 
-export function RxPageIterator(props: RxSignupPageProps) {
+type SignUpResponse = {
+  data: {
+    createCustomer: {
+      data: {
+        id: number;
+        attributes: {
+          email: string;
+          full_name: string;
+          logo_for_light_bg?: string;
+          agents: {
+            id: number;
+          }[];
+        };
+      };
+    };
+  };
+  errors?: {
+    message: string;
+    extensions: {
+      error: {
+        name: string;
+        message?: string;
+        details?: {
+          errors: {
+            path: string[];
+            message: string;
+          }[];
+        };
+      };
+    };
+  }[];
+};
+
+export function PageIterator(props: RxSignupPageProps) {
   const wrappedChildren = React.Children.map(props.children, child => {
     const child_node = child as React.ReactElement;
 
@@ -65,7 +96,7 @@ export function RxPageIterator(props: RxSignupPageProps) {
               : child.props.className || '',
           style,
           // Wrap grandchildren too
-          children: <RxPageIterator {...props}>{child.props.children}</RxPageIterator>,
+          children: <PageIterator {...props}>{child.props.children}</PageIterator>,
         },
       );
     } else return child;
@@ -116,7 +147,7 @@ function validInput(data: { email?: string; password?: string; full_name?: strin
   };
 }
 
-export function RxSignupPage(props: RxSignupPageProps) {
+export function RxAdminSignup(props: RxSignupPageProps) {
   const { data, fireEvent } = useEvent(Events.SignUp);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [is_processing, processing] = React.useState(false);
@@ -136,14 +167,20 @@ export function RxSignupPage(props: RxSignupPageProps) {
         message: error,
       });
     } else if (valid_data) {
-      signUp(
-        {
-          id: Number(props.agent),
-          email: props.className.split(' ').includes('use-agent') ? valid_data.email : undefined,
-          logo: props.logo,
-        },
-        valid_data,
-      )
+      axios
+        .post(
+          '/api/sign-up',
+          {
+            ...valid_data,
+            agent: props.agent,
+            logo: props.logo,
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
         .then(response => {
           notify({
             category: NotificationCategory.SUCCESS,
@@ -191,8 +228,7 @@ export function RxSignupPage(props: RxSignupPageProps) {
 
   return (
     <form
-      id='rx-signup-page'
-      className={props.className}
+      id='rx-admin-signup-page'
       onSubmit={e => {
         e.preventDefault();
         fireEvent({
@@ -201,7 +237,7 @@ export function RxSignupPage(props: RxSignupPageProps) {
         });
       }}
     >
-      <RxPageIterator {...props} />
+      <PageIterator {...props} />
     </form>
   );
 }

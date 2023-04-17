@@ -9,7 +9,7 @@ import Cookies from 'js-cookie';
  */
 export async function saveSearch(agent: { id: number; logo?: string }, opts?: { search_url?: string }) {
   const response = await axios.post(
-    `/api/saved-searches/${Cookies.get('cid')}`,
+    `/api/saved-searches/${Cookies.get('guid')}`,
     {
       ...opts,
       agent: agent.id,

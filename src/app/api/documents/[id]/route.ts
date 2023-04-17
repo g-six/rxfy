@@ -3,6 +3,7 @@ import { PutObjectCommand, S3Client, S3ClientConfig } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { encrypt } from '@/_utilities/encryption-helper';
 import { DocumentDataModel } from '@/_typings/document';
+import updateSessionKey from '../../update-session';
 
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
@@ -15,22 +16,6 @@ const gqlFindCustomer = `query FindCustomer($id: ID!) {
       attributes {
         email
         last_activity_at
-      }
-    }
-  }
-}`;
-
-const gql_update_session = `mutation UpdateCustomerSession ($id: ID!, $last_activity_at: DateTime!) {
-  session: updateCustomer(id: $id, data: { last_activity_at: $last_activity_at }) {
-    record: data {
-      id
-      attributes {
-        email
-        full_name
-        phone_number
-        birthday
-        last_activity_at
-        yes_to_marketing
       }
     }
   }
@@ -137,7 +122,7 @@ const gql_retrieve_documents = `query RetrieveDocuments ($filters: DocumentFilte
 
 /**
  * Creates a document record
- * POST /api/documents/<Cookies.get('cid')>
+ * POST /api/documents/<Cookies.get('guid')>
  *      headers { Authorization: Bearer <Cookies.get('session_key')> }
  *      payload { name: 'filename or title', url: 'URL to file in S3', agent: 'agent.id (not agent_id)' }
  * @param request
@@ -259,7 +244,7 @@ export async function POST(request: Request) {
 
 /**
  * Updates a document folder and if payload includes it, appends a document upload
- * PUT /api/documents/<Cookies.get('cid')>
+ * PUT /api/documents/<Cookies.get('guid')>
  *      headers { Authorization: Bearer <Cookies.get('session_key')> }
  *      payload { name: 'folder name', upload?: { file_name: 'filename or title', url: 'URL to file in S3' } }
  * @param request
@@ -429,7 +414,7 @@ export async function PUT(request: Request) {
 
 /**
  * Deletes an upload from a document folder
- * DELETE /api/documents/<Cookies.get('cid')>?model=document-upload&id=x
+ * DELETE /api/documents/<Cookies.get('guid')>?model=document-upload&id=x
  *      headers { Authorization: Bearer <Cookies.get('session_key')> }
  * @param request
  * @returns
@@ -579,7 +564,7 @@ export async function DELETE(request: Request) {
 
 /**
  * Retrieves all documents for a user
- * GET /api/documents/<Cookies.get('cid')>
+ * GET /api/documents/<Cookies.get('guid')>
  *      headers { Authorization: Bearer <Cookies.get('session_key')> }
  * @param request
  * @returns
@@ -698,43 +683,7 @@ export async function getNewSessionKey(id: number, previous_token: string) {
     const compare_key = `${encrypt(last_activity_at)}.${encrypted_email}`;
 
     if (compare_key === previous_token) {
-      const dt = new Date().toISOString();
-      const {
-        data: {
-          data: {
-            session: { record },
-          },
-        },
-      } = await axios.post(
-        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-        {
-          query: gql_update_session,
-          variables: {
-            id,
-            last_activity_at: dt,
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-
-      const { birthday: birthdate, ...attributes } = record.attributes;
-      let birthday;
-      if (birthdate) {
-        birthday = new Intl.DateTimeFormat('en-CA').format(new Date(`${birthdate}T00:00:00`));
-      }
-
-      return {
-        ...attributes,
-        session_key: `${encrypt(dt)}.${encrypted_email}`,
-        birthday,
-        id,
-        email,
-      };
+      return await updateSessionKey(id, email, 'Customer');
     }
   }
 }
