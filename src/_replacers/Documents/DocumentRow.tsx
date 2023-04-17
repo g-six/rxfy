@@ -28,7 +28,7 @@ export default function DocumentRow({ template, docData, deleteRow }: Props) {
           a.download = file_name;
           document.body.appendChild(a);
           a.click();
-          if (a && document.body) document.body.removeChild(a);
+          if (document && a && document.body) document.body.removeChild(a);
         }
       };
       xhr.send();
