@@ -314,7 +314,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
         if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.LOGIN) {
           return (
-            <RxLoginPage {...props} className={node.attribs?.class || className}>
+            <RxLoginPage {...props} className={`rexified ${className || ''} ${node.attribs?.class || ''}`.trim()}>
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxLoginPage>
           );

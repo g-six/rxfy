@@ -104,19 +104,23 @@ export function RxLoginPage(props: RxLoginPageProps) {
           }
         }
       });
+
       const session = api_response as unknown as {
-        data?: {
-          customer?: {
-            id: string;
-            email: string;
-            session_key: string;
-          };
+        user?: {
+          id: string;
+          email: string;
+          session_key: string;
         };
       };
-      if (session.data?.customer?.session_key) {
-        Cookies.set('session_key', session.data.customer.session_key);
-        Cookies.set('guid', session.data.customer.id);
+      if (session?.user?.session_key) {
+        Cookies.set('session_key', session.user.session_key);
+        Cookies.set('guid', session.user.id);
         location.href = '/my-profile';
+      } else {
+        notify({
+          category: NotificationCategory.ERROR,
+          message: 'Wrong email or password. Please try again',
+        });
       }
     } catch (e) {
       const error = e as { response: { statusText: string } };

@@ -9,8 +9,8 @@ export interface Property {
   };
 }
 
-export interface AgentMetatags {
-  id: number;
+export interface AgentMetatagsInput {
+  agent_id: string;
   title?: string;
   description?: string;
   personal_title?: string;
@@ -22,11 +22,12 @@ export interface AgentMetatags {
   headshot?: string;
   facebook_url?: string;
   instagram_url?: string;
-  linkedinurl?: string;
-  twitterurl?: string;
+  linkedin_url?: string;
+  twitter_url?: string;
   youtube_url?: string;
   mailchimp_subscription_url?: string;
   target_city?: string;
+  listings_title?: string;
   search_highlights?: {
     labels: {
       ne: GeoLocation;
@@ -41,6 +42,9 @@ export interface AgentMetatags {
   brokerage_name?: string;
   brokerage_id?: string;
   profile_slug?: string;
+}
+export interface AgentMetatags extends AgentMetatagsInput {
+  id: number;
 }
 
 export interface AgentData {
@@ -63,4 +67,6 @@ export interface AgentData {
   metatags: AgentMetatags;
   domain_name: string;
   webflow_domain: string;
+  last_activity_at?: Date;
+  encrypted_password?: string;
 }
