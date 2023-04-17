@@ -2,6 +2,8 @@ import axios from 'axios';
 import { randomString } from '../data-helpers/auth-helper';
 import { capitalizeFirstLetter } from '../formatters';
 import Cookies from 'js-cookie';
+import { queryStringToObject } from '../url-helper';
+import { SavedSearchInput } from '@/_typings/saved-search';
 
 /**
  * Sign up a customer under the agent's account
@@ -17,6 +19,12 @@ export async function signUp(
 ) {
   const password = customer.password || randomString(6);
   const full_name = customer.full_name || capitalizeFirstLetter(customer.email.split('@')[0].replace(/[^\w\s!?]/g, ''));
+
+  let saved_search: SavedSearchInput = {};
+  if (opts?.search_url) {
+    saved_search = queryStringToObject(opts?.search_url) as unknown as SavedSearchInput;
+  }
+
   const response = await axios.post(
     agent.email ? '/api/agents/sign-up' : '/api/sign-up',
     {
@@ -27,6 +35,7 @@ export async function signUp(
       full_name,
       password,
       yes_to_marketing: true,
+      saved_search,
     },
     {
       headers: {
