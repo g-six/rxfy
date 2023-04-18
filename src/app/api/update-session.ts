@@ -55,7 +55,7 @@ export default async function updateSessionKey(guid: number, email: string, user
 
   return {
     ...attributes,
-    session_key: `${encrypt(dt)}.${encrypt(email)}`,
+    session_key: `${encrypt(dt)}.${encrypt(email)}-${guid}`,
     birthday,
     id: guid,
     email,

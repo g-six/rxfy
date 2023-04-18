@@ -38,9 +38,10 @@ export async function saveDocument(agent: { id: number; logo?: string }, name?: 
  * @returns document data object and session_key string
  */
 export async function saveDocumentUpload(document_id: number, file: { file: File; name: string; size: number; type: string }) {
-  const response = await axios.put(
-    `/api/documents/${document_id}`,
+  const response = await axios.post(
+    `/api/document-uploads`,
     {
+      document: document_id,
       upload: file,
     },
     {
@@ -69,7 +70,7 @@ export async function saveDocumentUpload(document_id: number, file: { file: File
  * @returns documents data object array and session_key string
  */
 export async function getDocumentSignedUrl(file_name: string) {
-  const response = await axios.get(`/api/document-uploads/${file_name}`, {
+  const response = await axios.get(`/api/document-uploads/${encodeURIComponent(file_name)}`, {
     headers: {
       Authorization: `Bearer ${Cookies.get('session_key')}`,
       'Content-Type': 'application/json',

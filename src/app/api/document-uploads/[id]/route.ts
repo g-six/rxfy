@@ -25,7 +25,7 @@ export async function GET(request: Request) {
       401,
     );
 
-  const Key = request.url.split('/').pop();
+  const uri_encoded_key = request.url.split('/').pop();
   const config: S3ClientConfig = {
     region: 'us-west-2',
     credentials: {
@@ -35,10 +35,10 @@ export async function GET(request: Request) {
   };
   const client = new S3Client(config);
 
-  if (Key) {
+  if (uri_encoded_key) {
     const command = new GetObjectCommand({
       Bucket: process.env.NEXT_APP_S3_UPLOADS_BUCKET as string,
-      Key,
+      Key: decodeURIComponent(uri_encoded_key),
     });
     const url = await getSignedUrl(client, command, { expiresIn: 3600 });
 

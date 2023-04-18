@@ -13,27 +13,7 @@ type Props = {
 
 export default function DocumentRow({ template, docData, deleteRow }: Props) {
   const { updatedAt, file_name, url } = docData?.attributes ?? {};
-  const handleDownload = (e: MouseEvent) => {
-    getDocumentSignedUrl(file_name).then(signed => {
-      (e.currentTarget as HTMLAnchorElement).setAttribute('href', signed);
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', signed, true);
-      xhr.responseType = 'blob';
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          const blob = xhr.response;
-          const downloadUrl = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = downloadUrl;
-          a.download = file_name;
-          document.body.appendChild(a);
-          a.click();
-          if (document && document.body?.removeChild && a) document.body.removeChild(a);
-        }
-      };
-      xhr.send();
-    });
-  };
+
   const matches = [
     {
       //changing fields with braces inside document request row
