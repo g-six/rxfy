@@ -92,7 +92,6 @@ export async function GET(req: Request) {
         // Only if user is logged in
         const compare = `${encrypt(user.last_activity_at)}.${encrypt(user.email)}`;
         const domain_name = req.headers.get('host')?.indexOf('localhost') !== 0 ? req.headers.get('host') : process.env.TEST_DOMAIN;
-
         if (compare === token) {
           return new Response(
             JSON.stringify(
