@@ -31,3 +31,14 @@ export async function getAgentDataFromDomain(domain: string): Promise<AgentData>
 
   return data || {};
 }
+
+export function getVCFBlob(agent: AgentData): Blob {
+  return new Blob(
+    [
+      `BEGIN:VCARD\nVERSION:4.0\nN:${agent.full_name};;\nFN:${agent.full_name}\nORG:${
+        agent.metatags?.brokerage_name || agent.full_name
+      }\nTITLE:Leagent Realtor\nTEL;TYPE=WORK,VOICE:${agent.phone}\nEMAIL;TYPE=PREF,INTERNET:${agent.email}\nEND:VCARD`,
+    ],
+    { type: 'text/vcard;charset=utf-8' },
+  );
+}
