@@ -1,8 +1,7 @@
 import React from 'react';
 import { AgentData } from '@/_typings/agent';
 import { hasClassName } from '@/_utilities/html-helper';
-import RxDownloadLink from '../A/RxDownloadLink';
-import RxCopyToClipboard from '../RxCopyToClipboard';
+import RxShareButton from '../RxShareButton';
 
 type Props = {
   className: string;
@@ -35,9 +34,9 @@ function PageIterator(props: Props) {
         );
       } else if (hasClassName(childClassName, 'save-contact')) {
         return (
-          <RxDownloadLink {...child.props} agent={props.agent} filename='contact.vcf'>
+          <a {...child.props} href={`https://pages.leagent.com/${props.agent.domain_name}/contact.vcf`}>
             {child.props.children}
-          </RxDownloadLink>
+          </a>
         );
       } else if (hasClassName(childClassName, 'call-button')) {
         return React.cloneElement(<a />, {
@@ -48,7 +47,7 @@ function PageIterator(props: Props) {
           href: `tel:${props.agent.phone}`,
         });
       } else if (hasClassName(childClassName, 'share-contact')) {
-        return React.cloneElement(<RxCopyToClipboard className={child.props?.className || ''} />, {
+        return React.cloneElement(<RxShareButton title={props.agent.full_name} className={child.props?.className || ''} />, {
           ...child.props.children.props,
           children: `${child.props.children.props.children}`.split('{Agent}').join(props.agent.full_name),
         });
