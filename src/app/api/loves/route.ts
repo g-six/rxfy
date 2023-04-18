@@ -3,6 +3,7 @@ import { encrypt } from '@/_utilities/encryption-helper';
 import { MLSProperty } from '@/_typings/property';
 import { getResponse } from '../response-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
+import { getNewSessionKey } from '../update-session';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -225,7 +226,6 @@ export async function POST(request: Request) {
     );
 
   const { agent, mls_id } = await request.json();
-  let session_key = '';
 
   if (agent && mls_id) {
     const { data: response_data } = await axios.post(
@@ -313,12 +313,12 @@ export async function POST(request: Request) {
           },
         );
 
-        session_key = `${encrypt(dt)}.${encrypted_email}`;
+        const user = await getNewSessionKey(token, guid);
 
         return new Response(
           JSON.stringify(
             {
-              session_key,
+              session_key: user.session_key,
               record: {
                 id: Number(love_response.data.data.love.record.id),
                 ...love_response.data.data.love.record.attributes,
@@ -339,7 +339,7 @@ export async function POST(request: Request) {
       return new Response(
         JSON.stringify(
           {
-            session_key,
+            session_key: `${token}-${guid}`,
             message: 'Unable to save home',
           },
           null,

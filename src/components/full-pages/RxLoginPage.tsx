@@ -116,7 +116,7 @@ export function RxLoginPage(props: RxLoginPageProps) {
         Cookies.set('session_key', session.session_key);
         setTimeout(() => {
           location.href = '/my-profile';
-        }, 300);
+        }, 700);
       } else {
         notify({
           category: NotificationCategory.ERROR,
