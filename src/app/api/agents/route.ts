@@ -96,7 +96,7 @@ export async function GET(req: Request) {
           return new Response(
             JSON.stringify(
               {
-                session_key: `${token}-${guid}`,
+                session_key: `${encrypt(user.last_activity_at)}.${encrypt(user.email)}-${guid}`,
                 customer: user,
                 domain_name,
               },
