@@ -2,6 +2,7 @@ import React from 'react';
 import { AgentData } from '@/_typings/agent';
 import { hasClassName } from '@/_utilities/html-helper';
 import RxDownloadLink from '../A/RxDownloadLink';
+import RxCopyToClipboard from '../RxCopyToClipboard';
 
 type Props = {
   className: string;
@@ -39,11 +40,12 @@ function PageIterator(props: Props) {
           </RxDownloadLink>
         );
       } else if (hasClassName(childClassName, 'call-button')) {
-        return (
-          <a {...child.props} href={`tel:${props.agent.phone}`}>
-            {child.props.children}
-          </a>
-        );
+        return <PageIterator {...props}>{child.props.children[0]}</PageIterator>;
+      } else if (hasClassName(childClassName, 'share-contact')) {
+        return React.cloneElement(<RxCopyToClipboard className={child.props?.className || ''} />, {
+          ...child.props.children.props,
+          children: `${child.props.children.props.children}`.split('{Agent}').join(props.agent.full_name),
+        });
       } else if (hasClassName(childClassName, 'idbutton') && hasClassName(childClassName, 'button-primary')) {
         return (
           <a {...child.props} href={`sms:${props.agent.phone}?&body=${encodeURIComponent(message)}`}>
