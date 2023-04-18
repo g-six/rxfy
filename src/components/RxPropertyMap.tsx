@@ -25,7 +25,7 @@ import HomeAlertsReplacer from '@/_replacers/HomeAlerts/home-alerts';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { RxUserSessionLink } from './Nav/RxUserSessionLink';
 import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
-import { LoveDataModel } from '@/_typings/love';
+import { LoveDataModel, LovedPropertyDataModel } from '@/_typings/love';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 import { Events } from '@/_typings/events';
 import { useSearchParams } from 'next/navigation';
@@ -40,6 +40,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
         <RxPropertyMapRecursive
           setPlace={props.setPlace}
           listings={props.listings}
+          loved_homes={props.loved_homes || []}
           agent_data={props.agent_data}
           type='div'
           className={`${child.props.className || ''} rexified-${child.type}`}
@@ -220,8 +221,9 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
           // Just clone one
           return child.key === '1' ? (
             props.listings.slice(-10).map((p: MLSProperty, sequence_no) => {
+              const record = props.loved_homes?.filter(({ mls_id }) => mls_id === p.MLS_ID).pop();
               LargeCard = (
-                <RxPropertyCard key={p.MLS_ID} listing={p} sequence={sequence_no} agent={props.agent_data.id}>
+                <RxPropertyCard key={p.MLS_ID} love={record?.love} listing={p} sequence={sequence_no} agent={props.agent_data.id}>
                   {cloneElement(child, {
                     ...child.props,
                     className: classNames(child.props.className),
@@ -269,15 +271,22 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
   const [hide_others, setHideOthers] = React.useState(false);
   const [place, setPlace] = React.useState<google.maps.places.AutocompletePrediction>();
   const [listings, setListings] = React.useState<MLSProperty[]>([]);
+  const [loved_homes, setLovedHomes] = React.useState<LovedPropertyDataModel[]>([]);
   const [map_params, setMapParams] = React.useState<PlaceDetails>();
 
   const processLovedHomes = (records: LoveDataModel[]) => {
     const local_loves = (getData(Events.LovedItem) as unknown as string[]) || [];
-    records.forEach(({ property }) => {
+    const loved: LovedPropertyDataModel[] = [];
+    records.forEach(({ id, property }) => {
+      loved.push({
+        ...property,
+        love: id,
+      });
       if (!local_loves.includes(property.mls_id)) {
         local_loves.push(property.mls_id);
       }
     });
+    setLovedHomes(loved);
     setData(Events.LovedItem, JSON.stringify(local_loves));
   };
 
@@ -311,6 +320,7 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
           setListings(p);
         }}
         listings={listings}
+        loved_homes={loved_homes}
         setHideOthers={(hide: boolean) => {
           console.log('hide', hide);
           setHideOthers(hide);

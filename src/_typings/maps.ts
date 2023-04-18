@@ -1,4 +1,5 @@
 import { AgentData } from './agent';
+import { LovedPropertyDataModel } from './love';
 import { MLSProperty } from './property';
 
 export type MapElementType = 'geometry' | 'labels' | 'labels.icon' | 'labels.text.fill' | 'labels.text.stroke' | 'geometry';
@@ -103,6 +104,7 @@ export type RxPropertyMapProps = {
   place?: google.maps.places.AutocompletePrediction;
   setPlace?: (p: google.maps.places.AutocompletePrediction) => void;
   listings: MLSProperty[];
+  loved_homes?: LovedPropertyDataModel[];
   setListings?: (p: MLSProperty[]) => void;
   setHideOthers?: (hide: boolean) => void;
   children: any;

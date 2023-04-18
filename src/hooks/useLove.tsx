@@ -48,7 +48,7 @@ export default function useLove() {
     if (remove && item.love) {
       unloveHome(item.love);
     } else {
-      // loveHome(item.MLS_ID, agent);
+      loveHome(item.MLS_ID, agent);
     }
 
     document.dispatchEvent(

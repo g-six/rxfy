@@ -120,7 +120,6 @@ export default function RxPropertyCard({
           loved: loved_items && loved_items.includes(listing.MLS_ID),
           onLoveItem: (remove: boolean) => {
             if (agent) {
-              console.log({ love });
               evt.fireEvent(
                 {
                   ...listing,

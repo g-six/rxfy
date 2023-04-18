@@ -56,9 +56,11 @@ export async function loveHome(mls_id: string, agent: number) {
       },
     );
 
+    if (response.data?.session_key) {
+      Cookies.set('session_key', response.data.session_key);
+    }
     if (response.status === 200) {
       const { session_key, ...record } = response.data;
-      Cookies.set('session_key', session_key);
       return record;
     }
     return response;

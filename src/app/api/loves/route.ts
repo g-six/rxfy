@@ -245,98 +245,50 @@ export async function POST(request: Request) {
       }
 
       if (property_id) {
-        const user = await getNewSessionKey(token, guid);
-        if (user) {
-          const love_response = await axios.post(
-            `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-            {
-              query: gql_love,
-              variables: {
-                agent,
-                customer: guid,
-                property_id,
-              },
+        const love_response = await axios.post(
+          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+          {
+            query: gql_love,
+            variables: {
+              agent,
+              customer: guid,
+              property_id,
             },
-            {
-              headers: {
-                Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-                'Content-Type': 'application/json',
-              },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+              'Content-Type': 'application/json',
             },
-          );
+          },
+        );
 
-          return new Response(
-            JSON.stringify(
-              {
-                session_key: user.session_key,
-                record: {
-                  id: Number(love_response.data.data.love.record.id),
-                  ...love_response.data.data.love.record.attributes,
-                },
-              },
-              null,
-              4,
-            ),
-            {
-              headers: {
-                'content-type': 'application/json',
-              },
-              status: 200,
+        return getResponse(
+          {
+            session_key: user.session_key,
+            record: {
+              id: Number(love_response.data.data.love.record.id),
+              ...love_response.data.data.love.record.attributes,
             },
-          );
-        }
+          },
+          200,
+        );
       }
 
-      return new Response(
-        JSON.stringify(
-          {
-            session_key: `${token}-${guid}`,
-            message: 'Unable to save home',
-          },
-          null,
-          4,
-        ),
+      return getResponse(
         {
-          headers: {
-            'content-type': 'application/json',
-          },
-          status: 400,
+          session_key: user.session_key,
+          message: 'Unable to save home',
         },
+        400,
       );
     }
-  } else {
-    return new Response(
-      JSON.stringify(
-        {
-          error: 'Sorry, please login',
-        },
-        null,
-        4,
-      ),
-      {
-        headers: {
-          'content-type': 'application/json',
-        },
-        status: 401,
-        statusText: 'Sorry, please login',
-      },
-    );
   }
 
-  return new Response(
-    JSON.stringify(
-      {
-        error: 'Please login',
-      },
-      null,
-      4,
-    ),
+  return getResponse(
     {
-      headers: {
-        'content-type': 'application/json',
-      },
-      status: 401,
-      statusText: 'Please login',
+      error: 'Please log in',
     },
+    401,
   );
 }
