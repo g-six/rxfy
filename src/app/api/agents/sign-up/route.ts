@@ -1,3 +1,5 @@
+import { getResponse } from '../../response-helper';
+
 export const gql_find_agent = `query RetrieveClients($agent_id: String!) {
     agents(filters: { agent_id: { eq: $agent_id } }) {
       data {
@@ -117,13 +119,4 @@ function checkForFieldErrors(data: { [key: string]: any }) {
       password: ['required'],
     };
   return errors;
-}
-
-function getResponse(data: { [key: string]: any }, status = 200 | 400 | 401 | 405) {
-  return new Response(JSON.stringify(data, null, 4), {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    status,
-  });
 }

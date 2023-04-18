@@ -70,7 +70,7 @@ export default function useHomeAlert(agentData: AgentData) {
               message: response?.data?.error || 'Sorry, please try again later',
             });
           });
-      } else if (Cookies.get('session_key') && Cookies.get('guid') && step === 2) {
+      } else if (Cookies.get('session_key') && step === 2) {
         saveSearch(
           {
             id: Number(agentData.id),

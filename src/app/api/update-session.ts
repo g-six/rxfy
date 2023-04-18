@@ -61,3 +61,44 @@ export default async function updateSessionKey(guid: number, email: string, user
     email,
   };
 }
+
+const gqlFindCustomer = `query FindCustomer($id: ID!) {
+  customer(id: $id) {
+    data {
+      id
+      attributes {
+        email
+        last_activity_at
+      }
+    }
+  }
+}`;
+
+export async function getNewSessionKey(previous_token: string) {
+  const id = Number(previous_token.split('-')[1]);
+  const { data: response_data } = await axios.post(
+    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+    {
+      query: gqlFindCustomer,
+      variables: {
+        id,
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${previous_token}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  if (response_data.data?.customer?.data?.attributes) {
+    const { email, last_activity_at } = response_data.data?.customer?.data?.attributes;
+    const encrypted_email = encrypt(email);
+    const compare_key = `${encrypt(last_activity_at)}.${encrypted_email}`;
+
+    if (compare_key === previous_token && !isNaN(Number(id))) {
+      return await updateSessionKey(Number(id), email, 'Customer');
+    }
+  }
+}

@@ -16,6 +16,7 @@ import { CustomerInputModel } from '@/_typings/customer';
 import { RxBirthdayTextInput } from '../RxForms/RxBirthdayTextInput';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
 import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
+import { queryStringToObject } from '@/_utilities/url-helper';
 
 type RxMyAccountPageProps = {
   type: string;
@@ -126,26 +127,21 @@ function validInput(data: CustomerInputModel & { agent_id?: number }): {
   };
 }
 
-async function loadSession(search_params: string[]) {
+async function loadSession(search_params: Record<string, string | number | boolean>) {
   let session_key = '';
   let customer_id = '';
   if (search_params.length) {
-    const [key_from_params] = search_params.filter(kv => {
-      const [key, val] = kv.split('=');
-      return key === 'key' && val;
-    });
-
-    if (key_from_params) {
-      session_key = key_from_params.split('-')[0].split('=')[1];
-      customer_id = key_from_params.split('-')[1];
+    if (search_params.key) {
+      const key_from_params = search_params.key as string;
+      session_key = key_from_params.split('=')[1];
+      customer_id = session_key.split('-')[1];
     }
   }
-  if (!customer_id) customer_id = Cookies.get('guid') as string;
   if (!session_key) session_key = Cookies.get('session_key') as string;
 
-  if (customer_id && session_key) {
+  if (session_key && session_key.split('-').length === 2) {
     const api_response = await axios
-      .get(`/api/check-session/${customer_id}`, {
+      .get('/api/check-session', {
         headers: {
           Authorization: `Bearer ${session_key}`,
         },
@@ -166,7 +162,6 @@ async function loadSession(search_params: string[]) {
         }, 300);
       }
       Cookies.set('session_key', session.data?.session_key);
-      Cookies.set('guid', customer_id);
       return session.data;
     } else {
       clearSessionCookies();
@@ -211,8 +206,8 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
         category: NotificationCategory.ERROR,
         message: error,
       });
-    } else if (valid_data) {
-      updateAccount(`${Cookies.get('session_key')}-${Cookies.get('guid')}`, valid_data)
+    } else if (valid_data && Cookies.get('session_key')) {
+      updateAccount(`${Cookies.get('session_key')}`, valid_data)
         .then(({ customer }) => {
           fireEvent({
             ...data,
@@ -255,7 +250,8 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
   }, [data]);
 
   React.useEffect(() => {
-    loadSession((search_params.toString() || '').split('&')).then(user_data => {
+    const params = queryStringToObject(search_params.toString() || '');
+    loadSession(params).then(user_data => {
       if (user_data) setFormData(user_data);
     });
   }, []);

@@ -8,7 +8,7 @@ import { clearSessionCookies } from './call-logout';
  */
 export async function getLovedHomes() {
   try {
-    const response = await axios.get(`/api/loves/${Cookies.get('guid')}`, {
+    const response = await axios.get('/api/loves', {
       headers: {
         Authorization: `Bearer ${Cookies.get('session_key')}`,
         'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ export async function getLovedHomes() {
 export async function loveHome(mls_id: string, agent: number) {
   try {
     const response = await axios.post(
-      `/api/loves/${Cookies.get('guid')}`,
+      `/api/loves`,
       {
         mls_id,
         agent,
@@ -74,7 +74,7 @@ export async function loveHome(mls_id: string, agent: number) {
  */
 export async function unloveHome(id: number) {
   try {
-    const response = await axios.delete(`/api/loves/${Cookies.get('guid')}?id=${id}`, {
+    const response = await axios.delete(`/api/loves/${id}`, {
       headers: {
         Authorization: `Bearer ${Cookies.get('session_key')}`,
         'Content-Type': 'application/json',

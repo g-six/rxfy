@@ -102,7 +102,7 @@ export default function HomeAlertsStep2({ child, agent }: ReplacerHomeAlerts) {
   // hook
 
   useEffect(() => {
-    if (Cookies.get('session_key') && Cookies.get('guid')) {
+    if (Cookies.get('session_key')) {
     } else if (getData('dismissSavedSearch') && getData('dismissSavedSearch') !== null) {
       const { dismissed_at, step } = getData('dismissSavedSearch') as unknown as { dismissed_at: string; step: number };
       toggleShow(step === HomeAlertStep.STEP_2 && dismissed_at === undefined);

@@ -1,5 +1,5 @@
 import { expect, it, describe } from 'vitest';
-import { retrieveBearer, getSessionAndGuidFromToken } from './token-extractor';
+import { retrieveBearer, getTokenAndGuidFromSessionKey } from './token-extractor';
 describe('Regex Replacer', () => {
   const string = retrieveBearer('This is a bearer token');
   const result = 'This is a token';
@@ -8,19 +8,22 @@ describe('Regex Replacer', () => {
   });
 });
 
-describe('getSessionAndGuidFromToken', () => {
-  it('should return an object with session key and guid when given a valid input', () => {
-    const input = 'session_key-guid';
-    const result = getSessionAndGuidFromToken(input);
-
-    expect(result).toEqual({
-      session_key: 'session_key',
-      guid: 'guid',
-    });
+describe('getTokenAndGuidFromSessionKey', () => {
+  it('should parse token from input string', () => {
+    const { token } = getTokenAndGuidFromSessionKey('token-123');
+    expect(token).toEqual('token');
   });
 
-  it('should throw an error when given an invalid input', () => {
-    const input = 'invalid_input';
-    expect(() => getSessionAndGuidFromToken(input)).toThrowError();
+  it('should parse guid from input string', () => {
+    const { guid } = getTokenAndGuidFromSessionKey('token-123');
+    expect(guid).toEqual(123);
+  });
+
+  it('should throw error when input is invalid', () => {
+    expect(() => getTokenAndGuidFromSessionKey('abc')).toThrowError('invalid_input');
+  });
+
+  it('should throw error when id portion is invalid', () => {
+    expect(() => getTokenAndGuidFromSessionKey('abc-xyz')).toThrowError('invalid_input');
   });
 });

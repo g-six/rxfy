@@ -51,7 +51,7 @@ export default function HomeAlertsStep1({ child, agent }: ReplacerHomeAlerts) {
   useEffect(() => {
     if (getData('dismissSavedSearch') && getData('dismissSavedSearch') !== null) {
       const { dismissed_at, show_step } = getData('dismissSavedSearch') as unknown as { show_step: number; dismissed_at?: string };
-      if (Cookies.get('session_key') !== undefined && Cookies.get('guid') !== undefined) {
+      if (Cookies.get('session_key') !== undefined) {
         toggleShow(!dismissed_at);
       } else {
         toggleShow(show_step === 1 || (!dismissed_at && !show_step));
@@ -62,7 +62,7 @@ export default function HomeAlertsStep1({ child, agent }: ReplacerHomeAlerts) {
   useEffect(() => {
     if (getData('dismissSavedSearch') !== null) {
       const { dismissed_at, step } = getData('dismissSavedSearch') as unknown as { dismissed_at?: string; step: number };
-      if (Cookies.get('session_key') !== undefined && Cookies.get('guid') !== undefined) {
+      if (Cookies.get('session_key') !== undefined) {
         toggleShow(false);
       } else {
         toggleShow(!dismissed_at && step === 1);

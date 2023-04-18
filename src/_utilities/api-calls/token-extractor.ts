@@ -12,14 +12,14 @@ export function retrieveBearer(input: string): string {
  * @param input sting in form of xxxxxx-y
  * @returns object { session_key: xxxxxx, guid: y }
  */
-export function getSessionAndGuidFromToken(input: string): {
-  session_key: string;
-  guid: string;
+export function getTokenAndGuidFromSessionKey(input: string): {
+  token: string;
+  guid: number;
 } {
-  const [session_key, guid] = input.split('-');
-  if (!session_key || !guid) throw new Error('invalid_input');
+  const [token, id] = input.split('-');
+  if (!token || !id || isNaN(Number(id))) throw new Error('invalid_input');
   return {
-    session_key,
-    guid,
+    token,
+    guid: Number(id),
   };
 }

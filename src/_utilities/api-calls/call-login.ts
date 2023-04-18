@@ -24,7 +24,6 @@ export async function login(email: string, password: string, opts?: { search_url
   );
 
   if (response.data?.user?.id && response.data?.session_key) {
-    Cookies.set('guid', response.data.user.id);
     Cookies.set('session_key', response.data.session_key);
   }
 

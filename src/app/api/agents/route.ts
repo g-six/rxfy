@@ -1,6 +1,6 @@
 import { retrieveBearer } from '@/_utilities/api-calls/token-extractor';
-import { getSessionAndGuidFromToken } from '@/_utilities/api-calls/token-extractor';
-import { getUserById } from '../check-session/[id]/route';
+import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
+import { getUserById } from '../check-session/route';
 import { encrypt } from '@/_utilities/encryption-helper';
 
 const gql_by_domain = `query Agent($domain_name: String!) {
@@ -76,7 +76,7 @@ export async function GET(req: Request) {
   };
   if (req.headers.get('authorization')) {
     try {
-      const { session_key, guid } = getSessionAndGuidFromToken(retrieveBearer(req.headers.get('authorization') as string));
+      const { session_key, guid } = getTokenAndGuidFromSessionKey(retrieveBearer(req.headers.get('authorization') as string));
       const {
         data: {
           customer: { data: record },

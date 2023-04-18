@@ -63,9 +63,9 @@ export function RxLoginPage(props: RxLoginPageProps) {
   const [is_loading, toggleLoading] = React.useState(false);
 
   const checkSession = async () => {
-    if (Cookies.get('guid') && Cookies.get('session_key')) {
+    if (Cookies.get('session_key')) {
       const api_response = await axios
-        .get(`/api/check-session/${Cookies.get('guid')}`, {
+        .get('/api/check-session', {
           headers: {
             Authorization: `Bearer ${Cookies.get('session_key')}`,
           },
@@ -109,13 +109,14 @@ export function RxLoginPage(props: RxLoginPageProps) {
         user?: {
           id: string;
           email: string;
-          session_key: string;
         };
+        session_key: string;
       };
-      if (session?.user?.session_key) {
-        Cookies.set('session_key', session.user.session_key);
-        Cookies.set('guid', session.user.id);
-        location.href = '/my-profile';
+      if (session?.session_key && session.user?.id) {
+        Cookies.set('session_key', session.session_key);
+        setTimeout(() => {
+          location.href = '/my-profile';
+        }, 300);
       } else {
         notify({
           category: NotificationCategory.ERROR,
@@ -124,7 +125,6 @@ export function RxLoginPage(props: RxLoginPageProps) {
       }
     } catch (e) {
       const error = e as { response: { statusText: string } };
-      console.log(error);
       notify({
         category: NotificationCategory.ERROR,
         message: error.response?.statusText,
