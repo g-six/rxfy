@@ -79,7 +79,19 @@ function RxComponentChomper({ config, children }: any): any {
   return <>{cloneChildren}</>;
 }
 
-export default function RxPropertyCard({ sequence, children, listing, agent }: { agent?: number; sequence?: number; children: any; listing: MLSProperty }) {
+export default function RxPropertyCard({
+  sequence,
+  children,
+  listing,
+  agent,
+  love,
+}: {
+  love?: number;
+  agent?: number;
+  sequence?: number;
+  children: any;
+  listing: MLSProperty;
+}) {
   const [loved_items, setLovedItems] = React.useState(getData(Events.LovedItem) as unknown as string[]);
   const evt = useLove();
 
@@ -108,7 +120,15 @@ export default function RxPropertyCard({ sequence, children, listing, agent }: {
           loved: loved_items && loved_items.includes(listing.MLS_ID),
           onLoveItem: (remove: boolean) => {
             if (agent) {
-              evt.fireEvent(listing, agent, remove);
+              console.log({ love });
+              evt.fireEvent(
+                {
+                  ...listing,
+                  love: love || 0,
+                },
+                agent,
+                remove,
+              );
             }
           },
         }}
