@@ -40,7 +40,13 @@ function PageIterator(props: Props) {
           </RxDownloadLink>
         );
       } else if (hasClassName(childClassName, 'call-button')) {
-        return <PageIterator {...props}>{child.props.children[0]}</PageIterator>;
+        return React.cloneElement(<a />, {
+          ...child.props,
+          className: `${childClassName}`,
+          // Wrap grandchildren too
+          children: <PageIterator {...props}>{child.props.children}</PageIterator>,
+          href: `tel:${props.agent.phone}`,
+        });
       } else if (hasClassName(childClassName, 'share-contact')) {
         return React.cloneElement(<RxCopyToClipboard className={child.props?.className || ''} />, {
           ...child.props.children.props,
