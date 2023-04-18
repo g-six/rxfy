@@ -1,7 +1,7 @@
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { convertDateStringToDateObject } from '@/_utilities/data-helpers/date-helper';
 import { encrypt } from '@/_utilities/encryption-helper';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { getResponse } from '@/app/api/response-helper';
 import { getNewSessionKey } from '@/app/api/update-session';
 
@@ -34,7 +34,7 @@ const mutation_gql = `mutation UpdateAccount ($id: ID!, $data: CustomerInput!) {
 }`;
 
 export async function PUT(request: Request) {
-  const { id, email, full_name, phone_number, birthday, password } = await request.json();
+  const { email, full_name, phone_number, birthday, password } = await request.json();
   try {
     const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
     if (!token || !guid)
@@ -54,7 +54,7 @@ export async function PUT(request: Request) {
       {
         query: gql,
         variables: {
-          id,
+          id: guid,
         },
       },
       {
@@ -115,7 +115,7 @@ export async function PUT(request: Request) {
     }
 
     const variables = {
-      id,
+      id: guid,
       data: updates,
     };
 
@@ -139,32 +139,24 @@ export async function PUT(request: Request) {
 
     getNewSessionKey(token, guid);
 
-    return new Response(
-      JSON.stringify(
-        {
-          customer: {
-            id,
-            ...customer.record.attributes,
-          },
-          session_key: `${encrypt(customer.record.attributes.last_activity_at as string)}.${encrypt(customer.record.attributes.email)}`,
-        },
-        null,
-        4,
-      ),
+    return getResponse(
       {
-        headers: {
-          'content-type': 'application/json',
+        customer: {
+          id: guid,
+          ...customer.record.attributes,
         },
+        session_key: `${encrypt(customer.record.attributes.last_activity_at as string)}.${encrypt(customer.record.attributes.email)}`,
       },
+      200,
     );
   } catch (e) {
     console.log('Error in Update Account API request');
-    console.log(JSON.stringify(e, null, 4));
+    const errors = e as AxiosError;
+    console.log(JSON.stringify(errors.response?.data, null, 4));
     return new Response(
       JSON.stringify(
         {
           error: 'Unable to update your account',
-          id,
           email,
           full_name,
           phone_number,
