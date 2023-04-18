@@ -32,7 +32,7 @@ export async function getAgentDataFromDomain(domain: string): Promise<AgentData>
   return data || {};
 }
 
-export function getVCFBlob(agent: AgentData) {
+export function getVCFBlob(agent: AgentData): Blob {
   return new Blob(
     [
       `BEGIN:VCARD\nVERSION:4.0\nN:${agent.full_name};;\nFN:${agent.full_name}\nORG:${

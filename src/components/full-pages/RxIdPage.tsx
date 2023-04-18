@@ -1,6 +1,7 @@
 import React from 'react';
 import { AgentData } from '@/_typings/agent';
 import { hasClassName } from '@/_utilities/html-helper';
+import RxDownloadLink from '../A/RxDownloadLink';
 
 type Props = {
   className: string;
@@ -30,6 +31,12 @@ function PageIterator(props: Props) {
             // Wrap grandchildren too
             children: <PageIterator {...props}>{child.props.children}</PageIterator>,
           },
+        );
+      } else if (hasClassName(childClassName, 'save-contact')) {
+        return (
+          <RxDownloadLink {...child.props} agent={props.agent} filename='contact.vcf'>
+            {child.props.children}
+          </RxDownloadLink>
         );
       } else if (hasClassName(childClassName, 'call-button')) {
         return (
