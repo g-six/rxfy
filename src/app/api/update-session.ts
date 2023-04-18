@@ -75,7 +75,6 @@ const gqlFindCustomer = `query FindCustomer($id: ID!) {
 }`;
 
 export async function getNewSessionKey(previous_token: string, id: number) {
-  console.log('getNewSessionKey', { previous_token, id });
   const { data: response_data } = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {

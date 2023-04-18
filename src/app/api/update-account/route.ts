@@ -114,6 +114,12 @@ export async function PUT(request: Request) {
       };
     }
 
+    const last_activity_at = new Date().toISOString();
+    updates = {
+      ...updates,
+      last_activity_at,
+    };
+
     const variables = {
       id: guid,
       data: updates,
@@ -137,15 +143,13 @@ export async function PUT(request: Request) {
       },
     );
 
-    getNewSessionKey(token, guid);
-
     return getResponse(
       {
         customer: {
           id: guid,
           ...customer.record.attributes,
         },
-        session_key: `${encrypt(customer.record.attributes.last_activity_at as string)}.${encrypt(customer.record.attributes.email)}`,
+        session_key: `${encrypt(last_activity_at)}.${encrypt(customer.record.attributes.email)}-${guid}`,
       },
       200,
     );
