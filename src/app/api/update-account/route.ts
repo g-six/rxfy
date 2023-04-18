@@ -1,6 +1,9 @@
+import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { convertDateStringToDateObject } from '@/_utilities/data-helpers/date-helper';
 import { encrypt } from '@/_utilities/encryption-helper';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import { getResponse } from '@/app/api/response-helper';
+import { getNewSessionKey } from '@/app/api/update-session';
 
 const gql = `query GetUserId ($id: ID!) {
   customer(id: $id) {
@@ -31,61 +34,42 @@ const mutation_gql = `mutation UpdateAccount ($id: ID!, $data: CustomerInput!) {
 }`;
 
 export async function PUT(request: Request) {
-  const { id, email, full_name, phone_number, birthday, password } = await request.json();
-
+  const { email, full_name, phone_number, birthday, password } = await request.json();
   try {
+    const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
+    if (!token || !guid)
+      return getResponse(
+        {
+          error: 'Please login',
+        },
+        401,
+      );
+
     let updates: { [key: string]: Date | string | number | boolean } = {
       last_activity_at: new Date().toISOString(),
     };
 
-    if (request.headers.get('authorization')) {
-      const [token_type, token] = `${request.headers.get('authorization')}`.split(' ');
-
-      if (token_type.toLowerCase() === 'bearer' && token) {
-        const { data: response_data } = await axios.post(
-          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-          {
-            query: gql,
-            variables: {
-              id,
-            },
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-              'Content-Type': 'application/json',
-            },
-          },
-        );
-        const record = response_data.data?.customer?.data?.attributes || {};
-        if (!record.email || !record.last_activity_at || `${encrypt(record.last_activity_at)}.${encrypt(record.email)}` !== token) {
-          return new Response(
-            JSON.stringify(
-              {
-                error: 'Invalid token or you have been signed out, please login again',
-              },
-              null,
-              4,
-            ),
-            {
-              headers: {
-                'content-type': 'application/json',
-              },
-              status: 400,
-            },
-          );
-        } else if (email !== undefined && record.email !== email) {
-          updates = {
-            ...updates,
-            email,
-          };
-        }
-      }
-    } else {
+    const { data: response_data } = await axios.post(
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+      {
+        query: gql,
+        variables: {
+          id: guid,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+    const record = response_data.data?.customer?.data?.attributes || {};
+    if (!record.email || !record.last_activity_at || `${encrypt(record.last_activity_at)}.${encrypt(record.email)}` !== token) {
       return new Response(
         JSON.stringify(
           {
-            error: 'Bearer token is required',
+            error: 'Invalid token or you have been signed out, please login again',
           },
           null,
           4,
@@ -97,6 +81,11 @@ export async function PUT(request: Request) {
           status: 400,
         },
       );
+    } else if (email !== undefined && record.email !== email) {
+      updates = {
+        ...updates,
+        email,
+      };
     }
 
     if (full_name) {
@@ -125,8 +114,14 @@ export async function PUT(request: Request) {
       };
     }
 
+    const last_activity_at = new Date().toISOString();
+    updates = {
+      ...updates,
+      last_activity_at,
+    };
+
     const variables = {
-      id,
+      id: guid,
       data: updates,
     };
 
@@ -148,14 +143,28 @@ export async function PUT(request: Request) {
       },
     );
 
+    return getResponse(
+      {
+        customer: {
+          id: guid,
+          ...customer.record.attributes,
+        },
+        session_key: `${encrypt(last_activity_at)}.${encrypt(customer.record.attributes.email)}-${guid}`,
+      },
+      200,
+    );
+  } catch (e) {
+    console.log('Error in Update Account API request');
+    const errors = e as AxiosError;
+    console.log(JSON.stringify(errors.response?.data, null, 4));
     return new Response(
       JSON.stringify(
         {
-          customer: {
-            id,
-            ...customer.record.attributes,
-          },
-          session_key: `${encrypt(customer.record.attributes.last_activity_at as string)}.${encrypt(customer.record.attributes.email)}`,
+          error: 'Unable to update your account',
+          email,
+          full_name,
+          phone_number,
+          birthday,
         },
         null,
         4,
@@ -164,31 +173,8 @@ export async function PUT(request: Request) {
         headers: {
           'content-type': 'application/json',
         },
+        status: 400,
       },
     );
-  } catch (e) {
-    console.log('Error in Update Account API request');
-    console.log(JSON.stringify(e, null, 4));
   }
-
-  return new Response(
-    JSON.stringify(
-      {
-        error: 'Unable to update your account',
-        id,
-        email,
-        full_name,
-        phone_number,
-        birthday,
-      },
-      null,
-      4,
-    ),
-    {
-      headers: {
-        'content-type': 'application/json',
-      },
-      status: 400,
-    },
-  );
 }

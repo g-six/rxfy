@@ -5,8 +5,6 @@ import Cookies from 'js-cookie';
 
 import { AgentData } from '@/_typings/agent';
 import { setData } from '@/_utilities/data-helpers/local-storage-helper';
-import { randomString } from '@/_utilities/data-helpers/auth-helper';
-import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { Events, NotificationCategory } from '@/_typings/events';
 import useEvent from '@/hooks/useEvent';
 import { BaseUser } from '@/_typings/base-user';
@@ -72,7 +70,7 @@ export default function useHomeAlert(agentData: AgentData) {
               message: response?.data?.error || 'Sorry, please try again later',
             });
           });
-      } else if (Cookies.get('session_key') && Cookies.get('cid') && step === 2) {
+      } else if (Cookies.get('session_key') && step === 2) {
         saveSearch(
           {
             id: Number(agentData.id),

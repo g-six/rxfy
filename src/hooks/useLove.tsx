@@ -47,7 +47,7 @@ export default function useLove() {
 
   const fireEvent = React.useCallback((item: MLSProperty, agent: number, remove = false) => {
     // if user is in session, let's update
-    if (Cookies.get('cid') && Cookies.get('session_key')) {
+    if (Cookies.get('session_key')) {
       axios.post(`/property?mls=${item.MLS_ID}`).catch(console.log);
       loveHome(item.MLS_ID, agent);
     }

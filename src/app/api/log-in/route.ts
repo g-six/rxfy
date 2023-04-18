@@ -2,7 +2,7 @@ import axios from 'axios';
 import { encrypt } from '@/_utilities/encryption-helper';
 
 const gql = `query LogIn ($filters: CustomerFiltersInput!) {
-  customers(filters: $filters) {
+  users: customers(filters: $filters) {
     data {
       id
       attributes {
@@ -115,7 +115,7 @@ export async function POST(request: Request) {
         },
       );
 
-      const [data] = response_data.data?.customers?.data || [];
+      const [data] = response_data.data?.users?.data || [];
 
       if (data && Object.keys(data).length > 0) {
         const session = await createSession(data.id);
@@ -125,7 +125,8 @@ export async function POST(request: Request) {
         return new Response(
           JSON.stringify(
             {
-              customer: { id: Number(data.id), email, full_name, agents, ...session },
+              session_key: session?.session_key,
+              user: { id: Number(data.id), email, full_name, agents, ...session, session_key: undefined },
             },
             null,
             4,
@@ -206,7 +207,7 @@ async function createSession(id: number) {
     const { last_activity_at, email } = record.attributes;
     const prefix = encrypt(`${last_activity_at}`);
     const suffix = encrypt(email);
-    const session_key = `${prefix}.${suffix}`;
+    const session_key = `${prefix}.${suffix}-${id}`;
 
     return {
       id,

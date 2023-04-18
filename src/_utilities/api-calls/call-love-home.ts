@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import Cookies from 'js-cookie';
+import { clearSessionCookies } from './call-logout';
 
 /**
  * Retrieve customer saved homes
@@ -7,7 +8,7 @@ import Cookies from 'js-cookie';
  */
 export async function getLovedHomes() {
   try {
-    const response = await axios.get(`/api/loves/${Cookies.get('cid')}`, {
+    const response = await axios.get('/api/loves', {
       headers: {
         Authorization: `Bearer ${Cookies.get('session_key')}`,
         'Content-Type': 'application/json',
@@ -21,18 +22,14 @@ export async function getLovedHomes() {
       }
       return records;
     } else if (response.status === 401) {
-      Cookies.remove('session_key');
-      Cookies.remove('cid');
-      Cookies.remove('last_activity_at');
+      clearSessionCookies();
     }
 
     return response;
   } catch (e) {
     const axerr = e as AxiosError;
     if (axerr.response?.status === 401) {
-      Cookies.remove('session_key');
-      Cookies.remove('cid');
-      Cookies.remove('last_activity_at');
+      clearSessionCookies();
     }
   }
 }
@@ -46,7 +43,7 @@ export async function getLovedHomes() {
 export async function loveHome(mls_id: string, agent: number) {
   try {
     const response = await axios.post(
-      `/api/loves/${Cookies.get('cid')}`,
+      `/api/loves`,
       {
         mls_id,
         agent,
@@ -77,7 +74,7 @@ export async function loveHome(mls_id: string, agent: number) {
  */
 export async function unloveHome(id: number) {
   try {
-    const response = await axios.delete(`/api/loves/${Cookies.get('cid')}?id=${id}`, {
+    const response = await axios.delete(`/api/loves/${id}`, {
       headers: {
         Authorization: `Bearer ${Cookies.get('session_key')}`,
         'Content-Type': 'application/json',

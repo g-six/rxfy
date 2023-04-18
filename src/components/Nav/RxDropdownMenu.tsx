@@ -38,7 +38,7 @@ function RxNavPopup(p: PopupProps) {
       transformChild: (child: React.ReactElement) =>
         React.cloneElement(child, {
           ...child.props,
-          className: [child.props.className, Cookies.get('cid') && Cookies.get('session_key') ? 'hidden' : 'nice'].join(' '),
+          className: [child.props.className, Cookies.get('session_key') ? 'hidden' : 'nice'].join(' '),
         }),
     },
   ];

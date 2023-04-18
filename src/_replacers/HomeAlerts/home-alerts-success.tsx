@@ -12,6 +12,7 @@ export default function HomeAlertsSuccess({ child }: ReplacerHomeAlerts) {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
+    console.log('eventHook', eventHook);
     if (eventHook?.data && Object.keys(eventHook.data).length) {
       setShow(!!eventHook.data.show);
       if (!!eventHook.data.show) {
@@ -29,7 +30,7 @@ export default function HomeAlertsSuccess({ child }: ReplacerHomeAlerts) {
               ),
             );
           }, 5);
-        }, 3000);
+        }, 10000);
       }
     }
   }, [eventHook]);

@@ -9,7 +9,7 @@ import Cookies from 'js-cookie';
  */
 export async function saveDocument(agent: { id: number; logo?: string }, name?: string) {
   const response = await axios.post(
-    `/api/documents/${Cookies.get('cid')}`,
+    `/api/documents`,
     {
       name,
       agent,
@@ -38,10 +38,10 @@ export async function saveDocument(agent: { id: number; logo?: string }, name?: 
  * @returns document data object and session_key string
  */
 export async function saveDocumentUpload(document_id: number, file: { file: File; name: string; size: number; type: string }) {
-  const response = await axios.put(
-    `/api/documents/${Cookies.get('cid')}`,
+  const response = await axios.post(
+    `/api/document-uploads`,
     {
-      id: document_id,
+      document: document_id,
       upload: file,
     },
     {
@@ -70,9 +70,9 @@ export async function saveDocumentUpload(document_id: number, file: { file: File
  * @returns documents data object array and session_key string
  */
 export async function getDocumentSignedUrl(file_name: string) {
-  const response = await axios.get(`/api/document-uploads/${file_name}`, {
+  const response = await axios.get(`/api/document-uploads/${encodeURIComponent(file_name)}`, {
     headers: {
-      Authorization: `Bearer ${Cookies.get('session_key')}-${Cookies.get('cid')}`,
+      Authorization: `Bearer ${Cookies.get('session_key')}`,
       'Content-Type': 'application/json',
     },
   });
@@ -97,7 +97,7 @@ export async function getDocumentSignedUrl(file_name: string) {
  * @returns document data object and session_key string
  */
 export async function removeDocument(id: number) {
-  const response = await axios.delete(`/api/documents/${Cookies.get('cid')}?model=document&id=${id}`, {
+  const response = await axios.delete(`/api/documents/${id}`, {
     headers: {
       Authorization: `Bearer ${Cookies.get('session_key')}`,
       'Content-Type': 'application/json',
@@ -124,7 +124,7 @@ export async function removeDocument(id: number) {
  * @returns document data object and session_key string
  */
 export async function removeDocumentUpload(id: number) {
-  const response = await axios.delete(`/api/documents/${Cookies.get('cid')}?model=document-upload&id=${id}`, {
+  const response = await axios.delete(`/api/document-uploads/${id}`, {
     headers: {
       Authorization: `Bearer ${Cookies.get('session_key')}`,
       'Content-Type': 'application/json',
@@ -149,7 +149,7 @@ export async function removeDocumentUpload(id: number) {
  * @returns documents data object array and session_key string
  */
 export async function retrieveDocuments() {
-  const response = await axios.get(`/api/documents/${Cookies.get('cid')}`, {
+  const response = await axios.get(`/api/documents`, {
     headers: {
       Authorization: `Bearer ${Cookies.get('session_key')}`,
       'Content-Type': 'application/json',

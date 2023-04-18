@@ -9,7 +9,7 @@ export default function FooterSocialLinks({ nodes, agent, nodeClassName }: Repla
     {
       searchFn: searchByClasses(['footer-social-link-twitter']),
       transformChild: (child: React.ReactElement) => {
-        const href = agent?.metatags?.twitterurl;
+        const href = agent?.metatags?.twitter_url;
         return !href ? (
           <></>
         ) : (
@@ -25,7 +25,7 @@ export default function FooterSocialLinks({ nodes, agent, nodeClassName }: Repla
     {
       searchFn: searchByClasses(['footer-social-link-linkedin']),
       transformChild: (child: React.ReactElement) => {
-        const href = agent?.metatags?.linkedinurl;
+        const href = agent?.metatags?.linkedin_url;
         return !href ? (
           <></>
         ) : (
