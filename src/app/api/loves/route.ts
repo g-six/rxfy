@@ -214,142 +214,145 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const authorization = await request.headers.get('authorization');
-  const customer = Number(request.url.split('/').pop());
+  const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
+
+  if (!token && isNaN(guid))
+    return getResponse(
+      {
+        error: 'Please log in',
+      },
+      401,
+    );
+
   const { agent, mls_id } = await request.json();
   let session_key = '';
 
-  if (!isNaN(customer) && authorization && mls_id) {
-    const [prefix, value] = authorization.split(' ');
-    if (prefix.toLowerCase() === 'bearer') {
-      session_key = value;
-      const { data: response_data } = await axios.post(
+  if (agent && mls_id) {
+    session_key = value;
+    const { data: response_data } = await axios.post(
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+      {
+        query: gqlFindCustomer,
+        variables: {
+          id: customer,
+        },
+      },
+      {
+        headers,
+      },
+    );
+
+    if (response_data.data?.customer?.data?.attributes) {
+      const { email, last_activity_at } = response_data.data?.customer?.data?.attributes;
+      const encrypted_email = encrypt(email);
+      const compare_key = `${encrypt(last_activity_at)}.${encrypted_email}`;
+
+      // First, find property
+      const find_home_response = await axios.post(
         `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
         {
-          query: gqlFindCustomer,
+          query: gql_find_home,
           variables: {
-            id: customer,
+            mls_id,
           },
         },
         {
-          headers,
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+            'Content-Type': 'application/json',
+          },
         },
       );
 
-      if (response_data.data?.customer?.data?.attributes) {
-        const { email, last_activity_at } = response_data.data?.customer?.data?.attributes;
-        const encrypted_email = encrypt(email);
-        const compare_key = `${encrypt(last_activity_at)}.${encrypted_email}`;
+      let property_id = 0;
 
-        if (compare_key === session_key) {
-          // First, find property
-          const find_home_response = await axios.post(
-            `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-            {
-              query: gql_find_home,
-              variables: {
-                mls_id,
-              },
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-                'Content-Type': 'application/json',
-              },
-            },
-          );
-
-          let property_id = 0;
-
-          if (find_home_response.data?.data?.properties?.data?.length) {
-            // Get Strapi ID
-            property_id = find_home_response.data.data.properties.data[0].id;
-          }
-
-          if (property_id) {
-            const love_response = await axios.post(
-              `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-              {
-                query: gql_love,
-                variables: {
-                  agent,
-                  customer,
-                  property_id,
-                },
-              },
-              {
-                headers: {
-                  Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-                  'Content-Type': 'application/json',
-                },
-              },
-            );
-            const dt = new Date().toISOString();
-
-            const {
-              data: {
-                data: {
-                  session: { record },
-                },
-              },
-            } = await axios.post(
-              `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-              {
-                query: gql_update_session,
-                variables: {
-                  id: customer,
-                  last_activity_at: dt,
-                },
-              },
-              {
-                headers: {
-                  Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-                  'Content-Type': 'application/json',
-                },
-              },
-            );
-
-            session_key = `${encrypt(dt)}.${encrypted_email}`;
-
-            return new Response(
-              JSON.stringify(
-                {
-                  session_key,
-                  record: {
-                    id: Number(love_response.data.data.love.record.id),
-                    ...love_response.data.data.love.record.attributes,
-                  },
-                },
-                null,
-                4,
-              ),
-              {
-                headers: {
-                  'content-type': 'application/json',
-                },
-                status: 200,
-              },
-            );
-          }
-
-          return new Response(
-            JSON.stringify(
-              {
-                session_key,
-                message: 'Unable to save home',
-              },
-              null,
-              4,
-            ),
-            {
-              headers: {
-                'content-type': 'application/json',
-              },
-              status: 400,
-            },
-          );
-        }
+      if (find_home_response.data?.data?.properties?.data?.length) {
+        // Get Strapi ID
+        property_id = find_home_response.data.data.properties.data[0].id;
       }
+
+      if (property_id) {
+        const love_response = await axios.post(
+          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+          {
+            query: gql_love,
+            variables: {
+              agent,
+              customer: guid,
+              property_id,
+            },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+        const dt = new Date().toISOString();
+
+        const {
+          data: {
+            data: {
+              session: { record },
+            },
+          },
+        } = await axios.post(
+          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+          {
+            query: gql_update_session,
+            variables: {
+              id: guid,
+              last_activity_at: dt,
+            },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+
+        session_key = `${encrypt(dt)}.${encrypted_email}`;
+
+        return new Response(
+          JSON.stringify(
+            {
+              session_key,
+              record: {
+                id: Number(love_response.data.data.love.record.id),
+                ...love_response.data.data.love.record.attributes,
+              },
+            },
+            null,
+            4,
+          ),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
+          },
+        );
+      }
+
+      return new Response(
+        JSON.stringify(
+          {
+            session_key,
+            message: 'Unable to save home',
+          },
+          null,
+          4,
+        ),
+        {
+          headers: {
+            'content-type': 'application/json',
+          },
+          status: 400,
+        },
+      );
     }
   } else {
     return new Response(
