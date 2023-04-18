@@ -76,7 +76,7 @@ export async function GET(req: Request) {
   };
   if (req.headers.get('authorization')) {
     try {
-      const { session_key, guid } = getTokenAndGuidFromSessionKey(retrieveBearer(req.headers.get('authorization') as string));
+      const { token, guid } = getTokenAndGuidFromSessionKey(retrieveBearer(req.headers.get('authorization') as string));
       const {
         data: {
           customer: { data: record },
