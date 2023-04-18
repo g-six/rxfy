@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { encrypt } from '@/_utilities/encryption-helper';
 import { sendTemplate } from '../send-template';
+import { SavedSearch } from '@/_typings/saved-search';
 
 type SignUpModel = {
   email: string;
@@ -35,9 +36,20 @@ const gql_saved_search = `mutation CreateSavedSearch ($data: SavedSearchInput!) 
     data {
       id
       attributes {
-        search_url
         last_email_at
         is_active
+        lat
+        lng
+        nelat
+        nelng
+        swlat
+        swlng
+        zoom
+        maxprice
+        minprice
+        beds
+        baths
+        type
       }
     }
   }
@@ -226,7 +238,8 @@ async function createLegacyRecords(record: {
 }
 
 export async function POST(request: Request) {
-  const { email, full_name, password, agent, logo, yes_to_marketing, search_url } = await request.json();
+  const { email, full_name, password, agent, logo, yes_to_marketing, saved_search, search_url } = await request.json();
+  let created_saved_search: SavedSearch | undefined = undefined;
   if (!yes_to_marketing) {
     return new Response(
       JSON.stringify(
@@ -302,16 +315,15 @@ export async function POST(request: Request) {
           const url = new URL(request.url);
 
           // request.url
-          let saved_search;
-          if (search_url) {
+          if (saved_search) {
             const { data: search_response } = await axios.post(
               `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
               {
                 query: gql_saved_search,
                 variables: {
                   data: {
+                    ...saved_search,
                     customer: data.id,
-                    search_url,
                   },
                 },
               },
@@ -324,7 +336,7 @@ export async function POST(request: Request) {
             );
             if (search_response.data?.createSavedSearch?.data?.id) {
               const { id, attributes } = search_response.data?.createSavedSearch?.data;
-              saved_search = {
+              created_saved_search = {
                 ...attributes,
                 id,
               };
@@ -356,7 +368,7 @@ export async function POST(request: Request) {
               {
                 customer: { id: Number(data.id), email, full_name, agents },
                 session_key: `${encrypt(last_activity_at)}.${encrypt(email)}`,
-                saved_search,
+                saved_search: created_saved_search,
               },
               null,
               4,
