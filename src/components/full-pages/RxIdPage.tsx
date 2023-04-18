@@ -1,8 +1,6 @@
-import { replaceAllTextWithBraces, transformMatchingElements } from '@/_helpers/dom-manipulators';
-import { AgentData } from '@/_typings/agent';
-import { classNames, hasClassName } from '@/_utilities/html-helper';
-import { searchByClasses } from '@/_utilities/searchFnUtils';
 import React from 'react';
+import { AgentData } from '@/_typings/agent';
+import { hasClassName } from '@/_utilities/html-helper';
 
 type Props = {
   className: string;
@@ -12,17 +10,28 @@ type Props = {
 
 const message = `Hi there! I was looking for realtors in my area of interest and found your listings on Leagent...`;
 
-function createVCF(agent: AgentData) {
-  return `BEGIN:VCARD\nVERSION:4.0\nN:${agent.full_name};;\nFN:${agent.full_name}\nORG:${
-    agent.metatags?.brokerage_name || agent.full_name
-  }\nTITLE:Leagent Realtor\nTEL;TYPE=WORK,VOICE:${agent.phone}\nEMAIL;TYPE=PREF,INTERNET:${agent.email}\nEND:VCARD`;
-}
-
 function PageIterator(props: Props) {
   const wrappedChildren = React.Children.map(props.children, child => {
     if (child.props) {
       const childClassName = child.props.className || '';
-      if (hasClassName(childClassName, 'call-button')) {
+      if (hasClassName(childClassName, 'id-image-block')) {
+        return React.cloneElement(
+          {
+            ...child,
+          },
+          {
+            ...child.props,
+            className: `${childClassName}`,
+            style: {
+              backgroundImage: `url(${
+                props.agent.metatags?.profile_image || 'https://t5d9a2n4.stackpathcdn.com/wp-content/uploads/2022/05/omara-subzwari.jpg'
+              })`,
+            },
+            // Wrap grandchildren too
+            children: <PageIterator {...props}>{child.props.children}</PageIterator>,
+          },
+        );
+      } else if (hasClassName(childClassName, 'call-button')) {
         return (
           <a {...child.props} href={`tel:${props.agent.phone}`}>
             {child.props.children}
