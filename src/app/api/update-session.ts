@@ -98,6 +98,9 @@ export async function getNewSessionKey(previous_token: string, id: number) {
 
     if (compare_key === previous_token && !isNaN(Number(id))) {
       return await updateSessionKey(id, email, 'Customer');
+    } else {
+      console.log(`Mismatched Session Tokens for ${id} ${previous_token}`);
+      console.log(`Mismatched Session Tokens for ${id} ${compare_key}`);
     }
   }
 }
