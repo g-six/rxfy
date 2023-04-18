@@ -139,7 +139,7 @@ export function RxSignupPage(props: RxSignupPageProps) {
       signUp(
         {
           id: Number(props.agent),
-          email: props.className.split(' ').includes('use-agent') ? valid_data.email : undefined,
+          email: (props.className || '').split(' ').includes('use-agent') ? valid_data.email : undefined,
           logo: props.logo,
         },
         valid_data,

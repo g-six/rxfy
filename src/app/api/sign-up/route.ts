@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { encrypt } from '@/_utilities/encryption-helper';
 import { sendTemplate } from '../send-template';
 import { SavedSearch } from '@/_typings/saved-search';
+import { getResponse } from '../response-helper';
 
 type SignUpModel = {
   email: string;
@@ -269,14 +270,15 @@ export async function POST(request: Request) {
       if (input_error) return { error: input_error };
 
       if (valid_data) {
-        const { data: response_data } = await axios.post(
+        const encrypted_password = encrypt(valid_data.password);
+        const response = await axios.post(
           `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
           {
             query: gql,
             variables: {
               data: {
                 email: valid_data.email,
-                encrypted_password: encrypt(valid_data.password),
+                encrypted_password,
                 full_name: valid_data.full_name,
                 last_activity_at: new Date().toISOString(),
                 agents: [Number(agent)],
@@ -291,8 +293,17 @@ export async function POST(request: Request) {
           },
         );
 
-        const data = response_data.data?.createCustomer?.data || {};
+        const { data: response_data } = response;
+        if (response_data.errors) {
+          return getResponse(
+            {
+              error: 'Unable to sign up.  E-mail might have already been used in signing up.',
+            },
+            400,
+          );
+        }
 
+        const data = response_data.data?.createCustomer?.data || {};
         const errors: {
           message?: string;
           extensions?: {
@@ -343,11 +354,17 @@ export async function POST(request: Request) {
             }
           }
 
-          await createLegacyRecords({
+          const { error: legacy_error } = await createLegacyRecords({
             ...valid_data,
             agent_id: Number(agent),
             search_url,
           });
+
+          if (legacy_error) {
+            return getResponse({
+              message: 'Unable to sign user up based on Strapi a v3 thrown error',
+            });
+          }
 
           await sendTemplate(
             'welcome-buyer',
