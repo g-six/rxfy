@@ -228,13 +228,12 @@ export async function POST(request: Request) {
   let session_key = '';
 
   if (agent && mls_id) {
-    session_key = value;
     const { data: response_data } = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
       {
         query: gqlFindCustomer,
         variables: {
-          id: customer,
+          id: guid,
         },
       },
       {
