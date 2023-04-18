@@ -20,21 +20,32 @@ function createVCF(agent: AgentData) {
 
 function PageIterator(props: Props) {
   const wrappedChildren = React.Children.map(props.children, child => {
-    const child_node = child as React.ReactElement;
     if (child.props) {
-      if (hasClassName(child.props.className, 'call-button')) {
+      const childClassName = child.props.className || '';
+      if (hasClassName(childClassName, 'call-button')) {
         return (
           <a {...child.props} href={`tel:${props.agent.phone}`}>
             {child.props.children}
           </a>
         );
-      } else if (hasClassName(child.props.className, 'idbutton') && hasClassName(child.props.className, 'button-primary')) {
+      } else if (hasClassName(childClassName, 'idbutton') && hasClassName(childClassName, 'button-primary')) {
         return (
           <a {...child.props} href={`sms:${props.agent.phone}?&body=${encodeURIComponent(message)}`}>
             {child.props.children}
           </a>
         );
       } else if (child.props.children?.length > 1) {
+        return React.cloneElement(
+          {
+            ...child,
+          },
+          {
+            ...child.props,
+            // Wrap grandchildren too
+            children: <PageIterator {...props}>{child.props.children}</PageIterator>,
+          },
+        );
+      } else if (typeof child.props.children !== 'string') {
         return React.cloneElement(
           {
             ...child,
@@ -57,6 +68,7 @@ function PageIterator(props: Props) {
         case '{Agent Email}':
           return props.agent.email || '';
       }
+      return `${child}`.split('{Agent}').join(props.agent.full_name);
     }
     return child;
   });
