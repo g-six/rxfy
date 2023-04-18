@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import styles from './RxMyCompareDashboardPage.module.scss';
-import { LoveDataModel } from '@/_typings/love';
+import { LoveDataModel, LovedPropertyDataModel } from '@/_typings/love';
 import { RxButton } from '../RxButton';
 import { Events } from '@/_typings/events';
 import { RxEmail } from '../RxEmail';
@@ -54,11 +54,11 @@ function PageIterator(props: MyCompareDashboardPage) {
               return c.props.className && !c.props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.PROPERTY_CARD);
             })}
             {props['data-loved'] &&
-              props['data-loved'].map((p: PropertyDataModel, sequence_no: number) => {
-                const { mls_id: MLS_ID, title: Address, asking_price: AskingPrice, area: Area, beds, baths, sqft, ...listing } = p;
+              props['data-loved'].map((p: LovedPropertyDataModel, sequence_no: number) => {
+                const { love, mls_id: MLS_ID, title: Address, asking_price: AskingPrice, area: Area, beds, baths, sqft, ...listing } = p;
                 return (
                   <RxPropertyCard
-                    key={p.mls_id}
+                    key={love}
                     listing={{
                       ...(listing as unknown as MLSProperty),
                       MLS_ID,
@@ -69,6 +69,7 @@ function PageIterator(props: MyCompareDashboardPage) {
                       L_TotalBaths: baths || 1,
                       L_FloorArea_Total: sqft || 0,
                     }}
+                    love={love}
                     sequence={sequence_no}
                     agent={props['agent-data'].id}
                   >
@@ -97,13 +98,16 @@ function PageIterator(props: MyCompareDashboardPage) {
 
 export default function RxMyCompareDashboardPage(props: MyCompareDashboardPage) {
   const agent_data = props['agent-data'];
-  const [properties, setProperties] = React.useState<PropertyDataModel[]>([]);
+  const [properties, setProperties] = React.useState<LovedPropertyDataModel[]>([]);
   let local_loves: string[] = [];
   const processLovedHomes = ({ records }: { records: LoveDataModel[] }) => {
     local_loves = (getData(Events.LovedItem) as unknown as string[]) || [];
-    const loved: PropertyDataModel[] = [];
-    records.forEach(({ property }) => {
-      loved.push(property);
+    const loved: LovedPropertyDataModel[] = [];
+    records.forEach(({ id, property }) => {
+      loved.push({
+        ...property,
+        love: id,
+      });
       if (!local_loves.includes(property.mls_id)) {
         local_loves.push(property.mls_id);
       }
