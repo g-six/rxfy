@@ -74,8 +74,8 @@ const gqlFindCustomer = `query FindCustomer($id: ID!) {
   }
 }`;
 
-export async function getNewSessionKey(previous_token: string) {
-  const id = Number(previous_token.split('-')[1]);
+export async function getNewSessionKey(previous_token: string, id: number) {
+  console.log('getNewSessionKey', { previous_token, id });
   const { data: response_data } = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {
@@ -86,7 +86,7 @@ export async function getNewSessionKey(previous_token: string) {
     },
     {
       headers: {
-        Authorization: `Bearer ${previous_token}`,
+        Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY}`,
         'Content-Type': 'application/json',
       },
     },
@@ -98,7 +98,7 @@ export async function getNewSessionKey(previous_token: string) {
     const compare_key = `${encrypt(last_activity_at)}.${encrypted_email}`;
 
     if (compare_key === previous_token && !isNaN(Number(id))) {
-      return await updateSessionKey(Number(id), email, 'Customer');
+      return await updateSessionKey(id, email, 'Customer');
     }
   }
 }

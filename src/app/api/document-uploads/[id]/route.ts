@@ -4,6 +4,7 @@ import { extractBearerFromHeader } from '../../request-helper';
 import { getResponse } from '../../response-helper';
 import { getNewSessionKey } from '../../update-session';
 import axios from 'axios';
+import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 
 /**
  * Retrieves signed document url
@@ -53,22 +54,22 @@ export async function GET(request: Request) {
  * @returns
  */
 export async function DELETE(request: Request) {
-  const token = extractBearerFromHeader(request.headers.get('authorization') || '');
-  if (!token || token.split('-').length !== 2)
-    return getResponse(
-      {
-        error: 'Please login',
-      },
-      401,
-    );
+  try {
+    const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
+    if (!token || !guid)
+      return getResponse(
+        {
+          error: 'Please login',
+        },
+        401,
+      );
 
-  const url = new URL(request.url);
-  const paths = url.pathname.split('/');
-  const document_upload_id = Number(paths.pop());
+    const url = new URL(request.url);
+    const paths = url.pathname.split('/');
+    const document_upload_id = Number(paths.pop());
 
-  if (!isNaN(Number(document_upload_id))) {
-    const user = await getNewSessionKey(token);
-    try {
+    if (!isNaN(Number(document_upload_id))) {
+      const user = await getNewSessionKey(token, guid);
       if (user) {
         const { data: doc_response } = await axios.post(
           `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
@@ -126,34 +127,31 @@ export async function DELETE(request: Request) {
           },
         );
       }
-    } catch (e) {
-      console.log(JSON.stringify(e, null, 4));
-    } finally {
-      console.log(JSON.stringify({ user }, null, 4));
-    }
-  } else {
-    const errors = [];
-    if (!url.searchParams.get('id')) errors.push('provide the record id to be deleted');
-    if (!url.searchParams.get('model')) errors.push('the type of record you would like to delete');
+    } else {
+      const errors = [];
+      if (!url.searchParams.get('id')) errors.push('provide the record id to be deleted');
+      if (!url.searchParams.get('model')) errors.push('the type of record you would like to delete');
 
-    return new Response(
-      JSON.stringify(
+      return new Response(
+        JSON.stringify(
+          {
+            error: `Sorry, please: \n${errors.join('\n • ')}`,
+          },
+          null,
+          4,
+        ),
         {
-          error: `Sorry, please: \n${errors.join('\n • ')}`,
+          headers: {
+            'content-type': 'application/json',
+          },
+          status: 401,
+          statusText: 'Sorry, please login',
         },
-        null,
-        4,
-      ),
-      {
-        headers: {
-          'content-type': 'application/json',
-        },
-        status: 401,
-        statusText: 'Sorry, please login',
-      },
-    );
+      );
+    }
+  } catch (e) {
+    console.log(JSON.stringify(e, null, 4));
   }
-
   return new Response(
     JSON.stringify(
       {

@@ -16,7 +16,7 @@ export function getTokenAndGuidFromSessionKey(input: string): {
   token: string;
   guid: number;
 } {
-  const [token, id] = input.split('-');
+  const [token, id] = retrieveBearer(input).split('-');
   if (!token || !id || isNaN(Number(id))) throw new Error('invalid_input');
   return {
     token,

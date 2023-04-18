@@ -1,27 +1,14 @@
 import axios from 'axios';
 import { PutObjectCommand, S3Client, S3ClientConfig } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { encrypt } from '@/_utilities/encryption-helper';
-import { DocumentDataModel } from '@/_typings/document';
-import updateSessionKey from '../../update-session';
-import { extractBearerFromHeader } from '../../request-helper';
-import { getResponse } from '../../response-helper';
+import { getNewSessionKey } from '@/app/api/update-session';
+import { getResponse } from '@/app/api/response-helper';
+import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
 };
-const gqlFindCustomer = `query FindCustomer($id: ID!) {
-  customer(id: $id) {
-    data {
-      id
-      attributes {
-        email
-        last_activity_at
-      }
-    }
-  }
-}`;
 
 const gql_upload = `mutation UploadDocument ($data: DocumentUploadInput!) {
   createDocumentUpload(data: $data) {
@@ -40,170 +27,6 @@ const gql_upload = `mutation UploadDocument ($data: DocumentUploadInput!) {
   }
 }`;
 
-const gql_document = `mutation CreateDocument ($data: DocumentInput!) {
-  createDocument(data: $data) {
-    data {
-      id
-      attributes {
-        document_uploads {
-          data {
-            id 
-            attributes {
-              url
-              file_name
-              createdAt
-              updatedAt
-            }
-          }
-        }
-        name
-        agent {
-          data {
-            id
-          }
-        }
-      }
-    }
-  }
-}`;
-
-const gql_retrieve_documents = `query RetrieveDocuments ($filters: DocumentFiltersInput!, $pagination: PaginationArg) {
-  documents(filters: $filters, pagination: $pagination) {
-    data {
-      id
-      attributes {
-        name
-        document_uploads {
-          data {
-            id 
-            attributes {
-              url
-              file_name
-              createdAt
-              updatedAt
-            }
-          }
-        }
-        agent {
-          data {
-            id
-          }
-        }
-      }
-    }
-  }
-}`;
-
-/**
- * Creates a document record
- * POST /api/documents
- *      headers { Authorization: Bearer <Cookies.get('session_key')> }
- *      payload { name: 'filename or title', url: 'URL to file in S3', agent: 'agent.id (not agent_id)' }
- * @param request
- * @returns
- */
-export async function POST(request: Request) {
-  const token = extractBearerFromHeader(request.headers.get('authorization') || '');
-  if (!token || token.split('-').length !== 2)
-    return getResponse(
-      {
-        error: 'Please login',
-      },
-      401,
-    );
-
-  const { name, agent } = await request.json();
-  let session_key = undefined;
-
-  if (agent && agent.id && name) {
-    const user = await getNewSessionKey(token);
-    if (user) {
-      session_key = user.session_key;
-      const { data: doc_response } = await axios.post(
-        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-        {
-          query: gql_document,
-          variables: {
-            data: {
-              customer: user.id,
-              agent: agent.id,
-              name,
-            },
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-      let document;
-      if (doc_response.data?.createDocument?.data?.id) {
-        const { id, attributes } = doc_response.data?.createDocument?.data;
-        document = {
-          ...attributes,
-          id,
-        };
-      }
-      return new Response(
-        JSON.stringify(
-          {
-            document,
-            session_key: user.session_key,
-          },
-          null,
-          4,
-        ),
-        {
-          headers: {
-            'content-type': 'application/json',
-          },
-          status: 200,
-        },
-      );
-    }
-  } else {
-    const errors = [];
-    if (!agent || !agent.id) errors.push('select an agent');
-    if (!name) errors.push('name this document');
-
-    return new Response(
-      JSON.stringify(
-        {
-          error: `Sorry, please: \n${errors.join('\n • ')}`,
-        },
-        null,
-        4,
-      ),
-      {
-        headers: {
-          'content-type': 'application/json',
-        },
-        status: 401,
-        statusText: 'Sorry, please login',
-      },
-    );
-  }
-
-  return new Response(
-    JSON.stringify(
-      {
-        error: 'Please login to create a document folder',
-        session_key,
-      },
-      null,
-      4,
-    ),
-    {
-      headers: {
-        'content-type': 'application/json',
-      },
-      status: 401,
-    },
-  );
-}
-
 /**
  * Updates a document folder and if payload includes it, appends a document upload
  * PUT /api/documents/<document_folder_id>
@@ -213,8 +36,8 @@ export async function POST(request: Request) {
  * @returns
  */
 export async function PUT(request: Request) {
-  const token = extractBearerFromHeader(request.headers.get('authorization') || '');
-  if (!token || token.split('-').length !== 2)
+  const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
+  if (!token || !guid)
     return getResponse(
       {
         error: 'Please login',
@@ -229,7 +52,7 @@ export async function PUT(request: Request) {
 
   if (!isNaN(document_folder_id) && upload?.name && upload?.size && upload?.type) {
     if (upload?.name && upload?.size && upload?.type) {
-      const user = await getNewSessionKey(token);
+      const user = await getNewSessionKey(token, guid);
       try {
         if (user) {
           session_key = user.session_key;
@@ -262,10 +85,7 @@ export async function PUT(request: Request) {
               },
             },
             {
-              headers: {
-                Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-                'Content-Type': 'application/json',
-              },
+              headers,
             },
           );
           if (doc_response.data?.createDocumentUpload?.data?.id) {
@@ -353,8 +173,8 @@ export async function PUT(request: Request) {
  * @returns
  */
 export async function DELETE(request: Request) {
-  const token = extractBearerFromHeader(request.headers.get('authorization') || '');
-  if (!token || token.split('-').length !== 2)
+  const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
+  if (!token || !guid)
     return getResponse(
       {
         error: 'Please login',
@@ -367,7 +187,7 @@ export async function DELETE(request: Request) {
   const document_folder_id = Number(paths.pop());
 
   if (!isNaN(document_folder_id)) {
-    const user = await getNewSessionKey(token);
+    const user = await getNewSessionKey(token, guid);
     try {
       if (user) {
         const { data: doc_response } = await axios.post(
@@ -463,118 +283,4 @@ export async function DELETE(request: Request) {
       status: 401,
     },
   );
-}
-
-/**
- * Retrieves all documents for a user
- * GET /api/documents
- *      headers { Authorization: Bearer <Cookies.get('session_key')> }
- * @param request
- * @returns
- */
-export async function GET(request: Request) {
-  const token = extractBearerFromHeader(request.headers.get('authorization') || '');
-  if (!token || token.split('-').length !== 2)
-    return getResponse(
-      {
-        error: 'Please login to retrieve documents',
-      },
-      401,
-    );
-
-  const id = Number(request.url.split('/').pop());
-  let session_key = '';
-
-  const user = await getNewSessionKey(token);
-  if (user) {
-    const { data: doc_response } = await axios.post(
-      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-      {
-        query: gql_retrieve_documents,
-        variables: {
-          filters: {
-            customer: {
-              id: {
-                eq: id,
-              },
-            },
-          },
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-          'Content-Type': 'application/json',
-        },
-      },
-    );
-    let documents = [];
-    if (doc_response.data?.documents?.data) {
-      documents = doc_response.data?.documents?.data.map((doc: DocumentDataModel) => {
-        return {
-          ...doc.attributes,
-          id: doc.id,
-        };
-      });
-    }
-
-    return new Response(
-      JSON.stringify(
-        {
-          documents,
-          session_key: user.session_key,
-        },
-        null,
-        4,
-      ),
-      {
-        headers: {
-          'content-type': 'application/json',
-        },
-        status: 200,
-      },
-    );
-  }
-
-  return new Response(
-    JSON.stringify(
-      {
-        error: 'Please login to retrieve documents',
-      },
-      null,
-      4,
-    ),
-    {
-      headers: {
-        'content-type': 'application/json',
-      },
-      status: 401,
-    },
-  );
-}
-
-export async function getNewSessionKey(previous_token: string) {
-  const id = Number(previous_token.split('-')[1]);
-  const { data: response_data } = await axios.post(
-    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-    {
-      query: gqlFindCustomer,
-      variables: {
-        id,
-      },
-    },
-    {
-      headers,
-    },
-  );
-
-  if (response_data.data?.customer?.data?.attributes) {
-    const { email, last_activity_at } = response_data.data?.customer?.data?.attributes;
-    const encrypted_email = encrypt(email);
-    const compare_key = `${encrypt(last_activity_at)}.${encrypted_email}`;
-
-    if (compare_key === previous_token) {
-      return await updateSessionKey(id, email, 'Customer');
-    }
-  }
 }
