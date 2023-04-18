@@ -76,7 +76,7 @@ export async function GET(req: Request) {
   };
   if (req.headers.get('authorization')) {
     try {
-      const { session_key, guid } = getTokenAndGuidFromSessionKey(retrieveBearer(req.headers.get('authorization') as string));
+      const { token, guid } = getTokenAndGuidFromSessionKey(retrieveBearer(req.headers.get('authorization') as string));
       const {
         data: {
           customer: { data: record },
@@ -92,12 +92,11 @@ export async function GET(req: Request) {
         // Only if user is logged in
         const compare = `${encrypt(user.last_activity_at)}.${encrypt(user.email)}`;
         const domain_name = req.headers.get('host')?.indexOf('localhost') !== 0 ? req.headers.get('host') : process.env.TEST_DOMAIN;
-
-        if (compare === session_key) {
+        if (compare === token) {
           return new Response(
             JSON.stringify(
               {
-                session_key,
+                session_key: `${token}-${guid}`,
                 customer: user,
                 domain_name,
               },
