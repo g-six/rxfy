@@ -1,48 +1,14 @@
 import axios from 'axios';
-import { encrypt } from '@/_utilities/encryption-helper';
 import { MLSProperty } from '@/_typings/property';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getResponse } from '../../response-helper';
 import { getNewSessionKey } from '../../update-session';
+import { getRecordOwnerId, gqlRequest } from '../../request-helper';
+import { DataModel } from '@/_typings/data-models';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
 };
-const gqlFindCustomer = `query FindCustomer($id: ID!) {
-  customer(id: $id) {
-    data {
-      id
-      attributes {
-        email
-        last_activity_at
-      }
-    }
-  }
-}`;
-
-const gql_update_session = `mutation UpdateCustomerSession ($id: ID!, $last_activity_at: DateTime!) {
-  session: updateCustomer(id: $id, data: { last_activity_at: $last_activity_at }) {
-    record: data {
-      id
-      attributes {
-        email
-        full_name
-        phone_number
-        birthday
-        last_activity_at
-        yes_to_marketing
-      }
-    }
-  }
-}`;
-
-const gql_find_home = `query FindHomeByMLSID($mls_id: String!) {
-  properties(filters:{ mls_id:{ eq: $mls_id}}, pagination: {limit:1}) {
-    data {
-      id
-    }
-  }
-}`;
 
 const gql_get_loved = `query GetLovedHome($id: ID!) {
   love(id: $id) {
@@ -69,24 +35,18 @@ const gql_get_loved = `query GetLovedHome($id: ID!) {
   }
 }`;
 
-const gql_love = `mutation LoveHome ($property_id: ID!, $agent: ID!, $customer: ID!) {
-  love: createLove(data: { property: $property_id, agent: $agent, customer: $customer }) {
-    record:data {
+const gql_update = `mutation UpdateLove ($id: ID!, $updates: LoveInput!) {
+  love: updateLove (id: $id, data: $updates) {
+    data {
       id
       attributes {
-        property {
-          data {
-            id
-            attributes {
-              mls_id
-            }
-          }
-        }
+        is_highlighted
         agent {
           data {
             id
             attributes {
               full_name
+              email
             }
           }
         }
@@ -95,7 +55,15 @@ const gql_love = `mutation LoveHome ($property_id: ID!, $agent: ID!, $customer: 
             id
             attributes {
               full_name
-              last_activity_at
+              email
+            }
+          }
+        }
+        property {
+          data {
+            id
+            attributes {
+              mls_id
             }
           }
         }
@@ -144,79 +112,33 @@ export async function GET(request: Request) {
       },
     },
     {
-      headers: {
-        Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-        'Content-Type': 'application/json',
-      },
+      headers,
     },
   );
 
   if (love_response?.data) {
-    const { data: response_data } = love_response.data;
     const user = await getNewSessionKey(token, guid);
-
-    return new Response(
-      JSON.stringify(
+    const { data: response_data } = love_response.data;
+    const { id, attributes } = response_data.love.data;
+    console.log(JSON.stringify({ response_data }, null, 4));
+    try {
+      return getResponse(
         {
-          session_key: user.session_key,
-          records: response_data.loves.data.map(
-            (
-              love: Record<
-                string,
-                {
-                  property: {
-                    data: {
-                      id: number;
-                      attributes: Record<string, string | number> & {
-                        mls_data: MLSProperty;
-                      };
-                    };
-                  };
-                }
-              >,
-            ) => {
-              const {
-                asking_price,
-                AskingPrice,
-                photos,
-                L_BedroomTotal: beds,
-                L_TotalBaths: baths,
-                L_FloorArea_Total: sqft,
-              } = love.attributes.property.data.attributes.mls_data;
-              let [thumb] = photos ? (photos as string[]).slice(0, 1) : [];
-              if (thumb === undefined) {
-                thumb = 'https://assets.website-files.com/6410ad8373b7fc352794333b/642df6a57f39e6607acedd7f_Home%20Placeholder-p-500.png';
-              }
-              return {
-                id: Number(love.id),
-                property: {
-                  id: Number(love.attributes.property.data.id),
-                  ...love.attributes.property.data.attributes,
-                  asking_price: asking_price || AskingPrice,
-                  beds,
-                  baths,
-                  sqft,
-                  photos: [thumb],
-                  area:
-                    love.attributes.property.data.attributes.area ||
-                    love.attributes.property.data.attributes.mls_data.City ||
-                    love.attributes.property.data.attributes.mls_data.Area,
-                  mls_data: undefined, // Hide prized data
-                },
-              };
-            },
-          ),
+          record: {
+            id,
+            ...attributes,
+          },
         },
-        null,
-        4,
-      ),
-      {
-        headers: {
-          'content-type': 'application/json',
-        },
-        status: 200,
-      },
-    );
+        200,
+      );
+    } catch (e) {
+      console.log('Caught Error in loves/[id]/route.GET');
+      console.log(e);
+      return getResponse({
+        error: 'Caught Error in loves/[id]/route.GET',
+        session_key: user.session_key,
+      });
+    }
   }
 
   return new Response(
@@ -260,10 +182,7 @@ export async function DELETE(request: Request) {
           },
         },
         {
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-            'Content-Type': 'application/json',
-          },
+          headers,
         },
       );
 
@@ -338,5 +257,89 @@ export async function DELETE(request: Request) {
       status: 401,
       statusText: 'Please login',
     },
+  );
+}
+
+/**
+ * Update love
+ * @param request
+ * @returns
+ */
+export async function PUT(request: Request) {
+  const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
+  const updates = await request.json();
+  if (!token && isNaN(guid) && updates)
+    return getResponse(
+      {
+        error: 'Please log in',
+      },
+      401,
+    );
+  const love_id = Number(request.url.split('/').pop());
+  if (!isNaN(love_id)) {
+    const user = await getNewSessionKey(token, guid);
+    if (user) {
+      const owner_id = await getRecordOwnerId(DataModel.LOVE, love_id, 'customer');
+
+      if (owner_id !== guid)
+        return getResponse(
+          {
+            session_key: user.session_key,
+            error: 'You are not allowed to make modifications to this record',
+          },
+          401,
+        );
+
+      const love_response = await axios.post(
+        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+        {
+          query: gql_update,
+          variables: {
+            id: love_id,
+            updates,
+          },
+        },
+        {
+          headers,
+        },
+      );
+
+      const { id, attributes } = love_response.data.love.data;
+
+      return getResponse(
+        {
+          record: {
+            id,
+            ...attributes,
+            agent: {
+              id: attributes.agent.data.id,
+              ...attributes.agent.data.attributes,
+            },
+            customer: {
+              id: attributes.customer.data.id,
+              ...attributes.customer.data.attributes,
+            },
+            property: {
+              id: attributes.customer.data.id,
+              ...attributes.customer.data.attributes,
+            },
+          },
+          session_key: user.session_key,
+        },
+        200,
+      );
+    }
+    return getResponse(
+      {
+        error: 'Unable to update home',
+      },
+      400,
+    );
+  }
+  return getResponse(
+    {
+      error: 'Sorry, please login',
+    },
+    401,
   );
 }
