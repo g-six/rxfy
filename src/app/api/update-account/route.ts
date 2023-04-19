@@ -34,9 +34,16 @@ const mutation_gql = `mutation UpdateAccount ($id: ID!, $data: CustomerInput!) {
 }`;
 
 export async function PUT(request: Request) {
+  const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
+  if (!token && isNaN(guid))
+    return getResponse(
+      {
+        error: 'Please log in',
+      },
+      401,
+    );
   const { email, full_name, phone_number, birthday, password } = await request.json();
   try {
-    const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
     if (!token || !guid)
       return getResponse(
         {

@@ -46,6 +46,7 @@ import { RxWebflowScript } from './Scripts/RxWebflowScript';
 import RxDropdownMenu from './Nav/RxDropdownMenu';
 import { RxMyClients } from './full-pages/RxMyClients';
 import RxMySavedHomesDashBoard from './full-pages/RxMySavedHomesDashBoard';
+import RxIdPage from './full-pages/RxIdPage';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -299,6 +300,14 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
       } else if (node instanceof Element && node.attribs) {
         const { class: className, ...props } = attributesToProps(node.attribs);
+
+        if (node.attribs.class && node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.ID_PAGE)) {
+          return (
+            <RxIdPage {...props} agent={agent_data} className={node.attribs?.class || className}>
+              {domToReact(node.children) as ReactElement[]}
+            </RxIdPage>
+          );
+        }
 
         if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.SIGNUP) {
           return (

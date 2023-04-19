@@ -19,6 +19,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   FOOTER_SOCIAL_LINKS = 'footer-social-block',
   HEART_ICON = 'heart-on-small-card',
   PROPERTY_CARD = 'property-card',
+  ID_PAGE = 'total-id-card',
 }
 
 export interface WebFlow {
