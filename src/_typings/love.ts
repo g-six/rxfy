@@ -1,10 +1,11 @@
+import { AgentData } from './agent';
+import { CustomerDataModel } from './customer';
 import { PropertyDataModel } from './property';
 
 export interface LoveDataModel {
   id: number;
   property: PropertyDataModel;
-}
-
-export interface LovedPropertyDataModel extends PropertyDataModel {
-  love?: number;
+  customer: CustomerDataModel;
+  agent: AgentData;
+  is_highlighted?: boolean;
 }

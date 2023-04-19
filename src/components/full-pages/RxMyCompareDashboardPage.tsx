@@ -1,7 +1,6 @@
 'use client';
 import React from 'react';
 import styles from './RxMyCompareDashboardPage.module.scss';
-import { LoveDataModel, LovedPropertyDataModel } from '@/_typings/love';
 import { RxButton } from '../RxButton';
 import { Events } from '@/_typings/events';
 import { RxEmail } from '../RxEmail';
@@ -11,7 +10,8 @@ import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 import { AgentData } from '@/_typings/agent';
-import { MLSProperty, PropertyDataModel } from '@/_typings/property';
+import { MLSProperty, PropertyDataModel, LovedPropertyDataModel } from '@/_typings/property';
+import { LoveDataModel } from '@/_typings/love';
 type MyCompareDashboardPage = {
   className: string;
   children: React.ReactNode;
