@@ -1,8 +1,6 @@
 import { createNeighborhoodMapOptions } from '@/_utilities/map-helper';
 
-export function addPropertyMapScripts(
-  property: Record<string, unknown>
-): string {
+export function addPropertyMapScripts(property: Record<string, unknown>): string {
   return `
             const markerIcon ="https://uploads-ssl.webflow.com/63963a54d6a20c8f0853af43/63a199474828c172d28a9b05_Map.svg";
             const property = {
@@ -13,9 +11,9 @@ export function addPropertyMapScripts(
                 province: "${property.Province_State}",
             };
         
-            function initNeighborhoodMap() {
+            function initNeighborhoodMap(element) {
                 const localContext = new google.maps.localContext.LocalContextMapView({
-                    element: document.querySelector(".map-div"),
+                    element: element || document.querySelector(".map-div"),
                     placeTypePreferences: [
                         {type: 'department_store', weight: 1},
                         {type: 'drugstore', weight: 1},
@@ -33,9 +31,7 @@ export function addPropertyMapScripts(
                 });
                 localContext.map.setOptions(Object.assign({}, 
                     { center: { lat: property.lat, lng: property.lng }, zoom: 15 },
-                    ${JSON.stringify(
-                      createNeighborhoodMapOptions()
-                    )},
+                    ${JSON.stringify(createNeighborhoodMapOptions())},
                 ));
                 placeMarker(property, localContext.map);
                 localContext.search();
