@@ -34,6 +34,9 @@ export default function initializePlacesAutocomplete(props: Record<string, strin
     function initializePlacesAutocomplete() {
         // First we need to block all form submissions to WebFlow!
         // replaceFormWithDiv()
+        if (typeof initNeighborhoodMap !== 'undefined' && initNeighborhoodMap && document.querySelector('.section---map-n-street-view .p-map')) {
+            initNeighborhoodMap(document.querySelector('.section---map-n-street-view .p-map').parentElement)
+        }
 
         var gpaInput = document.getElementById('search-input');
 
