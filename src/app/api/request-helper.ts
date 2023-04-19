@@ -60,5 +60,7 @@ export async function getRecordOwnerId(model: DataModel, record_id: number, user
       headers,
     },
   );
-  return Number(res.data[model].data.attributes.user.data.id);
+  const { data } = res.data;
+
+  return Number(data[model].data.attributes.user.data.id);
 }

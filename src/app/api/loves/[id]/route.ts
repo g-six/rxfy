@@ -120,7 +120,7 @@ export async function GET(request: Request) {
     const user = await getNewSessionKey(token, guid);
     const { data: response_data } = love_response.data;
     const { id, attributes } = response_data.love.data;
-    console.log(JSON.stringify({ response_data }, null, 4));
+
     try {
       return getResponse(
         {
@@ -128,6 +128,7 @@ export async function GET(request: Request) {
             id,
             ...attributes,
           },
+          session_key: user.session_key,
         },
         200,
       );
@@ -277,20 +278,19 @@ export async function PUT(request: Request) {
     );
   const love_id = Number(request.url.split('/').pop());
   if (!isNaN(love_id)) {
-    const user = await getNewSessionKey(token, guid);
-    if (user) {
-      const owner_id = await getRecordOwnerId(DataModel.LOVE, love_id, 'customer');
-
-      if (owner_id !== guid)
-        return getResponse(
-          {
-            session_key: user.session_key,
-            error: 'You are not allowed to make modifications to this record',
-          },
-          401,
-        );
-
-      const love_response = await axios.post(
+    const owner_id = await getRecordOwnerId(DataModel.LOVE, love_id, 'customer');
+    if (owner_id !== guid) {
+      return getResponse(
+        {
+          session_key: `${token}-${guid}`,
+          error: 'You are not allowed to make modifications to this record',
+        },
+        401,
+      );
+    }
+    const { session_key } = await getNewSessionKey(token, guid);
+    if (session_key) {
+      const res = await axios.post(
         `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
         {
           query: gql_update,
@@ -304,8 +304,7 @@ export async function PUT(request: Request) {
         },
       );
 
-      const { id, attributes } = love_response.data.love.data;
-
+      const { id, attributes } = res.data?.data?.love?.data || {};
       return getResponse(
         {
           record: {
@@ -324,7 +323,7 @@ export async function PUT(request: Request) {
               ...attributes.customer.data.attributes,
             },
           },
-          session_key: user.session_key,
+          session_key,
         },
         200,
       );
@@ -332,6 +331,7 @@ export async function PUT(request: Request) {
     return getResponse(
       {
         error: 'Unable to update home',
+        session_key: `${token}-${guid}`,
       },
       400,
     );
