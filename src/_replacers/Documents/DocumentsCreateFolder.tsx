@@ -75,7 +75,7 @@ export default function DocumentsCreateFolder({ child, agent_data, setDocuments 
 
         const inputWrapper = createElement(
           'div',
-          { className: 'input-wrapper', key: '0213123', style: { position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center' } },
+          { className: 'input-wrapper', key: '0213123', style: { position: 'relative', width: '100%', display: 'flex', alignItems: 'center' } },
           [cloneElement(inputElements.icon, { style: { position: 'relative', marginLeft: '6px', zIndex: 1 } }), input],
         );
         return cloneElement(child, {}, [

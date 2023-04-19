@@ -4,7 +4,8 @@ import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import { classNames } from '@/_utilities/html-helper';
 import useLove from '@/hooks/useLove';
-import React from 'react';
+import { is } from 'cheerio/lib/api/traversing';
+import React, { SyntheticEvent } from 'react';
 
 function RxComponentChomper({ config, children }: any): any {
   const cloneChildren = React.Children.map(children, child => {
@@ -12,18 +13,21 @@ function RxComponentChomper({ config, children }: any): any {
       return config[child] || child;
     } else if (React.isValidElement(child)) {
       const RxElement = child as React.ReactElement;
+
       if (RxElement.props.className && (RxElement.props.className.indexOf('heart-full') >= 0 || RxElement.props.className.indexOf('heart-empty') >= 0)) {
         let opacity_class = 'opacity-0 group-hover:opacity-100';
-        let onClick = () => {};
+        let onClick = (e: SyntheticEvent) => {};
         if (RxElement.props.className.indexOf('heart-full') >= 0) {
           if (config.loved) {
             opacity_class = 'opacity-100';
-            onClick = () => {
+            onClick = (e: SyntheticEvent) => {
+              e.stopPropagation();
               config.onLoveItem(true);
             };
           } else {
             opacity_class = 'opacity-100 group-hover:opacity-0 group-hover:block hidden';
-            onClick = () => {
+            onClick = (e: SyntheticEvent) => {
+              e.stopPropagation();
               config.onLoveItem();
             };
           }
@@ -32,7 +36,8 @@ function RxComponentChomper({ config, children }: any): any {
           if (!config.loved) {
             opacity_class = 'opacity-0 group-hover:opacity-100 group-hover:block hidden';
           }
-          onClick = () => {
+          onClick = (e: SyntheticEvent) => {
+            e.stopPropagation();
             console.log('removeeee');
             config.onLoveItem(true);
           };
@@ -50,16 +55,15 @@ function RxComponentChomper({ config, children }: any): any {
       } else if (child.type !== 'img') {
         //heart-full
         if (RxElement.props.className === 'propcard-image') {
-          RxElement.props.style = {
-            backgroundImage: config.photos ? `url(${(config.photos as string[])[0]})` : 'none',
-          };
-
           return React.cloneElement(child, {
             ...RxElement.props,
             children: RxComponentChomper({
               config,
               children: RxElement.props.children,
             }) as any,
+            style: {
+              backgroundImage: config.photos ? `url(${(config.photos as string[])[0]})` : 'none',
+            },
           });
         }
       }
@@ -79,7 +83,19 @@ function RxComponentChomper({ config, children }: any): any {
   return <>{cloneChildren}</>;
 }
 
-export default function RxPropertyCard({ sequence, children, listing, agent }: { agent?: number; sequence?: number; children: any; listing: MLSProperty }) {
+export default function RxPropertyCard({
+  sequence,
+  children,
+  listing,
+  agent,
+  isLink = true,
+}: {
+  agent?: number;
+  sequence?: number;
+  children: any;
+  listing: MLSProperty;
+  isLink?: boolean;
+}) {
   const [loved_items, setLovedItems] = React.useState(getData(Events.LovedItem) as unknown as string[]);
   const evt = useLove();
 
@@ -115,9 +131,13 @@ export default function RxPropertyCard({ sequence, children, listing, agent }: {
       >
         {children}
       </RxComponentChomper>
-      <a href={`/property?mls=${listing.MLS_ID}`} className='absolute top-0 left-0 w-full h-full'>
-        {' '}
-      </a>
+      {isLink ? (
+        <a href={`/property?mls=${listing.MLS_ID}`} className='absolute top-0 left-0 w-full h-full'>
+          {' '}
+        </a>
+      ) : (
+        ''
+      )}
     </div>
   );
 }

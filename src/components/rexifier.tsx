@@ -45,6 +45,7 @@ import RxMyCompareDashboardPage from './full-pages/RxMyCompareDashboardPage';
 import { RxWebflowScript } from './Scripts/RxWebflowScript';
 import RxDropdownMenu from './Nav/RxDropdownMenu';
 import { RxMyClients } from './full-pages/RxMyClients';
+import RxMySavedHomesDashBoard from './full-pages/RxMySavedHomesDashBoard';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -378,6 +379,13 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           }
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.DOCUMENTS)) {
             return <DocumentsReplacer nodeProps={props} agent_data={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
+          }
+          if (node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_SAVED_PROPERTIES_DASHBOARD) {
+            return (
+              <RxMySavedHomesDashBoard agent_data={agent_data} className={node.attribs.class}>
+                {domToReact(node.children)}
+              </RxMySavedHomesDashBoard>
+            );
           }
           if (node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_COMPARE_DASHBOARD) {
             return (

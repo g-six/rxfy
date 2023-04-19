@@ -6,6 +6,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   COMPARE_WRAPPER = 'compare-wrapper',
   MY_ACCOUNT_WRAPPER = 'my-account-wrapper',
   MY_COMPARE_DASHBOARD = 'cd---compare wf-section',
+  MY_SAVED_PROPERTIES_DASHBOARD = 'cd---saved wf-section',
   MY_COMPARE_DASHBOARD_LEFT = 'compare-left-bar',
   CLIENTS_CARDS = 'clients-cards',
   USER_MENU_DROPDOWN = 'login-logout-dropdown',
