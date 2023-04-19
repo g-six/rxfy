@@ -9,22 +9,6 @@ const headers = {
   'Content-Type': 'application/json',
 };
 
-const gql_update_session = `mutation UpdateCustomerSession ($id: ID!, $last_activity_at: DateTime!) {
-  session: updateCustomer(id: $id, data: { last_activity_at: $last_activity_at }) {
-    record: data {
-      id
-      attributes {
-        email
-        full_name
-        phone_number
-        birthday
-        last_activity_at
-        yes_to_marketing
-      }
-    }
-  }
-}`;
-
 const gql_find_home = `query FindHomeByMLSID($mls_id: String!) {
   properties(filters:{ mls_id:{ eq: $mls_id}}, pagination: {limit:1}) {
     data {
