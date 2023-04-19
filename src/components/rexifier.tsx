@@ -464,6 +464,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             </div>
           );
         }
+
         if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.HOME_ALERTS_WRAPPER) >= 0) {
           return <HomeAlertsReplacer agent={agent_data} nodeClassName={className} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
         }
@@ -493,7 +494,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           const record = property as unknown as MLSProperty;
           if (node.attribs && node.attribs.class) {
             // Property images
-            if (node.attribs.class === 'section---top-images wf-section') {
+            if (node.attribs.class === 'section---top-images') {
               return (
                 <section className={node.attribs.class}>
                   <RxPropertyCarousel photos={(record.photos || []) as string[]}>{domToReact(node.children)}</RxPropertyCarousel>
