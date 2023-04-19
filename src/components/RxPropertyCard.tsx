@@ -96,7 +96,7 @@ export default function RxPropertyCard({
   sequence?: number;
   children: any;
   listing: MLSProperty;
-  isLink: boolean;
+  isLink?: boolean;
 }) {
   const [loved_items, setLovedItems] = React.useState(getData(Events.LovedItem) as unknown as string[]);
   const evt = useLove();

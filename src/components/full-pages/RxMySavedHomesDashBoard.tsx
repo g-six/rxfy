@@ -3,7 +3,7 @@ import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { AgentData } from '@/_typings/agent';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import React, { ReactElement, ReactNode, cloneElement, useState } from 'react';
-import { MLSProperty, PropertyDataModel } from '@/_typings/property';
+import { MLSProperty, LovedPropertyDataModel } from '@/_typings/property';
 
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 import { Events } from '@/_typings/events';
@@ -23,14 +23,17 @@ type Props = {
 
 export default function RxMySavedHomesDashBoard({ agent_data, className, children }: Props) {
   const [currentTab, setCurrentTab] = useState<string>('');
-  const [properties, setProperties] = useState<PropertyDataModel[]>([]);
+  const [properties, setProperties] = useState<LovedPropertyDataModel[]>([]);
   // const { fireEvent } = useEvent(Events.LovedItem);
   let local_loves: string[] = [];
-  const processLovedHomes = ({ records }: { records: LoveDataModel[] }) => {
-    local_loves = (getData(Events.LovedItem) as unknown as string[]) || [];
-    const loved: PropertyDataModel[] = [];
-    records.forEach(({ property }) => {
-      loved.push(property);
+  const processLovedHomes = (records: LoveDataModel[]) => {
+    const local_loves = (getData(Events.LovedItem) as unknown as string[]) || [];
+    const loved: LovedPropertyDataModel[] = [];
+    records.forEach(({ id, property }) => {
+      loved.push({
+        ...property,
+        love: id,
+      });
       if (!local_loves.includes(property.mls_id)) {
         local_loves.push(property.mls_id);
       }
@@ -39,12 +42,16 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
     setData(Events.LovedItem, JSON.stringify(local_loves));
   };
   React.useEffect(() => {
-    getLovedHomes().then(processLovedHomes);
+    getLovedHomes().then(response => {
+      if (response && response.records) {
+        processLovedHomes(response.records);
+      }
+    });
   }, []);
-  console.log('rerendered');
+  console.log(properties, 'rerendered');
   const handleOnCardClick = () => {
     document.dispatchEvent(new CustomEvent(Events.LovedItem, { detail: { message: currentTab } }));
-    //  fireEvent({ message: currentTab });
+    // fireEvent({ message: currentTab });
   };
   const matches = [
     {
@@ -62,7 +69,7 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
         );
         const propertyCards =
           properties?.length > 0
-            ? properties.map((p: PropertyDataModel, sequence_no: number) => {
+            ? properties.map((p: LovedPropertyDataModel, sequence_no: number) => {
                 const { mls_id: MLS_ID, title: Address, asking_price: AskingPrice, area: Area, beds, baths, sqft, ...listing } = p;
                 return (
                   <div key={p.mls_id} onClick={handleOnCardClick}>
