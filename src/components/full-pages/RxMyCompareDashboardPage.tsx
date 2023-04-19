@@ -1,10 +1,7 @@
 'use client';
 import React from 'react';
 import styles from './RxMyCompareDashboardPage.module.scss';
-import { RxButton } from '../RxButton';
 import { Events } from '@/_typings/events';
-import { RxEmail } from '../RxEmail';
-import { RxPassword } from '../RxPassword';
 import RxPropertyCard from '../RxPropertyCard';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
@@ -25,24 +22,7 @@ function PageIterator(props: MyCompareDashboardPage) {
   const wrappedChildren = React.Children.map(props.children, child => {
     const child_node = child as React.ReactElement;
 
-    if (child_node.type === 'input') {
-      if (child_node.props.type === 'submit') {
-        return (
-          <RxButton {...child_node.props} rx-event={Events.Login} id={`${Events.Login}-trigger`} disabled={props.disabled} loading={props.loading}>
-            {child_node.props.value}
-          </RxButton>
-        );
-      }
-      if (child_node.props.className) {
-        if (child_node.props.className.split(' ').includes('txt-email')) {
-          return <RxEmail {...child_node.props} rx-event={Events.Login} name='email' />;
-        }
-        if (child_node.props.className.split(' ').includes('txt-password')) {
-          return <RxPassword {...child_node.props} rx-event={Events.Login} name='password' />;
-        }
-      }
-      return <input {...child_node.props} className={[child_node.props.className || '', 'rexified'].join(' ')} />;
-    } else if (child_node.props && child_node.props.children) {
+    if (child_node.props && child_node.props.children) {
       if (child_node.props.className && child_node.props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.MY_COMPARE_DASHBOARD_LEFT)) {
         // Property Cards
         const [PlaceholderCard] = child_node.props.children.filter((c: React.ReactElement) =>
