@@ -99,7 +99,7 @@ export const MapProvider = (props: any) => {
         'type=R',
       ].join('&');
     }
-    location.href = query;
+    if (typeof window !== 'undefined' && location !== undefined) location.href = query;
   };
 
   const initializeFilters = () => {
