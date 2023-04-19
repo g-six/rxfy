@@ -57,7 +57,10 @@ export default function RxPropertyActions(props: PropertyActionsProps) {
       ),
       ['data-mls_id']: props.property.MLS_ID,
       onClick: () => {
-        loveHome(props.property.MLS_ID, props.agent.id);
+        if (!loved) {
+          loveHome(props.property.MLS_ID, props.agent.id);
+        }
+        setLoved(!loved);
       },
     });
 
