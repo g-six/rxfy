@@ -1,6 +1,5 @@
 import { AgentData } from './agent';
-import { LovedPropertyDataModel } from './love';
-import { MLSProperty } from './property';
+import { MLSProperty, LovedPropertyDataModel } from './property';
 
 export type MapElementType = 'geometry' | 'labels' | 'labels.icon' | 'labels.text.fill' | 'labels.text.stroke' | 'geometry';
 
