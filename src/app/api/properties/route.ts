@@ -55,7 +55,7 @@ export async function GET(request: Request) {
   if (results?.data?.data?.properties?.data?.length) {
     const [record] = results?.data.data.properties.data;
     const { mls_data, ...property } = record.attributes;
-    let output = {
+    let output: { id: number; thumbnail?: string } = {
       id: Number(record.id),
     };
     Object.keys(property).forEach(key => {
@@ -69,10 +69,18 @@ export async function GET(request: Request) {
     mls_data &&
       Object.keys(mls_data).forEach(key => {
         if (mls_data[key] && needed_data.includes(key)) {
-          output = {
-            ...output,
-            [key]: mls_data[key],
-          };
+          if (key === 'photos' && mls_data[key].length > 0) {
+            const photos = mls_data[key] as string[];
+            output = {
+              ...output,
+              thumbnail: `https://e52tn40a.cdn.imgeng.in/w_720/${photos[0]}`,
+            };
+          } else {
+            output = {
+              ...output,
+              [key]: mls_data[key],
+            };
+          }
         }
       });
 
