@@ -93,3 +93,34 @@ export async function unloveHome(id: number) {
     console.log(e);
   }
 }
+
+/**
+ * Highlight a loved home (for client dashboard flow)
+ * @param number love.id
+ * @returns
+ */
+export async function highlightHome(id: number, is_highlighted = true) {
+  try {
+    const response = await axios.put(
+      `/api/loves/${id}`,
+      {
+        is_highlighted,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${Cookies.get('session_key')}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    if (response.status === 200) {
+      const { session_key, ...record } = response.data;
+      Cookies.set('session_key', session_key);
+      return record;
+    }
+    return response;
+  } catch (e) {
+    console.log(e);
+  }
+}
