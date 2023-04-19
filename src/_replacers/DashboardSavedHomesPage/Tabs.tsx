@@ -1,7 +1,6 @@
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { tabs } from '@/_typings/saved-homes-tabs';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
-import useEvent, { Events } from '@/hooks/useEvent';
 
 import React, { Dispatch, ReactElement, SetStateAction, cloneElement, useEffect } from 'react';
 
@@ -11,12 +10,11 @@ type Props = {
 };
 
 export default function Tabs({ child, setCurrentTab }: Props) {
-  const { data, fireEvent } = useEvent(Events.LovedItem);
   const tabsArray: string[] = Object.values(tabs);
   const makeCurrent = (child: ReactElement) => () => {
     setCurrentTab(getTabVal(child) ?? '');
   };
-  console.log(data, 'tabs');
+
   const getTabVal = (child: ReactElement) => {
     const className = child?.props?.className;
     return className?.split(' ')?.find((cls: string) => tabsArray.includes(cls));

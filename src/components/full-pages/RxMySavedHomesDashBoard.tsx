@@ -14,7 +14,7 @@ import RxPropertyCard from '../RxPropertyCard';
 import Tabs from '@/_replacers/DashboardSavedHomesPage/Tabs';
 import { tabs } from '@/_typings/saved-homes-tabs';
 import useEvent from '@/hooks/useEvent';
-import IndividualPage from '@/_replacers/DashboardSavedHomesPage';
+import IndividualPage from '@/_replacers/DashboardSavedHomesPage/IndividualPage';
 type Props = {
   agent_data: AgentData;
   className: string;
@@ -49,8 +49,9 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
     });
   }, []);
   console.log(properties, 'rerendered');
-  const handleOnCardClick = () => {
-    document.dispatchEvent(new CustomEvent(Events.LovedItem, { detail: { message: currentTab } }));
+  const handleOnCardClick = (id: string) => () => {
+    console.log(id);
+    document.dispatchEvent(new CustomEvent(Events.LovedItem, { detail: { message: id } }));
     // fireEvent({ message: currentTab });
   };
   const matches = [
@@ -72,7 +73,7 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
             ? properties.map((p: LovedPropertyDataModel, sequence_no: number) => {
                 const { mls_id: MLS_ID, title: Address, asking_price: AskingPrice, area: Area, beds, baths, sqft, ...listing } = p;
                 return (
-                  <div key={p.mls_id} onClick={handleOnCardClick}>
+                  <div key={p.mls_id} onClick={handleOnCardClick(MLS_ID)}>
                     <RxPropertyCard
                       key={p.mls_id}
                       listing={{
