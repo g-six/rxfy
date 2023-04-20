@@ -6,7 +6,7 @@ import { formatValues } from '@/_utilities/data-helpers/property-page';
 import { classNames } from '@/_utilities/html-helper';
 import useLove from '@/hooks/useLove';
 
-import styles from './RxPropertyCard.module.scss';
+import styles from './RxCards/RxPropertyCard.module.scss';
 import Cookies from 'js-cookie';
 
 function RxComponentChomper({ config, children }: any): any {
