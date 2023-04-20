@@ -1,6 +1,6 @@
 import { AgentData } from '@/_typings/agent';
 import { DateFields, FinanceFields, MLSProperty, NumericFields } from '@/_typings/property';
-import { AxiosStatic } from 'axios';
+import { AxiosError, AxiosStatic } from 'axios';
 import { dateStringToDMY } from './date-helper';
 
 export const general_stats: Record<string, string> = {
@@ -457,7 +457,8 @@ async function upsertPropertyToCMS(mls_data: MLSProperty) {
 
     return xhr?.data?.data?.property || {};
   } catch (e) {
-    console.log('ERROR in upsertPropertyToCMS.axios', '\n', e.message, '\n\n');
+    const error = e as AxiosError;
+    console.log('ERROR in upsertPropertyToCMS.axios', '\n', error, '\n\n');
   }
 }
 
