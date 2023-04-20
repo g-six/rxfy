@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { encrypt } from '@/_utilities/encryption-helper';
 import { extractBearerFromHeader } from '../request-helper';
+import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
+import { getResponse } from '../response-helper';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -191,3 +193,69 @@ export async function POST(request: Request) {
     },
   );
 }
+
+export async function GET(request: Request) {
+  const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
+  let session_key = `${token}-${guid}`;
+  if (!token || !guid || isNaN(guid)) {
+    return getResponse(
+      {
+        error: 'Please login',
+      },
+      401,
+    );
+  }
+
+  const xhr = await axios.post(
+    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+    {
+      query: gql_saved_searches,
+      variables: {
+        customer_id: guid,
+      },
+    },
+    {
+      headers,
+    },
+  );
+
+  let records = [];
+  if (xhr?.data?.data?.savedSearches?.records?.length) {
+    records = xhr.data.data.savedSearches.records.map((record: any) => {
+      const url = new URL(`${request.url}`);
+      const { searchParams } = new URL(`${url.origin}/my-saved-searches?${record.attributes.search_url}`);
+      let params = {};
+      searchParams.forEach((val, key) => {
+        params = {
+          ...params,
+          [key]: isNaN(Number(val)) ? val : Number(val),
+        };
+      });
+      return {
+        id: Number(record.id),
+        ...record.attributes,
+        params,
+      };
+    });
+
+    return getResponse(
+      {
+        records,
+        session_key,
+      },
+      200,
+    );
+  }
+}
+
+const gql_saved_searches = `query MySavedSearches($customer_id: ID!) {
+  savedSearches(filters: { customer: { id: { eq: $customer_id } } }) {
+    records: data {
+      id
+      attributes {
+        is_active
+        search_url
+      }
+    }
+  }
+}`;
