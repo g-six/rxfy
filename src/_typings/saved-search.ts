@@ -11,6 +11,7 @@ export interface SavedSearchInput {
   swlng?: number;
   zoom?: number;
   type?: 'R';
+  sorting?: string;
 }
 
 export interface CustomerSavedSearch extends SavedSearchInput {

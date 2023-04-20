@@ -109,7 +109,11 @@ export default function RxPropertyCard({
   return (
     <div
       data-agent={agent}
-      className={classNames('group relative', sequence === 0 ? `` : 'hidden sm:block', Cookies.get('session_key') ? styles.ShowSold : '')}
+      className={classNames(
+        'group relative',
+        sequence === 0 ? `` : 'hidden sm:block',
+        Cookies.get('session_key') && listing.Status.toLowerCase() === 'sold' ? styles.ShowSold : '',
+      )}
     >
       <RxComponentChomper
         config={{
