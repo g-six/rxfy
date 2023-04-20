@@ -14,7 +14,6 @@ import { PlaceDetails, RxPropertyMapProps } from '@/_typings/maps';
 import { RxSearchButton } from './RxLiveUrlBased/RxSearchButton';
 import RxLiveNumericStep from './RxLiveUrlBased/RxLiveNumericStep';
 import RxLiveNumber from './RxLiveUrlBased/RxLiveNumber';
-import RxLiveCurrencyDD from './RxLiveUrlBased/RxLiveCurrencyDD';
 import RxLiveStringValue from './RxLiveUrlBased/RxLiveStringValue';
 import { getPropertyTypeFromSelector, getSortingKey } from '@/_utilities/rx-map-helper';
 import RxLiveTextDDOption from './RxLiveUrlBased/RxLiveTextDropdownOption';
@@ -29,6 +28,7 @@ import { LoveDataModel } from '@/_typings/love';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 import { Events } from '@/_typings/events';
 import { useSearchParams } from 'next/navigation';
+import RxCombobox from './RxCombobox';
 
 export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?: string }) {
   let MapAndHeaderHeader;
@@ -96,18 +96,28 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
         }
 
         // Min. price dropdown values
-        if (child.props.className.indexOf('dropdown-wrap minprice') >= 0) {
-          return <RxLiveCurrencyDD child={child} filter='minprice' />;
+        if (child.props.className.split(' ').filter((n: string) => ['min-price', 'dropdown'].includes(n)).length === 2) {
+          return (
+            <RxCombobox className={child.props.className} data-value-for='minprice'>
+              {child.props.children}
+            </RxCombobox>
+          );
         }
+
         // Min. price selected value
         if (child.props.className.indexOf('propcard-stat map minprice') >= 0) {
           return <RxLiveStringValue filter='minprice' className={child.props.className} />;
         }
 
         // Max. price dropdown values
-        if (child.props.className.indexOf('dropdown-wrap maxprice') >= 0) {
-          return <RxLiveCurrencyDD child={child} filter='maxprice' />;
+        if (child.props.className.split(' ').filter((n: string) => ['max-price', 'dropdown'].includes(n)).length === 2) {
+          return (
+            <RxCombobox className={child.props.className} data-value-for='maxprice'>
+              {child.props.children}
+            </RxCombobox>
+          );
         }
+
         // Max. price selected value
         if (child.props.className.indexOf('propcard-stat map maxprice') >= 0) {
           return <RxLiveStringValue filter='maxprice' className={child.props.className} />;

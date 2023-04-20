@@ -72,12 +72,19 @@ function includeLesserOrEqualNumberFilter(filter: RxPropertyFilter[], field: str
   return filter;
 }
 function includeRangeFilter(filter: RxPropertyFilter[], field: string, min = 0, max?: number): RxPropertyFilter[] {
+  let minmax: {
+    gte?: number;
+    lte?: number;
+  } = {
+    gte: min,
+  };
+  if (max && max > min) {
+    minmax.lte = max;
+  }
+
   filter.push({
     range: {
-      [`data.${field}`]: {
-        gte: min,
-        lte: max,
-      },
+      [`data.${field}`]: minmax,
     },
   });
   return filter;
@@ -121,7 +128,7 @@ export function getSearchPropertyFilters(q: MapboxBoundaries & PropertyAttribute
   results = includeGreaterOrEqualNumberFilter(results, 'L_BedroomTotal', q.beds);
   results = includeGreaterOrEqualNumberFilter(results, 'L_TotalBaths', q.baths);
   results = includeRangeFilter(results, 'AskingPrice', q.minprice, q.maxprice);
-  results = includeRangeFilter(results, 'L_FloorArea_Total', q.minsqft, q.maxsqft);
+  results = includeRangeFilter(results, 'L_FloorArea_GrantTotal', q.minsqft, q.maxsqft);
 
   if (q.types && q.types.length) {
     let property_types: string[] = [];
