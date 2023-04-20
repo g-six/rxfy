@@ -185,7 +185,7 @@ export async function GET(request: Request) {
       headers: {
         'content-type': 'application/json',
       },
-      status: 400,
+      status: user?.session_key ? 400 : 401,
     },
   );
 }

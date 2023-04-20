@@ -54,7 +54,7 @@ export async function loveHome(mls_id: string, agent: number) {
     if (!Cookies.get('session_key')) return;
 
     const response = await axios.post(
-      `/api/loves`,
+      '/api/loves',
       {
         mls_id,
         agent,

@@ -1,10 +1,13 @@
+import React from 'react';
 import { Events } from '@/_typings/events';
 import { MLSProperty } from '@/_typings/property';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import { classNames } from '@/_utilities/html-helper';
 import useLove from '@/hooks/useLove';
-import React from 'react';
+
+import styles from './RxPropertyCard.module.scss';
+import Cookies from 'js-cookie';
 
 function RxComponentChomper({ config, children }: any): any {
   const cloneChildren = React.Children.map(children, child => {
@@ -22,7 +25,7 @@ function RxComponentChomper({ config, children }: any): any {
               config.onLoveItem(true);
             };
           } else {
-            opacity_class = 'opacity-100 group-hover:opacity-0 group-hover:block hidden';
+            opacity_class = 'opacity-100 group-hover:opacity-0 group-hover:block sm:hidden';
             onClick = () => {
               config.onLoveItem();
             };
@@ -30,7 +33,7 @@ function RxComponentChomper({ config, children }: any): any {
         }
         if (RxElement.props.className.indexOf('heart-empty') >= 0) {
           if (!config.loved) {
-            opacity_class = 'opacity-0 group-hover:opacity-100 group-hover:block hidden';
+            opacity_class = 'opacity-0 group-hover:opacity-100 group-hover:block sm:hidden';
           }
           onClick = () => {
             console.log('removeeee');
@@ -104,7 +107,7 @@ export default function RxPropertyCard({
   return (
     <div
       data-agent={agent}
-      className={classNames('group absolute ml-1 w-11/12 sm:ml-4 md:w-full md:ml-auto md:relative', sequence === 0 ? `` : 'hidden sm:block')}
+      className={classNames('group relative', sequence === 0 ? `` : 'hidden sm:block', Cookies.get('session_key') ? styles.ShowSold : '')}
     >
       <RxComponentChomper
         config={{

@@ -6,7 +6,7 @@ import RxMapbox from './RxMapbox';
 import RxSearchInput from './RxSearchInput';
 import styles from './RxPropertyMap.module.scss';
 import { Switch } from '@headlessui/react';
-import RxPropertyCard from './RxPropertyCard';
+import RxPropertyCard from '@/components/RxCards/RxPropertyCard';
 import { MapProvider } from '@/app/AppContext.module';
 import { getPlaceDetails } from '@/_utilities/geocoding-helper';
 import { LovedPropertyDataModel, MLSProperty } from '@/_typings/property';
@@ -181,6 +181,9 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
 
     if (child.props && child.props.children) {
       if (child.props.className) {
+        if (child.props.className === 'left-bar') {
+          child.props.className = `${styles.LeftBar} ${child.props.className} fixed md:static md:max-h-screen top-16 max-h-[calc(100dvh_-_6rem)]`;
+        }
         if (child.props.className === 'toggle-base') {
           return (
             <Switch
