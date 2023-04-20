@@ -1,6 +1,6 @@
 import { AgentData } from '@/_typings/agent';
 import { DateFields, FinanceFields, MLSProperty, NumericFields } from '@/_typings/property';
-import { AxiosStatic } from 'axios';
+import { AxiosError, AxiosStatic } from 'axios';
 import { dateStringToDMY } from './date-helper';
 
 export const general_stats: Record<string, string> = {
@@ -75,6 +75,8 @@ export function getGqlForPropertyId(id: number) {
             data {
                 id
                 attributes {
+                  lat
+                  lon
                     mls_data
                 }
             }
@@ -93,6 +95,8 @@ export function getGqlForFilteredProperties(filters: Record<string, unknown>) {
               data {
                   id
                   attributes {
+                    lat
+                    lon
                       mls_data
                   }
               }
@@ -107,7 +111,7 @@ export function getGqlForFilteredProperties(filters: Record<string, unknown>) {
 export function getGqlForInsertProperty(mls_data: MLSProperty) {
   const {
     lat,
-    lon,
+    lng: lon,
     ListingID: guid,
     Address: title,
     MLS_ID: mls_id,
@@ -443,18 +447,19 @@ export async function getSimilarHomes(property: MLSProperty, limit = 3): Promise
 
 async function upsertPropertyToCMS(mls_data: MLSProperty) {
   const axios: AxiosStatic = (await import('axios')).default;
-  const xhr = await axios
-    .post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getGqlForInsertProperty(mls_data), {
+  try {
+    const xhr = await axios.post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getGqlForInsertProperty(mls_data), {
       headers: {
         Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
         'Content-Type': 'application/json',
       },
-    })
-    .catch(e => {
-      console.log('ERROR in upsertPropertyToCMS.axios', '\n', e.message, '\n\n');
     });
 
-  return xhr;
+    return xhr?.data?.data?.property || {};
+  } catch (e) {
+    const error = e as AxiosError;
+    console.log('ERROR in upsertPropertyToCMS.axios', '\n', error, '\n\n');
+  }
 }
 
 export async function getPrivatePropertyData(property_id: number | string) {
@@ -567,11 +572,12 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
     .catch(e => {
       console.log('ERROR in getPropertyData.axios for id', property_id, '\n', e.message, '\n\n');
     });
-
-  if (id_is_mls && xhr && xhr.data.data?.properties?.data?.length === 0) {
+  let found_in_strapi = true;
+  let property = xhr?.data?.data?.property || xhr?.data?.data?.properties?.data[0];
+  if (id_is_mls && property === undefined) {
     // Data was not picked up by the integrations API,
     // attempt to fix
-
+    found_in_strapi = false;
     const [mls_data] = await retrieveFromLegacyPipeline({
       from: 0,
       size: 1,
@@ -589,21 +595,30 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
       },
     });
 
-    xhr = await upsertPropertyToCMS(mls_data);
+    const on_the_fly_record = await upsertPropertyToCMS(mls_data);
 
-    console.log('Repaired');
-    console.log(xhr && Object.keys(xhr.data.data));
+    if (on_the_fly_record?.data) {
+      property = on_the_fly_record.data;
+    }
   }
 
   let clean: Record<string, unknown> | MLSProperty = {};
   const neighbours: MLSProperty[] = [];
   const sold_history: MLSProperty[] = [];
-  if (xhr && xhr.data) {
-    const { property, properties } = id_is_mls ? xhr.data.data : xhr.data.data;
-
-    const { mls_data } = id_is_mls ? properties.data[0].attributes : property.data.attributes;
+  console.log({
+    property,
+  });
+  if (property?.attributes) {
+    let { lat, lon } = property.attributes;
+    const { mls_data } = property.attributes;
     Object.keys(mls_data).map((key: string) => {
       if (mls_data[key]) {
+        if (key === 'lng' && !lon) {
+          lon = Number(mls_data[key]);
+        }
+        if (key === 'lat' && !lat) {
+          lat = Number(mls_data[key]);
+        }
         clean = {
           ...clean,
           [key]: mls_data[key],
@@ -613,7 +628,7 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
 
     const {
       data: {
-        hits: { total, hits },
+        hits: { hits },
       },
     } = await axios.post(
       process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
