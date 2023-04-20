@@ -177,7 +177,7 @@ export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapp
 
     // Sqft
     replaceByCheerio($, `${wrapper_selector} > ${card_selector}:nth-child(${i + 1}) .sqft-stat`, {
-      content: `${formatValues(p, 'L_FloorArea_Total')}` || `${formatValues(p, 'L_FloorArea_GrantTotal')}`,
+      content: `${formatValues(p, 'L_FloorArea_GrantTotal')}` || `${formatValues(p, 'L_FloorArea_GrantTotal')}`,
     });
 
     // Year

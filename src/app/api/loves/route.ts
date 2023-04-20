@@ -131,7 +131,7 @@ export async function GET(request: Request) {
                   photos,
                   L_BedroomTotal: beds,
                   L_TotalBaths: baths,
-                  L_FloorArea_Total: sqft,
+                  L_FloorArea_GrantTotal: sqft,
                 } = love.attributes.property.data.attributes.mls_data;
                 let [thumb] = photos ? (photos as string[]).slice(0, 1) : [];
                 if (thumb === undefined) {

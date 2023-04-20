@@ -114,7 +114,7 @@ export default function RxPropertyCard({
           '{PArea}': listing.Area || listing.City || 'N/A',
           '{PBd}': listing.L_BedroomTotal || 1,
           '{PBth}': listing.L_TotalBaths,
-          '{Psq}': listing.L_FloorArea_Total,
+          '{Psq}': listing.L_FloorArea_GrantTotal,
           photos: listing.photos as string[],
           '{PYear}': listing.L_YearBuilt || ' ',
           loved: loved_items && loved_items.includes(listing.MLS_ID),
