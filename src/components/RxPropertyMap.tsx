@@ -29,6 +29,7 @@ import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper
 import { Events } from '@/_typings/events';
 import { useSearchParams } from 'next/navigation';
 import RxCombobox from './RxCombobox';
+import RxMapTermsFilter from './RxMapTermsFilter';
 
 export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?: string }) {
   let MapAndHeaderHeader;
@@ -126,6 +127,11 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
         // Property type
         if (child.props.className.indexOf(' ptype-') >= 0 && child.type === 'label') {
           return <RxLiveCheckbox child={child} filter='types' value={getPropertyTypeFromSelector(child.props.className)} />;
+        }
+
+        // Keywords textarea
+        if (child.type === 'textarea') {
+          return <RxMapTermsFilter className={child.props.className || ''} filter='tags' />;
         }
 
         // Sorters
@@ -230,7 +236,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
         if (child.props.className.indexOf('property-card-map') >= 0) {
           // Just clone one
           return child.key === '1' ? (
-            props.listings.slice(-10).map((p: MLSProperty, sequence_no) => {
+            props.listings.slice(0, 100).map((p: MLSProperty, sequence_no) => {
               const record = props.loved_homes?.filter(({ mls_id }) => mls_id === p.MLS_ID).pop();
               LargeCard = (
                 <RxPropertyCard key={p.MLS_ID} love={record?.love} listing={p} sequence={sequence_no} agent={props.agent_data.id}>
@@ -332,7 +338,6 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
         listings={listings}
         loved_homes={loved_homes}
         setHideOthers={(hide: boolean) => {
-          console.log('hide', hide);
           setHideOthers(hide);
         }}
         hide_others={hide_others}
