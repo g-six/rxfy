@@ -82,17 +82,16 @@ export function RxMapbox(props: RxMapboxProps) {
           if (is_cluster) {
             cluster_source.getClusterLeaves(cluster_id, point_count, 0, (error, feats: Feature[]) => {
               // Refactor this into a standalone function
-              if (point_count <= 5) {
-                setSelectedCluster(
-                  feats.map(
-                    ({ id, properties }) =>
-                      ({
-                        ...properties,
-                        id,
-                      } as unknown as Record<string, string | number | string[]>),
-                  ),
-                );
-              }
+
+              setSelectedCluster(
+                feats.map(
+                  ({ id, properties }) =>
+                    ({
+                      ...properties,
+                      id,
+                    } as unknown as Record<string, string | number | string[]>),
+                ),
+              );
             });
           } else {
             setSelectedCluster([
