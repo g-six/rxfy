@@ -594,6 +594,8 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
       },
     });
 
+    const on_the_fly_record = await upsertPropertyToCMS(mls_data);
+
     if (on_the_fly_record?.data) {
       property = on_the_fly_record.data;
     }
