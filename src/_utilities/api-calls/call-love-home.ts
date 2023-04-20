@@ -9,6 +9,7 @@ import { Events } from '@/_typings/events';
  * @returns
  */
 export async function getLovedHomes() {
+  if (!Cookies.get('session_key')) return;
   try {
     const response = await axios.get('/api/loves', {
       headers: {
