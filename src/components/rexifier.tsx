@@ -391,7 +391,16 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           }
           if (node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_SAVED_PROPERTIES_DASHBOARD) {
             return (
-              <RxMySavedHomesDashBoard agent_data={agent_data} className={node.attribs.class}>
+              <RxMySavedHomesDashBoard
+                agent_data={agent_data}
+                className={node.attribs.class}
+                config={{
+                  authorization: `Basic ${Buffer.from(`${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`).toString(
+                    'base64',
+                  )}`,
+                  url: process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
+                }}
+              >
                 {domToReact(node.children)}
               </RxMySavedHomesDashBoard>
             );

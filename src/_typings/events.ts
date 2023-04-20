@@ -1,3 +1,5 @@
+import { MLSProperty } from './property';
+
 export enum Events {
   Login = 'event-login',
   Loading = 'event-loading',
@@ -13,6 +15,7 @@ export enum Events {
   DocFolderShow = 'event-docfolder-show',
   LovedItem = 'event-loved-item',
   ToggleUserMenu = 'event-user-menu',
+  SavedItemsProperty = 'saved-items-property',
   //ContactFormSubmit = 'event-contact-form-submit',
 }
 
@@ -34,4 +37,5 @@ export interface EventsData {
   time?: number;
   message?: string;
   category?: NotificationCategory;
+  property?: MLSProperty;
 }

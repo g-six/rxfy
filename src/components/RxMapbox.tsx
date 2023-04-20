@@ -25,6 +25,7 @@ type RxMapboxProps = {
   search_url: string;
   params?: PlaceDetails;
   headers: Record<string, unknown>;
+  agent_data?: AgentData;
   setListings(listings: MLSProperty[]): void;
 };
 
