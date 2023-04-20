@@ -1,0 +1,11 @@
+.RxCombobox {
+  @apply block;
+  :global(.dropdown-list) {
+    @apply min-w-fit w-32;
+  }
+  .opened {
+    :global(.icon-dropdown) {
+      @apply -rotate-180;
+    }
+  }
+}
