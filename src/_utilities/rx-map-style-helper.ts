@@ -1,6 +1,9 @@
 import mapboxgl from 'mapbox-gl';
 
-export function renderHomePinBgLayer(id: string, circle_color = '#fff', outline_color = '#5349f0'): mapboxgl.AnyLayer[] {
+const circle_bg_color = '#000000';
+// const circle_bg_color = '#4f46e5'
+const default_outline_color = '#000000';
+export function renderHomePinBgLayer(id: string, circle_color = '#fff', outline_color = default_outline_color): mapboxgl.AnyLayer[] {
   return [
     {
       id: `${id}-border`,
@@ -35,11 +38,11 @@ export function renderHomePinTextLayer(id: string): mapboxgl.AnyLayer {
     filter: ['!', ['has', 'point_count']],
     layout: {
       'text-field': '{price}',
-      'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+      'text-font': ['Arial Unicode MS Bold'],
       'text-size': 12,
     },
     paint: {
-      'text-color': '#4f46e5',
+      'text-color': circle_bg_color,
     },
   };
 }
@@ -51,7 +54,7 @@ export function renderClusterBgLayer(id: string): mapboxgl.AnyLayer {
     source: 'map-source',
     filter: ['has', 'point_count'],
     paint: {
-      'circle-color': ['step', ['get', 'point_count'], '#4f46e5', 5, '#4f46e5', 10, '#4f46e5'],
+      'circle-color': ['step', ['get', 'point_count'], circle_bg_color, 5, circle_bg_color, 10, circle_bg_color],
       'circle-opacity': ['step', ['get', 'point_count'], 0.85, 5, 0.75, 10, 0.68],
       'circle-radius': ['step', ['get', 'point_count'], 12, 5, 16, 10, 18],
     },
@@ -66,7 +69,7 @@ export function renderClusterTextLayer(id: string): mapboxgl.AnyLayer {
     filter: ['has', 'point_count'],
     layout: {
       'text-field': '{point_count_abbreviated}',
-      'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+      'text-font': ['Arial Unicode MS Bold'],
       'text-size': 14,
     },
     paint: {
