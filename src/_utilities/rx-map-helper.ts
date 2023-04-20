@@ -90,7 +90,7 @@ function includeRangeFilter(filter: RxPropertyFilter[], field: string, min = 0, 
   return filter;
 }
 
-function includeTermsFilter(filter: RxPropertyFilter[], field: 'Type', terms: string[]): RxPropertyFilter[] {
+function includeTermsFilter(filter: RxPropertyFilter[], field: string, terms: string[]): RxPropertyFilter[] {
   if (terms.length > 0)
     filter.push({
       terms: {
@@ -129,7 +129,9 @@ export function getSearchPropertyFilters(q: MapboxBoundaries & PropertyAttribute
   results = includeGreaterOrEqualNumberFilter(results, 'L_TotalBaths', q.baths);
   results = includeRangeFilter(results, 'AskingPrice', q.minprice, q.maxprice);
   results = includeRangeFilter(results, 'L_FloorArea_GrantTotal', q.minsqft, q.maxsqft);
-
+  if (q.tags && q.tags.length) {
+    results = includeTermsFilter(results, 'L_PublicRemakrs', q.tags);
+  }
   if (q.types && q.types.length) {
     let property_types: string[] = [];
     q.types.forEach((t: string) => {

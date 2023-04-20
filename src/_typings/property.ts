@@ -123,6 +123,7 @@ export type PropertyAttributeFilters = {
   types?: string[];
   dt_from?: Date;
   dt_to?: Date;
+  tags?: string[];
 };
 
 export interface MapStateProps extends BaseKeyValuePairStateProps {
