@@ -31,3 +31,17 @@ export async function saveSearch(agent: { id: number; logo?: string }, opts?: { 
 
   return response;
 }
+
+export async function getSearches() {
+  if (Cookies.get('session_key')) {
+    const xhr = await axios.get('/api/saved-searches', {
+      headers: {
+        Authorization: `Bearer ${Cookies.get('session_key')}`,
+      },
+    });
+
+    if (xhr?.data?.session_key) Cookies.set('session_key', xhr.data.session_key);
+    return xhr?.data?.records || [];
+  }
+  return;
+}
