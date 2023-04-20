@@ -167,14 +167,14 @@ export function RxMapbox(props: RxMapboxProps) {
         case 'size_asc':
           sort = [
             {
-              'data.L_FloorArea_Total': 'asc',
+              'data.L_FloorArea_GrantTotal': 'asc',
             },
           ];
           break;
         case 'size_desc':
           sort = [
             {
-              'data.L_FloorArea_Total': 'desc',
+              'data.L_FloorArea_GrantTotal': 'desc',
             },
           ];
           break;
@@ -192,7 +192,7 @@ export function RxMapbox(props: RxMapboxProps) {
           'data.City',
           'data.AskingPrice',
           'data.L_BedroomTotal',
-          'data.L_FloorArea_Total',
+          'data.L_FloorArea_GrantTotal',
           'data.L_TotalBaths',
           'data.L_YearBuilt',
           'data.photos',
@@ -370,7 +370,7 @@ export function RxMapbox(props: RxMapboxProps) {
               price: getShortPrice(p.AskingPrice),
               full_price: p.AskingPrice,
               area: p.Area || p.City,
-              sqft: p.L_FloorArea_Total,
+              sqft: p.L_FloorArea_GrantTotal,
               beds: p.L_BedroomTotal,
               baths: p.L_TotalBaths,
               city: p.City,

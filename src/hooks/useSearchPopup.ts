@@ -145,7 +145,7 @@ export function useSearchPopup({ items, handleClose, dataset = {}, config }: Use
               'data.City',
               'data.AskingPrice',
               'data.L_BedroomTotal',
-              'data.L_FloorArea_Total',
+              'data.L_FloorArea_GrantTotal',
               'data.L_TotalBaths',
               'data.L_YearBuilt',
               'data.photos',
