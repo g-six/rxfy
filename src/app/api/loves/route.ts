@@ -22,6 +22,7 @@ const gql_get_loved = `query GetLovedHomes($customer: ID!) {
     data {
       id
       attributes {
+        notes
         property {
           data {
             id
