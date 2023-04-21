@@ -88,6 +88,7 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
                     <RxPropertyCard
                       love={love}
                       key={p.mls_id}
+                      isLink={false}
                       listing={{
                         ...(listing as unknown as MLSProperty),
                         MLS_ID,
