@@ -70,6 +70,7 @@ function PageIterator(props: MyCompareDashboardPage) {
                       L_TotalBaths: baths || 1,
                       L_FloorArea_GrantTotal: sqft || 0,
                     }}
+                    isLink={false}
                     love={love}
                     sequence={sequence_no}
                     agent={props['agent-data'].id}

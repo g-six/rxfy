@@ -88,6 +88,7 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
                     <RxPropertyCard
                       love={love}
                       key={p.mls_id}
+                      isLink={false}
                       listing={{
                         ...(listing as unknown as MLSProperty),
                         MLS_ID,
@@ -101,7 +102,6 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
                       }}
                       sequence={sequence_no}
                       agent={agent_data.id}
-                      isLink={false}
                     >
                       {PlaceholderCard}
                     </RxPropertyCard>
