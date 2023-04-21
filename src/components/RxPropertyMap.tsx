@@ -184,7 +184,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
     if (child.props && child.props.children) {
       if (child.props.className) {
         if (child.props.className === 'left-bar') {
-          child.props.className = `${styles.LeftBar} ${child.props.className} fixed md:static md:max-h-screen top-16 max-h-[calc(100dvh_-_6rem)]`;
+          child.props.className = `${styles.LeftBar} ${child.props.className} md:max-h-screen max-h-[calc(100dvh_-_6rem)]`;
         }
         if (child.props.className === 'toggle-base') {
           return (
