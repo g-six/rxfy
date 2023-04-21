@@ -122,9 +122,8 @@ export async function GET(request: Request) {
             default:
               output = {
                 ...output,
-                [key]: mls_data[key],
+                [key]: mls_data[key] !== null,
               };
-              console.log(key);
               break;
           }
         }
