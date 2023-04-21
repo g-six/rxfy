@@ -82,7 +82,7 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
           loved?.length > 0
             ? loved.map((p: LovedPropertyDataModel, sequence_no: number) => {
                 const { love, mls_id: MLS_ID, title: Address, asking_price: AskingPrice, area: Area, beds, baths, sqft, ...listing } = p;
-                console.log(p);
+
                 return (
                   <div key={p.mls_id} onClick={handleOnCardClick(MLS_ID)}>
                     <RxPropertyCard
@@ -97,9 +97,11 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
                         L_BedroomTotal: beds || 1,
                         L_TotalBaths: baths || 1,
                         L_FloorArea_Total: sqft || 0,
+                        L_FloorArea_GrantTotal: sqft || 0,
                       }}
                       sequence={sequence_no}
                       agent={agent_data.id}
+                      isLink={false}
                     >
                       {PlaceholderCard}
                     </RxPropertyCard>

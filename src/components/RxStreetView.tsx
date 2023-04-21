@@ -4,7 +4,7 @@ import React from 'react';
 import { addPropertyMapScripts } from './Scripts/google-street-map';
 
 type Props = {
-  property: MLSProperty;
+  property: MLSProperty | null;
   className: string;
 };
 
