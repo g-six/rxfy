@@ -13,6 +13,7 @@ const initialState: MapStatePropsWithFilters = {
   baths: 1,
   minprice: 300000,
   maxprice: 20000000,
+  maxsqft: 63591,
   suggestions: [],
 };
 // Create the Map context
@@ -99,7 +100,7 @@ export const MapProvider = (props: any) => {
         'type=R',
       ].join('&');
     }
-    location.href = query;
+    if (typeof window !== 'undefined' && location !== undefined) location.href = query;
   };
 
   const initializeFilters = () => {

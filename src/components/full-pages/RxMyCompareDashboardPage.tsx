@@ -47,7 +47,7 @@ function PageIterator(props: MyCompareDashboardPage) {
                       Area,
                       L_BedroomTotal: beds || 1,
                       L_TotalBaths: baths || 1,
-                      L_FloorArea_Total: sqft || 0,
+                      L_FloorArea_GrantTotal: sqft || 0,
                     }}
                     love={love}
                     sequence={sequence_no}

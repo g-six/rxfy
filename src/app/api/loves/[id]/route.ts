@@ -1,9 +1,8 @@
 import axios from 'axios';
-import { MLSProperty } from '@/_typings/property';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getResponse } from '../../response-helper';
 import { getNewSessionKey } from '../../update-session';
-import { getRecordOwnerId, gqlRequest } from '../../request-helper';
+import { getRecordOwnerId } from '../../request-helper';
 import { DataModel } from '@/_typings/data-models';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
@@ -15,6 +14,7 @@ const gql_get_loved = `query GetLovedHome($id: ID!) {
     data {
       id
       attributes {
+        notes
         property {
           data {
             id

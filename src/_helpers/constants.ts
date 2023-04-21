@@ -120,12 +120,6 @@ export const FILTERS: Filter[] = [
     var: 'area',
     types: ['dimensions'],
   },
-  // {
-  //   title: 'Floor Area - Grand Total',
-  //   keys: ['field_3129', 'L_FloorArea_GrantTotal'],
-  //   var: 'area',
-  //   types: ['dimensions'],
-  // },
   { title: 'Basement Area', keys: ['f_137', 'B_Basement'], var: 'area', types: ['dimensions'] },
   { title: 'Lot Sz (Acres)', keys: ['field_3155', 'L_LotSize_Acres'], types: ['dimensions'] },
 

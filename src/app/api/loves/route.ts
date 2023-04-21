@@ -9,22 +9,6 @@ const headers = {
   'Content-Type': 'application/json',
 };
 
-const gql_update_session = `mutation UpdateCustomerSession ($id: ID!, $last_activity_at: DateTime!) {
-  session: updateCustomer(id: $id, data: { last_activity_at: $last_activity_at }) {
-    record: data {
-      id
-      attributes {
-        email
-        full_name
-        phone_number
-        birthday
-        last_activity_at
-        yes_to_marketing
-      }
-    }
-  }
-}`;
-
 const gql_find_home = `query FindHomeByMLSID($mls_id: String!) {
   properties(filters:{ mls_id:{ eq: $mls_id}}, pagination: {limit:1}) {
     data {
@@ -38,6 +22,7 @@ const gql_get_loved = `query GetLovedHomes($customer: ID!) {
     data {
       id
       attributes {
+        notes
         property {
           data {
             id
@@ -130,6 +115,7 @@ export async function GET(request: Request) {
                 love: Record<
                   string,
                   {
+                    notes?: string;
                     property: {
                       data: {
                         id: number;
@@ -147,7 +133,8 @@ export async function GET(request: Request) {
                   photos,
                   L_BedroomTotal: beds,
                   L_TotalBaths: baths,
-                  L_FloorArea_Total: sqft,
+                  L_FloorArea_GrantTotal: sqft,
+                  ...other_fields
                 } = love.attributes.property.data.attributes.mls_data;
                 let [thumb] = photos ? (photos as string[]).slice(0, 1) : [];
                 if (thumb === undefined) {
@@ -155,9 +142,12 @@ export async function GET(request: Request) {
                 }
                 return {
                   id: Number(love.id),
+                  notes: love.attributes.notes || '',
                   property: {
                     id: Number(love.attributes.property.data.id),
                     ...love.attributes.property.data.attributes,
+                    style: other_fields.B_Style ? other_fields.B_Style : undefined,
+                    Status: other_fields.Status || 'N/A',
                     asking_price: asking_price || AskingPrice,
                     beds,
                     baths,
@@ -201,7 +191,7 @@ export async function GET(request: Request) {
       headers: {
         'content-type': 'application/json',
       },
-      status: 400,
+      status: user?.session_key ? 400 : 401,
     },
   );
 }

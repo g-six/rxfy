@@ -126,7 +126,9 @@ export type RxPropertyFilter = {
   match?: {
     [key: string]: string;
   };
-  terms?: {
-    [key: string]: string[];
-  };
+  terms?:
+    | {
+        [key: string]: string[];
+      }
+    | { minimum_should_match?: number };
 };

@@ -1,19 +1,33 @@
 'use client';
 import React from 'react';
-import { useMapState, useMapUpdater } from '@/app/AppContext.module';
+import { useMapMultiUpdater, useMapState, useMapUpdater } from '@/app/AppContext.module';
 import { MapStatePropsWithFilters } from '@/_typings/property';
+import useDebounce from '@/hooks/useDebounce';
 
 export function RxLiveInput({ className, filter, inputType }: { className: string; filter: string; inputType?: string }) {
   const state: MapStatePropsWithFilters = useMapState();
-  const update = useMapUpdater();
+  const updater = useMapMultiUpdater();
+  const [value, setValue] = React.useState(state[filter] || '');
+  const debounced = useDebounce(`${value || ''}`, 400);
+
+  React.useEffect(() => {
+    const num = Number(debounced);
+    if (!isNaN(num)) {
+      updater(state, {
+        [filter]: num,
+        reload: true,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debounced]);
+
   return (
     <input
       type={inputType || 'text'}
       className={`${className} rexified`}
       defaultValue={state[filter] as string | number}
       onChange={e => {
-        const num = Number(e.currentTarget.value);
-        update(state, filter, isNaN(num) ? e.currentTarget.value : num);
+        setValue(e.currentTarget.value);
       }}
     />
   );

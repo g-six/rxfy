@@ -3,6 +3,8 @@ import { MLSProperty } from '@/_typings/property';
 import { getResponse } from '../response-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getNewSessionKey } from '../update-session';
+import { capitalizeFirstLetter } from '@/_utilities/formatters';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -27,7 +29,6 @@ const gql_find_home = `query FindHomeByMLSID($mls_id: String!) {
   }
 }`;
 
-const needed_data = ['photos'];
 export async function GET(request: Request) {
   const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
   if (!token || !guid)
@@ -55,7 +56,9 @@ export async function GET(request: Request) {
   if (results?.data?.data?.properties?.data?.length) {
     const [record] = results?.data.data.properties.data;
     const { mls_data, ...property } = record.attributes;
-    let output: { id: number; thumbnail?: string } = {
+    let output: {
+      [key: string]: string | number | boolean | string[];
+    } = {
       id: Number(record.id),
     };
     Object.keys(property).forEach(key => {
@@ -68,18 +71,60 @@ export async function GET(request: Request) {
     });
     mls_data &&
       Object.keys(mls_data).forEach(key => {
-        if (mls_data[key] && needed_data.includes(key)) {
-          if (key === 'photos' && mls_data[key].length > 0) {
-            const photos = mls_data[key] as string[];
-            output = {
-              ...output,
-              thumbnail: `https://e52tn40a.cdn.imgeng.in/w_720/${photos[0]}`,
-            };
-          } else {
-            output = {
-              ...output,
-              [key]: mls_data[key],
-            };
+        if (mls_data[key]) {
+          switch (key) {
+            case 'photos':
+              if (mls_data[key].length > 0) {
+                const photos = mls_data[key] as string[];
+                output = {
+                  ...output,
+                  thumbnail: `https://e52tn40a.cdn.imgeng.in/w_720/${photos[0]}`,
+                  photos: photos.slice(1).map(photo_url => {
+                    return getImageSized(photo_url, 999);
+                  }),
+                };
+              }
+              break;
+            case 'Address':
+            case 'Status':
+            case 'Remarks':
+              output = {
+                ...output,
+                [key.toLowerCase()]: capitalizeFirstLetter(mls_data[key].toLowerCase()),
+              };
+              break;
+            case 'L_PublicRemakrs':
+              output = {
+                ...output,
+                description: capitalizeFirstLetter(mls_data[key].toLowerCase()),
+              };
+              break;
+            case 'L_TotalBaths':
+              output = {
+                ...output,
+                baths: Number(mls_data[key]),
+              };
+              break;
+            case 'B_Style':
+              output = {
+                ...output,
+                style: mls_data[key],
+                [key]: mls_data[key],
+              };
+              break;
+            case 'LandTitle':
+              output = {
+                ...output,
+                land_title: mls_data[key],
+                [key]: mls_data[key],
+              };
+              break;
+            default:
+              output = {
+                ...output,
+                [key]: mls_data[key] !== null ? mls_data[key] : undefined,
+              };
+              break;
           }
         }
       });
