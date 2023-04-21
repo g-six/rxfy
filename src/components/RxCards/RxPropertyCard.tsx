@@ -151,12 +151,14 @@ export default function RxPropertyCard({
   listing,
   agent,
   love,
+  isLink,
 }: {
   love?: number;
   agent?: number;
   sequence?: number;
   children: any;
   listing: MLSProperty;
+  isLink?: boolean;
 }) {
   const [loved_items, setLovedItems] = React.useState(getData(Events.LovedItem) as unknown as string[]);
   const evt = useLove();
@@ -166,7 +168,7 @@ export default function RxPropertyCard({
       setLovedItems(getData(Events.LovedItem) as unknown as string[]);
     }
   }, [evt.data]);
-  console.log(listing);
+
   return (
     <div
       data-agent={agent}
@@ -204,9 +206,11 @@ export default function RxPropertyCard({
       >
         {children}
       </RxComponentChomper>
-      <a href={`/property?mls=${listing.MLS_ID}`} className='absolute top-0 left-0 w-full h-full'>
-        {' '}
-      </a>
+      {isLink && (
+        <a href={`/property?mls=${listing.MLS_ID}`} className='absolute top-0 left-0 w-full h-full'>
+          {' '}
+        </a>
+      )}
     </div>
   );
 }
