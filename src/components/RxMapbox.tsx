@@ -23,6 +23,7 @@ import Cookies from 'js-cookie';
 type RxMapboxProps = {
   agent: AgentData;
   token: string;
+  children?: React.ReactElement;
   search_url: string;
   params?: PlaceDetails;
   headers: Record<string, unknown>;
@@ -447,7 +448,6 @@ export function RxMapbox(props: RxMapboxProps) {
       }
     }
   }, []);
-
   return (
     <main className={classNames(styles.MainWrapper, 'mapbox-canvas')}>
       <div
@@ -459,6 +459,7 @@ export function RxMapbox(props: RxMapboxProps) {
         ref={mapNode}
       ></div>
       <PropertyListModal
+        card={props.children}
         onClose={() => {
           setSelectedCluster([]);
         }}

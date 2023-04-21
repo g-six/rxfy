@@ -175,7 +175,9 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
           setListings={(listings: MLSProperty[]) => {
             props.setListings && props.setListings(listings);
           }}
-        ></RxMapbox>
+        >
+          {child.props.children}
+        </RxMapbox>
       );
     }
 
@@ -251,6 +253,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
                   })}
                 </RxPropertyCard>
               );
+
               return LargeCard;
             })
           ) : (
