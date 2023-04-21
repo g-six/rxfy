@@ -3,6 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import RxPropertyCard, { PropertyCardSmall } from './RxCards/RxPropertyCard';
 import { classNames } from '@/_utilities/html-helper';
 import { MLSProperty } from '@/_typings/property';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 
 type PropertyListProps = {
   properties: Record<string, string | number | string[]>[];
@@ -31,29 +32,46 @@ export default function PropertyListModal(p: PropertyListProps) {
             <Transition.Child
               as='div'
               enter='ease-out duration-300'
-              enterFrom='opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'
-              enterTo='opacity-100 translate-y-0 sm:scale-100'
+              enterFrom='opacity-0 translate-y-2 sm:translate-y-0 sm:scale-95'
+              enterTo='opacity-100 translate-y-2 sm:translate-y-0 sm:scale-100'
               leave='ease-in duration-200'
               leaveFrom='opacity-100 translate-y-0 sm:scale-100'
               leaveTo='opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'
             >
               <Dialog.Panel
-                className={`flex flex-col gap-4 relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:w-full sm:max-w-sm lg:max-w-lg px-0${
+                className={`flex flex-col gap-4 relative transform rounded-2xl bg-white text-left shadow-xl transition-all sm:w-full sm:max-w-sm lg:max-w-lg px-0${
                   p.properties.length > 1 ? ' py-1' : ''
                 }`}
               >
-                <div className={classNames('overflow-y-auto', p.properties.length > 1 ? 'px-1' : 'w-72', p.properties.length > 4 && 'h-[23.25rem]')}>
+                <button
+                  type='button'
+                  className={`text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-0 bg-black absolute -top-2 -right-2 z-20 rounded-full w-6 h-6 flex flex-col items-center justify-center ${
+                    p.properties && p.properties.length > 0 ? '' : 'hidden'
+                  }`}
+                  onClick={() => {
+                    p.onClose();
+                  }}
+                >
+                  <span className='sr-only'>Close</span>
+                  <XMarkIcon className='h-4 w-4' aria-hidden='true' />
+                </button>
+                <div
+                  className={classNames(
+                    'relative overflow-y-auto',
+                    p.properties.length > 1 ? 'px-1' : 'w-72 sm:w-72',
+                    p.properties.length > 4 && 'h-[23.25rem]',
+                  )}
+                >
                   {p.properties &&
                     p.properties.map(
                       listing =>
                         listing.id &&
                         (p.properties.length === 1 && p.card ? (
-                          <RxPropertyCard key={listing.id as string} listing={listing as unknown as MLSProperty}>
-                            {React.cloneElement(p.card, {
-                              ...p.card.props,
+                          <RxPropertyCard key={listing.id as string} listing={listing as unknown as MLSProperty} sequence={0}>
+                            {React.cloneElement(<div />, {
+                              ...p.card.props.children.props,
                               // Wrap grandchildren too
-                              className: 'yo',
-                              children: <>{p.card.props.children}</>,
+                              children: <>{p.card.props.children.props.children}</>,
                             })}
                           </RxPropertyCard>
                         ) : (
