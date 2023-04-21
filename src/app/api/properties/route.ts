@@ -122,7 +122,7 @@ export async function GET(request: Request) {
             default:
               output = {
                 ...output,
-                [key]: mls_data[key] !== null,
+                [key]: mls_data[key] !== null ? mls_data[key] : undefined,
               };
               break;
           }
