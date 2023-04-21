@@ -38,6 +38,7 @@ export interface MLSPropertyExtended {
   L_BedroomTotal: number;
   L_Fireplaces: number;
   L_FloorArea_Total: number;
+  L_FloorArea_GrantTotal: number;
   L_GrossTaxes: number;
   L_KitchensTotal: number;
   L_LotSize_SqMtrs: number;

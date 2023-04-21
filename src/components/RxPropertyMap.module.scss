@@ -1,8 +1,17 @@
+.LeftBar {
+  :global(.propcard-image) {
+    @apply flex-none;
+  }
+  :global(.propcard-details) {
+    @apply flex-grow gap-0;
+  }
+}
+
 .RxPropertyMap {
-    @apply flex flex-col w-full;
+  @apply flex flex-col w-full;
 }
 .RxPropertyMapSmallCard {
-    .txt {
-        @apply text-sm;
-    }
+  .txt {
+    @apply text-sm;
+  }
 }

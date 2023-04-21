@@ -1,12 +1,11 @@
 'use client';
 import React from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useMapState, useMapUpdater } from '@/app/AppContext.module';
+import { useMapMultiUpdater, useMapState, useMapUpdater } from '@/app/AppContext.module';
 
 export function RxLiveNumericStep({ child, filter }: { child: React.ReactElement; filter: string }) {
   const state = useMapState();
-
-  const updater = useMapUpdater();
+  const updater = useMapMultiUpdater();
   let counter = Number(state[filter] || '0');
 
   return React.cloneElement(child, {
@@ -19,7 +18,10 @@ export function RxLiveNumericStep({ child, filter }: { child: React.ReactElement
       }
       if (counter < 1) counter = 1;
 
-      updater(state, filter, counter);
+      updater(state, {
+        [filter]: counter,
+        reload: true,
+      });
     },
   });
 }

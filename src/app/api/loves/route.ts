@@ -9,22 +9,6 @@ const headers = {
   'Content-Type': 'application/json',
 };
 
-const gql_update_session = `mutation UpdateCustomerSession ($id: ID!, $last_activity_at: DateTime!) {
-  session: updateCustomer(id: $id, data: { last_activity_at: $last_activity_at }) {
-    record: data {
-      id
-      attributes {
-        email
-        full_name
-        phone_number
-        birthday
-        last_activity_at
-        yes_to_marketing
-      }
-    }
-  }
-}`;
-
 const gql_find_home = `query FindHomeByMLSID($mls_id: String!) {
   properties(filters:{ mls_id:{ eq: $mls_id}}, pagination: {limit:1}) {
     data {
@@ -147,7 +131,7 @@ export async function GET(request: Request) {
                   photos,
                   L_BedroomTotal: beds,
                   L_TotalBaths: baths,
-                  L_FloorArea_Total: sqft,
+                  L_FloorArea_GrantTotal: sqft,
                 } = love.attributes.property.data.attributes.mls_data;
                 let [thumb] = photos ? (photos as string[]).slice(0, 1) : [];
                 if (thumb === undefined) {
@@ -201,7 +185,7 @@ export async function GET(request: Request) {
       headers: {
         'content-type': 'application/json',
       },
-      status: 400,
+      status: user?.session_key ? 400 : 401,
     },
   );
 }

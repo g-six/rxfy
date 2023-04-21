@@ -1,0 +1,5 @@
+.ShowSold {
+  :global(.sold-tag) {
+    @apply block #{!important};
+  }
+}

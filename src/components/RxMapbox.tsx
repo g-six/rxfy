@@ -18,10 +18,12 @@ import { useMapMultiUpdater, useMapState } from '@/app/AppContext.module';
 import { useSearchParams } from 'next/navigation';
 import { renderClusterBgLayer, renderClusterTextLayer, renderHomePinBgLayer, renderHomePinTextLayer } from '@/_utilities/rx-map-style-helper';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
+import Cookies from 'js-cookie';
 
 type RxMapboxProps = {
   agent: AgentData;
   token: string;
+  children?: React.ReactElement;
   search_url: string;
   params?: PlaceDetails;
   headers: Record<string, unknown>;
@@ -83,17 +85,16 @@ export function RxMapbox(props: RxMapboxProps) {
           if (is_cluster) {
             cluster_source.getClusterLeaves(cluster_id, point_count, 0, (error, feats: Feature[]) => {
               // Refactor this into a standalone function
-              if (point_count <= 5) {
-                setSelectedCluster(
-                  feats.map(
-                    ({ id, properties }) =>
-                      ({
-                        ...properties,
-                        id,
-                      } as unknown as Record<string, string | number | string[]>),
-                  ),
-                );
-              }
+
+              setSelectedCluster(
+                feats.map(
+                  ({ id, properties }) =>
+                    ({
+                      ...properties,
+                      id,
+                    } as unknown as Record<string, string | number | string[]>),
+                ),
+              );
             });
           } else {
             setSelectedCluster([
@@ -169,14 +170,14 @@ export function RxMapbox(props: RxMapboxProps) {
         case 'size_asc':
           sort = [
             {
-              'data.L_FloorArea_Total': 'asc',
+              'data.L_FloorArea_GrantTotal': 'asc',
             },
           ];
           break;
         case 'size_desc':
           sort = [
             {
-              'data.L_FloorArea_Total': 'desc',
+              'data.L_FloorArea_GrantTotal': 'desc',
             },
           ];
           break;
@@ -194,7 +195,7 @@ export function RxMapbox(props: RxMapboxProps) {
           'data.City',
           'data.AskingPrice',
           'data.L_BedroomTotal',
-          'data.L_FloorArea_Total',
+          'data.L_FloorArea_GrantTotal',
           'data.L_TotalBaths',
           'data.L_YearBuilt',
           'data.photos',
@@ -207,7 +208,10 @@ export function RxMapbox(props: RxMapboxProps) {
         query: {
           bool: {
             filter,
-            should: [],
+            should: Cookies.get('session_key')
+              ? [{ match: { 'data.Status': 'Active' } }, { match: { 'data.Status': 'Sold' } }]
+              : [{ match: { 'data.Status': 'Active' } }],
+            minimum_should_match: 1,
             must_not,
           },
         },
@@ -372,7 +376,7 @@ export function RxMapbox(props: RxMapboxProps) {
               price: getShortPrice(p.AskingPrice),
               full_price: p.AskingPrice,
               area: p.Area || p.City,
-              sqft: p.L_FloorArea_Total,
+              sqft: p.L_FloorArea_GrantTotal,
               beds: p.L_BedroomTotal,
               baths: p.L_TotalBaths,
               city: p.City,
@@ -445,7 +449,6 @@ export function RxMapbox(props: RxMapboxProps) {
       }
     }
   }, []);
-
   return (
     <main className={classNames(styles.MainWrapper, 'mapbox-canvas')}>
       <div
@@ -457,6 +460,7 @@ export function RxMapbox(props: RxMapboxProps) {
         ref={mapNode}
       ></div>
       <PropertyListModal
+        card={props.children}
         onClose={() => {
           setSelectedCluster([]);
         }}

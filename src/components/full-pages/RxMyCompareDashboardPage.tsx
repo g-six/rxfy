@@ -5,7 +5,7 @@ import { RxButton } from '../RxButton';
 import { Events } from '@/_typings/events';
 import { RxEmail } from '../RxEmail';
 import { RxPassword } from '../RxPassword';
-import RxPropertyCard from '../RxPropertyCard';
+import RxPropertyCard from '../RxCards/RxPropertyCard';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
@@ -56,6 +56,7 @@ function PageIterator(props: MyCompareDashboardPage) {
             {props['data-loved'] &&
               props['data-loved'].map((p: LovedPropertyDataModel, sequence_no: number) => {
                 const { love, mls_id: MLS_ID, title: Address, asking_price: AskingPrice, area: Area, beds, baths, sqft, ...listing } = p;
+                console.log(p);
                 return (
                   <RxPropertyCard
                     key={love}
@@ -67,7 +68,7 @@ function PageIterator(props: MyCompareDashboardPage) {
                       Area,
                       L_BedroomTotal: beds || 1,
                       L_TotalBaths: baths || 1,
-                      L_FloorArea_Total: sqft || 0,
+                      L_FloorArea_GrantTotal: sqft || 0,
                     }}
                     love={love}
                     sequence={sequence_no}

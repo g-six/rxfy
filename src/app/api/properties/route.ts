@@ -4,6 +4,7 @@ import { getResponse } from '../response-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getNewSessionKey } from '../update-session';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -56,7 +57,7 @@ export async function GET(request: Request) {
     const [record] = results?.data.data.properties.data;
     const { mls_data, ...property } = record.attributes;
     let output: {
-      [key: string]: string | number | boolean;
+      [key: string]: string | number | boolean | string[];
     } = {
       id: Number(record.id),
     };
@@ -78,6 +79,9 @@ export async function GET(request: Request) {
                 output = {
                   ...output,
                   thumbnail: `https://e52tn40a.cdn.imgeng.in/w_720/${photos[0]}`,
+                  photos: photos.slice(1).map(photo_url => {
+                    return getImageSized(photo_url, 999);
+                  }),
                 };
               }
               break;
@@ -104,13 +108,15 @@ export async function GET(request: Request) {
             case 'B_Style':
               output = {
                 ...output,
-                style: Number(mls_data[key]),
+                style: mls_data[key],
+                [key]: mls_data[key],
               };
               break;
             case 'LandTitle':
               output = {
                 ...output,
-                land_title: Number(mls_data[key]),
+                land_title: mls_data[key],
+                [key]: mls_data[key],
               };
               break;
             default:

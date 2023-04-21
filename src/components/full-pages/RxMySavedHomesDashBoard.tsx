@@ -9,7 +9,7 @@ import { Events, tabEventMapping } from '@/_typings/events';
 import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
 import { LoveDataModel } from '@/_typings/love';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
-import RxPropertyCard from '../RxPropertyCard';
+import RxPropertyCard from '../RxCards/RxPropertyCard';
 import IndividualTab from '@/_replacers/DashboardSavedHomesPage/IndividualTab';
 // import { RxMapbox } from '../RxMapbox';
 // import MapProvider from '@/app/AppContext.module';
@@ -81,10 +81,12 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
         const propertyCards =
           loved?.length > 0
             ? loved.map((p: LovedPropertyDataModel, sequence_no: number) => {
-                const { mls_id: MLS_ID, title: Address, asking_price: AskingPrice, area: Area, beds, baths, sqft, ...listing } = p;
+                const { love, mls_id: MLS_ID, title: Address, asking_price: AskingPrice, area: Area, beds, baths, sqft, ...listing } = p;
+                console.log(p);
                 return (
                   <div key={p.mls_id} onClick={handleOnCardClick(MLS_ID)}>
                     <RxPropertyCard
+                      love={love}
                       key={p.mls_id}
                       listing={{
                         ...(listing as unknown as MLSProperty),
@@ -98,7 +100,6 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
                       }}
                       sequence={sequence_no}
                       agent={agent_data.id}
-                      isLink={false}
                     >
                       {PlaceholderCard}
                     </RxPropertyCard>

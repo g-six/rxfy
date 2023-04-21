@@ -26,7 +26,6 @@ import { RxUserSessionLink } from './Nav/RxUserSessionLink';
 // ANSWER @Rosty
 //    yes except for the 3rd one because The property card would not be restricted to the property page
 //    Great catch!
-import PropertyCard from './RxCards/RxPropertyCard';
 import { RexifyStatBlock } from './RxProperty/PropertyInformationRow';
 import { RexifyPropertyFeatureBlock } from './RxProperty/PropertyFeatureSection';
 import RxPropertyCarousel from './RxProperty/RxPropertyCarousel';
@@ -178,7 +177,7 @@ export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapp
 
     // Sqft
     replaceByCheerio($, `${wrapper_selector} > ${card_selector}:nth-child(${i + 1}) .sqft-stat`, {
-      content: `${formatValues(p, 'L_FloorArea_Total')}` || `${formatValues(p, 'L_FloorArea_GrantTotal')}`,
+      content: `${formatValues(p, 'L_FloorArea_GrantTotal')}` || `${formatValues(p, 'L_FloorArea_GrantTotal')}`,
     });
 
     // Year
@@ -427,19 +426,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           }
         }
 
-        if (props['data-mls']) {
-          return (
-            <PropertyCard
-              className={className || ''}
-              data={{
-                mls: props['data-mls'],
-              }}
-            >
-              {domToReact(node.children) as ReactElement[]}
-            </PropertyCard>
-          );
-        }
-
         if (node.attribs['data-type'] === 'email' && node.tagName === 'a') {
           // Emai link
           return <EmailAnchor {...props} agent={agent_data} />;
@@ -481,6 +467,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             </div>
           );
         }
+
         if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.HOME_ALERTS_WRAPPER) >= 0) {
           return <HomeAlertsReplacer agent={agent_data} nodeClassName={className} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
         }
@@ -510,7 +497,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           const record = property as unknown as MLSProperty;
           if (node.attribs && node.attribs.class) {
             // Property images
-            if (node.attribs.class === 'section---top-images wf-section') {
+            if (node.attribs.class === 'section---top-images') {
               return (
                 <section className={node.attribs.class}>
                   <RxPropertyCarousel photos={(record.photos || []) as string[]}>{domToReact(node.children)}</RxPropertyCarousel>
