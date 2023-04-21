@@ -76,7 +76,7 @@ export function changeElementTag(element: React.ReactElement, newTag: string): R
 }
 type Element = React.ReactElement<any, string | React.JSXElementConstructor<any>> | React.ReactNode;
 
-interface tMatch {
+export interface tMatch {
   searchFn: (node: ReactElement) => boolean;
   transformChild: (child: ReactElement) => ReactElement;
 }

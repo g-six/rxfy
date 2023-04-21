@@ -1,17 +1,27 @@
 import { filterPropertyByKeys } from '@/_helpers/compare-page-filtering';
 import { BracesReplacements, captureMatchingElements, replaceAllTextWithBraces, transformMatchingElements } from '@/_helpers/dom-manipulators';
-import { Filter, MLSPropertyExtended } from '@/_typings/filters_compare';
+import { mapStrAddress } from '@/_helpers/mls-mapper';
+import { Filter } from '@/_typings/filters_compare';
+import { MLSProperty } from '@/_typings/property';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import React, { cloneElement, ReactElement } from 'react';
 
 type Props = {
-  property: MLSPropertyExtended;
+  property: MLSProperty;
   child: ReactElement;
-  replacements: BracesReplacements;
+  replacements?: BracesReplacements;
   filters: Filter[];
 };
 
 export default function CompareCard({ property, child, replacements, filters }: Props) {
+  const currReplacements = replacements ?? {
+    'Comp Price': `$${property.AskingPrice}`,
+    'Comp Address': mapStrAddress(property),
+    PBd: property.L_BedroomTotal,
+    PBth: property.L_TotalBaths || property.baths,
+    Psq: property.L_FloorArea_GrantTotal,
+    PYear: property.L_YearBuilt,
+  };
   const rowTemplate = captureMatchingElements(child, [
     {
       elementName: 'statRow',
@@ -25,7 +35,7 @@ export default function CompareCard({ property, child, replacements, filters }: 
     {
       searchFn: searchByClasses(['img-placeholder']),
       transformChild: (child: React.ReactElement) => {
-        return cloneElement(child, { ...child.props, src: property.photos[0] || child.props.src, srcset: property.photos[0] || child.props.src });
+        return cloneElement(child, { ...child.props, src: property?.thumbnail || child.props.src, srcSet: property?.thumbnail || child.props.src });
       },
     },
     {
@@ -39,5 +49,5 @@ export default function CompareCard({ property, child, replacements, filters }: 
       },
     },
   ];
-  return <>{transformMatchingElements(replaceAllTextWithBraces(child, replacements), matches)}</>;
+  return <>{transformMatchingElements(replaceAllTextWithBraces(child, currReplacements), matches)}</>;
 }

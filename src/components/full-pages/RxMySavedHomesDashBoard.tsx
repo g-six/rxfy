@@ -4,21 +4,18 @@ import { AgentData } from '@/_typings/agent';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import React, { ReactElement, ReactNode, cloneElement, useMemo, useState } from 'react';
 import { MLSProperty, LovedPropertyDataModel } from '@/_typings/property';
-
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
-import { Events } from '@/_typings/events';
+import { Events, tabEventMapping } from '@/_typings/events';
 import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
 import { LoveDataModel } from '@/_typings/love';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import RxPropertyCard from '../RxPropertyCard';
-import Tabs from '@/_replacers/DashboardSavedHomesPage/Tabs';
-import { tabs } from '@/_typings/saved-homes-tabs';
-import useEvent from '@/hooks/useEvent';
-import IndividualPage from '@/_replacers/DashboardSavedHomesPage/IndividualPage';
-import RxPropertyMap from '../RxPropertyMap';
-import { getMLSProperty } from '@/_utilities/api-calls/call-properties';
-import { RxMapbox } from '../RxMapbox';
-import MapProvider from '@/app/AppContext.module';
+import IndividualTab from '@/_replacers/DashboardSavedHomesPage/IndividualTab';
+// import { RxMapbox } from '../RxMapbox';
+// import MapProvider from '@/app/AppContext.module';
+import CompareTab from '@/_replacers/DashboardSavedHomesPage/CompareTab';
+import { fireCustomEvent, getCurrentTab } from '@/_helpers/functions';
+
 type Props = {
   agent_data: AgentData;
   className: string;
@@ -30,27 +27,12 @@ type Props = {
 };
 
 export default function RxMySavedHomesDashBoard({ agent_data, className, children, config }: Props) {
-  const [currentTab, setCurrentTab] = useState<string>('');
+  // const [currentTab, setCurrentTab] = useState<string>('');
   const [loved, setLoved] = useState<LovedPropertyDataModel[]>([]);
-  const [properties, setProperties] = useState<MLSProperty[]>([]);
-  const { fireEvent } = useEvent(Events.SavedItemsProperty, true);
-  let local_loves: string[] = [];
-  const getInitialProperties = async (records: LoveDataModel[]) => {
-    const tempProperties: MLSProperty[] = await Promise.all(
-      records.map(async ({ id, property }) => {
-        const proper = await getMLSProperty(property.mls_id);
-        return proper;
-      }),
-    );
-    setProperties(tempProperties);
-    if (tempProperties?.[0]?.MLS_ID) {
-      fireEvent({ property: tempProperties[0] });
-    }
-  };
   const processLovedHomes = async (records: LoveDataModel[]) => {
     const local_loves = (getData(Events.LovedItem) as unknown as string[]) || [];
     const loved: LovedPropertyDataModel[] = [];
-    const tempProperties: MLSProperty[] = [];
+
     records.forEach(async ({ id, property }) => {
       loved.push({
         ...property,
@@ -69,23 +51,26 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
     getLovedHomes().then(response => {
       if (response && response.records) {
         processLovedHomes(response.records);
-        getInitialProperties(response.records);
+        const firstMLS_ID = response.records?.[0]?.property?.mls_id;
+        if (firstMLS_ID) {
+          fireCustomEvent({ mls_id: firstMLS_ID }, Events.SavedItemsIndivTab);
+        }
       }
     });
   }, []);
 
-  const handleOnCardClick = (id: string) => () => {
-    console.log(id);
-    // document.dispatchEvent(new CustomEvent(Events.LovedItem, { detail: { message: id } }));
-    fireEvent({ property: properties.find(p => p.MLS_ID === id) });
+  const handleOnCardClick = (mls_id: string) => () => {
+    const tabsDom = document.querySelector('.indiv-map-tabs');
+    const currentTab: string = tabsDom?.children ? getCurrentTab(Array.from(tabsDom.children)) : 'default';
+    fireCustomEvent({ mls_id }, tabEventMapping[currentTab]);
   };
   const matches = [
-    {
-      searchFn: searchByClasses(['indiv-map-tabs']),
-      transformChild: (child: ReactElement) => {
-        return <Tabs child={child} setCurrentTab={setCurrentTab} />;
-      },
-    },
+    // {
+    //   searchFn: searchByClasses(['indiv-map-tabs']),
+    //   transformChild: (child: ReactElement) => {
+    //     return <Tabs child={child} setCurrentTab={setCurrentTab} />;
+    //   },
+    // },
     {
       //left sidebar with saved loved , shared between each tab
       searchFn: searchByClasses(['properties-column']),
@@ -126,9 +111,9 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
     },
     {
       //individual property tab
-      searchFn: searchByClasses(['cd---right-saved-property']),
+      searchFn: searchByClasses(['property-body-wrapper']),
       transformChild: (child: ReactElement) => {
-        return <IndividualPage child={child} agent_data={agent_data} />;
+        return <IndividualTab child={child} agent_data={agent_data} />;
       },
     },
     // {
@@ -156,9 +141,9 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
     // },
     {
       //compare tab
-      searchFn: searchByClasses(['compare-right']),
+      searchFn: searchByClasses(['compare-tab']),
       transformChild: (child: ReactElement) => {
-        return cloneElement(child, {});
+        return <CompareTab child={child} />;
       },
     },
   ];
