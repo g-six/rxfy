@@ -108,13 +108,15 @@ export async function GET(request: Request) {
             case 'B_Style':
               output = {
                 ...output,
-                style: Number(mls_data[key]),
+                style: mls_data[key],
+                [key]: mls_data[key],
               };
               break;
             case 'LandTitle':
               output = {
                 ...output,
-                land_title: Number(mls_data[key]),
+                land_title: mls_data[key],
+                [key]: mls_data[key],
               };
               break;
             default:
