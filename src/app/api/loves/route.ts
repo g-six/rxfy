@@ -132,6 +132,7 @@ export async function GET(request: Request) {
                   L_BedroomTotal: beds,
                   L_TotalBaths: baths,
                   L_FloorArea_GrantTotal: sqft,
+                  ...other_fields
                 } = love.attributes.property.data.attributes.mls_data;
                 let [thumb] = photos ? (photos as string[]).slice(0, 1) : [];
                 if (thumb === undefined) {
@@ -142,6 +143,8 @@ export async function GET(request: Request) {
                   property: {
                     id: Number(love.attributes.property.data.id),
                     ...love.attributes.property.data.attributes,
+                    style: other_fields.B_Style ? other_fields.B_Style : undefined,
+                    Status: other_fields.Status || 'N/A',
                     asking_price: asking_price || AskingPrice,
                     beds,
                     baths,

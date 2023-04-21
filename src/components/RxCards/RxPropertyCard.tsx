@@ -115,14 +115,13 @@ function RxComponentChomper({ config, children }: any): any {
       } else if (child.type !== 'img') {
         //heart-full
         if (RxElement.props.className === 'propcard-image') {
-          RxElement.props.style = config.photos
-            ? {
-                backgroundImage: `url(${(config.photos as string[])[0]})`,
-              }
-            : {};
-
           return React.cloneElement(child, {
             ...RxElement.props,
+            style: config.photos
+              ? {
+                  backgroundImage: `url(${(config.photos as string[])[0]})`,
+                }
+              : {},
             children: RxComponentChomper({
               config,
               children: RxElement.props.children,
@@ -167,7 +166,7 @@ export default function RxPropertyCard({
       setLovedItems(getData(Events.LovedItem) as unknown as string[]);
     }
   }, [evt.data]);
-
+  console.log(listing);
   return (
     <div
       data-agent={agent}
