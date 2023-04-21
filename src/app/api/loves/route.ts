@@ -115,6 +115,7 @@ export async function GET(request: Request) {
                 love: Record<
                   string,
                   {
+                    notes?: string;
                     property: {
                       data: {
                         id: number;
@@ -141,6 +142,7 @@ export async function GET(request: Request) {
                 }
                 return {
                   id: Number(love.id),
+                  notes: love.attributes.notes || '',
                   property: {
                     id: Number(love.attributes.property.data.id),
                     ...love.attributes.property.data.attributes,
