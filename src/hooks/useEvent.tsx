@@ -1,11 +1,19 @@
 import React from 'react';
-
 import { Events, EventsData } from '@/_typings/events';
 
-export default function useEvent(eventName: Events) {
+export default function useEvent(eventName: Events, onlyFire?: boolean): { data?: EventsData; fireEvent: (data: EventsData) => void } {
   const [data, setData] = React.useState({} as EventsData);
 
-  const onEvent = React.useCallback((e: CustomEvent) => setData(e.detail as EventsData), []);
+  const onEvent = React.useCallback(
+    (e: CustomEvent) => {
+      if (!onlyFire) {
+        const newData = e.detail as EventsData;
+        newData.metadata = Object.assign({}, data.metadata, newData.metadata);
+        setData(newData);
+      }
+    },
+    [onlyFire, data],
+  );
 
   React.useEffect(() => {
     document.addEventListener(eventName.toString(), onEvent as EventListener, false);
@@ -19,7 +27,7 @@ export default function useEvent(eventName: Events) {
     [eventName],
   );
 
-  return { data, fireEvent };
+  return !onlyFire ? { data, fireEvent } : { fireEvent };
 }
 
 export { Events } from '@/_typings/events';

@@ -32,7 +32,7 @@ export default function FiltersItem({ item, template, isPicked, handleCheckList 
     {
       searchFn: searchByClasses(['checkbox-button-label']),
       transformChild: (child: ReactElement) => {
-        return cloneElement(child, { onClick: handleCheckClick, className: `${child.props.className} ` }, [item.title]);
+        return cloneElement(child, { onClick: handleCheckClick, style: { userSelect: 'none' }, className: `${child.props.className} ` }, [item.title]);
       },
     },
   ];

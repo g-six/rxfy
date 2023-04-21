@@ -6,40 +6,35 @@ import { searchByClasses, searchById } from '@/_utilities/rx-element-extractor';
 import FiltersItem from './FiltersItem';
 import { Filter } from '@/_typings/filters_compare';
 import { removeClasses } from '@/_helpers/functions';
+import useEvent, { Events } from '@/hooks/useEvent';
+import FiltersTabsItem from './FiltersTabsItem';
 
 type Props = { child: ReactElement; filters: Filter[]; setFilters: Dispatch<SetStateAction<Filter[]>> };
 
 export default function FiltersModalWrapper({ child, filters, setFilters }: Props) {
+  const { data, fireEvent } = useEvent(Events.CompareFiltersModal);
   const [show, setShow] = useState(false);
   const [category, setCategory] = useState<string>('general');
   const [checkedList, setCheckedList] = useState<string[]>([...filters.map(f => f.title)]);
-  const [templates, setTemplates] = useState<Record<string, React.ReactElement>>({});
   const [searchStr, setSearchStr] = useState<string>('');
   const templatesToFind = [
     {
       elementName: 'tabTemplate',
-      searchFn: searchByClasses(['tab-button-vertical-toggle', 'w-tab-link']),
+      searchFn: searchByClasses(['tab-button-vertical-toggle']),
     },
     {
       elementName: 'checkboxTemplate',
-      searchFn: searchByClasses(['checkbox-wrap']),
+      searchFn: searchByClasses(['dropdown-link']),
     },
     { elementName: 'tabPane', searchFn: searchByClasses(['tab-pane']) },
   ];
-  useEffect(() => {
-    document.addEventListener(
-      'filters-click',
-      () => {
-        setShow(true);
-      },
-      false,
-    );
+  const [templates, setTemplates] = useState<Record<string, React.ReactElement>>(captureMatchingElements(child, templatesToFind));
 
-    setTemplates(captureMatchingElements(child, templatesToFind));
-    return () => {
-      document.removeEventListener('filters', () => {});
-    };
-  }, []);
+  useEffect(() => {
+    if (data?.show) {
+      setShow(true);
+    }
+  }, [data]);
 
   const insideMatch = [
     //adding show condition to the whole filters modal component
@@ -75,23 +70,21 @@ export default function FiltersModalWrapper({ child, filters, setFilters }: Prop
       searchFn: searchByClasses(['tabs-menu-toggle-vertical', 'w-tab-menu']),
       transformChild: (child: React.ReactElement) => {
         let tabs: any = [];
-        if (templates?.checkboxTemplate) {
+        if (templates?.tabTemplate) {
           const cleanedClasses = removeClasses(templates.tabTemplate.props.className, ['w--current']);
+
           tabs = [
-            ...BTNS.map(btn =>
-              replaceTextWithBraces(
-                React.createElement('div', {
-                  ...removeKeys(templates.tabTemplate.props, ['data-w-tab', 'tabindex']),
-                  className: classNames(cleanedClasses, `${category === btn.type ? 'w--current' : ''}`),
-                  key: `${btn.title}_${btn.type}`,
-                  value: btn.type,
-                  onClick: (e: React.SyntheticEvent) => {
-                    setCategory(btn.type);
-                  },
-                }),
-                btn.title,
-              ),
-            ),
+            ...BTNS.map(btn => {
+              const props = {
+                className: classNames(cleanedClasses, `${category === btn.type ? 'w--current' : ''}`),
+                value: btn.type,
+                label: btn.title,
+                onClick: (e: React.SyntheticEvent) => {
+                  setCategory(btn.type);
+                },
+              };
+              return <FiltersTabsItem key={`${btn.title}_${btn.type}`} {...props} />;
+            }),
           ];
         }
         return cloneElement(child, {}, [...tabs]);

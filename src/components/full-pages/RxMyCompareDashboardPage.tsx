@@ -56,6 +56,7 @@ function PageIterator(props: MyCompareDashboardPage) {
             {props['data-loved'] &&
               props['data-loved'].map((p: LovedPropertyDataModel, sequence_no: number) => {
                 const { love, mls_id: MLS_ID, title: Address, asking_price: AskingPrice, area: Area, beds, baths, sqft, ...listing } = p;
+                console.log(p);
                 return (
                   <RxPropertyCard
                     key={love}

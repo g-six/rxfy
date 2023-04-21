@@ -1,6 +1,8 @@
+import { MLSProperty } from '@/_typings/property';
+import { Events, EventsData } from '@/_typings/events';
 import { Filter } from '@/_typings/filters_compare';
 import { FILTERS } from './constants';
-
+import { tabs } from '@/_typings/saved-homes-tabs';
 export function getAgentUrlFromName(name: string) {
   const agentSlug = '/' + name.toLowerCase().replace(' ', '-');
   return '/p' + agentSlug;
@@ -45,3 +47,25 @@ export const removeClasses = (classNames: string, removeCls: string[]) =>
     .split(' ')
     .filter(cls => !removeCls.includes(cls))
     .join(' ');
+
+export const fireCustomEvent = (data: EventsData = {}, eventName: Events) => {
+  document.dispatchEvent(new CustomEvent(eventName, { detail: data }));
+};
+export const getCurrentTab = (tabsDOMs: Element[]): string => {
+  const tabsArray: string[] = Object.values(tabs);
+  const currentTabDOM = tabsDOMs.find(child => {
+    const hasCurrent = Array.from(child.classList).find(cls => ['w--current'].includes(cls));
+    return hasCurrent;
+  });
+
+  return currentTabDOM ? Array.from(currentTabDOM.classList).filter(cls => tabsArray.includes(cls))[0] : 'default';
+};
+export const prepareStats = (stats: { [key: string]: string }, property: MLSProperty): { label: string; value: string | string[] | number | undefined }[] => {
+  const aggregatedArray = Object.entries(stats).map(([key, label]) => {
+    return {
+      label: label,
+      value: property[key] as string | string[] | number | undefined, // Type assertion for property[key]
+    };
+  });
+  return aggregatedArray;
+};

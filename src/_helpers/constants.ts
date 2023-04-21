@@ -29,7 +29,7 @@ export const FILTERS: Filter[] = [
   // general
   { title: 'Age', urlKey: 'ba', keys: ['L_Age', 'Age'], types: ['general'], behaviors: ['default'] },
   { title: 'Build Year', keys: ['L_YearBuilt'], types: ['general'] },
-  { title: 'Total Baths', keys: ['L_TotalBaths'], types: ['general'], behaviors: ['default'] },
+  { title: 'Total Baths', keys: ['L_TotalBaths', 'baths'], types: ['general'], behaviors: ['default'] },
   { title: 'Total Bedrooms', keys: ['L_BedroomTotal'], types: ['general'], behaviors: ['default'] },
   { title: 'Features', keys: ['LFD_FeaturesIncluded_55'], types: ['general'] },
   { title: 'Amenities', keys: ['LFD_Amenities_56'], types: ['general'] },
