@@ -8,4 +8,5 @@ export interface LoveDataModel {
   customer: CustomerDataModel;
   agent: AgentData;
   is_highlighted?: boolean;
+  notes?: string;
 }
