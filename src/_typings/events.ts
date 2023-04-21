@@ -1,3 +1,5 @@
+import { MLSProperty } from './property';
+
 export enum Events {
   Login = 'event-login',
   Loading = 'event-loading',
@@ -13,6 +15,10 @@ export enum Events {
   DocFolderShow = 'event-docfolder-show',
   LovedItem = 'event-loved-item',
   ToggleUserMenu = 'event-user-menu',
+  SavedItemsIndivTab = 'saved-items-individual-tab',
+  SavedItemsCompareTab = 'saved-items-compare-tab',
+  SavedItemsMapTab = 'saved-items-map-tab',
+  CompareFiltersModal = 'compare-filters-modal',
   //ContactFormSubmit = 'event-contact-form-submit',
 }
 
@@ -34,4 +40,13 @@ export interface EventsData {
   time?: number;
   message?: string;
   category?: NotificationCategory;
+  property?: MLSProperty;
+  mls_id?: string;
+  metadata?: any;
 }
+export const tabEventMapping: { [key: string]: Events } = {
+  'indiv-view': Events.SavedItemsIndivTab,
+  'map-view': Events.SavedItemsMapTab,
+  'compare-view': Events.SavedItemsCompareTab,
+  default: Events.SavedItemsCompareTab,
+};

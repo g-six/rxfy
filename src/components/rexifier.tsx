@@ -44,6 +44,7 @@ import RxMyCompareDashboardPage from './full-pages/RxMyCompareDashboardPage';
 import { RxWebflowScript } from './Scripts/RxWebflowScript';
 import RxDropdownMenu from './Nav/RxDropdownMenu';
 import { RxMyClients } from './full-pages/RxMyClients';
+import RxMySavedHomesDashBoard from './full-pages/RxMySavedHomesDashBoard';
 import RxIdPage from './full-pages/RxIdPage';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
@@ -386,6 +387,22 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           }
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.DOCUMENTS)) {
             return <DocumentsReplacer nodeProps={props} agent_data={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
+          }
+          if (node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_SAVED_PROPERTIES_DASHBOARD) {
+            return (
+              <RxMySavedHomesDashBoard
+                agent_data={agent_data}
+                className={node.attribs.class}
+                config={{
+                  authorization: `Basic ${Buffer.from(`${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`).toString(
+                    'base64',
+                  )}`,
+                  url: process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
+                }}
+              >
+                {domToReact(node.children)}
+              </RxMySavedHomesDashBoard>
+            );
           }
           if (node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_COMPARE_DASHBOARD) {
             return (
