@@ -79,16 +79,20 @@ function RxComponentChomper({ config, children }: any): any {
       const RxElement = child as React.ReactElement;
       if (RxElement.props.className && (RxElement.props.className.indexOf('heart-full') >= 0 || RxElement.props.className.indexOf('heart-empty') >= 0)) {
         let opacity_class = 'opacity-0 group-hover:opacity-100';
-        let onClick = () => {};
+
+        let onClick = (e: React.SyntheticEvent) => {};
+
         if (RxElement.props.className.indexOf('heart-full') >= 0) {
           if (config.loved) {
             opacity_class = 'opacity-100';
-            onClick = () => {
+            onClick = (e: React.SyntheticEvent) => {
+              e.stopPropagation();
               config.onLoveItem(true);
             };
           } else {
             opacity_class = 'opacity-100 group-hover:opacity-0 group-hover:block sm:hidden';
-            onClick = () => {
+            onClick = (e: React.SyntheticEvent) => {
+              e.stopPropagation();
               config.onLoveItem();
             };
           }
@@ -97,8 +101,8 @@ function RxComponentChomper({ config, children }: any): any {
           if (!config.loved) {
             opacity_class = 'opacity-0 group-hover:opacity-100 group-hover:block sm:hidden';
           }
-          onClick = () => {
-            console.log('removeeee');
+          onClick = (e: React.SyntheticEvent) => {
+            e.stopPropagation();
             config.onLoveItem(true);
           };
         }
@@ -151,12 +155,14 @@ export default function RxPropertyCard({
   listing,
   agent,
   love,
+  isLink = true,
 }: {
   love?: number;
   agent?: number;
   sequence?: number;
   children: any;
   listing: MLSProperty;
+  isLink?: boolean;
 }) {
   const [loved_items, setLovedItems] = React.useState(getData(Events.LovedItem) as unknown as string[]);
   const evt = useLove();
@@ -166,7 +172,7 @@ export default function RxPropertyCard({
       setLovedItems(getData(Events.LovedItem) as unknown as string[]);
     }
   }, [evt.data]);
-  console.log(listing);
+
   return (
     <div
       data-agent={agent}
@@ -204,9 +210,11 @@ export default function RxPropertyCard({
       >
         {children}
       </RxComponentChomper>
-      <a href={`/property?mls=${listing.MLS_ID}`} className='absolute top-0 left-0 w-full h-full'>
-        {' '}
-      </a>
+      {isLink && (
+        <a href={`/property?mls=${listing.MLS_ID}`} className='absolute top-0 left-0 w-full h-full'>
+          {' '}
+        </a>
+      )}
     </div>
   );
 }
