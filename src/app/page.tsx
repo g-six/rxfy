@@ -112,19 +112,55 @@ export default async function Home({ params, searchParams }: { params: Record<st
       });
     });
     if ($('a.link').length < photos.length) {
-      photos.slice(2).forEach(url => {
-        $('a.link:first').parentsUntil('#propertyimages')
-          .append(`<a href="#" class="lightbox-link link w-inline-block w-lightbox hidden" aria-label="open lightbox" aria-haspopup="dialog">
-        <img src="${url}" loading="eager" alt="" class="cardimage" />
+      const parent = $('a.link:first').parentsUntil('#propertyimages');
+      $('.property-image-wrapper img').attr('src', `https://e52tn40a.cdn.imgeng.in/w_999/${photos[0]}`);
+      $('.property-image-wrapper img').attr(
+        'srcset',
+        [500, 800, 999]
+          .map(size => {
+            return `https://e52tn40a.cdn.imgeng.in/w_${size}/${photos[0]} ${size}w`;
+          })
+          .join(', '),
+      );
+      $('.property-images-more img').each((img_number, img_2and3) => {
+        if (photos.length > img_number) {
+          img_2and3.attribs.src = `https://e52tn40a.cdn.imgeng.in/w_999/${photos[img_number + 1]}`;
+          img_2and3.attribs.srcset = [500, 800, 999]
+            .map(size => {
+              return `https://e52tn40a.cdn.imgeng.in/w_${size}/${photos[img_number + 1]} ${size}w`;
+            })
+            .join(', ');
+        }
+      });
+      try {
+        const { items, group } = JSON.parse($('.property-images-lightbox script').text());
+
+        $('.property-images-lightbox script').text(
+          JSON.stringify(
+            {
+              items: [items[0]],
+              group,
+            },
+            null,
+            4,
+          ),
+        );
+      } finally {
+        console.log('Done rexifying gallery');
+      }
+      // $('.property-images-more').remove();
+      photos.slice(1).forEach(url => {
+        parent.append(`<a href="#" class="lightbox-link link w-inline-block w-lightbox hidden" aria-label="open lightbox" aria-haspopup="dialog">
+        <img src="https://e52tn40a.cdn.imgeng.in/w_999/${url}" loading="eager" alt="" class="cardimage" />
         <script class="w-json" type="application/json">{
           "items": [
               {
-                  "url": "${url}",
+                  "url": "https://e52tn40a.cdn.imgeng.in/w_1280/${url}",
                   "type": "image"
               }
           ],
           "group": "Property Images"
-      }</script>        
+      }</script>
         </a>`);
       });
     }

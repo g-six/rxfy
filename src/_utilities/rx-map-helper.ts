@@ -2,6 +2,7 @@
 
 import { MapboxBoundaries, RxPropertyFilter } from '@/_typings/maps';
 import { PropertyAttributeFilters } from '@/_typings/property';
+import Cookies from 'js-cookie';
 
 export function getSortingKey(class_name: string) {
   if (class_name.indexOf('date-asc') >= 0) return 'date_asc';
@@ -116,11 +117,6 @@ export function getSearchPropertyFilters(q: MapboxBoundaries & PropertyAttribute
           gte: q.swlng,
           lte: q.nelng,
         },
-      },
-    },
-    {
-      match: {
-        'data.Status': 'Active',
       },
     },
   ];

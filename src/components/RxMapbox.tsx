@@ -18,10 +18,12 @@ import { useMapMultiUpdater, useMapState } from '@/app/AppContext.module';
 import { useSearchParams } from 'next/navigation';
 import { renderClusterBgLayer, renderClusterTextLayer, renderHomePinBgLayer, renderHomePinTextLayer } from '@/_utilities/rx-map-style-helper';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
+import Cookies from 'js-cookie';
 
 type RxMapboxProps = {
   agent: AgentData;
   token: string;
+  children?: React.ReactElement;
   search_url: string;
   params?: PlaceDetails;
   headers: Record<string, unknown>;
@@ -205,7 +207,10 @@ export function RxMapbox(props: RxMapboxProps) {
         query: {
           bool: {
             filter,
-            should: [],
+            should: Cookies.get('session_key')
+              ? [{ match: { 'data.Status': 'Active' } }, { match: { 'data.Status': 'Sold' } }]
+              : [{ match: { 'data.Status': 'Active' } }],
+            minimum_should_match: 1,
             must_not,
           },
         },
@@ -443,7 +448,6 @@ export function RxMapbox(props: RxMapboxProps) {
       }
     }
   }, []);
-
   return (
     <main className={classNames(styles.MainWrapper, 'mapbox-canvas')}>
       <div
@@ -455,6 +459,7 @@ export function RxMapbox(props: RxMapboxProps) {
         ref={mapNode}
       ></div>
       <PropertyListModal
+        card={props.children}
         onClose={() => {
           setSelectedCluster([]);
         }}

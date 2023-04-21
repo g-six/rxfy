@@ -26,7 +26,6 @@ import { RxUserSessionLink } from './Nav/RxUserSessionLink';
 // ANSWER @Rosty
 //    yes except for the 3rd one because The property card would not be restricted to the property page
 //    Great catch!
-import PropertyCard from './RxCards/RxPropertyCard';
 import { RexifyStatBlock } from './RxProperty/PropertyInformationRow';
 import { RexifyPropertyFeatureBlock } from './RxProperty/PropertyFeatureSection';
 import RxPropertyCarousel from './RxProperty/RxPropertyCarousel';
@@ -408,19 +407,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
               </RxSignupPage>
             );
           }
-        }
-
-        if (props['data-mls']) {
-          return (
-            <PropertyCard
-              className={className || ''}
-              data={{
-                mls: props['data-mls'],
-              }}
-            >
-              {domToReact(node.children) as ReactElement[]}
-            </PropertyCard>
-          );
         }
 
         if (node.attribs['data-type'] === 'email' && node.tagName === 'a') {

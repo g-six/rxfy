@@ -7,8 +7,8 @@ import useDebounce from '@/hooks/useDebounce';
 export function RxLiveInput({ className, filter, inputType }: { className: string; filter: string; inputType?: string }) {
   const state: MapStatePropsWithFilters = useMapState();
   const updater = useMapMultiUpdater();
-  const [value, setValue] = React.useState('');
-  const debounced = useDebounce(value || '', 400);
+  const [value, setValue] = React.useState(state[filter] || '');
+  const debounced = useDebounce(`${value || ''}`, 400);
 
   React.useEffect(() => {
     const num = Number(debounced);
