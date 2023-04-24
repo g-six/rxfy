@@ -6,6 +6,7 @@ import { MLSPropertyExtended } from '@/_typings/filters_compare';
 import AddhomeCard from './AddhomeCard';
 import { Dispatch, SetStateAction } from 'react';
 import { mapStrAddress } from '@/_helpers/mls-mapper';
+import { MLSProperty } from '@/_typings/property';
 type Props = {
   setProperties: Dispatch<SetStateAction<MLSPropertyExtended[]>>;
   child: ReactElement;
@@ -161,7 +162,7 @@ export default function SelectHomesWrapper({ setProperties, items, child, config
                     replacements={{
                       PArea: result.Area || 'N/A',
                       'PropertyCard Price': `$${result.AskingPrice || 'N/A'}`,
-                      'PropertyCard Address': mapStrAddress(result) || '',
+                      'PropertyCard Address': mapStrAddress(result as unknown as MLSProperty) || '',
                       PBd: result.L_BedroomTotal || 'N/A',
                       PBth: result.L_TotalBaths || 'N/A',
                       Psq: result.L_FloorArea_GrantTotal || 'N/A',

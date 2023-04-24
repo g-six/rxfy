@@ -6,6 +6,7 @@ import { classNames } from '@/_utilities/html-helper';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import React, { cloneElement, ReactElement } from 'react';
 import CompareCard from './CompareCard';
+import { MLSProperty } from '@/_typings/property';
 
 type Props = { child: ReactElement; properties: MLSPropertyExtended[]; filters: Filter[] };
 
@@ -28,7 +29,7 @@ export default function ComparePropertiesList({ child, properties, filters }: Pr
           ...properties.map((p: MLSPropertyExtended, i) => {
             const replacements = {
               'Comp Price': `$${p.AskingPrice}`,
-              'Comp Address': mapStrAddress(p),
+              'Comp Address': mapStrAddress(p as unknown as MLSProperty),
               PBd: p.L_BedroomTotal,
               PBth: p.L_TotalBaths,
               Psq: p.L_FloorArea_GrantTotal,
@@ -43,7 +44,7 @@ export default function ComparePropertiesList({ child, properties, filters }: Pr
                   ...templates.cardTemplate.props,
                   className: classNames(removeClasses(templates.cardTemplate.props.className, ['first', 'last']), addClass),
                 })}
-                property={p}
+                property={p as unknown as MLSProperty}
                 replacements={replacements}
               />
             ) : (
