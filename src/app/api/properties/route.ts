@@ -1,8 +1,6 @@
 import axios from 'axios';
-import { MLSProperty } from '@/_typings/property';
 import { getResponse } from '../response-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
-import { getNewSessionKey } from '../update-session';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 const headers = {
