@@ -6,7 +6,7 @@ import parse, { HTMLReactParserOptions, Element, attributesToProps, DOMNode, dom
 import { HTMLNode } from '@/_typings/elements';
 import { AgentData } from '@/_typings/agent';
 import { GeoLocation, MapboxBoundaries } from '@/_typings/maps';
-import { MLSProperty } from '@/_typings/property';
+import { MLSProperty, PropertyDataModel } from '@/_typings/property';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 
 import { combineAndFormatValues, formatValues } from '@/_utilities/data-helpers/property-page';
@@ -133,6 +133,10 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
 }
 
 export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapper_selector = '.similar-homes-grid', card_selector = '.property-card') {
+  if (properties.length === 0) {
+    $(wrapper_selector).remove();
+    $('.similar-homes').remove();
+  }
   properties.forEach((p: MLSProperty, i) => {
     replaceByCheerio($, `${wrapper_selector} > ${card_selector}:nth-child(${i + 1})`, {
       className: 'group',
@@ -629,7 +633,7 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
       }
     }
   }
-  const property = record as MLSProperty;
+  const property = record as MLSProperty & PropertyDataModel;
   switch (placeholder) {
     case '{Description}':
       return <p className={className}>{property.L_PublicRemakrs}</p>;
@@ -656,7 +660,7 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
       return <div className={className}>{property.PropertyType}</div>;
 
     case '{Lot Size}':
-      return <div className={className}>{formatValues(property, 'L_LotSize_SqMtrs')}</div>;
+      return <div className={className}>{property.lot_sqft || property.lot_sqm || formatValues(property, 'L_LotSize_SqMtrs')}</div>;
 
     case '{MLS Number}':
       return <span className={className}>{property.MLS_ID}</span>;

@@ -42,9 +42,42 @@ export interface PropertyDataModel {
   baths?: number;
   sqft?: number;
   price_per_sqft?: number;
+  guid?: string;
+  changes_applied?: string;
+  real_estate_board?: number;
+  age?: number;
+  year_built?: number;
+  fireplace?: string;
+  has_laundry?: boolean;
+  has_dishwasher?: boolean;
+  has_fridge?: boolean;
+  has_stove?: boolean;
+  has_hvac?: boolean;
+  has_deck?: boolean;
+  has_patio?: boolean;
+  has_balcony?: boolean;
+  has_fenced_yard?: boolean;
+  garage?: 'None' | 'Single' | 'Double' | 'Triple';
+  postal_zip_code?: string;
+  parking?: string;
+  style_type?: string;
+  status?: 'Active' | 'Expired';
+  has_storage?: boolean;
+  listed_at?: Date;
+  land_title?: string;
+  gross_taxes?: number;
+  original_price?: number;
+  lot_sqm?: number;
+  lot_sqft?: number;
+  floor_area?: number;
+  floor_area_uom?: 'Meters' | 'Feet';
+  tax_year?: number;
+  description?: string;
+  idx_include?: boolean;
+  roofing?: string;
 }
 
-export interface MLSProperty extends Record<string, string | number | string[]> {
+export interface MLSProperty extends Record<string, string | number | boolean | string[]> {
   lat: number;
   lng: number;
   Address: string;

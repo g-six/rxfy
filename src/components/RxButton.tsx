@@ -20,8 +20,9 @@ export function RxButton(p: RxProps) {
   const [loading, toggleLoader] = React.useState(p.loading || false);
 
   React.useEffect(() => {
-    if (!data.clicked) {
-      toggleLoader(false);
+    if (data) {
+      const { clicked } = data as unknown as { clicked: boolean };
+      if (!clicked) toggleLoader(false);
     }
   }, [data]);
 

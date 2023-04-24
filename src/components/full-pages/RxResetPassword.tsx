@@ -89,8 +89,8 @@ export function RxResetPasswordPage(props: RxResetPasswordPageProps) {
   };
 
   React.useEffect(() => {
-    const { clicked, ...evt_data } = data;
-    if (clicked === `${Events.ResetPassword}-trigger`) {
+    if (data?.clicked === `${Events.ResetPassword}-trigger`) {
+      const { clicked, ...evt_data } = data;
       notify({});
       fireEvent(evt_data);
       const { email } = evt_data as unknown as { email?: string };
@@ -99,7 +99,7 @@ export function RxResetPasswordPage(props: RxResetPasswordPageProps) {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.clicked]);
+  }, [data]);
 
   return (
     <form

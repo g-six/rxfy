@@ -82,7 +82,7 @@ function RxToggleButton(p: ToggleButtonProps) {
       type='button'
       className={p.node.props.className}
       onClick={() => {
-        fireEvent({ show: !data.show });
+        fireEvent({ show: !data?.show });
       }}
       id={`${Events.ToggleUserMenu}-trigger`}
     >

@@ -21,9 +21,8 @@ export default function DocumentsFolderDropdown({ child, id, deleteFolder }: Pro
   };
   useOutsideClick(dropdownRef, handleClose);
   useEffect(() => {
-    if ([event?.data, Object.keys(event.data).length, event?.data?.key === id].every(Boolean)) {
-      console.log(event?.data, id, event?.data?.key);
-      setShow(!!event.data.show);
+    if (event?.data && event?.data.show !== undefined) {
+      setShow(event?.data.show);
     }
   }, [event, id]);
   const matches = [

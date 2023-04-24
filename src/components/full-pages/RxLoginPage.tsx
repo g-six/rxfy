@@ -135,8 +135,8 @@ export function RxLoginPage(props: RxLoginPageProps) {
   };
 
   React.useEffect(() => {
-    const { clicked, ...evt_data } = data;
-    if (clicked === `${Events.Login}-trigger` && !is_loading) {
+    if (data?.clicked === `${Events.Login}-trigger` && !is_loading) {
+      const { clicked, ...evt_data } = data;
       notify({});
       toggleLoading(true);
       fireEvent(evt_data);
