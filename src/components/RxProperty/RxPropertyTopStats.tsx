@@ -2,29 +2,21 @@
 import React from 'react';
 import { Transition } from '@headlessui/react';
 
-import { AgentData } from '@/_typings/agent';
-import { MLSProperty } from '@/_typings/property';
+import { ReplacerPageProps } from '@/_typings/forms';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { transformMatchingElements, replaceAllTextWithBraces } from '@/_helpers/dom-manipulators';
 
 import RxPropertyActions from '@/components/RxProperty/RxPropertyActions';
 
-type PropertyTopStatsProps = {
-  children: React.ReactNode;
-  agent: AgentData;
-  property: MLSProperty;
-  className?: string;
-};
-
-export default function RxPropertyTopStats(props: PropertyTopStatsProps) {
+export default function RxPropertyTopStats(props: ReplacerPageProps) {
   const matches = [
     {
       searchFn: searchByClasses(['price-n-address']),
       transformChild: (child: React.ReactElement) =>
         replaceAllTextWithBraces(child, {
-          Price: formatValues(props.property, 'AskingPrice'),
-          Address: props.property.Address,
+          Price: props?.property ? formatValues(props.property, 'AskingPrice') : '',
+          Address: props?.property?.Address || '',
         }) as React.ReactElement,
     },
     {
@@ -46,7 +38,7 @@ export default function RxPropertyTopStats(props: PropertyTopStatsProps) {
       leaveFrom='opacity-100'
       leaveTo='opacity-0'
     >
-      <section className={props.className}>{transformMatchingElements(props.children, matches)}</section>
+      <section className={props.nodeClassName}>{transformMatchingElements(props.children, matches)}</section>
     </Transition>
   );
 }
