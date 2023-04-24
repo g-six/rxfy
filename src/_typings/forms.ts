@@ -24,3 +24,15 @@ export interface ReplacerHomeAlerts {
   showIcon?: boolean;
   isLoggedIn?: boolean;
 }
+
+export interface DataUrl {
+  base64: string;
+  content: string;
+  format: string;
+  dataType: string;
+}
+
+export enum disclaimer {
+  REBGV = 'The above information is provided by members of the BC Northern Real Estate Board, Chilliwack & District Real Estate Board, Fraser Valley Real Estate Board or Real Estate Board of Greater Vancouver Board(‘the Board”) and is from sources believed reliable but should not be relied upon without verification. The Boards assume no responsibillity for its accuracy. PREC* indicates ‘Personal Real Estate Corporation’.',
+  VIVA = '',
+}

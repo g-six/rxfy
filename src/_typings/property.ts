@@ -131,6 +131,47 @@ export interface MLSProperty extends Record<string, string | number | boolean | 
   LFD_SiteInfluences_46: string[];
   Remarks: string;
   Zoning: string;
+
+  // Rooms Data:
+  L_Room1_Type: string;
+  L_Room1_Level: string;
+  L_Room1_Dimension1: string;
+  L_Room1_Dimension2: string;
+  L_Room2_Type: string;
+  L_Room2_Level: string;
+  L_Room2_Dimension1: string;
+  L_Room2_Dimension2: string;
+  L_Room3_Type: string;
+  L_Room3_Level: string;
+  L_Room3_Dimension1: string;
+  L_Room3_Dimension2: string;
+  L_Room4_Type: string;
+  L_Room4_Level: string;
+  L_Room4_Dimension1: string;
+  L_Room4_Dimension2: string;
+  L_Room5_Type: string;
+  L_Room5_Level: string;
+  L_Room5_Dimension1: string;
+  L_Room5_Dimension2: string;
+  L_Room6_Type: string;
+  L_Room6_Level: string;
+  L_Room6_Dimension1: string;
+  L_Room6_Dimension2: string;
+  L_Room7_Type: string;
+  L_Room7_Level: string;
+  L_Room7_Dimension1: string;
+  L_Room7_Dimension2: string;
+  L_Room8_Type: string;
+  L_Room8_Level: string;
+  L_Room8_Dimension1: string;
+  L_Room8_Dimension2: string;
+
+  // Amenities Data
+  B_SiteInfluences: string;
+  B_Bylaws: string;
+  L_Fireplace_Fuel: string;
+  L_Floor_Finish: string;
+  L_Locker: string;
 }
 
 interface BaseKeyValuePairStateProps {

@@ -71,7 +71,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   }
   if (params && params.slug === 'compare') {
   }
-  if (params && params.slug === 'property' && searchParams && (searchParams.lid || searchParams.id || searchParams.mls)) {
+  if (params && (params.slug === 'property' || params.slug === 'brochure') && searchParams && (searchParams.lid || searchParams.id || searchParams.mls)) {
     if (searchParams.lid) {
       property = await getPrivatePropertyData(searchParams.lid);
     } else {
@@ -145,6 +145,9 @@ export default async function Home({ params, searchParams }: { params: Record<st
             4,
           ),
         );
+      } catch (err) {
+        console.log('Skipping property-images-lightbox for ', params.slug);
+        console.error(err);
       } finally {
         console.log('Done rexifying gallery');
       }
