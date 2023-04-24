@@ -180,7 +180,7 @@ export function RxSignupPage(props: RxSignupPageProps) {
   }, [is_processing]);
 
   React.useEffect(() => {
-    if (data.clicked === 'signup-button') {
+    if (data?.clicked === 'signup-button') {
       processing(true);
       fireEvent({
         ...data,

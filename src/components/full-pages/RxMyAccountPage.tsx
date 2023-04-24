@@ -186,7 +186,7 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
       full_name?: string;
       yes_to_marketing?: boolean;
     }
-  >(data);
+  >(data as EventsData);
 
   const submitForm = () => {
     const updates = {
@@ -221,7 +221,7 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
           });
         })
         .finally(() => {
-          if (data.clicked) {
+          if (data?.clicked) {
             fireEvent({
               ...data,
               clicked: undefined,
@@ -240,7 +240,7 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
   }, [is_processing]);
 
   React.useEffect(() => {
-    if (data.clicked === `${Events.SaveAccountChanges}-trigger`) {
+    if (data?.clicked === `${Events.SaveAccountChanges}-trigger`) {
       processing(true);
       fireEvent({
         ...data,
