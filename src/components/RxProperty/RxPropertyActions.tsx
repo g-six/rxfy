@@ -7,13 +7,13 @@ import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { getAgentUrlFromSlug, getAgentUrlFromName } from '@/_helpers/functions';
 import useEvent, { Events } from '@/hooks/useEvent';
-import { loveHome } from '@/_utilities/api-calls/call-love-home';
 import useLove from '@/hooks/useLove';
+import { loveHome } from '@/_utilities/api-calls/call-love-home';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 
 type PropertyActionsProps = {
   child: React.ReactElement;
-  property: MLSProperty;
+  property: MLSProperty | undefined;
   agent: AgentData;
 };
 
@@ -31,7 +31,7 @@ export default function RxPropertyActions(props: PropertyActionsProps) {
   const [loved, setLoved] = React.useState(false);
   React.useEffect(() => {
     if (data === undefined || data.items?.length === 0) {
-      if (loved_homes.length && loved_homes.includes(props.property.MLS_ID)) {
+      if (props?.property && loved_homes.length && loved_homes.includes(props.property.MLS_ID)) {
         setLoved(true);
       }
     }
@@ -39,7 +39,7 @@ export default function RxPropertyActions(props: PropertyActionsProps) {
     setOrigin(origin);
   }, []);
 
-  const propertyLink = `${origin}/property?mls=${props.property.MLS_ID}`;
+  const propertyLink = props?.property ? `${origin}/property?mls=${props.property.MLS_ID}` : '#';
   const replaceLove = (child: React.ReactElement) =>
     React.cloneElement(<button />, {
       ...child.props,
@@ -55,9 +55,10 @@ export default function RxPropertyActions(props: PropertyActionsProps) {
           </svg>
         </span>
       ),
-      ['data-mls_id']: props.property.MLS_ID,
+      ['data-mls_id']: props?.property?.MLS_ID || '',
       onClick: () => {
         if (!loved) {
+          // @ts-ignore
           loveHome(props.property.MLS_ID, props.agent.id);
         }
         setLoved(!loved);
@@ -89,9 +90,9 @@ export default function RxPropertyActions(props: PropertyActionsProps) {
       transformChild: (child: React.ReactElement) =>
         React.cloneElement(child, {
           ...child.props,
-          href: `mailto:?subject=Very lovely property on Leagent&body=Very lovely property at ${props.property.Address} on Leagent ${
-            typeof window !== 'undefined' ? window.location.href : ''
-          }`,
+          href: `mailto:?subject=Very lovely property on Leagent&body=Very lovely property at ${
+            props?.property?.Address ? props.property.Address : 'nice location'
+          } on Leagent ${typeof window !== 'undefined' ? window.location.href : ''}`,
           target: '_blank',
           onClick: () => 'javascript:window.open(this.href,"", "menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600");return false;',
           rel: 'noopener noreferrer',
@@ -102,7 +103,8 @@ export default function RxPropertyActions(props: PropertyActionsProps) {
       transformChild: (child: React.ReactElement) =>
         React.cloneElement(child, {
           ...child.props,
-          href: `${linkToLegacyApp(props.agent)}/property/${props.property.MLS_ID}/pdf`,
+          //href: props?.property?.MLS_ID ? `${linkToLegacyApp(props.agent)}/property/${props.property.MLS_ID}/pdf` : '#',
+          href: props?.property?.MLS_ID ? `/brochure?mls=${props.property.MLS_ID}` : '#',
           target: '_blank',
           rel: 'noopener noreferrer',
         }),

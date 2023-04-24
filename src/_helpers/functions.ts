@@ -48,6 +48,52 @@ export const removeClasses = (classNames: string, removeCls: string[]) =>
     .filter(cls => !removeCls.includes(cls))
     .join(' ');
 
+export const toDataURL = (url: string) =>
+  fetch(url)
+    .then(response => response.blob())
+    .then(
+      blob =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            // @ts-ignore
+            const data = reader.result.split(',');
+            const resp = {
+              base64: reader.result,
+              content: data[1],
+              format: data[0].replace('data:image/', '').replace(';base64', ''),
+              dataType: data[0].replace('data:', '').replace(';base64', ''),
+            };
+            resolve(resp);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        }),
+    )
+    .catch(err => {
+      console.log('TODATAURL ERR:', err);
+    });
+
+export function splitObject(obj: Record<string, string>) {
+  const keys = Object.keys(obj);
+  const half = Math.ceil(keys.length / 2);
+  const firstObj = <Record<string, string>>{};
+  const secondObj = <Record<string, string>>{};
+
+  let i = 0;
+  for (const key of keys) {
+    const value = obj[key];
+    if (i < half) {
+      firstObj[key] = value;
+    } else {
+      secondObj[key] = value;
+    }
+    i++;
+  }
+
+  return { first: firstObj, second: secondObj };
+}
+
 export const fireCustomEvent = (data: EventsData = {}, eventName: Events) => {
   document.dispatchEvent(new CustomEvent(eventName, { detail: data }));
 };
