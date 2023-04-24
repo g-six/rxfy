@@ -23,7 +23,7 @@ export default function DocumentsReplacer({ nodes, nodeProps, agent_data }: Prop
   const { data: notification } = useEvent(Events.SystemNotification);
 
   useEffect(() => {
-    if (notification.message === NotificationMessages.DOC_UPLOAD_COMPLETE) {
+    if (notification?.message === NotificationMessages.DOC_UPLOAD_COMPLETE) {
       retrieveDocuments().then(documents => {
         setDocuments(documents);
       });

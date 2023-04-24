@@ -13,12 +13,9 @@ export default function RxNotifications() {
   const [success, setSuccessMessage] = useState('');
 
   useEffect(() => {
-    const {
-      message,
-      category,
-    }: EventsData & {
+    const { message, category } = data as EventsData & {
       message?: string;
-    } = data;
+    };
     setSuccessMessage('');
     setErrorMessage('');
     if (category && message) {
@@ -44,7 +41,7 @@ export default function RxNotifications() {
         <div className='fixed bottom-2 right-2 flex w-full flex-col items-center space-y-4 sm:items-end'>
           {/* Notification panel, dynamically insert this into the live region when it needs to be displayed */}
           <Transition
-            show={data.category !== undefined}
+            show={data?.category !== undefined}
             as={Fragment}
             enter='transform ease-out duration-300 transition'
             enterFrom='translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2'

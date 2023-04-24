@@ -87,8 +87,8 @@ export function RxUpdatePasswordPage(props: RxUpdatePasswordPageProps) {
   };
 
   React.useEffect(() => {
-    const { clicked, ...evt_data } = data;
-    if (clicked === `${Events.UpdatePassword}-trigger`) {
+    if (data?.clicked === `${Events.UpdatePassword}-trigger`) {
+      const { clicked, ...evt_data } = data;
       notify({});
       fireEvent(evt_data);
       const { password } = evt_data as unknown as { password?: string };
@@ -97,7 +97,7 @@ export function RxUpdatePasswordPage(props: RxUpdatePasswordPageProps) {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.clicked]);
+  }, [data]);
 
   return (
     <form

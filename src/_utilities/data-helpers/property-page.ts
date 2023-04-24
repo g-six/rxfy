@@ -77,7 +77,51 @@ export function getGqlForPropertyId(id: number) {
                 attributes {
                   lat
                   lon
-                    mls_data
+                  guid
+                  title
+                  mls_id
+                  area
+                  city
+                  price_per_sqft
+                  property_type
+                  asking_price
+                  changes_applied
+                  age
+                  year_built
+                  baths
+                  beds
+                  has_laundry
+                  has_dishwasher
+                  has_fridge
+                  has_stove
+                  has_deck
+                  has_patio
+                  has_balcony
+                  has_fenced_yard
+                  garage
+                  postal_zip_code
+                  style_type
+                  status
+                  has_storage
+                  listed_at
+                  land_title
+                  gross_taxes
+                  original_price
+                  lot_sqm
+                  lot_sqft
+                  floor_area
+                  floor_area_uom
+                  tax_year
+                  description
+                  parking
+                  real_estate_board {
+                    data {
+                      attributes {
+                        legal_disclaimer
+                      }
+                    }
+                  }
+                  mls_data
                 }
             }
         }
@@ -97,7 +141,51 @@ export function getGqlForFilteredProperties(filters: Record<string, unknown>) {
                   attributes {
                     lat
                     lon
-                      mls_data
+                    guid
+                    title
+                    mls_id
+                    area
+                    city
+                    price_per_sqft
+                    property_type
+                    asking_price
+                    changes_applied
+                    age
+                    year_built
+                    baths
+                    beds
+                    has_laundry
+                    has_dishwasher
+                    has_fridge
+                    has_stove
+                    has_deck
+                    has_patio
+                    has_balcony
+                    has_fenced_yard
+                    garage
+                    postal_zip_code
+                    style_type
+                    status
+                    has_storage
+                    listed_at
+                    land_title
+                    gross_taxes
+                    original_price
+                    lot_sqm
+                    lot_sqft
+                    floor_area
+                    floor_area_uom
+                    tax_year
+                    description
+                    parking
+                    real_estate_board {
+                      data {
+                        attributes {
+                          legal_disclaimer
+                        }
+                      }
+                    }
+                    mls_data
                   }
               }
           }
@@ -605,12 +693,10 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
   let clean: Record<string, unknown> | MLSProperty = {};
   const neighbours: MLSProperty[] = [];
   const sold_history: MLSProperty[] = [];
-  console.log({
-    property,
-  });
+
   if (property?.attributes) {
     let { lat, lon } = property.attributes;
-    const { mls_data } = property.attributes;
+    const { mls_data, ...attributes } = property.attributes;
     Object.keys(mls_data).map((key: string) => {
       if (mls_data[key]) {
         if (key === 'lng' && !lon) {
@@ -621,6 +707,7 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
         }
         clean = {
           ...clean,
+          ...attributes,
           [key]: mls_data[key],
         };
       }
