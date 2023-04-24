@@ -21,12 +21,8 @@ import HomeAlertsReplacer from '@/_replacers/HomeAlerts/home-alerts';
 import RxTable from './RxTable';
 import RxContactForm from '@/components/RxForms/RxContactForm';
 import { RxUserSessionLink } from './Nav/RxUserSessionLink';
-
-// TODO: @Rey, shall we move those next 3 items into "RxProperty", like the last ones in this group?
-// ANSWER @Rosty
-//    yes except for the 3rd one because The property card would not be restricted to the property page
-//    Great catch!
 import { RexifyStatBlock } from './RxProperty/PropertyInformationRow';
+import RxPdfWrapper from '@/components/RxProperty/RxPropertyPdf/RxPdfWrapper';
 import { RexifyPropertyFeatureBlock } from './RxProperty/PropertyFeatureSection';
 import RxPropertyCarousel from './RxProperty/RxPropertyCarousel';
 import RxPropertyTopStats from './RxProperty/RxPropertyTopStats';
@@ -484,6 +480,19 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           );
         }
 
+        // Property PDF Brochure rendering
+        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PDF_PAGE) >= 0) {
+          return (
+            <RxPdfWrapper
+              property={property as unknown as MLSProperty}
+              agent={agent_data}
+              nodeClassName={WEBFLOW_NODE_SELECTOR.PDF_PAGE}
+              nodeProps={props}
+              nodes={domToReact(node.children) as ReactElement[]}
+            />
+          );
+        }
+
         if ((node.children && node.children.length === 1) || node.name === 'input') {
           const reX = rexifyOrSkip(
             node.children[0],
@@ -512,8 +521,8 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             // Property action buttons (PDF, Share links, etc)
             if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS) >= 0) {
               return (
-                <RxPropertyTopStats property={record} className={node.attribs.class} agent={agent_data}>
-                  {domToReact(node.children)}
+                <RxPropertyTopStats property={record} nodeClassName={node.attribs.class} agent={agent_data} nodeProps={props}>
+                  {domToReact(node.children) as ReactElement[]}
                 </RxPropertyTopStats>
               );
             }
