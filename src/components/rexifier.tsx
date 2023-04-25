@@ -134,54 +134,54 @@ export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapp
     $('.similar-homes').remove();
   }
   properties.forEach((p: MLSProperty, i) => {
-    replaceByCheerio($, `${wrapper_selector} > ${card_selector}:nth-child(${i + 1})`, {
+    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1})`, {
       className: 'group',
     });
-    replaceByCheerio($, `${wrapper_selector} > ${card_selector}:nth-child(${i + 1}) .heart-on-small-card`, {
+    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .heart-on-small-card`, {
       className: 'group-hover:block',
     });
 
     // Photo
-    replaceByCheerio($, `${wrapper_selector} > ${card_selector}:nth-child(${i + 1}) > .propcard-image`, {
+    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) > .propcard-image`, {
       backgroundImage: (p.photos as string[])[0],
     });
 
     // Area
-    replaceByCheerio($, `${wrapper_selector} > ${card_selector}:nth-child(${i + 1}) .area-text`, {
+    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .area-text`, {
       content: p.Area,
     });
 
     // Price
-    replaceByCheerio($, `${wrapper_selector} > ${card_selector}:nth-child(${i + 1}) .propcard-price`, {
+    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .propcard-price`, {
       content: `${formatValues(p, 'AskingPrice')}`,
     });
 
     // Address
-    replaceByCheerio($, `${wrapper_selector} > ${card_selector}:nth-child(${i + 1}) .propcard-address`, {
+    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .propcard-address`, {
       content: `${formatValues(p, 'Address')}`,
     });
 
     // Beds
-    replaceByCheerio($, `${wrapper_selector} > ${card_selector}:nth-child(${i + 1}) .bedroom-stat`, {
+    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .bedroom-stat`, {
       content: `${formatValues(p, 'L_BedroomTotal') || '1'}`,
     });
 
     // Baths
     if (p.L_TotalBaths) {
-      replaceByCheerio($, `${wrapper_selector} > ${card_selector}:nth-child(${i + 1}) .bath-stat`, {
+      replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .bath-stat`, {
         content: `${formatValues(p, 'L_TotalBaths')}`,
       });
     } else {
-      removeSection($, `${wrapper_selector} > ${card_selector}:nth-child(${i + 1}) .bath-stat`, '.propertycard-feature');
+      removeSection($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .bath-stat`, '.propertycard-feature');
     }
 
     // Sqft
-    replaceByCheerio($, `${wrapper_selector} > ${card_selector}:nth-child(${i + 1}) .sqft-stat`, {
+    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .sqft-stat`, {
       content: `${formatValues(p, 'L_FloorArea_GrantTotal')}` || `${formatValues(p, 'L_FloorArea_GrantTotal')}`,
     });
 
     // Year
-    replaceByCheerio($, `${wrapper_selector} > ${card_selector}:nth-child(${i + 1}) .year-stat`, {
+    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .year-stat`, {
       content: `${formatValues(p, 'L_YearBuilt')}`,
     });
   });
