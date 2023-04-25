@@ -59,10 +59,9 @@ export default function CompareTab({ child }: Props) {
     {
       searchFn: searchByClasses(['compare-right']),
       transformChild: (child: ReactElement) => {
-        console.log(properties);
         return cloneElement(child, {}, [
           properties.map(p => {
-            return <CompareCard child={card} key={p.MLS_ID} property={p} filters={filters} />;
+            return <CompareCard child={card} key={p.MLS_ID} property={p} filters={filters} showControls />;
           }),
         ]);
       },

@@ -168,7 +168,7 @@ export default function IndividualTab({ child, agent_data }: Props) {
           { ...child.props },
           sliced.map((src, i) => (
             <div key={`gallery #${i}`} className='relative w-full h-full overflow-hidden rounded-lg'>
-              <Image src={src as string} alt={`gallery #${i}`} fill />
+              <Image src={src as string} alt={`gallery #${i}`} fill style={{ objectFit: 'cover' }} />
             </div>
           )),
         );
@@ -196,6 +196,6 @@ export default function IndividualTab({ child, agent_data }: Props) {
     //   },
     // },
   ];
-
+  console.log('Individual Tab Rendered');
   return <>{currentProperty ? transformMatchingElements(child, matches) : child}</>;
 }
