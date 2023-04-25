@@ -58,7 +58,6 @@ export default function SavedItemsColumn({ loved, child, agent_data }: Props) {
                 agentId={agent_data.id}
                 addBtnClick={(e: React.SyntheticEvent) => {
                   e.stopPropagation();
-                  console.log(e);
                   fireCustomEvent({ mls_id: MLS_ID }, Events.SavedItemsCompareTab);
                 }}
                 isCompared={comparedArr.some(id => id === MLS_ID)}

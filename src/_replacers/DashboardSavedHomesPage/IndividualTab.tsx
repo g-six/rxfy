@@ -74,7 +74,6 @@ export default function IndividualTab({ child, agent_data }: Props) {
       searchFn: searchByClasses(['section---beds-baths']),
       transformChild: (child: ReactElement) => {
         const cp = currentProperty;
-        console.log(cp);
         return replaceAllTextWithBraces(child, {
           Beds: cp?.L_BedroomTotal,
           Baths: cp?.baths,
@@ -196,6 +195,6 @@ export default function IndividualTab({ child, agent_data }: Props) {
     //   },
     // },
   ];
-  console.log('Individual Tab Rendered');
+
   return <>{currentProperty ? transformMatchingElements(child, matches) : child}</>;
 }
