@@ -21,12 +21,57 @@ export const general_stats: Record<string, string> = {
   B_Heating: 'Fuel/Heating',
 };
 
+export const main_stats: Record<string, string> = {
+  B_Basement: 'Basement',
+  L_Fireplaces: '# of Fireplaces',
+  L_KitchensTotal: '# of Kitchens',
+  L_TotalBaths: 'Total Baths',
+  L_BedroomTotal: 'Total Bedrooms',
+  L_Parking_total: 'Parking',
+  L_Frontage_Feet: 'Frontage',
+  L_LotSize_SqFt: 'Size Sqft',
+  L_NoFloorLevels: 'Floor Levels',
+};
+
+export const building_stats: Record<string, string> = {
+  L_Stories: 'Stories',
+  B_Heating: 'Fuel/Heating',
+  B_OutdoorArea: 'Outdoor Area',
+  RainScreen: 'Rain Screen',
+  B_Restrictions: 'Restrictions',
+  B_Roof: 'Roof',
+  L_TotalUnits: 'Tot Units in Strata Plan',
+  B_TotalUnits: 'Units in Development',
+  B_WaterSupply: 'Water Supply',
+};
+
+export const amenities_stats: Record<string, string> = {
+  B_Amenities: 'Amenities',
+  B_SiteInfluences: 'Site Influences',
+  B_Bylaws: 'By Laws',
+  L_Fireplace_Fuel: 'Fireplace Fuel',
+  L_Floor_Finish: 'Floor Finish',
+  L_Locker: 'Locker',
+};
+
+export const room_stats: Record<string, {}> = {
+  Room1: { L_Room1_Type: 'Type', L_Room1_Level: 'Level', L_Room1_Dimension1: 'Dimension1', L_Room1_Dimension2: 'Dimension2' },
+  Room2: { L_Room2_Type: 'Type', L_Room2_Level: 'Level', L_Room2_Dimension1: 'Dimension1', L_Room2_Dimension2: 'Dimension2' },
+  Room3: { L_Room3_Type: 'Type', L_Room3_Level: 'Level', L_Room3_Dimension1: 'Dimension1', L_Room3_Dimension2: 'Dimension2' },
+  Room4: { L_Room4_Type: 'Type', L_Room4_Level: 'Level', L_Room4_Dimension1: 'Dimension1', L_Room4_Dimension2: 'Dimension2' },
+  Room5: { L_Room5_Type: 'Type', L_Room5_Level: 'Level', L_Room5_Dimension1: 'Dimension1', L_Room5_Dimension2: 'Dimension2' },
+  Room6: { L_Room6_Type: 'Type', L_Room6_Level: 'Level', L_Room6_Dimension1: 'Dimension1', L_Room6_Dimension2: 'Dimension2' },
+  Room7: { L_Room7_Type: 'Type', L_Room7_Level: 'Level', L_Room7_Dimension1: 'Dimension1', L_Room7_Dimension2: 'Dimension2' },
+  Room8: { L_Room8_Type: 'Type', L_Room8_Level: 'Level', L_Room8_Dimension1: 'Dimension1', L_Room8_Dimension2: 'Dimension2' },
+};
+
 export const financial_stats: Record<string, string> = {
-  PricePerSQFT: 'Price Per Sqft.',
   L_GrossTaxes: 'Gross taxes',
-  ListingDate: 'List Date',
   MLS_ID: 'MLS #',
   SoldPrice: 'Sold For',
+  PricePerSQFT: 'Price per Sqft',
+  L_StrataFee: 'Strata Fee',
+  ListingDate: 'List Date',
 };
 
 export const construction_stats: Record<string, string> = {
@@ -77,7 +122,51 @@ export function getGqlForPropertyId(id: number) {
                 attributes {
                   lat
                   lon
-                    mls_data
+                  guid
+                  title
+                  mls_id
+                  area
+                  city
+                  price_per_sqft
+                  property_type
+                  asking_price
+                  changes_applied
+                  age
+                  year_built
+                  baths
+                  beds
+                  has_laundry
+                  has_dishwasher
+                  has_fridge
+                  has_stove
+                  has_deck
+                  has_patio
+                  has_balcony
+                  has_fenced_yard
+                  garage
+                  postal_zip_code
+                  style_type
+                  status
+                  has_storage
+                  listed_at
+                  land_title
+                  gross_taxes
+                  original_price
+                  lot_sqm
+                  lot_sqft
+                  floor_area
+                  floor_area_uom
+                  tax_year
+                  description
+                  parking
+                  real_estate_board {
+                    data {
+                      attributes {
+                        legal_disclaimer
+                      }
+                    }
+                  }
+                  mls_data
                 }
             }
         }
@@ -97,7 +186,51 @@ export function getGqlForFilteredProperties(filters: Record<string, unknown>) {
                   attributes {
                     lat
                     lon
-                      mls_data
+                    guid
+                    title
+                    mls_id
+                    area
+                    city
+                    price_per_sqft
+                    property_type
+                    asking_price
+                    changes_applied
+                    age
+                    year_built
+                    baths
+                    beds
+                    has_laundry
+                    has_dishwasher
+                    has_fridge
+                    has_stove
+                    has_deck
+                    has_patio
+                    has_balcony
+                    has_fenced_yard
+                    garage
+                    postal_zip_code
+                    style_type
+                    status
+                    has_storage
+                    listed_at
+                    land_title
+                    gross_taxes
+                    original_price
+                    lot_sqm
+                    lot_sqft
+                    floor_area
+                    floor_area_uom
+                    tax_year
+                    description
+                    parking
+                    real_estate_board {
+                      data {
+                        attributes {
+                          legal_disclaimer
+                        }
+                      }
+                    }
+                    mls_data
                   }
               }
           }
@@ -605,12 +738,10 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
   let clean: Record<string, unknown> | MLSProperty = {};
   const neighbours: MLSProperty[] = [];
   const sold_history: MLSProperty[] = [];
-  console.log({
-    property,
-  });
+
   if (property?.attributes) {
     let { lat, lon } = property.attributes;
-    const { mls_data } = property.attributes;
+    const { mls_data, ...attributes } = property.attributes;
     Object.keys(mls_data).map((key: string) => {
       if (mls_data[key]) {
         if (key === 'lng' && !lon) {
@@ -621,6 +752,7 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
         }
         clean = {
           ...clean,
+          ...attributes,
           [key]: mls_data[key],
         };
       }
@@ -681,10 +813,20 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
     });
   }
 
+  const agent_info = {
+    company: [clean.LO1_Name, clean.LO2_Name, clean.LO3_Name].filter(v => !!v).join(', '),
+    tel: [clean.LO1_Phone, clean.LO2_Phone, clean.LO3_Phone, clean.LA1_PhoneNumber1, clean.LA2_PhoneNumber1, clean.LA3_PhoneNumber1]
+      .filter(v => !!v)
+      .join(', '),
+    email: [clean.LA1_Email, clean.LA2_Email, clean.LA2_Email].filter(v => !!v).join(', '),
+    name: [clean.LA1_FullName, clean.LA2_FullName, clean.LA3_FullName].filter(v => !!v).join(', '),
+  };
+
   return {
     ...(clean as MLSProperty),
     neighbours,
     sold_history,
+    agent_info,
   };
 }
 

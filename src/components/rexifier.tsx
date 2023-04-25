@@ -6,7 +6,7 @@ import parse, { HTMLReactParserOptions, Element, attributesToProps, DOMNode, dom
 import { HTMLNode } from '@/_typings/elements';
 import { AgentData } from '@/_typings/agent';
 import { GeoLocation, MapboxBoundaries } from '@/_typings/maps';
-import { MLSProperty } from '@/_typings/property';
+import { MLSProperty, PropertyDataModel } from '@/_typings/property';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 
 import { combineAndFormatValues, formatValues } from '@/_utilities/data-helpers/property-page';
@@ -21,12 +21,8 @@ import HomeAlertsReplacer from '@/_replacers/HomeAlerts/home-alerts';
 import RxTable from './RxTable';
 import RxContactForm from '@/components/RxForms/RxContactForm';
 import { RxUserSessionLink } from './Nav/RxUserSessionLink';
-
-// TODO: @Rey, shall we move those next 3 items into "RxProperty", like the last ones in this group?
-// ANSWER @Rosty
-//    yes except for the 3rd one because The property card would not be restricted to the property page
-//    Great catch!
 import { RexifyStatBlock } from './RxProperty/PropertyInformationRow';
+import RxPdfWrapper from '@/components/RxProperty/RxPropertyPdf/RxPdfWrapper';
 import { RexifyPropertyFeatureBlock } from './RxProperty/PropertyFeatureSection';
 import RxPropertyCarousel from './RxProperty/RxPropertyCarousel';
 import RxPropertyTopStats from './RxProperty/RxPropertyTopStats';
@@ -133,6 +129,10 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
 }
 
 export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapper_selector = '.similar-homes-grid', card_selector = '.property-card') {
+  if (properties.length === 0) {
+    $(wrapper_selector).remove();
+    $('.similar-homes').remove();
+  }
   properties.forEach((p: MLSProperty, i) => {
     replaceByCheerio($, `${wrapper_selector} > ${card_selector}:nth-child(${i + 1})`, {
       className: 'group',
@@ -480,6 +480,19 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           );
         }
 
+        // Property PDF Brochure rendering
+        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PDF_PAGE) >= 0) {
+          return (
+            <RxPdfWrapper
+              property={property as unknown as MLSProperty}
+              agent={agent_data}
+              nodeClassName={WEBFLOW_NODE_SELECTOR.PDF_PAGE}
+              nodeProps={props}
+              nodes={domToReact(node.children) as ReactElement[]}
+            />
+          );
+        }
+
         if ((node.children && node.children.length === 1) || node.name === 'input') {
           const reX = rexifyOrSkip(
             node.children[0],
@@ -508,8 +521,8 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             // Property action buttons (PDF, Share links, etc)
             if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS) >= 0) {
               return (
-                <RxPropertyTopStats property={record} className={node.attribs.class} agent={agent_data}>
-                  {domToReact(node.children)}
+                <RxPropertyTopStats property={record} nodeClassName={node.attribs.class} agent={agent_data} nodeProps={props}>
+                  {domToReact(node.children) as ReactElement[]}
                 </RxPropertyTopStats>
               );
             }
@@ -629,7 +642,7 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
       }
     }
   }
-  const property = record as MLSProperty;
+  const property = record as MLSProperty & PropertyDataModel;
   switch (placeholder) {
     case '{Description}':
       return <p className={className}>{property.L_PublicRemakrs}</p>;
@@ -656,7 +669,7 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
       return <div className={className}>{property.PropertyType}</div>;
 
     case '{Lot Size}':
-      return <div className={className}>{formatValues(property, 'L_LotSize_SqMtrs')}</div>;
+      return <div className={className}>{property.lot_sqft || property.lot_sqm || formatValues(property, 'L_LotSize_SqMtrs')}</div>;
 
     case '{MLS Number}':
       return <span className={className}>{property.MLS_ID}</span>;

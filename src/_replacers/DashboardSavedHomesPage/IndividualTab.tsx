@@ -57,10 +57,12 @@ export default function IndividualTab({ child, agent_data }: Props) {
       transformChild: (child: ReactElement) => {
         return currentProperty ? (
           <RxPropertyTopStats
-            className={child.props.className}
+            nodeClassName={child.props.className}
+            nodeProps={child.props}
             agent={agent_data}
             property={{ ...currentProperty, Address: currentProperty.address as string }}
           >
+            {/* @ts-ignore */}
             {cloneElement(child.props.children)}
           </RxPropertyTopStats>
         ) : (

@@ -42,9 +42,42 @@ export interface PropertyDataModel {
   baths?: number;
   sqft?: number;
   price_per_sqft?: number;
+  guid?: string;
+  changes_applied?: string;
+  real_estate_board?: number;
+  age?: number;
+  year_built?: number;
+  fireplace?: string;
+  has_laundry?: boolean;
+  has_dishwasher?: boolean;
+  has_fridge?: boolean;
+  has_stove?: boolean;
+  has_hvac?: boolean;
+  has_deck?: boolean;
+  has_patio?: boolean;
+  has_balcony?: boolean;
+  has_fenced_yard?: boolean;
+  garage?: 'None' | 'Single' | 'Double' | 'Triple';
+  postal_zip_code?: string;
+  parking?: string;
+  style_type?: string;
+  status?: 'Active' | 'Expired';
+  has_storage?: boolean;
+  listed_at?: Date;
+  land_title?: string;
+  gross_taxes?: number;
+  original_price?: number;
+  lot_sqm?: number;
+  lot_sqft?: number;
+  floor_area?: number;
+  floor_area_uom?: 'Meters' | 'Feet';
+  tax_year?: number;
+  description?: string;
+  idx_include?: boolean;
+  roofing?: string;
 }
 
-export interface MLSProperty extends Record<string, string | number | string[]> {
+export interface MLSProperty extends Record<string, string | number | boolean | string[]> {
   lat: number;
   lng: number;
   Address: string;
@@ -98,6 +131,47 @@ export interface MLSProperty extends Record<string, string | number | string[]> 
   LFD_SiteInfluences_46: string[];
   Remarks: string;
   Zoning: string;
+
+  // Rooms Data:
+  L_Room1_Type: string;
+  L_Room1_Level: string;
+  L_Room1_Dimension1: string;
+  L_Room1_Dimension2: string;
+  L_Room2_Type: string;
+  L_Room2_Level: string;
+  L_Room2_Dimension1: string;
+  L_Room2_Dimension2: string;
+  L_Room3_Type: string;
+  L_Room3_Level: string;
+  L_Room3_Dimension1: string;
+  L_Room3_Dimension2: string;
+  L_Room4_Type: string;
+  L_Room4_Level: string;
+  L_Room4_Dimension1: string;
+  L_Room4_Dimension2: string;
+  L_Room5_Type: string;
+  L_Room5_Level: string;
+  L_Room5_Dimension1: string;
+  L_Room5_Dimension2: string;
+  L_Room6_Type: string;
+  L_Room6_Level: string;
+  L_Room6_Dimension1: string;
+  L_Room6_Dimension2: string;
+  L_Room7_Type: string;
+  L_Room7_Level: string;
+  L_Room7_Dimension1: string;
+  L_Room7_Dimension2: string;
+  L_Room8_Type: string;
+  L_Room8_Level: string;
+  L_Room8_Dimension1: string;
+  L_Room8_Dimension2: string;
+
+  // Amenities Data
+  B_SiteInfluences: string;
+  B_Bylaws: string;
+  L_Fireplace_Fuel: string;
+  L_Floor_Finish: string;
+  L_Locker: string;
 }
 
 interface BaseKeyValuePairStateProps {
