@@ -2,6 +2,16 @@ import { PlaceDetails } from './maps';
 
 export const DateFields = ['UpdateDate', 'ListingDate'];
 
+export enum DwellingType {
+  APARTMENT_CONDO = 'Apartment/Condo',
+  TOWNHOUSE = 'Townhouse',
+  HOUSE = 'House/Single Family,House with Acreage',
+  ROW_HOUSE = 'Row House (Non-Strata)',
+  MANUFACTURED = 'Manufactured,Manufactured with Land',
+  DUPLEX = '1/2 Duplex,Duplex',
+  OTHER = 'Other',
+}
+
 export const NumericFields = [
   'B_Depth',
   'L_Frontage_Feet',
