@@ -78,6 +78,7 @@ export const MapProvider = (props: any) => {
       const default_location = child.props.agent_data.metatags.search_highlights.labels[0];
       query = [
         query,
+        `city=${default_location.title}`,
         `lat=${default_location.lat}`,
         `lng=${default_location.lng}`,
         `nelat=${default_location.ne.lat}`,
@@ -90,6 +91,7 @@ export const MapProvider = (props: any) => {
     } else {
       query = [
         query,
+        'city=Vancouver',
         'lat=49.20409088889508',
         'lng=-122.97137998744913',
         'nelat=49.3959558143803',
