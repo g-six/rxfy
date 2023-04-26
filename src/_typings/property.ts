@@ -3,13 +3,13 @@ import { PlaceDetails } from './maps';
 export const DateFields = ['UpdateDate', 'ListingDate'];
 
 export enum DwellingType {
-  APARTMENT_CONDO = 'Apartment/Condo',
-  TOWNHOUSE = 'Townhouse',
-  HOUSE = 'House/Single Family,House with Acreage',
-  ROW_HOUSE = 'Row House (Non-Strata)',
-  MANUFACTURED = 'Manufactured,Manufactured with Land',
-  DUPLEX = '1/2 Duplex,Duplex',
-  OTHER = 'Other',
+  APARTMENT_CONDO = 'APARTMENT_CONDO',
+  TOWNHOUSE = 'TOWNHOUSE',
+  HOUSE = 'HOUSE_SINGLE_FAMILY,HOUSE_W_ACREAGE',
+  ROW_HOUSE = 'ROW_HOUSE',
+  MANUFACTURED = 'MANUFACTURED,MANUFACTURED_W_LAND',
+  DUPLEX = 'HALF_DUPLEX,FULL_DUPLEX',
+  OTHER = 'OTHER',
 }
 
 export const NumericFields = [

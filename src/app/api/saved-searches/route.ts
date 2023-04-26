@@ -7,6 +7,37 @@ const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
 };
+
+const gqf_saved_search_attributes = `
+                search_url
+                lat
+                lng
+                beds
+                baths
+                minprice
+                maxprice
+                nelat
+                nelng
+                swlat
+                swlng
+                zoom
+                type
+                sorting
+                dwelling_types {
+                  data {
+                    id
+                    attributes {
+                      name
+                      code
+                    }
+                  }
+                }
+                add_date
+                build_year
+                tags
+                last_email_at
+                is_active`;
+
 const gqlFindCustomer = `query FindCustomer($id: ID!) {
   customer(id: $id) {
     data {
@@ -34,15 +65,17 @@ const gql_update_session = `mutation UpdateCustomerSession ($id: ID!, $last_acti
     }
   }
 }`;
-
-const gql_saved_search = `mutation CreateSavedSearch ($data: SavedSearchInput!) {
+const gql_create_saved_search = `mutation CreateSavedSearch ($data: SavedSearchInput!) {
     createSavedSearch(data: $data) {
       data {
-        id
         attributes {
-          search_url
-          last_email_at
-          is_active
+          saved_searches {
+            data {
+              attributes {
+                ${gqf_saved_search_attributes}
+              }
+            }
+          }
         }
       }
     }
@@ -52,7 +85,7 @@ export async function POST(request: Request) {
   let session_key = extractBearerFromHeader(request.headers.get('authorization') || '');
   if (!session_key) return;
 
-  const { search_url } = await request.json();
+  const { search_url, search_params } = await request.json();
   const id = Number(session_key.split('-').pop());
 
   if (!isNaN(id)) {
@@ -109,11 +142,12 @@ export async function POST(request: Request) {
         const { data: search_response } = await axios.post(
           `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
           {
-            query: gql_saved_search,
+            query: gql_create_saved_search,
             variables: {
               data: {
                 customer: id,
                 search_url,
+                search_params,
               },
             },
           },
@@ -209,7 +243,7 @@ export async function GET(request: Request) {
   const xhr = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {
-      query: gql_saved_searches,
+      query: gql_create_saved_searches,
       variables: {
         customer_id: guid,
       },
@@ -248,13 +282,34 @@ export async function GET(request: Request) {
   }
 }
 
-const gql_saved_searches = `query MySavedSearches($customer_id: ID!) {
+const gql_create_saved_searches = `query MySavedSearches($customer_id: ID!) {
   savedSearches(filters: { customer: { id: { eq: $customer_id } } }) {
     records: data {
       id
       attributes {
         is_active
         search_url
+        lat
+        lng
+        beds
+        baths
+        minprice
+        maxprice
+        nelat
+        nelng
+        swlat
+        swlng
+        zoom
+        type
+        dwelling_types {
+            data {
+                id
+                attributes {
+                    name
+                    code
+                }
+            }
+        }
       }
     }
   }

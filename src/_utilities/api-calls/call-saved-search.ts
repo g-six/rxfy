@@ -1,13 +1,14 @@
+import { SavedSearchInput } from '@/_typings/saved-search';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
 /**
  * Save a customer map search
  * @param agent { id, logo? }
- * @param opts { search_url? }
+ * @param opts { search_url?, search_params? }
  * @returns
  */
-export async function saveSearch(agent: { id: number; logo?: string }, opts?: { search_url?: string }) {
+export async function saveSearch(agent: { id: number; logo?: string }, opts?: { search_url?: string; search_params?: SavedSearchInput }) {
   const response = await axios.post(
     '/api/saved-searches',
     {
