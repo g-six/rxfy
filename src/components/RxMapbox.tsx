@@ -145,7 +145,7 @@ export function RxMapbox(props: RxMapboxProps) {
           }
 
           currentUrl.searchParams.set('city', place_param);
-          window.history.pushState({}, `${map.getCenter().lat}${map.getCenter().lng}${neighbourhood.text}`, currentUrl.href);
+          window.history.pushState({}, `${map.getCenter().lat}${map.getCenter().lng}${place_param}`, currentUrl.href);
         }
       });
 
