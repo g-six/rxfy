@@ -18,6 +18,7 @@ export interface SavedSearchInput {
   add_date?: number;
   build_year?: number;
   tags?: string;
+  city?: string;
 }
 
 export interface CustomerSavedSearch extends SavedSearchInput {
