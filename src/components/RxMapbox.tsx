@@ -144,7 +144,6 @@ export function RxMapbox(props: RxMapboxProps) {
             place_param = place?.text || neighbourhood?.text;
           }
 
-          console.log({ place_param });
           currentUrl.searchParams.set('city', place_param);
           window.history.pushState({}, `${map.getCenter().lat}${map.getCenter().lng}${neighbourhood.text}`, currentUrl.href);
         }
@@ -438,7 +437,7 @@ export function RxMapbox(props: RxMapboxProps) {
           clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
         };
 
-        if (map.getSource('map-source') === undefined) {
+        if (map && map.getSource('map-source') === undefined) {
           map.addSource('map-source', geojson_options);
         } else {
           (map.getSource('map-source') as GeoJSONSource).setData({
