@@ -2,6 +2,7 @@ import { AgentData } from '@/_typings/agent';
 import { DateFields, FinanceFields, MLSProperty, NumericFields } from '@/_typings/property';
 import { AxiosError, AxiosStatic } from 'axios';
 import { dateStringToDMY } from './date-helper';
+import { capitalizeFirstLetter } from '../formatters';
 
 export const general_stats: Record<string, string> = {
   L_Age: 'Age',
@@ -843,6 +844,10 @@ export function formatValues(obj: MLSProperty | Record<string, string>, key: str
 
   if (DateFields.includes(key)) {
     return dateStringToDMY(obj[key] as string);
+  }
+
+  if (key.toLocaleLowerCase() === 'address') {
+    return capitalizeFirstLetter((obj[key] as string).toLowerCase());
   }
   return obj[key] as unknown as string;
 }

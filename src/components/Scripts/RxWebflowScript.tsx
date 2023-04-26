@@ -29,7 +29,7 @@ export function RxWebflowScript(p: ScriptProps) {
       <Script
         src={p['script-src']}
         id={p['script-name']}
-        strategy={p['script-name'].indexOf('webflow') >= 0 ? 'lazyOnload' : 'afterInteractive'}
+        strategy={p['script-name'].indexOf('webflow') >= 0 ? 'lazyOnload' : 'beforeInteractive'}
         onLoad={onScriptLoad}
       />
     </>

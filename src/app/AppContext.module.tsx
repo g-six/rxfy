@@ -71,7 +71,6 @@ export const MapProvider = (props: any) => {
   const search: ReadonlyURLSearchParams = useSearchParams();
   const router = useRouter();
   let init = initialState;
-  console.log(props.children);
   const setDefaultQueryKeyValues = () => {
     let query = '?beds=2&baths=1&minprice=750000&maxprice=20000000';
     const child = Array.isArray(props.children) ? props.children[0] : props.children;
