@@ -18,3 +18,24 @@ export function getSelectedPropertyTypes(property_type: string) {
       return [];
   }
 }
+
+export function getSelectedPropertyTypeId(property_type: string) {
+  switch (property_type) {
+    case 'house':
+      return [3, 4, 11, 12];
+    case 'aptcondo':
+      return [1];
+    case 'tnhouse':
+      return [2];
+    case 'duplex':
+      return [8, 9];
+    case 'nonstrata':
+      return [5];
+    case 'manufactured':
+      return [6, 7];
+    case 'others':
+      return [10];
+    default:
+      return [];
+  }
+}

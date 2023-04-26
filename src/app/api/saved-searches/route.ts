@@ -1,8 +1,9 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { encrypt } from '@/_utilities/encryption-helper';
 import { extractBearerFromHeader } from '../request-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getResponse } from '../response-helper';
+import { getNewSessionKey } from '../update-session';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -50,152 +51,63 @@ const gqlFindCustomer = `query FindCustomer($id: ID!) {
   }
 }`;
 
-const gql_update_session = `mutation UpdateCustomerSession ($id: ID!, $last_activity_at: DateTime!) {
-  session: updateCustomer(id: $id, data: { last_activity_at: $last_activity_at }) {
-    record: data {
-      id
-      attributes {
-        email
-        full_name
-        phone_number
-        birthday
-        last_activity_at
-        yes_to_marketing
-      }
-    }
-  }
-}`;
 const gql_create_saved_search = `mutation CreateSavedSearch ($data: SavedSearchInput!) {
     createSavedSearch(data: $data) {
       data {
         attributes {
-          saved_searches {
-            data {
-              attributes {
-                ${gqf_saved_search_attributes}
-              }
-            }
-          }
+          ${gqf_saved_search_attributes}
         }
       }
     }
   }`;
 
 export async function POST(request: Request) {
-  let session_key = extractBearerFromHeader(request.headers.get('authorization') || '');
-  if (!session_key) return;
+  const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
+  if (!token || !guid)
+    return getResponse(
+      {
+        error: 'Please login',
+      },
+      401,
+    );
 
-  const { search_url, search_params } = await request.json();
-  const id = Number(session_key.split('-').pop());
-
-  if (!isNaN(id)) {
-    const { data: response_data } = await axios.post(
+  let session_key = `${token}-${guid}`;
+  try {
+    const { search_params } = await request.json();
+    const { data: search_response } = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
       {
-        query: gqlFindCustomer,
+        query: gql_create_saved_search,
         variables: {
-          id,
+          data: {
+            customer: guid,
+            ...search_params,
+          },
         },
       },
       {
-        headers,
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
       },
     );
-
-    if (response_data.data?.customer?.data?.attributes) {
-      const { attributes } = response_data.data?.customer?.data;
-      const { email, last_activity_at } = attributes;
-      const encrypted_email = encrypt(email);
-      const compare_key = `${encrypt(last_activity_at)}.${encrypted_email}-${id}`;
-      if (compare_key === session_key) {
-        const dt = new Date().toISOString();
-        const {
-          data: {
-            data: {
-              session: { record },
-            },
-          },
-        } = await axios.post(
-          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-          {
-            query: gql_update_session,
-            variables: {
-              id,
-              last_activity_at: dt,
-            },
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-              'Content-Type': 'application/json',
-            },
-          },
-        );
-
-        session_key = `${encrypt(dt)}.${encrypted_email}-${id}`;
-        const { birthday: birthdate, ...attributes } = record.attributes;
-        let birthday;
-        if (birthdate) {
-          birthday = new Intl.DateTimeFormat('en-CA').format(new Date(`${birthdate}T00:00:00`));
-        }
-
-        const { data: search_response } = await axios.post(
-          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-          {
-            query: gql_create_saved_search,
-            variables: {
-              data: {
-                customer: id,
-                search_url,
-                search_params,
-              },
-            },
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-              'Content-Type': 'application/json',
-            },
-          },
-        );
-        let saved_search;
-        if (search_response.data?.createSavedSearch?.data?.id) {
-          const { id, attributes } = search_response.data?.createSavedSearch?.data;
-          saved_search = {
-            ...attributes,
-            id,
-          };
-        }
-
-        return new Response(
-          JSON.stringify(
-            {
-              user: {
-                ...attributes,
-                birthday,
-                id,
-                email,
-              },
-              saved_search,
-              session_key,
-            },
-            null,
-            4,
-          ),
-          {
-            headers: {
-              'content-type': 'application/json',
-            },
-            status: 200,
-          },
-        );
-      }
+    let saved_search;
+    if (search_response.data?.createSavedSearch?.data?.id) {
+      const { id, attributes } = search_response.data?.createSavedSearch?.data;
+      saved_search = {
+        ...attributes,
+        id,
+      };
+    } else if (search_response.errors) {
+      console.log(search_response.errors);
     }
-  } else {
+
     return new Response(
       JSON.stringify(
         {
-          error: 'Sorry, please login',
+          saved_search,
+          session_key,
         },
         null,
         4,
@@ -204,28 +116,14 @@ export async function POST(request: Request) {
         headers: {
           'content-type': 'application/json',
         },
-        status: 401,
-        statusText: 'Sorry, please login',
+        status: 200,
       },
     );
+  } catch (e) {
+    const error = e as AxiosError;
+    console.log('Error in saving saved-searches.POST API');
+    console.log(error.response?.data);
   }
-
-  return new Response(
-    JSON.stringify(
-      {
-        error: 'Please login',
-      },
-      null,
-      4,
-    ),
-    {
-      headers: {
-        'content-type': 'application/json',
-      },
-      status: 401,
-      statusText: 'Please login',
-    },
-  );
 }
 
 export async function GET(request: Request) {
@@ -240,12 +138,14 @@ export async function GET(request: Request) {
     );
   }
 
+  const { search_params } = await request.json();
   const xhr = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {
       query: gql_create_saved_searches,
       variables: {
         customer_id: guid,
+        ...search_params,
       },
     },
     {
@@ -255,20 +155,11 @@ export async function GET(request: Request) {
 
   let records = [];
   if (xhr?.data?.data?.savedSearches?.records?.length) {
+    console.log(xhr.data.data.savedSearches);
     records = xhr.data.data.savedSearches.records.map((record: any) => {
-      const url = new URL(`${request.url}`);
-      const { searchParams } = new URL(`${url.origin}/my-saved-searches?${record.attributes.search_url}`);
-      let params = {};
-      searchParams.forEach((val, key) => {
-        params = {
-          ...params,
-          [key]: isNaN(Number(val)) ? val : Number(val),
-        };
-      });
       return {
         id: Number(record.id),
         ...record.attributes,
-        params,
       };
     });
 

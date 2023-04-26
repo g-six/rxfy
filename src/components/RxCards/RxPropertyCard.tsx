@@ -8,6 +8,7 @@ import useLove from '@/hooks/useLove';
 
 import styles from './RxPropertyCard.module.scss';
 import Cookies from 'js-cookie';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 
 export function PropertyCardSmall(props: Record<string, string>) {
   const [photo] = (props.photos || []) as unknown as string[];
@@ -123,7 +124,7 @@ function RxComponentChomper({ config, children }: any): any {
             ...RxElement.props,
             style: config.photos
               ? {
-                  backgroundImage: `url(${(config.photos as string[])[0]})`,
+                  backgroundImage: `url(${getImageSized((config.photos as string[])[0], 540)})`,
                 }
               : {},
             children: RxComponentChomper({

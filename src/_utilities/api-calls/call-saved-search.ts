@@ -1,6 +1,9 @@
 import { SavedSearchInput } from '@/_typings/saved-search';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { queryStringToObject } from '../url-helper';
+import { DwellingType } from '@/_typings/property';
+import { getSelectedPropertyTypeId } from '../data-helpers/dwelling-type-helper';
 
 /**
  * Save a customer map search
@@ -8,11 +11,49 @@ import Cookies from 'js-cookie';
  * @param opts { search_url?, search_params? }
  * @returns
  */
-export async function saveSearch(agent: { id: number; logo?: string }, opts?: { search_url?: string; search_params?: SavedSearchInput }) {
+export async function saveSearch(agent: { id: number; logo?: string }, opts: { search_url?: string; search_params?: SavedSearchInput }) {
+  let { search_params } = opts || {};
+  if (!search_params || Object.keys(search_params).length === 0) {
+    if (opts.search_url) {
+      search_params = queryStringToObject(opts.search_url);
+    }
+  }
+
+  let { dwelling_types, types } = search_params || {};
+  let dwelling_type_ids: number[] = [];
+  dwelling_types?.forEach((t: DwellingType) => {
+    if (t === DwellingType.APARTMENT_CONDO) dwelling_type_ids = dwelling_type_ids.concat([1]);
+    if (t === DwellingType.TOWNHOUSE) dwelling_type_ids = dwelling_type_ids.concat([2]);
+    if (t === DwellingType.HOUSE) {
+      dwelling_type_ids = dwelling_type_ids.concat([3, 4]);
+    }
+    if (t === DwellingType.DUPLEX) {
+      dwelling_type_ids = dwelling_type_ids.concat([8, 9]);
+    }
+    if (t === DwellingType.ROW_HOUSE) {
+      dwelling_type_ids = dwelling_type_ids.concat([5]);
+    }
+    if (t === DwellingType.MANUFACTURED) {
+      dwelling_type_ids = dwelling_type_ids.concat([6]);
+    }
+    if (t === DwellingType.OTHER) {
+      dwelling_type_ids = dwelling_type_ids.concat([10]);
+    }
+  });
+  types?.split('/').forEach((ptype: string) => {
+    console.log({ ptype });
+    dwelling_type_ids = dwelling_type_ids.concat(getSelectedPropertyTypeId(ptype));
+  });
+
   const response = await axios.post(
     '/api/saved-searches',
     {
-      ...opts,
+      search_params: {
+        ...search_params,
+        dwelling_types: dwelling_type_ids,
+        dwelling_type: undefined,
+        types: undefined,
+      },
       agent: agent.id,
       logo: agent.logo,
     },
