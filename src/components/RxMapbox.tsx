@@ -249,7 +249,7 @@ export function RxMapbox(props: RxMapboxProps) {
               ? [{ match: { 'data.Status': 'Active' } }, { match: { 'data.Status': 'Sold' } }]
               : [{ match: { 'data.Status': 'Active' } }],
             minimum_should_match: 1,
-            must_not,
+            must_not: must_not.concat([{ match: { 'data.Status': 'Sold' } }]),
           },
         },
       },
