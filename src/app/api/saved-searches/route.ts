@@ -37,7 +37,9 @@ const gqf_saved_search_attributes = `
                 build_year
                 tags
                 last_email_at
-                is_active`;
+                is_active
+                minsqft
+                maxsqft`;
 
 const gqlFindCustomer = `query FindCustomer($id: ID!) {
   customer(id: $id) {
