@@ -14,7 +14,7 @@ type Props = {
   };
 };
 
-export default function StatBlock({ child, stats, config }: Props) {
+export default function RxStatBlock({ child, stats, config }: Props) {
   const { title, row } =
     captureMatchingElements(child, [
       { elementName: 'title', searchFn: searchByClasses(['stat-name']) },
@@ -25,9 +25,14 @@ export default function StatBlock({ child, stats, config }: Props) {
     <>
       {cloneElement(child, {}, [
         title,
-        stats.map(stat => {
-          return replaceAllTextWithBraces(row, { [config.label]: stat.label, [config.value]: stat.value });
-        }),
+        row
+          ? stats.map((stat, i) => {
+              return replaceAllTextWithBraces(cloneElement(row, { key: `${stat.label}_${stat.value}_${i}` }), {
+                [config.label]: stat.label,
+                [config.value]: stat.value,
+              });
+            })
+          : '',
       ])}
     </>
   );

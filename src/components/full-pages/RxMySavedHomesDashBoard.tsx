@@ -1,20 +1,21 @@
 'use client';
-import { transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { captureMatchingElements, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { AgentData } from '@/_typings/agent';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
-import React, { ReactElement, ReactNode, cloneElement, useMemo, useState } from 'react';
-import { MLSProperty, LovedPropertyDataModel } from '@/_typings/property';
+import React, { ReactElement, ReactNode, useState } from 'react';
+import { LovedPropertyDataModel } from '@/_typings/property';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
-import { Events, tabEventMapping } from '@/_typings/events';
+import { Events } from '@/_typings/events';
 import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
 import { LoveDataModel } from '@/_typings/love';
-import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
-import RxPropertyCard from '../RxCards/RxPropertyCard';
+
 import IndividualTab from '@/_replacers/DashboardSavedHomesPage/IndividualTab';
 // import { RxMapbox } from '../RxMapbox';
 // import MapProvider from '@/app/AppContext.module';
 import CompareTab from '@/_replacers/DashboardSavedHomesPage/CompareTab';
-import { fireCustomEvent, getCurrentTab } from '@/_helpers/functions';
+import { fireCustomEvent } from '@/_helpers/functions';
+
+import SavedItemsColumn from '@/_replacers/DashboardSavedHomesPage/SavedItemsColumn';
 
 type Props = {
   agent_data: AgentData;
@@ -29,6 +30,7 @@ type Props = {
 export default function RxMySavedHomesDashBoard({ agent_data, className, children, config }: Props) {
   // const [currentTab, setCurrentTab] = useState<string>('');
   const [loved, setLoved] = useState<LovedPropertyDataModel[]>([]);
+
   const processLovedHomes = async (records: LoveDataModel[]) => {
     const local_loves = (getData(Events.LovedItem) as unknown as string[]) || [];
     const loved: LovedPropertyDataModel[] = [];
@@ -58,12 +60,6 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
       }
     });
   }, []);
-
-  const handleOnCardClick = (mls_id: string) => () => {
-    const tabsDom = document.querySelector('.indiv-map-tabs');
-    const currentTab: string = tabsDom?.children ? getCurrentTab(Array.from(tabsDom.children)) : 'default';
-    fireCustomEvent({ mls_id }, tabEventMapping[currentTab]);
-  };
   const matches = [
     // {
     //   searchFn: searchByClasses(['indiv-map-tabs']),
@@ -75,40 +71,7 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
       //left sidebar with saved loved , shared between each tab
       searchFn: searchByClasses(['properties-column']),
       transformChild: (child: ReactElement) => {
-        const [PlaceholderCard] = child.props.children.filter((c: React.ReactElement) =>
-          c.props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.PROPERTY_CARD),
-        );
-        const propertyCards =
-          loved?.length > 0
-            ? loved.map((p: LovedPropertyDataModel, sequence_no: number) => {
-                const { love, mls_id: MLS_ID, title: Address, asking_price: AskingPrice, area: Area, beds, baths, sqft, ...listing } = p;
-                console.log(p);
-                return (
-                  <div key={p.mls_id} onClick={handleOnCardClick(MLS_ID)}>
-                    <RxPropertyCard
-                      love={love}
-                      key={p.mls_id}
-                      isLink={false}
-                      listing={{
-                        ...(listing as unknown as MLSProperty),
-                        MLS_ID,
-                        Address,
-                        AskingPrice,
-                        Area,
-                        L_BedroomTotal: beds || 1,
-                        L_TotalBaths: baths || 1,
-                        L_FloorArea_Total: sqft || 0,
-                      }}
-                      sequence={sequence_no}
-                      agent={agent_data.id}
-                    >
-                      {PlaceholderCard}
-                    </RxPropertyCard>
-                  </div>
-                );
-              })
-            : [];
-        return cloneElement(child, {}, [child.props.children[0], ...propertyCards]);
+        return <SavedItemsColumn loved={loved} child={child} agent_data={agent_data} />;
       },
     },
     {

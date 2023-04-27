@@ -47,6 +47,6 @@ export interface EventsData {
 export const tabEventMapping: { [key: string]: Events } = {
   'indiv-view': Events.SavedItemsIndivTab,
   'map-view': Events.SavedItemsMapTab,
-  'compare-view': Events.SavedItemsCompareTab,
-  default: Events.SavedItemsCompareTab,
+  // 'compare-view': Events.SavedItemsCompareTab,
+  // default: Events.SavedItemsCompareTab,
 };
