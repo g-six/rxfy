@@ -343,7 +343,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           );
         }
 
-        if (node.tagName === 'form') {
+        if (node.tagName === 'form' && className && className.indexOf('contact-form') >= 0) {
           return (
             <div {...props} id='rex-form' data-class={className}>
               {domToReact(node.children) as ReactElement[]}
