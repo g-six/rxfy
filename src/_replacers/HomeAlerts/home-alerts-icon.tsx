@@ -13,6 +13,7 @@ import { HomeAlertStep } from '@/_typings/home-alert';
 export default function HomeAlertsIcon({ agent, child }: ReplacerHomeAlerts) {
   const hook = useHomeAlert(agent);
   const [show, toggleShow] = useState(false);
+  const [full_url, setCurrentFullUrl] = useState('');
 
   const matches = [
     {
@@ -30,7 +31,7 @@ export default function HomeAlertsIcon({ agent, child }: ReplacerHomeAlerts) {
               } else if (Cookies.get('session_key')) {
                 step = HomeAlertStep.STEP_1;
               }
-              hook.onAction(step);
+              hook.onAction({ step, url: full_url });
             },
           },
           child.props.children,
@@ -47,14 +48,11 @@ export default function HomeAlertsIcon({ agent, child }: ReplacerHomeAlerts) {
     }
   }, [hook]);
 
-  // useEffect(() => {
-  //   if (getData('dismissSavedSearch') && getData('dismissSavedSearch') !== null) {
-  //     const { dismissed_at } = getData('dismissSavedSearch') as unknown as { dismissed_at?: string };
-  //     toggleShow(dismissed_at !== undefined);
-  //   } else {
-  //     toggleShow(false);
-  //   }
-  // }, []);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setCurrentFullUrl(location.href);
+    }
+  }, []);
 
   return (
     <Transition

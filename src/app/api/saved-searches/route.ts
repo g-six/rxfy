@@ -14,6 +14,7 @@ export const gqf_saved_search_attributes = `
                 lng
                 beds
                 baths
+                city
                 minprice
                 maxprice
                 nelat
@@ -160,15 +161,14 @@ export async function GET(request: Request) {
         ...record.attributes,
       };
     });
-
-    return getResponse(
-      {
-        records,
-        session_key,
-      },
-      200,
-    );
   }
+  return getResponse(
+    {
+      records,
+      session_key,
+    },
+    200,
+  );
 }
 
 const gql_my_saved_searches = `query MySavedSearches($customer_id: ID!) {

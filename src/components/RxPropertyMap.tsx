@@ -24,6 +24,7 @@ import HomeAlertsReplacer from '@/_replacers/HomeAlerts/home-alerts';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { RxUserSessionLink } from './Nav/RxUserSessionLink';
 import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
+import { getSearches } from '@/_utilities/api-calls/call-saved-search';
 import { LoveDataModel } from '@/_typings/love';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 import { Events } from '@/_typings/events';
@@ -322,11 +323,12 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
 
   React.useEffect(() => {
     if (search.toString()) {
-      getLovedHomes().then(response => {
-        if (response && response.records) {
-          processLovedHomes(response.records);
-        }
-      });
+      getSearches().then(console.log);
+      // getLovedHomes().then(response => {
+      //   if (response && response.records) {
+      //     processLovedHomes(response.records);
+      //   }
+      // });
     }
   }, []);
 

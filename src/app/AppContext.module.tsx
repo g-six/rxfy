@@ -14,6 +14,7 @@ const initialState: MapStatePropsWithFilters = {
   minprice: 300000,
   maxprice: 20000000,
   maxsqft: 63591,
+  city: '',
   suggestions: [],
 };
 // Create the Map context
@@ -155,6 +156,10 @@ export const MapProvider = (props: any) => {
     if (search.get('nelng')) {
       let value = Number(search.get('nelng'));
       if (!isNaN(value)) init.nelng = value;
+    }
+    if (search.get('city')) {
+      let value = search.get('city') as string;
+      init.city = value;
     }
     if (search.get('types')) {
       let value: string[] = (search.get('types') as string).split('%2F');
