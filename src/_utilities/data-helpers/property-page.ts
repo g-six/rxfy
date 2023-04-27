@@ -1,5 +1,5 @@
 import { AgentData } from '@/_typings/agent';
-import { DateFields, FinanceFields, MLSProperty, NumericFields } from '@/_typings/property';
+import { DateFields, FinanceFields, GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty, NumericFields } from '@/_typings/property';
 import { AxiosError, AxiosStatic } from 'axios';
 import { dateStringToDMY } from './date-helper';
 import { capitalizeFirstLetter } from '../formatters';
@@ -120,55 +120,7 @@ export function getGqlForPropertyId(id: number) {
         property(id: $id) {
             data {
                 id
-                attributes {
-                  lat
-                  lon
-                  guid
-                  title
-                  mls_id
-                  area
-                  city
-                  price_per_sqft
-                  property_type
-                  asking_price
-                  changes_applied
-                  age
-                  year_built
-                  baths
-                  beds
-                  has_laundry
-                  has_dishwasher
-                  has_fridge
-                  has_stove
-                  has_deck
-                  has_patio
-                  has_balcony
-                  has_fenced_yard
-                  garage
-                  postal_zip_code
-                  style_type
-                  status
-                  has_storage
-                  listed_at
-                  land_title
-                  gross_taxes
-                  original_price
-                  lot_sqm
-                  lot_sqft
-                  floor_area
-                  floor_area_uom
-                  tax_year
-                  description
-                  parking
-                  real_estate_board {
-                    data {
-                      attributes {
-                        legal_disclaimer
-                      }
-                    }
-                  }
-                  mls_data
-                }
+                attributes {${GQ_FRAGMENT_PROPERTY_ATTRIBUTES}}
             }
         }
     }`,

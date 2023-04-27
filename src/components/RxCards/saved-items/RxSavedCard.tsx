@@ -1,13 +1,10 @@
 import React, { ReactElement, cloneElement } from 'react';
 import { Events } from '@/_typings/events';
-import { LovedPropertyDataModel, MLSProperty } from '@/_typings/property';
+import { MLSProperty } from '@/_typings/property';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import { classNames } from '@/_utilities/html-helper';
 import useLove from '@/hooks/useLove';
-
-import styles from './RxPropertyCard.module.scss';
-import Cookies from 'js-cookie';
 import { replaceAllTextWithBraces, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 
