@@ -151,7 +151,7 @@ export async function getAgentListings(agent_id: string): Promise<{
     } else {
       console.log('Cache file for featured listings grid found', url);
     }
-    if (res.ok && content_type.indexOf('/json') > 0) {
+    if (res.ok && (content_type.indexOf('/json') > 0 || content_type.indexOf('/xml') > 0)) {
       const { hits: results } = await res.json();
 
       const { hits } = results as {
