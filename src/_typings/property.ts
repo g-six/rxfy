@@ -48,6 +48,8 @@ export interface PropertyDataModel {
   city: string;
   mls_id: string;
   property_type: string;
+  lon?: number;
+  lat?: number;
   beds?: number;
   baths?: number;
   sqft?: number;
@@ -71,7 +73,7 @@ export interface PropertyDataModel {
   postal_zip_code?: string;
   parking?: string;
   style_type?: string;
-  status?: 'Active' | 'Expired';
+  status?: 'Active' | 'Expired' | 'Sold';
   has_storage?: boolean;
   listed_at?: Date;
   land_title?: string;
@@ -108,7 +110,9 @@ export interface MLSProperty extends Record<string, string | number | boolean | 
   B_Depth: number;
   B_Heating: string;
   B_Parking_Access: string;
+  B_Parking_Type: string[];
   B_Style: string;
+  B_OutdoorArea: string[];
   LO1_URL: string;
   LO2_URL: string;
   L_Age: number;
@@ -228,3 +232,53 @@ export interface LovedPropertyDataModel extends PropertyDataModel {
 }
 
 export type MapStatePropsWithFilters = MapStateProps & PropertyAttributeFilters;
+
+export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
+                lat
+                lon
+                guid
+                title
+                mls_id
+                area
+                city
+                price_per_sqft
+                property_type
+                asking_price
+                changes_applied
+                age
+                year_built
+                baths
+                beds
+                has_laundry
+                has_dishwasher
+                has_fridge
+                has_stove
+                has_deck
+                has_patio
+                has_balcony
+                has_fenced_yard
+                garage
+                postal_zip_code
+                style_type
+                status
+                has_storage
+                listed_at
+                land_title
+                gross_taxes
+                original_price
+                lot_sqm
+                lot_sqft
+                floor_area
+                floor_area_uom
+                tax_year
+                description
+                parking
+                real_estate_board {
+                  data {
+                    attributes {
+                      legal_disclaimer
+                    }
+                  }
+                }
+                mls_data
+`;
