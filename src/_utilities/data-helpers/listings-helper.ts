@@ -129,11 +129,25 @@ export async function getAgentListings(agent_id: string): Promise<{
     let url: string = `https://pages.leagent.com/listings/${agent_id}.json`;
     let res = await fetch(url);
     const content_type = res.headers.get('content-type') as string;
-    if (!res.ok || content_type.indexOf('/json') === -1) {
+    if (!res.ok || (content_type.indexOf('xml') === -1 && content_type.indexOf('json') === -1)) {
       console.log('Cache file not found', content_type, url);
       const regen_xhr = await axios.get(`https://live-integrations.leagent.com/opensearch/agent-listings/${agent_id}?regen=1`);
 
-      console.log('regen_xhr', regen_xhr.data);
+      if (regen_xhr.data?.hits) {
+        const { hits } = regen_xhr.data?.hits as { hits: Hit[] };
+        const [active, sold] = getSegregatedListings(
+          hits.filter(hit => {
+            // Just feed publicly listed properties
+            return hit._index !== 'private';
+          }),
+        );
+        console.log('regen_xhr', hits);
+
+        return {
+          active,
+          sold,
+        };
+      }
     } else {
       console.log('Cache file for featured listings grid found', url);
     }
