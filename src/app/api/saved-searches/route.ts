@@ -1,6 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { encrypt } from '@/_utilities/encryption-helper';
-import { extractBearerFromHeader } from '../request-helper';
+
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getResponse } from '../response-helper';
 import { getNewSessionKey } from '../update-session';
@@ -9,7 +8,7 @@ const headers = {
   'Content-Type': 'application/json',
 };
 
-const gqf_saved_search_attributes = `
+export const gqf_saved_search_attributes = `
                 search_url
                 lat
                 lng
@@ -140,14 +139,12 @@ export async function GET(request: Request) {
     );
   }
 
-  const { search_params } = await request.json();
   const xhr = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {
-      query: gql_create_saved_searches,
+      query: gql_my_saved_searches,
       variables: {
         customer_id: guid,
-        ...search_params,
       },
     },
     {
@@ -157,7 +154,6 @@ export async function GET(request: Request) {
 
   let records = [];
   if (xhr?.data?.data?.savedSearches?.records?.length) {
-    console.log(xhr.data.data.savedSearches);
     records = xhr.data.data.savedSearches.records.map((record: any) => {
       return {
         id: Number(record.id),
@@ -175,34 +171,12 @@ export async function GET(request: Request) {
   }
 }
 
-const gql_create_saved_searches = `query MySavedSearches($customer_id: ID!) {
+const gql_my_saved_searches = `query MySavedSearches($customer_id: ID!) {
   savedSearches(filters: { customer: { id: { eq: $customer_id } } }) {
     records: data {
       id
       attributes {
-        is_active
-        search_url
-        lat
-        lng
-        beds
-        baths
-        minprice
-        maxprice
-        nelat
-        nelng
-        swlat
-        swlng
-        zoom
-        type
-        dwelling_types {
-            data {
-                id
-                attributes {
-                    name
-                    code
-                }
-            }
-        }
+        ${gqf_saved_search_attributes}
       }
     }
   }
