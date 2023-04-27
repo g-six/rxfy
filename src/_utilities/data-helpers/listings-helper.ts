@@ -128,6 +128,7 @@ export async function getAgentListings(agent_id: string): Promise<{
     let url: string = `https://pages.leagent.com/listings/${agent_id}.json`;
     let res = await fetch(url);
     const content_type = res.headers.get('content-type') as string;
+    console.log(res);
     if (!res.ok || content_type.indexOf('/json') === -1) {
       console.log('Cache file not found', content_type, url);
     } else {
