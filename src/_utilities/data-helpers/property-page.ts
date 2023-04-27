@@ -50,10 +50,10 @@ export const amenities_stats: Record<string, string> = {
   B_Amenities: 'Amenities',
   B_SiteInfluences: 'Site Influences',
   B_Bylaws: 'By Laws',
-  L_Fireplaces: '# of Fireplaces',
-  L_Fireplace_Fuel: 'Fireplace Fueled by',
   L_Floor_Finish: 'Floor Finish',
   L_Locker: 'Locker',
+  L_Fireplaces: '# of Fireplaces',
+  L_Fireplace_Fuel: 'Fireplace Fueled by',
 };
 
 export const room_stats: Record<string, {}> = {
