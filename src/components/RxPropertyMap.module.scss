@@ -2,9 +2,6 @@
   :global(.propcard-image) {
     @apply flex-none;
   }
-  :global(.propcard-details) {
-    @apply flex-grow gap-0;
-  }
 }
 
 .RxPropertyMap {
