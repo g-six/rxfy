@@ -142,9 +142,11 @@ export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapp
     });
 
     // Photo
-    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) > .propcard-image`, {
-      backgroundImage: (p.photos as string[])[0],
-    });
+    if (p.photos) {
+      replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) > .propcard-image`, {
+        backgroundImage: (p.photos as string[])[0],
+      });
+    }
 
     // Area
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .area-text`, {
