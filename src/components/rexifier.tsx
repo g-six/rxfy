@@ -618,7 +618,7 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
         );
       }
     }
-    if (placeholder === '{Address}') {
+    if (['{Address}', '{Agent Address}'].includes(placeholder)) {
       if (agent_data.street_1) {
         return (
           <>
