@@ -120,6 +120,15 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
 
   if (agent_data.metatags?.logo_for_light_bg) {
     $('.navbar-wrapper-2 a[href="/"] img').remove();
+    $('.navbar-wrapper-2 .logo---phone-email a[data-type="email"]').text(agent_data.email);
+    $('.navbar-wrapper-2 .logo---phone-email a[data-type="email"]').attr(
+      'href',
+      `mailto:${agent_data.email}?subject=${encodeURIComponent('[Leagent] Home Inquiry')}&body=${encodeURIComponent(
+        `Hi ${agent_data.full_name.split(' ')[0]}!\n Found your Leagent website and I'm looking for a realtor for help.`,
+      )}`,
+    );
+    $('.navbar-wrapper-2 .logo---phone-email a[data-type="phone"]').attr('href', `tel:${agent_data.phone}`);
+    $('.navbar-wrapper-2 .logo---phone-email a[data-type="phone"]').text(agent_data.phone);
     $('.navbar-wrapper-2 > a[href="#"]').attr('href', '/');
     $('.navbar-wrapper-2 > a h3').remove();
     replaceByCheerio($, '.navbar-wrapper-2 > a', {
