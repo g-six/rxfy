@@ -49,8 +49,6 @@ export async function sendTemplate(template_name: string, send_to: MailChimp.Mes
     merge_vars,
   };
 
-  console.log(JSON.stringify({ merge_vars }, null, 4));
-
   const xhr = await mailchimp.messages.sendTemplate({
     template_name,
     template_content: [],

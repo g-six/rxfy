@@ -55,9 +55,6 @@ export async function saveDocumentUpload(document_id: number, file: { file: File
   const { session_key, ...record } = response.data;
   if (session_key) {
     Cookies.set('session_key', session_key);
-    if (record) {
-      console.log({ record });
-    }
   } else {
     console.log('Warning: no new session key has bee issued in saveDocumentUpload()');
   }

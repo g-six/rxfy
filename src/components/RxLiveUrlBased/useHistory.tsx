@@ -7,7 +7,6 @@ const useHistory = () => {
   React.useEffect(() => {
     const fnListener = () => {
       if (typeof window.location !== 'undefined') {
-        console.log('test');
         setLocation(window.location);
       }
     };

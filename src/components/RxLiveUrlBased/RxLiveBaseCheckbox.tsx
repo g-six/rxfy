@@ -4,7 +4,7 @@ import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';
 import { useMapState, useMapMultiUpdater } from '@/app/AppContext.module';
 import { MapStatePropsWithFilters } from '@/_typings/property';
 
-const SEPARATOR = '%2F';
+export const PTYPE_SEPARATOR = '%2F';
 export function RxLiveCheckbox({ child, filter, value }: { child: React.ReactElement; filter: string; value: string }) {
   const search: ReadonlyURLSearchParams = useSearchParams();
   const state: MapStatePropsWithFilters = useMapState();
@@ -22,7 +22,7 @@ export function RxLiveCheckbox({ child, filter, value }: { child: React.ReactEle
       const [k, v] = kv.split('=');
       params = {
         ...params,
-        [k]: k === filter ? v.split(SEPARATOR) : v,
+        [k]: k === filter ? v.split(PTYPE_SEPARATOR) : v,
       };
     }
   });
@@ -39,7 +39,7 @@ export function RxLiveCheckbox({ child, filter, value }: { child: React.ReactEle
               Object.keys(params).forEach(key => {
                 if (key === filter) {
                   if (params[filter]) {
-                    query = `${query}&${key}=${(params[filter] as string[]).join(SEPARATOR)}`;
+                    query = `${query}&${key}=${(params[filter] as string[]).join(PTYPE_SEPARATOR)}`;
                   }
                 } else {
                   query = `${query}&${key}=${params[key]}`;

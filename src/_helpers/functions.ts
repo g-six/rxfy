@@ -71,7 +71,7 @@ export const toDataURL = (url: string) =>
         }),
     )
     .catch(err => {
-      console.log('TODATAURL ERR:', err);
+      console.log('Caught error in _helpers/functions.toDataURL:', err);
     });
 
 export function splitObject(obj: Record<string, string>) {

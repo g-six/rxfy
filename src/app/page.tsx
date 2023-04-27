@@ -1,4 +1,5 @@
 import { CheerioAPI, load } from 'cheerio';
+import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
 import Image from 'next/image';
 import { Inter } from 'next/font/google';
@@ -41,6 +42,10 @@ export default async function Home({ params, searchParams }: { params: Record<st
     console.log('Unable to fetch page html for', webflow_page_url);
   }
 
+  if (typeof data !== 'string') {
+    data = '<html><head><meta name="title" content="Not found" /></head><body>Not found</body></html>';
+    notFound();
+  }
   const $: CheerioAPI = load(data);
 
   replaceByCheerio($, '.search-input-field', {

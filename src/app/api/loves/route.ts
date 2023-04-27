@@ -87,113 +87,92 @@ export async function GET(request: Request) {
       },
       401,
     );
-
-  const user = await getNewSessionKey(token, guid);
+  let session_key = `${token}-${guid}`;
   let message = 'Unable to retrieve saved homes';
-  if (user) {
-    const love_response = await axios.post(
-      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-      {
-        query: gql_get_loved,
-        variables: {
-          customer: guid,
-        },
-      },
-      {
-        headers,
-      },
-    );
 
-    if (love_response?.data) {
-      const { data: response_data } = love_response.data;
-      return new Response(
-        JSON.stringify(
-          {
-            session_key: user.session_key,
-            records: response_data.loves.data.map(
-              (
-                love: Record<
-                  string,
-                  {
-                    notes?: string;
-                    property: {
-                      data: {
-                        id: number;
-                        attributes: Record<string, string | number> & {
-                          mls_data: MLSProperty;
-                        };
-                      };
-                    };
-                  }
-                >,
-              ) => {
-                const {
-                  asking_price,
-                  AskingPrice,
-                  photos,
-                  L_BedroomTotal: beds,
-                  L_TotalBaths: baths,
-                  L_FloorArea_GrantTotal: sqft,
-                  ...other_fields
-                } = love.attributes.property.data.attributes.mls_data;
-                let [thumb] = photos ? (photos as string[]).slice(0, 1) : [];
-                if (thumb === undefined) {
-                  thumb = 'https://assets.website-files.com/6410ad8373b7fc352794333b/642df6a57f39e6607acedd7f_Home%20Placeholder-p-500.png';
-                }
-                return {
-                  id: Number(love.id),
-                  notes: love.attributes.notes || '',
-                  property: {
-                    id: Number(love.attributes.property.data.id),
-                    ...love.attributes.property.data.attributes,
-                    style: other_fields.B_Style ? other_fields.B_Style : undefined,
-                    Status: other_fields.Status || 'N/A',
-                    asking_price: asking_price || AskingPrice,
-                    beds,
-                    baths,
-                    sqft,
-                    photos: [thumb],
-                    area:
-                      love.attributes.property.data.attributes.area ||
-                      love.attributes.property.data.attributes.mls_data.City ||
-                      love.attributes.property.data.attributes.mls_data.Area,
-                    mls_data: undefined, // Hide prized data
-                  },
-                };
-              },
-            ),
-          },
-          null,
-          4,
-        ),
-        {
-          headers: {
-            'content-type': 'application/json',
-          },
-          status: 200,
-        },
-      );
-    }
-  } else {
-    message = `${message}\nNo valid user session`;
-  }
-
-  return new Response(
-    JSON.stringify(
-      {
-        session_key: user?.session_key,
-        message,
-      },
-      null,
-      4,
-    ),
+  const love_response = await axios.post(
+    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {
-      headers: {
-        'content-type': 'application/json',
+      query: gql_get_loved,
+      variables: {
+        customer: guid,
       },
-      status: user?.session_key ? 400 : 401,
+    },
+    {
+      headers,
     },
   );
+
+  if (love_response?.data) {
+    const { data: response_data } = love_response.data;
+
+    const user = await getNewSessionKey(token, guid);
+
+    if (!user) return getResponse({ message: 'Please login' }, 400);
+
+    return getResponse(
+      {
+        session_key: user.session_key,
+        records: response_data.loves.data.map(
+          (
+            love: Record<
+              string,
+              {
+                notes?: string;
+                property: {
+                  data: {
+                    id: number;
+                    attributes: Record<string, string | number> & {
+                      mls_data: MLSProperty;
+                    };
+                  };
+                };
+              }
+            >,
+          ) => {
+            const {
+              asking_price,
+              AskingPrice,
+              photos,
+              L_BedroomTotal: beds,
+              L_TotalBaths: baths,
+              L_FloorArea_GrantTotal: sqft,
+              ...other_fields
+            } = love.attributes.property.data.attributes.mls_data;
+            let [thumb] = photos ? (photos as string[]).slice(0, 1) : [];
+            if (thumb === undefined) {
+              thumb = 'https://assets.website-files.com/6410ad8373b7fc352794333b/642df6a57f39e6607acedd7f_Home%20Placeholder-p-500.png';
+            }
+            return {
+              id: Number(love.id),
+              notes: love.attributes.notes || '',
+              property: {
+                id: Number(love.attributes.property.data.id),
+                ...love.attributes.property.data.attributes,
+                style: other_fields.B_Style ? other_fields.B_Style : undefined,
+                Status: other_fields.Status || 'N/A',
+                asking_price: asking_price || AskingPrice,
+                beds,
+                baths,
+                sqft,
+                photos: [thumb],
+                area:
+                  love.attributes.property.data.attributes.area ||
+                  love.attributes.property.data.attributes.mls_data.City ||
+                  love.attributes.property.data.attributes.mls_data.Area,
+                mls_data: undefined, // Hide prized data
+              },
+            };
+          },
+        ),
+      },
+      200,
+    );
+  }
+
+  message = `${message}\nNo valid user session`;
+
+  return getResponse({ message }, 401);
 }
 
 export async function POST(request: Request) {
@@ -208,71 +187,80 @@ export async function POST(request: Request) {
     );
 
   const { agent, mls_id } = await request.json();
+  let session_key = `${token}-${guid}`;
 
   if (agent && mls_id) {
-    const user = await getNewSessionKey(token, guid);
-
-    if (user && user.session_key) {
-      // First, find property
-      const find_home_response = await axios.post(
-        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-        {
-          query: gql_find_home,
-          variables: {
-            mls_id,
-          },
+    // First, find property
+    const find_home_response = await axios.post(
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+      {
+        query: gql_find_home,
+        variables: {
+          mls_id,
         },
-        {
-          headers,
-        },
-      );
+      },
+      {
+        headers,
+      },
+    );
 
-      let property_id = 0;
+    let property_id = 0;
 
-      if (find_home_response.data?.data?.properties?.data?.length) {
-        // Get Strapi ID
-        property_id = find_home_response.data.data.properties.data[0].id;
-      }
+    if (find_home_response.data?.data?.properties?.data?.length) {
+      // Get Strapi ID
+      property_id = find_home_response.data.data.properties.data[0].id;
+    }
 
-      if (property_id) {
-        const love_response = await axios.post(
-          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-          {
-            query: gql_love,
-            variables: {
-              agent,
-              customer: guid,
-              property_id,
-            },
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-              'Content-Type': 'application/json',
-            },
-          },
-        );
-
+    if (property_id) {
+      const user = await getNewSessionKey(token, guid);
+      if (!user?.session_key) {
         return getResponse(
           {
-            session_key: user.session_key,
-            record: {
-              id: Number(love_response.data.data.love.record.id),
-              ...love_response.data.data.love.record.attributes,
-            },
+            message: 'Please log in',
           },
-          200,
+          401,
         );
+      } else {
+        session_key = user.session_key;
       }
+
+      const love_response = await axios.post(
+        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+        {
+          query: gql_love,
+          variables: {
+            agent,
+            customer: guid,
+            property_id,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
 
       return getResponse(
         {
-          session_key: user.session_key,
-          message: 'Unable to save home',
+          session_key,
+          record: {
+            id: Number(love_response.data.data.love.record.id),
+            ...love_response.data.data.love.record.attributes,
+          },
         },
-        400,
+        200,
       );
     }
+
+    return getResponse(
+      {
+        session_key,
+        message: 'Unable to save home',
+      },
+      400,
+    );
   }
 
   return getResponse(

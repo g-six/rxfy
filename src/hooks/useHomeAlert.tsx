@@ -11,6 +11,9 @@ import { BaseUser } from '@/_typings/base-user';
 import { HomeAlertStep } from '@/_typings/home-alert';
 import { signUp } from '@/_utilities/api-calls/call-signup';
 import { saveSearch } from '@/_utilities/api-calls/call-saved-search';
+import { SavedSearchInput } from '@/_typings/saved-search';
+import { queryStringToObject } from '@/_utilities/url-helper';
+import { DwellingType } from '@/_typings/property';
 
 export default function useHomeAlert(agentData: AgentData) {
   const searchParams = useSearchParams();
@@ -71,13 +74,47 @@ export default function useHomeAlert(agentData: AgentData) {
             });
           });
       } else if (Cookies.get('session_key') && step === 2) {
+        let search_params: SavedSearchInput = queryStringToObject(searchParams.toString());
+        const dwelling_types: DwellingType[] = [];
+        if (search_params.types) {
+          search_params.types.split('/').forEach((ptype: string) => {
+            switch (ptype) {
+              case 'house':
+                dwelling_types.push(DwellingType.HOUSE);
+                dwelling_types.push(DwellingType.DUPLEX);
+                break;
+              case 'aptcondo':
+                dwelling_types.push(DwellingType.APARTMENT_CONDO);
+                break;
+              case 'tnhouse':
+                dwelling_types.push(DwellingType.TOWNHOUSE);
+                break;
+              case 'duplex':
+                dwelling_types.push(DwellingType.DUPLEX);
+                break;
+              case 'nonstrata':
+                dwelling_types.push(DwellingType.ROW_HOUSE);
+                break;
+              case 'manufactured':
+                dwelling_types.push(DwellingType.MANUFACTURED);
+                break;
+              case 'others':
+                dwelling_types.push(DwellingType.OTHER);
+                break;
+            }
+          });
+        }
         saveSearch(
           {
             id: Number(agentData.id),
             logo: agentData.metatags?.logo_for_light_bg,
           },
           {
-            search_url: searchParams.toString(),
+            search_params: {
+              ...search_params,
+              dwelling_types,
+              types: undefined,
+            },
           },
         )
           .then(response => {

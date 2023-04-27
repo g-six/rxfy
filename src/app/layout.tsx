@@ -49,6 +49,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     }
   }
 
+  if (typeof data !== 'string') {
+    data = '<html><head></head><body></body></html>';
+  }
+
   const $: CheerioAPI = load(data);
 
   const webflow: WebFlow = {

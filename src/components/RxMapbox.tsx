@@ -19,6 +19,7 @@ import { useSearchParams } from 'next/navigation';
 import { renderClusterBgLayer, renderClusterTextLayer, renderHomePinBgLayer, renderHomePinTextLayer } from '@/_utilities/rx-map-style-helper';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import Cookies from 'js-cookie';
+import axios from 'axios';
 
 type RxMapboxProps = {
   agent: AgentData;
@@ -114,6 +115,39 @@ export function RxMapbox(props: RxMapboxProps) {
     if (!map) return;
     let include_listings = listings;
     // ListingDate
+
+    axios
+      .get(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${map.getCenter().lng},${
+          map.getCenter().lat
+        }.json?types=address&access_token=pk.eyJ1IjoianNjYXN0cm8iLCJhIjoiY2s2YzB6Z25kMDVhejNrbXNpcmtjNGtpbiJ9.28ynPf1Y5Q8EyB_moOHylw`,
+      )
+      .then(({ data }) => {
+        if (!data?.features) return;
+
+        // Reverse geocoding
+        const ctx_geo = data.features[0].context as {
+          id: string;
+          text: string;
+        }[];
+
+        if (ctx_geo) {
+          const currentUrl = new URL(window.location.href);
+          const [neighbourhood] = ctx_geo.filter(ctx_item => ctx_item.id.indexOf('neighborhood') >= 0);
+          const [place] = ctx_geo.filter(ctx_item => ctx_item.id.indexOf('place') >= 0);
+          let place_param = '';
+          const zoom = Number(currentUrl.searchParams.get('zoom'));
+
+          if (!isNaN(zoom) && zoom <= 12) {
+            place_param = neighbourhood?.text || place?.text;
+          } else {
+            place_param = place?.text || neighbourhood?.text;
+          }
+
+          currentUrl.searchParams.set('city', place_param);
+          window.history.pushState({}, `${map.getCenter().lat}${map.getCenter().lng}${place_param}`, currentUrl.href);
+        }
+      });
 
     let updated_state = {
       ...state,
@@ -403,7 +437,7 @@ export function RxMapbox(props: RxMapboxProps) {
           clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
         };
 
-        if (map.getSource('map-source') === undefined) {
+        if (map && map.getSource('map-source') === undefined) {
           map.addSource('map-source', geojson_options);
         } else {
           (map.getSource('map-source') as GeoJSONSource).setData({

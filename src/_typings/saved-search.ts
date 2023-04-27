@@ -1,3 +1,5 @@
+import { DwellingType } from './property';
+
 export interface SavedSearchInput {
   beds?: number;
   baths?: number;
@@ -12,6 +14,12 @@ export interface SavedSearchInput {
   zoom?: number;
   type?: 'R';
   sorting?: string;
+  dwelling_types?: DwellingType[];
+  types?: string;
+  add_date?: number;
+  build_year?: number;
+  tags?: string;
+  city?: string;
 }
 
 export interface CustomerSavedSearch extends SavedSearchInput {

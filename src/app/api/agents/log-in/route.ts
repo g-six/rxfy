@@ -86,7 +86,6 @@ async function retrieveAgentMetatags(agent_id: string): Promise<{
   agent?: unknown;
   metatag?: unknown;
 }> {
-  console.log('retrieveAgentMetatags', agent_id);
   const { data: response_data } = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {
@@ -103,9 +102,8 @@ async function retrieveAgentMetatags(agent_id: string): Promise<{
     },
   );
   const [agent] = response_data.data?.agents?.data || [];
-  console.log('retrieveAgentMetatags agent', agent);
   const [agent_metatag] = response_data.data?.agentMetatags?.data || [];
-  console.log('retrieveAgentMetatags agent_metatag', agent_metatag);
+
   if (agent && agent.attributes) {
     const { id, attributes } = agent;
     return {
@@ -125,7 +123,6 @@ async function retrieveAgentMetatags(agent_id: string): Promise<{
   return {};
 }
 async function createAgentMetatags(metatag: AgentMetatagsInput): Promise<AgentMetatags> {
-  console.log(JSON.stringify({ metatag }, null, 4));
   const { data: response_data } = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {
@@ -141,7 +138,7 @@ async function createAgentMetatags(metatag: AgentMetatagsInput): Promise<AgentMe
       },
     },
   );
-  console.log('response_data.data?.record?.data', response_data.data?.record?.data);
+
   const { id, attributes } = response_data.data?.record?.data;
   return {
     id: Number(id),
@@ -154,7 +151,7 @@ async function agentAuthLogin(email: string, password: string) {
   try {
     let encrypted_password = encrypt(password);
     let record_id = 0;
-    console.log('Logging in', email);
+
     let login_res = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
       {
@@ -173,7 +170,6 @@ async function agentAuthLogin(email: string, password: string) {
     );
 
     if (login_res && login_res.data) {
-      console.log('Logged in new Strapi V4', email);
       const {
         agents: {
           data: [agent],
@@ -189,7 +185,6 @@ async function agentAuthLogin(email: string, password: string) {
           agent_id: agent.attributes.agent_id,
         };
 
-        console.log('Next, retrieve metatags', variables);
         const metatag_res = await axios.post(
           `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
           {
@@ -221,8 +216,7 @@ async function agentAuthLogin(email: string, password: string) {
             metatag,
           };
         }
-        console.log('metatag found for agent', agent);
-        console.log(JSON.stringify(metatag, null, 4));
+
         return {
           agent,
           metatag: {

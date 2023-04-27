@@ -2,6 +2,16 @@ import { PlaceDetails } from './maps';
 
 export const DateFields = ['UpdateDate', 'ListingDate'];
 
+export enum DwellingType {
+  APARTMENT_CONDO = 'APARTMENT_CONDO',
+  TOWNHOUSE = 'TOWNHOUSE',
+  HOUSE = 'HOUSE_SINGLE_FAMILY,HOUSE_W_ACREAGE',
+  ROW_HOUSE = 'ROW_HOUSE',
+  MANUFACTURED = 'MANUFACTURED,MANUFACTURED_W_LAND',
+  DUPLEX = 'HALF_DUPLEX,FULL_DUPLEX',
+  OTHER = 'OTHER',
+}
+
 export const NumericFields = [
   'B_Depth',
   'L_Frontage_Feet',
@@ -205,6 +215,8 @@ export interface MapStateProps extends BaseKeyValuePairStateProps {
   reload?: boolean;
   query: string;
   address?: string;
+  city?: string;
+  dwelling_type?: string;
   ptype?: string[];
   place?: google.maps.places.AutocompletePrediction;
   suggestions: google.maps.places.AutocompletePrediction[];
