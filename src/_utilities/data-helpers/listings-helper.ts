@@ -129,7 +129,7 @@ export async function getAgentListings(agent_id: string): Promise<{
     let res = await fetch(url);
     const content_type = res.headers.get('content-type') as string;
     if (!res.ok || content_type.indexOf('/json') === -1) {
-      console.log('Cache file not found', url);
+      console.log('Cache file not found', content_type, url);
     } else {
       console.log('Cache file for featured listings grid found', url);
     }
