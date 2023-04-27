@@ -36,6 +36,11 @@ export default function initializePlacesAutocomplete(props: Record<string, strin
         // replaceFormWithDiv()
         if (typeof initNeighborhoodMap !== 'undefined' && initNeighborhoodMap && document.querySelector('.section---map-n-street-view .p-map')) {
             initNeighborhoodMap(document.querySelector('.section---map-n-street-view .p-map').parentElement)
+        } else {
+            console.log('initNeighborhoodMap not loaded yet')
+            setTimeout(() => {
+                initNeighborhoodMap(document.querySelector('.section---map-n-street-view .p-map').parentElement)
+            }, 3000)
         }
 
         var gpaInput = document.getElementById('search-input');
