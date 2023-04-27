@@ -126,11 +126,12 @@ export async function getAgentListings(agent_id: string): Promise<{
 }> {
   try {
     // Query cached listings first to save on latency in searching
-    let url: string = `https://pages.leagent.com/listings/${agent_id}.json`;
-    let res = await fetch(url);
-    const content_type = res.headers.get('content-type') as string;
-    if (!res.ok || (content_type.indexOf('xml') === -1 && content_type.indexOf('json') === -1)) {
-      console.log('Cache file not found', content_type, url);
+    // let url: string = `https://pages.leagent.com/listings/${agent_id}.json`;
+    let url = `https://live-integrations.leagent.com/opensearch/agent-listings/${agent_id}`;
+    // let res = await axios.get(url);
+    let res = await axios.get(url);
+    if (!res.data) {
+      console.log('Cache file not found', url);
       const regen_xhr = await axios.get(`https://live-integrations.leagent.com/opensearch/agent-listings/${agent_id}?regen=1`);
 
       if (regen_xhr.data?.hits) {
@@ -151,28 +152,24 @@ export async function getAgentListings(agent_id: string): Promise<{
     } else {
       console.log('Cache file for featured listings grid found', url);
     }
-    if (res.ok && (content_type.indexOf('/json') > 0 || content_type.indexOf('/xml') > 0)) {
-      const { hits: results } = await res.json();
 
-      const { hits } = results as {
-        hits: Hit[];
-      };
+    const { hits: results } = res.data;
 
-      const [active, sold] = getSegregatedListings(
-        hits.filter(hit => {
-          // Just feed publicly listed properties
-          return hit._index !== 'private';
-        }),
-      );
+    const { hits } = results as {
+      hits: Hit[];
+    };
 
-      return {
-        active,
-        sold,
-      };
-    } else {
-      console.log('Error in getAgentListings subroutine');
-      console.log(' There might be no json file cached for listings');
-    }
+    const [active, sold] = getSegregatedListings(
+      hits.filter(hit => {
+        // Just feed publicly listed properties
+        return hit._index !== 'private';
+      }),
+    );
+
+    return {
+      active,
+      sold,
+    };
   } catch (e) {
     console.log('Error in getAgentListings subroutine');
     console.log(e);
