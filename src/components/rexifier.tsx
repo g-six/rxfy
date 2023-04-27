@@ -618,6 +618,23 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
         );
       }
     }
+    if (placeholder === '{Address}') {
+      if (agent_data.street_1) {
+        return (
+          <>
+            {domToReact(
+              htmlToDOM(
+                `<${tagName || 'span'}
+            class="${className}"
+          >
+            ${agent_data.street_1}${agent_data.street_2 ? ', ' : ''}${agent_data.street_2 || ''}
+          </${tagName || 'span'}>`,
+              ),
+            )}
+          </>
+        );
+      }
+    }
     if (className.indexOf('phone-link-blockj') >= 0) {
       return (
         <a href={`tel:${agent_data.phone.replace(/[^0-9.]/g, '')}`} className={className}>
