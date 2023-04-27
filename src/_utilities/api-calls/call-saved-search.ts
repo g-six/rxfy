@@ -73,6 +73,19 @@ export async function saveSearch(agent: { id: number; logo?: string }, opts: { s
   return response;
 }
 
+export async function deleteSearch(id: number) {
+  if (Cookies.get('session_key')) {
+    const xhr = await axios.delete(`/api/saved-searches/${id}`, {
+      headers: {
+        Authorization: `Bearer ${Cookies.get('session_key')}`,
+      },
+    });
+
+    if (xhr?.data?.session_key) Cookies.set('session_key', xhr.data.session_key);
+    return xhr?.data?.record || {};
+  }
+  return;
+}
 export async function getSearches() {
   if (Cookies.get('session_key')) {
     const xhr = await axios.get('/api/saved-searches', {
