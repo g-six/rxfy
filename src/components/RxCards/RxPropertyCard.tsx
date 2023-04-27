@@ -143,7 +143,7 @@ function RxComponentChomper({ config, children }: any): any {
         }) as any,
       });
     }
-    // console.log('skipped', child, typeof child);
+
     return child;
   });
 

@@ -59,7 +59,6 @@ export function replaceElements(nodes: React.ReactNode[], capturedElements: { el
 
     for (let i = 0; i < path.length - 1; i++) {
       currentNode = currentNode?.[path[i]]?.props?.children;
-      console.log(i, currentNode, element, path);
     }
     if (currentNode) {
       replacedNodes[path[path.length - 1]] = element;

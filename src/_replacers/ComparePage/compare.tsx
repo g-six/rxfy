@@ -14,9 +14,7 @@ export default function CompareReplacer({ nodes, config }: ReplacerPageProps) {
   // const data = useCompareComponent();
   const [filters, setFilters] = useState<Filter[]>(getDefaults());
   const [properties, setProperties] = useState<MLSPropertyExtended[]>([]);
-  useEffect(() => {
-    console.log(properties);
-  }, [properties]);
+
   const matches = [
     {
       searchFn: searchByClasses(['add-homes-btn-trigger']),
@@ -35,7 +33,6 @@ export default function CompareReplacer({ nodes, config }: ReplacerPageProps) {
           {
             onClick: () => {
               document.dispatchEvent(new CustomEvent('filters-click', { detail: {} }));
-              console.log('click sent');
             },
           },
           child.props.children,

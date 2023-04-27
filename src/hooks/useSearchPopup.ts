@@ -169,8 +169,6 @@ export function useSearchPopup({ items, handleClose, dataset = {}, config }: Use
             headers: { 'Content-Type': 'application/json', Authorization: config?.authorization || '' },
           },
         ).then((properties: any) => {
-          // console.log(properties, mapProperties(properties));
-
           setResults(properties.slice(0, 50));
         });
       } else {

@@ -41,7 +41,6 @@ export function RxLiveCurrencyDD({ child, filter }: { child: React.ReactElement;
             params[filter] = amount;
             Object.keys(params).forEach(key => {
               if (key === filter) {
-                console.log(`${query}&${key}=${amount}`);
                 query = `${query}&${key}=${amount}`;
               } else {
                 query = `${query}&${key}=${params[key]}`;

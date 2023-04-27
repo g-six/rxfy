@@ -41,7 +41,6 @@ export async function saveSearch(agent: { id: number; logo?: string }, opts: { s
     }
   });
   types?.split('/').forEach((ptype: string) => {
-    console.log({ ptype });
     dwelling_type_ids = dwelling_type_ids.concat(getSelectedPropertyTypeId(ptype));
   });
 
