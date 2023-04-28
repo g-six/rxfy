@@ -572,6 +572,19 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             // Building units section
             else if (node.lastChild && (node.lastChild as HTMLNode).attribs && (node.lastChild as HTMLNode).attribs.class) {
               const child_class = (node.lastChild as HTMLNode).attribs.class;
+              console.log({
+                neighbours: property.neighbours,
+                sold: property.sold_history,
+              });
+              if (
+                (!property.neighbours || (property.neighbours as MLSProperty[]).length === 0 || !(property.neighbours as MLSProperty[])[0].AddressUnit) &&
+                (!property.sold_history || (property.sold_history as MLSProperty[]).length === 0)
+              ) {
+                // Remove building and sold grid
+                if (child_class.indexOf('building-and-sold-grid') >= 0) {
+                  return <></>;
+                }
+              }
               if (child_class.indexOf('div-building-units-on-sale') >= 0 && node.attribs.class.indexOf('building-and-sold-column') >= 0) {
                 return property.neighbours && (property.neighbours as MLSProperty[]).length ? (
                   property.AddressUnit ? (
