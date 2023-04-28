@@ -18,7 +18,6 @@ export default function MyHomeAlertsList({ child }: Props) {
       setSavedList(res);
     });
   }, []);
-  console.log(savedList);
 
   return <>{cloneElement(child, {}, [savedList.map(item => <MyHomeAlertCard key={item?.id} child={card} data={item} />)])}</>;
 }

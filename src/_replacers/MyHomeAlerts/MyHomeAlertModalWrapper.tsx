@@ -51,7 +51,7 @@ export default function MyHomeAlertModalWrapper({ child }: Props) {
     setFormState({ ...initialState });
   };
   const saveClick = () => {
-    console.log(formState);
+    console.log({ formState });
     closeModal();
   };
   const matches: tMatch[] = [

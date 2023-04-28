@@ -82,7 +82,6 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
     //   searchFn: searchByClasses(['map-placeholder']),
     //   transformChild: (child: ReactElement) => {
     //     const Div = (props: any) => React.createElement('div', { agent_data }, [,]);
-    //     console.log(agent_data);
     //     return (
     //       <MapProvider>
     //         <RxMapbox

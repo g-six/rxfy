@@ -98,7 +98,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
         }
 
         // Min. price dropdown values
-        if (child.props.className.split(' ').filter((n: string) => ['min-price', 'dropdown'].includes(n)).length === 2) {
+        if (child.props.className.split(' ').includes('min-price-dropdown')) {
           return (
             <RxCombobox className={child.props.className} data-value-for='minprice'>
               {child.props.children}
@@ -322,14 +322,11 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
   }, [place, props.agent_data]);
 
   React.useEffect(() => {
-    if (search.toString()) {
-      getSearches().then(console.log);
-      // getLovedHomes().then(response => {
-      //   if (response && response.records) {
-      //     processLovedHomes(response.records);
-      //   }
-      // });
-    }
+    getLovedHomes().then(response => {
+      if (response && response.records) {
+        processLovedHomes(response.records);
+      }
+    });
   }, []);
 
   return (
