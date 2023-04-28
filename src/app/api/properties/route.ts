@@ -159,12 +159,12 @@ export async function GET(request: Request) {
                 [key]: mls_data[key],
               };
               break;
-            // default:
-            //   output = {
-            //     ...output,
-            //     [key]: mls_data[key] !== null ? mls_data[key] : undefined,
-            //   };
-            //   break;
+            default:
+              output = {
+                ...output,
+                [key]: mls_data[key] !== null ? mls_data[key] : undefined,
+              };
+              break;
           }
         }
       });
