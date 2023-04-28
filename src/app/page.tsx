@@ -101,7 +101,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
         LO1_Name,
         LO2_Name,
         LO3_Name,
-      } = property;
+      } = property as unknown as MLSProperty;
       const real_estate_board = await getRealEstateBoard({
         L_ShortRegionCode,
         OriginatingSystemName,
@@ -297,7 +297,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
           </div>
         </main>
       )}
-      {property && property.lat && property.lng && (
+      {property && property.lat && (
         <Script
           defer
           suppressHydrationWarning

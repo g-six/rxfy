@@ -3,6 +3,7 @@ import { DateFields, FinanceFields, GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty
 import { AxiosError, AxiosStatic } from 'axios';
 import { dateStringToDMY } from './date-helper';
 import { capitalizeFirstLetter } from '../formatters';
+import { MLSPropertyExtended } from '@/_typings/filters_compare';
 
 export const general_stats: Record<string, string> = {
   L_Age: 'Age',
@@ -776,7 +777,7 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
   };
 
   return {
-    ...(clean as MLSProperty),
+    ...(clean as PropertyDataModel | MLSPropertyExtended),
     neighbours,
     sold_history,
     agent_info,
