@@ -75,23 +75,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     webflow && (
       <html {...head_props} className={className}>
         {webflow.head.code ? (
-          <head suppressHydrationWarning dangerouslySetInnerHTML={{ __html: replaceMetaTags(webflow.head.code, agent_data, property) }} />
+          <head
+            suppressHydrationWarning
+            dangerouslySetInnerHTML={{
+              __html: `${replaceMetaTags(webflow.head.code, agent_data, property)} <script>${initializePlacesAutocomplete({
+                apiKey: NEXT_APP_GOOGLE_API_KEY || '',
+              })}</script>`,
+            }}
+          />
         ) : (
           ''
         )}
         {webflow.body ? (
           <body {...body_props} className={bodyClassName} suppressHydrationWarning>
             {children}
-            <Script
-              async
-              suppressHydrationWarning
-              id='google-map-init'
-              dangerouslySetInnerHTML={{
-                __html: initializePlacesAutocomplete({
-                  apiKey: NEXT_APP_GOOGLE_API_KEY || '',
-                }),
-              }}
-            />
             <Script
               src={`https://maps.googleapis.com/maps/api/js?key=${NEXT_APP_GOOGLE_API_KEY}&libraries=places,localContext&v=beta&callback=initializePlacesAutocomplete`}
               async

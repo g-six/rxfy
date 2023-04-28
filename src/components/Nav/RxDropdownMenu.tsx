@@ -81,7 +81,7 @@ function RxToggleButton(p: ToggleButtonProps) {
   return (
     <button
       type='button'
-      className={`${p.node.props.className} button indigo`}
+      className={p.node.props.className}
       onClick={() => {
         fireEvent({ show: !data?.show });
       }}

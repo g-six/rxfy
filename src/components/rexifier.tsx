@@ -277,10 +277,23 @@ export function replaceInlineScripts($: CheerioAPI) {
 
 function appendJs(url: string) {
   return `
+  var count_badge = 0
   setTimeout(() => {
     var js = document.createElement('script');
     js.src = "${url}";
     js.async = true;
+    if (js.src.indexOf('webflow') > 0) {
+      const badge_interval = setInterval(() => {
+        const badge = document.querySelector('.w-webflow-badge');
+        if (badge) {
+          badge.remove();
+          console.log('badge found and removed');
+          count_badge++;
+        }
+        if (count_badge > 3)
+          clearInterval(badge_interval);
+      }, 1)
+    }
     document.body.appendChild(js)}, 1200)`;
 }
 export function replaceFormsWithDiv($: CheerioAPI) {}
@@ -365,7 +378,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           );
         }
 
-        if (node.tagName === 'form' && className && className.indexOf('contact-form') >= 0) {
+        if (node.tagName === 'form' && (!className || className.indexOf('contact-form') === -1)) {
           return (
             <div {...props} id='rex-form' data-class={className}>
               {domToReact(node.children) as ReactElement[]}
