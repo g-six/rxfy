@@ -16,11 +16,16 @@ export interface SavedSearchInput {
   zoom?: number;
   type?: 'R';
   sorting?: string;
-  dwelling_types?: DwellingType[];
+  dwelling_types?: {
+    code: DwellingType;
+    name: string;
+    id: number;
+  }[];
   types?: string;
   add_date?: number;
   build_year?: number;
   tags?: string;
+  area?: string;
   city?: string;
 }
 

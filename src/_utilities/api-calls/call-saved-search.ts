@@ -1,4 +1,4 @@
-import { SavedSearchInput } from '@/_typings/saved-search';
+import { CustomerSavedSearch, SavedSearchInput } from '@/_typings/saved-search';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { queryStringToObject } from '../url-helper';
@@ -95,7 +95,19 @@ export async function getSearches() {
     });
 
     if (xhr?.data?.session_key) Cookies.set('session_key', xhr.data.session_key);
-    return xhr?.data?.records || [];
+    return (
+      xhr?.data?.records.map((record: CustomerSavedSearch) => {
+        let cleaned = {};
+        Object.keys(record).forEach(key => {
+          const kv = record as unknown as { [key: string]: unknown };
+          cleaned = {
+            ...cleaned,
+            [key]: kv[key] || undefined,
+          };
+        });
+        return cleaned;
+      }) || []
+    );
   }
   return;
 }

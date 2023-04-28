@@ -33,9 +33,7 @@ export default function MyHomeAlertModalWrapper({ child }: Props) {
     city: alertData?.city ?? '',
     build_year: alertData?.build_year ?? '',
     add_date: alertData?.add_date ?? '',
-
-    //@ts-ignore
-    dwelling_types: alertData?.dwelling_types?.data.map((item: any) => item?.attributes?.code) ?? [],
+    dwelling_types: [],
   };
   const [formState, setFormState] = useState<any>({ ...initialState });
   useEffect(() => {
