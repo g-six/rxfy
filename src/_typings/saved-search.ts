@@ -5,6 +5,8 @@ export interface SavedSearchInput {
   baths?: number;
   minprice?: number;
   maxprice?: number;
+  minsqft?: number;
+  maxsqft?: number;
   lat?: number;
   lng?: number;
   nelat?: number;

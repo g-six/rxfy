@@ -10,6 +10,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   MY_COMPARE_DASHBOARD_LEFT = 'compare-left-bar',
   MY_COMPARE_DASHBOARD_RIGHT = 'compare-right',
   MY_COMPARE_CARD = 'propcompare-card-2',
+  MY_HOME_ALERTS = 'home-alerts-section',
   CLIENTS_CARDS = 'clients-cards',
   USER_MENU_DROPDOWN = 'login-logout-dropdown',
   USER_MENU = 'in-session',
