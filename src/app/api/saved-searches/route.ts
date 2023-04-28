@@ -90,6 +90,17 @@ export async function POST(request: Request) {
         ...attributes,
         id,
       };
+      const user = await getNewSessionKey(token, guid);
+      if (user?.session_key) {
+        session_key = user.session_key;
+      } else {
+        return getResponse(
+          {
+            error: 'Invalid token. Please login',
+          },
+          401,
+        );
+      }
     } else if (search_response.errors) {
       console.log(search_response.errors);
     }

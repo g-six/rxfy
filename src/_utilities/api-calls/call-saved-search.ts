@@ -66,7 +66,9 @@ export async function saveSearch(agent: { id: number; logo?: string }, opts: { s
 
   if (response.status === 200) {
     const { session_key, ...record } = response.data;
-    Cookies.set('session_key', session_key);
+    if (session_key) {
+      Cookies.set('session_key', session_key);
+    }
     return record;
   }
 
