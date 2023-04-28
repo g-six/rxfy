@@ -21,22 +21,22 @@ export async function saveSearch(agent: { id: number; logo?: string }, opts: { s
 
   let { dwelling_types, types } = search_params || {};
   let dwelling_type_ids: number[] = [];
-  dwelling_types?.forEach(({ code }) => {
-    if (code === 'APARTMENT_CONDO') dwelling_type_ids = dwelling_type_ids.concat([1]);
-    if (code === 'TOWNHOUSE') dwelling_type_ids = dwelling_type_ids.concat([2]);
-    if (['HOUSE', 'HOUSE_SINGLE_FAMILY', 'HOUSE_W_ACREAGE', 'RESIDENTIAL_DETACHED'].includes(code)) {
+  dwelling_types?.forEach(code_csv => {
+    if (code_csv === DwellingType.APARTMENT_CONDO) dwelling_type_ids = dwelling_type_ids.concat([1]);
+    if (code_csv === DwellingType.TOWNHOUSE) dwelling_type_ids = dwelling_type_ids.concat([2]);
+    if (code_csv === DwellingType.HOUSE) {
       dwelling_type_ids = dwelling_type_ids.concat([3, 4, 11, 12]);
     }
-    if (code.indexOf('DUPLEX') >= 0) {
+    if (code_csv === DwellingType.DUPLEX) {
       dwelling_type_ids = dwelling_type_ids.concat([8, 9]);
     }
-    if (code === 'ROW_HOUSE') {
+    if (code_csv === DwellingType.ROW_HOUSE) {
       dwelling_type_ids = dwelling_type_ids.concat([5]);
     }
-    if (code.indexOf('MANUFACTURED') >= 0) {
+    if (code_csv === DwellingType.MANUFACTURED) {
       dwelling_type_ids = dwelling_type_ids.concat([6]);
     }
-    if (code === 'OTHER') {
+    if (code_csv === DwellingType.OTHER) {
       dwelling_type_ids = dwelling_type_ids.concat([10]);
     }
   });

@@ -16,11 +16,7 @@ export interface SavedSearchInput {
   zoom?: number;
   type?: 'R';
   sorting?: string;
-  dwelling_types?: {
-    code: DwellingType;
-    name: string;
-    id: number;
-  }[];
+  dwelling_types?: DwellingType[];
   types?: string;
   add_date?: number;
   build_year?: number;
