@@ -145,6 +145,27 @@ export interface MLSProperty extends Record<string, string | number | boolean | 
   LFD_SiteInfluences_46: string[];
   Remarks: string;
   Zoning: string;
+  L_ShortRegionCode: string;
+  OriginatingSystemName: string;
+
+  // Real Estate Board Data
+  LA1_Board: string;
+  LA2_Board: string;
+  LA3_Board: string;
+  LA4_Board: string;
+  ListAgent1: string;
+  LO1_Brokerage: string;
+
+  // Agent Names
+  LA1_FullName: string;
+  LA2_FullName: string;
+  LA3_FullName: string;
+  SO1_FullName: string;
+  SO2_FullName: string;
+  SO3_FullName: string;
+  LO1_Name: string;
+  LO2_Name: string;
+  LO3_Name: string;
 
   // Rooms Data:
   L_Room1_Type: string;

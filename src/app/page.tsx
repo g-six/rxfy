@@ -9,11 +9,12 @@ import { WebFlow } from '@/_typings/webflow';
 import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
 import { getPrivatePropertyData, getPropertyData, getRecentListings, getSimilarHomes } from '@/_utilities/data-helpers/property-page';
-import { MLSProperty } from '@/_typings/property';
+import { MLSProperty, PropertyDataModel } from '@/_typings/property';
 import Script from 'next/script';
 import { addPropertyMapScripts } from '@/components/Scripts/google-street-map';
 import { AgentData } from '@/_typings/agent';
 import RxNotifications from '@/components/RxNotifications';
+import { getRealEstateBoard } from './api/properties/route';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico'];
@@ -82,6 +83,43 @@ export default async function Home({ params, searchParams }: { params: Record<st
     } else {
       // Publicly listed property page
       property = await getPropertyData(searchParams.id || searchParams.mls, !!searchParams.mls);
+      const {
+        L_ShortRegionCode,
+        OriginatingSystemName,
+        LA1_Board,
+        LA2_Board,
+        LA3_Board,
+        LA4_Board,
+        ListAgent1,
+        LO1_Brokerage,
+        LA1_FullName,
+        LA2_FullName,
+        LA3_FullName,
+        SO1_FullName,
+        SO2_FullName,
+        SO3_FullName,
+        LO1_Name,
+        LO2_Name,
+        LO3_Name,
+      } = property;
+      const real_estate_board = await getRealEstateBoard({
+        L_ShortRegionCode,
+        OriginatingSystemName,
+        LA1_Board,
+        LA2_Board,
+        LA3_Board,
+        LA4_Board,
+        ListAgent1,
+        LO1_Brokerage,
+      });
+      replaceByCheerio($, '.legal-text', {
+        content: real_estate_board?.legal_disclaimer || '',
+      });
+
+      const listing_by = LA1_FullName || LA2_FullName || LA3_FullName || SO1_FullName || SO2_FullName || SO3_FullName || LO1_Name || LO2_Name || LO3_Name || '';
+      replaceByCheerio($, '.listing-by', {
+        content: listing_by ? `Listing courtesy of ${listing_by}` : '',
+      });
     }
   }
   await fillAgentInfo($, agent_data);

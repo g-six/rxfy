@@ -44,7 +44,7 @@ export async function repairIfNeeded(id: number, property: { [key: string]: unkn
     };
 
     try {
-      const board = await getRealEstateBoard(mls_data);
+      const { id: board } = await getRealEstateBoard(mls_data);
 
       const updates = {
         ...output,
@@ -180,7 +180,7 @@ export async function GET(request: Request) {
   return getResponse(results?.data || {}, 200);
 }
 
-async function getRealEstateBoard({
+export async function getRealEstateBoard({
   L_ShortRegionCode,
   OriginatingSystemName,
   LA1_Board,
@@ -211,5 +211,10 @@ async function getRealEstateBoard({
 
   const leagent_cms_res = await axios.post(`${process.env.NEXT_APP_CMS_GRAPHQL_URL}`, gql_params, { headers });
   const board_id = Number(leagent_cms_res.data?.data?.realEstateBoards.records[0].id);
-  return isNaN(board_id) ? undefined : board_id;
+  return isNaN(board_id)
+    ? undefined
+    : {
+        ...leagent_cms_res.data?.data?.realEstateBoards.records[0].attributes,
+        id: board_id,
+      };
 }
