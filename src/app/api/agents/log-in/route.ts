@@ -73,10 +73,6 @@ export async function POST(req: Request) {
   if (!auth) {
     return getResponse({}, 401);
   }
-  //   if (auth?.profile_id && auth?.agent_id) {
-  //     const record = await retrieveAgentMetatags(auth.agent_id);
-  //     console.log(record);
-  //   }
 
   const { session_key, agent } = auth;
   return getResponse({ email: data.email, user: { ...agent, session_key } }, 200);

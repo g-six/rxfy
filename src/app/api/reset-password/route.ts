@@ -51,7 +51,7 @@ export async function PUT(request: Request) {
       );
 
       const [data] = response_data.data?.customers?.data || [];
-      console.log(data);
+
       if (data && data.id) {
         const {
           data: {
