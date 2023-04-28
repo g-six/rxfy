@@ -100,7 +100,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
         // Min. price dropdown values
         if (child.props.className.split(' ').includes('min-price-dropdown')) {
           return (
-            <RxCombobox className={child.props.className} data-value-for='minprice'>
+            <RxCombobox element-type={child.type} className={`${child.props.className} scrollable`} data-value-for='minprice'>
               {child.props.children}
             </RxCombobox>
           );
@@ -114,7 +114,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
         // Max. price dropdown values
         if (child.props.className.split(' ').includes('max-price-dropdown')) {
           return (
-            <RxCombobox className={child.props.className} data-value-for='maxprice'>
+            <RxCombobox element-type={child.type} className={`${child.props.className} scrollable`} data-value-for='maxprice'>
               {child.props.children}
             </RxCombobox>
           );
