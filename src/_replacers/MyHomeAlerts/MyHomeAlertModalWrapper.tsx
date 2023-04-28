@@ -16,6 +16,7 @@ export default function MyHomeAlertModalWrapper({ child }: Props) {
   const closeModal = () => {
     fireEvent({ show: false, message: '', alertData: undefined });
   };
+  console.log({ data });
   const initialState = {
     beds: alertData?.beds ?? 0,
     baths: alertData?.baths ?? 0,
@@ -48,8 +49,8 @@ export default function MyHomeAlertModalWrapper({ child }: Props) {
   const resetClick = () => {
     setFormState({ ...initialState });
   };
+
   const saveClick = () => {
-    console.log({ formState });
     closeModal();
   };
   const matches: tMatch[] = [

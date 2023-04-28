@@ -17,7 +17,7 @@ export default function MyHomeAlertCard({ child, data }: Props) {
   const replace = {
     area: data.area || '',
     city: data.city || '',
-    Title: `${data?.city} ${dwelling_types.length && dwelling_types[0]}`,
+    Title: `${data?.city} ${dwelling_types.length > 0 ? dwelling_types[0] : ''}`,
     'min-price': data.minprice ? getShortPrice(data.minprice, '') : 'Not Selected',
     'max-price': data.maxprice ? getShortPrice(data.maxprice, '') : 'Not Selected',
     beds: data.beds,
