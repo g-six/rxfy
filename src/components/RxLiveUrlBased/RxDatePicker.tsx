@@ -62,9 +62,16 @@ export default function RxDatePicker(p: DatePickerProps) {
             // if (ref && ref.current) (ref.current as any).focus();
           }
         }}
+        onBlur={() => {
+          togglePopup(false);
+        }}
+        onClickOutside={() => {
+          togglePopup(false);
+        }}
         calendarClassName={[styles.calendarPopup, is_shown ? styles.shown : '-top-full -translate-y-full'].join(' ')}
         dayClassName={date => (getDate(date) === getDate(state[p.filter] as unknown as Date) ? styles.selectedDate : '')}
         inline
+        open={false}
       />
     </>
   );
