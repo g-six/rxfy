@@ -121,6 +121,15 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
 
   if (agent_data.metatags?.logo_for_light_bg) {
     $('.navbar-wrapper-2 a[href="/"] img').remove();
+    $('.navbar-wrapper-2 .logo---phone-email a[data-type="email"]').text(agent_data.email);
+    $('.navbar-wrapper-2 .logo---phone-email a[data-type="email"]').attr(
+      'href',
+      `mailto:${agent_data.email}?subject=${encodeURIComponent('[Leagent] Home Inquiry')}&body=${encodeURIComponent(
+        `Hi ${agent_data.full_name.split(' ')[0]}!\n Found your Leagent website and I'm looking for a realtor for help.`,
+      )}`,
+    );
+    $('.navbar-wrapper-2 .logo---phone-email a[data-type="phone"]').attr('href', `tel:${agent_data.phone}`);
+    $('.navbar-wrapper-2 .logo---phone-email a[data-type="phone"]').text(agent_data.phone);
     $('.navbar-wrapper-2 > a[href="#"]').attr('href', '/');
     $('.navbar-wrapper-2 > a h3').remove();
     replaceByCheerio($, '.navbar-wrapper-2 > a', {
@@ -143,9 +152,11 @@ export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapp
     });
 
     // Photo
-    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) > .propcard-image`, {
-      backgroundImage: (p.photos as string[])[0],
-    });
+    if (p.photos) {
+      replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) > .propcard-image`, {
+        backgroundImage: (p.photos as string[])[0],
+      });
+    }
 
     // Area
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .area-text`, {
@@ -261,6 +272,14 @@ export function replaceInlineScripts($: CheerioAPI) {
   });
 }
 
+function appendJs(url: string) {
+  return `
+  setTimeout(() => {
+    var js = document.createElement('script');
+    js.src = "${url}";
+    js.async = true;
+    document.body.appendChild(js)}, 1200)`;
+}
 export function replaceFormsWithDiv($: CheerioAPI) {}
 
 /**
@@ -281,9 +300,8 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         };
 
         if (attribs.src) {
-          const { pathname } = new URL(attribs.src);
-
-          return <RxWebflowScript script-src={attribs.src} script-name={pathname} />;
+          return <script dangerouslySetInnerHTML={{ __html: appendJs(attribs.src) }} type='text/javascript' />;
+          // <RxWebflowScript script-src={attribs.src} script-name={pathname} />;
         } else {
           if ((node as Element).children) {
             // Scripts that are inline...
