@@ -98,6 +98,9 @@ export async function GET(request: Request) {
       ...property,
       id: Number(record.id),
     };
+    let legacy_data: {
+      [key: string]: string | number | boolean | string[] | Date;
+    } = {};
     const repaired = await repairIfNeeded(Number(record.id), property, mls_data);
 
     Object.keys(property).forEach(key => {
@@ -160,8 +163,8 @@ export async function GET(request: Request) {
               };
               break;
             default:
-              output = {
-                ...output,
+              legacy_data = {
+                ...legacy_data,
                 [key]: mls_data[key] !== null ? mls_data[key] : undefined,
               };
               break;
@@ -172,7 +175,10 @@ export async function GET(request: Request) {
     return getResponse(
       {
         id: record.id,
-        property: output,
+        property: {
+          ...output,
+          mls_data: legacy_data,
+        },
       },
       200,
     );
