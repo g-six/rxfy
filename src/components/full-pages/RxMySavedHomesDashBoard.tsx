@@ -21,13 +21,9 @@ type Props = {
   agent_data: AgentData;
   className: string;
   children: ReactNode;
-  config: {
-    authorization: string;
-    url: string;
-  };
 };
 
-export default function RxMySavedHomesDashBoard({ agent_data, className, children, config }: Props) {
+export default function RxMySavedHomesDashBoard({ agent_data, className, children }: Props) {
   // const [currentTab, setCurrentTab] = useState<string>('');
   const [loved, setLoved] = useState<LovedPropertyDataModel[]>([]);
 
