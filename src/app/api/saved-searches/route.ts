@@ -140,15 +140,12 @@ export async function GET(request: Request) {
     );
   }
 
-  // const { search_params } = await request.json();
-
   const xhr = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {
       query: gql_my_saved_searches,
       variables: {
         customer_id: guid,
-        // ...search_params,
       },
     },
     {
@@ -157,7 +154,6 @@ export async function GET(request: Request) {
   );
 
   let records = [];
-
   if (xhr?.data?.data?.savedSearches?.records?.length) {
     records = xhr.data.data.savedSearches.records.map((record: any) => {
       return {
@@ -180,35 +176,7 @@ const gql_my_saved_searches = `query MySavedSearches($customer_id: ID!) {
     records: data {
       id
       attributes {
-        city
-        add_date
-        build_year
-        tags
-        is_active
-        search_url
-        lat
-        lng
-        beds
-        baths
-        minprice
-        maxprice
-        minsqft
-        maxsqft
-        nelat
-        nelng
-        swlat
-        swlng
-        zoom
-        type
-        dwelling_types {
-            data {
-                id
-                attributes {
-                    name
-                    code
-                }
-            }
-        }
+        ${gqf_saved_search_attributes}
       }
     }
   }
