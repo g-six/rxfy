@@ -344,7 +344,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           );
         }
 
-        if (node.tagName === 'form') {
+        if (node.tagName === 'form' && className && className.indexOf('contact-form') >= 0) {
           return (
             <div {...props} id='rex-form' data-class={className}>
               {domToReact(node.children) as ReactElement[]}
@@ -606,6 +606,23 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
             class="${className}"
           >
             ${agent_data.full_name}
+          </${tagName || 'span'}>`,
+              ),
+            )}
+          </>
+        );
+      }
+    }
+    if (['{Address}', '{Agent Address}'].includes(placeholder)) {
+      if (agent_data.street_1) {
+        return (
+          <>
+            {domToReact(
+              htmlToDOM(
+                `<${tagName || 'span'}
+            class="${className}"
+          >
+            ${agent_data.street_1}${agent_data.street_2 ? ', ' : ''}${agent_data.street_2 || ''}
           </${tagName || 'span'}>`,
               ),
             )}

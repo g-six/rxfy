@@ -239,7 +239,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
           return MapAndHeaderHeader;
         }
 
-        if (child.props.className.indexOf('property-card-map') >= 0) {
+        if (child.props.className.indexOf('property-card') >= 0) {
           // Just clone one
           return child.key === '1' ? (
             props.listings.slice(0, 100).map((p: MLSProperty, sequence_no) => {
