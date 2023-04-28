@@ -13,5 +13,5 @@ export function searchById(id: string): (node: React.ReactElement) => boolean {
 }
 
 export function searchByTagName(tag_name: string): (node: React.ReactElement) => boolean {
-  return (node: React.ReactElement) => node?.props?.type === tag_name;
+  return (node: React.ReactElement) => node?.type === tag_name;
 }

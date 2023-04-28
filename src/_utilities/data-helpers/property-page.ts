@@ -1,8 +1,9 @@
 import { AgentData } from '@/_typings/agent';
-import { DateFields, FinanceFields, GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty, NumericFields } from '@/_typings/property';
+import { DateFields, FinanceFields, GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty, NumericFields, PropertyDataModel } from '@/_typings/property';
 import { AxiosError, AxiosStatic } from 'axios';
 import { dateStringToDMY } from './date-helper';
 import { capitalizeFirstLetter } from '../formatters';
+import { MLSPropertyExtended } from '@/_typings/filters_compare';
 
 export const general_stats: Record<string, string> = {
   L_Age: 'Age',
@@ -50,10 +51,9 @@ export const amenities_stats: Record<string, string> = {
   B_Amenities: 'Amenities',
   B_SiteInfluences: 'Site Influences',
   B_Bylaws: 'By Laws',
+  L_Fireplace_Fuel: 'Fireplace Fuel',
   L_Floor_Finish: 'Floor Finish',
   L_Locker: 'Locker',
-  L_Fireplaces: '# of Fireplaces',
-  L_Fireplace_Fuel: 'Fireplace Fueled by',
 };
 
 export const room_stats: Record<string, {}> = {
@@ -81,6 +81,7 @@ export const construction_stats: Record<string, string> = {
   B_Construction: 'Construction',
   LFD_FloorFinish_19: 'Floor Finish',
   B_Exterior_Finish: 'Exterior Finish',
+  L_Fireplace_Fuel: 'Fireplace Fueled by',
   LFD_Foundation_155: 'Foundation',
   B_Roof: 'Roof',
   L_ComplexName: 'Complex/Subdivision',
@@ -631,7 +632,7 @@ export async function getPrivatePropertyData(property_id: number | string) {
   }
 
   return {
-    ...(clean as MLSProperty),
+    ...(clean as MLSProperty | PropertyDataModel),
     neighbours,
     sold_history,
   };
@@ -776,7 +777,7 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
   };
 
   return {
-    ...(clean as MLSProperty),
+    ...(clean as PropertyDataModel | MLSPropertyExtended),
     neighbours,
     sold_history,
     agent_info,
