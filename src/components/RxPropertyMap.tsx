@@ -112,7 +112,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
         }
 
         // Max. price dropdown values
-        if (child.props.className.split(' ').filter((n: string) => ['max-price', 'dropdown'].includes(n)).length === 2) {
+        if (child.props.className.split(' ').includes('max-price-dropdown')) {
           return (
             <RxCombobox className={child.props.className} data-value-for='maxprice'>
               {child.props.children}
