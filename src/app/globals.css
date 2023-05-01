@@ -87,3 +87,7 @@
 .w--open + nav.rexified {
   display: block !important;
 }
+
+.react-calendar__navigation {
+  @apply w-full flex items-center justify-between;
+}

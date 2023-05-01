@@ -24,10 +24,6 @@ export default function RxCombobox(p: RxComboboxProps) {
 
   const [opened, toggleOpen] = React.useState(false);
 
-  React.useEffect(() => {
-    console.log({ opened });
-  }, [opened]);
-
   return React.createElement(
     p['element-type'] || 'div',
     {

@@ -91,10 +91,10 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
 
         // Date picker
         if (child.props.className.indexOf('date-listed-since') >= 0) {
-          return <RxDatePicker {...child.props} filter='dt_to' />;
+          return <RxDatePicker {...child.props} filter='dt_to' maxvalue={new Date()} />;
         }
         if (child.props.className.indexOf('date-newer-than') >= 0) {
-          return <RxDatePicker {...child.props} filter='dt_from' />;
+          return <RxDatePicker {...child.props} filter='dt_from' maxvalue={new Date()} />;
         }
 
         // Min. price dropdown values
