@@ -49,8 +49,8 @@ export default async function Home({ params, searchParams }: { params: Record<st
   }
   const $: CheerioAPI = load(data);
 
-  replaceByCheerio($, '.search-input-field', {
-    prepend: `<input class="txt-search-input" name="search-input" id="search-input" type="text" value="${(searchParams && searchParams.city) || ''}" />`,
+  replaceByCheerio($, '.w-nav-menu .nav-dropdown-2', {
+    className: 'nav-menu-list-wrapper',
   });
 
   let listings, property;

@@ -24,13 +24,13 @@ import HomeAlertsReplacer from '@/_replacers/HomeAlerts/home-alerts';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { RxUserSessionLink } from './Nav/RxUserSessionLink';
 import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
-import { getSearches } from '@/_utilities/api-calls/call-saved-search';
 import { LoveDataModel } from '@/_typings/love';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 import { Events } from '@/_typings/events';
 import { useSearchParams } from 'next/navigation';
 import RxCombobox from './RxCombobox';
 import RxMapTermsFilter from './RxMapTermsFilter';
+import RxNavItemMenu from './Nav/RxNavItemMenu';
 
 export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?: string }) {
   let MapAndHeaderHeader;
@@ -68,8 +68,11 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
     }
 
     if (child.props) {
-      // Map filters
+      // Map filters or Header Nav
       if (child.props.className) {
+        if (child.props.className.indexOf('nav-menu-list-wrapper') >= 0 || child.props.className.indexOf('login-logout-dropdown') >= 0) {
+          return <RxNavItemMenu {...child.props}>{child.props.children}</RxNavItemMenu>;
+        }
         if (child.props.className.indexOf('beds-more') >= 0 || child.props.className.indexOf('beds-less') >= 0) {
           return <RxLiveNumericStep child={child} filter='beds' />;
         }
