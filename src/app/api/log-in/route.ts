@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { encrypt } from '@/_utilities/encryption-helper';
+import { getResponse } from '../response-helper';
+import { sendTemplate } from '../send-template';
 
 const gql = `query LogIn ($filters: CustomerFiltersInput!) {
   users: customers(filters: $filters) {
@@ -9,6 +11,7 @@ const gql = `query LogIn ($filters: CustomerFiltersInput!) {
         email
         full_name
         encrypted_password
+        last_activity_at
         agents {
           data {
             id
@@ -118,10 +121,39 @@ export async function POST(request: Request) {
       const [data] = response_data.data?.users?.data || [];
 
       if (data && Object.keys(data).length > 0) {
+        const { attributes } = data;
+        const { email, full_name, agents, last_activity_at } = attributes;
+        let last_activity_date = new Date();
+        let days_since_last = -1;
+        if (last_activity_at) {
+          last_activity_date = new Date(last_activity_at);
+          days_since_last = (Date.now() - last_activity_date.getTime()) / 1000 / 60 / 60 / 24;
+        }
+
+        if (days_since_last === -1 || days_since_last > 30) {
+          const url = new URL(request.url);
+          await sendTemplate(
+            'welcome-buyer',
+            [
+              {
+                name: full_name,
+                email,
+              },
+            ],
+            {
+              url: `${url.origin}/my-profile?key=${encrypt(last_activity_at)}.${encrypt(email)}-${data.id}`,
+            },
+          ).catch(console.log);
+          return getResponse(
+            {
+              error: `${days_since_last > 30 ? `It's been ${Math.floor(days_since_last)} days since you've logged in.` : ''} Please reactivate your account`,
+            },
+            401,
+          );
+        }
+
         const session = await createSession(data.id);
 
-        const { attributes } = data;
-        const { email, full_name, agents } = attributes;
         return new Response(
           JSON.stringify(
             {

@@ -130,13 +130,12 @@ function validInput(data: CustomerInputModel & { agent_id?: number }): {
 async function loadSession(search_params: Record<string, string | number | boolean>) {
   let session_key = '';
   let customer_id = '';
-  if (search_params.length) {
-    if (search_params.key) {
-      const key_from_params = search_params.key as string;
-      session_key = key_from_params.split('=')[1];
-      customer_id = session_key.split('-')[1];
-    }
+
+  if (search_params?.key) {
+    session_key = search_params.key as string;
+    customer_id = session_key.split('-')[1];
   }
+  console.log({ session_key, customer_id });
   if (!session_key) session_key = Cookies.get('session_key') as string;
 
   if (session_key && session_key.split('-').length === 2) {
@@ -168,7 +167,6 @@ async function loadSession(search_params: Record<string, string | number | boole
       location.href = '/log-in';
     }
   } else {
-    // No session cookies
     location.href = '/log-in';
   }
 }
