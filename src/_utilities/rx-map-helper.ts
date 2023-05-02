@@ -117,5 +117,13 @@ export function getSearchPropertyFilters(q: MapboxBoundaries & PropertyAttribute
     results = includeTermsFilter(results, 'Type', property_types);
   }
 
+  if (q.dt_from) {
+    results = includeGreaterOrEqualNumberFilter(results, 'ListingDate', Math.floor(q.dt_from.getTime() / 1000));
+  }
+
+  // if (q.dt_from) {
+  //   results = includeGreaterOrEqualNumberFilter(results, 'ListingDate', q.dt_from.getTime());
+  // }
+
   return results;
 }

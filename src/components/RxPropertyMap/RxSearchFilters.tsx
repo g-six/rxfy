@@ -127,13 +127,38 @@ export default function RxSearchFilters(p: Props) {
     {
       searchFn: searchByClasses(['date-listed-since']),
       transformChild: (child: React.ReactElement) => {
-        return <RxDatePicker {...child.props} filter='dt_to' maxvalue={new Date()} />;
+        return (
+          <RxDatePicker
+            {...child.props}
+            onChange={(ts: number) => {
+              if (ts) {
+                rx_map(rx_map_state, {
+                  dt_to: new Date(ts),
+                });
+              }
+            }}
+            maxvalue={new Date()}
+          />
+        );
       },
     },
     {
       searchFn: searchByClasses(['date-newer-than']),
       transformChild: (child: React.ReactElement) => {
-        return <RxDatePicker {...child.props} filter='dt_from' maxvalue={new Date()} />;
+        return (
+          <RxDatePicker
+            {...child.props}
+            onChange={(ts: number) => {
+              if (ts) {
+                rx_map(rx_map_state, {
+                  dt_from: new Date(ts),
+                });
+              }
+            }}
+            filter='dt_from'
+            maxvalue={new Date()}
+          />
+        );
       },
     },
     {
