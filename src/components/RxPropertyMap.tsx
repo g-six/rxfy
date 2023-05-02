@@ -11,15 +11,6 @@ import { MapProvider } from '@/app/AppContext.module';
 import { getPlaceDetails } from '@/_utilities/geocoding-helper';
 import { LovedPropertyDataModel, MLSProperty } from '@/_typings/property';
 import { PlaceDetails, RxPropertyMapProps } from '@/_typings/maps';
-import { RxSearchButton } from './RxLiveUrlBased/RxSearchButton';
-import RxLiveNumericStep from './RxLiveUrlBased/RxLiveNumericStep';
-import RxLiveNumber from './RxLiveUrlBased/RxLiveNumber';
-import RxLiveStringValue from './RxLiveUrlBased/RxLiveStringValue';
-import { getPropertyTypeFromSelector, getSortingKey } from '@/_utilities/rx-map-helper';
-import RxLiveTextDDOption from './RxLiveUrlBased/RxLiveTextDropdownOption';
-import RxLiveCheckbox from './RxLiveUrlBased/RxLiveBaseCheckbox';
-import RxLiveInput from './RxLiveUrlBased/RxLiveInput';
-import RxDatePicker from './RxLiveUrlBased/RxDatePicker';
 import HomeAlertsReplacer from '@/_replacers/HomeAlerts/home-alerts';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { RxUserSessionLink } from './Nav/RxUserSessionLink';
@@ -28,8 +19,6 @@ import { LoveDataModel } from '@/_typings/love';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 import { Events } from '@/_typings/events';
 import { useSearchParams } from 'next/navigation';
-import RxCombobox from './RxCombobox';
-import RxMapTermsFilter from './RxMapTermsFilter';
 import RxNavItemMenu from './Nav/RxNavItemMenu';
 import RxSearchFilters from './RxPropertyMap/RxSearchFilters';
 
@@ -75,82 +64,6 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
           return <RxNavItemMenu {...child.props}>{child.props.children}</RxNavItemMenu>;
         } else if (child.props.className.split(' ').includes('map-filters')) {
           return <RxSearchFilters className={child.props.className || ''}>{child.props.children}</RxSearchFilters>;
-        }
-
-        if (child.props.className.indexOf('beds-more') >= 0 || child.props.className.indexOf('beds-less') >= 0) {
-          return <RxLiveNumericStep child={child} filter='beds' />;
-        }
-        if (child.props.className.indexOf('baths-more') >= 0 || child.props.className.indexOf('baths-less') >= 0) {
-          return <RxLiveNumericStep child={child} filter='baths' />;
-        }
-        if (child.props.className.indexOf('beds-min') >= 0) {
-          return <RxLiveNumber className={child.props.className} filter='beds' />;
-        }
-        if (child.props.className.indexOf('baths-min') >= 0) {
-          return <RxLiveNumber className={child.props.className} filter='baths' />;
-        }
-        if (child.props.className.indexOf('sqft-min') >= 0) {
-          return <RxLiveInput className={child.props.className} filter='minsqft' inputType='number' />;
-        }
-        if (child.props.className.indexOf('sqft-max') >= 0) {
-          return <RxLiveInput className={child.props.className} filter='maxsqft' inputType='number' />;
-        }
-
-        // Date picker
-        if (child.props.className.indexOf('date-listed-since') >= 0) {
-          return <RxDatePicker {...child.props} filter='dt_to' maxvalue={new Date()} />;
-        }
-        if (child.props.className.indexOf('date-newer-than') >= 0) {
-          return <RxDatePicker {...child.props} filter='dt_from' maxvalue={new Date()} />;
-        }
-
-        // Min. price dropdown values
-        if (child.props.className.split(' ').includes('min-price-dropdown')) {
-          return (
-            <RxCombobox element-type={child.type} className={`${child.props.className} scrollable`} data-value-for='minprice'>
-              {child.props.children}
-            </RxCombobox>
-          );
-        }
-
-        // Min. price selected value
-        if (child.props.className.indexOf('propcard-stat map minprice') >= 0) {
-          return <RxLiveStringValue filter='minprice' className={child.props.className} />;
-        }
-
-        // Max. price dropdown values
-        if (child.props.className.split(' ').includes('max-price-dropdown')) {
-          return (
-            <RxCombobox element-type={child.type} className={`${child.props.className} scrollable`} data-value-for='maxprice'>
-              {child.props.children}
-            </RxCombobox>
-          );
-        }
-
-        // Max. price selected value
-        if (child.props.className.indexOf('propcard-stat map maxprice') >= 0) {
-          return <RxLiveStringValue filter='maxprice' className={child.props.className} />;
-        }
-
-        // Property type
-        if (child.props.className.indexOf(' ptype-') >= 0 && child.type === 'label') {
-          return <RxLiveCheckbox child={child} filter='types' value={getPropertyTypeFromSelector(child.props.className)} />;
-        }
-
-        // Keywords textarea
-        if (child.type === 'textarea') {
-          return <RxMapTermsFilter className={child.props.className || ''} filter='tags' />;
-        }
-
-        // Sorters
-        if (child.props.className.indexOf('-asc') >= 0 || child.props.className.indexOf('-desc') >= 0) {
-          const sorting = getSortingKey(child.props.className);
-          return <RxLiveTextDDOption child={child} filter='sorting' value={sorting} />;
-        }
-
-        // Search  button
-        if (child.props.className.indexOf('do-search') >= 0) {
-          return <RxSearchButton className={child.props.className}>{child.props.children}</RxSearchButton>;
         }
       }
 

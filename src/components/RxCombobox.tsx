@@ -9,6 +9,7 @@ import { objectToQueryString, queryStringToObject } from '@/_utilities/url-helpe
 
 interface RxComboboxProps {
   className?: string;
+  onClick?: (key: string) => {};
   ['element-type']?: string;
   children: React.ReactElement[];
   ['data-value-for']: string;
@@ -63,6 +64,7 @@ export default function RxCombobox(p: RxComboboxProps) {
             });
 
             toggleOpen(false);
+            p.onClick && p.onClick(p['data-value-for']);
           },
         });
       })}

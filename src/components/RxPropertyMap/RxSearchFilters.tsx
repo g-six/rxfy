@@ -1,9 +1,17 @@
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
-import { searchByClasses } from '@/_utilities/rx-element-extractor';
+import { searchByClasses, searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import { useMapMultiUpdater, useMapState } from '@/app/AppContext.module';
 import React from 'react';
 import RxLiveNumericStep from '../RxLiveUrlBased/RxLiveNumericStep';
 import RxLiveNumber from '../RxLiveUrlBased/RxLiveNumber';
+import RxCombobox from '../RxCombobox';
+import RxLiveStringValue from '../RxLiveUrlBased/RxLiveStringValue';
+import RxDatePicker from '../RxLiveUrlBased/RxDatePicker';
+import RxLiveInput from '../RxLiveUrlBased/RxLiveInput';
+import RxLiveCheckbox from '../RxLiveUrlBased/RxLiveBaseCheckbox';
+import RxLiveTextDDOption from '@/components/RxLiveUrlBased/RxLiveTextDropdownOption';
+import { getPropertyTypeFromSelector, getSortingKey } from '@/_utilities/rx-map-helper';
+import RxMapTermsFilter from '../RxMapTermsFilter';
 type Props = {
   children: React.ReactElement[];
   className?: string;
@@ -35,16 +43,57 @@ export default function RxSearchFilters(p: Props) {
             proptypefilters: !show.proptypefilters,
           });
           break;
+        case 'min-price-toggle':
+          toggleOpen({
+            ...show,
+            maxprice: false,
+            minprice: show.maxprice || !show.minprice,
+          });
+          break;
+        case 'max-price-toggle':
+          toggleOpen({
+            ...show,
+            minprice: false,
+            maxprice: show.minprice || !show.minprice,
+          });
+          break;
         case 'map-sort-modal-button':
           toggleOpen({
             sorter: !show.sorter,
           });
+          break;
+        case 'do-search':
+        case 'do-reset':
+        case 'close-link-right':
+          e.preventDefault();
+          toggleOpen({});
           break;
       }
     });
   };
 
   const matches = [
+    {
+      searchFn: searchByPartOfClass(['ptype-']),
+      transformChild: (child: React.ReactElement) => {
+        return <RxLiveCheckbox child={child} filter='types' value={getPropertyTypeFromSelector(child.props.className)} />;
+      },
+    },
+    {
+      searchFn: searchByPartOfClass(['-desc']),
+      transformChild: (child: React.ReactElement) => {
+        const sorting = getSortingKey(child.props.className);
+        return <RxLiveTextDDOption child={child} filter='sorting' value={sorting} />;
+        // return <RxLiveText child={child} filter='sorting' value={sorting} />;
+        // return <RxLiveCheckbox child={child} filter='types' value={getPropertyTypeFromSelector(child.props.className)} />;
+      },
+    },
+    {
+      searchFn: searchByPartOfClass(['input-keywords']),
+      transformChild: (child: React.ReactElement) => {
+        return <RxMapTermsFilter className={child.props.className || ''} filter='tags' />;
+      },
+    },
     {
       searchFn: searchByClasses(['beds-less']),
       transformChild: (child: React.ReactElement) => {
@@ -64,6 +113,30 @@ export default function RxSearchFilters(p: Props) {
       },
     },
     {
+      searchFn: searchByClasses(['sqft-min']),
+      transformChild: (child: React.ReactElement) => {
+        return <RxLiveInput className={child.props.className} filter='minsqft' inputType='number' />;
+      },
+    },
+    {
+      searchFn: searchByClasses(['sqft-max']),
+      transformChild: (child: React.ReactElement) => {
+        return <RxLiveInput className={child.props.className} filter='maxsqft' inputType='number' />;
+      },
+    },
+    {
+      searchFn: searchByClasses(['date-listed-since']),
+      transformChild: (child: React.ReactElement) => {
+        return <RxDatePicker {...child.props} filter='dt_to' maxvalue={new Date()} />;
+      },
+    },
+    {
+      searchFn: searchByClasses(['date-newer-than']),
+      transformChild: (child: React.ReactElement) => {
+        return <RxDatePicker {...child.props} filter='dt_from' maxvalue={new Date()} />;
+      },
+    },
+    {
       searchFn: searchByClasses(['baths-less']),
       transformChild: (child: React.ReactElement) => {
         return <RxLiveNumericStep child={child} filter='baths' />;
@@ -79,6 +152,109 @@ export default function RxSearchFilters(p: Props) {
       searchFn: searchByClasses(['baths-min']),
       transformChild: (child: React.ReactElement) => {
         return <RxLiveNumber className={child.props.className} filter='baths' />;
+      },
+    },
+    {
+      searchFn: searchByClasses(['combobox-toggle', 'min-price-toggle']),
+      transformChild: (child: React.ReactElement) => {
+        return React.cloneElement(child, {
+          ...child.props,
+          className: `${show.minprice ? 'w--open' : ''} ${child.props.className}`.trim(),
+          onClick: handleClick,
+        });
+      },
+    },
+    {
+      searchFn: searchByClasses(['do-search']),
+      transformChild: (child: React.ReactElement) => {
+        return React.cloneElement(child, {
+          ...child.props,
+          onClick: handleClick,
+        });
+      },
+    },
+    {
+      searchFn: searchByClasses(['do-reset']),
+      transformChild: (child: React.ReactElement) => {
+        return React.cloneElement(child, {
+          ...child.props,
+          onClick: handleClick,
+        });
+      },
+    },
+    {
+      searchFn: searchByClasses(['close-link-right']),
+      transformChild: (child: React.ReactElement) => {
+        return React.cloneElement(child, {
+          ...child.props,
+          onClick: handleClick,
+        });
+      },
+    },
+    {
+      searchFn: searchByClasses(['combobox-toggle', 'max-price-toggle']),
+      transformChild: (child: React.ReactElement) => {
+        return React.cloneElement(child, {
+          ...child.props,
+          className: `${show.maxprice ? 'w--open' : ''} ${child.props.className}`.trim(),
+          onClick: handleClick,
+        });
+      },
+    },
+    {
+      searchFn: searchByClasses(['combobox-list', 'min-price-dropdown']),
+      transformChild: (child: React.ReactElement) => {
+        const wrapper = child.props.children as React.ReactElement;
+        return React.cloneElement(
+          <RxCombobox element-type='div' className={`${child.props.className} scrollable`} data-value-for='minprice'>
+            {wrapper.props.children}
+          </RxCombobox>,
+          {
+            ...child.props,
+            children: wrapper.props.children,
+            className: `${show.minprice ? 'w--open' : ''} ${child.props.className}`.trim(),
+            onClick: (key: string) => {
+              toggleOpen({
+                ...show,
+                [key]: false,
+              });
+            },
+          },
+        );
+      },
+    },
+    {
+      searchFn: searchByClasses(['combobox-list', 'max-price-dropdown']),
+      transformChild: (child: React.ReactElement) => {
+        const wrapper = child.props.children as React.ReactElement;
+        return React.cloneElement(
+          <RxCombobox element-type='div' className={`${child.props.className} scrollable`} data-value-for='maxprice'>
+            {wrapper.props.children}
+          </RxCombobox>,
+          {
+            ...child.props,
+            children: wrapper.props.children,
+            className: `${show.maxprice ? 'w--open' : ''} ${child.props.className}`.trim(),
+            onClick: (key: string) => {
+              toggleOpen({
+                ...show,
+                [key]: false,
+              });
+            },
+          },
+        );
+      },
+    },
+    {
+      searchFn: searchByClasses(['propcard-stat', 'map', 'minprice']),
+      transformChild: (child: React.ReactElement) => {
+        return <RxLiveStringValue filter='minprice' className={child.props.className} />;
+      },
+    },
+    {
+      searchFn: searchByClasses(['propcard-stat', 'map', 'maxprice']),
+      transformChild: (child: React.ReactElement) => {
+        return <RxLiveStringValue filter='maxprice' className={child.props.className} />;
       },
     },
     {
