@@ -50,8 +50,9 @@ export default function initializePlacesAutocomplete(props: Record<string, strin
             }
         }
 
-        var gpaInput = document.getElementById('search-input');
+        console.log('initializePlacesAutocomplete running...')
 
+        var gpaInput = document.getElementById('search-input');
         if (!gpaInput) gpaInput = document.querySelector('.section---search input, .map-search-block input')
 
         if (gpaInput) {

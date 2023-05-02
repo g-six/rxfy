@@ -119,8 +119,8 @@ export type RxPropertyMapProps = {
 export type RxPropertyFilter = {
   range?: {
     [key: string]: {
-      gte?: number;
-      lte?: number;
+      gte?: number | string;
+      lte?: number | string;
     };
   };
   match?: {

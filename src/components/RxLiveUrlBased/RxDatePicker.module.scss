@@ -1,3 +1,62 @@
+/* NEW */
+.date-picker {
+  @apply flex items-center relative pl-10;
+
+  > button {
+    @apply left-4;
+  }
+
+  input {
+    @apply border-none outline-none ring-0 text-center;
+  }
+
+  input[name='year'] {
+    @apply w-14 #{!important};
+  }
+
+  input[name='month'] {
+    @apply w-8 #{!important};
+  }
+
+  input[name='day'] {
+    @apply w-10 #{!important};
+  }
+}
+
+.calendar-modal {
+  @apply rounded-lg bg-white shadow-xl z-40 absolute w-52;
+  :global(.react-calendar__month-view__weekdays__weekday) {
+    @apply w-9 h-9 px-0 py-1.5 flex items-center justify-center text-xs #{!important};
+    abbr {
+      @apply flex-col items-center no-underline border-0 p-0 #{!important};
+    }
+  }
+  > div:first-child {
+    @apply bg-black text-white rounded-t-md;
+    > button {
+      @apply bg-transparent py-2;
+    }
+  }
+  .calendar-tile {
+    @apply w-9 aspect-square inline-block bg-transparent rounded-full px-0 py-0 text-xs;
+    &:disabled {
+      abbr {
+        @apply text-slate-400;
+      }
+    }
+    &not:disabled {
+      @apply cursor-pointer hover:bg-black hover:text-white;
+    }
+    > * {
+      @apply p-0;
+    }
+  }
+  abbr {
+    @apply py-2 text-center;
+  }
+}
+
+/* OLD */
 .calendarPopupWrapper {
   @apply -translate-y-full absolute;
 }

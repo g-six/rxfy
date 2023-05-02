@@ -9,6 +9,8 @@ import { objectToQueryString, queryStringToObject } from '@/_utilities/url-helpe
 
 interface RxComboboxProps {
   className?: string;
+  onClick?: (key: string) => {};
+  ['element-type']?: string;
   children: React.ReactElement[];
   ['data-value-for']: string;
 }
@@ -23,15 +25,18 @@ export default function RxCombobox(p: RxComboboxProps) {
 
   const [opened, toggleOpen] = React.useState(false);
 
-  return (
-    <div
-      className={`${p['data-value-for']} rexified ${p.className?.split('w-dropdown').join('')} ${styles.RxCombobox}`}
-      onClick={e => {
-        toggleOpen(true);
-      }}
-    >
-      {p.children?.map((c: React.ReactElement) => {
-        console.log(c.props);
+  return React.createElement(
+    p['element-type'] || 'div',
+    {
+      className: `${p['data-value-for']} rexified ${p.className?.split('w-dropdown').join('')} ${styles.RxCombobox} ${styles.scrollable} ${
+        opened ? styles.opened : ''
+      }`,
+      onClick: () => {
+        toggleOpen(false);
+      },
+    },
+    <div className='dropdown-wrap-4'>
+      {(Array.isArray(p.children) ? p.children : (p.children as unknown as React.ReactElement).props.children).map((c: React.ReactElement) => {
         const opts: {
           ['aria-expanded']?: 'true' | 'false';
           children?: React.ReactElement;
@@ -42,8 +47,8 @@ export default function RxCombobox(p: RxComboboxProps) {
           }
         }
         return React.cloneElement(c, {
-          className: `${c.props.className} rexified-${c.type}`,
           ...opts,
+          className: `${c.props.className} ${styles['dropdown-link']} rexified-${c.type}`,
           onClick: (e: React.MouseEvent<HTMLAnchorElement>) => {
             e.preventDefault();
             const stripped_dollar = e.currentTarget.textContent?.substring(1);
@@ -59,9 +64,10 @@ export default function RxCombobox(p: RxComboboxProps) {
             });
 
             toggleOpen(false);
+            p.onClick && p.onClick(p['data-value-for']);
           },
         });
       })}
-    </div>
+    </div>,
   );
 }

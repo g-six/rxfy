@@ -162,7 +162,7 @@ export function RxMapbox(props: RxMapboxProps) {
       .map(kv => {
         const [k, v] = kv.split('=');
         // We want these fields to be the latest
-        if (['baths', 'beds', 'minprice', 'maxprice', 'types', 'lat', 'lng', 'swlat', 'nelat', 'swlng', 'nelng'].includes(k)) {
+        if (['baths', 'beds', 'minprice', 'maxprice', 'minsqft', 'maxsqft', 'types', 'lat', 'lng', 'swlat', 'nelat', 'swlng', 'nelng'].includes(k)) {
           updated_state[k] = state[k];
           include_listings = [];
         }
