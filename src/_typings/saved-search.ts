@@ -1,6 +1,6 @@
 import { DwellingType } from './property';
 
-export interface SavedSearchInput {
+export interface SavedSearchBaseModel {
   beds?: number;
   baths?: number;
   minprice?: number;
@@ -16,12 +16,16 @@ export interface SavedSearchInput {
   zoom?: number;
   type?: 'R';
   sorting?: string;
-  dwelling_types?: DwellingType[];
   types?: string;
   add_date?: number;
   build_year?: number;
   tags?: string;
+  area?: string;
   city?: string;
+}
+
+export interface SavedSearchInput extends SavedSearchBaseModel {
+  dwelling_types?: DwellingType[];
 }
 
 export interface CustomerSavedSearch extends SavedSearchInput {
@@ -29,6 +33,7 @@ export interface CustomerSavedSearch extends SavedSearchInput {
   is_active: boolean;
   last_email_at?: string;
 }
-export interface SavedSearch extends CustomerSavedSearch {
+export interface SavedSearch extends SavedSearchBaseModel {
   id: number;
+  dwelling_types?: { id: number; name: string; code: string }[];
 }

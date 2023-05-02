@@ -12,6 +12,7 @@ export const gqf_saved_search_attributes = `
                 search_url
                 lat
                 lng
+                area
                 beds
                 baths
                 city
@@ -40,18 +41,6 @@ export const gqf_saved_search_attributes = `
                 is_active
                 minsqft
                 maxsqft`;
-
-const gqlFindCustomer = `query FindCustomer($id: ID!) {
-  customer(id: $id) {
-    data {
-      id
-      attributes {
-        email
-        last_activity_at
-      }
-    }
-  }
-}`;
 
 const gql_create_saved_search = `mutation CreateSavedSearch ($data: SavedSearchInput!) {
     createSavedSearch(data: $data) {
@@ -101,6 +90,17 @@ export async function POST(request: Request) {
         ...attributes,
         id,
       };
+      const user = await getNewSessionKey(token, guid);
+      if (user?.session_key) {
+        session_key = user.session_key;
+      } else {
+        return getResponse(
+          {
+            error: 'Invalid token. Please login',
+          },
+          401,
+        );
+      }
     } else if (search_response.errors) {
       console.log(search_response.errors);
     }
@@ -156,9 +156,16 @@ export async function GET(request: Request) {
   let records = [];
   if (xhr?.data?.data?.savedSearches?.records?.length) {
     records = xhr.data.data.savedSearches.records.map((record: any) => {
+      const { dwelling_types, ...attributes } = record.attributes;
       return {
         id: Number(record.id),
-        ...record.attributes,
+        ...attributes,
+        dwelling_types: dwelling_types.data.map((dwelling_type: { id: number; attributes: { name: string; code: string } }) => {
+          return {
+            ...dwelling_type.attributes,
+            id: dwelling_type.id,
+          };
+        }),
       };
     });
   }

@@ -2,6 +2,7 @@ import { replaceAllTextWithBraces, tMatch, transformMatchingElements } from '@/_
 import { fireCustomEvent } from '@/_helpers/functions';
 import { Events } from '@/_typings/events';
 import { SavedSearch } from '@/_typings/saved-search';
+import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import React, { ReactElement, cloneElement } from 'react';
 
@@ -11,17 +12,14 @@ type Props = {
 };
 
 export default function MyHomeAlertCard({ child, data }: Props) {
-  const propertyTypes = // @ts-ignore
-    Array.isArray(data.dwelling_types.data) && data.dwelling_types.data?.length > 0
-      ? // @ts-ignore
-        data.dwelling_types.data.map(item => item.attributes.name).join(', ')
-      : null;
+  let dwelling_types: string[] = data.dwelling_types?.map(ptype => ptype.name) || [];
+
   const replace = {
-    Title: `${data?.city} ${propertyTypes ? `, ${propertyTypes}` : ''}`,
-    city: 'WRONG CITY FROM API CALL',
-    'min-price': data.minprice ?? 'Not Selected',
-    'max-price': data.maxprice ?? 'Not Selected',
-    area: ',NO FIELD',
+    area: data.area || '',
+    city: data.city || '',
+    Title: `${data?.city} ${dwelling_types.length > 0 ? dwelling_types[0] : ''}`,
+    'min-price': data.minprice ? getShortPrice(data.minprice, '') : 'Not Selected',
+    'max-price': data.maxprice ? getShortPrice(data.maxprice, '') : 'Not Selected',
     beds: data.beds,
     baths: data.baths,
     'min-sqft': data?.minsqft ?? 'N/A',
@@ -29,8 +27,7 @@ export default function MyHomeAlertCard({ child, data }: Props) {
     'listed-since': data.add_date ?? 'Not Selected',
     'prop-newer-than': data.build_year ?? 'Not Selected',
     keywords: data.tags ?? 'Not Provided',
-
-    proptype: propertyTypes ?? 'Not Selected',
+    proptype: dwelling_types.length ? dwelling_types.join(', ') : 'Not Selected',
   };
   const handleEditClick = () => {
     fireCustomEvent({ show: true, message: 'Edit', alertData: data }, Events.MyHomeAlertsModal);

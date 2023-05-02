@@ -74,7 +74,7 @@ export async function GET(request: Request) {
   if (!token || !guid)
     return getResponse(
       {
-        error: 'Please login',
+        error: 'Please log in',
       },
       401,
     );
@@ -156,7 +156,7 @@ export async function GET(request: Request) {
 
       const user = await getNewSessionKey(token, guid);
 
-      if (!user) return getResponse({ message: 'Please login' }, 400);
+      if (!user) return getResponse({ message: 'Please log in' }, 401);
 
       session_key = user.session_key;
       return getResponse(

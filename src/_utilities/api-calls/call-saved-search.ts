@@ -1,4 +1,4 @@
-import { SavedSearchInput } from '@/_typings/saved-search';
+import { CustomerSavedSearch, SavedSearchInput } from '@/_typings/saved-search';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { queryStringToObject } from '../url-helper';
@@ -21,22 +21,22 @@ export async function saveSearch(agent: { id: number; logo?: string }, opts: { s
 
   let { dwelling_types, types } = search_params || {};
   let dwelling_type_ids: number[] = [];
-  dwelling_types?.forEach((t: DwellingType) => {
-    if (t === DwellingType.APARTMENT_CONDO) dwelling_type_ids = dwelling_type_ids.concat([1]);
-    if (t === DwellingType.TOWNHOUSE) dwelling_type_ids = dwelling_type_ids.concat([2]);
-    if (t === DwellingType.HOUSE) {
-      dwelling_type_ids = dwelling_type_ids.concat([3, 4]);
+  dwelling_types?.forEach(code_csv => {
+    if (code_csv === DwellingType.APARTMENT_CONDO) dwelling_type_ids = dwelling_type_ids.concat([1]);
+    if (code_csv === DwellingType.TOWNHOUSE) dwelling_type_ids = dwelling_type_ids.concat([2]);
+    if (code_csv === DwellingType.HOUSE) {
+      dwelling_type_ids = dwelling_type_ids.concat([3, 4, 11, 12]);
     }
-    if (t === DwellingType.DUPLEX) {
+    if (code_csv === DwellingType.DUPLEX) {
       dwelling_type_ids = dwelling_type_ids.concat([8, 9]);
     }
-    if (t === DwellingType.ROW_HOUSE) {
+    if (code_csv === DwellingType.ROW_HOUSE) {
       dwelling_type_ids = dwelling_type_ids.concat([5]);
     }
-    if (t === DwellingType.MANUFACTURED) {
+    if (code_csv === DwellingType.MANUFACTURED) {
       dwelling_type_ids = dwelling_type_ids.concat([6]);
     }
-    if (t === DwellingType.OTHER) {
+    if (code_csv === DwellingType.OTHER) {
       dwelling_type_ids = dwelling_type_ids.concat([10]);
     }
   });
@@ -66,7 +66,9 @@ export async function saveSearch(agent: { id: number; logo?: string }, opts: { s
 
   if (response.status === 200) {
     const { session_key, ...record } = response.data;
-    Cookies.set('session_key', session_key);
+    if (session_key) {
+      Cookies.set('session_key', session_key);
+    }
     return record;
   }
 
@@ -95,7 +97,19 @@ export async function getSearches() {
     });
 
     if (xhr?.data?.session_key) Cookies.set('session_key', xhr.data.session_key);
-    return xhr?.data?.records || [];
+    return (
+      xhr?.data?.records.map((record: CustomerSavedSearch) => {
+        let cleaned = {};
+        Object.keys(record).forEach(key => {
+          const kv = record as unknown as { [key: string]: unknown };
+          cleaned = {
+            ...cleaned,
+            [key]: kv[key] || undefined,
+          };
+        });
+        return cleaned;
+      }) || []
+    );
   }
   return;
 }
