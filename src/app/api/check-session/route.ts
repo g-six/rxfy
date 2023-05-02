@@ -2,6 +2,7 @@ import axios from 'axios';
 import { encrypt } from '@/_utilities/encryption-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getResponse } from '../response-helper';
+import { getNewSessionKey } from '../update-session';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -56,24 +57,16 @@ export async function GET(request: Request) {
     const encrypted_email = encrypt(email);
     const compare_key = `${encrypt(last_activity_at)}.${encrypted_email}`;
     if (compare_key === token) {
-      return new Response(
-        JSON.stringify(
-          {
-            ...response_data.data.user.data.attributes,
-            id: guid,
-            email,
-            session_key: `${token}-${guid}`,
-            message: 'Logged in',
-          },
-          null,
-          4,
-        ),
+      const { session_key } = await getNewSessionKey(token, guid);
+      return getResponse(
         {
-          headers: {
-            'content-type': 'application/json',
-          },
-          status: 200,
+          ...response_data.data.user.data.attributes,
+          id: guid,
+          email,
+          session_key,
+          message: 'Logged in',
         },
+        200,
       );
     }
   }
