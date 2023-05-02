@@ -53,6 +53,23 @@ export default async function Home({ params, searchParams }: { params: Record<st
     className: 'nav-menu-list-wrapper',
   });
 
+  replaceByCheerio($, '.w-nav-menu .nav-dropdown-2 .w-dropdown-toggle', {
+    className: 'nav-menu-list-toggle',
+  });
+  replaceByCheerio($, '.bedbathandbeyond > .w-dropdown-toggle', {
+    className: 'filter-group-modal-toggle',
+  });
+
+  replaceByCheerio($, '.w-nav-menu .nav-dropdown-2 .w-dropdown-list', {
+    className: 'nav-menu-list',
+  });
+  replaceByCheerio($, '.bedbathandbeyond > nav', {
+    className: 'filter-group-modal',
+  });
+  replaceByCheerio($, '.priceminmax.w-dropdown > nav', {
+    className: 'filter-group-modal',
+  });
+
   let listings, property;
 
   if (!params || !params.slug || params.slug === '/') {

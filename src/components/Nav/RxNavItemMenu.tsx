@@ -1,5 +1,5 @@
 'use client';
-import { replaceElements, transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import React from 'react';
 

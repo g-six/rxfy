@@ -31,6 +31,7 @@ import { useSearchParams } from 'next/navigation';
 import RxCombobox from './RxCombobox';
 import RxMapTermsFilter from './RxMapTermsFilter';
 import RxNavItemMenu from './Nav/RxNavItemMenu';
+import RxSearchFilters from './RxPropertyMap/RxSearchFilters';
 
 export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?: string }) {
   let MapAndHeaderHeader;
@@ -72,7 +73,10 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
       if (child.props.className) {
         if (child.props.className.indexOf('nav-menu-list-wrapper') >= 0 || child.props.className.indexOf('login-logout-dropdown') >= 0) {
           return <RxNavItemMenu {...child.props}>{child.props.children}</RxNavItemMenu>;
+        } else if (child.props.className.split(' ').includes('map-filters')) {
+          return <RxSearchFilters className={child.props.className || ''}>{child.props.children}</RxSearchFilters>;
         }
+
         if (child.props.className.indexOf('beds-more') >= 0 || child.props.className.indexOf('beds-less') >= 0) {
           return <RxLiveNumericStep child={child} filter='beds' />;
         }

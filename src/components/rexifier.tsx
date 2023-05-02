@@ -316,6 +316,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         };
 
         if (attribs.src) {
+          return <></>;
           return <script dangerouslySetInnerHTML={{ __html: appendJs(attribs.src) }} type='text/javascript' />;
           // <RxWebflowScript script-src={attribs.src} script-name={pathname} />;
         } else {
