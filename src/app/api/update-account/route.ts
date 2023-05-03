@@ -6,7 +6,7 @@ import { getResponse } from '@/app/api/response-helper';
 import { getNewSessionKey } from '@/app/api/update-session';
 
 const gql = `query GetUserId ($id: ID!) {
-  customer(id: $id) {
+  user: customer(id: $id) {
     data {
       id
       attributes {
@@ -18,7 +18,7 @@ const gql = `query GetUserId ($id: ID!) {
 }`;
 
 const mutation_gql = `mutation UpdateAccount ($id: ID!, $data: CustomerInput!) {
-    customer: updateCustomer(id: $id, data: $data) {
+    user: updateCustomer(id: $id, data: $data) {
       record: data {
         id
         attributes {
@@ -71,7 +71,7 @@ export async function PUT(request: Request) {
         },
       },
     );
-    const record = response_data.data?.customer?.data?.attributes || {};
+    const record = response_data.data?.user?.data?.attributes || {};
     if (!record.email || !record.last_activity_at || `${encrypt(record.last_activity_at)}.${encrypt(record.email)}` !== token) {
       return new Response(
         JSON.stringify(
@@ -134,7 +134,7 @@ export async function PUT(request: Request) {
 
     const {
       data: {
-        data: { customer },
+        data: { user },
       },
     } = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
@@ -152,11 +152,11 @@ export async function PUT(request: Request) {
 
     return getResponse(
       {
-        customer: {
+        user: {
           id: guid,
-          ...customer.record.attributes,
+          ...user.record.attributes,
         },
-        session_key: `${encrypt(last_activity_at)}.${encrypt(customer.record.attributes.email)}-${guid}`,
+        session_key: `${encrypt(last_activity_at)}.${encrypt(user.record.attributes.email)}-${guid}`,
       },
       200,
     );
