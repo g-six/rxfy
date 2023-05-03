@@ -129,13 +129,12 @@ function validInput(data: CustomerInputModel & { agent_id?: number }): {
 
 async function loadSession(search_params: Record<string, string | number | boolean>) {
   let session_key = '';
-  let customer_id = '';
+  let guid = '';
 
   if (search_params?.key) {
     session_key = search_params.key as string;
-    customer_id = session_key.split('-')[1];
+    guid = session_key.split('-')[1];
   }
-  console.log({ session_key, customer_id });
   if (!session_key) session_key = Cookies.get('session_key') as string;
 
   if (session_key && session_key.split('-').length === 2) {
@@ -206,10 +205,10 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
       });
     } else if (valid_data && Cookies.get('session_key')) {
       updateAccount(`${Cookies.get('session_key')}`, valid_data)
-        .then(({ customer }) => {
+        .then(({ user }) => {
           fireEvent({
             ...data,
-            ...customer,
+            ...user,
             clicked: undefined,
           });
           notify({

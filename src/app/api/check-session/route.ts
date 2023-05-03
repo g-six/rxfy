@@ -51,39 +51,25 @@ export async function GET(request: Request) {
       401,
     );
 
-  const response_data = await getUserById(guid);
-  if (response_data.data?.user?.data?.attributes) {
-    const { email, last_activity_at } = response_data.data?.user?.data?.attributes;
-    const encrypted_email = encrypt(email);
-    const compare_key = `${encrypt(last_activity_at)}.${encrypted_email}`;
-    if (compare_key === token) {
-      const { session_key } = await getNewSessionKey(token, guid);
-      return getResponse(
-        {
-          ...response_data.data.user.data.attributes,
-          id: guid,
-          email,
-          session_key,
-          message: 'Logged in',
-        },
-        200,
-      );
-    }
-  }
-
-  return new Response(
-    JSON.stringify(
+  const { email, full_name, last_activity_at, session_key } = await getNewSessionKey(token, guid);
+  if (email && last_activity_at && session_key) {
+    return getResponse(
       {
-        error: 'Please login',
+        id: guid,
+        last_activity_at,
+        email,
+        full_name: full_name || '',
+        session_key,
+        message: 'Logged in',
       },
-      null,
-      4,
-    ),
+      200,
+    );
+  }
+  return getResponse(
     {
-      headers: {
-        'content-type': 'application/json',
-      },
-      status: 401,
+      token,
+      error: 'Unable to sign in. Session token is invalid.',
     },
+    401,
   );
 }
