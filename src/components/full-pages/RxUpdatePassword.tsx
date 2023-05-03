@@ -7,6 +7,11 @@ import { RxButton } from '../RxButton';
 import { NotificationCategory } from '@/_typings/events';
 import { RxPassword } from '../RxPassword';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
+import { queryStringToObject } from '@/_utilities/url-helper';
+import { useSearchParams } from 'next/navigation';
+import Cookies from 'js-cookie';
+import { UserInputModel } from '@/_typings/base-user';
+import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 
 type RxUpdatePasswordPageProps = {
   type: string;
@@ -55,33 +60,36 @@ export function RxUpdatePasswordPageIterator(props: RxUpdatePasswordPageProps) {
 }
 
 export function RxUpdatePasswordPage(props: RxUpdatePasswordPageProps) {
+  const search_params = useSearchParams();
   const { data, fireEvent } = useEvent(Events.UpdatePassword);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [is_loading, toggleLoading] = React.useState(false);
+  const [seconds, setSeconds] = React.useState(3);
+  let message = 'Sorry, there was a technical glitch.  Our engineers are trying to get to the bottom of it.';
 
   const submitForm = async (password: string) => {
     if (is_loading) return;
     toggleLoading(true);
     try {
-      const { searchParams } = new URL(location.href);
-      const { user } = await updateAccount(searchParams.get('key') as string, { password });
+      const { user } = await updateAccount(Cookies.get('session_key') as string, { password });
       if (user) {
+        setInterval(() => {
+          setSeconds(seconds - 1);
+        }, 1000);
         notify({
           category: NotificationCategory.SUCCESS,
-          message: 'Your password has been updated.  Log in using your new password',
-          timeout: 3500,
+          message: `Your password has been updated and you have been automagically logged in. You will be redirected to your account page in ${seconds} second(s)`,
+          timeout: 4000,
         });
-        setTimeout(() => {
-          location.href = '/log-in';
-        }, 6000);
       }
     } catch (e) {
-      const error = e as { response: { statusText: string } };
-      notify({
-        category: NotificationCategory.ERROR,
-        message: error.response.statusText,
-      });
+      const api_error = e as { response: { statusText: string; data: { error: string } } };
+      message = api_error.response.data.error;
     }
+    notify({
+      category: NotificationCategory.ERROR,
+      message,
+    });
 
     toggleLoading(false);
   };
@@ -99,6 +107,11 @@ export function RxUpdatePasswordPage(props: RxUpdatePasswordPageProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
+  React.useEffect(() => {
+    const params = queryStringToObject(search_params.toString() || '');
+    loadSession(params);
+  }, []);
+
   return (
     <form
       id='rx-update-password-page'
@@ -111,4 +124,42 @@ export function RxUpdatePasswordPage(props: RxUpdatePasswordPageProps) {
       <RxUpdatePasswordPageIterator {...props} disabled={is_loading} loading={is_loading} />
     </form>
   );
+}
+
+async function loadSession(search_params: Record<string, string | number | boolean>) {
+  let session_key = '';
+  let customer_id = '';
+
+  if (search_params?.key) {
+    session_key = search_params.key as string;
+    customer_id = session_key.split('-')[1];
+  }
+  if (!session_key) session_key = Cookies.get('session_key') as string;
+
+  if (session_key && session_key.split('-').length === 2) {
+    const api_response = await axios
+      .get('/api/check-session', {
+        headers: {
+          Authorization: `Bearer ${session_key}`,
+        },
+      })
+      .catch(e => {
+        console.log('User not logged in');
+      });
+    const session = api_response as unknown as {
+      data?: UserInputModel & {
+        session_key: string;
+      };
+    };
+
+    if (session && session.data?.session_key) {
+      Cookies.set('session_key', session.data?.session_key);
+      return session.data;
+    } else {
+      clearSessionCookies();
+      location.href = '/log-in';
+    }
+  } else {
+    location.href = '/log-in';
+  }
 }

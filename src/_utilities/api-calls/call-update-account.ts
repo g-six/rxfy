@@ -23,7 +23,7 @@ export async function updateAccount(session_key: string, data: CustomerInputMode
     },
   );
 
-  if (response.data?.customer?.id && response.data?.session_key) {
+  if (response.data?.user?.id && response.data?.session_key) {
     Cookies.set('session_key', response.data.session_key);
   }
 
