@@ -300,6 +300,29 @@ function appendJs(url: string) {
 }
 export function replaceFormsWithDiv($: CheerioAPI) {}
 
+export function rexifyScripts(html_code: string) {
+  const options: HTMLReactParserOptions = {
+    replace: node => {
+      if (node.type === 'script') {
+        const { attribs } = node as unknown as {
+          attribs: Record<string, string>;
+        };
+
+        if (attribs.src) {
+          return attribs.src.indexOf('jquery') >= 0 ? (
+            <script src={attribs.src} type='text/javascript' crossOrigin='anonymous' integrity={attribs.integrity} />
+          ) : (
+            <script {...attribs} />
+          );
+        }
+      }
+      return <></>;
+    },
+  };
+
+  const elements = parse(html_code, options);
+  return elements;
+}
 /**
  *
  * @param html_code
@@ -318,12 +341,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         };
 
         if (attribs.src) {
-          return attribs.src.indexOf('jquery') >= 0 ? (
-            <script src={attribs.src} type='text/javascript' crossOrigin='anonymous' integrity={attribs.integrity} />
-          ) : (
-            <script {...attribs} />
-            // <script dangerouslySetInnerHTML={{ __html: appendJs(attribs.src) }} type='text/javascript' />
-          );
+          return <></>;
         } else {
           if ((node as Element).children) {
             // Scripts that are inline...
