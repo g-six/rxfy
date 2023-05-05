@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 import Image from 'next/image';
 import { Inter } from 'next/font/google';
 import styles from './page.module.scss';
-import { fillAgentInfo, fillPropertyGrid, removeSection, replaceByCheerio, rexify } from '@/components/rexifier';
+import { fillAgentInfo, fillPropertyGrid, removeSection, replaceByCheerio, rexify, rexifyScripts } from '@/components/rexifier';
 import { WebFlow } from '@/_typings/webflow';
 import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
@@ -324,6 +324,8 @@ export default async function Home({ params, searchParams }: { params: Record<st
           }}
         />
       )}
+
+      {webflow.body.code && rexifyScripts(webflow.body.code)}
     </>
   );
 }
