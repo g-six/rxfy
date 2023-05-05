@@ -9,7 +9,8 @@ import { RxEmail } from '../RxEmail';
 import { RxPassword } from '../RxPassword';
 import { RxTextInput } from '../RxTextInput';
 import { RxCheckBox } from '../RxCheckBox';
-import { signUp } from '@/_utilities/api-calls/call-signup';
+import { agentSignUp, signUp } from '@/_utilities/api-calls/call-signup';
+import { AgentSignUpInput } from '@/_typings/agent';
 
 type RxSignupPageProps = {
   type: string;
@@ -39,6 +40,9 @@ export function RxPageIterator(props: RxSignupPageProps) {
       }
       if (child_node.props.className.split(' ').includes('txt-name')) {
         return <RxTextInput {...child_node.props} rx-event={Events.SignUp} name='full_name' />;
+      }
+      if (child_node.props.className.split(' ').includes('txt-agentid')) {
+        return <RxTextInput {...child_node.props} rx-event={Events.SignUp} name='agent_id' />;
       }
       if (child_node.props.id === 'wf-sign-up-accept-communications') {
         return <RxCheckBox {...child_node.props} rx-event={Events.SignUp} name='yes_to_marketing' />;
@@ -72,6 +76,48 @@ export function RxPageIterator(props: RxSignupPageProps) {
   });
 
   return <>{wrappedChildren}</>;
+}
+
+function validRealtorInput(data: { email?: string; password?: string; full_name?: string; agent_id?: number; yes_to_marketing?: boolean }): {
+  data?: AgentSignUpInput;
+  errors?: {
+    agent_id?: string;
+    email?: string;
+    password?: string;
+    full_name?: string;
+  };
+  error?: string;
+} {
+  let error = '';
+
+  if (!data.agent_id) {
+    error = `${error}\nA valid agent id (e.g. Paragon) is required for realtor sign ups`;
+  }
+  if (!data.email) {
+    error = `${error}\nA valid email`;
+  }
+  if (!data.full_name) {
+    error = `${error}\nYour full name`;
+  }
+  if (!data.password) {
+    error = `${error}\nA hard-to-guess password with at least 10 characters is required`;
+  }
+
+  if (error) {
+    return { error: `A couple of things we require from a realtor\n\n${error}` };
+  }
+
+  return {
+    data: {
+      ...data,
+    } as unknown as {
+      email: string;
+      password: string;
+      full_name: string;
+      yes_to_marketing: boolean;
+      agent_id: string;
+    },
+  };
 }
 
 function validInput(data: { email?: string; password?: string; full_name?: string; agent_id?: number; yes_to_marketing?: boolean }): {
@@ -128,42 +174,72 @@ export function RxSignupPage(props: RxSignupPageProps) {
   };
 
   const submitForm = () => {
-    const { data: valid_data, error } = validInput(form_data);
-
+    const is_agent = (props.className || '').split(' ').includes('use-agent');
+    const { data: valid_data, error } = is_agent ? validRealtorInput(form_data) : validInput(form_data);
     if (error) {
       notify({
         category: NotificationCategory.ERROR,
         message: error,
       });
     } else if (valid_data) {
-      signUp(
-        {
-          id: Number(props.agent),
-          email: (props.className || '').split(' ').includes('use-agent') ? valid_data.email : undefined,
-          logo: props.logo,
-        },
-        valid_data,
-      )
-        .then(response => {
-          notify({
-            category: NotificationCategory.SUCCESS,
-            message: "Great, you're all set! Forwarding you to our login portal.",
-          });
-          setTimeout(() => {
-            location.href = '/log-in';
-          }, 1400);
-        })
-        .catch((e: AxiosError) => {
-          if (e.response && e.response.data) {
-            const { error } = e.response.data as { error: string };
-            if (error) {
+      if (is_agent)
+        agentSignUp(valid_data as AgentSignUpInput)
+          .then(response => {
+            if (response.error) {
               notify({
                 category: NotificationCategory.ERROR,
-                message: error,
+                message: response.error,
+              });
+            } else {
+              notify({
+                category: NotificationCategory.SUCCESS,
+                message: "Great, you're all set! Forwarding you to our login portal.",
               });
             }
-          }
-        });
+            // setTimeout(() => {
+            //   location.href = '/log-in';
+            // }, 1400);
+          })
+          .catch((e: AxiosError) => {
+            if (e.response && e.response.data) {
+              const { error } = e.response.data as { error: string };
+              if (error) {
+                notify({
+                  category: NotificationCategory.ERROR,
+                  message: error,
+                });
+              }
+            }
+          });
+      else
+        signUp(
+          {
+            id: Number(props.agent),
+            email: (props.className || '').split(' ').includes('use-agent') ? valid_data.email : undefined,
+            logo: props.logo,
+          },
+          valid_data,
+        )
+          .then(response => {
+            notify({
+              category: NotificationCategory.SUCCESS,
+              message: "Great, you're all set! Forwarding you to our login portal.",
+            });
+            setTimeout(() => {
+              location.href = '/log-in';
+            }, 1400);
+          })
+          .catch((e: AxiosError) => {
+            if (e.response && e.response.data) {
+              const { error } = e.response.data as { error: string };
+              if (error) {
+                notify({
+                  category: NotificationCategory.ERROR,
+                  message: error,
+                });
+              }
+            }
+          });
     }
   };
 

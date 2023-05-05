@@ -47,6 +47,13 @@ export interface AgentMetatags extends AgentMetatagsInput {
   id: number;
 }
 
+export interface AgentSignUpInput {
+  agent_id: string;
+  email: string;
+  password: string;
+  full_name: string;
+}
+
 export interface AgentData {
   id: number;
   agent_id: string;

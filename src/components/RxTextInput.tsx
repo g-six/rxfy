@@ -9,7 +9,7 @@ type RxProps = {
   className?: string;
   defaultValue?: string;
   formatter?: (input: string) => string;
-  children: React.ReactElement;
+  children?: React.ReactElement;
   data?: Record<string, string>;
   placeholder?: string;
   ['rx-event']: Events;

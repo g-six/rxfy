@@ -24,6 +24,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   PROPERTY_CARD = 'property-card',
   ID_PAGE = 'total-id-card',
   PDF_PAGE = 'pdf-wrapper',
+  AGENT_ID_INPUT = 'txt-agentid',
 }
 
 export interface WebFlow {

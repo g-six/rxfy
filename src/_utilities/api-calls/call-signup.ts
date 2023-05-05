@@ -6,6 +6,36 @@ import { queryStringToObject } from '../url-helper';
 import { SavedSearchInput } from '@/_typings/saved-search';
 
 /**
+ * Sign up a realtor
+ * @param agent_id
+ * @param agent { email, full_name?, password? }
+ * @returns
+ */
+export async function agentSignUp(agent: { agent_id: string; email: string; full_name?: string; password?: string }) {
+  const full_name = agent.full_name || capitalizeFirstLetter(agent.email.split('@')[0].replace(/[^\w\s!?]/g, ''));
+
+  let saved_search: SavedSearchInput = {};
+  const response = await axios.post(
+    '/api/agents/sign-up',
+    {
+      ...agent,
+      full_name,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  if (response.data?.customer?.id && response.data?.session_key) {
+    Cookies.set('session_key', response.data.session_key);
+  }
+
+  return response.data || {};
+}
+
+/**
  * Sign up a customer under the agent's account
  * @param agent { id, logo? }
  * @param customer { email, full_name?, password? }

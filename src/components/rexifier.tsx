@@ -1,5 +1,6 @@
+/* eslint-disable @next/next/no-sync-scripts */
 /* eslint-disable @next/next/no-img-element */
-import { ReactElement } from 'react';
+import { Children, ReactElement } from 'react';
 import { Cheerio, CheerioAPI } from 'cheerio';
 import parse, { HTMLReactParserOptions, Element, attributesToProps, DOMNode, domToReact, htmlToDOM } from 'html-react-parser';
 
@@ -43,6 +44,8 @@ import { RxMyClients } from './full-pages/RxMyClients';
 import RxMySavedHomesDashBoard from './full-pages/RxMySavedHomesDashBoard';
 import RxIdPage from './full-pages/RxIdPage';
 import RxMyHomeAlerts from './full-pages/RxMyHomeAlerts';
+import { Events } from '@/_typings/events';
+import { RxTextInput } from './RxTextInput';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -281,7 +284,7 @@ function appendJs(url: string) {
   setTimeout(() => {
     var js = document.createElement('script');
     js.src = "${url}";
-    js.async = true;
+    // js.async = true;
     if (js.src.indexOf('webflow') > 0) {
       const badge_interval = setInterval(() => {
         const badge = document.querySelector('.w-webflow-badge');
@@ -309,14 +312,19 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
   let home_alert_index = 1;
   const options: HTMLReactParserOptions = {
     replace: node => {
-      // Take out script / replace DOM placeholders with our Reidget
+      // Take out script / replace DOM placeholders with our Rexify
       if (node.type === 'script') {
         const { attribs } = node as unknown as {
           attribs: Record<string, string>;
         };
 
         if (attribs.src) {
-          return <script dangerouslySetInnerHTML={{ __html: appendJs(attribs.src) }} type='text/javascript' />;
+          return attribs.src.indexOf('jquery') >= 0 ? (
+            <script src={attribs.src} type='text/javascript' crossOrigin='anonymous' integrity={attribs.integrity} />
+          ) : (
+            <script {...attribs} />
+            // <script dangerouslySetInnerHTML={{ __html: appendJs(attribs.src) }} type='text/javascript' />
+          );
         } else {
           if ((node as Element).children) {
             // Scripts that are inline...
@@ -380,7 +388,14 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         if (node.tagName === 'form' && (!className || className.indexOf('contact-form') === -1)) {
           return (
             <div {...props} id='rex-form' data-class={className}>
-              {domToReact(node.children) as ReactElement[]}
+              {Children.map(domToReact(node.children) as ReactElement[], child => {
+                if (child.type === 'input') {
+                  if (child.props.className?.split(' ').includes('txt-agentid')) {
+                    return <RxTextInput {...child.props} name='agent_id' rx-event={Events.SignUp} />;
+                  }
+                }
+                return child;
+              })}
             </div>
           );
         }
@@ -441,19 +456,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
               <RxMyCompareDashboardPage agent-data={agent_data} className={node.attribs.class}>
                 {domToReact(node.children)}
               </RxMyCompareDashboardPage>
-            );
-          }
-          if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.SIGNUP) {
-            return (
-              <RxSignupPage
-                {...props}
-                className={className || ''}
-                agent={agent_data.id as number}
-                logo={agent_data.metatags?.logo_for_light_bg}
-                type={node.type}
-              >
-                <>{domToReact(node.children) as ReactElement[]}</>
-              </RxSignupPage>
             );
           }
         }

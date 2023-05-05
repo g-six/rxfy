@@ -1,35 +1,30 @@
+import { encrypt } from '@/_utilities/encryption-helper';
 import { getResponse } from '../../response-helper';
+import axios from 'axios';
+import { capitalizeFirstLetter } from '@/_utilities/formatters';
+import { sendTemplate } from '../../send-template';
+import { MessageRecipient } from '@mailchimp/mailchimp_transactional';
 
-export const gql_find_agent = `query RetrieveClients($agent_id: String!) {
+export const gql_find_agent = `query RetrieveAgentRecord($agent_id: String!) {
     agents(filters: { agent_id: { eq: $agent_id } }) {
       data {
+        id
         attributes {
           agent_id
-          customers {
-            data {
-              id
-              attributes {
-                full_name
-                email
-                birthday
-                phone_number
-                loves {
-                  data {
-                    id
-                    attributes {
-                      property {
-                        data {
-                          attributes {
-                            title
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
+          email
+          full_name
+        }
+      }
+    }
+}`;
+export const gql_create_agent = `query CreateAgentRecord($data: AgentInput!) {
+    createAgent(data: $data) {
+      data {
+        id
+        attributes {
+          agent_id
+          email
+          full_name
         }
       }
     }
@@ -71,7 +66,7 @@ export const gql_retrieve_clients = `query RetrieveClients($id: ID!) {
   }
 `;
 
-const gql = `mutation SignUp ($data: CustomerInput!) {
+const gql_update_agent = `mutation UpdateAgent ($data: AgentInput!) {
   agents(data: $data) {
     data {
       id
@@ -79,11 +74,35 @@ const gql = `mutation SignUp ($data: CustomerInput!) {
         email
         full_name
         last_activity_at
-        agents {
+        agent {
           data {
             id
             attributes {
               full_name
+            }
+          }
+        }
+      }
+    }
+  }
+}`;
+
+const gql_create_realtor = `mutation SignUp ($data: RealtorInput!) {
+  createRealtor(data: $data) {
+    data {
+      id
+      attributes {
+        email
+        full_name
+        last_activity_at
+        is_verified
+        agent {
+          data {
+            id
+            attributes {
+              full_name
+              email
+              phone
             }
           }
         }
@@ -98,7 +117,89 @@ export async function POST(req: Request) {
 
   if (Object.keys(errors).length > 0) return getResponse({ errors }, 400);
 
-  return getResponse(data, 200);
+  if (data.email && data.password && data.full_name && data.agent_id) {
+    const encrypted_password = encrypt(data.password);
+    let { attributes: agent_profile, id } = await searchAgentById(data.agent_id);
+    let existing_id = Number(id);
+    let status_code = 202;
+    let user = {};
+    let session_key = '';
+
+    if (!existing_id) {
+      const { attributes: new_agent, id: new_agent_id } = await createAgent(data);
+      agent_profile = new_agent;
+      id = new_agent_id;
+      existing_id = Number(id);
+      status_code = 201;
+    }
+
+    if (!existing_id)
+      return getResponse(
+        {
+          agent_profile,
+          data,
+          error: 'Unable to sign up with the data given',
+        },
+        400,
+      );
+
+    const claimed = await claimAgent(existing_id, {
+      email: agent_profile.email,
+      full_name: data.full_name,
+      login_email: data.email,
+      encrypted_password,
+    });
+
+    if (claimed.errors) return getResponse(claimed, 400);
+
+    let agent_record_id: number | undefined = undefined;
+    if (claimed.attributes.agent?.data?.id) {
+      agent_record_id = Number(claimed.attributes.agent?.data?.id);
+    }
+    user = {
+      ...claimed.attributes,
+      agent: {
+        ...(claimed.attributes.agent?.data?.attributes || {}),
+        id: agent_record_id,
+        agent_id: data.agent_id,
+      },
+      id: Number(claimed.id),
+    };
+    session_key = `${encrypt(claimed.attributes.last_activity_at)}.${encrypt(claimed.attributes.email)}-${claimed.id}`;
+    const receipients: MessageRecipient[] = [
+      {
+        email: claimed.attributes.email,
+        name: claimed.attributes.full_name,
+      },
+      {
+        email: 'team@leagent.com',
+        name: 'The Leagent Team',
+        type: 'bcc',
+      },
+    ];
+    const url = new URL(req.url);
+    await sendTemplate('welcome-agent', receipients, {
+      send_to_email: claimed.attributes.email,
+      dashboard_url: `${url.origin}/my-profile?key=${session_key}`,
+      from_name: 'Leagent Team',
+      subject: 'Welcome aboard!',
+    });
+
+    return getResponse(
+      {
+        user,
+        session_key,
+      },
+      status_code,
+    );
+  }
+
+  return getResponse(
+    {
+      message: 'Nothing to do here',
+    },
+    200,
+  );
 }
 
 function checkForFieldErrors(data: { [key: string]: any }) {
@@ -119,4 +220,104 @@ function checkForFieldErrors(data: { [key: string]: any }) {
       password: ['required'],
     };
   return errors;
+}
+
+async function searchAgentById(agent_id: string) {
+  const response = await axios.post(
+    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+    {
+      query: gql_find_agent,
+      variables: {
+        agent_id,
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  const { data: response_data } = response;
+  return response_data?.data?.agents?.data[0] || {};
+}
+
+async function claimAgent(id: number, user_data: { email: string; encrypted_password: string; full_name: string; login_email: string }) {
+  const last_activity_at = new Date().toISOString();
+  const RealtorInput = {
+    email: user_data.login_email.toLowerCase(),
+    encrypted_password: user_data.encrypted_password,
+    full_name: user_data.full_name,
+    is_verified: user_data.email.toLowerCase() === user_data.login_email.toLowerCase(),
+    last_activity_at,
+    agent: id,
+  };
+
+  const realtor_response = await axios.post(
+    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+    {
+      query: gql_create_realtor,
+      variables: {
+        id,
+        data: RealtorInput,
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  const { data: response_data } = realtor_response;
+  let error = '';
+  let errors: {
+    [key: string]: string[];
+  } = {};
+  if (response_data.errors) {
+    response_data.errors.forEach((e: { [key: string]: any }) => {
+      if (e.extensions?.error?.details?.errors) {
+        e.extensions?.error.details.errors.forEach(({ path, message }: { path: string[]; message: string }) => {
+          error = `${error}\n${(errors[path[0]] || [])
+            .concat([message.split('This attribute').join(capitalizeFirstLetter(path[0])).split('must be unique').join('is already taken')])
+            .join('\n')}`;
+          errors = {
+            ...errors,
+            [path[0]]: (errors[path[0]] || []).concat([
+              message.split('This attribute').join(capitalizeFirstLetter(path[0])).split('must be unique').join('is already taken'),
+            ]),
+          };
+        });
+      }
+    });
+    return { error, errors };
+  }
+  return response_data?.data?.createRealtor?.data || {};
+}
+
+async function createAgent(user_data: { email: string; encrypted_password: string; full_name: string }) {
+  const { encrypted_password, ...realtor } = user_data;
+  const agent_response = await axios.post(
+    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+    {
+      query: gql_create_agent,
+      variables: {
+        data: realtor,
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  if (agent_response.data?.createRealtor?.data?.id) {
+    return await claimAgent(agent_response.data.createRealtor.data.id, { ...user_data, login_email: user_data.email });
+  }
+
+  return agent_response?.data?.createRealtor?.data || {};
 }
