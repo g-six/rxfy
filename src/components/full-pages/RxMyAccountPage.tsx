@@ -17,12 +17,13 @@ import { RxBirthdayTextInput } from '../RxForms/RxBirthdayTextInput';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
 import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 import { queryStringToObject } from '@/_utilities/url-helper';
+import { RealtorInputModel } from '@/_typings/agent';
 
 type RxMyAccountPageProps = {
   type: string;
   children: React.ReactElement;
   className?: string;
-  data: CustomerInputModel;
+  data: CustomerInputModel & RealtorInputModel;
 };
 
 export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit: MouseEventHandler }) {
@@ -60,6 +61,18 @@ export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit: MouseEv
         }
         if (child_node.props.className.split(' ').includes('txt-name')) {
           return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='full_name' defaultValue={props.data.full_name} />;
+        }
+        if (child_node.props.className.split(' ').includes('txt-firstname')) {
+          return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='first_name' defaultValue={props.data.first_name} />;
+        }
+        if (child_node.props.className.split(' ').includes('txt-lastname')) {
+          return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='last_name' defaultValue={props.data.last_name} />;
+        }
+        if (child_node.props.className.split(' ').includes('txt-phone-number')) {
+          return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='phone' defaultValue={props.data.phone} />;
+        }
+        if (child_node.props.className.split(' ').includes('txt-agentid')) {
+          return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='agent_id' defaultValue={props.data.agent_id} />;
         }
         if (child_node.props.className.split(' ').includes('txt-phone')) {
           return <RxPhoneInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='phone_number' defaultValue={props.data.phone_number} />;
@@ -139,7 +152,7 @@ async function loadSession(search_params: Record<string, string | number | boole
 
   if (session_key && session_key.split('-').length === 2) {
     const api_response = await axios
-      .get('/api/check-session', {
+      .get(Cookies.get('session_as') && Cookies.get('session_as') === 'realtor' ? '/api/check-session/agent' : '/api/check-session', {
         headers: {
           Authorization: `Bearer ${session_key}`,
         },
@@ -154,19 +167,14 @@ async function loadSession(search_params: Record<string, string | number | boole
     };
 
     if (session && session.data?.session_key) {
-      if (!Cookies.get('session_key')) {
-        setTimeout(() => {
-          location.href = '/my-profile';
-        }, 300);
-      }
       Cookies.set('session_key', session.data?.session_key);
       return session.data;
     } else {
-      clearSessionCookies();
-      location.href = '/log-in';
+      // clearSessionCookies();
+      // location.href = '/log-in';
     }
   } else {
-    location.href = '/log-in';
+    // location.href = '/log-in';
   }
 }
 
@@ -177,10 +185,14 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
   const [is_processing, processing] = React.useState(false);
   const [form_data, setFormData] = useState<
     EventsData & {
+      agent_id?: string;
+      phone?: string;
       email?: string;
       password?: string;
       birthday?: string;
       full_name?: string;
+      first_name?: string;
+      last_name?: string;
       yes_to_marketing?: boolean;
     }
   >(data as EventsData);
@@ -251,7 +263,7 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
     loadSession(params).then(user_data => {
       if (user_data) setFormData(user_data);
     });
-  }, []);
+  }, [search_params]);
 
   return (
     <div id='rx-my-account-page' className={props.className || ''}>

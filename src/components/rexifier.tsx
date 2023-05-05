@@ -38,7 +38,6 @@ import { RxMyAccountPage } from './full-pages/RxMyAccountPage';
 import DocumentsReplacer from '@/_replacers/Documents/documents';
 import { RxUpdatePasswordPage } from './full-pages/RxUpdatePassword';
 import RxMyCompareDashboardPage from './full-pages/RxMyCompareDashboardPage';
-import { RxWebflowScript } from './Scripts/RxWebflowScript';
 import RxDropdownMenu from './Nav/RxDropdownMenu';
 import { RxMyClients } from './full-pages/RxMyClients';
 import RxMySavedHomesDashBoard from './full-pages/RxMySavedHomesDashBoard';

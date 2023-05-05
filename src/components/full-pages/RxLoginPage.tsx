@@ -114,6 +114,7 @@ export function RxLoginPage(props: RxLoginPageProps) {
       };
       if (session?.session_key && session.user?.id) {
         Cookies.set('session_key', session.session_key);
+        Cookies.set('session_as', hasClassName(props.className || '', 'use-agent') ? 'realtor' : 'customer');
         setTimeout(() => {
           location.href = '/my-profile';
         }, 700);

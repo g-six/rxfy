@@ -7,27 +7,35 @@ const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
 };
-const gqlFindUser = `query FindCustomer($id: ID!) {
-  user: customer(id: $id) {
-    data {
-      id
-      attributes {
-        full_name
-        email
-        birthday
-        phone_number
-        last_activity_at
-        yes_to_marketing
+
+function gqlFindUser(user_type: 'realtor' | 'customer') {
+  return `query FindUser($id: ID!) {
+    user: ${user_type}(id: $id) {
+      data {
+        id
+        attributes {
+          full_name
+          email
+          phone_number
+          last_activity_at
+          ${
+            user_type === 'customer'
+              ? `birthday
+          yes_to_marketing`
+              : `first_name
+          last_name`
+          }
+        }
       }
     }
-  }
-}`;
+  }`;
+}
 
-export async function getUserById(id: number) {
+export async function getUserById(id: number, user_type: 'realtor' | 'customer' = 'customer') {
   const { data } = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {
-      query: gqlFindUser,
+      query: gqlFindUser(user_type),
       variables: {
         id,
       },
@@ -51,14 +59,26 @@ export async function GET(request: Request) {
       401,
     );
 
-  const { email, full_name, last_activity_at, session_key } = await getNewSessionKey(token, guid);
+  const user_type = request.url.split('/').includes('agent') ? 'realtor' : 'customer';
+
+  const { email, full_name, last_activity_at, session_key, first_name, last_name, ...session_data } = await getNewSessionKey(token, guid, user_type);
+  const { agent, birthday } = session_data;
   if (email && last_activity_at && session_key) {
     return getResponse(
       {
+        ...(agent
+          ? {
+              ...agent.data.attributes,
+              id: Number(agent.data.id),
+            }
+          : {}),
         id: guid,
         last_activity_at,
         email,
+        birthday,
         full_name: full_name || '',
+        first_name: first_name || full_name?.split(' ')[0] || '',
+        last_name: last_name || full_name?.split(' ').pop() || '',
         session_key,
         message: 'Logged in',
       },
