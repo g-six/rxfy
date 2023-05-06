@@ -193,7 +193,7 @@ export function RxSignupPage(props: RxSignupPageProps) {
             } else {
               notify({
                 category: NotificationCategory.SUCCESS,
-                message: "Great, you're all set! Forwarding you to our login portal.",
+                message: "Great, you're all signed up! We've sent you an verification email with a one-time account activation link.",
               });
             }
             // setTimeout(() => {

@@ -1,9 +1,11 @@
 import { encrypt } from '@/_utilities/encryption-helper';
 import { getResponse } from '../../response-helper';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { sendTemplate } from '../../send-template';
 import { MessageRecipient } from '@mailchimp/mailchimp_transactional';
+import { emailToSlug } from '@/_utilities/string-helper';
+import { WEBFLOW_THEME_DOMAINS } from '@/_typings/webflow';
 
 export const gql_find_agent = `query RetrieveAgentRecord($agent_id: String!) {
     agents(filters: { agent_id: { eq: $agent_id } }) {
@@ -17,7 +19,7 @@ export const gql_find_agent = `query RetrieveAgentRecord($agent_id: String!) {
       }
     }
 }`;
-export const gql_create_agent = `query CreateAgentRecord($data: AgentInput!) {
+export const gql_create_agent = `mutation CreateAgentRecord($data: AgentInput!) {
     createAgent(data: $data) {
       data {
         id
@@ -66,22 +68,13 @@ export const gql_retrieve_clients = `query RetrieveClients($id: ID!) {
   }
 `;
 
-const gql_update_agent = `mutation UpdateAgent ($data: AgentInput!) {
-  agents(data: $data) {
+const gql_update_agent = `mutation UpdateAgent ($id: ID!, $data: AgentInput!) {
+  updateAgent(id: $id, data: $data) {
     data {
       id
       attributes {
-        email
-        full_name
-        last_activity_at
-        agent {
-          data {
-            id
-            attributes {
-              full_name
-            }
-          }
-        }
+        domain_name
+        webflow_domain
       }
     }
   }
@@ -126,7 +119,10 @@ export async function POST(req: Request) {
     let session_key = '';
 
     if (!existing_id) {
-      const { attributes: new_agent, id: new_agent_id } = await createAgent(data);
+      const { attributes: new_agent, id: new_agent_id } = await createAgent({
+        ...data,
+        encrypted_password,
+      });
       agent_profile = new_agent;
       id = new_agent_id;
       existing_id = Number(id);
@@ -251,15 +247,52 @@ async function claimAgent(id: number, user_data: { email: string; encrypted_pass
     full_name: user_data.full_name,
     is_verified: user_data.email.toLowerCase() === user_data.login_email.toLowerCase(),
     last_activity_at,
-    agent: id,
+    agent: Number(id),
   };
+
+  const domain_name = `r${id}.leagent.com`;
+
+  console.log(`Creating vercel domain ${domain_name}`);
+  const vercel_headers = {
+    Authorization: `Bearer ${process.env.NEXT_APP_VERCEL_TOKEN as string}`,
+    'Content-Type': 'application/json',
+  };
+
+  const vercel_domains_api_url = `https://api.vercel.com/v9/projects/rexify/domains?teamId=${process.env.NEXT_APP_VERCEL_TEAM_ID}`;
+
+  const vercel_response = await axios.post(vercel_domains_api_url, { name: domain_name }, { headers: vercel_headers });
+
+  if (vercel_response.data?.name) {
+    const updated_domain = await axios.post(
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+      {
+        query: gql_update_agent,
+        variables: {
+          id,
+          data: {
+            domain_name: vercel_response.data?.name,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+    if (updated_domain.data?.data?.updateAgent?.data?.attributes?.domain_name) {
+      console.log('Updated domain name to', updated_domain.data.data.updateAgent.data.attributes.domain_name);
+    }
+  }
+
+  console.log(JSON.stringify({ RealtorInput }, null, 4));
 
   const realtor_response = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {
       query: gql_create_realtor,
       variables: {
-        id,
         data: RealtorInput,
       },
     },
@@ -276,6 +309,7 @@ async function claimAgent(id: number, user_data: { email: string; encrypted_pass
   let errors: {
     [key: string]: string[];
   } = {};
+  console.log(JSON.stringify(response_data, null, 4));
   if (response_data.errors) {
     response_data.errors.forEach((e: { [key: string]: any }) => {
       if (e.extensions?.error?.details?.errors) {
@@ -297,27 +331,54 @@ async function claimAgent(id: number, user_data: { email: string; encrypted_pass
   return response_data?.data?.createRealtor?.data || {};
 }
 
-async function createAgent(user_data: { email: string; encrypted_password: string; full_name: string }) {
-  const { encrypted_password, ...realtor } = user_data;
-  const agent_response = await axios.post(
-    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-    {
-      query: gql_create_agent,
-      variables: {
-        data: realtor,
+async function createAgent(user_data: { agent_id: string; email: string; encrypted_password: string; full_name: string }) {
+  try {
+    const agent_response = await axios.post(
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+      {
+        query: gql_create_agent,
+        variables: {
+          data: {
+            agent_id: user_data.agent_id,
+            email: user_data.email,
+            full_name: user_data.full_name,
+            first_name: user_data.full_name.split(' ')[0] || '',
+            last_name: user_data.full_name.split(' ').pop(),
+            webflow_domain: WEBFLOW_THEME_DOMAINS.DEFAULT,
+          },
+        },
       },
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-        'Content-Type': 'application/json',
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
       },
-    },
-  );
+    );
 
-  if (agent_response.data?.createRealtor?.data?.id) {
-    return await claimAgent(agent_response.data.createRealtor.data.id, { ...user_data, login_email: user_data.email });
+    return agent_response?.data?.data?.createAgent?.data || {};
+  } catch (e) {
+    console.log('Error in createAgent');
+    const axerr = e as AxiosError;
+    const { error, errors } = axerr.response?.data as {
+      error?: {
+        code: string;
+      };
+      errors?: {
+        message: string;
+        extensions: unknown[];
+      }[];
+    };
+    console.log(
+      JSON.stringify(
+        {
+          error,
+          errors,
+        },
+        null,
+        4,
+      ),
+    );
   }
-
-  return agent_response?.data?.createRealtor?.data || {};
+  return {};
 }

@@ -37,3 +37,7 @@ export interface WebFlow {
     code: string;
   };
 }
+
+export enum WEBFLOW_THEME_DOMAINS {
+  DEFAULT = 'leagent-webflow-rebuild.webflow.io',
+}
