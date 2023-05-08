@@ -55,11 +55,18 @@ export interface AgentSignUpInput {
   full_name: string;
 }
 
+export interface BrokerageInputModel {
+  name?: string;
+  full_address?: string;
+  phone_number?: string;
+  website_url?: string;
+}
+
 export interface RealtorInputModel extends UserInputModel {
   agent_id?: string;
   first_name?: string;
   last_name?: string;
-  phone?: string;
+  phone_number?: string;
 }
 
 export interface AgentData {
