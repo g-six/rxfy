@@ -17,6 +17,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   GUEST_MENU = 'out-session',
   HOME_ALERTS_WRAPPER = 'home-alert---all-screens',
   CONTACT_FORM = 'contact-form-wrapper',
+  CTA_CONTACT_FORM = 'cta-contact-form',
   PROPERTY_TOP_STATS = 'section---top-stats',
   DOCUMENTS = 'docs-section',
   FOOTER_SOCIAL_LINKS = 'footer-social-block',

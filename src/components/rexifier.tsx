@@ -45,6 +45,7 @@ import RxIdPage from './full-pages/RxIdPage';
 import RxMyHomeAlerts from './full-pages/RxMyHomeAlerts';
 import { Events } from '@/_typings/events';
 import { RxTextInput } from './RxTextInput';
+import RxContactFormButton from './RxForms/RxContactFormButton';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -521,6 +522,14 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
 
         if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.HOME_ALERTS_WRAPPER) >= 0) {
           return <HomeAlertsReplacer agent={agent_data} nodeClassName={className} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
+        }
+        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CTA_CONTACT_FORM) >= 0) {
+          return (
+            <RxContactFormButton className={[node.attribs.class, 'rexified'].join(' ').trim()}>
+              {domToReact(node.children) as ReactElement[]}
+            </RxContactFormButton>
+          );
+          //const eventFormShow = useEvent(Events.ContactFormShow);
         }
         if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CONTACT_FORM) >= 0) {
           return <RxContactForm agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
