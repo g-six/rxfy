@@ -315,13 +315,19 @@ export function rexifyScripts(html_code: string) {
         const { attribs } = node as unknown as {
           attribs: Record<string, string>;
         };
-
         if (attribs.src) {
-          return attribs.src.indexOf('jquery') >= 0 ? (
-            <script src={attribs.src} type='text/javascript' crossOrigin='anonymous' integrity={attribs.integrity} />
-          ) : (
-            <script {...attribs} />
-          );
+          if (attribs.src.indexOf('jquery') >= 0) {
+            return <script src={attribs.src} type='text/javascript' crossOrigin='anonymous' integrity={attribs.integrity} />;
+          } else {
+            return (
+              <script
+                suppressHydrationWarning
+                dangerouslySetInnerHTML={{
+                  __html: appendJs(attribs.src),
+                }}
+              />
+            );
+          }
         }
       }
       return <></>;
