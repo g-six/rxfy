@@ -40,8 +40,8 @@ export enum PropertySortBy {
   SIZE_DESC = 'size_desc',
 }
 
-export interface PropertyDataModel {
-  id: number;
+export interface BasePropertyDataModel {
+  id?: number;
   title: string;
   area: string;
   asking_price: number;
@@ -56,7 +56,6 @@ export interface PropertyDataModel {
   price_per_sqft?: number;
   guid?: string;
   changes_applied?: string;
-  real_estate_board?: number;
   age?: number;
   year_built?: number;
   fireplace?: string;
@@ -87,6 +86,29 @@ export interface PropertyDataModel {
   description?: string;
   idx_include?: boolean;
   roofing?: string;
+}
+
+export interface PropertyInput extends BasePropertyDataModel {
+  real_estate_board?: number;
+}
+
+export interface PropertyDataModel extends BasePropertyDataModel {
+  real_estate_board?: {
+    data?: {
+      id?: number;
+      attributes: {
+        legal_disclaimer: string;
+      };
+    };
+  };
+  property_photo_album?: {
+    data?: {
+      id?: number;
+      attributes: {
+        photos: string;
+      };
+    };
+  };
 }
 
 export interface MLSProperty extends Record<string, string | number | boolean | string[]> {
@@ -301,5 +323,24 @@ export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
                     }
                   }
                 }
+                property_photo_album {
+                  data {
+                    attributes {
+                      photos
+                    }
+                  }
+                }
                 mls_data
 `;
+
+export interface PropertyPageData extends PropertyDataModel {
+  photos?: string[];
+  neighbours?: MLSProperty[];
+  sold_history?: MLSProperty[];
+  agent_info: {
+    company: string;
+    tel: string;
+    email: string;
+    name: string;
+  };
+}

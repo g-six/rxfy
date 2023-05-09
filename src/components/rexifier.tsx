@@ -548,12 +548,12 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           return (
             <RxStatsGridWithIcons
               values={{
-                '{Building Type}': property.PropertyType as string,
+                '{Building Type}': property.property_type as string,
                 '{MLS Number}': property.MLS_ID as string,
                 '{Lot Size}': property.lot_sqm
                   ? `${formatValues(property as MLSProperty, 'lot_sqm')}m²`
                   : `${formatValues(property as MLSProperty, 'lot_sqft')}ft²`,
-                '{Land Title}': `${property.land_title || property.LandTitle}`,
+                '{Land Title}': `${property.land_title}`,
                 '{Price Per Sqft}': `${property.price_per_sqft || 'N/A'}`,
                 '{Property Tax}': property.gross_taxes
                   ? `$${new Intl.NumberFormat().format(Number(property.gross_taxes))} ${property.tax_year && `(${property.tax_year})`}`
