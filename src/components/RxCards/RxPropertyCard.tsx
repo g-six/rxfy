@@ -152,7 +152,7 @@ function RxComponentChomper({ config, children }: any): any {
         if (RxElement.props.className === 'propcard-image') {
           return React.cloneElement(child, {
             ...RxElement.props,
-            className: [RxElement.props.className, config.mls ? 'cursor-pointer' : ''].join(' ').trim(),
+            className: [RxElement.props.className, config.onClickItem ? 'cursor-pointer' : ''].join(' ').trim(),
             style: config.photos
               ? {
                   backgroundImage: `url(${getImageSized((config.photos as string[])[0], 540)})`,
