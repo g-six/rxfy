@@ -45,6 +45,7 @@ import RxIdPage from './full-pages/RxIdPage';
 import RxMyHomeAlerts from './full-pages/RxMyHomeAlerts';
 import { Events } from '@/_typings/events';
 import { RxTextInput } from './RxTextInput';
+import RxAgentMyListings from './full-pages/RxAgentMyListings';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -476,7 +477,11 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             );
           }
         }
-
+        //AGENT SIDE  START
+        if (node.attribs.class === WEBFLOW_NODE_SELECTOR.AGENT_MY_LISTINGS) {
+          return <RxAgentMyListings nodeProps={props} agent_data={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
+        }
+        //AGENT SIDE  END
         if (node.attribs['data-type'] === 'email' && node.tagName === 'a') {
           // Emai link
           return <EmailAnchor {...props} agent={agent_data} />;
