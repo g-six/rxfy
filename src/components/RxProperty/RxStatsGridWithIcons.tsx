@@ -12,7 +12,7 @@ function ComponentIterator(props: Props) {
   const wrappedChildren = React.Children.map(props.children, child => {
     if (typeof child === 'string') {
       if (Object.keys(props.values).includes(child)) {
-        return props.values[child];
+        return props.values[child] || 'N/A';
       }
       return child;
     } else if (child.props) {
