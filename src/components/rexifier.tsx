@@ -202,6 +202,13 @@ export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapp
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .year-stat`, {
       content: `${formatValues(p, 'L_YearBuilt')}`,
     });
+
+    // Sold
+    if (wrapper_selector.indexOf('sold') >= 0) {
+      replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .sold-tag`, {
+        className: 'inline-flex #{!important}',
+      });
+    }
   });
 }
 
