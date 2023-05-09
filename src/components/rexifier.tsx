@@ -117,6 +117,9 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
     replaceByCheerio($, '.agentface', {
       backgroundImage: agent_data.metatags.profile_image,
     });
+    replaceByCheerio($, '.agentface-wrapper', {
+      content: `<img src="${agent_data.metatags.profile_image}" />`,
+    });
     replaceByCheerio($, 'img.agentface', {
       photo: agent_data.metatags.profile_image,
     });
