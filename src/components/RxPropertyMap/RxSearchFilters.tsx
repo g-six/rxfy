@@ -63,6 +63,7 @@ export default function RxSearchFilters(p: Props) {
           });
           break;
         case 'do-search':
+          rx_map(rx_map_state, { reload: true });
         case 'do-reset':
         case 'close-link-right':
           e.preventDefault();
