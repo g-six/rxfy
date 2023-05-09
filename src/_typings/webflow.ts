@@ -19,6 +19,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   CONTACT_FORM = 'contact-form-wrapper',
   CTA_CONTACT_FORM = 'cta-contact-form',
   PROPERTY_TOP_STATS = 'section---top-stats',
+  PROPERTY_STATS_W_ICONS = 'stats-level-2',
   DOCUMENTS = 'docs-section',
   FOOTER_SOCIAL_LINKS = 'footer-social-block',
   HEART_ICON = 'heart-on-small-card',
