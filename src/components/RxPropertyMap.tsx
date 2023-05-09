@@ -65,7 +65,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
           return <RxNavItemMenu {...child.props}>{child.props.children}</RxNavItemMenu>;
         } else if (child.props.className.split(' ').includes('map-filters')) {
           return <RxSearchFilters className={child.props.className || ''}>{child.props.children}</RxSearchFilters>;
-        } else if (child.props.className.split(' ').includes('heart-button-2')) {
+        } else if (child.props.className.split(' ').includes('heart-button')) {
           return (
             <RxToggleSavedHomes {...child.props} onClick={props.toggleLovedHomes}>
               {child.props.children}
