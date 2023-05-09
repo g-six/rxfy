@@ -117,16 +117,35 @@ function RxComponentChomper({ config, children }: any): any {
             children: RxElement.props.children,
           }) as any,
         });
+      } else if (RxElement.props.className === 'propcard-details') {
+        if (config.mls)
+          return React.cloneElement(RxElement, {
+            ...RxElement.props,
+            className: [RxElement.props.className, 'cursor-pointer'].join(' ').trim(),
+            onClick: () => {
+              location.href = `/property?mls=${config.mls}`;
+            },
+            children: RxComponentChomper({
+              config,
+              children: RxElement.props.children,
+            }) as any,
+          });
       } else if (child.type !== 'img') {
         //heart-full
         if (RxElement.props.className === 'propcard-image') {
           return React.cloneElement(child, {
             ...RxElement.props,
+            className: [RxElement.props.className, config.mls ? 'cursor-pointer' : ''].join(' ').trim(),
             style: config.photos
               ? {
                   backgroundImage: `url(${getImageSized((config.photos as string[])[0], 540)})`,
                 }
               : {},
+            onClick: () => {
+              if (config.mls) {
+                location.href = `/property?mls=${config.mls}`;
+              }
+            },
             children: RxComponentChomper({
               config,
               children: RxElement.props.children,
@@ -185,6 +204,7 @@ export default function RxPropertyCard({
     >
       <RxComponentChomper
         config={{
+          mls: isLink ? listing.MLS_ID : undefined,
           '{PropCard Address}': listing.Address,
           '{PropertyCard Address}': listing.Address,
           '{PropertyCard Price}': formatValues(listing, 'AskingPrice'),
@@ -211,11 +231,6 @@ export default function RxPropertyCard({
       >
         {children}
       </RxComponentChomper>
-      {isLink && (
-        <a href={`/property?mls=${listing.MLS_ID}`} className='absolute top-0 left-0 w-full h-full'>
-          {' '}
-        </a>
-      )}
     </div>
   );
 }
