@@ -524,11 +524,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           return <HomeAlertsReplacer agent={agent_data} nodeClassName={className} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
         }
         if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CTA_CONTACT_FORM) >= 0) {
-          return (
-            <RxContactFormButton className={[node.attribs.class, 'rexified'].join(' ').trim()}>
-              {domToReact(node.children) as ReactElement[]}
-            </RxContactFormButton>
-          );
+          return <RxContactFormButton className={node.attribs.class}>{domToReact(node.children) as ReactElement[]}</RxContactFormButton>;
           //const eventFormShow = useEvent(Events.ContactFormShow);
         }
         if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CONTACT_FORM) >= 0) {
