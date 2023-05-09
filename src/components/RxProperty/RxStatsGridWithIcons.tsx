@@ -1,5 +1,4 @@
 import React from 'react';
-import RxHandlebarElement from '../RxHandlebarElement';
 
 type Props = {
   className?: string;

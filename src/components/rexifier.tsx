@@ -46,7 +46,6 @@ import RxMyHomeAlerts from './full-pages/RxMyHomeAlerts';
 import { Events } from '@/_typings/events';
 import { RxTextInput } from './RxTextInput';
 import RxContactFormButton from './RxForms/RxContactFormButton';
-import RxHandlebarElement from './RxHandlebarElement';
 import RxStatsGridWithIcons from './RxProperty/RxStatsGridWithIcons';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
