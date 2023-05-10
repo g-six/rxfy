@@ -57,8 +57,8 @@ export const toDataURL = (url: string) =>
         new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onloadend = () => {
-            // @ts-ignore
-            const data = reader.result.split(',');
+            const arr = reader.result ? (reader.result as string) : '';
+            const data = arr.split(',');
             const resp = {
               base64: reader.result,
               content: data[1],
@@ -101,10 +101,8 @@ export const fireCustomEvent = (data: EventsData = {}, eventName: Events) => {
 export const getCurrentTab = (tabsDOMs: Element[]): string => {
   const tabsArray: string[] = Object.values(tabs);
   const currentTabDOM = tabsDOMs.find(child => {
-    const hasCurrent = Array.from(child.classList).find(cls => ['w--current'].includes(cls));
-    return hasCurrent;
+    return Array.from(child.classList).find(cls => ['w--current'].includes(cls));
   });
-
   return currentTabDOM ? Array.from(currentTabDOM.classList).filter(cls => tabsArray.includes(cls))[0] : 'default';
 };
 export const prepareStats = (stats: { [key: string]: string }, property: MLSProperty | null): { label: string; value: string | number | undefined }[] => {
