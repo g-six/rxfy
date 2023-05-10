@@ -37,7 +37,7 @@ export default function RxPdfStatsInfo(props: ReplacerGalleryPdfProps) {
                 },
               })
             ) : (
-              <></>
+              <React.Fragment key={i}></React.Fragment>
             );
           }),
         ]);

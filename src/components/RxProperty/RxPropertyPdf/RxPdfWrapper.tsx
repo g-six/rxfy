@@ -262,9 +262,9 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
       });
       Promise.all([toDataURL(image), toDataURL(photo), toDataURL(google), qrPromise]).then(pics =>
         setPictures({
-          image: (pics[0] as DataUrl).base64,
-          photo: (pics[1] as DataUrl).base64,
-          google: (pics[2] as DataUrl).base64,
+          image: (pics[0] as DataUrl)?.base64,
+          photo: (pics[1] as DataUrl)?.base64,
+          google: (pics[2] as DataUrl)?.base64,
           qr: pics[3] as string,
         }),
       );
@@ -277,7 +277,7 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
       const promises = array.slice(1, PHOTOS_AMOUNT).map(url => toDataURL(url));
       Promise.all(promises).then(data => {
         const urlData = data as unknown as DataUrl[];
-        setPhotos(urlData.map(d => d.base64));
+        setPhotos(urlData.map(d => d?.base64));
       });
     }
   }, [property]);
