@@ -1,6 +1,7 @@
 import { CheerioAPI, load } from 'cheerio';
+import parse from 'html-react-parser';
 import { notFound } from 'next/navigation';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import Image from 'next/image';
 import { Inter } from 'next/font/google';
 import styles from './page.module.scss';
@@ -12,9 +13,10 @@ import { getPrivatePropertyData, getPropertyData, getSimilarHomes } from '@/_uti
 import { MLSProperty, PropertyDataModel } from '@/_typings/property';
 import Script from 'next/script';
 import { addPropertyMapScripts } from '@/components/Scripts/google-street-map';
-import { AgentData } from '@/_typings/agent';
+import { AgentData, BrokerageInputModel, RealtorInputModel } from '@/_typings/agent';
 import RxNotifications from '@/components/RxNotifications';
 import { getRealEstateBoard } from './api/properties/route';
+import MyProfilePage from '@/rexify/my-profile';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico'];
@@ -23,6 +25,9 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const axios = (await import('axios')).default;
   const url = headers().get('x-url') as string;
   const { hostname } = new URL(url);
+
+  const session_key = cookies().get('session_key')?.value || '';
+  const is_realtor = cookies().get('session_as')?.value === 'realtor';
 
   const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? TEST_DOMAIN : hostname);
   let webflow_page_url =
@@ -49,6 +54,26 @@ export default async function Home({ params, searchParams }: { params: Record<st
     notFound();
   }
   const $: CheerioAPI = load(data);
+
+  // Special cases
+  if (agent_data.webflow_domain === 'leagent-website.webflow.io' && params.slug === 'my-profile') {
+    if (session_key && is_realtor) {
+      const api_response = await axios
+        .get('/api/check-session/agent', {
+          headers: {
+            Authorization: `Bearer ${session_key}`,
+          },
+        })
+        .catch(e => {
+          console.log('User not logged in');
+        });
+      const session = api_response as unknown as RealtorInputModel & {
+        brokerage: BrokerageInputModel;
+        session_key: string;
+      };
+      return <MyProfilePage data={session}>{parse($.html()) as unknown as JSX.Element}</MyProfilePage>;
+    }
+  }
 
   replaceByCheerio($, '.w-nav-menu .nav-dropdown-2', {
     className: 'nav-menu-list-wrapper',
@@ -93,8 +118,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
       console.log('\n\nHome.agent_data not available');
     }
   }
-  if (params && params.slug === 'compare') {
-  }
+
   if (params && (params.slug === 'property' || params.slug === 'brochure') && searchParams && (searchParams.lid || searchParams.id || searchParams.mls)) {
     if (searchParams.lid) {
       property = await getPrivatePropertyData(searchParams.lid);
@@ -174,21 +198,21 @@ export default async function Home({ params, searchParams }: { params: Record<st
     if ($('a.link').length < photos.length) {
       const parent = $('a.link:first').parentsUntil('#propertyimages');
       // const otherparent = $('.property-images-grid:first').parentsUntil('a');
-      $('.property-image-wrapper img').attr('src', `https://e52tn40a.cdn.imgeng.in/w_999/${photos[0]}`);
+      $('.property-image-wrapper img').attr('src', `${process.env.NEXT_APP_IM_ENG}/w_999/${photos[0]}`);
       $('.property-image-wrapper img').attr(
         'srcset',
         [500, 800, 999]
           .map(size => {
-            return `https://e52tn40a.cdn.imgeng.in/w_${size}/${photos[0]} ${size}w`;
+            return `${process.env.NEXT_APP_IM_ENG}/w_${size}/${photos[0]} ${size}w`;
           })
           .join(', '),
       );
       $('.property-images-more img').each((img_number, img_2and3) => {
         if (photos.length > img_number) {
-          img_2and3.attribs.src = `https://e52tn40a.cdn.imgeng.in/w_999/${photos[img_number + 1]}`;
+          img_2and3.attribs.src = `${process.env.NEXT_APP_IM_ENG}/w_999/${photos[img_number + 1]}`;
           img_2and3.attribs.srcset = [500, 800, 999]
             .map(size => {
-              return `https://e52tn40a.cdn.imgeng.in/w_${size}/${photos[img_number + 1]} ${size}w`;
+              return `${process.env.NEXT_APP_IM_ENG}/w_${size}/${photos[img_number + 1]} ${size}w`;
             })
             .join(', ');
         }
@@ -199,7 +223,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
         items.forEach((item: { url: string }, idx: number) => {
           updated_images.push({
             ...item,
-            url: `https://e52tn40a.cdn.imgeng.in/w_999/${photos[idx]}`,
+            url: `${process.env.NEXT_APP_IM_ENG}/w_999/${photos[idx]}`,
           });
         });
 
@@ -222,22 +246,22 @@ export default async function Home({ params, searchParams }: { params: Record<st
       if (photos.length > 3)
         photos.slice(3).forEach((url: string, thumb_idx: number) => {
           const selector = `img.property-images-grid:nth-child(${thumb_idx + 1})`;
-          $(selector).attr('src', `https://e52tn40a.cdn.imgeng.in/w_500/${url}`);
+          $(selector).attr('src', `${process.env.NEXT_APP_IM_ENG}/w_500/${url}`);
           $(selector).attr(
             'srcset',
             [500, 800, 999]
               .map(size => {
-                return `https://e52tn40a.cdn.imgeng.in/w_${size}/${url} ${size}w`;
+                return `${process.env.NEXT_APP_IM_ENG}/w_${size}/${url} ${size}w`;
               })
               .join(', '),
           );
 
           parent.append(`<a href="#" class="lightbox-link link w-inline-block w-lightbox hidden" aria-label="open lightbox" aria-haspopup="dialog">
-        <img src="https://e52tn40a.cdn.imgeng.in/w_999/${url}" loading="eager" alt="" class="cardimage" />
+        <img src="${process.env.NEXT_APP_IM_ENG}/w_999/${url}" loading="eager" alt="" class="cardimage" />
         <script class="w-json" type="application/json">{
           "items": [
               {
-                  "url": "https://e52tn40a.cdn.imgeng.in/w_1280/${url}",
+                  "url": "${process.env.NEXT_APP_IM_ENG}/w_1280/${url}",
                   "type": "image"
               }
           ],

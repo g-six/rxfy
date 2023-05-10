@@ -1,7 +1,15 @@
 import { encrypt } from '@/_utilities/encryption-helper';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import axios, { AxiosError } from 'axios';
-
+export const GQL_BROKERAGE_ATTRIBUTES = `
+                name
+                full_address
+                phone_number
+                website_url
+                logo_url
+                lat
+                lon
+`;
 function getUpdateSessionGql(user_type: 'realtor' | 'customer') {
   return `mutation UpdateSession ($id: ID!, $last_activity_at: DateTime!) {
     session: update${capitalizeFirstLetter(user_type)}(id: $id, data: { last_activity_at: $last_activity_at }) {
@@ -17,12 +25,20 @@ function getUpdateSessionGql(user_type: 'realtor' | 'customer') {
           yes_to_marketing`
               : `first_name
           last_name
+          phone_number
           agent {
             data {
               id
               attributes {
                 agent_id
                 phone
+              }
+            }
+          }
+          brokerage {
+            data {
+              id
+              attributes {${GQL_BROKERAGE_ATTRIBUTES}
               }
             }
           }`
@@ -43,7 +59,6 @@ function getUpdateSessionGql(user_type: 'realtor' | 'customer') {
 export default async function updateSessionKey(guid: number, email: string, user_type: 'customer' | 'realtor') {
   try {
     const dt = new Date().toISOString();
-    const query = getUpdateSessionGql(user_type);
 
     const {
       data: {
@@ -54,7 +69,7 @@ export default async function updateSessionKey(guid: number, email: string, user
     } = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
       {
-        query,
+        query: getUpdateSessionGql(user_type),
         variables: {
           id: guid,
           last_activity_at: dt,
@@ -68,16 +83,25 @@ export default async function updateSessionKey(guid: number, email: string, user
       },
     );
 
-    const { birthday: birthdate, ...attributes } = record.attributes;
+    const { birthday: birthdate, brokerage: brokerage_results, ...attributes } = record.attributes;
     let birthday;
     if (birthdate) {
       birthday = new Intl.DateTimeFormat('en-CA').format(new Date(`${birthdate}T00:00:00`));
+    }
+
+    let brokerage = brokerage_results?.data?.attributes || {};
+    if (brokerage_results?.data?.id) {
+      brokerage = {
+        ...brokerage,
+        id: Number(brokerage_results.data.id),
+      };
     }
 
     return {
       ...attributes,
       session_key: `${encrypt(dt)}.${encrypt(email)}-${guid}`,
       birthday,
+      brokerage,
       id: guid,
       email,
     };
@@ -101,7 +125,15 @@ function gqlFindUser(user_type: 'realtor' | 'customer' = 'customer') {
               ? `birthday
           yes_to_marketing`
               : `first_name
-          last_name`
+          last_name
+          phone_number
+          brokerage {
+            data {
+              id
+              attributes {${GQL_BROKERAGE_ATTRIBUTES}
+              }
+            }
+          }`
           }
         }
       }

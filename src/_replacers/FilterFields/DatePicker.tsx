@@ -1,10 +1,8 @@
-import { useMapMultiUpdater, useMapState } from '@/app/AppContext.module';
-import { MapStatePropsWithFilters } from '@/_typings/property';
 import React, { ReactNode, useRef, useState } from 'react';
 import DatePicker, { CalendarContainer } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { format } from 'date-fns';
-import styles from '../../components/RxLiveUrlBased/RxDatePicker.module.scss';
+import styles from '@/components/RxForms/RxInputs/RxDatePicker.module.scss';
 
 interface DatePickerProps {
   className: string;
