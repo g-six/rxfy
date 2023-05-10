@@ -172,8 +172,10 @@ export default function RxPropertyCard({
           '{PYear}': listing.L_YearBuilt || ' ',
           loved: loved_items && loved_items.includes(listing.MLS_ID),
           onClickItem: () => {
-            toggleLoading(true);
-            location.href = `/property?mls=${listing.MLS_ID}`;
+            if (isLink) {
+              toggleLoading(true);
+              location.href = `/property?mls=${listing.MLS_ID}`;
+            }
           },
           onLoveItem: (remove: boolean) => {
             if (agent) {
