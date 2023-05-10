@@ -9,6 +9,8 @@ type ReplacerGalleryPdfProps = {
   child: React.ReactElement;
 };
 
+export const PHOTOS_AMOUNT = 9;
+
 export default function RxPdfStatsInfo(props: ReplacerGalleryPdfProps) {
   const rowTemplate = captureMatchingElements(props.child, [
     {
@@ -24,7 +26,7 @@ export default function RxPdfStatsInfo(props: ReplacerGalleryPdfProps) {
         const array = Array.isArray(props.photos) ? props.photos : [];
         return React.cloneElement(ch, { ...ch.props }, [
           ...array.map((key, i) => {
-            return i < 9 ? (
+            return i < PHOTOS_AMOUNT ? (
               React.cloneElement(rowTemplate.statRow, {
                 key: i,
                 style: {

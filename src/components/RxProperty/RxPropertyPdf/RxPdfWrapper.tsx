@@ -12,7 +12,7 @@ import { splitObject, toDataURL } from '@/_helpers/functions';
 
 import RxPdfMainInfo from '@/components/RxProperty/RxPropertyPdf/RxPdfMainInfo';
 import RxPdfStatsInfo from '@/components/RxProperty/RxPropertyPdf/RxPdfStatsInfo';
-import RxPdfGallery from '@/components/RxProperty/RxPropertyPdf/RxPdfGallery';
+import RxPdfGallery, { PHOTOS_AMOUNT } from '@/components/RxProperty/RxPropertyPdf/RxPdfGallery';
 import RxPdfDimRoomsInfo from '@/components/RxProperty/RxPropertyPdf/RxPdfDimRoomsInfo';
 import rendererPdf, { getPageImgSize, MAIN_INFO_PART } from '@/_helpers/pdf-renderer';
 
@@ -273,8 +273,8 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
 
   React.useEffect(() => {
     if (property && !photos.length) {
-      const array = Array.isArray(property.photos) ? property.photos : [];
-      const promises = array.map(url => toDataURL(url));
+      const array = Array.isArray(property.photos) && property.photos.length > 1 ? property.photos : [];
+      const promises = array.slice(1, PHOTOS_AMOUNT).map(url => toDataURL(url));
       Promise.all(promises).then(data => {
         const urlData = data as unknown as DataUrl[];
         setPhotos(urlData.map(d => d.base64));
