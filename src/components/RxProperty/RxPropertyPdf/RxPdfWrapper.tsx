@@ -35,7 +35,6 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
   const amenitiesSplit = splitObject(amenities_stats);
   const pdfSize = getPageImgSize(PDF_SIZE);
 
-  // @ts-ignore
   const matches = [
     {
       searchFn: searchByClasses(['b-topleft']),
