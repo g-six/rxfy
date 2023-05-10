@@ -6,7 +6,7 @@ import RxLiveNumericStep from '../RxLiveUrlBased/RxLiveNumericStep';
 import RxLiveNumber from '../RxLiveUrlBased/RxLiveNumber';
 import RxCombobox from '../RxCombobox';
 import RxLiveStringValue from '../RxLiveUrlBased/RxLiveStringValue';
-import RxDatePicker from '../RxLiveUrlBased/RxDatePicker';
+import RxDatePicker from '../RxForms/RxInputs/RxDatePicker';
 import RxLiveInput from '../RxLiveUrlBased/RxLiveInput';
 import RxLiveCheckbox from '../RxLiveUrlBased/RxLiveBaseCheckbox';
 import RxLiveTextDDOption from '@/components/RxLiveUrlBased/RxLiveTextDropdownOption';

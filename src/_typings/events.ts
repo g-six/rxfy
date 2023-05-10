@@ -23,6 +23,7 @@ export enum Events {
   MyHomeAlertsModal = 'my-home-alerts-modal',
   MyHomeAlertsForm = 'my-home-alerts-form',
   MyHomeAlertsFormReset = 'my-home-alerts-form-reset',
+  GenericEvent = 'generic-event',
   //ContactFormSubmit = 'event-contact-form-submit',
 }
 

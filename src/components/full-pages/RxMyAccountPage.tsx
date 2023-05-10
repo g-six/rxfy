@@ -13,11 +13,12 @@ import { useSearchParams } from 'next/navigation';
 import { RxCheckBox } from '../RxCheckBox';
 import { RxPhoneInput } from '../RxPhoneInput';
 import { CustomerInputModel } from '@/_typings/customer';
-import { RxBirthdayTextInput } from '../RxForms/RxBirthdayTextInput';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
 import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 import { queryStringToObject } from '@/_utilities/url-helper';
 import { RealtorInputModel } from '@/_typings/agent';
+import RxDatePicker from '@/components/RxForms/RxInputs/RxDatePicker';
+import { CakeIcon } from '@heroicons/react/20/solid';
 
 type RxMyAccountPageProps = {
   type: string;
@@ -78,7 +79,18 @@ export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit: MouseEv
           return <RxPhoneInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='phone_number' defaultValue={props.data.phone_number} />;
         }
         if (child_node.props.className.split(' ').includes('txt-birthday')) {
-          return <RxBirthdayTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='birthday' defaultValue={props.data.birthday || ''} />;
+          const adult_on = new Date();
+          adult_on.setFullYear(adult_on.getFullYear() - 17);
+          return (
+            <RxDatePicker
+              {...child_node.props}
+              icon={<CakeIcon className='w-4 h-4 text-slate-600/50' />}
+              rx-event={Events.SaveAccountChanges}
+              name='birthday'
+              defaultValue={props.data.birthday || ''}
+              maxvalue={adult_on}
+            />
+          );
         }
       }
 
@@ -286,10 +298,17 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
   React.useEffect(() => {
     if (data?.clicked === `${Events.SaveAccountChanges}-trigger`) {
       processing(true);
+      const { birthday: ts } = data as { birthday: number };
+      let birthday;
+      if (ts) {
+        birthday = new Date(ts).toISOString().substring(0, 10);
+        birthday = [birthday.split('-')[2], birthday.split('-')[1], birthday.split('-')[0]].join('/');
+      }
       fireEvent({
         ...data,
+        birthday,
         clicked: undefined,
-      });
+      } as unknown as EventsData);
     }
   }, [data]);
 

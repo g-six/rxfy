@@ -1,16 +1,22 @@
 import React from 'react';
 import styles from './RxDatePicker.module.scss';
 import Calendar from 'react-calendar';
+import { Events } from '@/_typings/events';
+import useEvent from '@/hooks/useEvent';
 
 interface DatePickerProps {
   className: string;
+  name?: string;
+  icon?: React.ReactElement;
   onChange?: (timestamp: number) => {};
   placeholder?: string;
   maxvalue?: Date;
   minvalue?: Date;
+  ['rx-event']?: Events;
 }
 
 export default function RxDatePicker(p: DatePickerProps) {
+  const evt = useEvent(p['rx-event'] || Events.GenericEvent);
   const [opened, toggleCalendar] = React.useState(false);
   const [value, onChange] = React.useState(new Date());
   const month_ref = React.useRef(null);
@@ -18,6 +24,12 @@ export default function RxDatePicker(p: DatePickerProps) {
 
   React.useEffect(() => {
     p.onChange && value.getTime() && p.onChange(value.getTime());
+    if (value.getTime() && p.name) {
+      evt.fireEvent({
+        ...evt.data,
+        [p.name]: value.getTime(),
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
@@ -25,11 +37,13 @@ export default function RxDatePicker(p: DatePickerProps) {
     <div className={`w-input text-field-9 ${styles['date-picker']}`}>
       <button
         type='button'
-        className='w-5 h-5 bg-transparent cursor-pointer z-20 absolute'
+        className={`${p.icon ? 'px-0 flex items-center' : 'w-5 h-5'} bg-transparent cursor-pointer z-20 absolute`}
         onClick={() => {
           toggleCalendar(!opened);
         }}
-      ></button>
+      >
+        {p.icon || ''}
+      </button>
       <input
         type='text'
         className='p-0 w-6 ml-1 mr-1'

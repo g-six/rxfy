@@ -213,7 +213,7 @@ export async function PUT(request: Request) {
   } catch (e) {
     console.log('Error in Update Account API request');
     const errors = e as AxiosError;
-    console.log(JSON.stringify(errors.response?.data, null, 4));
+    console.log(JSON.stringify({ errors }, null, 4));
     return new Response(
       JSON.stringify(
         {
