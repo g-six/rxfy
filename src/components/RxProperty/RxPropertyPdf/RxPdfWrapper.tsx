@@ -6,6 +6,7 @@ const QRious = require('qrious');
 import { MLSProperty } from '@/_typings/property';
 import { ReplacerPageProps, DataUrl, disclaimer } from '@/_typings/forms';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { formatValues, construction_stats, main_stats, building_stats, financial_stats, amenities_stats } from '@/_utilities/data-helpers/property-page';
 import { replaceAllTextWithBraces, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { splitObject, toDataURL } from '@/_helpers/functions';
@@ -248,6 +249,7 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
   React.useEffect(() => {
     if (property && !pictures.image && !pictures.photo) {
       const image = property.photos && Array.isArray(property.photos) && property.photos.length ? property.photos[0] : '';
+      const imageFromCdn = image ? getImageSized(image, pdfSize.width) : '';
 
       let photo = agent.metatags.logo_for_light_bg;
       photo = photo ? photo : agent.metatags.logo_for_dark_bg;
@@ -260,7 +262,7 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
         const qr = new QRious({ backgroundAlpha: 0, value: link });
         resolve(qr.toDataURL());
       });
-      Promise.all([toDataURL(image), toDataURL(photo), toDataURL(google), qrPromise]).then(pics =>
+      Promise.all([toDataURL(imageFromCdn), toDataURL(photo), toDataURL(google), qrPromise]).then(pics =>
         setPictures({
           image: (pics[0] as DataUrl)?.base64,
           photo: (pics[1] as DataUrl)?.base64,
@@ -274,7 +276,8 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
   React.useEffect(() => {
     if (property && !photos.length) {
       const array = Array.isArray(property.photos) && property.photos.length > 1 ? property.photos : [];
-      const promises = array.slice(1, PHOTOS_AMOUNT).map(url => toDataURL(url));
+      const photoWidth = Math.ceil(pdfSize.width / 3);
+      const promises = array.slice(1, PHOTOS_AMOUNT).map(url => toDataURL(getImageSized(url, photoWidth)));
       Promise.all(promises).then(data => {
         const urlData = data as unknown as DataUrl[];
         setPhotos(urlData.map(d => d?.base64));
