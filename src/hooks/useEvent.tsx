@@ -9,7 +9,6 @@ export default function useEvent(eventName: Events, onlyFire?: boolean): { data?
       if (!onlyFire) {
         const newData = e.detail as EventsData;
         // newData.metadata = Object.assign({}, data.metadata, newData.metadata);
-        console.log('newData', data, newData.metadata);
         setData(newData);
       }
     },

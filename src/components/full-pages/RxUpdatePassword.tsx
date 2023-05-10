@@ -64,7 +64,6 @@ export function RxUpdatePasswordPage(props: RxUpdatePasswordPageProps) {
   const { data, fireEvent } = useEvent(Events.UpdatePassword);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [is_loading, toggleLoading] = React.useState(false);
-  const [seconds, setSeconds] = React.useState(3);
   let message = 'Sorry, there was a technical glitch.  Our engineers are trying to get to the bottom of it.';
 
   const submitForm = async (password: string) => {
@@ -73,23 +72,23 @@ export function RxUpdatePasswordPage(props: RxUpdatePasswordPageProps) {
     try {
       const { user } = await updateAccount(Cookies.get('session_key') as string, { password });
       if (user) {
-        setInterval(() => {
-          setSeconds(seconds - 1);
-        }, 1000);
         notify({
           category: NotificationCategory.SUCCESS,
-          message: `Your password has been updated and you have been automagically logged in. You will be redirected to your account page in ${seconds} second(s)`,
+          message: 'Your password has been updated and you have been automagically logged in. You will be redirected to your account page in a few second(s)',
           timeout: 4000,
+          onClose: () => {
+            location.href = '/my-profile';
+          },
         });
       }
     } catch (e) {
       const api_error = e as { response: { statusText: string; data: { error: string } } };
       message = api_error.response.data.error;
+      notify({
+        category: NotificationCategory.ERROR,
+        message,
+      });
     }
-    notify({
-      category: NotificationCategory.ERROR,
-      message,
-    });
 
     toggleLoading(false);
   };
