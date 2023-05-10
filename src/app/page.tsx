@@ -198,21 +198,21 @@ export default async function Home({ params, searchParams }: { params: Record<st
     if ($('a.link').length < photos.length) {
       const parent = $('a.link:first').parentsUntil('#propertyimages');
       // const otherparent = $('.property-images-grid:first').parentsUntil('a');
-      $('.property-image-wrapper img').attr('src', `https://e52tn40a.cdn.imgeng.in/w_999/${photos[0]}`);
+      $('.property-image-wrapper img').attr('src', `${process.env.NEXT_APP_IM_ENG}/w_999/${photos[0]}`);
       $('.property-image-wrapper img').attr(
         'srcset',
         [500, 800, 999]
           .map(size => {
-            return `https://e52tn40a.cdn.imgeng.in/w_${size}/${photos[0]} ${size}w`;
+            return `${process.env.NEXT_APP_IM_ENG}/w_${size}/${photos[0]} ${size}w`;
           })
           .join(', '),
       );
       $('.property-images-more img').each((img_number, img_2and3) => {
         if (photos.length > img_number) {
-          img_2and3.attribs.src = `https://e52tn40a.cdn.imgeng.in/w_999/${photos[img_number + 1]}`;
+          img_2and3.attribs.src = `${process.env.NEXT_APP_IM_ENG}/w_999/${photos[img_number + 1]}`;
           img_2and3.attribs.srcset = [500, 800, 999]
             .map(size => {
-              return `https://e52tn40a.cdn.imgeng.in/w_${size}/${photos[img_number + 1]} ${size}w`;
+              return `${process.env.NEXT_APP_IM_ENG}/w_${size}/${photos[img_number + 1]} ${size}w`;
             })
             .join(', ');
         }
@@ -223,7 +223,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
         items.forEach((item: { url: string }, idx: number) => {
           updated_images.push({
             ...item,
-            url: `https://e52tn40a.cdn.imgeng.in/w_999/${photos[idx]}`,
+            url: `${process.env.NEXT_APP_IM_ENG}/w_999/${photos[idx]}`,
           });
         });
 
@@ -246,22 +246,22 @@ export default async function Home({ params, searchParams }: { params: Record<st
       if (photos.length > 3)
         photos.slice(3).forEach((url: string, thumb_idx: number) => {
           const selector = `img.property-images-grid:nth-child(${thumb_idx + 1})`;
-          $(selector).attr('src', `https://e52tn40a.cdn.imgeng.in/w_500/${url}`);
+          $(selector).attr('src', `${process.env.NEXT_APP_IM_ENG}/w_500/${url}`);
           $(selector).attr(
             'srcset',
             [500, 800, 999]
               .map(size => {
-                return `https://e52tn40a.cdn.imgeng.in/w_${size}/${url} ${size}w`;
+                return `${process.env.NEXT_APP_IM_ENG}/w_${size}/${url} ${size}w`;
               })
               .join(', '),
           );
 
           parent.append(`<a href="#" class="lightbox-link link w-inline-block w-lightbox hidden" aria-label="open lightbox" aria-haspopup="dialog">
-        <img src="https://e52tn40a.cdn.imgeng.in/w_999/${url}" loading="eager" alt="" class="cardimage" />
+        <img src="${process.env.NEXT_APP_IM_ENG}/w_999/${url}" loading="eager" alt="" class="cardimage" />
         <script class="w-json" type="application/json">{
           "items": [
               {
-                  "url": "https://e52tn40a.cdn.imgeng.in/w_1280/${url}",
+                  "url": "${process.env.NEXT_APP_IM_ENG}/w_1280/${url}",
                   "type": "image"
               }
           ],
