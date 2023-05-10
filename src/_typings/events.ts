@@ -42,6 +42,7 @@ export interface EventsData {
   show?: boolean;
   timeout?: number;
   time?: number;
+  onClose?: () => void;
   message?: string;
   category?: NotificationCategory;
   property?: MLSProperty;

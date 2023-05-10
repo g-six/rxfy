@@ -45,6 +45,8 @@ import RxIdPage from './full-pages/RxIdPage';
 import RxMyHomeAlerts from './full-pages/RxMyHomeAlerts';
 import { Events } from '@/_typings/events';
 import { RxTextInput } from './RxTextInput';
+import RxContactFormButton from './RxForms/RxContactFormButton';
+import RxStatsGridWithIcons from './RxProperty/RxStatsGridWithIcons';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -115,6 +117,9 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
   if (agent_data.metatags.profile_image) {
     replaceByCheerio($, '.agentface', {
       backgroundImage: agent_data.metatags.profile_image,
+    });
+    replaceByCheerio($, '.agentface-wrapper', {
+      content: `<img src="${agent_data.metatags.profile_image}" />`,
     });
     replaceByCheerio($, 'img.agentface', {
       photo: agent_data.metatags.profile_image,
@@ -201,6 +206,13 @@ export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapp
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .year-stat`, {
       content: `${formatValues(p, 'L_YearBuilt')}`,
     });
+
+    // Sold
+    if (wrapper_selector.indexOf('sold') >= 0) {
+      replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .sold-tag`, {
+        className: 'inline-flex #{!important}',
+      });
+    }
   });
 }
 
@@ -307,13 +319,19 @@ export function rexifyScripts(html_code: string) {
         const { attribs } = node as unknown as {
           attribs: Record<string, string>;
         };
-
         if (attribs.src) {
-          return attribs.src.indexOf('jquery') >= 0 ? (
-            <script src={attribs.src} type='text/javascript' crossOrigin='anonymous' integrity={attribs.integrity} />
-          ) : (
-            <script {...attribs} />
-          );
+          if (attribs.src.indexOf('jquery') >= 0) {
+            return <script src={attribs.src} type='text/javascript' crossOrigin='anonymous' integrity={attribs.integrity} />;
+          } else {
+            return (
+              <script
+                suppressHydrationWarning
+                dangerouslySetInnerHTML={{
+                  __html: appendJs(attribs.src),
+                }}
+              />
+            );
+          }
         }
       }
       return <></>;
@@ -522,6 +540,32 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.HOME_ALERTS_WRAPPER) >= 0) {
           return <HomeAlertsReplacer agent={agent_data} nodeClassName={className} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
         }
+
+        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CTA_CONTACT_FORM) >= 0) {
+          return <RxContactFormButton className={node.attribs.class}>{domToReact(node.children) as ReactElement[]}</RxContactFormButton>;
+        }
+        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_STATS_W_ICONS) >= 0 && property) {
+          return (
+            <RxStatsGridWithIcons
+              values={{
+                '{Building Type}': property.property_type as string,
+                '{MLS Number}': property.MLS_ID as string,
+                '{Lot Size}': property.lot_sqm
+                  ? `${formatValues(property as MLSProperty, 'lot_sqm')}m²`
+                  : `${formatValues(property as MLSProperty, 'lot_sqft')}ft²`,
+                '{Land Title}': `${property.land_title}`,
+                '{Price Per Sqft}': `${property.price_per_sqft || 'N/A'}`,
+                '{Property Tax}': property.gross_taxes
+                  ? `$${new Intl.NumberFormat().format(Number(property.gross_taxes))} ${property.tax_year && `(${property.tax_year})`}`
+                  : 'N/A',
+              }}
+              {...attributesToProps(node.attribs)}
+            >
+              {domToReact(node.children) as ReactElement[]}
+            </RxStatsGridWithIcons>
+          );
+        }
+
         if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CONTACT_FORM) >= 0) {
           return <RxContactForm agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
         }
@@ -742,9 +786,6 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
 
     case '{Address}':
       return <div className={className}>{property.Address}</div>;
-
-    case '{Building Type}':
-      return <div className={className}>{property.PropertyType}</div>;
 
     case '{Lot Size}':
       return <div className={className}>{property.lot_sqft || property.lot_sqm || formatValues(property, 'L_LotSize_SqMtrs')}</div>;

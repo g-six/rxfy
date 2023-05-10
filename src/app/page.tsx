@@ -9,7 +9,7 @@ import { fillAgentInfo, fillPropertyGrid, removeSection, replaceByCheerio, rexif
 import { WebFlow } from '@/_typings/webflow';
 import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
-import { getPrivatePropertyData, getPropertyData, getRecentListings, getSimilarHomes } from '@/_utilities/data-helpers/property-page';
+import { getPrivatePropertyData, getPropertyData, getSimilarHomes } from '@/_utilities/data-helpers/property-page';
 import { MLSProperty, PropertyDataModel } from '@/_typings/property';
 import Script from 'next/script';
 import { addPropertyMapScripts } from '@/components/Scripts/google-street-map';
@@ -39,6 +39,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     webflow_page_url = `${webflow_page_url}/${params.slug}id`;
     console.log('fetching property page', webflow_page_url);
   }
+
   let data;
 
   try {
@@ -180,15 +181,14 @@ export default async function Home({ params, searchParams }: { params: Record<st
     }
 
     $('a.link').each((e, el) => {
-      el.children.forEach(child => {
-        if (photos[e]) {
+      el.children.forEach((child, child_idx: number) => {
+        if (photos[child_idx]) {
           if (child.type === 'script') {
             const img_json = JSON.parse($(child).html() as string);
-            img_json.items[0].url = photos[e];
-            JSON.stringify(img_json, null, 4);
+            img_json.items[child_idx].url = photos[child_idx];
             $(child).replaceWith(`<script class="w-json" type="application/json">${JSON.stringify(img_json, null, 4)}</script>`);
           } else if ((child as { name: string }).name === 'img') {
-            $(child).attr('src', photos[e]);
+            $(child).attr('src', photos[child_idx]);
             $(child).removeAttr('srcset');
             $(child).removeAttr('sizes');
           }
@@ -197,6 +197,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     });
     if ($('a.link').length < photos.length) {
       const parent = $('a.link:first').parentsUntil('#propertyimages');
+      // const otherparent = $('.property-images-grid:first').parentsUntil('a');
       $('.property-image-wrapper img').attr('src', `https://e52tn40a.cdn.imgeng.in/w_999/${photos[0]}`);
       $('.property-image-wrapper img').attr(
         'srcset',
@@ -218,11 +219,18 @@ export default async function Home({ params, searchParams }: { params: Record<st
       });
       try {
         const { items, group } = JSON.parse($('.property-images-lightbox script').text());
+        const updated_images: { url: string }[] = [];
+        items.forEach((item: { url: string }, idx: number) => {
+          updated_images.push({
+            ...item,
+            url: `https://e52tn40a.cdn.imgeng.in/w_999/${photos[idx]}`,
+          });
+        });
 
         $('.property-images-lightbox script').text(
           JSON.stringify(
             {
-              items: [items[0]],
+              items: updated_images,
               group,
             },
             null,
@@ -235,9 +243,20 @@ export default async function Home({ params, searchParams }: { params: Record<st
       } finally {
         console.log('Done rexifying gallery');
       }
-      // $('.property-images-more').remove();
-      photos.slice(1).forEach(url => {
-        parent.append(`<a href="#" class="lightbox-link link w-inline-block w-lightbox hidden" aria-label="open lightbox" aria-haspopup="dialog">
+      if (photos.length > 3)
+        photos.slice(3).forEach((url: string, thumb_idx: number) => {
+          const selector = `img.property-images-grid:nth-child(${thumb_idx + 1})`;
+          $(selector).attr('src', `https://e52tn40a.cdn.imgeng.in/w_500/${url}`);
+          $(selector).attr(
+            'srcset',
+            [500, 800, 999]
+              .map(size => {
+                return `https://e52tn40a.cdn.imgeng.in/w_${size}/${url} ${size}w`;
+              })
+              .join(', '),
+          );
+
+          parent.append(`<a href="#" class="lightbox-link link w-inline-block w-lightbox hidden" aria-label="open lightbox" aria-haspopup="dialog">
         <img src="https://e52tn40a.cdn.imgeng.in/w_999/${url}" loading="eager" alt="" class="cardimage" />
         <script class="w-json" type="application/json">{
           "items": [
@@ -249,7 +268,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
           "group": "Property Images"
       }</script>
         </a>`);
-      });
+        });
     }
   }
 

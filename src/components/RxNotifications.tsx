@@ -30,7 +30,10 @@ export default function RxNotifications() {
 
   useEffect(() => {
     if (data?.timeout) {
-      setTimeout(() => fireEvent({}), data.timeout);
+      setTimeout(() => {
+        fireEvent({});
+        data.onClose && data.onClose();
+      }, data.timeout);
     }
   }, [data]);
 

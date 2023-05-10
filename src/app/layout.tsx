@@ -78,9 +78,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <head
             suppressHydrationWarning
             dangerouslySetInnerHTML={{
-              __html: `${replaceMetaTags(webflow.head.code, agent_data, property)} <script>${initializePlacesAutocomplete({
-                apiKey: NEXT_APP_GOOGLE_API_KEY || '',
-              })}</script>`,
+              __html: [
+                `${replaceMetaTags(webflow.head.code, agent_data, property)} <script>${initializePlacesAutocomplete({
+                  apiKey: NEXT_APP_GOOGLE_API_KEY || '',
+                })}</script>`,
+                property ? `<script id="property" type="application/json">${JSON.stringify(property, null, 4)}</script>` : '',
+              ].join(`
+              
+              `),
             }}
           />
         ) : (
