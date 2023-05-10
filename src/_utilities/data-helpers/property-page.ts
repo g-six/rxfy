@@ -759,7 +759,11 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
 
   let { photos, ...denormed } = clean as unknown as PropertyDataModel & MLSPropertyExtended;
   if (denormed.property_photo_album?.data) {
-    photos = JSON.parse(denormed.property_photo_album.data.attributes.photos) as string[];
+    if (typeof denormed.property_photo_album.data.attributes.photos === 'string') {
+      photos = JSON.parse(denormed.property_photo_album.data.attributes.photos) as string[];
+    } else {
+      photos = denormed.property_photo_album.data.attributes.photos;
+    }
   } else {
     try {
       const {
