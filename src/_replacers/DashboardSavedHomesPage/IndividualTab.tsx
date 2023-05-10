@@ -55,6 +55,7 @@ export default function IndividualTab({ child, agent_data }: Props) {
       //top stats block
       searchFn: searchByClasses([WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS]),
       transformChild: (child: ReactElement) => {
+        const el = [cloneElement(child.props.children) as ReactElement];
         return currentProperty ? (
           <RxPropertyTopStats
             nodeClassName={child.props.className}
@@ -62,8 +63,7 @@ export default function IndividualTab({ child, agent_data }: Props) {
             agent={agent_data}
             property={{ ...currentProperty, Address: currentProperty.address as string }}
           >
-            {/* @ts-ignore */}
-            {cloneElement(child.props.children)}
+            {el}
           </RxPropertyTopStats>
         ) : (
           child
