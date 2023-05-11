@@ -30,7 +30,7 @@ export const FILTERS: Filter[] = [
   { title: 'Age', urlKey: 'ba', keys: ['age'], types: ['general'], behaviors: ['default'] },
   { title: 'Build Year', keys: ['year_built'], types: ['general'], behaviors: ['default'] },
   { title: 'Total Baths', keys: ['baths'], types: ['general'], behaviors: ['default'] },
-  { title: 'Total Bedrooms', keys: ['L_BedroomTotal'], types: ['general'], behaviors: ['default'] },
+  { title: 'Total Bedrooms', keys: ['beds'], types: ['general'], behaviors: ['default'] },
   { title: 'Features', keys: ['LFD_FeaturesIncluded_55'], types: ['general'] },
   { title: 'Amenities', keys: ['LFD_Amenities_56'], types: ['general'] },
   { title: 'Title to Land', keys: ['LandTitle'], types: ['general'] },
@@ -155,7 +155,7 @@ export const FILTERS: Filter[] = [
   },
   {
     title: 'Fireplace Fueled by',
-    keys: ['f_3031', 'L_Fireplace_Fuel', 'LFD_FireplaceFueledby_49', 'LFD_FireplaceFueledby_80'],
+    keys: ['f_3031', 'L_Fireplace_Fuel', 'LFD_FireplaceFueledby_49', 'LFD_FireplaceFueledby_80', 'fireplace'],
     types: ['construction'],
     behaviors: ['default'],
   },
