@@ -1,10 +1,16 @@
 import axios, { AxiosError } from 'axios';
 import { getResponse } from '../response-helper';
-import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { getCombinedData } from '@/_utilities/data-helpers/listings-helper';
 import { GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty, PropertyDataModel } from '@/_typings/property';
+import {
+  getGqlForInsertProperty,
+  getMutationForNewAgentInventory,
+  getMutationForPhotoAlbumCreation,
+  retrieveFromLegacyPipeline,
+} from '@/_utilities/data-helpers/property-page';
+import { createAgentRecordIfNoneFound } from '../agents/route';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -12,6 +18,15 @@ const headers = {
 
 const gql_find_home = `query FindHomeByMLSID($mls_id: String!) {
   properties(filters:{ mls_id:{ eq: $mls_id}}, pagination: {limit:1}) {
+    data {
+      id
+      attributes {${GQ_FRAGMENT_PROPERTY_ATTRIBUTES}}
+    }
+  }
+}`;
+
+const mutation_create_property = `mutation CreateProperty($data: PropertyInput!) {
+  createProperty(data: $data) {
     data {
       id
       attributes {${GQ_FRAGMENT_PROPERTY_ATTRIBUTES}}
@@ -52,6 +67,8 @@ export async function repairIfNeeded(id: number, property: { [key: string]: unkn
         listed_at: `${output.listed_at}`.substring(0, 10),
         id: undefined,
       };
+      delete updates.property_photo_album;
+
       await axios.post(
         `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
         {
@@ -74,10 +91,36 @@ export async function repairIfNeeded(id: number, property: { [key: string]: unkn
   }
   return {};
 }
+export async function createAgentsFromProperty(p: MLSProperty, real_estate_board: number) {
+  const agents: number[] = [];
+  for await (const num of [1, 2, 3]) {
+    const agent_id = p[`LA${num}_LoginName`] as string;
+    const email = p[`LA${num}_Email`] as string;
+    const full_name = p[`LA${num}_FullName`] as string;
+    const phone = p[`LA${num}_PhoneNumber1`] as string;
+
+    if (agent_id && email && phone && full_name) {
+      const agent = await createAgentRecordIfNoneFound({
+        agent_id,
+        email,
+        phone,
+        full_name,
+        listing: p.L_PublicRemakrs,
+        real_estate_board,
+        lat: p.lat,
+        lng: p.lng,
+        target_city: p.Area,
+      });
+      agents.push(agent.id);
+    }
+  }
+
+  return agents;
+}
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const mls_id = url.searchParams.get('mls_id');
-  const results = await axios.post(
+  const mls_id = url.searchParams.get('mls_id') as string;
+  let results = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {
       query: gql_find_home,
@@ -89,6 +132,77 @@ export async function GET(request: Request) {
       headers,
     },
   );
+  if (results?.data?.data?.properties?.data?.length === 0) {
+    const legacy_result = await retrieveFromLegacyPipeline({
+      query: { bool: { filter: [{ match: { 'data.MLS_ID': mls_id } }], should: [] } },
+      size: 1,
+      from: 0,
+    });
+    if (legacy_result && legacy_result.length) {
+      const hit = legacy_result[0];
+      if (hit) {
+        const real_estate_board_res = await getRealEstateBoard(hit as unknown as { [key: string]: string });
+        const real_estate_board = real_estate_board_res?.id || undefined;
+        // Create agents and temporarily store their record ids for linking properties
+        const agents = await createAgentsFromProperty(hit as MLSProperty, real_estate_board);
+        const query = getGqlForInsertProperty(hit, real_estate_board);
+
+        const { mls_data, ...cleaned } = query.variables.input;
+        const { data: new_property } = await axios.post(
+          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+          {
+            query: mutation_create_property,
+            variables: {
+              data: {
+                ...cleaned,
+                real_estate_board,
+                mls_data,
+              },
+            },
+          },
+          {
+            headers,
+          },
+        );
+
+        const { id, attributes } = new_property.data.createProperty.data;
+        if (hit.photos && Array.isArray(hit.photos)) {
+          const {
+            data: {
+              data: {
+                createPropertyPhotoAlbum: {
+                  data: { id: property_photo_album },
+                },
+              },
+            },
+          } = await axios.post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getMutationForPhotoAlbumCreation(id, hit.photos), {
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+              'Content-Type': 'application/json',
+            },
+          });
+        }
+
+        agents.forEach(agent =>
+          axios.post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getMutationForNewAgentInventory(id, agent), {
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+              'Content-Type': 'application/json',
+            },
+          }),
+        );
+
+        delete attributes.property_photo_album;
+        return getResponse(
+          {
+            ...attributes,
+            id,
+          },
+          200,
+        );
+      }
+    }
+  }
   if (results?.data?.data?.properties?.data?.length) {
     const [record] = results?.data.data.properties.data;
     const { mls_data, ...property } = record.attributes;
@@ -121,7 +235,7 @@ export async function GET(request: Request) {
                 const photos = mls_data[key] as string[];
                 output = {
                   ...output,
-                  thumbnail: `https://e52tn40a.cdn.imgeng.in/w_720/${photos[0]}`,
+                  thumbnail: `${process.env.NEXT_APP_IM_ENG}/w_720/${photos[0]}`,
                   photos: photos.slice(1).map(photo_url => {
                     return getImageSized(photo_url, 999);
                   }),
