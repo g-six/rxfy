@@ -67,6 +67,7 @@ function RxToggleButton(p: ToggleButtonProps) {
       transformChild: (child: React.ReactElement) =>
         React.cloneElement(<span />, {
           ...child.props,
+          className: '',
         }),
     },
     {
@@ -80,7 +81,7 @@ function RxToggleButton(p: ToggleButtonProps) {
   return (
     <button
       type='button'
-      className={p.node.props.className}
+      className={[p.node.props.className, 'bg-transparent'].join(' ')}
       onClick={() => {
         fireEvent({ show: !data?.show });
       }}

@@ -16,6 +16,7 @@ export default function HomeAlertsStep1({ child, agent }: ReplacerHomeAlerts) {
   const hook = useHomeAlert(agent);
   const eventHookDismiss = useEvent(Events.HomeAlertDismiss);
   const [show, toggleShow] = useState(false);
+  const [full_url, setCurrentFullUrl] = useState('');
   const matches = [
     {
       searchFn: searchByClasses(['setup-ha-close']),
@@ -40,7 +41,7 @@ export default function HomeAlertsStep1({ child, agent }: ReplacerHomeAlerts) {
           {
             ...child.props,
             onClick: () => {
-              hook.onAction(HomeAlertStep.STEP_2);
+              hook.onAction({ step: HomeAlertStep.STEP_2, url: full_url });
             },
           },
           child.props.children,
@@ -67,6 +68,9 @@ export default function HomeAlertsStep1({ child, agent }: ReplacerHomeAlerts) {
       } else {
         toggleShow(!dismissed_at && step === 1);
       }
+    }
+    if (typeof window !== 'undefined') {
+      setCurrentFullUrl(location.href);
     }
   }, []);
 

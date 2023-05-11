@@ -2,9 +2,11 @@ import { retrieveBearer } from '@/_utilities/api-calls/token-extractor';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getUserById } from '../check-session/route';
 import { encrypt } from '@/_utilities/encryption-helper';
+import { getResponse } from '../response-helper';
+import axios, { AxiosError } from 'axios';
 
-const gql_by_domain = `query Agent($domain_name: String!) {
-    agents(filters: { domain_name: { eq: $domain_name } }) {
+const gql_by_email = `query Agent($email: String!) {
+    agents(filters: { email: { eqi: $email } }) {
       data {
         id
         attributes {
@@ -14,13 +16,11 @@ const gql_by_domain = `query Agent($domain_name: String!) {
           first_name
           last_name
           full_name
-          domain_name
           website_theme
           street_1
           street_2
-          profile_id
           api_key
-          agent_metatags {
+          agent_metatag {
             data {
               id
               attributes {
@@ -49,20 +49,6 @@ const gql_by_domain = `query Agent($domain_name: String!) {
             }
           }
           webflow_domain
-        }
-      }
-    }
-    teams(filters: { domain_name: { eq: $domain_name } }) {
-      data {
-        attributes {
-          agents {
-            data {
-              id
-              attributes {
-                agent_id
-              }
-            }
-          }
         }
       }
     }
@@ -108,6 +94,86 @@ export async function GET(req: Request) {
         }
       }
     } catch (e) {}
+  }
+
+  return new Response(JSON.stringify(results, null, 4), { headers: { 'Content-Type': 'application/json' }, status: 401 });
+}
+
+export async function POST(req: Request) {
+  let results = {
+    error: 'Auth token required',
+  };
+
+  try {
+    const { agent_id, email, phone, full_name, listing } = await req.json();
+
+    if (agent_id && email && phone && full_name && listing) {
+      const { data: response_data } = await axios.post(
+        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+        {
+          query: gql_by_email,
+          variables: {
+            email,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (response_data?.data?.agents?.data?.length) {
+        const { id: agent_record_id, attributes } = response_data.data.agents.data[0];
+        return getResponse(
+          {
+            ...attributes,
+            id: Number(agent_record_id),
+          },
+          200,
+        );
+      }
+      const first_name = `${full_name}`.split(' ')[0];
+      const last_name = `${full_name}`.split(' ').pop();
+      const prompt = `Create a short bio for ${full_name}, a realtor who focuses on selling residential properties that has the attributes and the location of the property with a description, "${listing}."`;
+      axios
+        .post(
+          `${process.env.NEXT_APP_OPENAI_URI}`,
+          {
+            prompt,
+            max_tokens: 300,
+            temperature: 0.3,
+            model: 'text-davinci-003',
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.NEXT_APP_OPENAI_API}`,
+            },
+          },
+        )
+        .then(({ data }) => {
+          const {
+            choices: [{ text: description }],
+          } = data;
+          console.log({ description });
+        });
+      return getResponse(
+        {
+          agent_id,
+          email,
+          phone,
+          first_name,
+          last_name,
+        },
+        200,
+      );
+    }
+  } catch (e) {
+    const axerr = e as AxiosError;
+    console.log(axerr);
+    results.error = axerr.code as string;
   }
 
   return new Response(JSON.stringify(results, null, 4), { headers: { 'Content-Type': 'application/json' }, status: 401 });

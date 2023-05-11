@@ -147,6 +147,7 @@ export async function DELETE(request: Request) {
         );
       }
     } catch (e) {
+      console.log('Caught API ERROR: document-uploads/[id]/route.ts:::DELETE');
       console.log(JSON.stringify(e, null, 4));
     } finally {
       console.log(JSON.stringify({ user }, null, 4));

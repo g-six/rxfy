@@ -17,6 +17,7 @@ export default function HomeAlertsStep2({ child, agent }: ReplacerHomeAlerts) {
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [email, setEmail] = useState('');
   const [show, toggleShow] = useState(false);
+  const [full_url, setCurrentFullUrl] = useState('');
 
   const hook = useHomeAlert(agent);
   const onRegister = useCallback(
@@ -29,8 +30,12 @@ export default function HomeAlertsStep2({ child, agent }: ReplacerHomeAlerts) {
         });
       } else {
         notify({});
-        hook.onAction(2, {
-          email,
+        hook.onAction({
+          step: HomeAlertStep.STEP_2,
+          data: {
+            email,
+          },
+          url: full_url,
         });
       }
     },
@@ -113,6 +118,10 @@ export default function HomeAlertsStep2({ child, agent }: ReplacerHomeAlerts) {
 
   useEffect(() => {
     toggleShow(!Cookies.get('session_key') && getData('dismissSavedSearch') !== null);
+
+    if (typeof window !== 'undefined') {
+      setCurrentFullUrl(location.href);
+    }
   }, []);
 
   return (

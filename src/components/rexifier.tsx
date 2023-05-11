@@ -1,5 +1,6 @@
+/* eslint-disable @next/next/no-sync-scripts */
 /* eslint-disable @next/next/no-img-element */
-import { ReactElement } from 'react';
+import { Children, ReactElement } from 'react';
 import { Cheerio, CheerioAPI } from 'cheerio';
 import parse, { HTMLReactParserOptions, Element, attributesToProps, DOMNode, domToReact, htmlToDOM } from 'html-react-parser';
 
@@ -37,11 +38,15 @@ import { RxMyAccountPage } from './full-pages/RxMyAccountPage';
 import DocumentsReplacer from '@/_replacers/Documents/documents';
 import { RxUpdatePasswordPage } from './full-pages/RxUpdatePassword';
 import RxMyCompareDashboardPage from './full-pages/RxMyCompareDashboardPage';
-import { RxWebflowScript } from './Scripts/RxWebflowScript';
 import RxDropdownMenu from './Nav/RxDropdownMenu';
 import { RxMyClients } from './full-pages/RxMyClients';
 import RxMySavedHomesDashBoard from './full-pages/RxMySavedHomesDashBoard';
 import RxIdPage from './full-pages/RxIdPage';
+import RxMyHomeAlerts from './full-pages/RxMyHomeAlerts';
+import { Events } from '@/_typings/events';
+import { RxTextInput } from './RxTextInput';
+import RxContactFormButton from './RxForms/RxContactFormButton';
+import RxStatsGridWithIcons from './RxProperty/RxStatsGridWithIcons';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -113,6 +118,9 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
     replaceByCheerio($, '.agentface', {
       backgroundImage: agent_data.metatags.profile_image,
     });
+    replaceByCheerio($, '.agentface-wrapper', {
+      content: `<img src="${agent_data.metatags.profile_image}" />`,
+    });
     replaceByCheerio($, 'img.agentface', {
       photo: agent_data.metatags.profile_image,
     });
@@ -120,6 +128,15 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
 
   if (agent_data.metatags?.logo_for_light_bg) {
     $('.navbar-wrapper-2 a[href="/"] img').remove();
+    $('.navbar-wrapper-2 .logo---phone-email a[data-type="email"]').text(agent_data.email);
+    $('.navbar-wrapper-2 .logo---phone-email a[data-type="email"]').attr(
+      'href',
+      `mailto:${agent_data.email}?subject=${encodeURIComponent('[Leagent] Home Inquiry')}&body=${encodeURIComponent(
+        `Hi ${agent_data.full_name.split(' ')[0]}!\n Found your Leagent website and I'm looking for a realtor for help.`,
+      )}`,
+    );
+    $('.navbar-wrapper-2 .logo---phone-email a[data-type="phone"]').attr('href', `tel:${agent_data.phone}`);
+    $('.navbar-wrapper-2 .logo---phone-email a[data-type="phone"]').text(agent_data.phone);
     $('.navbar-wrapper-2 > a[href="#"]').attr('href', '/');
     $('.navbar-wrapper-2 > a h3').remove();
     replaceByCheerio($, '.navbar-wrapper-2 > a', {
@@ -135,16 +152,21 @@ export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapp
   }
   properties.forEach((p: MLSProperty, i) => {
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1})`, {
-      className: 'group',
+      className: 'group static-card cursor-pointer',
+    });
+    replaceByCheerio($, `${wrapper_selector} .static-card:nth-child(${i + 1}) .propcard-details`, {
+      prepend: `<a class="absolute bottom-0 left-0 h-3/4 w-full" href="/property?mls=${p.MLS_ID}"></a>`,
     });
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .heart-on-small-card`, {
       className: 'group-hover:block',
     });
 
     // Photo
-    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) > .propcard-image`, {
-      backgroundImage: (p.photos as string[])[0],
-    });
+    if (p.photos) {
+      replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) > .propcard-image`, {
+        backgroundImage: (p.photos as string[])[0],
+      });
+    }
 
     // Area
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .area-text`, {
@@ -184,6 +206,13 @@ export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapp
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .year-stat`, {
       content: `${formatValues(p, 'L_YearBuilt')}`,
     });
+
+    // Sold
+    if (wrapper_selector.indexOf('sold') >= 0) {
+      replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .sold-tag`, {
+        className: 'inline-flex #{!important}',
+      });
+    }
   });
 }
 
@@ -260,8 +289,58 @@ export function replaceInlineScripts($: CheerioAPI) {
   });
 }
 
+function appendJs(url: string) {
+  return `
+  var count_badge = 0
+  setTimeout(() => {
+    var js = document.createElement('script');
+    js.src = "${url}";
+    // js.async = true;
+    if (js.src.indexOf('webflow') > 0) {
+      const badge_interval = setInterval(() => {
+        const badge = document.querySelector('.w-webflow-badge');
+        if (badge) {
+          badge.remove();
+          console.log('badge found and removed');
+          count_badge++;
+        }
+        if (count_badge > 3)
+          clearInterval(badge_interval);
+      }, 1)
+    }
+    document.body.appendChild(js)}, 1200)`;
+}
 export function replaceFormsWithDiv($: CheerioAPI) {}
 
+export function rexifyScripts(html_code: string) {
+  const options: HTMLReactParserOptions = {
+    replace: node => {
+      if (node.type === 'script') {
+        const { attribs } = node as unknown as {
+          attribs: Record<string, string>;
+        };
+        if (attribs.src) {
+          if (attribs.src.indexOf('jquery') >= 0) {
+            return <script src={attribs.src} type='text/javascript' crossOrigin='anonymous' integrity={attribs.integrity} />;
+          } else {
+            return (
+              <script
+                suppressHydrationWarning
+                dangerouslySetInnerHTML={{
+                  __html: appendJs(attribs.src),
+                }}
+              />
+            );
+          }
+        }
+      }
+      return <></>;
+    },
+  };
+
+  const elements = parse(html_code, options);
+  return elements;
+}
 /**
  *
  * @param html_code
@@ -273,16 +352,14 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
   let home_alert_index = 1;
   const options: HTMLReactParserOptions = {
     replace: node => {
-      // Take out script / replace DOM placeholders with our Reidget
+      // Take out script / replace DOM placeholders with our Rexify
       if (node.type === 'script') {
         const { attribs } = node as unknown as {
           attribs: Record<string, string>;
         };
 
         if (attribs.src) {
-          const { pathname } = new URL(attribs.src);
-
-          return <RxWebflowScript script-src={attribs.src} script-name={pathname} />;
+          return <></>;
         } else {
           if ((node as Element).children) {
             // Scripts that are inline...
@@ -343,10 +420,17 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           );
         }
 
-        if (node.tagName === 'form') {
+        if (node.tagName === 'form' && (!className || className.indexOf('contact-form') === -1)) {
           return (
             <div {...props} id='rex-form' data-class={className}>
-              {domToReact(node.children) as ReactElement[]}
+              {Children.map(domToReact(node.children) as ReactElement[], child => {
+                if (child.type === 'input') {
+                  if (child.props.className?.split(' ').includes('txt-agentid')) {
+                    return <RxTextInput {...child.props} name='agent_id' rx-event={Events.SignUp} />;
+                  }
+                }
+                return child;
+              })}
             </div>
           );
         }
@@ -390,38 +474,23 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           }
           if (node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_SAVED_PROPERTIES_DASHBOARD) {
             return (
-              <RxMySavedHomesDashBoard
-                agent_data={agent_data}
-                className={node.attribs.class}
-                config={{
-                  authorization: `Basic ${Buffer.from(`${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`).toString(
-                    'base64',
-                  )}`,
-                  url: process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
-                }}
-              >
+              <RxMySavedHomesDashBoard agent_data={agent_data} className={node.attribs.class}>
                 {domToReact(node.children)}
               </RxMySavedHomesDashBoard>
             );
+          }
+          if (node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_HOME_ALERTS) {
+            return <RxMyHomeAlerts agent_data={agent_data} child={domToReact(node.children)} className={node.attribs.class} />;
+          }
+          if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.PROPERTY_CARD)) {
+            return;
+            // return <RxMyHomeAlerts agent_data={agent_data} child={domToReact(node.children)} className={node.attribs.class} />;
           }
           if (node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_COMPARE_DASHBOARD) {
             return (
               <RxMyCompareDashboardPage agent-data={agent_data} className={node.attribs.class}>
                 {domToReact(node.children)}
               </RxMyCompareDashboardPage>
-            );
-          }
-          if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.SIGNUP) {
-            return (
-              <RxSignupPage
-                {...props}
-                className={className || ''}
-                agent={agent_data.id as number}
-                logo={agent_data.metatags?.logo_for_light_bg}
-                type={node.type}
-              >
-                <>{domToReact(node.children) as ReactElement[]}</>
-              </RxSignupPage>
             );
           }
         }
@@ -471,6 +540,32 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.HOME_ALERTS_WRAPPER) >= 0) {
           return <HomeAlertsReplacer agent={agent_data} nodeClassName={className} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
         }
+
+        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CTA_CONTACT_FORM) >= 0) {
+          return <RxContactFormButton className={node.attribs.class}>{domToReact(node.children) as ReactElement[]}</RxContactFormButton>;
+        }
+        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_STATS_W_ICONS) >= 0 && property) {
+          return (
+            <RxStatsGridWithIcons
+              values={{
+                '{Building Type}': property.property_type as string,
+                '{MLS Number}': property.MLS_ID as string,
+                '{Lot Size}': property.lot_sqm
+                  ? `${formatValues(property as MLSProperty, 'lot_sqm')}m²`
+                  : `${formatValues(property as MLSProperty, 'lot_sqft')}ft²`,
+                '{Land Title}': `${property.land_title}`,
+                '{Price Per Sqft}': `${property.price_per_sqft || 'N/A'}`,
+                '{Property Tax}': property.gross_taxes
+                  ? `$${new Intl.NumberFormat().format(Number(property.gross_taxes))} ${property.tax_year && `(${property.tax_year})`}`
+                  : 'N/A',
+              }}
+              {...attributesToProps(node.attribs)}
+            >
+              {domToReact(node.children) as ReactElement[]}
+            </RxStatsGridWithIcons>
+          );
+        }
+
         if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CONTACT_FORM) >= 0) {
           return <RxContactForm agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
         }
@@ -539,6 +634,16 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             // Building units section
             else if (node.lastChild && (node.lastChild as HTMLNode).attribs && (node.lastChild as HTMLNode).attribs.class) {
               const child_class = (node.lastChild as HTMLNode).attribs.class;
+
+              if (
+                (!property.neighbours || (property.neighbours as MLSProperty[]).length === 0 || !(property.neighbours as MLSProperty[])[0].AddressUnit) &&
+                (!property.sold_history || (property.sold_history as MLSProperty[]).length === 0)
+              ) {
+                // Remove building and sold grid
+                if (child_class.indexOf('building-and-sold-grid') >= 0) {
+                  return <></>;
+                }
+              }
               if (child_class.indexOf('div-building-units-on-sale') >= 0 && node.attribs.class.indexOf('building-and-sold-column') >= 0) {
                 return property.neighbours && (property.neighbours as MLSProperty[]).length ? (
                   property.AddressUnit ? (
@@ -618,6 +723,23 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
         );
       }
     }
+    if (['{Address}', '{Agent Address}'].includes(placeholder)) {
+      if (agent_data.street_1) {
+        return (
+          <>
+            {domToReact(
+              htmlToDOM(
+                `<${tagName || 'span'}
+            class="${className}"
+          >
+            ${agent_data.street_1}${agent_data.street_2 ? ', ' : ''}${agent_data.street_2 || ''}
+          </${tagName || 'span'}>`,
+              ),
+            )}
+          </>
+        );
+      }
+    }
     if (className.indexOf('phone-link-blockj') >= 0) {
       return (
         <a href={`tel:${agent_data.phone.replace(/[^0-9.]/g, '')}`} className={className}>
@@ -664,9 +786,6 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
 
     case '{Address}':
       return <div className={className}>{property.Address}</div>;
-
-    case '{Building Type}':
-      return <div className={className}>{property.PropertyType}</div>;
 
     case '{Lot Size}':
       return <div className={className}>{property.lot_sqft || property.lot_sqm || formatValues(property, 'L_LotSize_SqMtrs')}</div>;

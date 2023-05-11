@@ -83,7 +83,7 @@ export function RexifyPropertyFeatureBlock({ node, record }: { node: Element; re
       );
     }
   }
-  return <>test</>;
+  return <></>;
 }
 /**
  * <div className={node.attribs.class}>

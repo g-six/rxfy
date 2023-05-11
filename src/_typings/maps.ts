@@ -106,6 +106,7 @@ export type RxPropertyMapProps = {
   loved_homes?: LovedPropertyDataModel[];
   setListings?: (p: MLSProperty[]) => void;
   setHideOthers?: (hide: boolean) => void;
+  toggleLovedHomes?: () => void;
   children: any;
   agent_data: AgentData;
   recursive?: boolean;
@@ -119,8 +120,8 @@ export type RxPropertyMapProps = {
 export type RxPropertyFilter = {
   range?: {
     [key: string]: {
-      gte?: number;
-      lte?: number;
+      gte?: number | string;
+      lte?: number | string;
     };
   };
   match?: {

@@ -31,9 +31,7 @@ export function RxHomeAlertComponents(children: React.ReactNode) {
             onClose: () => {
               dispatch({ type: 'HIDE_FORM_1' });
             },
-            onSubmit: () => {
-              console.log('submit');
-            },
+            onSubmit: () => {},
           })}
         </div>
       );

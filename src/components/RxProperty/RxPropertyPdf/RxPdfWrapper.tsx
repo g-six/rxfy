@@ -6,23 +6,16 @@ const QRious = require('qrious');
 import { MLSProperty } from '@/_typings/property';
 import { ReplacerPageProps, DataUrl, disclaimer } from '@/_typings/forms';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
-import {
-  combineAndFormatValues,
-  formatValues,
-  construction_stats,
-  dimension_stats,
-  main_stats,
-  building_stats,
-  financial_stats,
-  amenities_stats,
-} from '@/_utilities/data-helpers/property-page';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { formatValues, construction_stats, main_stats, building_stats, financial_stats, amenities_stats } from '@/_utilities/data-helpers/property-page';
 import { replaceAllTextWithBraces, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { splitObject, toDataURL } from '@/_helpers/functions';
 
+import RxPdfMainInfo from '@/components/RxProperty/RxPropertyPdf/RxPdfMainInfo';
 import RxPdfStatsInfo from '@/components/RxProperty/RxPropertyPdf/RxPdfStatsInfo';
-import RxPdfGallery from '@/components/RxProperty/RxPropertyPdf/RxPdfGallery';
-import RxPdfRoomStats from '@/components/RxProperty/RxPropertyPdf/RxPdfRoomStats';
-import rendererPdf, { PAGE_IMG_HEIGHT, PAGE_IMG_WIDTH } from '@/_helpers/pdf-renderer';
+import RxPdfGallery, { PHOTOS_AMOUNT } from '@/components/RxProperty/RxPropertyPdf/RxPdfGallery';
+import RxPdfDimRoomsInfo from '@/components/RxProperty/RxPropertyPdf/RxPdfDimRoomsInfo';
+import rendererPdf, { getPageImgSize, MAIN_INFO_PART } from '@/_helpers/pdf-renderer';
 
 type MLSPropertyData = MLSProperty & {
   agent_info?: {
@@ -34,19 +27,21 @@ type MLSPropertyData = MLSProperty & {
 };
 
 export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: ReplacerPageProps) {
+  const PDF_SIZE = 'us';
+
   const ref = React.useRef<HTMLDivElement>(null);
   const [pictures, setPictures] = React.useState({ image: '', photo: '', google: '', qr: '' });
   const [photos, setPhotos] = React.useState<string[]>([]);
 
   const amenitiesSplit = splitObject(amenities_stats);
+  const pdfSize = getPageImgSize(PDF_SIZE);
 
-  // @ts-ignore
   const matches = [
     {
       searchFn: searchByClasses(['b-topleft']),
       transformChild: (child: React.ReactElement) => {
         const el = React.cloneElement(child, {
-          style: { maxHeight: Math.round(PAGE_IMG_HEIGHT * 0.55) + 'px' },
+          style: { maxHeight: Math.round(pdfSize.height * MAIN_INFO_PART) + 'px' },
         });
         return replaceAllTextWithBraces(el, {
           Price: property ? formatValues(property, 'AskingPrice') : '',
@@ -62,17 +57,12 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
       },
     },
     {
-      searchFn: searchByClasses(['stat-level2']),
-      transformChild: (child: React.ReactElement) =>
-        replaceAllTextWithBraces(child, {
-          'Building Type': property?.PropertyType,
-          'Property Tax': combineAndFormatValues({
-            L_GrossTaxes: property?.L_GrossTaxes || '',
-            ForTaxYear: property?.ForTaxYear || '',
-          }),
-          'MLS Number': property?.MLS_ID,
-          'Land Title': property?.LandTitle,
-        }) as React.ReactElement,
+      searchFn: searchByClasses(['b-topright']),
+      transformChild: (child: React.ReactElement) => {
+        const style = Object.assign({}, child.props.style, { height: 'auto' });
+        const ch = React.cloneElement(child, { style });
+        return <RxPdfMainInfo child={ch} property={property} imgPhoto={pictures.image} imgMap={pictures.google} size={PDF_SIZE} />;
+      },
     },
     {
       searchFn: searchByClasses(['b-agentimage']),
@@ -89,38 +79,6 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
               }
             : {},
         }),
-    },
-    {
-      searchFn: searchByClasses(['b-featimage']),
-      transformChild: (child: React.ReactElement) => {
-        return React.cloneElement(child, {
-          ...child.props,
-          style: pictures?.image
-            ? {
-                backgroundImage: `url(${pictures.image})`,
-                backgroundPosition: 'center center',
-                backgroundSize: 'cover',
-                backgroundRepeat: 'no-repeat',
-              }
-            : {},
-        });
-      },
-    },
-    {
-      searchFn: searchByClasses(['b-map']),
-      transformChild: (child: React.ReactElement) => {
-        return React.cloneElement(child, {
-          ...child.props,
-          style: pictures?.google
-            ? {
-                backgroundImage: `url(${pictures.google})`,
-                backgroundPosition: 'center center',
-                backgroundSize: 'cover',
-                backgroundRepeat: 'no-repeat',
-              }
-            : {},
-        });
-      },
     },
     {
       searchFn: searchByClasses(['qr-placeholder']),
@@ -165,22 +123,6 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
             wrapperClassName={'construnction-info-rows'}
             keyStr={'constat'}
             valStr={'conresult'}
-          />
-        );
-      },
-    },
-    {
-      searchFn: searchByClasses(['dimensions-info']),
-      transformChild: (child: React.ReactElement) => {
-        return (
-          <RxPdfStatsInfo
-            property={property}
-            nodeClassName={child.props.className}
-            child={child}
-            stats={dimension_stats}
-            wrapperClassName={'dimentions-info-rows'}
-            keyStr={'dimstat'}
-            valStr={'dimresult'}
           />
         );
       },
@@ -234,6 +176,16 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
       },
     },
     {
+      searchFn: searchByClasses(['b-statgrid-2']),
+      transformChild: (child: React.ReactElement) => {
+        const style = Object.assign({}, child.props.style, {
+          height: pdfSize.height - 1300 + 'px',
+        });
+        const ch = React.cloneElement(child, { style });
+        return <RxPdfDimRoomsInfo child={ch} property={property} />;
+      },
+    },
+    {
       searchFn: searchByClasses(['amenities-info']),
       transformChild: (child: React.ReactElement) => {
         return (
@@ -266,12 +218,6 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
       },
     },
     {
-      searchFn: searchByClasses(['rooms-info']),
-      transformChild: (child: React.ReactElement) => {
-        return <RxPdfRoomStats property={property} nodeClassName={child.props.className} child={child} />;
-      },
-    },
-    {
       searchFn: searchByClasses(['imagegrid']),
       transformChild: (child: React.ReactElement) => {
         return <RxPdfGallery photos={photos} child={child} />;
@@ -285,8 +231,8 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
       const promises = Array.from(ref.current.children)
         .map(el => el as HTMLElement)
         .map(el => {
-          el.style.width = PAGE_IMG_WIDTH + 'px';
-          el.style.height = PAGE_IMG_HEIGHT + 'px';
+          el.style.width = pdfSize.width + 'px';
+          el.style.height = pdfSize.height + 'px';
           return html2canvas(el, { allowTaint: true });
         });
       Promise.all(promises).then(pagesAsCanvas => {
@@ -302,6 +248,7 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
   React.useEffect(() => {
     if (property && !pictures.image && !pictures.photo) {
       const image = property.photos && Array.isArray(property.photos) && property.photos.length ? property.photos[0] : '';
+      const imageFromCdn = image ? getImageSized(image, pdfSize.width) : '';
 
       let photo = agent.metatags.logo_for_light_bg;
       photo = photo ? photo : agent.metatags.logo_for_dark_bg;
@@ -314,11 +261,11 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
         const qr = new QRious({ backgroundAlpha: 0, value: link });
         resolve(qr.toDataURL());
       });
-      Promise.all([toDataURL(image), toDataURL(photo), toDataURL(google), qrPromise]).then(pics =>
+      Promise.all([toDataURL(imageFromCdn), toDataURL(photo), toDataURL(google), qrPromise]).then(pics =>
         setPictures({
-          image: (pics[0] as DataUrl).base64,
-          photo: (pics[1] as DataUrl).base64,
-          google: (pics[2] as DataUrl).base64,
+          image: (pics[0] as DataUrl)?.base64,
+          photo: (pics[1] as DataUrl)?.base64,
+          google: (pics[2] as DataUrl)?.base64,
           qr: pics[3] as string,
         }),
       );
@@ -327,11 +274,12 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
 
   React.useEffect(() => {
     if (property && !photos.length) {
-      const array = Array.isArray(property.photos) ? property.photos : [];
-      const promises = array.map(url => toDataURL(url));
+      const array = Array.isArray(property.photos) && property.photos.length > 1 ? property.photos : [];
+      const photoWidth = Math.ceil(pdfSize.width / 3);
+      const promises = array.slice(1, PHOTOS_AMOUNT).map(url => toDataURL(getImageSized(url, photoWidth)));
       Promise.all(promises).then(data => {
         const urlData = data as unknown as DataUrl[];
-        setPhotos(urlData.map(d => d.base64));
+        setPhotos(urlData.map(d => d?.base64));
       });
     }
   }, [property]);

@@ -5,5 +5,6 @@
  * @returns
  */
 export function getImageSized(url: string, px_size: number) {
-  return `https://e52tn40a.cdn.imgeng.in/w_${px_size}/${url}`;
+  if (url.indexOf(`${process.env.NEXT_PUBLIC_IM_ENG}`) === 0) return url;
+  return `${process.env.NEXT_PUBLIC_IM_ENG}/w_${px_size}/${url}`;
 }

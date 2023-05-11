@@ -4,8 +4,17 @@ export function queryStringToObject(queryString: string): Record<string, string 
 
   queryPairs.forEach(pair => {
     const [key, value] = pair.split('=');
-    queryObject[key] = isNaN(Number(value)) ? value : Number(value);
+    queryObject[key] = isNaN(Number(value)) ? decodeURIComponent((value || '').replace(/\+/g, ' ')) : Number(value);
   });
 
   return queryObject;
+}
+
+// Function that takes in an object and outputs a query string
+export function objectToQueryString(obj: { [key: string]: string | number }): string {
+  let queryString = '';
+  for (const key in obj) {
+    queryString += `${key}=${encodeURIComponent(obj[key]).split('%20').join('+')}&`;
+  }
+  return queryString.slice(0, queryString.length - 1);
 }

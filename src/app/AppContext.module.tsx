@@ -14,6 +14,7 @@ const initialState: MapStatePropsWithFilters = {
   minprice: 300000,
   maxprice: 20000000,
   maxsqft: 63591,
+  city: '',
   suggestions: [],
 };
 // Create the Map context
@@ -78,6 +79,7 @@ export const MapProvider = (props: any) => {
       const default_location = child.props.agent_data.metatags.search_highlights.labels[0];
       query = [
         query,
+        `city=${default_location.title}`,
         `lat=${default_location.lat}`,
         `lng=${default_location.lng}`,
         `nelat=${default_location.ne.lat}`,
@@ -90,6 +92,7 @@ export const MapProvider = (props: any) => {
     } else {
       query = [
         query,
+        'city=Vancouver',
         'lat=49.20409088889508',
         'lng=-122.97137998744913',
         'nelat=49.3959558143803',
@@ -153,6 +156,10 @@ export const MapProvider = (props: any) => {
     if (search.get('nelng')) {
       let value = Number(search.get('nelng'));
       if (!isNaN(value)) init.nelng = value;
+    }
+    if (search.get('city')) {
+      let value = search.get('city') as string;
+      init.city = value;
     }
     if (search.get('types')) {
       let value: string[] = (search.get('types') as string).split('%2F');

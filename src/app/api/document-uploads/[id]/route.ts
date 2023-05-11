@@ -150,6 +150,7 @@ export async function DELETE(request: Request) {
       );
     }
   } catch (e) {
+    console.log('API ERROR: document-uploads/[id]/route.ts:::DELETE');
     console.log(JSON.stringify(e, null, 4));
   }
   return new Response(

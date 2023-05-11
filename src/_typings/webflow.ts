@@ -10,19 +10,23 @@ export enum WEBFLOW_NODE_SELECTOR {
   MY_COMPARE_DASHBOARD_LEFT = 'compare-left-bar',
   MY_COMPARE_DASHBOARD_RIGHT = 'compare-right',
   MY_COMPARE_CARD = 'propcompare-card-2',
+  MY_HOME_ALERTS = 'home-alerts-section',
   CLIENTS_CARDS = 'clients-cards',
   USER_MENU_DROPDOWN = 'login-logout-dropdown',
   USER_MENU = 'in-session',
   GUEST_MENU = 'out-session',
   HOME_ALERTS_WRAPPER = 'home-alert---all-screens',
   CONTACT_FORM = 'contact-form-wrapper',
+  CTA_CONTACT_FORM = 'cta-contact-form',
   PROPERTY_TOP_STATS = 'section---top-stats',
+  PROPERTY_STATS_W_ICONS = 'stats-level-2',
   DOCUMENTS = 'docs-section',
   FOOTER_SOCIAL_LINKS = 'footer-social-block',
   HEART_ICON = 'heart-on-small-card',
   PROPERTY_CARD = 'property-card',
   ID_PAGE = 'total-id-card',
   PDF_PAGE = 'pdf-wrapper',
+  AGENT_ID_INPUT = 'txt-agentid',
 }
 
 export interface WebFlow {
@@ -34,4 +38,8 @@ export interface WebFlow {
     props: Record<string, string>;
     code: string;
   };
+}
+
+export enum WEBFLOW_THEME_DOMAINS {
+  DEFAULT = 'leagent-webflow-rebuild.webflow.io',
 }

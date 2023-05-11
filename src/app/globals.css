@@ -83,3 +83,11 @@
   border-radius: 0.4rem;
   padding: 0.11rem 0.5rem;
 }
+
+.w--open + nav.rexified {
+  display: block !important;
+}
+
+.react-calendar__navigation {
+  @apply w-full flex items-center justify-between;
+}

@@ -1,4 +1,5 @@
 import { MLSProperty } from './property';
+import { SavedSearch } from './saved-search';
 
 export enum Events {
   Login = 'event-login',
@@ -19,6 +20,10 @@ export enum Events {
   SavedItemsCompareTab = 'saved-items-compare-tab',
   SavedItemsMapTab = 'saved-items-map-tab',
   CompareFiltersModal = 'compare-filters-modal',
+  MyHomeAlertsModal = 'my-home-alerts-modal',
+  MyHomeAlertsForm = 'my-home-alerts-form',
+  MyHomeAlertsFormReset = 'my-home-alerts-form-reset',
+  GenericEvent = 'generic-event',
   //ContactFormSubmit = 'event-contact-form-submit',
 }
 
@@ -38,11 +43,13 @@ export interface EventsData {
   show?: boolean;
   timeout?: number;
   time?: number;
+  onClose?: () => void;
   message?: string;
   category?: NotificationCategory;
   property?: MLSProperty;
   mls_id?: string;
   metadata?: any;
+  alertData?: SavedSearch;
 }
 export const tabEventMapping: { [key: string]: Events } = {
   'indiv-view': Events.SavedItemsIndivTab,

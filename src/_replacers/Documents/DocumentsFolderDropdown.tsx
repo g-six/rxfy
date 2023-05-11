@@ -16,7 +16,6 @@ export default function DocumentsFolderDropdown({ child, id, deleteFolder }: Pro
   const dropdownRef = useRef(null);
   const event = useEvent(Events.DocFolderShow);
   const handleClose = () => {
-    console.log('close', id);
     event.fireEvent({ show: false, key: id });
   };
   useOutsideClick(dropdownRef, handleClose);

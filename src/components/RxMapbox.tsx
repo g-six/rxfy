@@ -19,6 +19,7 @@ import { useSearchParams } from 'next/navigation';
 import { renderClusterBgLayer, renderClusterTextLayer, renderHomePinBgLayer, renderHomePinTextLayer } from '@/_utilities/rx-map-style-helper';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import Cookies from 'js-cookie';
+import axios from 'axios';
 
 type RxMapboxProps = {
   agent: AgentData;
@@ -66,6 +67,7 @@ export function RxMapbox(props: RxMapboxProps) {
   const [is_loading, setLoading] = React.useState<boolean>(false);
   const [is_reloading, setReloading] = React.useState<boolean>(state.reload || false);
   const [map, setMap] = React.useState<mapboxgl.Map>();
+  const [center, setCenter] = React.useState<{ lat: number; lng: number }>();
   const [listings, setPropertyListings] = React.useState<MLSProperty[]>([]);
   const mapNode = React.useRef(null);
 
@@ -115,9 +117,7 @@ export function RxMapbox(props: RxMapboxProps) {
     let include_listings = listings;
     // ListingDate
 
-    let updated_state = {
-      ...state,
-    };
+    const { lat: oldlat, lng: oldlng, swlat: oldswlat, swlng: oldswlng, nelat: oldnelat, nelng: oldnelng, ...updated_state } = state;
 
     search
       .toString()
@@ -125,8 +125,8 @@ export function RxMapbox(props: RxMapboxProps) {
       .map(kv => {
         const [k, v] = kv.split('=');
         // We want these fields to be the latest
-        if (['baths', 'beds', 'minprice', 'maxprice', 'types', 'lat', 'lng', 'swlat', 'nelat', 'swlng', 'nelng'].includes(k)) {
-          updated_state[k] = state[k];
+        if (['baths', 'beds', 'minprice', 'maxprice', 'minsqft', 'maxsqft', 'types', 'lat', 'lng', 'swlat', 'nelat', 'swlng', 'nelng'].includes(k)) {
+          updated_state[k] = updated_state[k];
           include_listings = [];
         }
       });
@@ -212,7 +212,7 @@ export function RxMapbox(props: RxMapboxProps) {
               ? [{ match: { 'data.Status': 'Active' } }, { match: { 'data.Status': 'Sold' } }]
               : [{ match: { 'data.Status': 'Active' } }],
             minimum_should_match: 1,
-            must_not,
+            must_not: must_not.concat([{ match: { 'data.Status': 'Sold' } }]),
           },
         },
       },
@@ -244,7 +244,7 @@ export function RxMapbox(props: RxMapboxProps) {
         setLoading(false);
       })
       .finally(() => {
-        updater(state, {
+        updater(updated_state, {
           is_loading: false,
           reload: false,
         });
@@ -258,7 +258,6 @@ export function RxMapbox(props: RxMapboxProps) {
   };
 
   const [resizing, setResizing] = React.useState('no');
-  const resizing_state = useDebounce(resizing, 400);
 
   if (map) {
     map.on('resize', () => {
@@ -267,17 +266,52 @@ export function RxMapbox(props: RxMapboxProps) {
   }
 
   const repositionMap = React.useCallback(
-    (p?: LngLatLike, filters?: string) => {
+    (p?: LngLatLike) => {
       if (map && !is_loading) {
         if (p) {
-          map?.getStyle().layers.forEach(layer => {
+          map.getStyle().layers.forEach(layer => {
             if (layer.id.indexOf('rx-') === 0 || layer.type === 'symbol') map.removeLayer(layer.id);
           });
 
-          map?.setCenter(p);
+          map.setCenter(p);
         }
 
         new mapboxgl.Marker(createMapPin()).setLngLat(map.getCenter()).addTo(map);
+        axios
+          .get(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${map.getCenter().lng},${
+              map.getCenter().lat
+            }.json?types=address&access_token=pk.eyJ1IjoianNjYXN0cm8iLCJhIjoiY2s2YzB6Z25kMDVhejNrbXNpcmtjNGtpbiJ9.28ynPf1Y5Q8EyB_moOHylw`,
+          )
+          .then(new_center => {
+            if (!new_center?.data?.features) return;
+
+            // Reverse geocoding
+            const ctx_geo = new_center.data.features[0].context as {
+              id: string;
+              text: string;
+            }[];
+
+            if (ctx_geo) {
+              const currentUrl = new URL(window.location.href);
+              const [neighbourhood] = ctx_geo.filter(ctx_item => ctx_item.id.indexOf('neighborhood') >= 0);
+              const [place] = ctx_geo.filter(ctx_item => ctx_item.id.indexOf('place') >= 0);
+              let place_param = '';
+              const zoom = Number(currentUrl.searchParams.get('zoom'));
+
+              if (!isNaN(zoom) && zoom <= 12) {
+                place_param = neighbourhood?.text || place?.text;
+              } else {
+                place_param = place?.text || neighbourhood?.text;
+              }
+
+              currentUrl.searchParams.set('city', place_param);
+              window.history.pushState({}, `${map.getCenter().lat}${map.getCenter().lng}${place_param}`, currentUrl.href);
+              updater(state, {
+                city: place_param,
+              });
+            }
+          });
         populateMap();
       }
     },
@@ -356,9 +390,27 @@ export function RxMapbox(props: RxMapboxProps) {
 
   React.useEffect(() => {
     if (props.params && props.params.id) {
-      repositionMap([props.params.lng, props.params.lat]);
+      console.log(props.params);
+      updater(state, {
+        lat: props.params.lat,
+        lng: props.params.lng,
+      });
+      if (center?.lat !== props.params.lat && center?.lng !== props.params.lng) {
+        setCenter({
+          lat: props.params.lat,
+          lng: props.params.lng,
+        });
+      }
+      //
     }
-  }, [props.params, map, repositionMap]);
+  }, [props.params]);
+
+  React.useEffect(() => {
+    if (center && center.lng && center.lat) {
+      repositionMap([center.lng, center.lat]);
+    }
+    console.log(center);
+  }, [center]);
 
   React.useEffect(() => {
     if (listings.length) {
@@ -403,7 +455,7 @@ export function RxMapbox(props: RxMapboxProps) {
           clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
         };
 
-        if (map.getSource('map-source') === undefined) {
+        if (map && map.getSource('map-source') === undefined) {
           map.addSource('map-source', geojson_options);
         } else {
           (map.getSource('map-source') as GeoJSONSource).setData({

@@ -5,7 +5,6 @@ export function mapProperties(properties: MLSProperty[]) {
   if (properties && properties.length) {
     properties.forEach((it, i) => {
       const item = mapListProperty(it);
-      console.log(i === 0 && item);
       if (item) {
         mapped.push(item);
       }

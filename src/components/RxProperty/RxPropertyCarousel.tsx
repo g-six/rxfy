@@ -18,7 +18,7 @@ export default function RxPropertyCarousel(props: PropertyCarouselProps) {
     let phts: CarouselPhoto[] = [];
     document.querySelectorAll('[data-carousel-photo]').forEach((el: Element, idx: number) => {
       let url = el.getAttribute('data-carousel-photo') as string;
-      url = `https://e52tn40a.cdn.imgeng.in/w_1920/${url}`;
+      url = `${process.env.NEXT_PUBLIC_IM_ENG}/w_1920/${url}`;
       phts.push({
         url,
         title: `Photo ${idx}`,

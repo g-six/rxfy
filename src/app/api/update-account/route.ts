@@ -3,10 +3,21 @@ import { convertDateStringToDateObject } from '@/_utilities/data-helpers/date-he
 import { encrypt } from '@/_utilities/encryption-helper';
 import axios, { AxiosError } from 'axios';
 import { getResponse } from '@/app/api/response-helper';
-import { getNewSessionKey } from '@/app/api/update-session';
 
 const gql = `query GetUserId ($id: ID!) {
-  customer(id: $id) {
+  user: customer(id: $id) {
+    data {
+      id
+      attributes {
+        email
+        last_activity_at
+      }
+    }
+  }
+}`;
+
+const gql_realtor = `query GetUserId ($id: ID!) {
+  user: realtor(id: $id) {
     data {
       id
       attributes {
@@ -18,7 +29,7 @@ const gql = `query GetUserId ($id: ID!) {
 }`;
 
 const mutation_gql = `mutation UpdateAccount ($id: ID!, $data: CustomerInput!) {
-    customer: updateCustomer(id: $id, data: $data) {
+    user: updateCustomer(id: $id, data: $data) {
       record: data {
         id
         attributes {
@@ -33,7 +44,26 @@ const mutation_gql = `mutation UpdateAccount ($id: ID!, $data: CustomerInput!) {
     }
 }`;
 
+const mutation_realtor = `mutation UpdateAccount ($id: ID!, $data: RealtorInput!) {
+    user: updateRealtor(id: $id, data: $data) {
+      record: data {
+        id
+        attributes {
+          email
+          full_name
+          first_name
+          last_name
+          phone_number
+          last_activity_at
+        }
+      }
+    }
+}`;
+
 export async function PUT(request: Request) {
+  const url = new URL(request.url);
+  const realtor_mode = url.pathname.split('/').length > 2 && url.pathname.split('/')[2] === 'agents';
+
   const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
   if (!token && isNaN(guid))
     return getResponse(
@@ -42,7 +72,7 @@ export async function PUT(request: Request) {
       },
       401,
     );
-  const { email, full_name, phone_number, birthday, password } = await request.json();
+  const { email, full_name, phone_number, birthday, password, first_name, last_name, phone } = await request.json();
   try {
     if (!token || !guid)
       return getResponse(
@@ -59,7 +89,7 @@ export async function PUT(request: Request) {
     const { data: response_data } = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
       {
-        query: gql,
+        query: realtor_mode ? gql_realtor : gql,
         variables: {
           id: guid,
         },
@@ -71,7 +101,7 @@ export async function PUT(request: Request) {
         },
       },
     );
-    const record = response_data.data?.customer?.data?.attributes || {};
+    const record = response_data.data?.user?.data?.attributes || {};
     if (!record.email || !record.last_activity_at || `${encrypt(record.last_activity_at)}.${encrypt(record.email)}` !== token) {
       return new Response(
         JSON.stringify(
@@ -101,10 +131,30 @@ export async function PUT(request: Request) {
         full_name,
       };
     }
+    if (first_name) {
+      updates = {
+        ...updates,
+        full_name: first_name,
+        first_name,
+      };
+    }
+    if (last_name) {
+      updates = {
+        ...updates,
+        full_name: first_name ? `${first_name} ${last_name}` : 'last_name',
+        last_name,
+      };
+    }
     if (phone_number) {
       updates = {
         ...updates,
         phone_number,
+      };
+    }
+    if (phone) {
+      updates = {
+        ...updates,
+        phone,
       };
     }
     if (birthday) {
@@ -134,12 +184,12 @@ export async function PUT(request: Request) {
 
     const {
       data: {
-        data: { customer },
+        data: { user },
       },
     } = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
       {
-        query: mutation_gql,
+        query: realtor_mode ? mutation_realtor : mutation_gql,
         variables,
       },
       {
@@ -152,18 +202,18 @@ export async function PUT(request: Request) {
 
     return getResponse(
       {
-        customer: {
+        user: {
           id: guid,
-          ...customer.record.attributes,
+          ...user.record.attributes,
         },
-        session_key: `${encrypt(last_activity_at)}.${encrypt(customer.record.attributes.email)}-${guid}`,
+        session_key: `${encrypt(last_activity_at)}.${encrypt(user.record.attributes.email)}-${guid}`,
       },
       200,
     );
   } catch (e) {
     console.log('Error in Update Account API request');
     const errors = e as AxiosError;
-    console.log(JSON.stringify(errors.response?.data, null, 4));
+    console.log(JSON.stringify({ errors }, null, 4));
     return new Response(
       JSON.stringify(
         {

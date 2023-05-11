@@ -1,6 +1,4 @@
 import axios, { AxiosError } from 'axios';
-import { PutObjectCommand, S3Client, S3ClientConfig } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { DocumentDataModel } from '@/_typings/document';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getResponse } from '@/app/api/response-helper';
@@ -10,34 +8,6 @@ const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
 };
-const gqlFindCustomer = `query FindCustomer($id: ID!) {
-  customer(id: $id) {
-    data {
-      id
-      attributes {
-        email
-        last_activity_at
-      }
-    }
-  }
-}`;
-
-const gql_upload = `mutation UploadDocument ($data: DocumentUploadInput!) {
-  createDocumentUpload(data: $data) {
-    data {
-      id
-      attributes {
-        file_name
-        url
-        document {
-          data {
-            id
-          }
-        }
-      }
-    }
-  }
-}`;
 
 const gql_document = `mutation CreateDocument ($data: DocumentInput!) {
   createDocument(data: $data) {

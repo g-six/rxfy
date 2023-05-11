@@ -1,4 +1,4 @@
-import { BaseUser } from './base-user';
+import { BaseUser, UserInputModel } from './base-user';
 import { ErrorModel } from './error-model';
 
 export interface Customer extends BaseUser {
@@ -21,12 +21,7 @@ export interface CustomerDataModel {
   attributes: Customer;
 }
 
-export interface CustomerInputModel {
-  email?: string;
-  full_name?: string;
-  phone_number?: string;
-  encrypted_password?: string;
-  password?: string;
+export interface CustomerInputModel extends UserInputModel {
   birthday?: string;
   yes_to_marketing?: boolean;
 }

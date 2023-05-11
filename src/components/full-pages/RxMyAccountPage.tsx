@@ -13,16 +13,18 @@ import { useSearchParams } from 'next/navigation';
 import { RxCheckBox } from '../RxCheckBox';
 import { RxPhoneInput } from '../RxPhoneInput';
 import { CustomerInputModel } from '@/_typings/customer';
-import { RxBirthdayTextInput } from '../RxForms/RxBirthdayTextInput';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
 import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 import { queryStringToObject } from '@/_utilities/url-helper';
+import { RealtorInputModel } from '@/_typings/agent';
+import RxDatePicker from '@/components/RxForms/RxInputs/RxDatePicker';
+import { CakeIcon } from '@heroicons/react/20/solid';
 
 type RxMyAccountPageProps = {
   type: string;
   children: React.ReactElement;
   className?: string;
-  data: CustomerInputModel;
+  data: CustomerInputModel & RealtorInputModel;
 };
 
 export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit: MouseEventHandler }) {
@@ -61,11 +63,34 @@ export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit: MouseEv
         if (child_node.props.className.split(' ').includes('txt-name')) {
           return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='full_name' defaultValue={props.data.full_name} />;
         }
+        if (child_node.props.className.split(' ').includes('txt-firstname')) {
+          return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='first_name' defaultValue={props.data.first_name} />;
+        }
+        if (child_node.props.className.split(' ').includes('txt-lastname')) {
+          return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='last_name' defaultValue={props.data.last_name} />;
+        }
+        if (child_node.props.className.split(' ').includes('txt-phone-number')) {
+          return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='phone_number' defaultValue={props.data.phone_number} />;
+        }
+        if (child_node.props.className.split(' ').includes('txt-agentid')) {
+          return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='agent_id' defaultValue={props.data.agent_id} />;
+        }
         if (child_node.props.className.split(' ').includes('txt-phone')) {
           return <RxPhoneInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='phone_number' defaultValue={props.data.phone_number} />;
         }
         if (child_node.props.className.split(' ').includes('txt-birthday')) {
-          return <RxBirthdayTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='birthday' defaultValue={props.data.birthday || ''} />;
+          const adult_on = new Date();
+          adult_on.setFullYear(adult_on.getFullYear() - 17);
+          return (
+            <RxDatePicker
+              {...child_node.props}
+              icon={<CakeIcon className='w-4 h-4 text-slate-600/50' />}
+              rx-event={Events.SaveAccountChanges}
+              name='birthday'
+              defaultValue={props.data.birthday || ''}
+              maxvalue={adult_on}
+            />
+          );
         }
       }
 
@@ -74,7 +99,14 @@ export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit: MouseEv
       }
 
       return <input {...child_node.props} className={[child_node.props.className || '', 'rexified'].join(' ')} />;
-    } else if (child.props && child.props.children)
+    } else if (child.props && child.props.children) {
+      if (child.props?.className?.split(' ').includes('cta-save-account')) {
+        return (
+          <RxButton {...child_node.props} rx-event={Events.SaveAccountChanges} id={`${Events.SaveAccountChanges}-trigger`}>
+            {child_node.props.children}
+          </RxButton>
+        );
+      }
       return React.cloneElement(
         {
           ...child,
@@ -85,25 +117,29 @@ export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit: MouseEv
           children: <RxPageIterator {...props}>{child.props.children}</RxPageIterator>,
         },
       );
-    else return child;
+    } else return child;
   });
 
   return <>{wrappedChildren}</>;
 }
 
-function validInput(data: CustomerInputModel & { agent_id?: number }): {
-  data?: CustomerInputModel;
+function validInput(data: CustomerInputModel | RealtorInputModel): {
+  data?: CustomerInputModel | RealtorInputModel;
   errors?: {
     email?: string;
     // password?: string;
     full_name?: string;
+    first_name?: string;
+    last_name?: string;
   };
   error?: string;
 } {
   let error = '';
 
   // Only select fields that we need to submit to our API
-  const { email, full_name, phone_number, birthday } = data;
+  const { email, full_name, phone_number } = data;
+  const { birthday } = data as CustomerInputModel;
+  const { first_name, last_name, agent_id } = data as RealtorInputModel;
 
   if (!email) {
     error = `${error}\nA valid email is required`;
@@ -121,55 +157,53 @@ function validInput(data: CustomerInputModel & { agent_id?: number }): {
     data: {
       email,
       full_name,
+      first_name,
+      last_name,
       phone_number,
       birthday,
+      agent_id,
     },
   };
 }
 
 async function loadSession(search_params: Record<string, string | number | boolean>) {
   let session_key = '';
-  let customer_id = '';
-  if (search_params.length) {
-    if (search_params.key) {
-      const key_from_params = search_params.key as string;
-      session_key = key_from_params.split('=')[1];
-      customer_id = session_key.split('-')[1];
-    }
+  let guid = '';
+
+  if (search_params?.key) {
+    session_key = search_params.key as string;
+    guid = session_key.split('-')[1];
   }
   if (!session_key) session_key = Cookies.get('session_key') as string;
 
   if (session_key && session_key.split('-').length === 2) {
-    const api_response = await axios
-      .get('/api/check-session', {
-        headers: {
-          Authorization: `Bearer ${session_key}`,
-        },
-      })
-      .catch(e => {
-        console.log('User not logged in');
-      });
-    const session = api_response as unknown as {
-      data?: CustomerInputModel & {
-        session_key: string;
+    if (!Cookies.get('session_as') || Cookies.get('session_as') !== 'realtor') {
+      // Customer flow
+      const api_response = await axios
+        .get('/api/check-session', {
+          headers: {
+            Authorization: `Bearer ${session_key}`,
+          },
+        })
+        .catch(e => {
+          console.log('User not logged in');
+        });
+      const session = api_response as unknown as {
+        data?: (CustomerInputModel | RealtorInputModel) & {
+          session_key: string;
+        };
       };
-    };
 
-    if (session && session.data?.session_key) {
-      if (!Cookies.get('session_key')) {
-        setTimeout(() => {
-          location.href = '/my-profile';
-        }, 300);
+      if (session && session.data?.session_key) {
+        Cookies.set('session_key', session.data?.session_key);
+        return session.data;
+      } else {
+        clearSessionCookies();
+        location.href = '/log-in';
       }
-      Cookies.set('session_key', session.data?.session_key);
-      return session.data;
-    } else {
-      clearSessionCookies();
-      location.href = '/log-in';
     }
   } else {
-    // No session cookies
-    location.href = '/log-in';
+    // location.href = '/log-in';
   }
 }
 
@@ -180,10 +214,15 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
   const [is_processing, processing] = React.useState(false);
   const [form_data, setFormData] = useState<
     EventsData & {
+      agent_id?: string;
+      phone?: string;
+      phone_number?: string;
       email?: string;
       password?: string;
       birthday?: string;
       full_name?: string;
+      first_name?: string;
+      last_name?: string;
       yes_to_marketing?: boolean;
     }
   >(data as EventsData);
@@ -207,11 +246,13 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
         message: error,
       });
     } else if (valid_data && Cookies.get('session_key')) {
-      updateAccount(`${Cookies.get('session_key')}`, valid_data)
-        .then(({ customer }) => {
+      updateAccount(`${Cookies.get('session_key')}`, {
+        ...valid_data,
+      })
+        .then(({ user }) => {
           fireEvent({
             ...data,
-            ...customer,
+            ...user,
             clicked: undefined,
           });
           notify({
@@ -240,12 +281,34 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
   }, [is_processing]);
 
   React.useEffect(() => {
+    let { first_name, last_name } = data as unknown as {
+      [key: string]: string;
+    };
+
+    if (!first_name) first_name = (form_data as unknown as { first_name: string })?.first_name;
+    if (!last_name) last_name = (form_data as unknown as { last_name: string })?.last_name;
+
+    const menu_name = [first_name || '', last_name || ''].join(' ').trim();
+
+    document.querySelectorAll('.agent-name').forEach(el => {
+      el.textContent = menu_name;
+    });
+  }, [data, form_data]);
+
+  React.useEffect(() => {
     if (data?.clicked === `${Events.SaveAccountChanges}-trigger`) {
       processing(true);
+      const { birthday: ts } = data as { birthday: number };
+      let birthday;
+      if (ts) {
+        birthday = new Date(ts).toISOString().substring(0, 10);
+        birthday = [birthday.split('-')[2], birthday.split('-')[1], birthday.split('-')[0]].join('/');
+      }
       fireEvent({
         ...data,
+        birthday,
         clicked: undefined,
-      });
+      } as unknown as EventsData);
     }
   }, [data]);
 
@@ -254,10 +317,10 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
     loadSession(params).then(user_data => {
       if (user_data) setFormData(user_data);
     });
-  }, []);
+  }, [search_params]);
 
   return (
-    <div id='rx-my-account-page' className={props.className || ''}>
+    <div id='rx-my-account-page' className={[props.className || '', is_processing ? 'loading' : ''].join(' ').trim()}>
       <RxPageIterator
         {...props}
         data={form_data}

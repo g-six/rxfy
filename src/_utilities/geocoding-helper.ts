@@ -23,12 +23,8 @@ export interface PlaceDetails {
   vicinity: string;
 }
 
-export async function getGeocode(
-  address: string
-): Promise<Geolocation | undefined> {
-  const google_results = await fetch(
-    `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${process.env.NEXT_APP_GOOGLE_API_KEY}`
-  );
+export async function getGeocode(address: string): Promise<Geolocation | undefined> {
+  const google_results = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${process.env.NEXT_APP_GGL_API_KEY}`);
 
   if (google_results.ok) {
     const {
@@ -47,10 +43,7 @@ export function getCityFromGeolocation(geolocation: Geolocation) {
     if (types.includes('political')) {
       if (types.includes('locality')) {
         city = long_name;
-      } else if (
-        !city &&
-        types.includes('administrative_area_level_2')
-      ) {
+      } else if (!city && types.includes('administrative_area_level_2')) {
         city = long_name;
       }
     }
@@ -59,9 +52,7 @@ export function getCityFromGeolocation(geolocation: Geolocation) {
   return city;
 }
 
-export function getViewPortParamsFromGeolocation(
-  geolocation: Geolocation
-): MapboxBoundaries {
+export function getViewPortParamsFromGeolocation(geolocation: Geolocation): MapboxBoundaries {
   const { northeast, southwest } = geolocation.geometry.viewport;
   return {
     nelat: northeast.lat,
@@ -71,9 +62,7 @@ export function getViewPortParamsFromGeolocation(
   };
 }
 
-export async function getPlaceDetails(
-  place: google.maps.places.AutocompletePrediction
-): Promise<PlaceDetails> {
+export async function getPlaceDetails(place: google.maps.places.AutocompletePrediction): Promise<PlaceDetails> {
   const url = `${process.env.NEXT_PUBLIC_API}/opensearch/place/${place.place_id}`;
   const results = await fetch(url);
   if (results.ok) {

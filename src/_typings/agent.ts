@@ -1,3 +1,4 @@
+import { UserInputModel } from './base-user';
 import { GeoLocation } from './maps';
 
 export type ThemeName = 'hamburg' | 'lisbon' | 'malaga' | 'malta' | 'oslo';
@@ -45,6 +46,27 @@ export interface AgentMetatagsInput {
 }
 export interface AgentMetatags extends AgentMetatagsInput {
   id: number;
+}
+
+export interface AgentSignUpInput {
+  agent_id: string;
+  email: string;
+  password: string;
+  full_name: string;
+}
+
+export interface BrokerageInputModel {
+  name?: string;
+  full_address?: string;
+  phone_number?: string;
+  website_url?: string;
+}
+
+export interface RealtorInputModel extends UserInputModel {
+  agent_id?: string;
+  first_name?: string;
+  last_name?: string;
+  phone_number?: string;
 }
 
 export interface AgentData {

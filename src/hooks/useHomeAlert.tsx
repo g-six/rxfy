@@ -1,6 +1,4 @@
 import { useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
-import axios from 'axios';
 import Cookies from 'js-cookie';
 
 import { AgentData } from '@/_typings/agent';
@@ -11,9 +9,11 @@ import { BaseUser } from '@/_typings/base-user';
 import { HomeAlertStep } from '@/_typings/home-alert';
 import { signUp } from '@/_utilities/api-calls/call-signup';
 import { saveSearch } from '@/_utilities/api-calls/call-saved-search';
+import { SavedSearchInput } from '@/_typings/saved-search';
+import { queryStringToObject } from '@/_utilities/url-helper';
+import { DwellingType } from '@/_typings/property';
 
 export default function useHomeAlert(agentData: AgentData) {
-  const searchParams = useSearchParams();
   const eventHookSuccess = useEvent(Events.HomeAlertSuccess);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const eventHookLoader = useEvent(Events.Loading);
@@ -33,7 +33,7 @@ export default function useHomeAlert(agentData: AgentData) {
   }, []);
 
   const onAction = useCallback(
-    (step: HomeAlertStep, data?: BaseUser) => {
+    ({ step, data, url }: { step: HomeAlertStep; data?: BaseUser; url: string }) => {
       setData(
         'dismissSavedSearch',
         JSON.stringify(
@@ -48,6 +48,7 @@ export default function useHomeAlert(agentData: AgentData) {
       eventHookLoader.fireEvent({ show: true });
       if (data && data.email) {
         notify({});
+        const { searchParams } = new URL(url);
         signUp(
           {
             id: Number(agentData.id),
@@ -71,13 +72,15 @@ export default function useHomeAlert(agentData: AgentData) {
             });
           });
       } else if (Cookies.get('session_key') && step === 2) {
+        const { searchParams } = new URL(url);
+        let search_params: SavedSearchInput = queryStringToObject(searchParams.toString());
         saveSearch(
           {
             id: Number(agentData.id),
             logo: agentData.metatags?.logo_for_light_bg,
           },
           {
-            search_url: searchParams.toString(),
+            search_params,
           },
         )
           .then(response => {
@@ -92,7 +95,7 @@ export default function useHomeAlert(agentData: AgentData) {
           });
       }
     },
-    [agentData, searchParams, eventHookSuccess, eventHookLoader],
+    [agentData, eventHookSuccess, eventHookLoader],
   );
 
   return { onAction, onDismiss };

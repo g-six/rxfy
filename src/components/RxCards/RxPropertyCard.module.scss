@@ -3,3 +3,8 @@
     @apply block #{!important};
   }
 }
+
+.loading {
+  @apply bg-no-repeat;
+  background-image: url(/loader.svg);
+}

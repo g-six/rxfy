@@ -1,9 +1,10 @@
 import React from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import RxPropertyCard, { PropertyCardSmall } from './RxCards/RxPropertyCard';
+import RxPropertyCard from './RxCards/RxPropertyCard';
 import { classNames } from '@/_utilities/html-helper';
 import { MLSProperty } from '@/_typings/property';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { RxSmallPropertyCard } from './RxCards/RxSmallPropertyCard';
 
 type PropertyListProps = {
   properties: Record<string, string | number | string[]>[];
@@ -75,7 +76,7 @@ export default function PropertyListModal(p: PropertyListProps) {
                             })}
                           </RxPropertyCard>
                         ) : (
-                          <PropertyCardSmall className='w-full shadow-none m-0 hover:bg-indigo-100 p-1 rounded-2xl' key={listing.id as string} {...listing} />
+                          <RxSmallPropertyCard className='w-full shadow-none m-0 hover:bg-indigo-100 p-1 rounded-2xl' key={listing.id as string} {...listing} />
                         )),
                     )}
                 </div>

@@ -22,7 +22,6 @@ export default function DocumentsCreateFolder({ child, agent_data, setDocuments 
   };
   const createNewDocFolder = () => {
     saveDocument(agent_data, folderName).then((res: { document: DocumentInterface }) => {
-      console.log(res.document);
       handleClose();
       setDocuments(prev => [...prev, res.document]);
     });

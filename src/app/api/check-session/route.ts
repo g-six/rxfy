@@ -2,31 +2,40 @@ import axios from 'axios';
 import { encrypt } from '@/_utilities/encryption-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getResponse } from '../response-helper';
+import { getNewSessionKey } from '../update-session';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
 };
-const gqlFindUser = `query FindCustomer($id: ID!) {
-  user: customer(id: $id) {
-    data {
-      id
-      attributes {
-        full_name
-        email
-        birthday
-        phone_number
-        last_activity_at
-        yes_to_marketing
+
+function gqlFindUser(user_type: 'realtor' | 'customer') {
+  return `query FindUser($id: ID!) {
+    user: ${user_type}(id: $id) {
+      data {
+        id
+        attributes {
+          full_name
+          email
+          phone_number
+          last_activity_at
+          ${
+            user_type === 'customer'
+              ? `birthday
+          yes_to_marketing`
+              : `first_name
+          last_name`
+          }
+        }
       }
     }
-  }
-}`;
+  }`;
+}
 
-export async function getUserById(id: number) {
+export async function getUserById(id: number, user_type: 'realtor' | 'customer' = 'customer') {
   const { data } = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {
-      query: gqlFindUser,
+      query: gqlFindUser(user_type),
       variables: {
         id,
       },
@@ -50,47 +59,41 @@ export async function GET(request: Request) {
       401,
     );
 
-  const response_data = await getUserById(guid);
-  if (response_data.data?.user?.data?.attributes) {
-    const { email, last_activity_at } = response_data.data?.user?.data?.attributes;
-    const encrypted_email = encrypt(email);
-    const compare_key = `${encrypt(last_activity_at)}.${encrypted_email}`;
-    if (compare_key === token) {
-      return new Response(
-        JSON.stringify(
-          {
-            ...response_data.data.user.data.attributes,
-            id: guid,
-            email,
-            session_key: `${token}-${guid}`,
-            message: 'Logged in',
-          },
-          null,
-          4,
-        ),
-        {
-          headers: {
-            'content-type': 'application/json',
-          },
-          status: 200,
-        },
-      );
-    }
-  }
+  const user_type = request.url.split('/').includes('agent') ? 'realtor' : 'customer';
 
-  return new Response(
-    JSON.stringify(
+  const { email, full_name, last_activity_at, session_key, first_name, last_name, ...session_data } = await getNewSessionKey(token, guid, user_type);
+  const { agent, birthday, brokerage } = session_data;
+  let phone_number = session_data.phone_number || session_data.phone || session_data.agent?.data?.attributes?.phone;
+
+  if (email && last_activity_at && session_key) {
+    return getResponse(
       {
-        error: 'Please login',
+        ...(agent
+          ? {
+              ...agent.data.attributes,
+              id: Number(agent.data.id),
+            }
+          : {}),
+        brokerage,
+        phone_number,
+        id: guid,
+        last_activity_at,
+        email,
+        birthday,
+        full_name: full_name || '',
+        first_name: first_name || full_name?.split(' ')[0] || '',
+        last_name: last_name || full_name?.split(' ').pop() || '',
+        session_key,
+        message: 'Logged in',
       },
-      null,
-      4,
-    ),
+      200,
+    );
+  }
+  return getResponse(
     {
-      headers: {
-        'content-type': 'application/json',
-      },
-      status: 401,
+      token,
+      error: 'Unable to sign in. Session token is invalid.',
     },
+    401,
   );
 }

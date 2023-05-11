@@ -2,10 +2,13 @@
 import React from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useMapMultiUpdater, useMapState, useMapUpdater } from '@/app/AppContext.module';
+import { objectToQueryString, queryStringToObject } from '@/_utilities/url-helper';
 
 export function RxLiveNumericStep({ child, filter }: { child: React.ReactElement; filter: string }) {
   const state = useMapState();
   const updater = useMapMultiUpdater();
+  const search = useSearchParams();
+  const filters = queryStringToObject(search.toString());
   let counter = Number(state[filter] || '0');
 
   return React.cloneElement(child, {
@@ -17,10 +20,10 @@ export function RxLiveNumericStep({ child, filter }: { child: React.ReactElement
         counter = counter + 1;
       }
       if (counter < 1) counter = 1;
-
+      filters[filter] = counter;
       updater(state, {
         [filter]: counter,
-        reload: true,
+        query: objectToQueryString(filters),
       });
     },
   });

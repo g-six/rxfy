@@ -2,6 +2,16 @@ import { PlaceDetails } from './maps';
 
 export const DateFields = ['UpdateDate', 'ListingDate'];
 
+export enum DwellingType {
+  APARTMENT_CONDO = 'APARTMENT_CONDO',
+  TOWNHOUSE = 'TOWNHOUSE',
+  HOUSE = 'HOUSE_SINGLE_FAMILY,HOUSE_W_ACREAGE',
+  ROW_HOUSE = 'ROW_HOUSE',
+  MANUFACTURED = 'MANUFACTURED,MANUFACTURED_W_LAND',
+  DUPLEX = 'HALF_DUPLEX,FULL_DUPLEX',
+  OTHER = 'OTHER',
+}
+
 export const NumericFields = [
   'B_Depth',
   'L_Frontage_Feet',
@@ -30,21 +40,22 @@ export enum PropertySortBy {
   SIZE_DESC = 'size_desc',
 }
 
-export interface PropertyDataModel {
-  id: number;
+export interface BasePropertyDataModel {
+  id?: number;
   title: string;
   area: string;
   asking_price: number;
   city: string;
   mls_id: string;
   property_type: string;
+  lon?: number;
+  lat?: number;
   beds?: number;
   baths?: number;
   sqft?: number;
   price_per_sqft?: number;
   guid?: string;
   changes_applied?: string;
-  real_estate_board?: number;
   age?: number;
   year_built?: number;
   fireplace?: string;
@@ -61,7 +72,7 @@ export interface PropertyDataModel {
   postal_zip_code?: string;
   parking?: string;
   style_type?: string;
-  status?: 'Active' | 'Expired';
+  status?: 'Active' | 'Expired' | 'Sold';
   has_storage?: boolean;
   listed_at?: Date;
   land_title?: string;
@@ -75,6 +86,29 @@ export interface PropertyDataModel {
   description?: string;
   idx_include?: boolean;
   roofing?: string;
+}
+
+export interface PropertyInput extends BasePropertyDataModel {
+  real_estate_board?: number;
+}
+
+export interface PropertyDataModel extends BasePropertyDataModel {
+  real_estate_board?: {
+    data?: {
+      id?: number;
+      attributes: {
+        legal_disclaimer: string;
+      };
+    };
+  };
+  property_photo_album?: {
+    data?: {
+      id?: number;
+      attributes: {
+        photos: string;
+      };
+    };
+  };
 }
 
 export interface MLSProperty extends Record<string, string | number | boolean | string[]> {
@@ -98,7 +132,9 @@ export interface MLSProperty extends Record<string, string | number | boolean | 
   B_Depth: number;
   B_Heating: string;
   B_Parking_Access: string;
+  B_Parking_Type: string[];
   B_Style: string;
+  B_OutdoorArea: string[];
   LO1_URL: string;
   LO2_URL: string;
   L_Age: number;
@@ -131,6 +167,27 @@ export interface MLSProperty extends Record<string, string | number | boolean | 
   LFD_SiteInfluences_46: string[];
   Remarks: string;
   Zoning: string;
+  L_ShortRegionCode: string;
+  OriginatingSystemName: string;
+
+  // Real Estate Board Data
+  LA1_Board: string;
+  LA2_Board: string;
+  LA3_Board: string;
+  LA4_Board: string;
+  ListAgent1: string;
+  LO1_Brokerage: string;
+
+  // Agent Names
+  LA1_FullName: string;
+  LA2_FullName: string;
+  LA3_FullName: string;
+  SO1_FullName: string;
+  SO2_FullName: string;
+  SO3_FullName: string;
+  LO1_Name: string;
+  LO2_Name: string;
+  LO3_Name: string;
 
   // Rooms Data:
   L_Room1_Type: string;
@@ -205,6 +262,8 @@ export interface MapStateProps extends BaseKeyValuePairStateProps {
   reload?: boolean;
   query: string;
   address?: string;
+  city?: string;
+  dwelling_type?: string;
   ptype?: string[];
   place?: google.maps.places.AutocompletePrediction;
   suggestions: google.maps.places.AutocompletePrediction[];
@@ -216,3 +275,72 @@ export interface LovedPropertyDataModel extends PropertyDataModel {
 }
 
 export type MapStatePropsWithFilters = MapStateProps & PropertyAttributeFilters;
+
+export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
+                lat
+                lon
+                guid
+                title
+                mls_id
+                area
+                city
+                price_per_sqft
+                property_type
+                asking_price
+                changes_applied
+                age
+                year_built
+                baths
+                beds
+                has_laundry
+                has_dishwasher
+                has_fridge
+                has_stove
+                has_deck
+                has_patio
+                has_balcony
+                has_fenced_yard
+                garage
+                postal_zip_code
+                style_type
+                status
+                has_storage
+                listed_at
+                land_title
+                gross_taxes
+                original_price
+                lot_sqm
+                lot_sqft
+                floor_area
+                floor_area_uom
+                tax_year
+                description
+                parking
+                real_estate_board {
+                  data {
+                    attributes {
+                      legal_disclaimer
+                    }
+                  }
+                }
+                property_photo_album {
+                  data {
+                    attributes {
+                      photos
+                    }
+                  }
+                }
+                mls_data
+`;
+
+export interface PropertyPageData extends PropertyDataModel {
+  photos?: string[];
+  neighbours?: MLSProperty[];
+  sold_history?: MLSProperty[];
+  agent_info: {
+    company: string;
+    tel: string;
+    email: string;
+    name: string;
+  };
+}

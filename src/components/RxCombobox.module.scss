@@ -1,5 +1,13 @@
 .RxCombobox {
-  @apply block;
+  &.opened {
+    @apply flex;
+  }
+  &.scrollable {
+    @apply w-full overflow-auto absolute px-0 rounded-lg;
+  }
+  &:not(.scrollable) {
+    @apply block;
+  }
   :global(.dropdown-list) {
     @apply min-w-fit w-32;
   }

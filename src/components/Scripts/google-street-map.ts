@@ -76,8 +76,7 @@ export function addPropertyMapScripts(property: Record<string, unknown>): string
                     title: property.name,
                     icon: markerIcon,
                 });
-                console.log('property page', property.lat, property.lng);
-                console.log('property page', property.Area, property.Address);
+
                 var infowindow = new google.maps.InfoWindow({ content:
                     "<p><b>" +
                     property.name +

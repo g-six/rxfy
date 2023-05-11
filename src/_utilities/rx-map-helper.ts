@@ -3,6 +3,7 @@
 import { MapboxBoundaries, RxPropertyFilter } from '@/_typings/maps';
 import { PropertyAttributeFilters } from '@/_typings/property';
 import Cookies from 'js-cookie';
+import { getSelectedPropertyTypes } from './data-helpers/dwelling-type-helper';
 
 export function getSortingKey(class_name: string) {
   if (class_name.indexOf('date-asc') >= 0) return 'date_asc';
@@ -27,26 +28,6 @@ export function getPropertyTypeFromSelector(class_name: string) {
     return class_name.substring(idx + 6, idx + class_name.substring(idx).split(' ')[0].length);
   }
   return '';
-}
-export function getSelectedPropertyTypes(property_type: string) {
-  switch (property_type) {
-    case 'house':
-      return ['Single Family Detached', 'Residential Detached', 'House with Acreage', 'House/Single Family'];
-    case 'aptcondo':
-      return ['Apartment/Condo'];
-    case 'tnhouse':
-      return ['Townhouse'];
-    case 'duplex':
-      return ['Half Duplex', '1/2 Duplex', 'Duplex'];
-    case 'nonstrata':
-      return ['Row House (Non-Strata)'];
-    case 'manufactured':
-      return ['Manufactured', 'Manufactured with Land'];
-    case 'others':
-      return ['Other'];
-    default:
-      return [];
-  }
 }
 
 function includeGreaterOrEqualNumberFilter(filter: RxPropertyFilter[], field: string, count?: number): RxPropertyFilter[] {
@@ -135,6 +116,14 @@ export function getSearchPropertyFilters(q: MapboxBoundaries & PropertyAttribute
     });
     results = includeTermsFilter(results, 'Type', property_types);
   }
+
+  if (q.dt_from) {
+    results = includeGreaterOrEqualNumberFilter(results, 'ListingDate', Math.floor(q.dt_from.getTime() / 1000));
+  }
+
+  // if (q.dt_from) {
+  //   results = includeGreaterOrEqualNumberFilter(results, 'ListingDate', q.dt_from.getTime());
+  // }
 
   return results;
 }

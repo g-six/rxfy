@@ -31,10 +31,10 @@ export function RxLoginPageIterator(props: RxLoginPageProps) {
           </RxButton>
         );
       }
-      if (child_node.props.className.split(' ').includes('txt-email')) {
+      if (child_node.props.className.split(' ').includes('txt-email') || child_node.props.type === 'email') {
         return <RxEmail {...child_node.props} rx-event={Events.Login} name='email' />;
       }
-      if (child_node.props.className.split(' ').includes('txt-password')) {
+      if (child_node.props.className.split(' ').includes('txt-password') || child_node.props.type === 'password') {
         return <RxPassword {...child_node.props} rx-event={Events.Login} name='password' />;
       }
       return <input {...child_node.props} className={[child_node.props.className || '', 'rexified'].join(' ')} />;
@@ -114,6 +114,7 @@ export function RxLoginPage(props: RxLoginPageProps) {
       };
       if (session?.session_key && session.user?.id) {
         Cookies.set('session_key', session.session_key);
+        Cookies.set('session_as', hasClassName(props.className || '', 'use-agent') ? 'realtor' : 'customer');
         setTimeout(() => {
           location.href = '/my-profile';
         }, 700);
