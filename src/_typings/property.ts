@@ -2,6 +2,18 @@ import { PlaceDetails } from './maps';
 
 export const DateFields = ['UpdateDate', 'ListingDate'];
 
+export type BathroomDetails = {
+  ensuite?: string;
+  pieces?: number;
+  level: string;
+};
+export type RoomDetails = {
+  type: string;
+  length: string;
+  width: string;
+  level: string;
+};
+
 export enum DwellingType {
   APARTMENT_CONDO = 'APARTMENT_CONDO',
   TOWNHOUSE = 'TOWNHOUSE',
@@ -86,6 +98,20 @@ export interface BasePropertyDataModel {
   description?: string;
   idx_include?: boolean;
   roofing?: string;
+  region?: string;
+  residential_type?: string;
+  building_type?: string;
+  heating?: string;
+  year_last_renovated?: number;
+  room_details?: {
+    rooms: RoomDetails[];
+  };
+  bathroom_details?: {
+    rooms: BathroomDetails[];
+  };
+  windows?: string;
+  subarea_community?: string;
+  depth?: number;
 }
 
 export interface PropertyInput extends BasePropertyDataModel {
@@ -229,6 +255,10 @@ export interface MLSProperty extends Record<string, string | number | boolean | 
   L_Fireplace_Fuel: string;
   L_Floor_Finish: string;
   L_Locker: string;
+
+  Reno_Year: number;
+  L_SubareaCommunity: string;
+  Type: string;
 }
 
 interface BaseKeyValuePairStateProps {
@@ -316,6 +346,15 @@ export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
                 tax_year
                 description
                 parking
+                roofing
+                fireplace
+                region
+                residential_type
+                heating
+                year_last_renovated
+                windows
+                subarea_community
+                depth
                 real_estate_board {
                   data {
                     attributes {
