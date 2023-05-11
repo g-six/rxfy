@@ -61,7 +61,7 @@ export function combinePatioData(attributes: PropertyDataModel, key: string, val
   if (attributes.has_patio) return attributes;
   return val &&
     val.length > 0 &&
-    ['B_OutdoorArea', 'L_StrataLotsIncludes', 'L_Exterior Features'].includes(key) &&
+    ['B_OutdoorArea', 'L_StrataLotsIncludes', 'L_Exterior Features', 'LFD_OutdoorArea_47'].includes(key) &&
     val.filter(str => str.toLowerCase().indexOf('patio') >= 0).length > 0
     ? {
         ...attributes,
@@ -106,7 +106,9 @@ export function combineDishwasherData(attributes: PropertyDataModel, key: string
 export function combineFenceData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
   if (attributes.has_fenced_yard) return attributes;
 
-  return Array.isArray(val) && val.filter(str => str.toLowerCase().indexOf('fenced yard') >= 0).length
+  return Array.isArray(val) &&
+    val.filter(str => str.toLowerCase().indexOf('fenced yard') >= 0).length &&
+    ['B_OutdoorArea', 'L_StrataLotsIncludes', 'L_Exterior Features', 'LFD_OutdoorArea_47'].includes(key)
     ? {
         ...attributes,
         has_fenced_yard: true,
