@@ -6,6 +6,7 @@ import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extr
 import { getNewSessionKey } from '../update-session';
 import { getCombinedData } from '@/_utilities/data-helpers/listings-helper';
 import { repairIfNeeded } from '../properties/route';
+import { FILTERS } from '@/_helpers/constants';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -131,10 +132,22 @@ export async function GET(request: Request) {
           // Since there are some old records prior to addition of new fields,
           // attempt to add from mls_data
           const cleaned = getCombinedData(love.attributes.property.data);
+          let for_filters = {};
+          FILTERS.forEach(({ keys }) => {
+            keys.forEach(key => {
+              const text = other_fields[key] ? (Array.isArray(other_fields[key]) ? (other_fields[key] as string[]).join(', ') : other_fields[key]) : undefined;
+              const num = text ? Number(text) : undefined;
+              for_filters = {
+                ...for_filters,
+                [key]: num || text,
+              };
+            });
+          });
           return {
             id: Number(love.id),
             notes: love.attributes.notes || '',
             property: {
+              ...for_filters,
               ...cleaned,
               id: Number(love.attributes.property.data.id),
               style: other_fields.B_Style ? other_fields.B_Style : undefined,
@@ -149,6 +162,7 @@ export async function GET(request: Request) {
                 love.attributes.property.data.attributes.mls_data.City ||
                 love.attributes.property.data.attributes.mls_data.Area,
               mls_data: undefined, // Hide prized data
+              for_filters,
             },
           };
         },
