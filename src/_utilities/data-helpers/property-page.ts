@@ -12,6 +12,7 @@ import { AxiosError, AxiosStatic } from 'axios';
 import { dateStringToDMY } from './date-helper';
 import { capitalizeFirstLetter } from '../formatters';
 import { MLSPropertyExtended } from '@/_typings/filters_compare';
+import { getCombinedData } from './listings-helper';
 
 export const general_stats: Record<string, string> = {
   L_Age: 'Age',
@@ -155,7 +156,7 @@ export function getGqlForFilteredProperties(filters: Record<string, unknown>) {
   };
 }
 
-export function getGqlForInsertProperty(mls_data: MLSProperty) {
+export function getGqlForInsertProperty(mls_data: MLSProperty, relationships?: { real_estate_board?: number }) {
   const {
     lat,
     lng: lon,
@@ -164,9 +165,9 @@ export function getGqlForInsertProperty(mls_data: MLSProperty) {
     MLS_ID: mls_id,
     Area: area,
     City: city,
-    PricePerSQFT,
     PropertyType: property_type,
     AskingPrice: asking_price,
+    B_Roof,
   } = mls_data;
 
   return {
@@ -192,16 +193,22 @@ export function getGqlForInsertProperty(mls_data: MLSProperty) {
     }`,
     variables: {
       input: {
-        lat,
-        lon,
+        ...getCombinedData({
+          attributes: {
+            lat,
+            lon,
+            title,
+            mls_id,
+            area,
+            asking_price,
+            property_type,
+            city,
+            mls_data,
+          },
+        }),
         guid,
-        title,
-        mls_id,
-        area,
-        city,
-        price_per_sqft: Number(PricePerSQFT),
-        property_type,
-        asking_price,
+        roofing: Array.isArray(B_Roof) ? B_Roof.join(', ') : B_Roof,
+        real_estate_board: relationships?.real_estate_board || undefined,
         mls_data,
       },
     },
@@ -804,6 +811,46 @@ export function getMutationForPhotoAlbumCreation(property: number, photos: strin
     variables: {
       property,
       photos,
+    },
+  };
+}
+
+export function getMutationForNewAgentInventory(property: number, agent: number) {
+  return {
+    query: `mutation CreateAgentInventory($input: AgentInventoryInput!) {
+      createAgentInventory(data: $input) {
+        data {
+          id
+          attributes {
+            guid
+            agent {
+              data {
+                id
+                attributes {
+                  full_name
+                  agent_id
+                }
+              }
+            }
+            property {
+              data {
+                id
+                attributes {
+                  title
+                  mls_id
+                }
+              }
+            }
+          }
+        }
+      }
+    }`,
+    variables: {
+      input: {
+        guid: `l${property}-a${agent}`,
+        property,
+        agent,
+      },
     },
   };
 }
