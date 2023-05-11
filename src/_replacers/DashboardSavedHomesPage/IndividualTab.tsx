@@ -2,7 +2,7 @@
 import React, { ReactElement, cloneElement, useEffect, useState } from 'react';
 import useEvent, { Events } from '@/hooks/useEvent';
 import { AgentData } from '@/_typings/agent';
-import { captureMatchingElements, replaceAllTextWithBraces, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { replaceAllTextWithBraces, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import RxPropertyTopStats from '@/components/RxProperty/RxPropertyTopStats';
