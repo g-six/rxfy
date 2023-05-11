@@ -67,6 +67,8 @@ export async function repairIfNeeded(id: number, property: { [key: string]: unkn
         listed_at: `${output.listed_at}`.substring(0, 10),
         id: undefined,
       };
+      delete updates.property_photo_album;
+
       await axios.post(
         `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
         {
@@ -105,6 +107,9 @@ export async function createAgentsFromProperty(p: MLSProperty, real_estate_board
         full_name,
         listing: p.L_PublicRemakrs,
         real_estate_board,
+        lat: p.lat,
+        lng: p.lng,
+        target_city: p.Area,
       });
       agents.push(agent.id);
     }

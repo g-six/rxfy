@@ -115,7 +115,19 @@ export async function GET(req: Request) {
   return new Response(JSON.stringify(results, null, 4), { headers: { 'Content-Type': 'application/json' }, status: 401 });
 }
 
-export async function createAgentRecordIfNoneFound({ agent_id, email, phone, full_name, listing, real_estate_board }: { [key: string]: string | number }) {
+export async function createAgentRecordIfNoneFound({
+  agent_id,
+  email,
+  phone,
+  full_name,
+  listing,
+  real_estate_board,
+  lat,
+  lng,
+  target_city,
+}: {
+  [key: string]: string | number;
+}) {
   if (!email) return;
   if (!agent_id) return;
   if (!phone) return;
@@ -172,15 +184,14 @@ export async function createAgentRecordIfNoneFound({ agent_id, email, phone, ful
     if (!attributes.agent_metatag?.data?.attributes?.personal_bio && listing) {
       console.log('No agent bio, sprucing it up...');
       console.log(attributes);
-      const prompt = `Create a short bio for ${full_name}, a realtor who focuses on selling residential properties that has the attributes and the location of the property with a description, "${listing}."`;
-
+      let prompt = `Can you get a bio of a realtor named ${full_name} based in ${target_city} from the open web?`;
       axios
         .post(
           `${process.env.NEXT_APP_OPENAI_URI}`,
           {
             prompt,
             max_tokens: 300,
-            temperature: 0.3,
+            temperature: 0.2,
             model: 'text-davinci-003',
           },
           {
@@ -192,47 +203,53 @@ export async function createAgentRecordIfNoneFound({ agent_id, email, phone, ful
         )
         .then(({ data }) => {
           const {
-            choices: [{ text: ai_generated_description }],
+            choices: [{ text }],
           } = data;
-          if (ai_generated_description) {
-            const personal_title = ai_generated_description.trim().split('. ')[0];
-            const description = [ai_generated_description.trim().split('. ').slice(0, 2).join('. '), '.'].join('');
-            const personal_bio = ai_generated_description.trim();
-            axios
-              .post(
-                `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-                {
-                  query: mutation_create_meta,
-                  variables: {
-                    data: {
-                      agent_id,
-                      description,
-                      personal_title,
-                      personal_bio,
-                      title: full_name,
-                    },
-                  },
-                },
-                {
-                  headers: {
-                    Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-                    'Content-Type': 'application/json',
-                  },
-                },
-              )
-              .then(res => {
-                const agent_metatag = Number(res.data?.data?.createAgentMetatag?.data.id);
-                console.log({ agent_metatag });
+          let ai_generated_description = text;
 
+          prompt = `Create a short bio for ${full_name}, a realtor who focuses on selling residential properties that has the attributes and the location of the property with a description, "${listing}."`;
+
+          const personal_bio = ai_generated_description.trim();
+          let description = [ai_generated_description.trim().split('. ').slice(0, 2).join('. '), '.'].join('');
+          let personal_title = ai_generated_description.trim().split('. ')[0];
+          axios
+            .post(
+              `${process.env.NEXT_APP_OPENAI_URI}`,
+              {
+                prompt,
+                max_tokens: 300,
+                temperature: 0.3,
+                model: 'text-davinci-003',
+              },
+              {
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${process.env.NEXT_APP_OPENAI_API}`,
+                },
+              },
+            )
+            .then(({ data }) => {
+              const {
+                choices: [{ text: description_long }],
+              } = data;
+              if (description_long) {
+                personal_title = description_long.trim().split('. ')[0];
+                description = [description_long.trim().split('. ').slice(0, 2).join('. '), '.'].join('');
                 axios
                   .post(
                     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
                     {
-                      query: mutation_update_agent,
+                      query: mutation_create_meta,
                       variables: {
-                        id: agent_record_id,
                         data: {
-                          agent_metatag,
+                          agent_id,
+                          description,
+                          personal_title,
+                          personal_bio,
+                          title: full_name,
+                          lat: lat || undefined,
+                          lng: lng || undefined,
+                          target_city: target_city || '',
                         },
                       },
                     },
@@ -244,11 +261,35 @@ export async function createAgentRecordIfNoneFound({ agent_id, email, phone, ful
                     },
                   )
                   .then(res => {
-                    console.log(res.data?.data?.updateAgent);
-                    console.log('...[DONE] mutation_create_meta');
+                    const agent_metatag = Number(res.data?.data?.createAgentMetatag?.data.id);
+                    console.log({ agent_metatag });
+
+                    axios
+                      .post(
+                        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+                        {
+                          query: mutation_update_agent,
+                          variables: {
+                            id: agent_record_id,
+                            data: {
+                              agent_metatag,
+                            },
+                          },
+                        },
+                        {
+                          headers: {
+                            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+                            'Content-Type': 'application/json',
+                          },
+                        },
+                      )
+                      .then(res => {
+                        console.log(res.data?.data?.updateAgent);
+                        console.log('...[DONE] mutation_create_meta');
+                      });
                   });
-              });
-          }
+              }
+            });
         });
     }
 
