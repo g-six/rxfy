@@ -9,6 +9,7 @@ import useLove from '@/hooks/useLove';
 import styles from './RxPropertyCard.module.scss';
 import Cookies from 'js-cookie';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { getMLSProperty } from '@/_utilities/api-calls/call-properties';
 
 function RxComponentChomper({ config, children }: any): any {
   const cloneChildren = React.Children.map(children, child => {
@@ -174,7 +175,10 @@ export default function RxPropertyCard({
           onClickItem: () => {
             if (isLink) {
               toggleLoading(true);
-              location.href = `/property?mls=${listing.MLS_ID}`;
+              getMLSProperty(listing.MLS_ID).then(() => {
+                // Fix the application error for properties not imported yet
+                location.href = `/property?mls=${listing.MLS_ID}`;
+              });
             }
           },
           onLoveItem: (remove: boolean) => {
