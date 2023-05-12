@@ -2,6 +2,10 @@ import axios, { AxiosError } from 'axios';
 import { getRealEstateBoard } from './properties/route';
 import { getCombinedData } from '@/_utilities/data-helpers/listings-helper';
 import { GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty, PropertyDataModel } from '@/_typings/property';
+const headers = {
+  Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+  'Content-Type': 'application/json',
+};
 const gql_update_home = `mutation UpdateHome($id: ID!, $updates: PropertyInput!) {
     updateProperty(id: $id, data: $updates) {
       data {
