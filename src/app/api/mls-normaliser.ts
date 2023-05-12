@@ -266,7 +266,20 @@ export function combineParkingData(attributes: PropertyDataModel, key: string, v
   let garage = attributes.garage || 'None';
 
   if (val && key.toLowerCase().indexOf('parking') >= 0) {
-    parking = `${parking ? `${parking}, ` : ''}` + `${Array.isArray(val) ? val.join(', ') : val}`;
+    let text = '';
+    if (Array.isArray(val)) {
+      text = val.join(' ');
+    } else {
+      switch (key.toUpperCase()) {
+        case 'L_PARKING_COVERED':
+          text = `${val} covered`;
+          break;
+        case 'L_PARKING_TOTAL':
+          text = `${val} total`;
+          break;
+      }
+    }
+    parking = `${parking ? `${parking}, ` : ''}` + text;
 
     if (garage === 'None' && parking) {
       if (parking.toLowerCase().indexOf('garage; triple') >= 0) garage = 'Triple';
