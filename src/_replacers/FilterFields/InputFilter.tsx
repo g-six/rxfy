@@ -7,8 +7,13 @@ type Props = {
   template: ReactElement;
   label?: string;
   inputProps?: {
-    [key: string]: string | boolean | number;
+    type?: string;
+    min?: number;
+    max?: number;
+    placeholder?: string;
+    onBlur?: (e: React.FocusEventHandler<HTMLInputElement>) => void;
   };
+
   value: string | number | null;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
