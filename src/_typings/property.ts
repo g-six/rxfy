@@ -32,9 +32,10 @@ export const NumericFields = [
   'L_FloorArea_Main',
   'L_FloorArea_GrantTotal',
   'L_LotSize_SqMtrs',
+  'floor_area',
 ];
 
-export const FinanceFields = ['AskingPrice', 'PricePerSQFT', 'L_GrossTaxes', 'SoldPrice'];
+export const FinanceFields = ['asking_price', 'AskingPrice', 'PricePerSQFT', 'L_GrossTaxes', 'SoldPrice'];
 
 export enum PropertyStatus {
   ACTIVE = 'active',
@@ -112,6 +113,7 @@ export interface BasePropertyDataModel {
   windows?: string;
   subarea_community?: string;
   depth?: number;
+  strata_fee?: number;
 }
 
 export interface PropertyInput extends BasePropertyDataModel {
@@ -352,12 +354,14 @@ export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
                 residential_type
                 heating
                 year_last_renovated
+                strata_fee
                 windows
                 subarea_community
                 depth
                 real_estate_board {
                   data {
                     attributes {
+                      name
                       legal_disclaimer
                     }
                   }
