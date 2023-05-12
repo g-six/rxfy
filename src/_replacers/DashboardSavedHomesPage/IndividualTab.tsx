@@ -75,12 +75,12 @@ export default function IndividualTab({ child, agent_data }: Props) {
       transformChild: (child: ReactElement) => {
         const cp = currentProperty;
         return replaceAllTextWithBraces(child, {
-          Beds: cp?.L_BedroomTotal,
+          Beds: cp?.beds,
           Baths: cp?.baths,
-          'Year Built': cp?.L_YearBuilt,
-          Sqft: cp?.L_LotSize_SqMtrs,
-          Area: cp?.Area,
-          Description: cp?.description || cp?.L_InternetRemakrs || cp?.L_PublicRemakrs,
+          'Year Built': cp?.year_built,
+          Sqft: cp?.sqft,
+          Area: cp?.area,
+          Description: cp?.description,
           'Listing By': cp?.L_ManagmentCompany,
         }) as ReactElement;
       },
