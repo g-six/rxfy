@@ -59,23 +59,25 @@ export default function MyHomeAlertCard({ child, data, agent_data }: Props) {
       );
     };
   };
+
   const matches: tMatch[] = [
     {
       searchFn: searchByPartOfClass(['marketing-consent-checkbox']),
       transformChild: child => (
-        <FiltersItem
-          item={{ title: 'Alert me when new homes go live' }}
-          template={child}
-          isPicked={data.is_active}
-          handleCheckList={async () => {
-            console.log('CLICKED');
-            // setWait(true);
-            // await updateSearch(data.id, agent_data, {
-            //   search_params: removeKeys({ ...data, dwelling_types, is_active: !data.is_active } as SavedSearchInput, ['id']),
-            // });
-            // setWait(false);
-          }}
-        />
+        <div className={`${wait ? 'pointer-events-none' : ''}`}>
+          <FiltersItem
+            item={{ title: 'Alert me when new homes go live' }}
+            template={child}
+            isPicked={data.is_active}
+            handleCheckList={async () => {
+              setWait(true);
+              await updateSearch(data.id, agent_data, {
+                search_params: removeKeys({ ...data, dwelling_types, is_active: !data.is_active } as SavedSearchInput, ['id']),
+              });
+              setWait(false);
+            }}
+          />
+        </div>
       ),
     },
     {
