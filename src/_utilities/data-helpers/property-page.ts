@@ -106,8 +106,11 @@ export const construction_stats: Record<string, string> = {
 
 export const dimension_stats: Record<string, string> = {
   L_Frontage_Feet: 'Frontage',
+  frontage_feet: 'Frontage',
   B_Depth: 'Depth',
+  depth: 'Depth',
   L_FloorArea_Total: 'Total floor area',
+  floor_area: 'Total floor area',
   L_FloorArea_Finished_AboveMainFloor: 'Floor Area Fin - Abv Main',
   L_FloorArea_Main: 'Main Floor Area',
   L_FloorArea_GrantTotal: 'Floor Area - Grant Total',
@@ -892,10 +895,10 @@ export function formatValues(obj: MLSProperty | Record<string, string>, key: str
   return obj[key] as unknown as string;
 }
 
-export function combineAndFormatValues(values: Record<string, number | string>): string {
+export function combineAndFormatValues(values: Record<string, number | string>, left = 'L_GrossTaxes', right = 'ForTaxYear'): string {
   // Last year taxes
-  if (Object.keys(values).includes('L_GrossTaxes') && Object.keys(values).includes('ForTaxYear')) {
-    return `${formatValues(values as MLSProperty, 'L_GrossTaxes')} (${values.ForTaxYear})`;
+  if (Object.keys(values).includes(left) && Object.keys(values).includes(right)) {
+    return `${formatValues(values as MLSProperty, left)} (${values.ForTaxYear})`;
   }
   return Object.keys(values)
     .map(key => values[key])

@@ -100,10 +100,14 @@ export default function IndividualTab({ child, agent_data }: Props) {
           'Lot Size': formatValues(cp, 'L_LotSize_SqMtrs'),
           'Land Title': cp?.LandTitle,
           'Price Per Sqft': formatValues(cp, 'PricePerSQFT'),
-          'Property Tax': combineAndFormatValues({
-            L_GrossTaxes: cp.L_GrossTaxes,
-            ForTaxYear: cp.ForTaxYear,
-          }),
+          'Property Tax': combineAndFormatValues(
+            {
+              gross_taxes: Number(cp.gross_taxes),
+              tax_year: Number(cp.tax_year),
+            },
+            'gross_taxes',
+            'tax_year',
+          ),
         }) as ReactElement;
       },
     },
