@@ -27,6 +27,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   ID_PAGE = 'total-id-card',
   PDF_PAGE = 'pdf-wrapper',
   AGENT_ID_INPUT = 'txt-agentid',
+  PROPERTY_MAIN_ATTRIBUTES = 'bedbath-stat-block',
 }
 
 export interface WebFlow {
