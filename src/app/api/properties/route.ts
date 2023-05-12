@@ -1,16 +1,21 @@
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
+import { CloudFrontClient, CreateInvalidationCommand } from '@aws-sdk/client-cloudfront';
+import { PutObjectCommand, S3Client, S3ClientConfig } from '@aws-sdk/client-s3';
 import { getResponse } from '../response-helper';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
-import { getCombinedData } from '@/_utilities/data-helpers/listings-helper';
-import { GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty, PropertyDataModel } from '@/_typings/property';
+
+import { GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty } from '@/_typings/property';
 import {
   getGqlForInsertProperty,
   getMutationForNewAgentInventory,
   getMutationForPhotoAlbumCreation,
   retrieveFromLegacyPipeline,
+  slugifyAddress,
+  slugifyAddressRecord,
 } from '@/_utilities/data-helpers/property-page';
 import { createAgentRecordIfNoneFound } from '../agents/route';
+import { repairIfNeeded } from '../mls-repair';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -34,63 +39,6 @@ const mutation_create_property = `mutation CreateProperty($data: PropertyInput!)
   }
 }`;
 
-const gql_update_home = `mutation UpdateHome($id: ID!, $updates: PropertyInput!) {
-  updateProperty(id: $id, data: $updates) {
-    data {
-      id
-      attributes {${GQ_FRAGMENT_PROPERTY_ATTRIBUTES}}
-    }
-  }
-}`;
-export async function repairIfNeeded(id: number, property: { [key: string]: unknown } & PropertyDataModel, mls_data: MLSProperty & { [key: string]: string }) {
-  const null_count = Object.keys(property).filter(k => property[k] === null).length;
-  if (null_count > 10) {
-    // Too many null fields, attempt to repair
-    let output = {
-      ...property,
-      ...getCombinedData({
-        id,
-        attributes: {
-          ...property,
-          mls_data,
-        },
-      }),
-      id,
-    };
-
-    try {
-      const { id: board } = await getRealEstateBoard(mls_data);
-
-      const updates = {
-        ...output,
-        real_estate_board: board,
-        listed_at: `${output.listed_at}`.substring(0, 10),
-        id: undefined,
-      };
-      delete updates.property_photo_album;
-
-      await axios.post(
-        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-        {
-          query: gql_update_home,
-          variables: {
-            id: output.id,
-            updates,
-          },
-        },
-        {
-          headers,
-        },
-      );
-      return updates;
-    } catch (update_error) {
-      const err = update_error as AxiosError;
-      console.log('Caught exception for update property');
-      console.log(err.response?.data);
-    }
-  }
-  return {};
-}
 export async function createAgentsFromProperty(p: MLSProperty, real_estate_board: number) {
   const agents: number[] = [];
   for await (const num of [1, 2, 3]) {
@@ -286,6 +234,108 @@ export async function GET(request: Request) {
         }
       });
 
+    if (output.id) {
+      const config: S3ClientConfig = {
+        region: 'us-west-2',
+        credentials: {
+          accessKeyId: process.env.NEXT_APP_UPLOADER_KEY_ID as string,
+          secretAccessKey: process.env.NEXT_APP_UPLOAD_SECRET_KEY as string,
+        },
+      };
+      const client = new S3Client(config);
+
+      const { property_photo_album, real_estate_board, ...data } = output;
+      const { neighbours, sold_history } = await getNeighboursAndHistory(
+        data.title as string,
+        data.postal_zip_code as string,
+        legacy_data.Province_State as string,
+      );
+      console.log(neighbours);
+      console.log('neighbours');
+      const {
+        data: {
+          id: real_estate_board_id,
+          attributes: { name: real_estate_board_name, legal_disclaimer },
+        },
+      } = real_estate_board as unknown as {
+        data: {
+          id: number;
+          attributes: {
+            [key: string]: string;
+          };
+        };
+      };
+
+      const filepath = `listings/${output.mls_id}/${slugifyAddressRecord(data.title as string, output.id as number)}.json`;
+      const mls_filepath = `listings/${output.mls_id}/recent.json`;
+      const mls_filepath_ts = `listings/${output.mls_id}/${new Date().getFullYear()}-${new Date().getMonth() + 1}/${Date.now()}.json`;
+      const legacy_filepath = `listings/${output.mls_id}/legacy.json`;
+      const Bucket = process.env.NEXT_APP_S3_PAGES_BUCKET as string;
+      let Body = JSON.stringify(
+        {
+          ...data,
+          real_estate_board: {
+            id: real_estate_board_id,
+            name: real_estate_board_name,
+            legal_disclaimer,
+          },
+          neighbours,
+          sold_history,
+          slug: slugifyAddress(data.title as string),
+        },
+        null,
+        4,
+      );
+      let command = new PutObjectCommand({
+        Bucket,
+        Key: filepath,
+        ContentType: 'text/json',
+        Body,
+      });
+      client.send(command).then(console.log);
+
+      command = new PutObjectCommand({
+        Bucket,
+        Key: mls_filepath,
+        ContentType: 'text/json',
+        Body,
+      });
+      client.send(command).then(console.log);
+
+      command = new PutObjectCommand({
+        Bucket,
+        Key: mls_filepath_ts,
+        ContentType: 'text/json',
+        Body,
+      });
+      client.send(command).then(console.log);
+
+      Body = JSON.stringify(
+        {
+          ...legacy_data,
+          real_estate_board: {
+            id: real_estate_board_id,
+            name: real_estate_board_name,
+            legal_disclaimer,
+          },
+          slug: slugifyAddress(data.title as string),
+        },
+        null,
+        4,
+      );
+      command = new PutObjectCommand({
+        Bucket,
+        Key: legacy_filepath,
+        ContentType: 'text/json',
+        Body,
+      });
+      client.send(command).then(console.log);
+
+      invalidateCache([`/${filepath}`, `/${mls_filepath}`, `/${mls_filepath_ts}`, `/${legacy_filepath}`]);
+      // if (real_estate_board?.attributes.name && xhr?.data?.data?.property) {
+      // }
+    }
+
     return getResponse(
       {
         id: record.id,
@@ -319,6 +369,7 @@ export async function getRealEstateBoard({
           records: data {
             id
             attributes {
+              name
               legal_disclaimer
             }
           }
@@ -337,4 +388,91 @@ export async function getRealEstateBoard({
         ...leagent_cms_res.data?.data?.realEstateBoards.records[0].attributes,
         id: board_id,
       };
+}
+
+export function invalidateCache(Items: string[]) {
+  const NEXT_APP_SITES_DIST_ID = process.env.NEXT_APP_SITES_DIST_ID as string;
+  const client = new CloudFrontClient({
+    region: 'us-west-2',
+    credentials: {
+      accessKeyId: process.env.NEXT_APP_UPLOADER_KEY_ID as string,
+      secretAccessKey: process.env.NEXT_APP_UPLOAD_SECRET_KEY as string,
+    },
+  });
+  const command = new CreateInvalidationCommand({
+    DistributionId: NEXT_APP_SITES_DIST_ID,
+    InvalidationBatch: {
+      CallerReference: new Date().getTime().toString(),
+      Paths: {
+        Quantity: Items.length,
+        Items,
+      },
+    },
+  });
+  console.log('Invalidating cache for ', NEXT_APP_SITES_DIST_ID);
+  return client.send(command);
+}
+
+async function getNeighboursAndHistory(address: string, postal_zip_code: string, province_state: string) {
+  console.log('address', address);
+  const {
+    data: {
+      hits: { hits },
+    },
+  } = await axios.post(
+    process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
+    {
+      query: {
+        bool: {
+          should: [
+            { match: { 'data.Address': address } },
+            {
+              match: {
+                'data.PostalCode_Zip': postal_zip_code,
+              },
+            },
+            {
+              match: {
+                'data.Province_State': province_state,
+              },
+            },
+          ],
+          minimum_should_match: 3,
+        },
+      },
+    },
+    {
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`).toString('base64')}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  const neighbours: MLSProperty[] = [];
+  const sold_history: MLSProperty[] = [];
+  hits.forEach(({ _source }: { _source: unknown }) => {
+    const { data: hit } = _source as {
+      data: Record<string, unknown>;
+    };
+    let property = {
+      Address: '',
+      Status: '',
+    };
+    Object.keys(hit as Record<string, unknown>).forEach(key => {
+      if (hit[key] && key !== 'id') {
+        property = {
+          ...property,
+          [key]: hit[key],
+        };
+      }
+    });
+    if (property.Status === 'Sold' && property.Address === address) sold_history.push(property as MLSProperty);
+    else if (property.Status === 'Active') neighbours.push(property as MLSProperty);
+  });
+
+  return {
+    sold_history,
+    neighbours,
+  };
 }

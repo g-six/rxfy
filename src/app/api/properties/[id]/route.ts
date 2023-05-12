@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { MLSProperty } from '@/_typings/property';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getResponse } from '../../response-helper';
 import { getNewSessionKey } from '../../update-session';
