@@ -137,6 +137,9 @@ export function getCombinedData({ id, attributes }: { id?: number; attributes: P
   if (!values.year_last_renovated && attributes.mls_data.Reno_Year) {
     values.year_last_renovated = Number(attributes.mls_data.Reno_Year);
   }
+  if (!values.strata_fee && attributes.mls_data.L_StrataFee) {
+    values.strata_fee = Number(attributes.mls_data.L_StrataFee);
+  }
   if (!values.subarea_community && attributes.mls_data.L_SubareaCommunity) {
     values.subarea_community = attributes.mls_data.L_SubareaCommunity;
   }
