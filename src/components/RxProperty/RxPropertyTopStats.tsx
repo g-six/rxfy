@@ -15,8 +15,8 @@ export default function RxPropertyTopStats(props: ReplacerPageProps) {
       searchFn: searchByClasses(['price-n-address']),
       transformChild: (child: React.ReactElement) =>
         replaceAllTextWithBraces(child, {
-          Price: props?.property ? formatValues(props.property, 'AskingPrice') : '',
-          Address: props?.property?.Address || '',
+          Price: props?.property ? formatValues(props.property, 'asking_price') : '',
+          Address: props?.property?.title || '',
         }) as React.ReactElement,
     },
     {
