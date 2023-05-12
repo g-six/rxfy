@@ -17,20 +17,25 @@ import { getRealEstateBoard } from '@/app/api/properties/route';
 
 export const general_stats: Record<string, string> = {
   L_Age: 'Age',
+  age: 'Age',
   L_YearBuilt: 'Build Year',
+  year_built: 'Build Year',
   L_TotalBaths: 'Total Baths',
+  baths: 'Total Baths',
   L_BedroomTotal: 'Total Bedrooms',
+  beds: 'Total Bedrooms',
   L_Features: 'Features',
   B_Amenities: 'Amenities',
-  LandTitle: 'Title to Land',
+  land_title: 'Title to Land',
   PropertyType: 'Property Type',
+  property_type: 'Property Type',
   L_Fireplaces: '# of Fireplaces',
   L_KitchensTotal: '# of Kitchens',
   L_Parking_total: 'Parking',
   L_Parking_covered: 'Parking',
-  B_Parking_Access: 'Parking Access',
+  parking: 'Parking Access',
   Zoning: 'Zoning',
-  B_Heating: 'Fuel/Heating',
+  heating: 'Fuel/Heating',
 };
 
 export const main_stats: Record<string, string> = {
@@ -82,6 +87,7 @@ export const financial_stats: Record<string, string> = {
   MLS_ID: 'MLS #',
   SoldPrice: 'Sold For',
   PricePerSQFT: 'Price per Sqft',
+  price_per_sqft: 'Price per Sqft',
   L_StrataFee: 'Strata Fee',
   ListingDate: 'List Date',
 };
