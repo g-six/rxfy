@@ -140,6 +140,9 @@ export function getCombinedData({ id, attributes }: { id?: number; attributes: P
   if (!values.strata_fee && attributes.mls_data.L_StrataFee) {
     values.strata_fee = Number(attributes.mls_data.L_StrataFee);
   }
+  if (!values.frontage_feet && attributes.mls_data.L_Frontage_Feet) {
+    values.frontage_feet = Number(attributes.mls_data.L_Frontage_Feet);
+  }
   if (!values.subarea_community && attributes.mls_data.L_SubareaCommunity) {
     values.subarea_community = attributes.mls_data.L_SubareaCommunity;
   }

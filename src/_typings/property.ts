@@ -114,6 +114,7 @@ export interface BasePropertyDataModel {
   subarea_community?: string;
   depth?: number;
   strata_fee?: number;
+  frontage_feet?: number;
 }
 
 export interface PropertyInput extends BasePropertyDataModel {
@@ -355,6 +356,7 @@ export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
                 heating
                 year_last_renovated
                 strata_fee
+                frontage_feet
                 windows
                 subarea_community
                 depth
