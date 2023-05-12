@@ -45,6 +45,7 @@ export const gqf_saved_search_attributes = `
 const gql_create_saved_search = `mutation CreateSavedSearch ($data: SavedSearchInput!) {
     createSavedSearch(data: $data) {
       data {
+        id
         attributes {
           ${gqf_saved_search_attributes}
         }
@@ -83,6 +84,7 @@ export async function POST(request: Request) {
         },
       },
     );
+    console.log(JSON.stringify({ search_response }, null, 4));
     let saved_search;
     if (search_response.data?.createSavedSearch?.data?.id) {
       const { id, attributes } = search_response.data?.createSavedSearch?.data;
