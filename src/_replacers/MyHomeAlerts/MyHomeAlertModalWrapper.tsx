@@ -49,7 +49,6 @@ export default function MyHomeAlertModalWrapper({ child, agent_data }: Props) {
     setFormState((prev: any) => ({ ...prev, [key]: val }));
   };
   const handleFormCityChange = (val: any) => {
-    console.log(val);
     setFormState((prev: any) => ({ ...prev, ...val }));
   };
   const resetClick = () => {
