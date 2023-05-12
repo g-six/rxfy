@@ -6,10 +6,6 @@ import React, { cloneElement, ReactElement } from 'react';
 type Props = {
   item: {
     title: string;
-    urlKey?: string;
-    keys: string[];
-    types: string[];
-    behaviors?: string[];
   };
   isPicked: boolean;
   template: ReactElement;

@@ -25,6 +25,7 @@ export interface SavedSearchBaseModel {
 }
 
 export interface SavedSearchInput extends SavedSearchBaseModel {
+  id?: number;
   dwelling_types?: DwellingType[];
 }
 
@@ -35,5 +36,6 @@ export interface CustomerSavedSearch extends SavedSearchInput {
 }
 export interface SavedSearch extends SavedSearchBaseModel {
   id: number;
-  dwelling_types?: { id: number; name: string; code: string }[];
+  is_active: boolean;
+  dwelling_types?: { id: number; name: string; code: keyof typeof DwellingType }[];
 }

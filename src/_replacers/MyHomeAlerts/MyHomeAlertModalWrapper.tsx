@@ -1,45 +1,50 @@
 'use client';
-import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { removeKeys, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByClasses, searchById } from '@/_utilities/rx-element-extractor';
 import useEvent, { Events } from '@/hooks/useEvent';
 import React, { ReactElement, cloneElement, useEffect, useState } from 'react';
 import MyHomeAlertForm from './MyHomeAlertForm';
 import SubmitGrid from './SubmitGrid';
+import { SavedSearch, SavedSearchInput } from '@/_typings/saved-search';
+import { saveSearch, updateSearch } from '@/_utilities/api-calls/call-saved-search';
+import { AgentData } from '@/_typings/agent';
 
 type Props = {
   child: ReactElement;
+  agent_data: AgentData;
 };
 
-export default function MyHomeAlertModalWrapper({ child }: Props) {
+export default function MyHomeAlertModalWrapper({ child, agent_data }: Props) {
   const { data, fireEvent } = useEvent(Events.MyHomeAlertsModal);
   const { show, message, alertData } = data || {};
+  const showModal = show && message && ['New', 'Edit'].includes(message);
   const closeModal = () => {
     fireEvent({ show: false, message: '', alertData: undefined });
   };
-  console.log({ data });
+
   const initialState = {
-    beds: alertData?.beds ?? 0,
-    baths: alertData?.baths ?? 0,
-    minprice: alertData?.minprice ?? '',
-    maxprice: alertData?.maxprice ?? '',
-    minsqft: alertData?.minsqft ?? '',
-    maxsqft: alertData?.maxsqft ?? '',
-    tags: alertData?.tags !== null ? alertData?.tags : '',
-    lat: alertData?.lat ?? 0,
-    lng: alertData?.lng ?? 0,
-    nelat: alertData?.nelat ?? 0,
-    nelng: alertData?.nelng ?? 0,
-    swlat: alertData?.swlat ?? 0,
-    swlng: alertData?.swlng ?? 0,
-    city: alertData?.city ?? '',
-    build_year: alertData?.build_year ?? '',
-    add_date: alertData?.add_date ?? '',
+    beds: 0,
+    baths: 0,
+    minprice: 0,
+    maxprice: 0,
+    minsqft: 0,
+    maxsqft: 0,
+    tags: '',
+    lat: 0,
+    lng: 0,
+    nelat: 0,
+    nelng: 0,
+    swlat: 0,
+    swlng: 0,
+    city: '',
+    build_year: 0,
+    add_date: 0,
     dwelling_types: [],
   };
-  const [formState, setFormState] = useState<any>({ ...initialState });
+  const [formState, setFormState] = useState<SavedSearchInput>({ ...initialState, ...alertData });
   useEffect(() => {
-    setFormState({ ...initialState });
-  }, [alertData]);
+    setFormState({ ...alertData });
+  }, [show]);
   const handleFormChange = (key: string, val: any) => {
     setFormState((prev: any) => ({ ...prev, [key]: val }));
   };
@@ -47,16 +52,23 @@ export default function MyHomeAlertModalWrapper({ child }: Props) {
     setFormState((prev: any) => ({ ...prev, ...val }));
   };
   const resetClick = () => {
-    setFormState({ ...initialState });
+    setFormState({ ...alertData });
   };
 
-  const saveClick = () => {
-    closeModal();
+  const saveClick = async () => {
+    // console.log(formState);
+    if (formState?.id) {
+      await updateSearch(formState.id, agent_data, { search_params: removeKeys(formState, ['id']) });
+    }
+    if (!formState.id) {
+      await saveSearch(agent_data, { search_params: formState });
+    }
+    fireEvent({ show: false, message: '', reload: true, alertData: formState });
   };
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['new-home-alert-wrapper']),
-      transformChild: (child: ReactElement) => cloneElement(child, { onClick: closeModal, style: { display: data?.show ? 'flex' : 'none' } }),
+      transformChild: (child: ReactElement) => cloneElement(child, { onClick: closeModal, style: { display: showModal ? 'flex' : 'none' } }),
     },
     {
       searchFn: searchByClasses(['prop-type-section-label']),
@@ -77,8 +89,9 @@ export default function MyHomeAlertModalWrapper({ child }: Props) {
     },
     {
       searchFn: searchById('email-form'),
-      transformChild: (child: ReactElement) =>
-        show ? <MyHomeAlertForm child={child} formState={formState} handleChange={handleFormChange} handleFormCityChange={handleFormCityChange} /> : <></>,
+      transformChild: (child: ReactElement) => (
+        <MyHomeAlertForm child={child} formState={formState} handleChange={handleFormChange} handleFormCityChange={handleFormCityChange} />
+      ),
     },
     {
       searchFn: searchByClasses(['modal-wrapper-right']),
