@@ -1,5 +1,5 @@
 import { MLSProperty } from './property';
-import { SavedSearch } from './saved-search';
+import { SavedSearch, SavedSearchInput } from './saved-search';
 
 export enum Events {
   Login = 'event-login',
@@ -49,7 +49,8 @@ export interface EventsData {
   property?: MLSProperty;
   mls_id?: string;
   metadata?: any;
-  alertData?: SavedSearch;
+  alertData?: SavedSearchInput;
+  reload?: boolean;
 }
 export const tabEventMapping: { [key: string]: Events } = {
   'indiv-view': Events.SavedItemsIndivTab,

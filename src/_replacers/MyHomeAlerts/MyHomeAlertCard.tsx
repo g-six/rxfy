@@ -1,17 +1,24 @@
-import { replaceAllTextWithBraces, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { removeKeys, replaceAllTextWithBraces, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { fireCustomEvent } from '@/_helpers/functions';
 import { Events } from '@/_typings/events';
-import { SavedSearch } from '@/_typings/saved-search';
+import { SavedSearch, SavedSearchInput } from '@/_typings/saved-search';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
-import { searchByClasses } from '@/_utilities/rx-element-extractor';
-import React, { ReactElement, cloneElement } from 'react';
+import { searchByClasses, searchByPartOfClass } from '@/_utilities/rx-element-extractor';
+import React, { ReactElement, cloneElement, useState } from 'react';
+import FiltersItem from '../ComparePage/FiltersItem';
+import { DwellingType } from '@/_typings/property';
+import { format } from 'date-fns';
+import { updateSearch } from '@/_utilities/api-calls/call-saved-search';
+import { AgentData } from '@/_typings/agent';
 
 type Props = {
   child: ReactElement;
   data: SavedSearch;
+  agent_data: AgentData;
 };
 
-export default function MyHomeAlertCard({ child, data }: Props) {
+export default function MyHomeAlertCard({ child, data, agent_data }: Props) {
+  const [wait, setWait] = useState(false);
   let dwelling_types: string[] = data.dwelling_types?.map(ptype => ptype.name) || [];
 
   const replace = {
@@ -24,19 +31,59 @@ export default function MyHomeAlertCard({ child, data }: Props) {
     baths: data.baths,
     'min-sqft': data?.minsqft ?? 'N/A',
     'max-sqft': data?.maxsqft ?? 'N/A',
-    'listed-since': data.add_date ?? 'Not Selected',
+    'listed-since': data.add_date ? format(new Date(data.add_date * 1000), 'd/M/y') : 'Not Selected',
     'prop-newer-than': data.build_year ?? 'Not Selected',
     keywords: data.tags ?? 'Not Provided',
     proptype: dwelling_types.length ? dwelling_types.join(', ') : 'Not Selected',
   };
   const handleEditClick = () => {
-    fireCustomEvent({ show: true, message: 'Edit', alertData: data }, Events.MyHomeAlertsModal);
+    fireCustomEvent(
+      {
+        show: true,
+        message: 'Edit',
+        alertData: { ...data, dwelling_types: data.dwelling_types?.map(type => DwellingType[type.code as keyof typeof DwellingType]) ?? [] },
+      },
+      Events.MyHomeAlertsModal,
+    );
   };
+  const handleDeleteClick = (id: number) => {
+    return () => {
+      console.log('delete clicked');
+      fireCustomEvent(
+        {
+          key: id,
+          show: true,
+          message: 'delete',
+        },
+        Events.MyHomeAlertsModal,
+      );
+    };
+  };
+
   const matches: tMatch[] = [
+    {
+      searchFn: searchByPartOfClass(['marketing-consent-checkbox']),
+      transformChild: child => (
+        <div className={`${wait ? 'pointer-events-none' : ''}`}>
+          <FiltersItem
+            item={{ title: 'Alert me when new homes go live' }}
+            template={child}
+            isPicked={data.is_active}
+            handleCheckList={async () => {
+              setWait(true);
+              await updateSearch(data.id, agent_data, {
+                search_params: removeKeys({ ...data, dwelling_types, is_active: !data.is_active } as SavedSearchInput, ['id']),
+              });
+              setWait(false);
+            }}
+          />
+        </div>
+      ),
+    },
     {
       searchFn: searchByClasses(['ha-delete-button']),
       transformChild: (child: ReactElement) => {
-        return child;
+        return cloneElement(child, { onClick: handleDeleteClick(data.id) });
       },
     },
     {
