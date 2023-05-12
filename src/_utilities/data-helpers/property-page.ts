@@ -13,6 +13,7 @@ import { dateStringToDMY } from './date-helper';
 import { capitalizeFirstLetter } from '../formatters';
 import { MLSPropertyExtended } from '@/_typings/filters_compare';
 import { getCombinedData } from './listings-helper';
+import { getRealEstateBoard } from '@/app/api/properties/route';
 
 export const general_stats: Record<string, string> = {
   L_Age: 'Age',
@@ -175,19 +176,7 @@ export function getGqlForInsertProperty(mls_data: MLSProperty, relationships?: {
           property: createProperty(data: $input) {
               data {
                   id
-                  attributes {
-                    lat,
-                    lon,
-                    guid,
-                    title,
-                    mls_id,
-                    area,
-                    city,
-                    price_per_sqft,
-                    property_type,
-                    asking_price,
-                    mls_data,
-                  }
+                  attributes {${GQ_FRAGMENT_PROPERTY_ATTRIBUTES}}
               }
           }
     }`,
@@ -502,12 +491,16 @@ export async function getSimilarHomes(property: MLSProperty, limit = 3): Promise
 async function upsertPropertyToCMS(mls_data: MLSProperty) {
   const axios: AxiosStatic = (await import('axios')).default;
   try {
-    const xhr = await axios.post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getGqlForInsertProperty(mls_data), {
+    const real_estate_board_res = await getRealEstateBoard(mls_data as unknown as { [key: string]: string });
+    const real_estate_board = real_estate_board_res?.id || undefined;
+    const xhr = await axios.post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getGqlForInsertProperty(mls_data, { real_estate_board }), {
       headers: {
         Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
         'Content-Type': 'application/json',
       },
     });
+
+    console.log('Real Estate Board Data', real_estate_board_res);
 
     return xhr?.data?.data?.property || {};
   } catch (e) {
@@ -606,6 +599,7 @@ export async function getPrivatePropertyData(property_id: number | string) {
 }
 export async function getPropertyData(property_id: number | string, id_is_mls = false): Promise<PropertyPageData> {
   const axios: AxiosStatic = (await import('axios')).default;
+
   let xhr = await axios
     .post(
       process.env.NEXT_APP_CMS_GRAPHQL_URL as string,
@@ -627,8 +621,9 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
       console.log('ERROR in getPropertyData.axios for id', property_id, '\n', e.message, '\n\n');
     });
   let found_in_strapi = true;
-  let property = xhr?.data?.data?.property || xhr?.data?.data?.properties?.data[0];
-  if (id_is_mls && property === undefined) {
+  let property = xhr?.data?.data?.property?.data || xhr?.data?.data?.properties?.data[0];
+
+  if (id_is_mls && (property === undefined || !property)) {
     // Data was not picked up by the integrations API,
     // attempt to fix
     found_in_strapi = false;
@@ -648,6 +643,7 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
         },
       },
     });
+
     console.log('Trying to upsert a property to our CMS');
     const on_the_fly_record = await upsertPropertyToCMS(mls_data);
 
@@ -656,10 +652,11 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
       property = on_the_fly_record.data;
       console.log('Property ID', property.id);
     }
-  } else if (!property.price_per_sqft) {
-    console.log('Missing property.price_per_sqft');
+  } else if (!property.attributes.price_per_sqft) {
+    console.log('Missing property.attributes.price_per_sqft');
     let { mls_data, ...trimmed } = property.attributes;
     trimmed = fillPropertyDataFromPipeline(mls_data);
+    console.log('Additional', JSON.stringify(trimmed, null, 4));
     property = {
       ...property,
       attributes: {
@@ -673,13 +670,16 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
   const neighbours: MLSProperty[] = [];
   const sold_history: MLSProperty[] = [];
 
+  let property_attributes;
   if (property?.attributes) {
-    let { lat, lon } = property.attributes;
+    const { mls_data, ...attributes } = property.attributes;
+    let { lat, lon } = attributes;
     clean = {
       ...clean,
       id: Number(property.id),
     };
-    const { mls_data, ...attributes } = property.attributes;
+    property_attributes = attributes as PropertyDataModel;
+
     Object.keys(mls_data).map((key: string) => {
       if (mls_data[key]) {
         if (key === 'lng' && !lon) {
@@ -751,6 +751,8 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
     });
   }
 
+  if (property_attributes) console.log(JSON.stringify(property_attributes, null, 4));
+  else console.log('property_attributes was null');
   console.log('Getting agent info');
 
   const agent_info = {
@@ -763,6 +765,8 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
   };
 
   console.log('agent_info:', agent_info);
+  console.log('---');
+  console.log('');
 
   let { photos, ...denormed } = clean as unknown as PropertyDataModel & MLSPropertyExtended;
   if (denormed.property_photo_album?.data) {
@@ -771,32 +775,38 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
     } else {
       photos = denormed.property_photo_album.data.attributes.photos;
     }
-  } else {
+  } else if (photos && denormed.id) {
     try {
       const {
         data: { data: photo_album_result },
-      } = await axios.post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getMutationForPhotoAlbumCreation(denormed.id, JSON.stringify(photos, null, 4)), {
+      } = await axios.post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getMutationForPhotoAlbumCreation(denormed.id, photos), {
         headers: {
           Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
           'Content-Type': 'application/json',
         },
       });
+      console.log('photo_album_result', photo_album_result);
     } catch (e) {
       const axerr = e as AxiosError;
       console.log(axerr.response?.data);
     }
+  } else {
+    console.log('Problem with data');
+    console.log(JSON.stringify(clean, null, 4));
   }
 
-  return {
+  const to_cache = {
     ...denormed,
     photos,
     neighbours,
     sold_history,
     agent_info,
   };
+
+  return to_cache;
 }
 
-export function getMutationForPhotoAlbumCreation(property: number, photos: string) {
+export function getMutationForPhotoAlbumCreation(property: number, photos: string[]) {
   return {
     query: `mutation CreatePhotoAlbum($property: ID!, $photos: JSON!) {
       createPropertyPhotoAlbum(data: { property: $property, photos: $photos }) {
@@ -911,4 +921,20 @@ export function fillPropertyDataFromPipeline(mls_data: MLSProperty): PropertyDat
     price_per_sqft: isNaN(price_per_sqft) ? undefined : price_per_sqft,
   };
   return filled;
+}
+
+export function slugifyAddressRecord(address: string, record_id: number) {
+  return slugifyAddress(address) + `-${record_id}`;
+}
+
+export function slugifyAddress(address: string) {
+  return address
+    .split(',')
+    .map(s => s.trim())
+    .join(' ')
+    .replace(/[^\w\s]/gi, '.')
+    .split(' . ')
+    .join(' ')
+    .replace(/[^a-z0-9]/gi, '-')
+    .toLowerCase();
 }
