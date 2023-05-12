@@ -63,7 +63,7 @@ export const FILTERS: Filter[] = [
     var: 'date',
     behaviors: ['hideIfEmpty'],
   },
-  { title: 'MLS #', keys: ['MLS_ID'], types: ['financial'], behaviors: ['default'] },
+  { title: 'MLS #', keys: ['mls_id'], types: ['financial'], behaviors: ['default'] },
   {
     title: 'Price Per SQFT',
     keys: ['PricePerSQFT'],
