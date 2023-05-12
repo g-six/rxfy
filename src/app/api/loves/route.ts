@@ -5,7 +5,7 @@ import { getResponse } from '../response-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getNewSessionKey } from '../update-session';
 import { getCombinedData } from '@/_utilities/data-helpers/listings-helper';
-import { repairIfNeeded } from '../properties/route';
+import { repairIfNeeded } from '@/app/api/mls-repair';
 import { FILTERS } from '@/_helpers/constants';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
