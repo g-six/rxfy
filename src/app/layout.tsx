@@ -40,12 +40,35 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const requestUrl = new URL(requestLink);
   const searchParams = Object.fromEntries(requestUrl.searchParams);
   let property;
+  let cache_found = false;
   if (requestUrl.pathname === '/property' && searchParams && (searchParams.lid || searchParams.id || searchParams.mls)) {
     if (searchParams.lid) {
       property = await getPrivatePropertyData(searchParams.lid);
     } else {
       // Publicly listed property page
-      property = await getPropertyData(searchParams.id || searchParams.mls, !!searchParams.mls);
+      const start = new Date().getTime();
+      console.log('');
+      console.log('');
+      console.log('---');
+      console.log('Started', start);
+      if (searchParams.mls) {
+        try {
+          const cached_property = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/recent.json`);
+          const cached_legacy = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/legacy.json`);
+          property = cached_property?.data || undefined;
+          cache_found = true;
+        } catch (e) {
+          console.log('No cached file');
+        }
+      }
+      if (!property) property = await getPropertyData(searchParams.id || searchParams.mls, !!searchParams.mls);
+      const end = new Date().getTime();
+      console.log('Ended', end);
+      console.log('Total', end - start);
+      console.log('---');
+      console.log('');
+      console.log('');
+      console.log('');
     }
   }
 
@@ -82,7 +105,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 `${replaceMetaTags(webflow.head.code, agent_data, property)} <script>${initializePlacesAutocomplete({
                   apiKey: NEXT_APP_GGL_API_KEY || '',
                 })}</script>`,
-                property ? `<script id="property" type="application/json">${JSON.stringify(property, null, 4)}</script>` : '',
+                !cache_found
+                  ? `<script>setTimeout(() => {
+                  fetch("/api/properties?mls_id=${searchParams.mls}").then(console.log)
+                }, 10000)</script>`
+                  : `<script>console.log("Cache found.", "${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/recent.json")</script>`,
               ].join(`
               
               `),

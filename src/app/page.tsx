@@ -96,7 +96,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     className: 'filter-group-modal',
   });
 
-  let listings, property;
+  let listings, property, legacy_data;
 
   if (!params || !params.slug || params.slug === '/') {
     if (agent_data && agent_data.agent_id) {
@@ -124,7 +124,62 @@ export default async function Home({ params, searchParams }: { params: Record<st
       property = await getPrivatePropertyData(searchParams.lid);
     } else {
       // Publicly listed property page
-      property = await getPropertyData(searchParams.id || searchParams.mls, !!searchParams.mls);
+      if (searchParams.id) {
+        property = await getPropertyData(searchParams.id);
+      } else {
+        try {
+          const cached_xhr = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/recent.json`);
+          const cached_legacy_xhr = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/legacy.json`);
+          property = cached_xhr.data;
+          legacy_data = cached_legacy_xhr.data;
+        } catch (e) {
+          // No cache, do the long query
+          property = await getPropertyData(searchParams.mls, true);
+          legacy_data = property;
+        }
+        const {
+          L_ShortRegionCode,
+          OriginatingSystemName,
+          LA1_Board,
+          LA2_Board,
+          LA3_Board,
+          LA4_Board,
+          ListAgent1,
+          LO1_Brokerage,
+          LA1_FullName,
+          LA2_FullName,
+          LA3_FullName,
+          SO1_FullName,
+          SO2_FullName,
+          SO3_FullName,
+          LO1_Name,
+          LO2_Name,
+          LO3_Name,
+          L_Frontage_Feet,
+        } = legacy_data;
+
+        property = {
+          ...property,
+          L_ShortRegionCode,
+          OriginatingSystemName,
+          LA1_Board,
+          LA2_Board,
+          LA3_Board,
+          LA4_Board,
+          ListAgent1,
+          LO1_Brokerage,
+          LA1_FullName,
+          LA2_FullName,
+          LA3_FullName,
+          SO1_FullName,
+          SO2_FullName,
+          SO3_FullName,
+          LO1_Name,
+          LO2_Name,
+          LO3_Name,
+          L_Frontage_Feet,
+        };
+      }
       const {
         L_ShortRegionCode,
         OriginatingSystemName,
@@ -167,19 +222,10 @@ export default async function Home({ params, searchParams }: { params: Record<st
   await fillAgentInfo($, agent_data);
 
   if (property) {
-    // Photo gallery for properties
     const d = property as unknown as MLSProperty;
+
+    // Photo gallery for properties
     const photos: string[] = d.photos as string[];
-    const similar_properties = await getSimilarHomes(property as unknown as MLSProperty);
-    property = {
-      ...property,
-      similar_properties,
-    };
-
-    if (similar_properties.length) {
-      fillPropertyGrid($, similar_properties);
-    }
-
     $('a.link').each((e, el) => {
       el.children.forEach((child, child_idx: number) => {
         if (photos[child_idx]) {

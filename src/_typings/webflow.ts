@@ -28,6 +28,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   PDF_PAGE = 'pdf-wrapper',
   AGENT_ID_INPUT = 'txt-agentid',
   PROPERTY_MAIN_ATTRIBUTES = 'bedbath-stat-block',
+  SIMILAR_LISTINGS = 'similar-homes-grid',
 }
 
 export interface WebFlow {

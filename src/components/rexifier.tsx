@@ -47,6 +47,7 @@ import { Events } from '@/_typings/events';
 import { RxTextInput } from './RxTextInput';
 import RxContactFormButton from './RxForms/RxContactFormButton';
 import RxStatsGridWithIcons from './RxProperty/RxStatsGridWithIcons';
+import RxGenericLabeledValueBlock from './_generics/RxGenericLabeledValueBlock';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -549,7 +550,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             <RxStatsGridWithIcons
               values={{
                 '{Building Type}': property.property_type as string,
-                '{MLS Number}': property.MLS_ID as string,
+                '{MLS Number}': property.mls_id as string,
                 '{Lot Size}': property.lot_sqm
                   ? `${formatValues(property as MLSProperty, 'lot_sqm')}m²`
                   : `${formatValues(property as MLSProperty, 'lot_sqft')}ft²`,
@@ -624,7 +625,22 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
 
             // Grouped data table sections
             // Property Information, Financial, Dimensions, Construction
-            if (node.attribs.class.indexOf('propinfo') >= 0) return <RexifyStatBlock node={node} record={record} groupName='propinfo' />;
+            const p = record as unknown as PropertyDataModel;
+
+            if (node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_MAIN_ATTRIBUTES) >= 0) {
+              const values = {
+                Beds: p.beds,
+                Baths: p.baths,
+                'Year Built': record.year_built,
+                Sqft: formatValues(record, 'floor_area') as string,
+                Area: record.area,
+              };
+              return (
+                <RxGenericLabeledValueBlock className={node.attribs.class} selector='bedbath-result' values={values}>
+                  {domToReact(node.children) as ReactElement}
+                </RxGenericLabeledValueBlock>
+              );
+            } else if (node.attribs.class.indexOf('propinfo') >= 0) return <RexifyStatBlock node={node} record={record} groupName='propinfo' />;
             else if (node.attribs.class.indexOf('financial') >= 0) return <RexifyStatBlock node={node} record={record} groupName='financial' />;
             else if (node.attribs.class.indexOf('dimensions') >= 0) return <RexifyStatBlock node={node} record={record} groupName='dimensions' />;
             else if (node.attribs.class.indexOf('construction') >= 0) return <RexifyStatBlock node={node} record={record} groupName='construction' />;
@@ -767,48 +783,52 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
   const property = record as MLSProperty & PropertyDataModel;
   switch (placeholder) {
     case '{Description}':
-      return <p className={className}>{property.L_PublicRemakrs}</p>;
+      return <p className={className}>{property.description}</p>;
 
     case '{Sqft}':
       return <p className={className}>{new Intl.NumberFormat(undefined).format(property.L_LotSize_SqMtrs)}</p>;
 
     case '{Baths}':
-      return <p className={className}>{property.L_TotalBaths}</p>;
+      return <p className={className}>{property.baths}</p>;
 
     case '{Beds}':
-      return <p className={className}>{property.L_BedroomTotal}</p>;
+      return <p className={className}>{property.beds}</p>;
 
     case '{Year Built}':
-      return <p className={className}>{property.L_YearBuilt}</p>;
+      return <p className={className}>{property.year_built}</p>;
 
     case '{Area}':
-      return <p className={className}>{property.Area}</p>;
+      return <p className={className}>{property.area}</p>;
 
     case '{Address}':
-      return <div className={className}>{property.Address}</div>;
+      return <div className={className}>{property.title}</div>;
 
     case '{Lot Size}':
       return <div className={className}>{property.lot_sqft || property.lot_sqm || formatValues(property, 'L_LotSize_SqMtrs')}</div>;
 
     case '{MLS Number}':
-      return <span className={className}>{property.MLS_ID}</span>;
+      return <span className={className}>{property.mls_id}</span>;
 
     case '{Land Title}':
-      return <span className={className}>{property.LandTitle}</span>;
+      return <span className={className}>{property.land_title}</span>;
 
     case '{Price Per Sqft}':
       return <span className={className}>{formatValues(property, 'PricePerSQFT')}</span>;
 
     case '{Price}':
-      return <div className={className}>{formatValues(property, 'AskingPrice')}</div>;
+      return <div className={className}>{property.asking_price}</div>;
 
     case '{Property Tax}':
       return (
         <span className={className}>
-          {combineAndFormatValues({
-            L_GrossTaxes: property.L_GrossTaxes,
-            ForTaxYear: property.ForTaxYear,
-          })}
+          {combineAndFormatValues(
+            {
+              gross_taxes: Number(property.gross_taxes),
+              tax_year: Number(property.tax_year),
+            },
+            'gross_taxes',
+            'tax_year',
+          )}
         </span>
       );
   }
