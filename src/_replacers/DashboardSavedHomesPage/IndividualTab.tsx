@@ -21,9 +21,6 @@ import RxStreetView from '@/components/RxStreetView';
 import RxStatBlock from './RxStatBlock';
 import { mapFeatures, prepareStats } from '@/_helpers/functions';
 import RxFeatures from './RxFeatures';
-
-import RxBuildOrSoldHistory from './RxBuildOrSoldHistory';
-import RxPropertyCarousel from '@/components/RxProperty/RxPropertyCarousel';
 import PhotosGrid from './PhotosGrid';
 
 type Props = {
