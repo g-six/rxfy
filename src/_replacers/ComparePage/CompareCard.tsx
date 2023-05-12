@@ -20,13 +20,14 @@ type Props = {
 
 export default function CompareCard({ property, child, replacements, filters, showControls = true }: Props) {
   const currReplacements = replacements ?? {
-    'Comp Price': `$${property.AskingPrice}`,
-    'Comp Address': mapStrAddress(property),
-    PBd: property.L_BedroomTotal,
-    PBth: property.L_TotalBaths || property.baths,
-    Psq: property.L_FloorArea_GrantTotal,
-    PYear: property.L_YearBuilt,
+    'Comp Price': `$${property.asking_price}`,
+    'Comp Address': property.title,
+    PBd: property.beds,
+    PBth: property.baths,
+    Psq: property.floor_area,
+    PYear: property.year_built,
   };
+
   const rowTemplate = captureMatchingElements(child, [
     {
       elementName: 'statRow',

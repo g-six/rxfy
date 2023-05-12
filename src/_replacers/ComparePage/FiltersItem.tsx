@@ -1,4 +1,4 @@
-import { transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 
 import React, { cloneElement, ReactElement } from 'react';
@@ -16,12 +16,13 @@ export default function FiltersItem({ item, template, isPicked, handleCheckList 
   const handleCheckClick = () => {
     handleCheckList();
   };
-  const matches = [
+  const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['checkbox']),
       transformChild: (child: ReactElement) => {
         return cloneElement(child, {
-          className: `${child.props.className}  ${isPicked ? 'w--redirected-checked' : ''}`,
+          onClick: handleCheckClick,
+          className: `${child.props.className} cursor-pointer ${isPicked ? 'w--redirected-checked' : ''}`,
         });
       },
     },

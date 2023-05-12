@@ -155,7 +155,7 @@ export const FILTERS: Filter[] = [
   },
   {
     title: 'Fireplace Fueled by',
-    keys: ['f_3031', 'L_Fireplace_Fuel', 'LFD_FireplaceFueledby_49', 'LFD_FireplaceFueledby_80'],
+    keys: ['f_3031', 'L_Fireplace_Fuel', 'LFD_FireplaceFueledby_49', 'LFD_FireplaceFueledby_80', 'fireplace'],
     types: ['construction'],
     behaviors: ['default'],
   },
