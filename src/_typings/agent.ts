@@ -48,11 +48,18 @@ export interface AgentMetatags extends AgentMetatagsInput {
   id: number;
 }
 
-export interface AgentSignUpInput {
+export interface AgentInput {
   agent_id: string;
   email: string;
-  password: string;
   full_name: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  brokerage?: number;
+}
+
+export interface AgentSignUpInput extends AgentInput {
+  password: string;
 }
 
 export interface BrokerageInputModel {

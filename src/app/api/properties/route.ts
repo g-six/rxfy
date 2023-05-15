@@ -15,7 +15,7 @@ import {
   slugifyAddressRecord,
 } from '@/_utilities/data-helpers/property-page';
 import { createAgentRecordIfNoneFound } from '../agents/route';
-import { repairIfNeeded } from '../mls-repair';
+import { createAgentsFromProperty, repairIfNeeded } from '../mls-repair';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -39,32 +39,6 @@ const mutation_create_property = `mutation CreateProperty($data: PropertyInput!)
   }
 }`;
 
-export async function createAgentsFromProperty(p: MLSProperty, real_estate_board: number) {
-  const agents: number[] = [];
-  for await (const num of [1, 2, 3]) {
-    const agent_id = p[`LA${num}_LoginName`] as string;
-    const email = p[`LA${num}_Email`] as string;
-    const full_name = p[`LA${num}_FullName`] as string;
-    const phone = p[`LA${num}_PhoneNumber1`] as string;
-
-    if (agent_id && email && phone && full_name) {
-      const agent = await createAgentRecordIfNoneFound({
-        agent_id,
-        email,
-        phone,
-        full_name,
-        listing: p.L_PublicRemakrs,
-        real_estate_board,
-        lat: p.lat,
-        lng: p.lng,
-        target_city: p.Area,
-      });
-      agents.push(agent.id);
-    }
-  }
-
-  return agents;
-}
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const mls_id = url.searchParams.get('mls_id') as string;
@@ -80,19 +54,20 @@ export async function GET(request: Request) {
       headers,
     },
   );
-  if (results?.data?.data?.properties?.data?.length === 0) {
+  if (results?.data?.data?.properties?.data?.length === 0 || url.searchParams.get('regen')) {
     const legacy_result = await retrieveFromLegacyPipeline({
       query: { bool: { filter: [{ match: { 'data.MLS_ID': mls_id } }], should: [] } },
       size: 1,
       from: 0,
     });
+
     if (legacy_result && legacy_result.length) {
       const hit = legacy_result[0];
       if (hit) {
         const real_estate_board_res = await getRealEstateBoard(hit as unknown as { [key: string]: string });
         const real_estate_board = real_estate_board_res?.id || undefined;
         // Create agents and temporarily store their record ids for linking properties
-        const agents = await createAgentsFromProperty(hit as MLSProperty, real_estate_board);
+        const agents = await createAgentsFromProperty(hit as MLSProperty, real_estate_board_res);
         const query = getGqlForInsertProperty(hit, real_estate_board);
 
         const { mls_data, ...cleaned } = query.variables.input;
@@ -371,6 +346,7 @@ export async function getRealEstateBoard({
             attributes {
               name
               legal_disclaimer
+              abbreviation
             }
           }
         }
