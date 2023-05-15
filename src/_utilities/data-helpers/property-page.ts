@@ -13,7 +13,7 @@ import { dateStringToDMY } from './date-helper';
 import { capitalizeFirstLetter } from '../formatters';
 import { MLSPropertyExtended } from '@/_typings/filters_compare';
 import { getCombinedData } from './listings-helper';
-import { getRealEstateBoard } from '@/app/api/properties/route';
+import { getRealEstateBoard } from '@/app/api/mls-repair';
 
 export const general_stats: Record<string, string> = {
   L_Age: 'Age',
@@ -192,6 +192,53 @@ export function getGqlForInsertProperty(mls_data: MLSProperty, relationships?: {
           }
     }`,
     variables: {
+      input: {
+        ...getCombinedData({
+          attributes: {
+            lat,
+            lon,
+            title,
+            mls_id,
+            area,
+            asking_price,
+            property_type,
+            city,
+            mls_data,
+          },
+        }),
+        guid,
+        roofing: Array.isArray(B_Roof) ? B_Roof.join(', ') : B_Roof,
+        real_estate_board: relationships?.real_estate_board || undefined,
+        mls_data,
+      },
+    },
+  };
+}
+export function getGqlForUpdateProperty(id: number, mls_data: MLSProperty, relationships?: { real_estate_board?: number }) {
+  const {
+    lat,
+    lng: lon,
+    ListingID: guid,
+    Address: title,
+    MLS_ID: mls_id,
+    Area: area,
+    City: city,
+    PropertyType: property_type,
+    AskingPrice: asking_price,
+    B_Roof,
+  } = mls_data;
+
+  return {
+    query: `mutation UpdateProperty($id: ID!, $input: PropertyInput!) {
+          property: updateProperty(id: $id, data: $input) {
+              data {
+                  id
+                  attributes {${GQ_FRAGMENT_PROPERTY_ATTRIBUTES}}
+              }
+          }
+    }`,
+    variables: {
+      id,
       input: {
         ...getCombinedData({
           attributes: {
@@ -762,7 +809,7 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
     });
   }
 
-  if (property_attributes) console.log(JSON.stringify(property_attributes, null, 4));
+  if (property_attributes) console.log('getPropertyData', property_attributes.title);
   else console.log('property_attributes was null');
   console.log('Getting agent info');
 
