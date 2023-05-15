@@ -1,4 +1,4 @@
-import { MLSProperty, PropertyDataModel } from '@/_typings/property';
+import { PropertyDataModel } from '@/_typings/property';
 
 /**
  *

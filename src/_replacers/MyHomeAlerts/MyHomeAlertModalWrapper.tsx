@@ -5,7 +5,7 @@ import useEvent, { Events } from '@/hooks/useEvent';
 import React, { ReactElement, cloneElement, useEffect, useState } from 'react';
 import MyHomeAlertForm from './MyHomeAlertForm';
 import SubmitGrid from './SubmitGrid';
-import { SavedSearch, SavedSearchInput } from '@/_typings/saved-search';
+import { SavedSearchInput } from '@/_typings/saved-search';
 import { saveSearch, updateSearch } from '@/_utilities/api-calls/call-saved-search';
 import { AgentData } from '@/_typings/agent';
 

@@ -13,7 +13,7 @@ import { dateStringToDMY } from './date-helper';
 import { capitalizeFirstLetter } from '../formatters';
 import { MLSPropertyExtended } from '@/_typings/filters_compare';
 import { getCombinedData } from './listings-helper';
-import { getRealEstateBoard } from '@/app/api/mls-repair';
+import { getRealEstateBoard } from '@/app/api/real-estate-boards/model';
 
 export const general_stats: Record<string, string> = {
   L_Age: 'Age',

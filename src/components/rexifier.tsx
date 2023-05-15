@@ -553,7 +553,9 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
                 '{MLS Number}': property.mls_id as string,
                 '{Lot Size}': property.lot_sqm
                   ? `${formatValues(property as MLSProperty, 'lot_sqm')}m²`
-                  : `${formatValues(property as MLSProperty, 'lot_sqft')}ft²`,
+                  : property.lot_sqm
+                  ? `${formatValues(property as MLSProperty, 'lot_sqft')}ft²`
+                  : 'Not Applicable',
                 '{Land Title}': `${property.land_title}`,
                 '{Price Per Sqft}': `${property.price_per_sqft || 'N/A'}`,
                 '{Property Tax}': property.gross_taxes

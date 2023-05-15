@@ -10,13 +10,13 @@ import { WebFlow } from '@/_typings/webflow';
 import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
 import { getPrivatePropertyData, getPropertyData, getSimilarHomes } from '@/_utilities/data-helpers/property-page';
-import { MLSProperty, PropertyDataModel } from '@/_typings/property';
+import { MLSProperty } from '@/_typings/property';
 import Script from 'next/script';
 import { addPropertyMapScripts } from '@/components/Scripts/google-street-map';
 import { AgentData, BrokerageInputModel, RealtorInputModel } from '@/_typings/agent';
 import RxNotifications from '@/components/RxNotifications';
-import { getRealEstateBoard } from './api/properties/route';
 import MyProfilePage from '@/rexify/my-profile';
+import { getRealEstateBoard } from '@/app/api/real-estate-boards/model';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico'];

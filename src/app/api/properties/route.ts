@@ -5,17 +5,19 @@ import { getResponse } from '../response-helper';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 
-import { GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty } from '@/_typings/property';
+import { GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty, PropertyDataModel } from '@/_typings/property';
 import {
   getGqlForInsertProperty,
+  getGqlForUpdateProperty,
   getMutationForNewAgentInventory,
   getMutationForPhotoAlbumCreation,
   retrieveFromLegacyPipeline,
   slugifyAddress,
   slugifyAddressRecord,
 } from '@/_utilities/data-helpers/property-page';
-import { createAgentRecordIfNoneFound } from '../agents/route';
-import { createAgentsFromProperty, repairIfNeeded } from '../mls-repair';
+import { repairIfNeeded } from '../mls-repair';
+import { getRealEstateBoard } from '@/app/api/real-estate-boards/model';
+import { createAgentsFromProperty } from './model';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -68,7 +70,10 @@ export async function GET(request: Request) {
         const real_estate_board = real_estate_board_res?.id || undefined;
         // Create agents and temporarily store their record ids for linking properties
         const agents = await createAgentsFromProperty(hit as MLSProperty, real_estate_board_res);
-        const query = getGqlForInsertProperty(hit, real_estate_board);
+        const query =
+          results?.data?.data?.properties?.data?.length === 0
+            ? getGqlForInsertProperty(hit, real_estate_board)
+            : getGqlForUpdateProperty(results?.data?.data?.properties?.data[0].id, hit, real_estate_board);
 
         const { mls_data, ...cleaned } = query.variables.input;
         const { data: new_property } = await axios.post(
@@ -89,7 +94,7 @@ export async function GET(request: Request) {
         );
 
         const { id, attributes } = new_property.data.createProperty.data;
-        if (hit.photos && Array.isArray(hit.photos)) {
+        if (!results?.data?.data?.properties?.data[0].id && hit.photos && Array.isArray(hit.photos)) {
           const {
             data: {
               data: {
@@ -128,6 +133,7 @@ export async function GET(request: Request) {
   }
   if (results?.data?.data?.properties?.data?.length) {
     const [record] = results?.data.data.properties.data;
+
     const { mls_data, ...property } = record.attributes;
     let output: {
       [key: string]: string | number | boolean | string[] | Date;
@@ -135,10 +141,12 @@ export async function GET(request: Request) {
       ...property,
       id: Number(record.id),
     };
+
     let legacy_data: {
       [key: string]: string | number | boolean | string[] | Date;
     } = {};
-    const repaired = await repairIfNeeded(Number(record.id), property, mls_data);
+
+    const repaired = await repairIfNeeded(Number(record.id), output as unknown as { [key: string]: unknown } & PropertyDataModel, mls_data);
 
     Object.keys(property).forEach(key => {
       if (property[key]) {
@@ -150,6 +158,7 @@ export async function GET(request: Request) {
       }
     });
     mls_data &&
+      mls_data !== null &&
       Object.keys(mls_data).forEach(key => {
         if (mls_data[key]) {
           switch (key) {
@@ -209,7 +218,7 @@ export async function GET(request: Request) {
         }
       });
 
-    if (output.id) {
+    if (output && output.id) {
       const config: S3ClientConfig = {
         region: 'us-west-2',
         credentials: {
@@ -221,12 +230,14 @@ export async function GET(request: Request) {
 
       const { property_photo_album, real_estate_board, ...data } = output;
       const { neighbours, sold_history } = await getNeighboursAndHistory(
+        mls_data.PropertyType,
+        mls_data.AddressNumber,
+        mls_data.AddressStreet,
         data.title as string,
         data.postal_zip_code as string,
         legacy_data.Province_State as string,
       );
-      console.log(neighbours);
-      console.log('neighbours');
+
       const {
         data: {
           id: real_estate_board_id,
@@ -254,8 +265,8 @@ export async function GET(request: Request) {
             name: real_estate_board_name,
             legal_disclaimer,
           },
-          neighbours,
-          sold_history,
+          neighbours: [],
+          sold_history: [],
           slug: slugifyAddress(data.title as string),
         },
         null,
@@ -325,47 +336,6 @@ export async function GET(request: Request) {
   return getResponse(results?.data || {}, 200);
 }
 
-export async function getRealEstateBoard({
-  L_ShortRegionCode,
-  OriginatingSystemName,
-  LA1_Board,
-  LA2_Board,
-  LA3_Board,
-  LA4_Board,
-  ListAgent1,
-  LO1_Brokerage,
-}: {
-  [name: string]: string;
-}) {
-  //CMS_GRAPH_URL
-  const gql_params = {
-    query: `query GetBoardByName($name:String!) {
-        realEstateBoards(filters: { name: { eqi: $name } }) {
-          records: data {
-            id
-            attributes {
-              name
-              legal_disclaimer
-              abbreviation
-            }
-          }
-        }
-      }`,
-    variables: {
-      name: L_ShortRegionCode || OriginatingSystemName || LA1_Board || LA2_Board || LA3_Board || LA4_Board || ListAgent1 || LO1_Brokerage,
-    },
-  };
-
-  const leagent_cms_res = await axios.post(`${process.env.NEXT_APP_CMS_GRAPHQL_URL}`, gql_params, { headers });
-  const board_id = Number(leagent_cms_res.data?.data?.realEstateBoards.records[0].id);
-  return isNaN(board_id)
-    ? undefined
-    : {
-        ...leagent_cms_res.data?.data?.realEstateBoards.records[0].attributes,
-        id: board_id,
-      };
-}
-
 export function invalidateCache(Items: string[]) {
   const NEXT_APP_SITES_DIST_ID = process.env.NEXT_APP_SITES_DIST_ID as string;
   const client = new CloudFrontClient({
@@ -389,8 +359,15 @@ export function invalidateCache(Items: string[]) {
   return client.send(command);
 }
 
-async function getNeighboursAndHistory(address: string, postal_zip_code: string, province_state: string) {
-  console.log('address', address);
+async function getNeighboursAndHistory(
+  property_type: string,
+  address_number: string,
+  address_street: string,
+  address: string,
+  postal_zip_code: string,
+  province_state: string,
+) {
+  console.log('getNeighboursAndHistory for units in the building', `${address_number} ${address_street}`);
   const {
     data: {
       hits: { hits },
@@ -400,8 +377,10 @@ async function getNeighboursAndHistory(address: string, postal_zip_code: string,
     {
       query: {
         bool: {
+          filter: [{ match: { 'data.PropertyType': property_type } }],
           should: [
-            { match: { 'data.Address': address } },
+            { match: { 'data.AddressNumber': address_number } },
+            { match: { 'data.AddressStreet': address_street } },
             {
               match: {
                 'data.PostalCode_Zip': postal_zip_code,
