@@ -48,6 +48,7 @@ import { RxTextInput } from './RxTextInput';
 import RxContactFormButton from './RxForms/RxContactFormButton';
 import RxStatsGridWithIcons from './RxProperty/RxStatsGridWithIcons';
 import RxGenericLabeledValueBlock from './_generics/RxGenericLabeledValueBlock';
+import RxSimilarListings from './RxProperty/RxSimilarListings';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -293,23 +294,28 @@ export function replaceInlineScripts($: CheerioAPI) {
 function appendJs(url: string) {
   return `
   var count_badge = 0
+  var js = document.createElement('script');
+  js.src = "${url}";
+  js.type = "text/javascript";
+  if (location.pathname === '/') {
+    document.body.appendChild(js)
+  } else {
+    setTimeout(() => {
+      document.body.appendChild(js)
+    }, 800)
+  }
   setTimeout(() => {
-    var js = document.createElement('script');
-    js.src = "${url}";
-    // js.async = true;
-    if (js.src.indexOf('webflow') > 0) {
-      const badge_interval = setInterval(() => {
-        const badge = document.querySelector('.w-webflow-badge');
-        if (badge) {
-          badge.remove();
-          console.log('badge found and removed');
-          count_badge++;
-        }
-        if (count_badge > 3)
-          clearInterval(badge_interval);
-      }, 1)
-    }
-    document.body.appendChild(js)}, 1200)`;
+    const badge_interval = setInterval(() => {
+      const badge = document.querySelector('.w-webflow-badge');
+      if (badge) {
+        badge.remove();
+        console.log('badge found and removed');
+        count_badge++;
+      }
+      if (count_badge > 3)
+        clearInterval(badge_interval);
+    }, 200)
+  }, 1200)`;
 }
 export function replaceFormsWithDiv($: CheerioAPI) {}
 
@@ -642,15 +648,20 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
                   {domToReact(node.children) as ReactElement}
                 </RxGenericLabeledValueBlock>
               );
+            } else if (node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.SIMILAR_LISTINGS) >= 0) {
+              return (
+                <RxSimilarListings className={node.attribs.class} property={p as unknown as { [key: string]: string }}>
+                  {domToReact(node.children) as ReactElement[]}
+                </RxSimilarListings>
+              );
             } else if (node.attribs.class.indexOf('propinfo') >= 0) return <RexifyStatBlock node={node} record={record} groupName='propinfo' />;
             else if (node.attribs.class.indexOf('financial') >= 0) return <RexifyStatBlock node={node} record={record} groupName='financial' />;
             else if (node.attribs.class.indexOf('dimensions') >= 0) return <RexifyStatBlock node={node} record={record} groupName='dimensions' />;
             else if (node.attribs.class.indexOf('construction') >= 0) return <RexifyStatBlock node={node} record={record} groupName='construction' />;
             else if (node.attribs.class.indexOf('div-features-block') >= 0) {
               return <RexifyPropertyFeatureBlock node={node} record={record} />;
-            }
-            // Building units section
-            else if (node.lastChild && (node.lastChild as HTMLNode).attribs && (node.lastChild as HTMLNode).attribs.class) {
+            } else if (node.lastChild && (node.lastChild as HTMLNode).attribs && (node.lastChild as HTMLNode).attribs.class) {
+              // Building units section
               const child_class = (node.lastChild as HTMLNode).attribs.class;
 
               if (

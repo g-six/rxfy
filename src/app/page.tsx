@@ -9,7 +9,7 @@ import { fillAgentInfo, fillPropertyGrid, removeSection, replaceByCheerio, rexif
 import { WebFlow } from '@/_typings/webflow';
 import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
-import { getPrivatePropertyData, getPropertyData, getSimilarHomes } from '@/_utilities/data-helpers/property-page';
+import { getPrivatePropertyData, getPropertyData } from '@/_utilities/data-helpers/property-page';
 import { MLSProperty } from '@/_typings/property';
 import Script from 'next/script';
 import { addPropertyMapScripts } from '@/components/Scripts/google-street-map';
@@ -24,7 +24,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const { TEST_DOMAIN } = process.env as unknown as { [key: string]: string };
   const axios = (await import('axios')).default;
   const url = headers().get('x-url') as string;
-  const { hostname } = new URL(url);
+  const { hostname, pathname, origin } = new URL(url);
 
   const session_key = cookies().get('session_key')?.value || '';
   const is_realtor = cookies().get('session_as')?.value === 'realtor';
@@ -57,22 +57,26 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
   // Special cases
   if (agent_data.webflow_domain === 'leagent-website.webflow.io' && params.slug === 'my-profile') {
+    let session;
     if (session_key && is_realtor) {
-      const api_response = await axios
-        .get('/api/check-session/agent', {
-          headers: {
-            Authorization: `Bearer ${session_key}`,
-          },
-        })
-        .catch(e => {
-          console.log('User not logged in');
-        });
-      const session = api_response as unknown as RealtorInputModel & {
-        brokerage: BrokerageInputModel;
-        session_key: string;
-      };
-      return <MyProfilePage data={session}>{parse($.html()) as unknown as JSX.Element}</MyProfilePage>;
+      // const api_response = await axios
+      //   .get(`/api/check-session/agent`, {
+      //     headers: {
+      //       Authorization: `Bearer ${session_key}`,
+      //     },
+      //   })
+      //   .catch(e => {
+      //     const axerr = e as AxiosError;
+      //     console.log({ pathname, origin });
+      //     console.log('page / leagent-website.webflow.io User not logged in');
+      //     console.log(axerr.message);
+      //   });
+      // session = api_response as unknown as RealtorInputModel & {
+      //   brokerage: BrokerageInputModel;
+      //   session_key: string;
+      // };
     }
+    return <MyProfilePage data={{ session_key }}>{parse($.html()) as unknown as JSX.Element}</MyProfilePage>;
   }
 
   replaceByCheerio($, '.w-nav-menu .nav-dropdown-2', {
