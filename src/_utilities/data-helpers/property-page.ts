@@ -28,7 +28,7 @@ export const general_stats: Record<string, string> = {
   L_KitchensTotal: '# of Kitchens',
   // L_Parking_total: 'Parking',
   // L_Parking_covered: 'Parking',
-  parking: 'Parking Access',
+  parking: 'Parking Info.',
   Zoning: 'Zoning',
   heating: 'Fuel/Heating',
 };
