@@ -8,6 +8,7 @@ import {
   combineExteriorFinishData,
   combineFenceData,
   combineFireplaceData,
+  combineFloorageAreaData,
   combineFoundationSpecsData,
   combineFridgeData,
   combineFrontageData,
@@ -42,6 +43,7 @@ export function getCombinedData({ id, attributes }: { id?: number; attributes: P
       values = combineDishwasherData(values, key, val);
       values = combineExteriorFinishData(values, key, val);
       values = combineFenceData(values, key, val);
+      values = combineFloorageAreaData(values, key, val as unknown as string);
       values = combineFrontageData(values, key, val);
       values = combineFoundationSpecsData(values, key, val);
       values = combineFireplaceData(values, key, val);

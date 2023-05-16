@@ -327,6 +327,7 @@ export interface LovedPropertyDataModel extends PropertyDataModel {
 export type MapStatePropsWithFilters = MapStateProps & PropertyAttributeFilters;
 
 export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
+                mls_data
                 lat
                 lon
                 guid
@@ -392,7 +393,20 @@ export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
                     }
                   }
                 }
-                mls_data
+                frontage_metres
+                connected_services
+                hvac_features
+                other_appliances
+                safety_security_features
+                garden_lawn_features
+                foundation_specs
+                exterior_finish
+                other_information
+                complex_compound_name
+                floor_area_total
+                floor_area_basement
+                floor_area_unfinished
+                floor_area_upper_floors
 `;
 
 export interface PropertyPageData extends PropertyDataModel {
