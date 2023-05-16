@@ -123,6 +123,7 @@ export interface BasePropertyDataModel {
   safety_security_features?: string;
   garden_lawn_features?: string;
   foundation_specs?: string;
+  exterior_finish?: string;
   other_information?: string;
   complex_compound_name?: string;
 }
