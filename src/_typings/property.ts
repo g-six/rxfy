@@ -126,6 +126,10 @@ export interface BasePropertyDataModel {
   exterior_finish?: string;
   other_information?: string;
   complex_compound_name?: string;
+  floor_area_total?: number;
+  floor_area_basement?: number;
+  floor_area_unfinished?: number;
+  floor_area_upper_floors?: number;
 }
 
 export interface PropertyInput extends BasePropertyDataModel {
