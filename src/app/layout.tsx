@@ -108,11 +108,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 `${replaceMetaTags(webflow.head.code, agent_data, property)} <script>${initializePlacesAutocomplete({
                   apiKey: NEXT_APP_GGL_API_KEY || '',
                 })}</script>`,
+                `<script type="text/javascript" defer src="https://maps.googleapis.com/maps/api/js?key=${NEXT_APP_GGL_API_KEY}&libraries=places,localContext&v=beta&callback=initializePlacesAutocomplete"></script>`,
                 !cache_found && searchParams.mls
                   ? `<script>setTimeout(() => {
                   fetch("/api/properties?mls_id=${searchParams.mls}").then(console.log)
                 }, 10000)</script>`
-                  : `<script>console.log("Cache found.", "${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/recent.json")</script>`,
+                  : '',
               ].join(`
               
               `),
@@ -124,10 +125,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {webflow.body ? (
           <body {...body_props} className={bodyClassName} suppressHydrationWarning>
             {children}
-            <Script
-              src={`https://maps.googleapis.com/maps/api/js?key=${NEXT_APP_GGL_API_KEY}&libraries=places,localContext&v=beta&callback=initializePlacesAutocomplete`}
-              async
-            />
             <Script src='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js' async />
           </body>
         ) : (
