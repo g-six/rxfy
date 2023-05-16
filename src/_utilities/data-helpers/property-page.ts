@@ -84,12 +84,9 @@ export const room_stats: Record<string, {}> = {
 
 export const financial_stats: Record<string, string> = {
   L_GrossTaxes: 'Gross taxes',
-  MLS_ID: 'MLS #',
   mls_id: 'MLS #',
   SoldPrice: 'Sold For',
-  PricePerSQFT: 'Price per Sqft',
   price_per_sqft: 'Price per Sqft',
-  L_StrataFee: 'Strata Fee',
   strata_fee: 'Strata Fee',
   ListingDate: 'List Date',
 };
