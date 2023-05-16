@@ -14,6 +14,7 @@ import {
   combineStorageData,
   combineStoveData,
   combineWasherDryerData,
+  setStyleType,
 } from '@/app/api/mls-normaliser';
 import axios from 'axios';
 
@@ -39,6 +40,7 @@ export function getCombinedData({ id, attributes }: { id?: number; attributes: P
       values = combineStoveData(values, key, val);
       values = combineStorageData(values, key, val);
       values = combineWasherDryerData(values, key, val);
+      values = setStyleType(values, key, val);
     });
   if (!values.gross_taxes && attributes.mls_data.L_GrossTaxes) {
     const gross_taxes = Number(attributes.mls_data.L_GrossTaxes);

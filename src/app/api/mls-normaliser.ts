@@ -339,3 +339,22 @@ export function combineRoofData(attributes: PropertyDataModel, key: string, val?
         roofing: attributes.roofing || undefined,
       };
 }
+
+/**
+ *
+ * @param attributes PropertyDataModel
+ * @param key
+ * @param val
+ * @returns PropertyDataModel with (or w/out) roof
+ */
+export function setStyleType(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
+  return val && key === 'B_Style'
+    ? {
+        ...attributes,
+        style_type: val.concat(attributes.style_type ? [attributes.style_type] : []).join(', '),
+      }
+    : {
+        ...attributes,
+        style_type: attributes.style_type || undefined,
+      };
+}
