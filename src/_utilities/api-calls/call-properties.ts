@@ -1,7 +1,6 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { objectToQueryString } from '../url-helper';
-import { PropertyDataModel } from '@/_typings/property';
 
 /**
  * Retrieves a property by mls_id
