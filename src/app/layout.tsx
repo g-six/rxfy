@@ -1,5 +1,6 @@
 import { CheerioAPI, load } from 'cheerio';
 import { headers } from 'next/headers';
+
 import Script from 'next/script';
 
 import './globals.css';
@@ -35,6 +36,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   } catch (e) {
     console.log('Layout.tsx ERROR.  Unable to fetch page html for', page_url);
   }
+
+  console.log('Webflow domain', page_url);
 
   const requestLink = headers().get('x-url') || '';
   const requestUrl = new URL(requestLink);
@@ -105,7 +108,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 `${replaceMetaTags(webflow.head.code, agent_data, property)} <script>${initializePlacesAutocomplete({
                   apiKey: NEXT_APP_GGL_API_KEY || '',
                 })}</script>`,
-                !cache_found
+                !cache_found && searchParams.mls
                   ? `<script>setTimeout(() => {
                   fetch("/api/properties?mls_id=${searchParams.mls}").then(console.log)
                 }, 10000)</script>`
