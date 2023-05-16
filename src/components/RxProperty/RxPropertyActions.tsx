@@ -17,12 +17,6 @@ type PropertyActionsProps = {
   agent: AgentData;
 };
 
-function linkToLegacyApp(agent: AgentData) {
-  const urlFromSlug = agent.metatags.profile_slug ? getAgentUrlFromSlug(agent.metatags.profile_slug) : '';
-  const urlFromName = agent.first_name && agent.last_name ? getAgentUrlFromName(agent.first_name + '_' + agent.last_name) : '';
-  return 'https://app.leagent.com' + (urlFromSlug ? urlFromSlug : urlFromName);
-}
-
 export default function RxPropertyActions(props: PropertyActionsProps) {
   const eventFormShow = useEvent(Events.ContactFormShow);
   const { data } = useLove();
@@ -58,8 +52,8 @@ export default function RxPropertyActions(props: PropertyActionsProps) {
       ['data-mls_id']: props?.property?.MLS_ID || '',
       onClick: () => {
         if (!loved) {
-          // @ts-ignore
-          loveHome(props.property.MLS_ID, props.agent.id);
+          const item = props.property ? props.property : { MLS_ID: '' };
+          loveHome(item.MLS_ID, props.agent.id);
         }
         setLoved(!loved);
       },

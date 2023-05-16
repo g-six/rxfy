@@ -1,6 +1,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { CustomerInputModel } from '@/_typings/customer';
+import { RealtorInputModel } from '@/_typings/agent';
 
 /**
  * Sign up a customer under the agent's account
@@ -9,9 +10,9 @@ import { CustomerInputModel } from '@/_typings/customer';
  * @param opts { search_url? }
  * @returns
  */
-export async function updateAccount(session_key: string, data: CustomerInputModel) {
+export async function updateAccount(session_key: string, data: CustomerInputModel | RealtorInputModel) {
   const response = await axios.put(
-    '/api/update-account',
+    `/api${(data as RealtorInputModel).agent_id ? '/agents' : ''}/update-account`,
     {
       ...data,
     },

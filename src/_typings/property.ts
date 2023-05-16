@@ -2,6 +2,18 @@ import { PlaceDetails } from './maps';
 
 export const DateFields = ['UpdateDate', 'ListingDate'];
 
+export type BathroomDetails = {
+  ensuite?: string;
+  pieces?: number;
+  level: string;
+};
+export type RoomDetails = {
+  type: string;
+  length: string;
+  width: string;
+  level: string;
+};
+
 export enum DwellingType {
   APARTMENT_CONDO = 'APARTMENT_CONDO',
   TOWNHOUSE = 'TOWNHOUSE',
@@ -20,9 +32,10 @@ export const NumericFields = [
   'L_FloorArea_Main',
   'L_FloorArea_GrantTotal',
   'L_LotSize_SqMtrs',
+  'floor_area',
 ];
 
-export const FinanceFields = ['AskingPrice', 'PricePerSQFT', 'L_GrossTaxes', 'SoldPrice'];
+export const FinanceFields = ['asking_price', 'AskingPrice', 'PricePerSQFT', 'L_GrossTaxes', 'SoldPrice'];
 
 export enum PropertyStatus {
   ACTIVE = 'active',
@@ -40,8 +53,8 @@ export enum PropertySortBy {
   SIZE_DESC = 'size_desc',
 }
 
-export interface PropertyDataModel {
-  id: number;
+export interface BasePropertyDataModel {
+  id?: number;
   title: string;
   area: string;
   asking_price: number;
@@ -56,7 +69,6 @@ export interface PropertyDataModel {
   price_per_sqft?: number;
   guid?: string;
   changes_applied?: string;
-  real_estate_board?: number;
   age?: number;
   year_built?: number;
   fireplace?: string;
@@ -87,6 +99,45 @@ export interface PropertyDataModel {
   description?: string;
   idx_include?: boolean;
   roofing?: string;
+  region?: string;
+  residential_type?: string;
+  building_type?: string;
+  heating?: string;
+  year_last_renovated?: number;
+  room_details?: {
+    rooms: RoomDetails[];
+  };
+  bathroom_details?: {
+    rooms: BathroomDetails[];
+  };
+  windows?: string;
+  subarea_community?: string;
+  depth?: number;
+  strata_fee?: number;
+  frontage_feet?: number;
+}
+
+export interface PropertyInput extends BasePropertyDataModel {
+  real_estate_board?: number;
+}
+
+export interface PropertyDataModel extends BasePropertyDataModel {
+  real_estate_board?: {
+    data?: {
+      id?: number;
+      attributes: {
+        legal_disclaimer: string;
+      };
+    };
+  };
+  property_photo_album?: {
+    data?: {
+      id?: number;
+      attributes: {
+        photos: string;
+      };
+    };
+  };
 }
 
 export interface MLSProperty extends Record<string, string | number | boolean | string[]> {
@@ -207,6 +258,10 @@ export interface MLSProperty extends Record<string, string | number | boolean | 
   L_Fireplace_Fuel: string;
   L_Floor_Finish: string;
   L_Locker: string;
+
+  Reno_Year: number;
+  L_SubareaCommunity: string;
+  Type: string;
 }
 
 interface BaseKeyValuePairStateProps {
@@ -294,12 +349,43 @@ export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
                 tax_year
                 description
                 parking
+                roofing
+                fireplace
+                region
+                residential_type
+                heating
+                year_last_renovated
+                strata_fee
+                frontage_feet
+                windows
+                subarea_community
+                depth
                 real_estate_board {
                   data {
                     attributes {
+                      name
                       legal_disclaimer
+                    }
+                  }
+                }
+                property_photo_album {
+                  data {
+                    attributes {
+                      photos
                     }
                   }
                 }
                 mls_data
 `;
+
+export interface PropertyPageData extends PropertyDataModel {
+  photos?: string[];
+  neighbours?: MLSProperty[];
+  sold_history?: MLSProperty[];
+  agent_info: {
+    company: string;
+    tel: string;
+    email: string;
+    name: string;
+  };
+}

@@ -15,7 +15,6 @@ export function RxLiveInput({ className, filter, inputType }: { className: strin
     if (!isNaN(num)) {
       updater(state, {
         [filter]: num,
-        reload: true,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

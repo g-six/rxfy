@@ -2,75 +2,11 @@ import { retrieveBearer } from '@/_utilities/api-calls/token-extractor';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getUserById } from '../check-session/route';
 import { encrypt } from '@/_utilities/encryption-helper';
-
-const gql_by_domain = `query Agent($domain_name: String!) {
-    agents(filters: { domain_name: { eq: $domain_name } }) {
-      data {
-        id
-        attributes {
-          agent_id
-          email
-          phone
-          first_name
-          last_name
-          full_name
-          domain_name
-          website_theme
-          street_1
-          street_2
-          profile_id
-          api_key
-          agent_metatags {
-            data {
-              id
-              attributes {
-                title
-                description
-                personal_title
-                listings_title
-                personal_bio
-                favicon
-                logo_for_dark_bg
-                logo_for_light_bg
-                profile_image
-                headshot
-                instagram_url
-                facebook_url
-                linkedin_url
-                twitter_url
-                youtube_url
-                mailchimp_subscription_url
-                target_city
-                search_highlights
-                brokerage_name
-                brokerage_id
-                profile_slug
-              }
-            }
-          }
-          webflow_domain
-        }
-      }
-    }
-    teams(filters: { domain_name: { eq: $domain_name } }) {
-      data {
-        attributes {
-          agents {
-            data {
-              id
-              attributes {
-                agent_id
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`;
+import { getResponse } from '../response-helper';
+import { AxiosError } from 'axios';
+import { createAgentRecordIfNoneFound } from './model';
 
 export async function GET(req: Request) {
-  let session_key = '';
   let results = {
     error: 'Auth token required',
   };
@@ -108,6 +44,37 @@ export async function GET(req: Request) {
         }
       }
     } catch (e) {}
+  }
+
+  return new Response(JSON.stringify(results, null, 4), { headers: { 'Content-Type': 'application/json' }, status: 401 });
+}
+
+export async function POST(req: Request) {
+  let results = {
+    error: 'Auth token required',
+  };
+
+  try {
+    // TODO: listing refactor
+    const { agent_id, email, phone, full_name, listing, real_estate_board } = await req.json();
+
+    if (agent_id && email && phone && full_name && listing) {
+      const agent = await createAgentRecordIfNoneFound(
+        {
+          agent_id,
+          email,
+          phone,
+          full_name,
+        },
+        real_estate_board,
+      );
+
+      return getResponse(agent, 200);
+    }
+  } catch (e) {
+    const axerr = e as AxiosError;
+    console.log(axerr);
+    results.error = axerr.code as string;
   }
 
   return new Response(JSON.stringify(results, null, 4), { headers: { 'Content-Type': 'application/json' }, status: 401 });

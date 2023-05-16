@@ -27,10 +27,10 @@ export const generic = {
 
 export const FILTERS: Filter[] = [
   // general
-  { title: 'Age', urlKey: 'ba', keys: ['L_Age', 'Age'], types: ['general'], behaviors: ['default'] },
-  { title: 'Build Year', keys: ['L_YearBuilt'], types: ['general'] },
-  { title: 'Total Baths', keys: ['L_TotalBaths', 'baths'], types: ['general'], behaviors: ['default'] },
-  { title: 'Total Bedrooms', keys: ['L_BedroomTotal'], types: ['general'], behaviors: ['default'] },
+  { title: 'Age', urlKey: 'ba', keys: ['age'], types: ['general'], behaviors: ['default'] },
+  { title: 'Build Year', keys: ['year_built'], types: ['general'], behaviors: ['default'] },
+  { title: 'Total Baths', keys: ['baths'], types: ['general'], behaviors: ['default'] },
+  { title: 'Total Bedrooms', keys: ['beds'], types: ['general'], behaviors: ['default'] },
   { title: 'Features', keys: ['LFD_FeaturesIncluded_55'], types: ['general'] },
   { title: 'Amenities', keys: ['LFD_Amenities_56'], types: ['general'] },
   { title: 'Title to Land', keys: ['LandTitle'], types: ['general'] },
@@ -63,7 +63,7 @@ export const FILTERS: Filter[] = [
     var: 'date',
     behaviors: ['hideIfEmpty'],
   },
-  { title: 'MLS #', keys: ['MLS_ID'], types: ['financial'], behaviors: ['default'] },
+  { title: 'MLS #', keys: ['mls_id'], types: ['financial'], behaviors: ['default'] },
   {
     title: 'Price Per SQFT',
     keys: ['PricePerSQFT'],
@@ -155,7 +155,7 @@ export const FILTERS: Filter[] = [
   },
   {
     title: 'Fireplace Fueled by',
-    keys: ['f_3031', 'L_Fireplace_Fuel', 'LFD_FireplaceFueledby_49', 'LFD_FireplaceFueledby_80'],
+    keys: ['f_3031', 'L_Fireplace_Fuel', 'LFD_FireplaceFueledby_49', 'LFD_FireplaceFueledby_80', 'fireplace'],
     types: ['construction'],
     behaviors: ['default'],
   },

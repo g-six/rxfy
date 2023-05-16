@@ -21,7 +21,7 @@ function getFullWebflowPagePath(pathname: string) {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const axios = (await import('axios')).default;
-  const { NEXT_APP_GOOGLE_API_KEY, TEST_DOMAIN } = process.env;
+  const { NEXT_APP_GGL_API_KEY, TEST_DOMAIN } = process.env;
   const url = headers().get('x-url') as string;
 
   const { hostname, pathname } = new URL(url);
@@ -40,12 +40,35 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const requestUrl = new URL(requestLink);
   const searchParams = Object.fromEntries(requestUrl.searchParams);
   let property;
+  let cache_found = false;
   if (requestUrl.pathname === '/property' && searchParams && (searchParams.lid || searchParams.id || searchParams.mls)) {
     if (searchParams.lid) {
       property = await getPrivatePropertyData(searchParams.lid);
     } else {
       // Publicly listed property page
-      property = await getPropertyData(searchParams.id || searchParams.mls, !!searchParams.mls);
+      const start = new Date().getTime();
+      console.log('');
+      console.log('');
+      console.log('---');
+      console.log('Started', start);
+      if (searchParams.mls) {
+        try {
+          const cached_property = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/recent.json`);
+          const cached_legacy = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/legacy.json`);
+          property = cached_property?.data || undefined;
+          cache_found = true;
+        } catch (e) {
+          console.log('No cached file');
+        }
+      }
+      if (!property) property = await getPropertyData(searchParams.id || searchParams.mls, !!searchParams.mls);
+      const end = new Date().getTime();
+      console.log('Ended', end);
+      console.log('Total', end - start);
+      console.log('---');
+      console.log('');
+      console.log('');
+      console.log('');
     }
   }
 
@@ -78,9 +101,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <head
             suppressHydrationWarning
             dangerouslySetInnerHTML={{
-              __html: `${replaceMetaTags(webflow.head.code, agent_data, property)} <script>${initializePlacesAutocomplete({
-                apiKey: NEXT_APP_GOOGLE_API_KEY || '',
-              })}</script>`,
+              __html: [
+                `${replaceMetaTags(webflow.head.code, agent_data, property)} <script>${initializePlacesAutocomplete({
+                  apiKey: NEXT_APP_GGL_API_KEY || '',
+                })}</script>`,
+                !cache_found
+                  ? `<script>setTimeout(() => {
+                  fetch("/api/properties?mls_id=${searchParams.mls}").then(console.log)
+                }, 10000)</script>`
+                  : `<script>console.log("Cache found.", "${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/recent.json")</script>`,
+              ].join(`
+              
+              `),
             }}
           />
         ) : (
@@ -90,7 +122,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <body {...body_props} className={bodyClassName} suppressHydrationWarning>
             {children}
             <Script
-              src={`https://maps.googleapis.com/maps/api/js?key=${NEXT_APP_GOOGLE_API_KEY}&libraries=places,localContext&v=beta&callback=initializePlacesAutocomplete`}
+              src={`https://maps.googleapis.com/maps/api/js?key=${NEXT_APP_GGL_API_KEY}&libraries=places,localContext&v=beta&callback=initializePlacesAutocomplete`}
               async
             />
             <Script src='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js' async />

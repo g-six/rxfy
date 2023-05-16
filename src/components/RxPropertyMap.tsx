@@ -21,6 +21,7 @@ import { Events } from '@/_typings/events';
 import { useSearchParams } from 'next/navigation';
 import RxNavItemMenu from './Nav/RxNavItemMenu';
 import RxSearchFilters from './RxPropertyMap/RxSearchFilters';
+import RxToggleSavedHomes from './RxPropertyMap/RxToggleSavedHomes';
 
 export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?: string }) {
   let MapAndHeaderHeader;
@@ -64,6 +65,12 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
           return <RxNavItemMenu {...child.props}>{child.props.children}</RxNavItemMenu>;
         } else if (child.props.className.split(' ').includes('map-filters')) {
           return <RxSearchFilters className={child.props.className || ''}>{child.props.children}</RxSearchFilters>;
+        } else if (child.props.className.split(' ').includes('heart-button')) {
+          return (
+            <RxToggleSavedHomes {...child.props} onClick={props.toggleLovedHomes}>
+              {child.props.children}
+            </RxToggleSavedHomes>
+          );
         }
       }
 
@@ -211,6 +218,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
 
 export default function RxPropertyMap(props: RxPropertyMapProps) {
   const search = useSearchParams();
+  const [show_loved, toggleLovedHomes] = React.useState(false);
   const [hide_others, setHideOthers] = React.useState(false);
   const [place, setPlace] = React.useState<google.maps.places.AutocompletePrediction>();
   const [listings, setListings] = React.useState<MLSProperty[]>([]);
@@ -260,10 +268,20 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
         setListings={(p: MLSProperty[]) => {
           setListings(p);
         }}
-        listings={listings}
+        listings={listings.filter(listing => {
+          if (show_loved) {
+            const local_loves = (getData(Events.LovedItem) as unknown as string[]) || [];
+            return local_loves.includes(listing.MLS_ID);
+          }
+          return true;
+        })}
         loved_homes={loved_homes}
         setHideOthers={(hide: boolean) => {
           setHideOthers(hide);
+        }}
+        toggleLovedHomes={() => {
+          toggleLovedHomes(!show_loved);
+          console.log(loved_homes);
         }}
         hide_others={hide_others}
         mapbox_params={map_params}

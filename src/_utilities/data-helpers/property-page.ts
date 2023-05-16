@@ -1,26 +1,41 @@
 import { AgentData } from '@/_typings/agent';
-import { DateFields, FinanceFields, GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty, NumericFields, PropertyDataModel } from '@/_typings/property';
+import {
+  DateFields,
+  FinanceFields,
+  GQ_FRAGMENT_PROPERTY_ATTRIBUTES,
+  MLSProperty,
+  NumericFields,
+  PropertyDataModel,
+  PropertyPageData,
+} from '@/_typings/property';
 import { AxiosError, AxiosStatic } from 'axios';
 import { dateStringToDMY } from './date-helper';
 import { capitalizeFirstLetter } from '../formatters';
 import { MLSPropertyExtended } from '@/_typings/filters_compare';
+import { getCombinedData } from './listings-helper';
+import { getRealEstateBoard } from '@/app/api/real-estate-boards/model';
 
 export const general_stats: Record<string, string> = {
   L_Age: 'Age',
+  age: 'Age',
   L_YearBuilt: 'Build Year',
+  year_built: 'Build Year',
   L_TotalBaths: 'Total Baths',
+  baths: 'Total Baths',
   L_BedroomTotal: 'Total Bedrooms',
+  beds: 'Total Bedrooms',
   L_Features: 'Features',
   B_Amenities: 'Amenities',
-  LandTitle: 'Title to Land',
+  land_title: 'Title to Land',
   PropertyType: 'Property Type',
+  property_type: 'Property Type',
   L_Fireplaces: '# of Fireplaces',
   L_KitchensTotal: '# of Kitchens',
   L_Parking_total: 'Parking',
   L_Parking_covered: 'Parking',
-  B_Parking_Access: 'Parking Access',
+  parking: 'Parking Access',
   Zoning: 'Zoning',
-  B_Heating: 'Fuel/Heating',
+  heating: 'Fuel/Heating',
 };
 
 export const main_stats: Record<string, string> = {
@@ -70,9 +85,12 @@ export const room_stats: Record<string, {}> = {
 export const financial_stats: Record<string, string> = {
   L_GrossTaxes: 'Gross taxes',
   MLS_ID: 'MLS #',
+  mls_id: 'MLS #',
   SoldPrice: 'Sold For',
   PricePerSQFT: 'Price per Sqft',
+  price_per_sqft: 'Price per Sqft',
   L_StrataFee: 'Strata Fee',
+  strata_fee: 'Strata Fee',
   ListingDate: 'List Date',
 };
 
@@ -90,8 +108,11 @@ export const construction_stats: Record<string, string> = {
 
 export const dimension_stats: Record<string, string> = {
   L_Frontage_Feet: 'Frontage',
+  frontage_feet: 'Frontage',
   B_Depth: 'Depth',
+  depth: 'Depth',
   L_FloorArea_Total: 'Total floor area',
+  floor_area: 'Total floor area',
   L_FloorArea_Finished_AboveMainFloor: 'Floor Area Fin - Abv Main',
   L_FloorArea_Main: 'Main Floor Area',
   L_FloorArea_GrantTotal: 'Floor Area - Grant Total',
@@ -137,55 +158,7 @@ export function getGqlForFilteredProperties(filters: Record<string, unknown>) {
           properties(filters: $filters) {
               data {
                   id
-                  attributes {
-                    lat
-                    lon
-                    guid
-                    title
-                    mls_id
-                    area
-                    city
-                    price_per_sqft
-                    property_type
-                    asking_price
-                    changes_applied
-                    age
-                    year_built
-                    baths
-                    beds
-                    has_laundry
-                    has_dishwasher
-                    has_fridge
-                    has_stove
-                    has_deck
-                    has_patio
-                    has_balcony
-                    has_fenced_yard
-                    garage
-                    postal_zip_code
-                    style_type
-                    status
-                    has_storage
-                    listed_at
-                    land_title
-                    gross_taxes
-                    original_price
-                    lot_sqm
-                    lot_sqft
-                    floor_area
-                    floor_area_uom
-                    tax_year
-                    description
-                    parking
-                    real_estate_board {
-                      data {
-                        attributes {
-                          legal_disclaimer
-                        }
-                      }
-                    }
-                    mls_data
-                  }
+                  attributes {${GQ_FRAGMENT_PROPERTY_ATTRIBUTES}}
               }
           }
       }`,
@@ -195,7 +168,7 @@ export function getGqlForFilteredProperties(filters: Record<string, unknown>) {
   };
 }
 
-export function getGqlForInsertProperty(mls_data: MLSProperty) {
+export function getGqlForInsertProperty(mls_data: MLSProperty, relationships?: { real_estate_board?: number }) {
   const {
     lat,
     lng: lon,
@@ -204,9 +177,9 @@ export function getGqlForInsertProperty(mls_data: MLSProperty) {
     MLS_ID: mls_id,
     Area: area,
     City: city,
-    PricePerSQFT,
     PropertyType: property_type,
     AskingPrice: asking_price,
+    B_Roof,
   } = mls_data;
 
   return {
@@ -214,34 +187,75 @@ export function getGqlForInsertProperty(mls_data: MLSProperty) {
           property: createProperty(data: $input) {
               data {
                   id
-                  attributes {
-                    lat,
-                    lon,
-                    guid,
-                    title,
-                    mls_id,
-                    area,
-                    city,
-                    price_per_sqft,
-                    property_type,
-                    asking_price,
-                    mls_data,
-                  }
+                  attributes {${GQ_FRAGMENT_PROPERTY_ATTRIBUTES}}
               }
           }
     }`,
     variables: {
       input: {
-        lat,
-        lon,
+        ...getCombinedData({
+          attributes: {
+            lat,
+            lon,
+            title,
+            mls_id,
+            area,
+            asking_price,
+            property_type,
+            city,
+            mls_data,
+          },
+        }),
         guid,
-        title,
-        mls_id,
-        area,
-        city,
-        price_per_sqft: Number(mls_data.price_per_sqft),
-        property_type,
-        asking_price,
+        roofing: Array.isArray(B_Roof) ? B_Roof.join(', ') : B_Roof,
+        real_estate_board: relationships?.real_estate_board || undefined,
+        mls_data,
+      },
+    },
+  };
+}
+export function getGqlForUpdateProperty(id: number, mls_data: MLSProperty, relationships?: { real_estate_board?: number }) {
+  const {
+    lat,
+    lng: lon,
+    ListingID: guid,
+    Address: title,
+    MLS_ID: mls_id,
+    Area: area,
+    City: city,
+    PropertyType: property_type,
+    AskingPrice: asking_price,
+    B_Roof,
+  } = mls_data;
+
+  return {
+    query: `mutation UpdateProperty($id: ID!, $input: PropertyInput!) {
+          property: updateProperty(id: $id, data: $input) {
+              data {
+                  id
+                  attributes {${GQ_FRAGMENT_PROPERTY_ATTRIBUTES}}
+              }
+          }
+    }`,
+    variables: {
+      id,
+      input: {
+        ...getCombinedData({
+          attributes: {
+            lat,
+            lon,
+            title,
+            mls_id,
+            area,
+            asking_price,
+            property_type,
+            city,
+            mls_data,
+          },
+        }),
+        guid,
+        roofing: Array.isArray(B_Roof) ? B_Roof.join(', ') : B_Roof,
+        real_estate_board: relationships?.real_estate_board || undefined,
         mls_data,
       },
     },
@@ -535,12 +549,16 @@ export async function getSimilarHomes(property: MLSProperty, limit = 3): Promise
 async function upsertPropertyToCMS(mls_data: MLSProperty) {
   const axios: AxiosStatic = (await import('axios')).default;
   try {
-    const xhr = await axios.post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getGqlForInsertProperty(mls_data), {
+    const real_estate_board_res = await getRealEstateBoard(mls_data as unknown as { [key: string]: string });
+    const real_estate_board = real_estate_board_res?.id || undefined;
+    const xhr = await axios.post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getGqlForInsertProperty(mls_data, { real_estate_board }), {
       headers: {
         Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
         'Content-Type': 'application/json',
       },
     });
+
+    console.log('Real Estate Board Data', real_estate_board_res);
 
     return xhr?.data?.data?.property || {};
   } catch (e) {
@@ -637,8 +655,9 @@ export async function getPrivatePropertyData(property_id: number | string) {
     sold_history,
   };
 }
-export async function getPropertyData(property_id: number | string, id_is_mls = false) {
+export async function getPropertyData(property_id: number | string, id_is_mls = false): Promise<PropertyPageData> {
   const axios: AxiosStatic = (await import('axios')).default;
+
   let xhr = await axios
     .post(
       process.env.NEXT_APP_CMS_GRAPHQL_URL as string,
@@ -660,8 +679,9 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
       console.log('ERROR in getPropertyData.axios for id', property_id, '\n', e.message, '\n\n');
     });
   let found_in_strapi = true;
-  let property = xhr?.data?.data?.property || xhr?.data?.data?.properties?.data[0];
-  if (id_is_mls && property === undefined) {
+  let property = xhr?.data?.data?.property?.data || xhr?.data?.data?.properties?.data[0];
+
+  if (id_is_mls && (property === undefined || !property)) {
     // Data was not picked up by the integrations API,
     // attempt to fix
     found_in_strapi = false;
@@ -682,20 +702,42 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
       },
     });
 
+    console.log('Trying to upsert a property to our CMS');
     const on_the_fly_record = await upsertPropertyToCMS(mls_data);
 
+    console.log('DONE');
     if (on_the_fly_record?.data) {
       property = on_the_fly_record.data;
+      console.log('Property ID', property.id);
     }
+  } else if (!property.attributes.price_per_sqft) {
+    console.log('Missing property.attributes.price_per_sqft');
+    let { mls_data, ...trimmed } = property.attributes;
+    trimmed = fillPropertyDataFromPipeline(mls_data);
+    console.log('Additional', JSON.stringify(trimmed, null, 4));
+    property = {
+      ...property,
+      attributes: {
+        ...property.attributes,
+        ...trimmed,
+      },
+    };
   }
 
   let clean: Record<string, unknown> | MLSProperty = {};
   const neighbours: MLSProperty[] = [];
   const sold_history: MLSProperty[] = [];
 
+  let property_attributes;
   if (property?.attributes) {
-    let { lat, lon } = property.attributes;
     const { mls_data, ...attributes } = property.attributes;
+    let { lat, lon } = attributes;
+    clean = {
+      ...clean,
+      id: Number(property.id),
+    };
+    property_attributes = attributes as PropertyDataModel;
+
     Object.keys(mls_data).map((key: string) => {
       if (mls_data[key]) {
         if (key === 'lng' && !lon) {
@@ -755,7 +797,7 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
         Status: '',
       };
       Object.keys(hit as Record<string, unknown>).forEach(key => {
-        if (hit[key]) {
+        if (hit[key] && key !== 'id') {
           property = {
             ...property,
             [key]: hit[key],
@@ -767,6 +809,10 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
     });
   }
 
+  if (property_attributes) console.log('getPropertyData', property_attributes.title);
+  else console.log('property_attributes was null');
+  console.log('Getting agent info');
+
   const agent_info = {
     company: [clean.LO1_Name, clean.LO2_Name, clean.LO3_Name].filter(v => !!v).join(', '),
     tel: [clean.LO1_Phone, clean.LO2_Phone, clean.LO3_Phone, clean.LA1_PhoneNumber1, clean.LA2_PhoneNumber1, clean.LA3_PhoneNumber1]
@@ -776,11 +822,104 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
     name: [clean.LA1_FullName, clean.LA2_FullName, clean.LA3_FullName].filter(v => !!v).join(', '),
   };
 
-  return {
-    ...(clean as PropertyDataModel | MLSPropertyExtended),
+  console.log('agent_info:', agent_info);
+  console.log('---');
+  console.log('');
+
+  let { photos, ...denormed } = clean as unknown as PropertyDataModel & MLSPropertyExtended;
+  if (denormed.property_photo_album?.data) {
+    if (typeof denormed.property_photo_album.data.attributes.photos === 'string') {
+      photos = JSON.parse(denormed.property_photo_album.data.attributes.photos) as string[];
+    } else {
+      photos = denormed.property_photo_album.data.attributes.photos;
+    }
+  } else if (photos && denormed.id) {
+    try {
+      const {
+        data: { data: photo_album_result },
+      } = await axios.post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getMutationForPhotoAlbumCreation(denormed.id, photos), {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log('photo_album_result', photo_album_result);
+    } catch (e) {
+      const axerr = e as AxiosError;
+      console.log(axerr.response?.data);
+    }
+  } else {
+    console.log('Problem with data');
+    console.log(JSON.stringify(clean, null, 4));
+  }
+
+  const to_cache = {
+    ...denormed,
+    photos,
     neighbours,
     sold_history,
     agent_info,
+  };
+
+  return to_cache;
+}
+
+export function getMutationForPhotoAlbumCreation(property: number, photos: string[]) {
+  return {
+    query: `mutation CreatePhotoAlbum($property: ID!, $photos: JSON!) {
+      createPropertyPhotoAlbum(data: { property: $property, photos: $photos }) {
+        data {
+          id
+          attributes {
+            photos
+          }
+        }
+      }
+    }`,
+    variables: {
+      property,
+      photos,
+    },
+  };
+}
+
+export function getMutationForNewAgentInventory(property: number, agent: number) {
+  return {
+    query: `mutation CreateAgentInventory($input: AgentInventoryInput!) {
+      createAgentInventory(data: $input) {
+        data {
+          id
+          attributes {
+            guid
+            agent {
+              data {
+                id
+                attributes {
+                  full_name
+                  agent_id
+                }
+              }
+            }
+            property {
+              data {
+                id
+                attributes {
+                  title
+                  mls_id
+                }
+              }
+            }
+          }
+        }
+      }
+    }`,
+    variables: {
+      input: {
+        guid: `l${property}-a${agent}`,
+        property,
+        agent,
+      },
+    },
   };
 }
 
@@ -805,12 +944,55 @@ export function formatValues(obj: MLSProperty | Record<string, string>, key: str
   return obj[key] as unknown as string;
 }
 
-export function combineAndFormatValues(values: Record<string, number | string>): string {
+export function combineAndFormatValues(values: Record<string, number | string>, left = 'L_GrossTaxes', right = 'ForTaxYear'): string {
   // Last year taxes
-  if (Object.keys(values).includes('L_GrossTaxes') && Object.keys(values).includes('ForTaxYear')) {
-    return `${formatValues(values as MLSProperty, 'L_GrossTaxes')} (${values.ForTaxYear})`;
+  if (Object.keys(values).includes(left) && Object.keys(values).includes(right)) {
+    return `${formatValues(values as MLSProperty, left)} (${values.ForTaxYear})`;
   }
   return Object.keys(values)
     .map(key => values[key])
     .join(' ');
+}
+
+export function fillPropertyDataFromPipeline(mls_data: MLSProperty): PropertyDataModel {
+  let lot_sqm = Number(mls_data.L_LotSize_SqMtrs);
+  if (isNaN(lot_sqm)) {
+    lot_sqm = 0;
+  }
+
+  const tax_year = Number(mls_data.ForTaxYear);
+  const gross_taxes = Number(mls_data.L_GrossTaxes);
+  const price_per_sqft = Number(mls_data.PricePerSQFT);
+  const land_title = mls_data.LandTitle;
+
+  const filled: PropertyDataModel = {
+    title: mls_data.Address,
+    area: mls_data.Area || mls_data.City,
+    city: mls_data.City,
+    asking_price: Number(mls_data.AskingPrice),
+    mls_id: mls_data.MLS_ID,
+    property_type: mls_data.PropertyType,
+    gross_taxes: isNaN(gross_taxes) ? undefined : gross_taxes,
+    tax_year: isNaN(tax_year) ? undefined : tax_year,
+    lot_sqm,
+    land_title,
+    price_per_sqft: isNaN(price_per_sqft) ? undefined : price_per_sqft,
+  };
+  return filled;
+}
+
+export function slugifyAddressRecord(address: string, record_id: number) {
+  return slugifyAddress(address) + `-${record_id}`;
+}
+
+export function slugifyAddress(address: string) {
+  return address
+    .split(',')
+    .map(s => s.trim())
+    .join(' ')
+    .replace(/[^\w\s]/gi, '.')
+    .split(' . ')
+    .join(' ')
+    .replace(/[^a-z0-9]/gi, '-')
+    .toLowerCase();
 }

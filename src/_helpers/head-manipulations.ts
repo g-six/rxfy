@@ -1,9 +1,9 @@
 import { AgentData } from '@/_typings/agent';
-import { MLSProperty } from '@/_typings/property';
+import { MLSProperty, PropertyDataModel } from '@/_typings/property';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 
 export function replaceMetaTags(headCode: string, agent: AgentData, property?: object) {
-  const prop = property as MLSProperty;
+  const prop = property as PropertyDataModel & { photos?: string[] };
   if (headCode.length) {
     // fields to place
     let title = agent.full_name;
@@ -12,22 +12,22 @@ export function replaceMetaTags(headCode: string, agent: AgentData, property?: o
     if (prop) {
       // If there's a property model
       const title_segments = [];
-      if (prop.AskingPrice) {
-        title_segments.push(getShortPrice(prop.AskingPrice));
+      if (prop.asking_price) {
+        title_segments.push(getShortPrice(prop.asking_price));
       }
-      if (prop.L_BedroomTotal) {
-        title_segments.push(`${prop.L_BedroomTotal} Beds`);
+      if (prop.beds) {
+        title_segments.push(`${prop.beds} Beds`);
       }
-      if (prop.L_TotalBaths) {
-        title_segments.push(`${prop.L_TotalBaths} Baths`);
+      if (prop.baths) {
+        title_segments.push(`${prop.baths} Baths`);
       }
-      if (prop.Address) {
-        title_segments.push(prop.Address);
+      if (prop.title) {
+        title_segments.push(prop.title);
       }
 
       title = title_segments.join(' | ');
 
-      description = prop.L_PublicRemakrs;
+      description = prop.description;
     }
 
     let image;

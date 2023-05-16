@@ -24,11 +24,11 @@ export default function RxPdfMainInfo({ property, child, imgMap, imgPhoto, size 
         replaceAllTextWithBraces(child, {
           'Building Type': property?.PropertyType,
           'Property Tax': combineAndFormatValues({
-            L_GrossTaxes: property?.L_GrossTaxes || '',
-            ForTaxYear: property?.ForTaxYear || '',
+            L_GrossTaxes: Number(property?.gross_taxes),
+            ForTaxYear: Number(property?.tax_year),
           }),
-          'MLS Number': property?.MLS_ID,
-          'Land Title': property?.LandTitle,
+          'MLS Number': property?.mls_id,
+          'Land Title': property?.land_title,
         }) as React.ReactElement,
     },
     {

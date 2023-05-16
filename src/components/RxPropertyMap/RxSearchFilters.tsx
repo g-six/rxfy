@@ -6,12 +6,13 @@ import RxLiveNumericStep from '../RxLiveUrlBased/RxLiveNumericStep';
 import RxLiveNumber from '../RxLiveUrlBased/RxLiveNumber';
 import RxCombobox from '../RxCombobox';
 import RxLiveStringValue from '../RxLiveUrlBased/RxLiveStringValue';
-import RxDatePicker from '../RxLiveUrlBased/RxDatePicker';
+import RxDatePicker from '../RxForms/RxInputs/RxDatePicker';
 import RxLiveInput from '../RxLiveUrlBased/RxLiveInput';
 import RxLiveCheckbox from '../RxLiveUrlBased/RxLiveBaseCheckbox';
 import RxLiveTextDDOption from '@/components/RxLiveUrlBased/RxLiveTextDropdownOption';
 import { getPropertyTypeFromSelector, getSortingKey } from '@/_utilities/rx-map-helper';
 import RxMapTermsFilter from '../RxMapTermsFilter';
+import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 type Props = {
   children: React.ReactElement[];
   className?: string;
@@ -63,6 +64,7 @@ export default function RxSearchFilters(p: Props) {
           });
           break;
         case 'do-search':
+          rx_map(rx_map_state, { reload: true });
         case 'do-reset':
         case 'close-link-right':
           e.preventDefault();
@@ -186,6 +188,24 @@ export default function RxSearchFilters(p: Props) {
           ...child.props,
           className: `${show.minprice ? 'w--open' : ''} ${child.props.className}`.trim(),
           onClick: handleClick,
+        });
+      },
+    },
+    {
+      searchFn: searchByClasses(['selected-price-min']),
+      transformChild: (child: React.ReactElement) => {
+        return React.cloneElement(child, {
+          ...child.props,
+          children: rx_map_state.minprice ? getShortPrice(rx_map_state.minprice, '$') : child.props.children,
+        });
+      },
+    },
+    {
+      searchFn: searchByClasses(['selected-price-max']),
+      transformChild: (child: React.ReactElement) => {
+        return React.cloneElement(child, {
+          ...child.props,
+          children: rx_map_state.maxprice ? getShortPrice(rx_map_state.maxprice, '$') : child.props.children,
         });
       },
     },

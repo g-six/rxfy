@@ -9,7 +9,7 @@ type Props = {
   inputProps?: {
     [key: string]: string | boolean | number;
   };
-  value: string | number;
+  value: string;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 

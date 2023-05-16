@@ -24,7 +24,6 @@ export function RxLiveNumericStep({ child, filter }: { child: React.ReactElement
       updater(state, {
         [filter]: counter,
         query: objectToQueryString(filters),
-        reload: true,
       });
     },
   });

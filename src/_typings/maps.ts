@@ -106,6 +106,7 @@ export type RxPropertyMapProps = {
   loved_homes?: LovedPropertyDataModel[];
   setListings?: (p: MLSProperty[]) => void;
   setHideOthers?: (hide: boolean) => void;
+  toggleLovedHomes?: () => void;
   children: any;
   agent_data: AgentData;
   recursive?: boolean;

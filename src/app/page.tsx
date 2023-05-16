@@ -1,6 +1,7 @@
 import { CheerioAPI, load } from 'cheerio';
+import parse from 'html-react-parser';
 import { notFound } from 'next/navigation';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import Image from 'next/image';
 import { Inter } from 'next/font/google';
 import styles from './page.module.scss';
@@ -8,13 +9,14 @@ import { fillAgentInfo, fillPropertyGrid, removeSection, replaceByCheerio, rexif
 import { WebFlow } from '@/_typings/webflow';
 import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
-import { getPrivatePropertyData, getPropertyData, getRecentListings, getSimilarHomes } from '@/_utilities/data-helpers/property-page';
-import { MLSProperty, PropertyDataModel } from '@/_typings/property';
+import { getPrivatePropertyData, getPropertyData, getSimilarHomes } from '@/_utilities/data-helpers/property-page';
+import { MLSProperty } from '@/_typings/property';
 import Script from 'next/script';
 import { addPropertyMapScripts } from '@/components/Scripts/google-street-map';
-import { AgentData } from '@/_typings/agent';
+import { AgentData, BrokerageInputModel, RealtorInputModel } from '@/_typings/agent';
 import RxNotifications from '@/components/RxNotifications';
-import { getRealEstateBoard } from './api/properties/route';
+import MyProfilePage from '@/rexify/my-profile';
+import { getRealEstateBoard } from '@/app/api/real-estate-boards/model';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico'];
@@ -23,6 +25,9 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const axios = (await import('axios')).default;
   const url = headers().get('x-url') as string;
   const { hostname } = new URL(url);
+
+  const session_key = cookies().get('session_key')?.value || '';
+  const is_realtor = cookies().get('session_as')?.value === 'realtor';
 
   const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? TEST_DOMAIN : hostname);
   let webflow_page_url =
@@ -34,6 +39,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     webflow_page_url = `${webflow_page_url}/${params.slug}id`;
     console.log('fetching property page', webflow_page_url);
   }
+
   let data;
 
   try {
@@ -48,6 +54,26 @@ export default async function Home({ params, searchParams }: { params: Record<st
     notFound();
   }
   const $: CheerioAPI = load(data);
+
+  // Special cases
+  if (agent_data.webflow_domain === 'leagent-website.webflow.io' && params.slug === 'my-profile') {
+    if (session_key && is_realtor) {
+      const api_response = await axios
+        .get('/api/check-session/agent', {
+          headers: {
+            Authorization: `Bearer ${session_key}`,
+          },
+        })
+        .catch(e => {
+          console.log('User not logged in');
+        });
+      const session = api_response as unknown as RealtorInputModel & {
+        brokerage: BrokerageInputModel;
+        session_key: string;
+      };
+      return <MyProfilePage data={session}>{parse($.html()) as unknown as JSX.Element}</MyProfilePage>;
+    }
+  }
 
   replaceByCheerio($, '.w-nav-menu .nav-dropdown-2', {
     className: 'nav-menu-list-wrapper',
@@ -70,7 +96,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     className: 'filter-group-modal',
   });
 
-  let listings, property;
+  let listings, property, legacy_data;
 
   if (!params || !params.slug || params.slug === '/') {
     if (agent_data && agent_data.agent_id) {
@@ -92,14 +118,68 @@ export default async function Home({ params, searchParams }: { params: Record<st
       console.log('\n\nHome.agent_data not available');
     }
   }
-  if (params && params.slug === 'compare') {
-  }
+
   if (params && (params.slug === 'property' || params.slug === 'brochure') && searchParams && (searchParams.lid || searchParams.id || searchParams.mls)) {
     if (searchParams.lid) {
       property = await getPrivatePropertyData(searchParams.lid);
     } else {
       // Publicly listed property page
-      property = await getPropertyData(searchParams.id || searchParams.mls, !!searchParams.mls);
+      if (searchParams.id) {
+        property = await getPropertyData(searchParams.id);
+      } else {
+        try {
+          const cached_xhr = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/recent.json`);
+          const cached_legacy_xhr = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/legacy.json`);
+          property = cached_xhr.data;
+          legacy_data = cached_legacy_xhr.data;
+        } catch (e) {
+          // No cache, do the long query
+          property = await getPropertyData(searchParams.mls, true);
+          legacy_data = property;
+        }
+        const {
+          L_ShortRegionCode,
+          OriginatingSystemName,
+          LA1_Board,
+          LA2_Board,
+          LA3_Board,
+          LA4_Board,
+          ListAgent1,
+          LO1_Brokerage,
+          LA1_FullName,
+          LA2_FullName,
+          LA3_FullName,
+          SO1_FullName,
+          SO2_FullName,
+          SO3_FullName,
+          LO1_Name,
+          LO2_Name,
+          LO3_Name,
+          L_Frontage_Feet,
+        } = legacy_data;
+
+        property = {
+          ...property,
+          L_ShortRegionCode,
+          OriginatingSystemName,
+          LA1_Board,
+          LA2_Board,
+          LA3_Board,
+          LA4_Board,
+          ListAgent1,
+          LO1_Brokerage,
+          LA1_FullName,
+          LA2_FullName,
+          LA3_FullName,
+          SO1_FullName,
+          SO2_FullName,
+          SO3_FullName,
+          LO1_Name,
+          LO2_Name,
+          LO3_Name,
+          L_Frontage_Feet,
+        };
+      }
       const {
         L_ShortRegionCode,
         OriginatingSystemName,
@@ -142,29 +222,19 @@ export default async function Home({ params, searchParams }: { params: Record<st
   await fillAgentInfo($, agent_data);
 
   if (property) {
-    // Photo gallery for properties
     const d = property as unknown as MLSProperty;
+
+    // Photo gallery for properties
     const photos: string[] = d.photos as string[];
-    const similar_properties = await getSimilarHomes(property as unknown as MLSProperty);
-    property = {
-      ...property,
-      similar_properties,
-    };
-
-    if (similar_properties.length) {
-      fillPropertyGrid($, similar_properties);
-    }
-
     $('a.link').each((e, el) => {
-      el.children.forEach(child => {
-        if (photos[e]) {
+      el.children.forEach((child, child_idx: number) => {
+        if (photos[child_idx]) {
           if (child.type === 'script') {
             const img_json = JSON.parse($(child).html() as string);
-            img_json.items[0].url = photos[e];
-            JSON.stringify(img_json, null, 4);
+            img_json.items[child_idx].url = photos[child_idx];
             $(child).replaceWith(`<script class="w-json" type="application/json">${JSON.stringify(img_json, null, 4)}</script>`);
           } else if ((child as { name: string }).name === 'img') {
-            $(child).attr('src', photos[e]);
+            $(child).attr('src', photos[child_idx]);
             $(child).removeAttr('srcset');
             $(child).removeAttr('sizes');
           }
@@ -173,32 +243,40 @@ export default async function Home({ params, searchParams }: { params: Record<st
     });
     if ($('a.link').length < photos.length) {
       const parent = $('a.link:first').parentsUntil('#propertyimages');
-      $('.property-image-wrapper img').attr('src', `https://e52tn40a.cdn.imgeng.in/w_999/${photos[0]}`);
+      // const otherparent = $('.property-images-grid:first').parentsUntil('a');
+      $('.property-image-wrapper img').attr('src', `${process.env.NEXT_APP_IM_ENG}/w_999/${photos[0]}`);
       $('.property-image-wrapper img').attr(
         'srcset',
         [500, 800, 999]
           .map(size => {
-            return `https://e52tn40a.cdn.imgeng.in/w_${size}/${photos[0]} ${size}w`;
+            return `${process.env.NEXT_APP_IM_ENG}/w_${size}/${photos[0]} ${size}w`;
           })
           .join(', '),
       );
       $('.property-images-more img').each((img_number, img_2and3) => {
         if (photos.length > img_number) {
-          img_2and3.attribs.src = `https://e52tn40a.cdn.imgeng.in/w_999/${photos[img_number + 1]}`;
+          img_2and3.attribs.src = `${process.env.NEXT_APP_IM_ENG}/w_999/${photos[img_number + 1]}`;
           img_2and3.attribs.srcset = [500, 800, 999]
             .map(size => {
-              return `https://e52tn40a.cdn.imgeng.in/w_${size}/${photos[img_number + 1]} ${size}w`;
+              return `${process.env.NEXT_APP_IM_ENG}/w_${size}/${photos[img_number + 1]} ${size}w`;
             })
             .join(', ');
         }
       });
       try {
         const { items, group } = JSON.parse($('.property-images-lightbox script').text());
+        const updated_images: { url: string }[] = [];
+        items.forEach((item: { url: string }, idx: number) => {
+          updated_images.push({
+            ...item,
+            url: `${process.env.NEXT_APP_IM_ENG}/w_999/${photos[idx]}`,
+          });
+        });
 
         $('.property-images-lightbox script').text(
           JSON.stringify(
             {
-              items: [items[0]],
+              items: updated_images,
               group,
             },
             null,
@@ -211,21 +289,32 @@ export default async function Home({ params, searchParams }: { params: Record<st
       } finally {
         console.log('Done rexifying gallery');
       }
-      // $('.property-images-more').remove();
-      photos.slice(1).forEach(url => {
-        parent.append(`<a href="#" class="lightbox-link link w-inline-block w-lightbox hidden" aria-label="open lightbox" aria-haspopup="dialog">
-        <img src="https://e52tn40a.cdn.imgeng.in/w_999/${url}" loading="eager" alt="" class="cardimage" />
+      if (photos.length > 3)
+        photos.slice(3).forEach((url: string, thumb_idx: number) => {
+          const selector = `img.property-images-grid:nth-child(${thumb_idx + 1})`;
+          $(selector).attr('src', `${process.env.NEXT_APP_IM_ENG}/w_500/${url}`);
+          $(selector).attr(
+            'srcset',
+            [500, 800, 999]
+              .map(size => {
+                return `${process.env.NEXT_APP_IM_ENG}/w_${size}/${url} ${size}w`;
+              })
+              .join(', '),
+          );
+
+          parent.append(`<a href="#" class="lightbox-link link w-inline-block w-lightbox hidden" aria-label="open lightbox" aria-haspopup="dialog">
+        <img src="${process.env.NEXT_APP_IM_ENG}/w_999/${url}" loading="eager" alt="" class="cardimage" />
         <script class="w-json" type="application/json">{
           "items": [
               {
-                  "url": "https://e52tn40a.cdn.imgeng.in/w_1280/${url}",
+                  "url": "${process.env.NEXT_APP_IM_ENG}/w_1280/${url}",
                   "type": "image"
               }
           ],
           "group": "Property Images"
       }</script>
         </a>`);
-      });
+        });
     }
   }
 

@@ -8,15 +8,16 @@ import { DwellingType } from '@/_typings/property';
 import AddOrSubtract from '../FilterFields/AddOrSubtract';
 import InputFilter from '../FilterFields/InputFilter';
 import TextAreaFilter from '../FilterFields/TextAreaFilter';
-import RxDatePickerFilter from '../FilterFields/DatePicker';
 import { SearchInputProxy } from './FilterProxies';
+import { SavedSearchInput } from '@/_typings/saved-search';
+import DatePickerFilter from '../FilterFields/DatePicker';
 
 type Props = {
   child: ReactElement;
 
   handleChange: (key: string, val: any) => void;
   handleFormCityChange: (val: any) => void;
-  formState: any;
+  formState: SavedSearchInput;
 };
 
 export default function MyHomeAlertForm({ child, formState, handleChange, handleFormCityChange }: Props) {
@@ -56,12 +57,12 @@ export default function MyHomeAlertForm({ child, formState, handleChange, handle
         ];
 
         const handleSelect = (value: string | number) => {
-          const isIn = dwelling_types.some((item: string) => item === value);
-          const newArr = isIn ? dwelling_types.filter((item: string) => item !== value) : [...dwelling_types, value];
+          const isIn = dwelling_types?.some((item: string) => item === value);
+          const newArr = isIn ? dwelling_types?.filter((item: string) => item !== value) : [...(dwelling_types ?? []), value];
           handleChange('dwelling_types', newArr);
         };
 
-        return <ChipsList template={child} values={dwelling_types} chipsList={propertyTypes} handleSelect={handleSelect} />;
+        return <ChipsList template={child} values={dwelling_types ?? []} chipsList={propertyTypes} handleSelect={handleSelect} />;
       },
     },
     {
@@ -72,7 +73,7 @@ export default function MyHomeAlertForm({ child, formState, handleChange, handle
           handleChange('beds', newVal);
         };
 
-        return <AddOrSubtract template={child} value={beds} handleFunc={handleClick} />;
+        return <AddOrSubtract template={child} value={beds ?? 0} handleFunc={handleClick} />;
       },
     },
     {
@@ -82,51 +83,66 @@ export default function MyHomeAlertForm({ child, formState, handleChange, handle
           const newVal = val > 0 ? val : 0;
           handleChange('baths', newVal);
         };
-        return <AddOrSubtract template={child} value={baths} handleFunc={handleClick} />;
+        return <AddOrSubtract template={child} value={baths ?? 0} handleFunc={handleClick} />;
       },
     },
     {
       searchFn: searchByClasses(['price-min-filter']),
       transformChild: (child: ReactElement) => {
         const handleOnChange = handleNumberState('minprice');
-        return <InputFilter template={child} inputProps={{ type: 'number', min: 0 }} value={minprice} handleChange={handleOnChange} />;
+        return (
+          <InputFilter
+            template={child}
+            inputProps={{
+              type: 'number',
+              min: 0,
+              onBlur: (e: React.FocusEventHandler<HTMLInputElement>) => {
+                console.log(e);
+              },
+            }}
+            value={minprice ?? 0}
+            handleChange={handleOnChange}
+          />
+        );
       },
     },
     {
       searchFn: searchByClasses(['price-max-filter']),
       transformChild: (child: ReactElement) => {
         const handleOnChange = handleNumberState('maxprice');
-        return <InputFilter template={child} inputProps={{ type: 'number', min: 0 }} value={maxprice} handleChange={handleOnChange} />;
+        const prepdMax = maxprice && minprice && Math.max(minprice, maxprice);
+        return <InputFilter template={child} inputProps={{ type: 'number', min: minprice ?? 0 }} value={prepdMax ?? 0} handleChange={handleOnChange} />;
       },
     },
     {
       searchFn: searchByClasses(['size-min-filter']),
       transformChild: (child: ReactElement) => {
         const handleOnChange = handleNumberState('minsqft');
-        return <InputFilter template={child} inputProps={{ type: 'number', min: 0 }} value={minsqft} handleChange={handleOnChange} />;
+        return <InputFilter template={child} inputProps={{ type: 'number', min: 0 }} value={minsqft ?? 0} handleChange={handleOnChange} />;
       },
     },
     {
       searchFn: searchByClasses(['size-max-filter']),
       transformChild: (child: ReactElement) => {
         const handleOnChange = handleNumberState('maxsqft');
-        return <InputFilter template={child} inputProps={{ type: 'number', min: 0 }} value={maxsqft} handleChange={handleOnChange} />;
+        const prepdMax = maxprice && minprice && Math.max(minprice, maxprice);
+        return <InputFilter template={child} inputProps={{ type: 'number', min: 0 }} value={maxsqft ?? 0} handleChange={handleOnChange} />;
       },
     },
     {
       searchFn: searchByClasses(['keywords-filter']),
       transformChild: (child: ReactElement) => {
         const handleOnChange = handleTextState('tags');
-        return <TextAreaFilter template={child} inputProps={{ type: 'text' }} value={tags !== null ? tags : ''} handleChange={handleOnChange} />;
+        return <TextAreaFilter template={child} inputProps={{ type: 'text' }} value={tags ?? ''} handleChange={handleOnChange} />;
       },
     },
     {
       searchFn: searchByClasses(['date-listed-since']),
       transformChild: (child: ReactElement) => {
-        const setDate = (val: any) => {
-          handleChange('add_date', val);
+        const setDate = (timestamp: number) => {
+          handleChange('add_date', timestamp / 1000);
         };
-        return <RxDatePickerFilter className={child.props.className} placeholder={child.props?.placeholder} addDate={add_date} setDate={setDate} />;
+        return <DatePickerFilter className={child.props.className} onChange={setDate} value={formState?.add_date ? formState?.add_date * 1000 : Date.now()} />;
       },
     },
     {
@@ -136,8 +152,8 @@ export default function MyHomeAlertForm({ child, formState, handleChange, handle
         return (
           <InputFilter
             template={child}
-            inputProps={{ type: 'number', min: 0, max: 2023, placeholder: 'Type Year' }}
-            value={build_year}
+            inputProps={{ type: 'number', min: 0, max: 10000, placeholder: 'Type Year' }}
+            value={build_year ?? 0}
             handleChange={handleOnChange}
           />
         );

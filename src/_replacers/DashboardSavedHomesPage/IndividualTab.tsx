@@ -2,7 +2,7 @@
 import React, { ReactElement, cloneElement, useEffect, useState } from 'react';
 import useEvent, { Events } from '@/hooks/useEvent';
 import { AgentData } from '@/_typings/agent';
-import { captureMatchingElements, replaceAllTextWithBraces, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { replaceAllTextWithBraces, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import RxPropertyTopStats from '@/components/RxProperty/RxPropertyTopStats';
@@ -21,9 +21,6 @@ import RxStreetView from '@/components/RxStreetView';
 import RxStatBlock from './RxStatBlock';
 import { mapFeatures, prepareStats } from '@/_helpers/functions';
 import RxFeatures from './RxFeatures';
-
-import RxBuildOrSoldHistory from './RxBuildOrSoldHistory';
-import RxPropertyCarousel from '@/components/RxProperty/RxPropertyCarousel';
 import PhotosGrid from './PhotosGrid';
 
 type Props = {
@@ -55,6 +52,7 @@ export default function IndividualTab({ child, agent_data }: Props) {
       //top stats block
       searchFn: searchByClasses([WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS]),
       transformChild: (child: ReactElement) => {
+        const el = [cloneElement(child.props.children) as ReactElement];
         return currentProperty ? (
           <RxPropertyTopStats
             nodeClassName={child.props.className}
@@ -62,8 +60,7 @@ export default function IndividualTab({ child, agent_data }: Props) {
             agent={agent_data}
             property={{ ...currentProperty, Address: currentProperty.address as string }}
           >
-            {/* @ts-ignore */}
-            {cloneElement(child.props.children)}
+            {el}
           </RxPropertyTopStats>
         ) : (
           child
@@ -75,12 +72,12 @@ export default function IndividualTab({ child, agent_data }: Props) {
       transformChild: (child: ReactElement) => {
         const cp = currentProperty;
         return replaceAllTextWithBraces(child, {
-          Beds: cp?.L_BedroomTotal,
+          Beds: cp?.beds,
           Baths: cp?.baths,
-          'Year Built': cp?.L_YearBuilt,
-          Sqft: cp?.L_LotSize_SqMtrs,
-          Area: cp?.Area,
-          Description: cp?.description || cp?.L_InternetRemakrs || cp?.L_PublicRemakrs,
+          'Year Built': cp?.year_built,
+          Sqft: cp?.sqft,
+          Area: cp?.area,
+          Description: cp?.description,
           'Listing By': cp?.L_ManagmentCompany,
         }) as ReactElement;
       },
@@ -100,10 +97,14 @@ export default function IndividualTab({ child, agent_data }: Props) {
           'Lot Size': formatValues(cp, 'L_LotSize_SqMtrs'),
           'Land Title': cp?.LandTitle,
           'Price Per Sqft': formatValues(cp, 'PricePerSQFT'),
-          'Property Tax': combineAndFormatValues({
-            L_GrossTaxes: cp.L_GrossTaxes,
-            ForTaxYear: cp.ForTaxYear,
-          }),
+          'Property Tax': combineAndFormatValues(
+            {
+              gross_taxes: Number(cp.gross_taxes),
+              tax_year: Number(cp.tax_year),
+            },
+            'gross_taxes',
+            'tax_year',
+          ),
         }) as ReactElement;
       },
     },

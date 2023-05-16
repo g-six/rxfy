@@ -1,5 +1,5 @@
 import { Hit } from '@/_typings/pipeline';
-import { MLSProperty, PropertyDataModel } from '@/_typings/property';
+import { BathroomDetails, MLSProperty, PropertyDataModel, RoomDetails } from '@/_typings/property';
 import {
   combineBalconyData,
   combineDeckData,
@@ -19,7 +19,8 @@ import axios from 'axios';
 
 const keep_as_array = ['Status', 'photos'];
 
-export function getCombinedData({ id, attributes }: { id: number; attributes: PropertyDataModel & { mls_data: MLSProperty } }) {
+const MAX_NUM_OF_ROOMS = 75;
+export function getCombinedData({ id, attributes }: { id?: number; attributes: PropertyDataModel & { mls_data: MLSProperty } }) {
   const { mls_data, ...cleaned } = attributes;
   let values: PropertyDataModel = cleaned;
   attributes.mls_data &&
@@ -51,12 +52,14 @@ export function getCombinedData({ id, attributes }: { id: number; attributes: Pr
   if (!values.city) values.city = attributes.mls_data.City as string;
   if (!values.postal_zip_code) values.postal_zip_code = attributes.mls_data.PostalCode_Zip as string;
   if (!values.lon) values.lon = Number(attributes.mls_data.lng);
+  if (!values.lot_sqm && attributes.mls_data.L_LotSize_SqMtrs) values.lot_sqm = Number(attributes.mls_data.L_LotSize_SqMtrs);
   if (!values.year_built) values.year_built = Number(attributes.mls_data.L_YearBuilt);
   if (values.year_built && !values.age) values.age = new Date().getFullYear() - values.year_built;
   if (!values.asking_price && mls_data.AskingPrice) values.asking_price = Number(mls_data.AskingPrice);
   if (!values.price_per_sqft && mls_data.PricePerSQFT) values.price_per_sqft = Number(mls_data.PricePerSQFT);
   if (!values.floor_area && mls_data.L_FloorArea_GrantTotal) {
     values.floor_area = Number(mls_data.L_FloorArea_GrantTotal);
+    values.floor_area_uom = 'Feet';
   }
   if (!values.idx_include && mls_data.IdxInclude) {
     values.idx_include = mls_data.IdxInclude === true || mls_data.IdxInclude.toString().toLowerCase() === 'yes';
@@ -93,6 +96,159 @@ export function getCombinedData({ id, attributes }: { id: number; attributes: Pr
   }
   if (!values.property_type) {
     values.property_type = attributes.mls_data.Type as string;
+  }
+  if (!values.style_type) {
+    values.style_type = Array.isArray(attributes.mls_data.B_Style) ? attributes.mls_data.B_Style.join(', ') : (attributes.mls_data.B_Style as string);
+  }
+  if (!values.fireplace) {
+    let fireplaces = [];
+    if (attributes.mls_data.L_FireplacesFeatures) {
+      fireplaces.push(
+        Array.isArray(attributes.mls_data.L_FireplacesFeatures)
+          ? attributes.mls_data.L_FireplacesFeatures.join(', ')
+          : (attributes.mls_data.L_FireplacesFeatures as string),
+      );
+    }
+    if (attributes.mls_data.L_Fireplace_Fuel) {
+      fireplaces.push(
+        Array.isArray(attributes.mls_data.L_Fireplace_Fuel)
+          ? attributes.mls_data.L_Fireplace_Fuel.join(', ')
+          : (attributes.mls_data.L_Fireplace_Fuel as string),
+      );
+    }
+
+    values.fireplace = fireplaces.join(', ');
+  }
+  if (!values.roofing && attributes.mls_data.B_Roof) {
+    values.roofing = Array.isArray(attributes.mls_data.B_Roof) ? attributes.mls_data.B_Roof.join(', ') : (attributes.mls_data.B_Roof as string);
+  }
+  if (!values.residential_type && attributes.mls_data.Type) {
+    values.residential_type = attributes.mls_data.Type;
+  }
+  if (!values.region && attributes.mls_data.L_Region) {
+    values.region = attributes.mls_data.L_Region;
+  }
+  if (!values.land_title && attributes.mls_data.LandTitle) {
+    values.land_title = attributes.mls_data.LandTitle;
+  }
+  if (!values.heating && attributes.mls_data.B_Heating) {
+    values.heating = Array.isArray(attributes.mls_data.B_Heating) ? attributes.mls_data.B_Heating.join(', ') : (attributes.mls_data.B_Heating as string);
+  }
+  if (!values.year_last_renovated && attributes.mls_data.Reno_Year) {
+    values.year_last_renovated = Number(attributes.mls_data.Reno_Year);
+  }
+  if (!values.strata_fee && attributes.mls_data.L_StrataFee) {
+    values.strata_fee = Number(attributes.mls_data.L_StrataFee);
+  }
+  if (!values.frontage_feet && attributes.mls_data.L_Frontage_Feet) {
+    values.frontage_feet = Number(attributes.mls_data.L_Frontage_Feet);
+  }
+  if (!values.subarea_community && attributes.mls_data.L_SubareaCommunity) {
+    values.subarea_community = attributes.mls_data.L_SubareaCommunity;
+  }
+  if (!values.depth && attributes.mls_data.B_Depth) {
+    values.depth = Number(attributes.mls_data.B_Depth);
+  }
+
+  if (!values.windows) {
+    if (attributes.mls_data.L_WindowFeatures) {
+      values.windows = Array.isArray(attributes.mls_data.L_WindowFeatures)
+        ? attributes.mls_data.L_WindowFeatures.join(', ')
+        : (attributes.mls_data.L_WindowFeatures as string);
+    }
+  }
+  if (!values.room_details) {
+    const rooms: RoomDetails[] = [];
+    for (let num = 1; num <= MAX_NUM_OF_ROOMS; num++) {
+      if (attributes.mls_data[`L_Room${num}_Type`]) {
+        rooms.push({
+          type: (attributes.mls_data[`L_Room${num}_Type`] as string) || '',
+          length: (attributes.mls_data[`L_Room${num}_Dimension1`] as string) || '',
+          width: (attributes.mls_data[`L_Room${num}_Dimension2`] as string) || '',
+          level: (attributes.mls_data[`L_Room${num}_Level`] as string) || '',
+        });
+      }
+    }
+    if (attributes.mls_data.L_MainLevelBedrooms) {
+      for (let num = 1; num <= Number(attributes.mls_data.L_MainLevelBedrooms); num++) {
+        rooms.push({
+          type: 'Bedroom',
+          length: '',
+          width: '',
+          level: 'Main',
+        });
+      }
+    }
+    if (attributes.mls_data.L_MainLevelKitchens) {
+      for (let num = 1; num <= Number(attributes.mls_data.L_MainLevelKitchens); num++) {
+        rooms.push({
+          type: 'Kitchen',
+          length: '',
+          width: '',
+          level: 'Main',
+        });
+      }
+    }
+    if (attributes.mls_data.L_MainLevelKitchens) {
+      for (let num = 1; num <= Number(attributes.mls_data.L_MainLevelKitchens); num++) {
+        rooms.push({
+          type: 'Kitchen',
+          length: '',
+          width: '',
+          level: 'Main',
+        });
+      }
+    }
+    ['Second', 'Third', 'Fourth'].forEach(lvl => {
+      if (attributes.mls_data[`L_BedroomsCount${lvl}Level`]) {
+        for (let num = 1; num <= Number(attributes.mls_data[`L_BedroomsCount${lvl}Level`]); num++) {
+          rooms.push({
+            type: 'Bedroom',
+            length: '',
+            width: '',
+            level: `${lvl} Level`,
+          });
+        }
+      }
+      if (attributes.mls_data[`L_Kitchens${lvl}Level`]) {
+        for (let num = 1; num <= Number(attributes.mls_data[`L_Kitchens${lvl}Level`]); num++) {
+          rooms.push({
+            type: 'Kitchen',
+            length: '',
+            width: '',
+            level: `${lvl} Level`,
+          });
+        }
+      }
+    });
+    values.room_details = { rooms };
+  }
+  if (!values.bathroom_details) {
+    const rooms: BathroomDetails[] = [];
+    for (let num = 1; num <= MAX_NUM_OF_ROOMS; num++) {
+      if (attributes.mls_data[`L_Bath${num}_Pcs`]) {
+        rooms.push({
+          ensuite: (attributes.mls_data[`L_Bath${num}_Ensuite`] as string) || 'No',
+          pieces: (attributes.mls_data[`L_Bath${num}_Pcs`] as number) || 1,
+          level: (attributes.mls_data[`L_Room${num}_Level`] as string) || '',
+        });
+      }
+    }
+    if (attributes.mls_data.L_MainLevelBathrooms) {
+      for (let num = 1; num <= Number(attributes.mls_data.L_MainLevelBathrooms); num++) {
+        rooms.push({
+          level: 'Main',
+        });
+      }
+    }
+    if (attributes.mls_data.L_BathroomsCountLowerLevel) {
+      for (let num = 1; num <= Number(attributes.mls_data.L_BathroomsCountLowerLevel); num++) {
+        rooms.push({
+          level: 'Lower Level',
+        });
+      }
+    }
+    values.bathroom_details = { rooms };
   }
   return values;
 }

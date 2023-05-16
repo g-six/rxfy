@@ -6,21 +6,11 @@ import { sendTemplate } from '../../send-template';
 import { MessageRecipient } from '@mailchimp/mailchimp_transactional';
 import { emailToSlug } from '@/_utilities/string-helper';
 import { WEBFLOW_THEME_DOMAINS } from '@/_typings/webflow';
+import { gql_create_agent } from '../graphql';
+import { createAgent } from '../model';
 
 export const gql_find_agent = `query RetrieveAgentRecord($agent_id: String!) {
     agents(filters: { agent_id: { eq: $agent_id } }) {
-      data {
-        id
-        attributes {
-          agent_id
-          email
-          full_name
-        }
-      }
-    }
-}`;
-export const gql_create_agent = `mutation CreateAgentRecord($data: AgentInput!) {
-    createAgent(data: $data) {
       data {
         id
         attributes {
@@ -329,56 +319,4 @@ async function claimAgent(id: number, user_data: { email: string; encrypted_pass
     return { error, errors };
   }
   return response_data?.data?.createRealtor?.data || {};
-}
-
-async function createAgent(user_data: { agent_id: string; email: string; encrypted_password: string; full_name: string }) {
-  try {
-    const agent_response = await axios.post(
-      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-      {
-        query: gql_create_agent,
-        variables: {
-          data: {
-            agent_id: user_data.agent_id,
-            email: user_data.email,
-            full_name: user_data.full_name,
-            first_name: user_data.full_name.split(' ')[0] || '',
-            last_name: user_data.full_name.split(' ').pop(),
-            webflow_domain: WEBFLOW_THEME_DOMAINS.DEFAULT,
-          },
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-          'Content-Type': 'application/json',
-        },
-      },
-    );
-
-    return agent_response?.data?.data?.createAgent?.data || {};
-  } catch (e) {
-    console.log('Error in createAgent');
-    const axerr = e as AxiosError;
-    const { error, errors } = axerr.response?.data as {
-      error?: {
-        code: string;
-      };
-      errors?: {
-        message: string;
-        extensions: unknown[];
-      }[];
-    };
-    console.log(
-      JSON.stringify(
-        {
-          error,
-          errors,
-        },
-        null,
-        4,
-      ),
-    );
-  }
-  return {};
 }
