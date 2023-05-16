@@ -78,23 +78,23 @@ export const room_stats: Record<string, {}> = {
 };
 
 export const financial_stats: Record<string, string> = {
-  L_GrossTaxes: 'Gross taxes',
+  gross_taxes: 'Gross taxes',
   mls_id: 'MLS #',
   SoldPrice: 'Sold For',
   price_per_sqft: 'Price per Sqft',
   strata_fee: 'Strata Fee',
-  ListingDate: 'List Date',
+  listed_at: 'List Date',
 };
 
 export const construction_stats: Record<string, string> = {
-  B_Style: 'Style of Home',
+  style_type: 'Style of Home',
   B_Construction: 'Construction',
   LFD_FloorFinish_19: 'Floor Finish',
-  B_Exterior_Finish: 'Exterior Finish',
+  exterior_finish: 'Exterior Finish',
   L_Fireplace_Fuel: 'Fireplace Fueled by',
   LFD_Foundation_155: 'Foundation',
   roofing: 'Roof',
-  L_ComplexName: 'Complex/Subdivision',
+  complex_compound_name: 'Complex/Subdivision',
   L_NoFloorLevels: 'Floor Levels',
 };
 
@@ -198,6 +198,7 @@ export function getGqlForInsertProperty(mls_data: MLSProperty, relationships?: {
         }),
         guid,
         roofing: Array.isArray(B_Roof) ? B_Roof.join(', ') : B_Roof,
+        floor_area_main: mls_data?.L_FloorArea_Main ? Number(mls_data?.L_FloorArea_Main) : undefined,
         real_estate_board: relationships?.real_estate_board || undefined,
         mls_data,
       },
@@ -245,8 +246,8 @@ export function getGqlForUpdateProperty(id: number, mls_data: MLSProperty, relat
         }),
         guid,
         roofing: Array.isArray(B_Roof) ? B_Roof.join(', ') : B_Roof,
+        floor_area_main: mls_data?.L_FloorArea_Main ? Number(mls_data?.L_FloorArea_Main) : undefined,
         real_estate_board: relationships?.real_estate_board || undefined,
-        mls_data,
       },
     },
   };
@@ -856,7 +857,7 @@ export function getMutationForNewAgentInventory(property: number, agent: number)
   };
 }
 
-export function formatValues(obj: MLSProperty | Record<string, string>, key: string): string {
+export function formatValues(obj: any, key: string): string {
   if (!obj || !obj[key]) return '';
 
   if (NumericFields.includes(key)) {
@@ -880,7 +881,7 @@ export function formatValues(obj: MLSProperty | Record<string, string>, key: str
 export function combineAndFormatValues(values: Record<string, number | string>, left = 'L_GrossTaxes', right = 'ForTaxYear'): string {
   // Last year taxes
   if (Object.keys(values).includes(left) && Object.keys(values).includes(right)) {
-    return `${formatValues(values as MLSProperty, left)} (${values.ForTaxYear})`;
+    return `${formatValues(values, left)} (${values[right]})`;
   }
   return Object.keys(values)
     .map(key => values[key])
