@@ -83,7 +83,7 @@ export function getCombinedData({ id, attributes }: { id?: number; attributes: P
   if (!values.listed_at && mls_data.ListingDate) {
     const [date, time] = mls_data.ListingDate.split('T');
     const [y, m, d] = date.split('-');
-    values.listed_at = new Date(Number(y), Number(m) - 1, Number(d), Number(time.substring(0, 2) || '0')).toISOString().substring(0, 10) as any;
+    values.listed_at = new Date(Number(y), Number(m) - 1, Number(d), time ? Number(time.substring(0, 2) || '0') : 0).toISOString().substring(0, 10) as any;
   }
   if (Number(values.age) < 0) values.age = 0;
   if (!values.garage && attributes.mls_data.B_Parking_Type) {

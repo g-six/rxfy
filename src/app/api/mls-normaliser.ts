@@ -11,14 +11,16 @@ export function combineBalconyData(attributes: PropertyDataModel, key: string, v
   if (attributes.has_balcony === true) return attributes;
 
   if (['B_OutdoorArea', 'L_StrataLotsIncludes', 'L_Exterior Features'].includes(key)) {
-    if (
-      val &&
-      (val.filter(str => str.toLowerCase().indexOf('balcony') >= 0).length > 0 || val.filter(str => str.toLowerCase().indexOf('balcny') >= 0).length > 0)
-    ) {
-      return {
-        ...attributes,
-        has_balcony: true,
-      };
+    if (val && Array.isArray(val)) {
+      if (
+        val.filter(balcony_str => balcony_str.toLowerCase().indexOf('balcony') >= 0).length > 0 ||
+        val.filter(balcony_str => balcony_str.toLowerCase().indexOf('balcny') >= 0).length > 0
+      ) {
+        return {
+          ...attributes,
+          has_balcony: true,
+        };
+      }
     }
   }
   return {
@@ -37,7 +39,11 @@ export function combineBalconyData(attributes: PropertyDataModel, key: string, v
 export function combineDeckData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
   if (attributes.has_deck === true) return attributes;
   if (['B_OutdoorArea', 'L_StrataLotsIncludes', 'L_Exterior Features'].includes(key)) {
-    if (val && (val.filter(str => str.toLowerCase().indexOf('deck') >= 0).length > 0 || val.filter(str => str.toLowerCase().indexOf('dck') >= 0).length > 0)) {
+    if (
+      val &&
+      (val.filter(deck_str => `${deck_str}`.toLowerCase().indexOf('deck') >= 0).length > 0 ||
+        val.filter(deck_str => `${deck_str}`.toLowerCase().indexOf('dck') >= 0).length > 0)
+    ) {
       return {
         ...attributes,
         has_deck: true,
@@ -62,7 +68,7 @@ export function combinePatioData(attributes: PropertyDataModel, key: string, val
   return val &&
     val.length > 0 &&
     ['B_OutdoorArea', 'L_StrataLotsIncludes', 'L_Exterior Features', 'LFD_OutdoorArea_47'].includes(key) &&
-    val.filter(str => str.toLowerCase().indexOf('patio') >= 0).length > 0
+    val.filter(patio_str => `${patio_str}`.toLowerCase().indexOf('patio') >= 0).length > 0
     ? {
         ...attributes,
         has_patio: true,
@@ -84,7 +90,7 @@ export function combineDishwasherData(attributes: PropertyDataModel, key: string
   if (attributes.has_dishwasher || !val) return attributes;
 
   return Array.isArray(val) &&
-    val.filter(str => str.toLowerCase().indexOf('dishwasher') >= 0).length &&
+    val.filter(dish_str => `${dish_str}`.toLowerCase().indexOf('dishwasher') >= 0).length &&
     ['L_Features', 'LFD_FeaturesIncluded_55', 'L_Appliances'].includes(key)
     ? {
         ...attributes,
@@ -104,10 +110,9 @@ export function combineDishwasherData(attributes: PropertyDataModel, key: string
  * @returns PropertyDataModel with (or w/out) has_fenced_yard
  */
 export function combineFenceData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
-  if (attributes.has_fenced_yard) return attributes;
-
-  return Array.isArray(val) &&
-    val.filter(str => str.toLowerCase().indexOf('fenced yard') >= 0).length &&
+  if (attributes.has_fenced_yard || !val || !Array.isArray(val)) return attributes;
+  return val.length &&
+    val.filter(fence_str => `${fence_str}`.toLowerCase().indexOf('fenced yard') >= 0).length &&
     ['B_OutdoorArea', 'L_StrataLotsIncludes', 'L_Exterior Features', 'LFD_OutdoorArea_47'].includes(key)
     ? {
         ...attributes,
@@ -129,7 +134,7 @@ export function combineFenceData(attributes: PropertyDataModel, key: string, val
 export function combineStorageData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
   if (attributes.has_storage) return attributes;
 
-  return Array.isArray(val) && val.filter(str => str.toLowerCase().indexOf('storage') >= 0).length
+  return Array.isArray(val) && val.filter(str => `${str}`.toLowerCase().indexOf('storage') >= 0).length
     ? {
         ...attributes,
         has_storage: true,
@@ -151,8 +156,12 @@ export function combineFridgeData(attributes: PropertyDataModel, key: string, va
   if (attributes.has_fridge) return attributes;
 
   return Array.isArray(val) &&
-    val.filter(str => str.toLowerCase().indexOf('fridg') >= 0 || str.toLowerCase().indexOf('frdg') >= 0 || str.toLowerCase().indexOf('refrigerator') >= 0)
-      .length &&
+    val.filter(
+      fridge_str =>
+        `${fridge_str}`.toLowerCase().indexOf('fridg') >= 0 ||
+        `${fridge_str}`.toLowerCase().indexOf('frdg') >= 0 ||
+        `${fridge_str}`.toLowerCase().indexOf('refrigerator') >= 0,
+    ).length &&
     ['L_Features', 'LFD_FeaturesIncluded_55', 'L_Appliances'].includes(key)
     ? {
         ...attributes,

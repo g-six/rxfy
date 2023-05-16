@@ -37,10 +37,10 @@ export async function getMLSProperty(mls_id: string) {
 export async function getSimilarProperties(property: { [key: string]: string }) {
   let filters: Record<string, string> = {};
   Object.keys(property).forEach(filter => {
-    if (['property_type', 'postal_zip_code', 'beds'].includes(filter)) {
+    if (['property_type', 'lat', 'lon', 'beds'].includes(filter)) {
       filters = {
         ...filters,
-        [filter]: property[filter],
+        [filter]: filter === 'property_type' ? encodeURIComponent(property[filter]) : property[filter],
       };
     }
   });
