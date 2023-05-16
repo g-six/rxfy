@@ -284,9 +284,7 @@ export async function getAgentListings(agent_id: string): Promise<{
 }> {
   try {
     // Query cached listings first to save on latency in searching
-    // let url: string = `https://pages.leagent.com/listings/${agent_id}.json`;
-    let url = `https://live-integrations.leagent.com/opensearch/agent-listings/${agent_id}`;
-    // let res = await axios.get(url);
+    let url: string = `https://pages.leagent.com/listings/${agent_id}.json`;
     let res = await axios.get(url);
     if (!res.data) {
       console.log('Cache file not found', url);
