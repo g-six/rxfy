@@ -346,6 +346,41 @@ export function combineFrontageData(attributes: PropertyDataModel, key: string, 
   }
   return attributes;
 }
+
+/**
+ *
+ * @param attributes PropertyDataModel
+ * @param key
+ * @param val
+ * @returns PropertyDataModel
+ */
+export function combineFloorageAreaData(attributes: PropertyDataModel, key: string, val: string): PropertyDataModel {
+  const key_id = key.toLowerCase();
+  if (key_id.indexOf('floorarea') >= 0 && !isNaN(Number(val))) {
+    if (key.indexOf('Total') >= 0) {
+      return {
+        ...attributes,
+        floor_area_total: Number(val),
+      };
+    } else if (key.indexOf('Above') >= 0 || key.indexOf('Upper') >= 0) {
+      return {
+        ...attributes,
+        floor_area_upper_floors: Number(val),
+      };
+    } else if (key.indexOf('Basement') >= 0) {
+      return {
+        ...attributes,
+        floor_area_basement: Number(val),
+      };
+    } else if (key.indexOf('Unfinished') >= 0) {
+      return {
+        ...attributes,
+        floor_area_unfinished: Number(val),
+      };
+    }
+  }
+  return attributes;
+}
 /**
  *
  * @param attributes PropertyDataModel
@@ -474,7 +509,6 @@ export function combineOtherInformation(attributes: PropertyDataModel, key: stri
   if (!add_this) return attributes;
 
   other_information = other_information ? [other_information, add_this].join('\n• ') : `• ${add_this}`;
-  console.log(other_information);
 
   return {
     ...attributes,
@@ -565,6 +599,25 @@ export function combineRoofData(attributes: PropertyDataModel, key: string, val?
     : {
         ...attributes,
         roofing: attributes.roofing || undefined,
+      };
+}
+
+/**
+ *
+ * @param attributes PropertyDataModel
+ * @param key
+ * @param val
+ * @returns PropertyDataModel with (or w/out) roof
+ */
+export function combineExteriorFinishData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
+  return val && key === 'B_Exterior_Finish'
+    ? {
+        ...attributes,
+        exterior_finish: val.concat(attributes.exterior_finish ? [attributes.exterior_finish] : []).join('/'),
+      }
+    : {
+        ...attributes,
+        exterior_finish: attributes.exterior_finish || undefined,
       };
 }
 
