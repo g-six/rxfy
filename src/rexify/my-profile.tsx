@@ -1,6 +1,6 @@
 'use client';
 import { BrokerageInputModel, RealtorInputModel } from '@/_typings/agent';
-import { RxBrokerageInformation } from '@/components/RxForms/RxBrokerageInformation';
+// import { RxBrokerageInformation } from '@/components/RxForms/RxBrokerageInformation';
 import { RxMyAccountPage } from '@/components/full-pages/RxMyAccountPage';
 import Script from 'next/script';
 import React from 'react';
@@ -83,7 +83,7 @@ function buildMainComponent(children: React.ReactElement[], data?: DataModel) {
     .map(({ props }) => {
       return (
         <div key='dash-area' className={[props.className, 'rexified'].join(' ')}>
-          <RxPageIterator data={data}>{props.children}</RxPageIterator>
+          <RxPageIterator data={data || {}}>{props.children}</RxPageIterator>
         </div>
       );
     });
