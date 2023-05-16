@@ -2,15 +2,23 @@ import { Hit } from '@/_typings/pipeline';
 import { BathroomDetails, MLSProperty, PropertyDataModel, RoomDetails } from '@/_typings/property';
 import {
   combineBalconyData,
+  combineComplexCompoundName,
   combineDeckData,
   combineDishwasherData,
   combineFenceData,
   combineFireplaceData,
+  combineFoundationSpecsData,
   combineFridgeData,
+  combineFrontageData,
+  combineGardenLawnData,
   combineHVACData,
+  combineOtherAppliancesData,
+  combineOtherInformation,
   combineParkingData,
   combinePatioData,
   combineRoofData,
+  combineSafetySecurityData,
+  combineServicesData,
   combineStorageData,
   combineStoveData,
   combineWasherDryerData,
@@ -28,18 +36,26 @@ export function getCombinedData({ id, attributes }: { id?: number; attributes: P
     Object.keys(attributes.mls_data).forEach((key: string) => {
       const val = attributes.mls_data[key] as string[];
       values = combineBalconyData(values, key, val);
+      values = combineComplexCompoundName(values, key, val);
       values = combineDeckData(values, key, val);
       values = combineDishwasherData(values, key, val);
       values = combineFenceData(values, key, val);
+      values = combineFrontageData(values, key, val);
+      values = combineFoundationSpecsData(values, key, val);
       values = combineFireplaceData(values, key, val);
       values = combineFridgeData(values, key, val);
       values = combineHVACData(values, key, val);
+      values = combineGardenLawnData(values, key, val);
       values = combineParkingData(values, key, val);
       values = combinePatioData(values, key, val);
       values = combineRoofData(values, key, val);
+      values = combineSafetySecurityData(values, key, val);
+      values = combineServicesData(values, key, val);
       values = combineStoveData(values, key, val);
       values = combineStorageData(values, key, val);
       values = combineWasherDryerData(values, key, val);
+      values = combineOtherAppliancesData(values, key, val);
+      values = combineOtherInformation(values, key, val);
       values = setStyleType(values, key, val);
     });
   if (!values.gross_taxes && attributes.mls_data.L_GrossTaxes) {
@@ -229,9 +245,13 @@ export function getCombinedData({ id, attributes }: { id?: number; attributes: P
     const rooms: BathroomDetails[] = [];
     for (let num = 1; num <= MAX_NUM_OF_ROOMS; num++) {
       if (attributes.mls_data[`L_Bath${num}_Pcs`]) {
+        const ensuite = (attributes.mls_data[`L_Bath${num}_Ensuite`] as string) || 'No';
         rooms.push({
-          ensuite: (attributes.mls_data[`L_Bath${num}_Ensuite`] as string) || 'No',
-          pieces: (attributes.mls_data[`L_Bath${num}_Pcs`] as number) || 1,
+          ensuite,
+          pieces:
+            (attributes.mls_data[ensuite === 'No' ? `L_Bath${num}_Pcs` : 'L_BathEnsuite_Pcs'] as number) ||
+            (attributes.mls_data[`L_Bath${num}_Pcs`] as number) ||
+            1,
           level: (attributes.mls_data[`L_Room${num}_Level`] as string) || '',
         });
       }
