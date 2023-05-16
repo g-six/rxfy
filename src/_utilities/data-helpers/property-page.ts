@@ -88,7 +88,7 @@ export const financial_stats: Record<string, string> = {
 
 export const construction_stats: Record<string, string> = {
   style_type: 'Style of Home',
-  B_Construction: 'Construction',
+  construction_information: 'Construction',
   LFD_FloorFinish_19: 'Floor Finish',
   exterior_finish: 'Exterior Finish',
   L_Fireplace_Fuel: 'Fireplace Fueled by',

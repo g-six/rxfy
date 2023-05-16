@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { CloudFrontClient, CreateInvalidationCommand } from '@aws-sdk/client-cloudfront';
 import { PutObjectCommand, S3Client, S3ClientConfig } from '@aws-sdk/client-s3';
 import { getResponse } from '../response-helper';
@@ -42,298 +42,331 @@ const mutation_create_property = `mutation CreateProperty($data: PropertyInput!)
 }`;
 
 export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const mls_id = url.searchParams.get('mls_id') as string;
-  let results = await axios.post(
-    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-    {
-      query: gql_find_home,
-      variables: {
-        mls_id,
+  try {
+    const url = new URL(request.url);
+    const mls_id = url.searchParams.get('mls_id') as string;
+    let results = await axios.post(
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+      {
+        query: gql_find_home,
+        variables: {
+          mls_id,
+        },
       },
-    },
-    {
-      headers,
-    },
-  );
-  if (results?.data?.data?.properties?.data?.length === 0 || url.searchParams.get('regen')) {
-    const legacy_result = await retrieveFromLegacyPipeline({
-      query: { bool: { filter: [{ match: { 'data.MLS_ID': mls_id } }], should: [] } },
-      size: 1,
-      from: 0,
-    });
+      {
+        headers,
+      },
+    );
+    let property;
+    if (results?.data?.data?.properties?.data?.length === 0 || url.searchParams.get('regen')) {
+      const legacy_result = await retrieveFromLegacyPipeline({
+        query: { bool: { filter: [{ match: { 'data.MLS_ID': mls_id } }], should: [] } },
+        size: 1,
+        from: 0,
+      });
 
-    if (legacy_result && legacy_result.length) {
-      const hit = legacy_result[0];
-      if (hit) {
-        const real_estate_board_res = await getRealEstateBoard(hit as unknown as { [key: string]: string });
-        const real_estate_board = real_estate_board_res?.id || undefined;
-        // Create agents and temporarily store their record ids for linking properties
-        const agents = await createAgentsFromProperty(hit as MLSProperty, real_estate_board_res);
-        const query =
-          results?.data?.data?.properties?.data?.length === 0
-            ? getGqlForInsertProperty(hit, real_estate_board)
-            : getGqlForUpdateProperty(results?.data?.data?.properties?.data[0].id, hit, real_estate_board);
+      if (legacy_result && legacy_result.length) {
+        const hit = legacy_result[0];
+        if (hit) {
+          const real_estate_board_res = await getRealEstateBoard(hit as unknown as { [key: string]: string });
+          const real_estate_board = real_estate_board_res?.id || undefined;
+          // Create agents and temporarily store their record ids for linking properties
+          const agents = await createAgentsFromProperty(hit as MLSProperty, real_estate_board_res);
+          const gql_config =
+            results?.data?.data?.properties?.data?.length === 0
+              ? getGqlForInsertProperty(hit, real_estate_board)
+              : getGqlForUpdateProperty(results?.data?.data?.properties?.data[0].id, hit, real_estate_board);
 
-        const { mls_data, ...cleaned } = query.variables.input;
-        const { data: new_property } = await axios.post(
-          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-          {
-            query: mutation_create_property,
-            variables: {
-              data: {
-                ...cleaned,
-                real_estate_board,
-                mls_data,
-              },
-            },
-          },
-          {
-            headers,
-          },
-        );
-
-        const { id, attributes } = new_property.data.createProperty.data;
-        if (!results?.data?.data?.properties?.data[0].id && hit.photos && Array.isArray(hit.photos)) {
           const {
             data: {
               data: {
-                createPropertyPhotoAlbum: {
-                  data: { id: property_photo_album },
+                property: { data },
+              },
+              errors,
+            },
+          } = await axios.post(`${process.env.NEXT_APP_CMS_GRAPHQL_URL}`, gql_config, {
+            headers,
+          });
+
+          if (errors) {
+            console.log('Property create error');
+            console.log(JSON.stringify(errors, null, 4));
+            return getResponse(errors, 400);
+          }
+
+          property = {
+            ...data.attributes,
+            id: Number(data.id),
+          };
+
+          console.log({ property });
+
+          if (!property.property_photo_album?.data?.photos?.length && hit.photos && Array.isArray(hit.photos)) {
+            const album_results = await axios.post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getMutationForPhotoAlbumCreation(property.id, hit.photos), {
+              headers: {
+                Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+                'Content-Type': 'application/json',
+              },
+            });
+            const {
+              data: {
+                data: { createPropertyPhotoAlbum },
+              },
+            } = album_results;
+            property = {
+              ...property,
+              property_photo_album: {
+                data: {
+                  id: Number(createPropertyPhotoAlbum.data.id),
+                  attributes: createPropertyPhotoAlbum.data.attributes,
                 },
               },
-            },
-          } = await axios.post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getMutationForPhotoAlbumCreation(id, hit.photos), {
-            headers: {
-              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-              'Content-Type': 'application/json',
-            },
-          });
+            };
+          }
+
+          agents.forEach(agent =>
+            axios.post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getMutationForNewAgentInventory(property.id, agent), {
+              headers: {
+                Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+                'Content-Type': 'application/json',
+              },
+            }),
+          );
         }
-
-        agents.forEach(agent =>
-          axios.post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getMutationForNewAgentInventory(id, agent), {
-            headers: {
-              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-              'Content-Type': 'application/json',
-            },
-          }),
-        );
-
-        delete attributes.property_photo_album;
-        return getResponse(
-          {
-            ...attributes,
-            id,
-          },
-          200,
-        );
       }
+    } else if (results?.data?.data?.properties?.data?.length) {
+      const { id, attributes } = results?.data?.data?.properties?.data[0];
+      property = {
+        ...attributes,
+        id: Number(id),
+      };
     }
-  }
-  if (results?.data?.data?.properties?.data?.length) {
-    const [record] = results?.data.data.properties.data;
+    console.log('property next');
+    console.log('property next');
+    console.log(property);
+    console.log('property next');
+    console.log('property next');
+    if (property) {
+      const { mls_data, ...record } = property;
+      let output: {
+        [key: string]: string | number | boolean | string[] | Date;
+      } = {
+        ...property,
+        id: Number(record.id),
+      };
 
-    const { mls_data, ...property } = record.attributes;
-    let output: {
-      [key: string]: string | number | boolean | string[] | Date;
-    } = {
-      ...property,
-      id: Number(record.id),
-    };
+      let legacy_data: {
+        [key: string]: string | number | boolean | string[] | Date;
+      } = {};
 
-    let legacy_data: {
-      [key: string]: string | number | boolean | string[] | Date;
-    } = {};
+      const repaired = await repairIfNeeded(Number(record.id), output as unknown as { [key: string]: unknown } & PropertyDataModel, mls_data);
 
-    const repaired = await repairIfNeeded(Number(record.id), output as unknown as { [key: string]: unknown } & PropertyDataModel, mls_data);
-
-    Object.keys(property).forEach(key => {
-      if (property[key]) {
-        output = {
-          ...output,
-          ...repaired,
-          [key]: property[key],
-        };
-      }
-    });
-    mls_data &&
-      mls_data !== null &&
-      Object.keys(mls_data).forEach(key => {
-        if (mls_data[key]) {
-          switch (key) {
-            case 'photos':
-              if (mls_data[key].length > 0) {
-                const photos = mls_data[key] as string[];
+      Object.keys(property).forEach(key => {
+        if (record[key]) {
+          output = {
+            ...output,
+            ...repaired,
+            [key]: record[key],
+          };
+        }
+      });
+      mls_data &&
+        mls_data !== null &&
+        Object.keys(mls_data).forEach(key => {
+          if (mls_data[key]) {
+            switch (key) {
+              case 'photos':
+                if (mls_data[key].length > 0) {
+                  const photos = mls_data[key] as string[];
+                  output = {
+                    ...output,
+                    thumbnail: `${process.env.NEXT_APP_IM_ENG}/w_720/${photos[0]}`,
+                    photos: photos.slice(1).map(photo_url => {
+                      return getImageSized(photo_url, 999);
+                    }),
+                  };
+                }
+                break;
+              case 'Address':
+              case 'Status':
+              case 'Remarks':
                 output = {
                   ...output,
-                  thumbnail: `${process.env.NEXT_APP_IM_ENG}/w_720/${photos[0]}`,
-                  photos: photos.slice(1).map(photo_url => {
-                    return getImageSized(photo_url, 999);
-                  }),
+                  [key.toLowerCase()]: capitalizeFirstLetter(mls_data[key].toLowerCase()),
                 };
-              }
-              break;
-            case 'Address':
-            case 'Status':
-            case 'Remarks':
-              output = {
-                ...output,
-                [key.toLowerCase()]: capitalizeFirstLetter(mls_data[key].toLowerCase()),
-              };
-              break;
-            case 'L_PublicRemakrs':
-              output = {
-                ...output,
-                description: capitalizeFirstLetter(mls_data[key].toLowerCase()),
-              };
-              break;
-            case 'L_TotalBaths':
-              output = {
-                ...output,
-                baths: Number(mls_data[key]),
-              };
-              break;
-            case 'B_Style':
-              output = {
-                ...output,
-                style: mls_data[key],
-                [key]: mls_data[key],
-              };
-              break;
-            case 'LandTitle':
-              output = {
-                ...output,
-                land_title: mls_data[key],
-                [key]: mls_data[key],
-              };
-              break;
-            default:
-              legacy_data = {
-                ...legacy_data,
-                [key]: mls_data[key] !== null ? mls_data[key] : undefined,
-              };
-              break;
+                break;
+              case 'L_PublicRemakrs':
+                output = {
+                  ...output,
+                  description: capitalizeFirstLetter(mls_data[key].toLowerCase()),
+                };
+                break;
+              case 'L_TotalBaths':
+                output = {
+                  ...output,
+                  baths: Number(mls_data[key]),
+                };
+                break;
+              case 'B_Style':
+                output = {
+                  ...output,
+                  style: mls_data[key],
+                  [key]: mls_data[key],
+                };
+                break;
+              case 'LandTitle':
+                output = {
+                  ...output,
+                  land_title: mls_data[key],
+                  [key]: mls_data[key],
+                };
+                break;
+              case 'LFD_ServicesConnected_7':
+                output = {
+                  ...output,
+                  connected_services: mls_data[key],
+                  [key]: mls_data[key],
+                };
+                break;
+              default:
+                legacy_data = {
+                  ...legacy_data,
+                  [key]: mls_data[key] !== null ? mls_data[key] : undefined,
+                };
+                break;
+            }
           }
-        }
-      });
+        });
 
-    if (output && output.id) {
-      const config: S3ClientConfig = {
-        region: 'us-west-2',
-        credentials: {
-          accessKeyId: process.env.NEXT_APP_UPLOADER_KEY_ID as string,
-          secretAccessKey: process.env.NEXT_APP_UPLOAD_SECRET_KEY as string,
-        },
-      };
-      const client = new S3Client(config);
+      if (output && output.id) {
+        const config: S3ClientConfig = {
+          region: 'us-west-2',
+          credentials: {
+            accessKeyId: process.env.NEXT_APP_UPLOADER_KEY_ID as string,
+            secretAccessKey: process.env.NEXT_APP_UPLOAD_SECRET_KEY as string,
+          },
+        };
+        const client = new S3Client(config);
 
-      const { property_photo_album, real_estate_board, ...data } = output;
-      const { neighbours, sold_history } = await getNeighboursAndHistory(
-        mls_data.PropertyType,
-        mls_data.AddressNumber,
-        mls_data.AddressStreet,
-        data.title as string,
-        data.postal_zip_code as string,
-        legacy_data.Province_State as string,
-      );
+        const { property_photo_album, real_estate_board, ...data } = output;
+        const { neighbours, sold_history } = await getNeighboursAndHistory(
+          mls_data.PropertyType,
+          mls_data.AddressNumber,
+          mls_data.AddressStreet,
+          data.title as string,
+          data.postal_zip_code as string,
+          legacy_data.Province_State as string,
+        );
 
-      const {
-        data: {
-          id: real_estate_board_id,
-          attributes: { name: real_estate_board_name, legal_disclaimer },
-        },
-      } = real_estate_board as unknown as {
-        data: {
-          id: number;
-          attributes: {
-            [key: string]: string;
+        const {
+          data: {
+            id: real_estate_board_id,
+            attributes: { name: real_estate_board_name, legal_disclaimer },
+          },
+        } = real_estate_board as unknown as {
+          data: {
+            id: number;
+            attributes: {
+              [key: string]: string;
+            };
           };
         };
-      };
 
-      const filepath = `listings/${output.mls_id}/${slugifyAddressRecord(data.title as string, output.id as number)}.json`;
-      const mls_filepath = `listings/${output.mls_id}/recent.json`;
-      const mls_filepath_ts = `listings/${output.mls_id}/${new Date().getFullYear()}-${new Date().getMonth() + 1}/${Date.now()}.json`;
-      const legacy_filepath = `listings/${output.mls_id}/legacy.json`;
-      const Bucket = process.env.NEXT_APP_S3_PAGES_BUCKET as string;
-      let Body = JSON.stringify(
-        {
-          ...data,
-          real_estate_board: {
-            id: real_estate_board_id,
-            name: real_estate_board_name,
-            legal_disclaimer,
+        const filepath = `listings/${output.mls_id}/${slugifyAddressRecord(data.title as string, output.id as number)}.json`;
+        const mls_filepath = `listings/${output.mls_id}/recent.json`;
+        const mls_filepath_ts = `listings/${output.mls_id}/${new Date().getFullYear()}-${new Date().getMonth() + 1}/${Date.now()}.json`;
+        const legacy_filepath = `listings/${output.mls_id}/legacy.json`;
+        const Bucket = process.env.NEXT_APP_S3_PAGES_BUCKET as string;
+        let Body = JSON.stringify(
+          {
+            ...data,
+            real_estate_board: {
+              id: real_estate_board_id,
+              name: real_estate_board_name,
+              legal_disclaimer,
+            },
+            neighbours: [],
+            sold_history: [],
+            slug: slugifyAddress(data.title as string),
           },
-          neighbours: [],
-          sold_history: [],
-          slug: slugifyAddress(data.title as string),
-        },
-        null,
-        4,
-      );
-      let command = new PutObjectCommand({
-        Bucket,
-        Key: filepath,
-        ContentType: 'text/json',
-        Body,
-      });
-      client.send(command).then(console.log);
+          null,
+          4,
+        );
+        let command = new PutObjectCommand({
+          Bucket,
+          Key: filepath,
+          ContentType: 'text/json',
+          Body,
+        });
+        client.send(command).then(console.log);
 
-      command = new PutObjectCommand({
-        Bucket,
-        Key: mls_filepath,
-        ContentType: 'text/json',
-        Body,
-      });
-      client.send(command).then(console.log);
+        command = new PutObjectCommand({
+          Bucket,
+          Key: mls_filepath,
+          ContentType: 'text/json',
+          Body,
+        });
+        client.send(command).then(console.log);
 
-      command = new PutObjectCommand({
-        Bucket,
-        Key: mls_filepath_ts,
-        ContentType: 'text/json',
-        Body,
-      });
-      client.send(command).then(console.log);
+        command = new PutObjectCommand({
+          Bucket,
+          Key: mls_filepath_ts,
+          ContentType: 'text/json',
+          Body,
+        });
+        client.send(command).then(console.log);
 
-      Body = JSON.stringify(
-        {
-          ...legacy_data,
-          real_estate_board: {
-            id: real_estate_board_id,
-            name: real_estate_board_name,
-            legal_disclaimer,
+        Body = JSON.stringify(
+          {
+            ...legacy_data,
+            real_estate_board: {
+              id: real_estate_board_id,
+              name: real_estate_board_name,
+              legal_disclaimer,
+            },
+            slug: slugifyAddress(data.title as string),
           },
-          slug: slugifyAddress(data.title as string),
-        },
-        null,
-        4,
-      );
-      command = new PutObjectCommand({
-        Bucket,
-        Key: legacy_filepath,
-        ContentType: 'text/json',
-        Body,
-      });
-      client.send(command).then(console.log);
+          null,
+          4,
+        );
+        command = new PutObjectCommand({
+          Bucket,
+          Key: legacy_filepath,
+          ContentType: 'text/json',
+          Body,
+        });
+        client.send(command).then(console.log);
 
-      invalidateCache([`/${filepath}`, `/${mls_filepath}`, `/${mls_filepath_ts}`, `/${legacy_filepath}`]);
-      // if (real_estate_board?.attributes.name && xhr?.data?.data?.property) {
-      // }
+        invalidateCache([`/${filepath}`, `/${mls_filepath}`, `/${mls_filepath_ts}`, `/${legacy_filepath}`]);
+        // if (real_estate_board?.attributes.name && xhr?.data?.data?.property) {
+        // }
+      }
+
+      return getResponse(
+        {
+          id: record.id,
+          property: {
+            ...output,
+            mls_data: legacy_data,
+          },
+        },
+        200,
+      );
     }
-
+    return getResponse(results?.data || {}, 200);
+  } catch (e) {
+    const axerr = e as AxiosError;
+    console.log('axerr error');
+    console.log(axerr);
+    console.log('end axerr error');
     return getResponse(
       {
-        id: record.id,
-        property: {
-          ...output,
-          mls_data: legacy_data,
-        },
+        message: axerr.message,
+        code: axerr.code,
       },
-      200,
+      400,
     );
   }
-  return getResponse(results?.data || {}, 200);
 }
 
 export function invalidateCache(Items: string[]) {

@@ -1,5 +1,5 @@
 import { HTMLNode } from '@/_typings/elements';
-import { MLSProperty } from '@/_typings/property';
+import { MLSProperty, PropertyDataModel } from '@/_typings/property';
 import {
   general_stats,
   financial_stats,
@@ -25,7 +25,7 @@ export function RexifyStatBlock({
   groupName,
 }: {
   node: Element;
-  record: MLSProperty;
+  record: PropertyDataModel;
   groupName: 'propinfo' | 'financial' | 'dimensions' | 'construction';
 }) {
   let stat_keys = general_stats;
@@ -70,13 +70,15 @@ export function RexifyStatBlock({
 
               if (groupName === 'financial') {
                 switch (key) {
-                  case 'L_GrossTaxes':
-                    value = combineAndFormatValues({
-                      L_GrossTaxes: record.L_GrossTaxes,
-                      ForTaxYear: record.ForTaxYear,
-                    });
+                  case 'gross_taxes':
+                    value = combineAndFormatValues(record as unknown as Record<string, string | number>, 'gross_taxes', 'tax_year');
                     break;
                 }
+              }
+
+              if (groupName === 'construction') {
+                console.log({ stat_keys });
+                console.log(groupName, 'stat:', key, value);
               }
 
               return value ? (

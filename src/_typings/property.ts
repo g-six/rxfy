@@ -126,6 +126,7 @@ export interface BasePropertyDataModel {
   exterior_finish?: string;
   other_information?: string;
   complex_compound_name?: string;
+  construction_information?: string;
   floor_area_total?: number;
   floor_area_basement?: number;
   floor_area_unfinished?: number;
@@ -407,6 +408,7 @@ export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
                 floor_area_basement
                 floor_area_unfinished
                 floor_area_upper_floors
+                construction_information
 `;
 
 export interface PropertyPageData extends PropertyDataModel {

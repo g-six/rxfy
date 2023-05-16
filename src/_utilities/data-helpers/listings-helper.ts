@@ -3,6 +3,7 @@ import { BathroomDetails, MLSProperty, PropertyDataModel, RoomDetails } from '@/
 import {
   combineBalconyData,
   combineComplexCompoundName,
+  combineConstructionData,
   combineDeckData,
   combineDishwasherData,
   combineExteriorFinishData,
@@ -39,6 +40,7 @@ export function getCombinedData({ id, attributes }: { id?: number; attributes: P
       const val = attributes.mls_data[key] as string[];
       values = combineBalconyData(values, key, val);
       values = combineComplexCompoundName(values, key, val);
+      values = combineConstructionData(values, key, val);
       values = combineDeckData(values, key, val);
       values = combineDishwasherData(values, key, val);
       values = combineExteriorFinishData(values, key, val);

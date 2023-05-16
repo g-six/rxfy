@@ -90,7 +90,7 @@ export function combineDishwasherData(attributes: PropertyDataModel, key: string
   if (attributes.has_dishwasher || !val) return attributes;
 
   return Array.isArray(val) &&
-    val.filter(dish_str => `${dish_str}`.toLowerCase().indexOf('dishwasher') >= 0).length &&
+    val.filter(dish_str => `${dish_str}`.toLowerCase().indexOf('dishwasher') >= 0 || `${dish_str}`.toLowerCase().split('/').includes('dw')).length &&
     ['L_Features', 'LFD_FeaturesIncluded_55', 'L_Appliances'].includes(key)
     ? {
         ...attributes,
@@ -381,6 +381,27 @@ export function combineFloorageAreaData(attributes: PropertyDataModel, key: stri
   }
   return attributes;
 }
+
+/**
+ *
+ * @param attributes PropertyDataModel
+ * @param key
+ * @param val
+ * @returns PropertyDataModel
+ */
+export function combineConstructionData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
+  let construction_information = attributes.construction_information || '';
+  if (key.indexOf('Construction') >= 0 && val) {
+    construction_information = construction_information ? construction_information + ' / ' : '';
+    construction_information = `${construction_information}${val.join(' / ')}`;
+    return {
+      ...attributes,
+      construction_information,
+    };
+  }
+  return attributes;
+}
+
 /**
  *
  * @param attributes PropertyDataModel

@@ -142,7 +142,7 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
     $('.navbar-wrapper-2 > a[href="#"]').attr('href', '/');
     $('.navbar-wrapper-2 > a h3').remove();
     replaceByCheerio($, '.navbar-wrapper-2 > a', {
-      content: `<img class="justify-self-start max-h-10" src="${agent_data.metatags.logo_for_light_bg}" />`,
+      content: `<img class="justify-self-start h-10" src="${agent_data.metatags.logo_for_light_bg}" />`,
     });
   }
 }
@@ -613,15 +613,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         if (property && Object.keys(property).length) {
           const record = property as unknown as MLSProperty;
           if (node.attribs && node.attribs.class) {
-            // Property images
-            if (node.attribs.class === 'section---top-images') {
-              return (
-                <section className={node.attribs.class}>
-                  <RxPropertyCarousel photos={(record.photos || []) as string[]}>{domToReact(node.children)}</RxPropertyCarousel>
-                </section>
-              );
-            }
-
             // Property action buttons (PDF, Share links, etc)
             if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS) >= 0) {
               return (
@@ -633,7 +624,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
 
             // Grouped data table sections
             // Property Information, Financial, Dimensions, Construction
-            const p = record as unknown as PropertyDataModel;
+            const p = property as unknown as PropertyDataModel;
 
             if (node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_MAIN_ATTRIBUTES) >= 0) {
               const values = {
@@ -654,10 +645,10 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
                   {domToReact(node.children) as ReactElement[]}
                 </RxSimilarListings>
               );
-            } else if (node.attribs.class.indexOf('propinfo') >= 0) return <RexifyStatBlock node={node} record={record} groupName='propinfo' />;
-            else if (node.attribs.class.indexOf('financial') >= 0) return <RexifyStatBlock node={node} record={record} groupName='financial' />;
-            else if (node.attribs.class.indexOf('dimensions') >= 0) return <RexifyStatBlock node={node} record={record} groupName='dimensions' />;
-            else if (node.attribs.class.indexOf('construction') >= 0) return <RexifyStatBlock node={node} record={record} groupName='construction' />;
+            } else if (node.attribs.class.indexOf('propinfo') >= 0) return <RexifyStatBlock node={node} record={p} groupName='propinfo' />;
+            else if (node.attribs.class.indexOf('financial') >= 0) return <RexifyStatBlock node={node} record={p} groupName='financial' />;
+            else if (node.attribs.class.indexOf('dimensions') >= 0) return <RexifyStatBlock node={node} record={p} groupName='dimensions' />;
+            else if (node.attribs.class.indexOf('construction') >= 0) return <RexifyStatBlock node={node} record={p} groupName='construction' />;
             else if (node.attribs.class.indexOf('div-features-block') >= 0) {
               return <RexifyPropertyFeatureBlock node={node} record={record} />;
             } else if (node.lastChild && (node.lastChild as HTMLNode).attribs && (node.lastChild as HTMLNode).attribs.class) {
