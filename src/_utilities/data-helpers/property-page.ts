@@ -489,63 +489,6 @@ export async function getRecentListings(agent: AgentData, limit = 3) {
   return properties;
 }
 
-export async function getSimilarHomes(property: MLSProperty, limit = 3): Promise<MLSProperty[]> {
-  if (property.AskingPrice && property.L_BedroomTotal && property.PropertyType) {
-    const filter: {
-      match?: Record<string, string | number>;
-      range?: {};
-    }[] = [
-      {
-        range: {
-          'data.AskingPrice': {
-            gte: property.AskingPrice * 0.85,
-            lte: property.AskingPrice * 1.1,
-          },
-        },
-      },
-      {
-        match: {
-          'data.L_BedroomTotal': property.L_BedroomTotal,
-        },
-      },
-      {
-        match: {
-          'data.PropertyType': property.PropertyType,
-        },
-      },
-    ];
-
-    if (property.Area) {
-      filter.push({ match: { 'data.Area': property.Area } });
-    } else {
-      filter.push({
-        match: {
-          'data.Province_State': property.Province_State as string,
-        },
-      });
-      filter.push({
-        match: {
-          'data.PostalCode_Zip': property.PostalCode_Zip as string,
-        },
-      });
-    }
-
-    return await retrieveFromLegacyPipeline({
-      from: 0,
-      size: limit,
-      sort: { 'data.ListingDate': 'desc' },
-      query: {
-        bool: {
-          filter,
-          must_not: must_not.concat([{ match: { 'data.Address': property.Address } }]),
-          should: [],
-        },
-      },
-    });
-  }
-  return [];
-}
-
 async function upsertPropertyToCMS(mls_data: MLSProperty) {
   const axios: AxiosStatic = (await import('axios')).default;
   try {
