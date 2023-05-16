@@ -16,18 +16,13 @@ import { getCombinedData } from './listings-helper';
 import { getRealEstateBoard } from '@/app/api/real-estate-boards/model';
 
 export const general_stats: Record<string, string> = {
-  L_Age: 'Age',
   age: 'Age',
-  L_YearBuilt: 'Build Year',
   year_built: 'Build Year',
-  L_TotalBaths: 'Total Baths',
   baths: 'Total Baths',
-  L_BedroomTotal: 'Total Bedrooms',
   beds: 'Total Bedrooms',
   L_Features: 'Features',
   B_Amenities: 'Amenities',
   land_title: 'Title to Land',
-  PropertyType: 'Property Type',
   property_type: 'Property Type',
   L_Fireplaces: '# of Fireplaces',
   L_KitchensTotal: '# of Kitchens',
@@ -98,20 +93,18 @@ export const construction_stats: Record<string, string> = {
   B_Exterior_Finish: 'Exterior Finish',
   L_Fireplace_Fuel: 'Fireplace Fueled by',
   LFD_Foundation_155: 'Foundation',
-  B_Roof: 'Roof',
+  roofing: 'Roof',
   L_ComplexName: 'Complex/Subdivision',
   L_NoFloorLevels: 'Floor Levels',
 };
 
 export const dimension_stats: Record<string, string> = {
-  L_Frontage_Feet: 'Frontage',
   frontage_feet: 'Frontage',
-  B_Depth: 'Depth',
   depth: 'Depth',
-  L_FloorArea_Total: 'Total floor area',
   floor_area: 'Total floor area',
   L_FloorArea_Finished_AboveMainFloor: 'Floor Area Fin - Abv Main',
   L_FloorArea_Main: 'Main Floor Area',
+  floor_area_main: 'Main Floor Area',
   L_FloorArea_GrantTotal: 'Floor Area - Grant Total',
 };
 
