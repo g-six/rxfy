@@ -94,6 +94,7 @@ export interface BasePropertyDataModel {
   lot_sqm?: number;
   lot_sqft?: number;
   floor_area?: number;
+  floor_area_main?: number;
   floor_area_uom?: 'Meters' | 'Feet';
   tax_year?: number;
   description?: string;
@@ -115,6 +116,15 @@ export interface BasePropertyDataModel {
   depth?: number;
   strata_fee?: number;
   frontage_feet?: number;
+  frontage_metres?: number;
+  connected_services?: string;
+  hvac_features?: string;
+  other_appliances?: string;
+  safety_security_features?: string;
+  garden_lawn_features?: string;
+  foundation_specs?: string;
+  other_information?: string;
+  complex_compound_name?: string;
 }
 
 export interface PropertyInput extends BasePropertyDataModel {
