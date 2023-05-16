@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { CloudFrontClient, CreateInvalidationCommand } from '@aws-sdk/client-cloudfront';
 import { PutObjectCommand, S3Client, S3ClientConfig } from '@aws-sdk/client-s3';
 import { getResponse } from '../response-helper';
@@ -8,34 +8,60 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { MLSProperty, PropertyDataModel } from '@/_typings/property';
 import { retrieveFromLegacyPipeline } from '@/_utilities/data-helpers/property-page';
 import { getCombinedData } from '@/_utilities/data-helpers/listings-helper';
-const headers = {
-  Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-  'Content-Type': 'application/json',
-};
+import { getLatLonRange } from '@/_helpers/geocoding';
 
 export async function GET(request: Request) {
   const listings: (PropertyDataModel & { photos: string[] })[] = [];
   const url = new URL(request.url);
   const property_type = url.searchParams.get('property_type') as string;
-  const postal_zip_code = url.searchParams.get('postal_zip_code') as string;
+  const lat = url.searchParams.get('lat') as string;
+  const lng = url.searchParams.get('lon') as string;
   const mls_id = url.searchParams.get('mls') as string;
   const beds = url.searchParams.get('beds') as string;
+  const { lat_min, lat_max, lon_min, lon_max } = getLatLonRange(Number(lat), Number(lng), 5);
 
   const legacy_result = await retrieveFromLegacyPipeline({
     query: {
       bool: {
         filter: [
-          { match: { 'data.PropertyType': property_type } },
-          { match: { 'data.L_BedroomTotal': beds } },
-          { match: { 'data.PostalCode_Zip': postal_zip_code } },
+          {
+            range: {
+              'data.lat': {
+                gte: lat_min,
+                lte: lat_max,
+              },
+            },
+          },
+          {
+            range: {
+              'data.lng': {
+                gte: lon_min,
+                lte: lon_max,
+              },
+            },
+          },
           { match: { 'data.Status': 'active' } },
         ],
-        should: [],
+        should: [
+          { match: { 'data.PropertyType': decodeURIComponent(property_type) } },
+          {
+            range: {
+              'data.L_BedroomTotal': {
+                gte: Number(beds) > 3 ? Number(beds) - 1 : Number(beds),
+                lte: Number(beds) > 3 ? Number(beds) + 2 : undefined,
+              },
+            },
+          },
+        ],
         must_not: [{ match: { 'data.MLS_ID': mls_id } }],
       },
     },
     size: 3,
     from: 0,
+  }).catch(e => {
+    const err = e as AxiosError;
+    console.log('error');
+    console.log(err.response?.data);
   });
   if (legacy_result && legacy_result.length) {
     legacy_result.map((hit: MLSProperty) => {
