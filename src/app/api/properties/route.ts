@@ -57,7 +57,7 @@ export async function GET(request: Request) {
         headers,
       },
     );
-    let property;
+    let property: any;
     if (results?.data?.data?.properties?.data?.length === 0 || url.searchParams.get('regen')) {
       const legacy_result = await retrieveFromLegacyPipeline({
         query: { bool: { filter: [{ match: { 'data.MLS_ID': mls_id } }], should: [] } },

@@ -770,17 +770,44 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
       const { name: TagName } = element.parent as { name: string };
       switch (TagName) {
         case 'div':
-          return <div className={className}>{agent_data.phone}</div>;
+          return (
+            <div className={className}>
+              <a href={`tel:${agent_data.phone}`}>{agent_data.phone}</a>
+            </div>
+          );
         default:
-          return <span className={className}>{agent_data.phone}</span>;
+          return (
+            <a className={className} href={`tel:${agent_data.phone}`}>
+              {agent_data.phone}
+            </a>
+          );
       }
     } else if (placeholder === '{Agent Email}') {
       const { name: TagName } = element.parent as { name: string };
       switch (TagName) {
         case 'div':
-          return <div className={className}>{agent_data.email}</div>;
+          return (
+            <div className={className}>
+              <a
+                href={`mailto:${agent_data.email}?subject=${encodeURIComponent('Would like to connect')}&body=${encodeURIComponent(
+                  `Hi ${agent_data.full_name.split(' ')[0]}! Found your Leagent profile and would like to connect`,
+                )}`}
+              >
+                {agent_data.email}
+              </a>
+            </div>
+          );
         default:
-          return <span className={className}>{agent_data.email}</span>;
+          return (
+            <a
+              className={className}
+              href={`mailto:${agent_data.email}?subject=${encodeURIComponent('Would like to connect')}&body=${encodeURIComponent(
+                `Hi ${agent_data.full_name.split(' ')[0]}! Found your Leagent profile and would like to connect`,
+              )}`}
+            >
+              {agent_data.email}
+            </a>
+          );
       }
     }
   }
