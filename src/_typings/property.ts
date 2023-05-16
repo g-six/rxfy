@@ -138,6 +138,7 @@ export interface PropertyDataModel extends BasePropertyDataModel {
       };
     };
   };
+  photos?: string[]; // to remove
 }
 
 export interface MLSProperty extends Record<string, string | number | boolean | string[]> {
@@ -145,6 +146,7 @@ export interface MLSProperty extends Record<string, string | number | boolean | 
   lng: number;
   Address: string;
   AddressUnit: string;
+  PostalCode_Zip: string;
   Area: string;
   AskingPrice: number;
   B_ServicesConnected: string[];
