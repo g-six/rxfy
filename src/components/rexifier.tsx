@@ -48,7 +48,6 @@ import RxContactFormButton from './RxForms/RxContactFormButton';
 import RxStatsGridWithIcons from './RxProperty/RxStatsGridWithIcons';
 import RxGenericLabeledValueBlock from './_generics/RxGenericLabeledValueBlock';
 import RxSimilarListings from './RxProperty/RxSimilarListings';
-// import RxSearchForm from './RxForms/RxSearchForm';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -293,27 +292,17 @@ export function replaceInlineScripts($: CheerioAPI) {
 
 function appendJs(url: string) {
   return `
-  var count_badge = 0
-  var js = document.createElement('script');
-  js.src = "${url}";
-  js.type = "text/javascript";
-  
-  setTimeout(() => {
-    document.body.appendChild(js)
-  }, 800)
-
-  setTimeout(() => {
-    const badge_interval = setInterval(() => {
-      const badge = document.querySelector('.w-webflow-badge');
-      if (badge) {
-        badge.remove();
-        console.log('badge found and removed');
-        count_badge++;
-      }
-      if (count_badge > 3)
-        clearInterval(badge_interval);
-    }, 200)
-  }, 1200)`;
+    fetch('${url}').then((response) => {
+      response.text().then(script_txt => {
+        var js = document.createElement('script');
+        js.type = 'text/javascript';
+        js.text = script_txt.split('w-webflow-badge').join('oh-no-you-dont hidden');
+        setTimeout(() => {
+          document.body.appendChild(js)
+        }, 800)
+      })
+    })
+  `;
 }
 export function replaceFormsWithDiv($: CheerioAPI) {}
 
@@ -443,10 +432,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         if (node.attribs.class) {
           ///// HOME PAGE
 
-          // if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.HOME_SEARCH_WRAPPER) >= 0) {
-          //   return <RxSearchForm className={props.className}>{domToReact(node.children) as ReactElement}</RxSearchForm>;
-          // }
-
           if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CTA_CONTACT_FORM) >= 0) {
             return <RxContactFormButton className={node.attribs.class}>{domToReact(node.children) as ReactElement[]}</RxContactFormButton>;
           }
@@ -456,11 +441,11 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           //     <RxContactForm agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />
           //   );
           // }
-          // if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.FOOTER_SOCIAL_LINKS) >= 0) {
-          //   return (
-          //     <FooterSocialLinks agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />
-          //   );
-          // }
+          if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.FOOTER_SOCIAL_LINKS) >= 0) {
+            return (
+              <FooterSocialLinks agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />
+            );
+          }
 
           ///// END OF HOME PAGE
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.MY_ACCOUNT_WRAPPER)) {
