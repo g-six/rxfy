@@ -141,13 +141,9 @@ export async function GET(request: Request) {
         id: Number(id),
       };
     }
-    console.log('property next');
-    console.log('property next');
-    console.log(property);
-    console.log('property next');
-    console.log('property next');
     if (property) {
       const { mls_data, ...record } = property;
+
       let output: {
         [key: string]: string | number | boolean | string[] | Date;
       } = {
@@ -249,6 +245,7 @@ export async function GET(request: Request) {
         const client = new S3Client(config);
 
         const { property_photo_album, real_estate_board, ...data } = output;
+
         const { neighbours, sold_history } = await getNeighboursAndHistory(
           mls_data.PropertyType,
           mls_data.AddressNumber,
@@ -257,7 +254,10 @@ export async function GET(request: Request) {
           data.postal_zip_code as string,
           legacy_data.Province_State as string,
         );
-
+        if (!(real_estate_board as { data?: { id?: number } }).data?.id) {
+          const reb = getRealEstateBoard(data.mls_data as unknown as any);
+          console.log('real_estate_board', JSON.stringify(reb, null, 4), 'real_estate_board');
+        }
         const {
           data: {
             id: real_estate_board_id,
@@ -344,7 +344,7 @@ export async function GET(request: Request) {
 
       return getResponse(
         {
-          id: record.id,
+          id: property.id,
           property: {
             ...output,
             mls_data: legacy_data,

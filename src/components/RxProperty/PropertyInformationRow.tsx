@@ -76,11 +76,6 @@ export function RexifyStatBlock({
                 }
               }
 
-              if (groupName === 'construction') {
-                console.log({ stat_keys });
-                console.log(groupName, 'stat:', key, value);
-              }
-
               return value ? (
                 <PropertyInformationRow
                   key={key}

@@ -88,14 +88,16 @@ function RxComponentChomper({ config, children }: any): any {
       } else if (child.type !== 'img') {
         //heart-full
         if (RxElement.props.className === 'propcard-image') {
+          console.log('config.photos', config.photos);
           return React.cloneElement(child, {
             ...RxElement.props,
             className: [RxElement.props.className, config.onClickItem ? 'cursor-pointer' : ''].join(' ').trim(),
-            style: config.photos
-              ? {
-                  backgroundImage: `url(${getImageSized((config.photos as string[])[0], 540)})`,
-                }
-              : {},
+            style:
+              config.photos && config.photos.length > 0
+                ? {
+                    backgroundImage: `url(${getImageSized((config.photos as string[])[0], 540)})`,
+                  }
+                : {},
             onClick: () => {
               if (config.onClickItem) {
                 config.onClickItem();
