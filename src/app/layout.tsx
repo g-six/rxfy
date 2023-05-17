@@ -108,12 +108,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 `${replaceMetaTags(webflow.head.code, agent_data, property)} <script>${initializePlacesAutocomplete({
                   apiKey: NEXT_APP_GGL_API_KEY || '',
                 })}</script>`,
-                `<script type="text/javascript" defer src="https://maps.googleapis.com/maps/api/js?key=${NEXT_APP_GGL_API_KEY}&libraries=places,localContext&v=beta&callback=initializePlacesAutocomplete"></script>`,
-                !cache_found && searchParams.mls
-                  ? `<script>setTimeout(() => {
-                  fetch("/api/properties?mls_id=${searchParams.mls}").then(console.log)
-                }, 10000)</script>`
-                  : '',
               ].join(`
               
               `),
