@@ -254,23 +254,25 @@ export async function GET(request: Request) {
           data.postal_zip_code as string,
           legacy_data.Province_State as string,
         );
+        let real_estate_board_id, real_estate_board_name, legal_disclaimer;
         if (!(real_estate_board as { data?: { id?: number } }).data?.id) {
-          const reb = getRealEstateBoard(data.mls_data as unknown as any);
-          console.log('real_estate_board', JSON.stringify(reb, null, 4), 'real_estate_board');
-        }
-        const {
-          data: {
-            id: real_estate_board_id,
-            attributes: { name: real_estate_board_name, legal_disclaimer },
-          },
-        } = real_estate_board as unknown as {
-          data: {
-            id: number;
-            attributes: {
-              [key: string]: string;
+          const reb = await getRealEstateBoard(data.mls_data as unknown as any);
+          real_estate_board_id = reb.id;
+          real_estate_board_name = reb.name;
+          legal_disclaimer = reb.legal_disclaimer;
+        } else {
+          const { data: reb } = real_estate_board as unknown as {
+            data: {
+              id: number;
+              attributes: {
+                [key: string]: string;
+              };
             };
           };
-        };
+          real_estate_board_id = Number(reb.id);
+          real_estate_board_name = reb.attributes.name;
+          legal_disclaimer = reb.attributes.legal_disclaimer;
+        }
 
         const filepath = `listings/${output.mls_id}/${slugifyAddressRecord(data.title as string, output.id as number)}.json`;
         const mls_filepath = `listings/${output.mls_id}/recent.json`;
