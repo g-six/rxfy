@@ -55,9 +55,9 @@ export function useMapMultiUpdater() {
   }
   const update = React.useCallback(
     (map_state: MapStatePropsWithFilters, updates: { [key: string]: string | number | boolean | string[] | Date }) => {
-      return setState(() => {
+      return setState((prev: MapStatePropsWithFilters) => {
         return {
-          ...map_state,
+          ...prev,
           ...updates,
         };
       });
@@ -107,60 +107,16 @@ export const MapProvider = (props: any) => {
   };
 
   const initializeFilters = () => {
-    if (search.get('baths')) {
-      let value = Number(search.get('baths'));
-      if (!isNaN(value)) {
-        init.baths = value;
+    const keys = ['baths', 'beds', 'minprice', 'maxprice', 'minsqft', 'maxsqft', 'swlat', 'swlng', 'nelat', 'nelng', 'city'];
+    keys.forEach(key => {
+      if (search.get(key)) {
+        let value = Number(search.get(key));
+        if (!isNaN(value)) {
+          init[key] = value;
+        }
       }
-    }
-    if (search.get('beds')) {
-      let value = Number(search.get('beds'));
-      if (!isNaN(value)) init.beds = value;
-    }
-    if (search.get('minprice')) {
-      let value = Number(search.get('minprice'));
-      if (!isNaN(value)) init.minprice = value;
-    }
-    if (search.get('maxprice')) {
-      let value = Number(search.get('maxprice'));
-      if (!isNaN(value)) init.maxprice = value;
-    }
-    if (search.get('minsqft')) {
-      let value = Number(search.get('minsqft'));
-      if (!isNaN(value)) init.minsqft = value;
-    }
-    if (search.get('maxsqft')) {
-      let value = Number(search.get('maxsqft'));
-      if (!isNaN(value)) init.maxsqft = value;
-    }
-    if (search.get('lat')) {
-      let value = Number(search.get('lat'));
-      if (!isNaN(value)) init.lat = value;
-    }
-    if (search.get('lng')) {
-      let value = Number(search.get('lng'));
-      if (!isNaN(value)) init.lng = value;
-    }
-    if (search.get('swlat')) {
-      let value = Number(search.get('swlat'));
-      if (!isNaN(value)) init.swlat = value;
-    }
-    if (search.get('swlng')) {
-      let value = Number(search.get('swlng'));
-      if (!isNaN(value)) init.swlng = value;
-    }
-    if (search.get('nelat')) {
-      let value = Number(search.get('nelat'));
-      if (!isNaN(value)) init.nelat = value;
-    }
-    if (search.get('nelng')) {
-      let value = Number(search.get('nelng'));
-      if (!isNaN(value)) init.nelng = value;
-    }
-    if (search.get('city')) {
-      let value = search.get('city') as string;
-      init.city = value;
-    }
+    });
+
     if (search.get('types')) {
       let value: string[] = (search.get('types') as string).split('%2F');
       init.types = value;
