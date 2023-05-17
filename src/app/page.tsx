@@ -114,7 +114,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
       // Sold listings
       if (listings?.sold?.length) {
-        fillPropertyGrid($, listings.sold, '.sold-listings-grid');
+        // fillPropertyGrid($, listings.sold, '.sold-listings-grid');
       } else {
         removeSection($, '.sold-listings-grid');
       }
