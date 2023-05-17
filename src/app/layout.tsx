@@ -125,11 +125,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 }),
               }}
             ></script>
-            {/* <script
-              type='text/javascript'
-              defer
-              src={`https://maps.googleapis.com/maps/api/js?key=${NEXT_APP_GGL_API_KEY}&libraries=places,localContext&v=beta&callback=initializePlacesAutocomplete`}
-            ></script> */}
             <script
               type='text/javascript'
               dangerouslySetInnerHTML={{
