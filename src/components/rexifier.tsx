@@ -297,13 +297,11 @@ function appendJs(url: string) {
   var js = document.createElement('script');
   js.src = "${url}";
   js.type = "text/javascript";
-  if (location.pathname === '/') {
+  
+  setTimeout(() => {
     document.body.appendChild(js)
-  } else {
-    setTimeout(() => {
-      document.body.appendChild(js)
-    }, 800)
-  }
+  }, 800)
+
   setTimeout(() => {
     const badge_interval = setInterval(() => {
       const badge = document.querySelector('.w-webflow-badge');
@@ -449,9 +447,9 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           //   return <RxSearchForm className={props.className}>{domToReact(node.children) as ReactElement}</RxSearchForm>;
           // }
 
-          // if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CTA_CONTACT_FORM) >= 0) {
-          //   return <RxContactFormButton className={node.attribs.class}>{domToReact(node.children) as ReactElement[]}</RxContactFormButton>;
-          // }
+          if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CTA_CONTACT_FORM) >= 0) {
+            return <RxContactFormButton className={node.attribs.class}>{domToReact(node.children) as ReactElement[]}</RxContactFormButton>;
+          }
 
           // if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CONTACT_FORM) >= 0) {
           //   return (
