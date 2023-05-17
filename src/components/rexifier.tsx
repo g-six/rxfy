@@ -290,7 +290,7 @@ export function replaceInlineScripts($: CheerioAPI) {
   });
 }
 
-function appendJs(url: string) {
+export function appendJs(url: string) {
   return `
     fetch('${url}').then((response) => {
       response.text().then(script_txt => {
@@ -299,7 +299,7 @@ function appendJs(url: string) {
         js.text = script_txt.split('w-webflow-badge').join('oh-no-you-dont hidden').split('window.alert').join('console.log');
         setTimeout(() => {
           document.body.appendChild(js)
-        }, 800)
+        }, 2800)
       })
     })
   `;

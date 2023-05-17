@@ -11,6 +11,7 @@ import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getPrivatePropertyData, getPropertyData } from '@/_utilities/data-helpers/property-page';
 import { replaceMetaTags } from '@/_helpers/head-manipulations';
 import initializePlacesAutocomplete from '@/components/Scripts/places-autocomplete';
+import { appendJs } from '@/components/rexifier';
 
 const skip_pathnames = ['/favicon.ico'];
 
@@ -116,19 +117,27 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <body {...body_props} className={bodyClassName} suppressHydrationWarning>
             {children}
             {requestUrl.pathname === '/map' ? <Script src='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js' async /> : <></>}
-            {/* <script
+            <script
               type='text/javascript'
               dangerouslySetInnerHTML={{
                 __html: initializePlacesAutocomplete({
                   apiKey: NEXT_APP_GGL_API_KEY || '',
                 }),
               }}
-            ></script> */}
+            ></script>
             {/* <script
               type='text/javascript'
               defer
               src={`https://maps.googleapis.com/maps/api/js?key=${NEXT_APP_GGL_API_KEY}&libraries=places,localContext&v=beta&callback=initializePlacesAutocomplete`}
             ></script> */}
+            <script
+              type='text/javascript'
+              dangerouslySetInnerHTML={{
+                __html: appendJs(
+                  `https://maps.googleapis.com/maps/api/js?key=${NEXT_APP_GGL_API_KEY}&libraries=places,localContext&v=beta&callback=initializePlacesAutocomplete`,
+                ),
+              }}
+            ></script>
           </body>
         ) : (
           <body>{children}</body>
