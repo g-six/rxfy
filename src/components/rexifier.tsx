@@ -296,7 +296,7 @@ function appendJs(url: string) {
       response.text().then(script_txt => {
         var js = document.createElement('script');
         js.type = 'text/javascript';
-        js.text = script_txt.split('w-webflow-badge').join('oh-no-you-dont hidden');
+        js.text = script_txt.split('w-webflow-badge').join('oh-no-you-dont hidden').split('alert(').join('console.log('));
         setTimeout(() => {
           document.body.appendChild(js)
         }, 800)
