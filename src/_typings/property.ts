@@ -58,6 +58,7 @@ export interface BasePropertyDataModel {
   title: string;
   area: string;
   asking_price: number;
+  state_province?: string;
   city: string;
   mls_id: string;
   property_type: string;
@@ -168,6 +169,7 @@ export interface MLSProperty extends Record<string, string | number | boolean | 
   B_ServicesConnected: string[];
   CDOM: number;
   City: string;
+  Province_State: string;
   ForTaxYear: number;
   LandTitle: string;
   ListingDate: string;
@@ -336,6 +338,8 @@ export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
                 mls_id
                 area
                 city
+                postal_zip_code
+                state_province
                 price_per_sqft
                 property_type
                 asking_price
@@ -353,7 +357,6 @@ export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
                 has_balcony
                 has_fenced_yard
                 garage
-                postal_zip_code
                 style_type
                 status
                 has_storage

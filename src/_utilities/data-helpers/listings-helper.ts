@@ -64,6 +64,7 @@ export function getCombinedData({ id, attributes }: { id?: number; attributes: P
       values = combineOtherInformation(values, key, val);
       values = setStyleType(values, key, val);
     });
+
   if (!values.gross_taxes && attributes.mls_data.L_GrossTaxes) {
     const gross_taxes = Number(attributes.mls_data.L_GrossTaxes);
     values.gross_taxes = isNaN(gross_taxes) ? undefined : gross_taxes;
@@ -74,6 +75,7 @@ export function getCombinedData({ id, attributes }: { id?: number; attributes: P
   if (!values.status) values.status = attributes.mls_data.Status as 'Active' | 'Expired' | 'Sold';
   if (!values.area) values.area = attributes.mls_data.Area as string;
   if (!values.city) values.city = attributes.mls_data.City as string;
+  if (!values.state_province) values.state_province = attributes.mls_data.Province_State as string;
   if (!values.postal_zip_code) values.postal_zip_code = attributes.mls_data.PostalCode_Zip as string;
   if (!values.lon) values.lon = Number(attributes.mls_data.lng);
   if (!values.lot_sqm && attributes.mls_data.L_LotSize_SqMtrs) values.lot_sqm = Number(attributes.mls_data.L_LotSize_SqMtrs);
