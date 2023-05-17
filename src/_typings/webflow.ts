@@ -29,6 +29,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   AGENT_ID_INPUT = 'txt-agentid',
   PROPERTY_MAIN_ATTRIBUTES = 'bedbath-stat-block',
   SIMILAR_LISTINGS = 'similar-homes-grid',
+  HOME_SEARCH_WRAPPER = 'section---search',
 }
 
 export interface WebFlow {
