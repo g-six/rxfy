@@ -99,8 +99,6 @@ export async function GET(request: Request) {
             id: Number(data.id),
           };
 
-          console.log({ property });
-
           if (!property.property_photo_album?.data?.photos?.length && hit.photos && Array.isArray(hit.photos)) {
             const album_results = await axios.post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getMutationForPhotoAlbumCreation(property.id, hit.photos), {
               headers: {
