@@ -25,7 +25,6 @@ import { RxUserSessionLink } from './Nav/RxUserSessionLink';
 import { RexifyStatBlock } from './RxProperty/PropertyInformationRow';
 import RxPdfWrapper from '@/components/RxProperty/RxPropertyPdf/RxPdfWrapper';
 import { RexifyPropertyFeatureBlock } from './RxProperty/PropertyFeatureSection';
-import RxPropertyCarousel from './RxProperty/RxPropertyCarousel';
 import RxPropertyTopStats from './RxProperty/RxPropertyTopStats';
 
 // TODO: should RxPropertyMap be under "full-pages"?
@@ -49,6 +48,7 @@ import RxContactFormButton from './RxForms/RxContactFormButton';
 import RxStatsGridWithIcons from './RxProperty/RxStatsGridWithIcons';
 import RxGenericLabeledValueBlock from './_generics/RxGenericLabeledValueBlock';
 import RxSimilarListings from './RxProperty/RxSimilarListings';
+import RxSearchForm from './RxForms/RxSearchForm';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -543,6 +543,10 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             </div>
           );
         }
+
+        // if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.HOME_SEARCH_WRAPPER) >= 0) {
+        //   return <RxSearchForm className={props.className}>{domToReact(node.children) as ReactElement}</RxSearchForm>;
+        // }
 
         if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.HOME_ALERTS_WRAPPER) >= 0) {
           return <HomeAlertsReplacer agent={agent_data} nodeClassName={className} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
