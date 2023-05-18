@@ -1,4 +1,4 @@
-w; /* eslint-disable @next/next/no-sync-scripts */
+/* eslint-disable @next/next/no-sync-scripts */
 /* eslint-disable @next/next/no-img-element */
 import { Children, ReactElement } from 'react';
 import { Cheerio, CheerioAPI } from 'cheerio';

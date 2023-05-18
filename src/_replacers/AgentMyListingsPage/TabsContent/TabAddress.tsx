@@ -25,6 +25,7 @@ export default function TabAddress({ template, nextStepClick }: TabContentProps)
     {
       label: 'Neighbourhood',
       inputProps: {
+        placeholder: 'some placeholder',
         name: 'neighbourhood',
       },
     },
@@ -40,6 +41,7 @@ export default function TabAddress({ template, nextStepClick }: TabContentProps)
         return cloneElement(
           child,
           {},
+
           addressFields.map((field, i) => (
             <InputFilter key={i} inputProps={field.inputProps ?? {}} label={field.label} template={templates.input} value={value} handleChange={handleChange} />
           )),
