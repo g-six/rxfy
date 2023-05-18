@@ -1,5 +1,5 @@
 import { HTMLNode } from '@/_typings/elements';
-import { MLSProperty } from '@/_typings/property';
+import { MLSProperty, PropertyDataModel } from '@/_typings/property';
 import { property_features } from '@/_utilities/data-helpers/property-page';
 import { Element } from 'domhandler';
 import Image from 'next/image';
@@ -13,7 +13,7 @@ export function SinglePropertyFeature(props: Record<string, string>) {
   );
 }
 
-export function RexifyPropertyFeatureBlock({ node, record }: { node: Element; record: MLSProperty }) {
+export function RexifyPropertyFeatureBlock({ node, record }: { node: Element; record: PropertyDataModel | MLSProperty }) {
   if (node instanceof Element && node.attribs) {
     const RowItem = node.children.find(child => {
       const { attribs: wrapper_attribs } = child as {
@@ -24,54 +24,85 @@ export function RexifyPropertyFeatureBlock({ node, record }: { node: Element; re
     }) as HTMLNode | undefined;
     if (node.attribs.class && RowItem) {
       const features: Record<string, string> = {};
-      Object.keys(record)
-        .filter((key: string) => property_features.includes(key))
-        .forEach((key: string) => {
-          const feature = (record[key] as string[]).join(', ');
+      if (record.heating) {
+        features['Heating'] = 'radiator';
+      }
+      if (record.has_balcony) {
+        features['Balcony'] = 'balcony';
+      }
+      if (record.has_deck) {
+        features['Deck'] = 'deck';
+      }
+      if (record.hvac_features && (record.hvac_features as string).toLowerCase().indexOf('air cond') >= 0) {
+        features['Air Conditioning'] = 'air-conditioner';
+      }
+      if (record.has_laundry) {
+        features['Washer/Dryer'] = 'washing-machine';
+      }
+      if (record.has_fridge) {
+        features['Refrigerator'] = 'refrigerator';
+      }
+      if (record.has_stove) {
+        features['Stove'] = 'stove';
+      }
+      if (record.has_dishwasher) {
+        features['Dishwasher'] = 'dish-washer';
+      }
+      if (record.has_patio) {
+        features['Patio'] = 'patio';
+      }
+      if (record.has_storage) {
+        features['Storage'] = 'box';
+      }
 
-          if (feature.toLowerCase().indexOf('air cond') >= 0) {
-            features['Air Conditioning'] = 'air-conditioner';
-          }
-          if (feature.toLowerCase().indexOf('clthwsh/dryr') >= 0) {
-            features['Washer/Dryer'] = 'washing-machine';
-          }
-          if (feature.toLowerCase().indexOf('frdg') >= 0) {
-            features['Refrigerator'] = 'refrigerator';
-          }
-          if (feature.toLowerCase().indexOf('stve') >= 0) {
-            features['Stove'] = 'stove';
-          }
-          if (feature.indexOf('DW') >= 0) {
-            features['Dishwasher'] = 'dish-washer';
-          }
-          if (feature.toLowerCase().indexOf('concrete') >= 0) {
-            features['Concrete'] = 'concrete';
-          }
-          if (feature.toLowerCase().indexOf('balcny') >= 0) {
-            features['Balcony'] = 'balcony';
-          }
-          if (feature.toLowerCase().indexOf('patio') >= 0) {
-            features['Patio'] = 'patio';
-          }
-          if (feature.indexOf('Dck') >= 0) {
-            features['Deck'] = 'deck';
-          }
-          if (feature.toLowerCase().indexOf('torch-on') >= 0) {
-            features['Torch On'] = 'torch';
-          }
-          if (key === 'B_WaterSupply' && feature.toLowerCase().indexOf('city/municipal') >= 0) {
-            features['City/Municipal Water'] = 'city-municipal';
-          }
-          if (feature.indexOf('Park') >= 0) {
-            features['Park'] = 'park';
-          }
-          if (feature.indexOf('storage') >= 0) {
-            features['Storage'] = 'box';
-          }
-          if (feature.indexOf('recreation') >= 0) {
-            features['Recreation Nearby'] = 'park';
-          }
-        });
+      // Object.keys(record)
+      //   .filter((key: string) => property_features.includes(key))
+      //   .forEach((key: string) => {
+      //     const feature = (record[key] as string[]).join(', ');
+
+      //     if (feature.toLowerCase().indexOf('clthwsh/dryr') >= 0) {
+      //       features['Washer/Dryer'] = 'washing-machine';
+      //     }
+      //     if (feature.toLowerCase().indexOf('frdg') >= 0) {
+      //       features['Refrigerator'] = 'refrigerator';
+      //     }
+      //     if (feature.toLowerCase().indexOf('stve') >= 0) {
+      //       features['Stove'] = 'stove';
+      //     }
+      //     if (feature.indexOf('DW') >= 0) {
+      //       features['Dishwasher'] = 'dish-washer';
+      //     }
+      //     if (feature.toLowerCase().indexOf('concrete') >= 0) {
+      //       features['Concrete'] = 'concrete';
+      //     }
+      //     if (feature.toLowerCase().indexOf('balcny') >= 0) {
+      //       features['Balcony'] = 'balcony';
+      //     }
+      //     if (feature.toLowerCase().indexOf('patio') >= 0) {
+      //       features['Patio'] = 'patio';
+      //     }
+      //     if (feature.indexOf('Dck') >= 0) {
+      //       features['Deck'] = 'deck';
+      //     }
+      //     if (feature.toLowerCase().indexOf('torch-on') >= 0) {
+      //       features['Torch On'] = 'torch';
+      //     }
+      //     if (key === 'B_WaterSupply' && feature.toLowerCase().indexOf('city/municipal') >= 0) {
+      //       features['City/Municipal Water'] = 'city-municipal';
+      //     }
+      //     if (feature.indexOf('Park') >= 0) {
+      //       features['Park'] = 'park';
+      //     }
+      //     if (feature.indexOf('storage') >= 0) {
+      //       features['Storage'] = 'box';
+      //     }
+      //     if (feature.indexOf('recreation') >= 0) {
+      //       features['Recreation Nearby'] = 'park';
+      //     }
+      //     if (feature.indexOf('heating') >= 0) {
+      //       features['Heating'] = 'heater';
+      //     }
+      //   });
       return (
         <div className={node.attribs.class}>
           {Object.keys(features)

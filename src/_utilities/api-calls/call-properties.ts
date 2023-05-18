@@ -1,5 +1,6 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { objectToQueryString } from '../url-helper';
 
 /**
  * Retrieves a property by mls_id
@@ -26,4 +27,29 @@ export async function getMLSProperty(mls_id: string) {
   }
 
   return response;
+}
+
+/**
+ * Retrieves a property by mls_id
+ * @returns property data
+ */
+export async function getSimilarProperties(property: { [key: string]: string }) {
+  let filters: Record<string, string> = {};
+  Object.keys(property).forEach(filter => {
+    if (['property_type', 'lat', 'lon', 'beds'].includes(filter)) {
+      filters = {
+        ...filters,
+        [filter]: filter === 'property_type' ? encodeURIComponent(property[filter]) : property[filter],
+      };
+    }
+  });
+  const url = `/api/similar-properties?mls=${property.mls_id}&${objectToQueryString(filters)}`;
+  const response = await axios.get(url, {
+    headers: {
+      Authorization: `Bearer ${Cookies.get('session_key')}`,
+      'Content-Type': 'application/json',
+    },
+  });
+  const { listings } = response.data || { listings: [] };
+  return listings;
 }

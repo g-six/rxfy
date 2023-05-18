@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-sync-scripts */
+w; /* eslint-disable @next/next/no-sync-scripts */
 /* eslint-disable @next/next/no-img-element */
 import { Children, ReactElement } from 'react';
 import { Cheerio, CheerioAPI } from 'cheerio';
@@ -25,7 +25,6 @@ import { RxUserSessionLink } from './Nav/RxUserSessionLink';
 import { RexifyStatBlock } from './RxProperty/PropertyInformationRow';
 import RxPdfWrapper from '@/components/RxProperty/RxPropertyPdf/RxPdfWrapper';
 import { RexifyPropertyFeatureBlock } from './RxProperty/PropertyFeatureSection';
-import RxPropertyCarousel from './RxProperty/RxPropertyCarousel';
 import RxPropertyTopStats from './RxProperty/RxPropertyTopStats';
 
 // TODO: should RxPropertyMap be under "full-pages"?
@@ -49,6 +48,7 @@ import RxContactFormButton from './RxForms/RxContactFormButton';
 import RxStatsGridWithIcons from './RxProperty/RxStatsGridWithIcons';
 import RxGenericLabeledValueBlock from './_generics/RxGenericLabeledValueBlock';
 import RxAgentMyListings from './full-pages/RxAgentMyListings';
+import RxSimilarListings from './RxProperty/RxSimilarListings';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -142,7 +142,7 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
     $('.navbar-wrapper-2 > a[href="#"]').attr('href', '/');
     $('.navbar-wrapper-2 > a h3').remove();
     replaceByCheerio($, '.navbar-wrapper-2 > a', {
-      content: `<img class="justify-self-start max-h-10" src="${agent_data.metatags.logo_for_light_bg}" />`,
+      content: `<img class="justify-self-start h-10" src="${agent_data.metatags.logo_for_light_bg}" />`,
     });
   }
 }
@@ -291,26 +291,19 @@ export function replaceInlineScripts($: CheerioAPI) {
   });
 }
 
-function appendJs(url: string) {
+export function appendJs(url: string) {
   return `
-  var count_badge = 0
-  setTimeout(() => {
-    var js = document.createElement('script');
-    js.src = "${url}";
-    // js.async = true;
-    if (js.src.indexOf('webflow') > 0) {
-      const badge_interval = setInterval(() => {
-        const badge = document.querySelector('.w-webflow-badge');
-        if (badge) {
-          badge.remove();
-          console.log('badge found and removed');
-          count_badge++;
-        }
-        if (count_badge > 3)
-          clearInterval(badge_interval);
-      }, 1)
-    }
-    document.body.appendChild(js)}, 1200)`;
+    fetch('${url}').then((response) => {
+      response.text().then(script_txt => {
+        var js = document.createElement('script');
+        js.type = 'text/javascript';
+        js.text = script_txt.split('w-webflow-badge').join('oh-no-you-dont hidden').split('window.alert').join('console.log');
+        setTimeout(() => {
+          document.body.appendChild(js)
+        }, 2800)
+      })
+    })
+  `;
 }
 export function replaceFormsWithDiv($: CheerioAPI) {}
 
@@ -438,6 +431,25 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
 
         if (node.attribs.class) {
+          ///// HOME PAGE
+
+          if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CTA_CONTACT_FORM) >= 0) {
+            return <RxContactFormButton className={node.attribs.class}>{domToReact(node.children) as ReactElement[]}</RxContactFormButton>;
+          }
+
+          if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CONTACT_FORM) >= 0) {
+            return (
+              <RxContactForm agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />
+            );
+          }
+
+          if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.FOOTER_SOCIAL_LINKS) >= 0) {
+            return (
+              <FooterSocialLinks agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />
+            );
+          }
+
+          ///// END OF HOME PAGE
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.MY_ACCOUNT_WRAPPER)) {
             return (
               <RxMyAccountPage {...props} type={node.type} data={agent_data}>
@@ -546,10 +558,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.HOME_ALERTS_WRAPPER) >= 0) {
           return <HomeAlertsReplacer agent={agent_data} nodeClassName={className} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
         }
-
-        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CTA_CONTACT_FORM) >= 0) {
-          return <RxContactFormButton className={node.attribs.class}>{domToReact(node.children) as ReactElement[]}</RxContactFormButton>;
-        }
         if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_STATS_W_ICONS) >= 0 && property) {
           return (
             <RxStatsGridWithIcons
@@ -571,15 +579,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             >
               {domToReact(node.children) as ReactElement[]}
             </RxStatsGridWithIcons>
-          );
-        }
-
-        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CONTACT_FORM) >= 0) {
-          return <RxContactForm agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
-        }
-        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.FOOTER_SOCIAL_LINKS) >= 0) {
-          return (
-            <FooterSocialLinks agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />
           );
         }
 
@@ -612,15 +611,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         if (property && Object.keys(property).length) {
           const record = property as unknown as MLSProperty;
           if (node.attribs && node.attribs.class) {
-            // Property images
-            if (node.attribs.class === 'section---top-images') {
-              return (
-                <section className={node.attribs.class}>
-                  <RxPropertyCarousel photos={(record.photos || []) as string[]}>{domToReact(node.children)}</RxPropertyCarousel>
-                </section>
-              );
-            }
-
             // Property action buttons (PDF, Share links, etc)
             if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS) >= 0) {
               return (
@@ -632,7 +622,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
 
             // Grouped data table sections
             // Property Information, Financial, Dimensions, Construction
-            const p = record as unknown as PropertyDataModel;
+            const p = property as unknown as PropertyDataModel;
 
             if (node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_MAIN_ATTRIBUTES) >= 0) {
               const values = {
@@ -647,15 +637,20 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
                   {domToReact(node.children) as ReactElement}
                 </RxGenericLabeledValueBlock>
               );
-            } else if (node.attribs.class.indexOf('propinfo') >= 0) return <RexifyStatBlock node={node} record={record} groupName='propinfo' />;
-            else if (node.attribs.class.indexOf('financial') >= 0) return <RexifyStatBlock node={node} record={record} groupName='financial' />;
-            else if (node.attribs.class.indexOf('dimensions') >= 0) return <RexifyStatBlock node={node} record={record} groupName='dimensions' />;
-            else if (node.attribs.class.indexOf('construction') >= 0) return <RexifyStatBlock node={node} record={record} groupName='construction' />;
+            } else if (node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.SIMILAR_LISTINGS) >= 0) {
+              return (
+                <RxSimilarListings className={node.attribs.class} property={p as unknown as { [key: string]: string }}>
+                  {domToReact(node.children) as ReactElement[]}
+                </RxSimilarListings>
+              );
+            } else if (node.attribs.class.indexOf('propinfo') >= 0) return <RexifyStatBlock node={node} record={p} groupName='propinfo' />;
+            else if (node.attribs.class.indexOf('financial') >= 0) return <RexifyStatBlock node={node} record={p} groupName='financial' />;
+            else if (node.attribs.class.indexOf('dimensions') >= 0) return <RexifyStatBlock node={node} record={p} groupName='dimensions' />;
+            else if (node.attribs.class.indexOf('construction') >= 0) return <RexifyStatBlock node={node} record={p} groupName='construction' />;
             else if (node.attribs.class.indexOf('div-features-block') >= 0) {
               return <RexifyPropertyFeatureBlock node={node} record={record} />;
-            }
-            // Building units section
-            else if (node.lastChild && (node.lastChild as HTMLNode).attribs && (node.lastChild as HTMLNode).attribs.class) {
+            } else if (node.lastChild && (node.lastChild as HTMLNode).attribs && (node.lastChild as HTMLNode).attribs.class) {
+              // Building units section
               const child_class = (node.lastChild as HTMLNode).attribs.class;
 
               if (
@@ -773,17 +768,44 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
       const { name: TagName } = element.parent as { name: string };
       switch (TagName) {
         case 'div':
-          return <div className={className}>{agent_data.phone}</div>;
+          return (
+            <div className={className}>
+              <a href={`tel:${agent_data.phone}`}>{agent_data.phone}</a>
+            </div>
+          );
         default:
-          return <span className={className}>{agent_data.phone}</span>;
+          return (
+            <a className={className} href={`tel:${agent_data.phone}`}>
+              {agent_data.phone}
+            </a>
+          );
       }
     } else if (placeholder === '{Agent Email}') {
       const { name: TagName } = element.parent as { name: string };
       switch (TagName) {
         case 'div':
-          return <div className={className}>{agent_data.email}</div>;
+          return (
+            <div className={className}>
+              <a
+                href={`mailto:${agent_data.email}?subject=${encodeURIComponent('Would like to connect')}&body=${encodeURIComponent(
+                  `Hi ${agent_data.full_name.split(' ')[0]}! Found your Leagent profile and would like to connect`,
+                )}`}
+              >
+                {agent_data.email}
+              </a>
+            </div>
+          );
         default:
-          return <span className={className}>{agent_data.email}</span>;
+          return (
+            <a
+              className={className}
+              href={`mailto:${agent_data.email}?subject=${encodeURIComponent('Would like to connect')}&body=${encodeURIComponent(
+                `Hi ${agent_data.full_name.split(' ')[0]}! Found your Leagent profile and would like to connect`,
+              )}`}
+            >
+              {agent_data.email}
+            </a>
+          );
       }
     }
   }

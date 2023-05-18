@@ -16,7 +16,7 @@ const gql_update_home = `mutation UpdateHome($id: ID!, $updates: PropertyInput!)
   }`;
 export async function repairIfNeeded(id: number, property: { [key: string]: unknown } & PropertyDataModel, mls_data: MLSProperty & { [key: string]: string }) {
   const null_count = Object.keys(property).filter(k => property[k] === null).length;
-  if (null_count > 10) {
+  if (null_count > 10 || !property.real_estate_board?.data) {
     // Too many null fields, attempt to repair
     let output = {
       ...property,
@@ -32,7 +32,6 @@ export async function repairIfNeeded(id: number, property: { [key: string]: unkn
 
     try {
       const { id: board } = await getRealEstateBoard(mls_data);
-
       const updates = {
         ...output,
         real_estate_board: board,

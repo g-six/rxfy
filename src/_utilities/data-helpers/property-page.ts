@@ -16,24 +16,19 @@ import { getCombinedData } from './listings-helper';
 import { getRealEstateBoard } from '@/app/api/real-estate-boards/model';
 
 export const general_stats: Record<string, string> = {
-  L_Age: 'Age',
   age: 'Age',
-  L_YearBuilt: 'Build Year',
   year_built: 'Build Year',
-  L_TotalBaths: 'Total Baths',
   baths: 'Total Baths',
-  L_BedroomTotal: 'Total Bedrooms',
   beds: 'Total Bedrooms',
   L_Features: 'Features',
   B_Amenities: 'Amenities',
   land_title: 'Title to Land',
-  PropertyType: 'Property Type',
   property_type: 'Property Type',
   L_Fireplaces: '# of Fireplaces',
   L_KitchensTotal: '# of Kitchens',
-  L_Parking_total: 'Parking',
-  L_Parking_covered: 'Parking',
-  parking: 'Parking Access',
+  // L_Parking_total: 'Parking',
+  // L_Parking_covered: 'Parking',
+  parking: 'Parking Info.',
   Zoning: 'Zoning',
   heating: 'Fuel/Heating',
 };
@@ -83,38 +78,33 @@ export const room_stats: Record<string, {}> = {
 };
 
 export const financial_stats: Record<string, string> = {
-  L_GrossTaxes: 'Gross taxes',
-  MLS_ID: 'MLS #',
+  gross_taxes: 'Gross taxes',
   mls_id: 'MLS #',
   SoldPrice: 'Sold For',
-  PricePerSQFT: 'Price per Sqft',
   price_per_sqft: 'Price per Sqft',
-  L_StrataFee: 'Strata Fee',
   strata_fee: 'Strata Fee',
-  ListingDate: 'List Date',
+  listed_at: 'List Date',
 };
 
 export const construction_stats: Record<string, string> = {
-  B_Style: 'Style of Home',
-  B_Construction: 'Construction',
+  style_type: 'Style of Home',
+  construction_information: 'Construction',
   LFD_FloorFinish_19: 'Floor Finish',
-  B_Exterior_Finish: 'Exterior Finish',
+  exterior_finish: 'Exterior Finish',
   L_Fireplace_Fuel: 'Fireplace Fueled by',
   LFD_Foundation_155: 'Foundation',
-  B_Roof: 'Roof',
-  L_ComplexName: 'Complex/Subdivision',
+  roofing: 'Roof',
+  complex_compound_name: 'Complex/Subdivision',
   L_NoFloorLevels: 'Floor Levels',
 };
 
 export const dimension_stats: Record<string, string> = {
-  L_Frontage_Feet: 'Frontage',
   frontage_feet: 'Frontage',
-  B_Depth: 'Depth',
   depth: 'Depth',
-  L_FloorArea_Total: 'Total floor area',
   floor_area: 'Total floor area',
   L_FloorArea_Finished_AboveMainFloor: 'Floor Area Fin - Abv Main',
   L_FloorArea_Main: 'Main Floor Area',
+  floor_area_main: 'Main Floor Area',
   L_FloorArea_GrantTotal: 'Floor Area - Grant Total',
 };
 
@@ -208,6 +198,7 @@ export function getGqlForInsertProperty(mls_data: MLSProperty, relationships?: {
         }),
         guid,
         roofing: Array.isArray(B_Roof) ? B_Roof.join(', ') : B_Roof,
+        floor_area_main: mls_data?.L_FloorArea_Main ? Number(mls_data?.L_FloorArea_Main) : undefined,
         real_estate_board: relationships?.real_estate_board || undefined,
         mls_data,
       },
@@ -255,8 +246,8 @@ export function getGqlForUpdateProperty(id: number, mls_data: MLSProperty, relat
         }),
         guid,
         roofing: Array.isArray(B_Roof) ? B_Roof.join(', ') : B_Roof,
+        floor_area_main: mls_data?.L_FloorArea_Main ? Number(mls_data?.L_FloorArea_Main) : undefined,
         real_estate_board: relationships?.real_estate_board || undefined,
-        mls_data,
       },
     },
   };
@@ -487,63 +478,6 @@ export async function getRecentListings(agent: AgentData, limit = 3) {
     });
   }
   return properties;
-}
-
-export async function getSimilarHomes(property: MLSProperty, limit = 3): Promise<MLSProperty[]> {
-  if (property.AskingPrice && property.L_BedroomTotal && property.PropertyType) {
-    const filter: {
-      match?: Record<string, string | number>;
-      range?: {};
-    }[] = [
-      {
-        range: {
-          'data.AskingPrice': {
-            gte: property.AskingPrice * 0.85,
-            lte: property.AskingPrice * 1.1,
-          },
-        },
-      },
-      {
-        match: {
-          'data.L_BedroomTotal': property.L_BedroomTotal,
-        },
-      },
-      {
-        match: {
-          'data.PropertyType': property.PropertyType,
-        },
-      },
-    ];
-
-    if (property.Area) {
-      filter.push({ match: { 'data.Area': property.Area } });
-    } else {
-      filter.push({
-        match: {
-          'data.Province_State': property.Province_State as string,
-        },
-      });
-      filter.push({
-        match: {
-          'data.PostalCode_Zip': property.PostalCode_Zip as string,
-        },
-      });
-    }
-
-    return await retrieveFromLegacyPipeline({
-      from: 0,
-      size: limit,
-      sort: { 'data.ListingDate': 'desc' },
-      query: {
-        bool: {
-          filter,
-          must_not: must_not.concat([{ match: { 'data.Address': property.Address } }]),
-          should: [],
-        },
-      },
-    });
-  }
-  return [];
 }
 
 async function upsertPropertyToCMS(mls_data: MLSProperty) {
@@ -923,7 +857,7 @@ export function getMutationForNewAgentInventory(property: number, agent: number)
   };
 }
 
-export function formatValues(obj: MLSProperty | Record<string, string>, key: string): string {
+export function formatValues(obj: any, key: string): string {
   if (!obj || !obj[key]) return '';
 
   if (NumericFields.includes(key)) {
@@ -947,7 +881,7 @@ export function formatValues(obj: MLSProperty | Record<string, string>, key: str
 export function combineAndFormatValues(values: Record<string, number | string>, left = 'L_GrossTaxes', right = 'ForTaxYear'): string {
   // Last year taxes
   if (Object.keys(values).includes(left) && Object.keys(values).includes(right)) {
-    return `${formatValues(values as MLSProperty, left)} (${values.ForTaxYear})`;
+    return `${formatValues(values, left)} (${values[right]})`;
   }
   return Object.keys(values)
     .map(key => values[key])

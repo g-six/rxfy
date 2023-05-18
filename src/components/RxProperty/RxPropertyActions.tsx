@@ -98,7 +98,7 @@ export default function RxPropertyActions(props: PropertyActionsProps) {
         React.cloneElement(child, {
           ...child.props,
           //href: props?.property?.MLS_ID ? `${linkToLegacyApp(props.agent)}/property/${props.property.MLS_ID}/pdf` : '#',
-          href: props?.property?.MLS_ID ? `/brochure?mls=${props.property.MLS_ID}` : '#',
+          href: props?.property?.mls_id ? `/brochure?mls=${props.property.mls_id}` : '#',
           target: '_blank',
           rel: 'noopener noreferrer',
         }),

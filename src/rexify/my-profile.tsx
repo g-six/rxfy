@@ -1,11 +1,11 @@
+'use client';
 import { BrokerageInputModel, RealtorInputModel } from '@/_typings/agent';
-import { RxBrokerageInformation } from '@/components/RxForms/RxBrokerageInformation';
+// import { RxBrokerageInformation } from '@/components/RxForms/RxBrokerageInformation';
 import { RxMyAccountPage } from '@/components/full-pages/RxMyAccountPage';
 import Script from 'next/script';
 import React from 'react';
 interface DataModel extends RealtorInputModel {
-  brokerage: BrokerageInputModel;
-  session_key: string;
+  session_key?: string;
 }
 type Props = {
   data: DataModel;
@@ -13,7 +13,6 @@ type Props = {
 };
 
 export default function MyProfilePage(p: Props) {
-  console.log(p);
   let navigation_wrapper;
   let dash_area;
 
@@ -78,13 +77,13 @@ function buildNavigationComponent(children: React.ReactElement[]) {
   return wrapper || <></>;
 }
 
-function buildMainComponent(children: React.ReactElement[], data: DataModel) {
+function buildMainComponent(children: React.ReactElement[], data?: DataModel) {
   const [wrapper] = children
     .filter(f => f.props.className.split(' ').includes('dash-area'))
     .map(({ props }) => {
       return (
         <div key='dash-area' className={[props.className, 'rexified'].join(' ')}>
-          <RxPageIterator data={data}>{props.children}</RxPageIterator>
+          <RxPageIterator data={data || {}}>{props.children}</RxPageIterator>
         </div>
       );
     });
@@ -102,9 +101,10 @@ export function RxPageIterator(props: Props) {
           </RxMyAccountPage>
         );
       }
-      if (child.props?.className?.split(' ').includes('my-brokerage-wrapper')) {
-        return <RxBrokerageInformation {...child.props}>{child.props.children}</RxBrokerageInformation>;
-      }
+      // TODO
+      // if (child.props?.className?.split(' ').includes('my-brokerage-wrapper')) {
+      //   return <RxBrokerageInformation {...child.props}>{child.props.children}</RxBrokerageInformation>;
+      // }
       return React.cloneElement(
         {
           ...child,

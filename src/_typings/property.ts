@@ -58,6 +58,7 @@ export interface BasePropertyDataModel {
   title: string;
   area: string;
   asking_price: number;
+  state_province?: string;
   city: string;
   mls_id: string;
   property_type: string;
@@ -94,6 +95,7 @@ export interface BasePropertyDataModel {
   lot_sqm?: number;
   lot_sqft?: number;
   floor_area?: number;
+  floor_area_main?: number;
   floor_area_uom?: 'Meters' | 'Feet';
   tax_year?: number;
   description?: string;
@@ -115,6 +117,21 @@ export interface BasePropertyDataModel {
   depth?: number;
   strata_fee?: number;
   frontage_feet?: number;
+  frontage_metres?: number;
+  connected_services?: string;
+  hvac_features?: string;
+  other_appliances?: string;
+  safety_security_features?: string;
+  garden_lawn_features?: string;
+  foundation_specs?: string;
+  exterior_finish?: string;
+  other_information?: string;
+  complex_compound_name?: string;
+  construction_information?: string;
+  floor_area_total?: number;
+  floor_area_basement?: number;
+  floor_area_unfinished?: number;
+  floor_area_upper_floors?: number;
 }
 
 export interface PropertyInput extends BasePropertyDataModel {
@@ -138,6 +155,7 @@ export interface PropertyDataModel extends BasePropertyDataModel {
       };
     };
   };
+  photos?: string[]; // to remove
 }
 
 export interface MLSProperty extends Record<string, string | number | boolean | string[]> {
@@ -145,11 +163,13 @@ export interface MLSProperty extends Record<string, string | number | boolean | 
   lng: number;
   Address: string;
   AddressUnit: string;
+  PostalCode_Zip: string;
   Area: string;
   AskingPrice: number;
   B_ServicesConnected: string[];
   CDOM: number;
   City: string;
+  Province_State: string;
   ForTaxYear: number;
   LandTitle: string;
   ListingDate: string;
@@ -310,6 +330,7 @@ export interface LovedPropertyDataModel extends PropertyDataModel {
 export type MapStatePropsWithFilters = MapStateProps & PropertyAttributeFilters;
 
 export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
+                mls_data
                 lat
                 lon
                 guid
@@ -317,6 +338,8 @@ export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
                 mls_id
                 area
                 city
+                postal_zip_code
+                state_province
                 price_per_sqft
                 property_type
                 asking_price
@@ -334,7 +357,6 @@ export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
                 has_balcony
                 has_fenced_yard
                 garage
-                postal_zip_code
                 style_type
                 status
                 has_storage
@@ -375,7 +397,21 @@ export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
                     }
                   }
                 }
-                mls_data
+                frontage_metres
+                connected_services
+                hvac_features
+                other_appliances
+                safety_security_features
+                garden_lawn_features
+                foundation_specs
+                exterior_finish
+                other_information
+                complex_compound_name
+                floor_area_total
+                floor_area_basement
+                floor_area_unfinished
+                floor_area_upper_floors
+                construction_information
 `;
 
 export interface PropertyPageData extends PropertyDataModel {

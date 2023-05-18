@@ -2,18 +2,30 @@ import { Hit } from '@/_typings/pipeline';
 import { BathroomDetails, MLSProperty, PropertyDataModel, RoomDetails } from '@/_typings/property';
 import {
   combineBalconyData,
+  combineComplexCompoundName,
+  combineConstructionData,
   combineDeckData,
   combineDishwasherData,
+  combineExteriorFinishData,
   combineFenceData,
   combineFireplaceData,
+  combineFloorageAreaData,
+  combineFoundationSpecsData,
   combineFridgeData,
+  combineFrontageData,
+  combineGardenLawnData,
   combineHVACData,
+  combineOtherAppliancesData,
+  combineOtherInformation,
   combineParkingData,
   combinePatioData,
   combineRoofData,
+  combineSafetySecurityData,
+  combineServicesData,
   combineStorageData,
   combineStoveData,
   combineWasherDryerData,
+  setStyleType,
 } from '@/app/api/mls-normaliser';
 import axios from 'axios';
 
@@ -27,19 +39,32 @@ export function getCombinedData({ id, attributes }: { id?: number; attributes: P
     Object.keys(attributes.mls_data).forEach((key: string) => {
       const val = attributes.mls_data[key] as string[];
       values = combineBalconyData(values, key, val);
+      values = combineComplexCompoundName(values, key, val);
+      values = combineConstructionData(values, key, val);
       values = combineDeckData(values, key, val);
       values = combineDishwasherData(values, key, val);
+      values = combineExteriorFinishData(values, key, val);
       values = combineFenceData(values, key, val);
+      values = combineFloorageAreaData(values, key, val as unknown as string);
+      values = combineFrontageData(values, key, val);
+      values = combineFoundationSpecsData(values, key, val);
       values = combineFireplaceData(values, key, val);
       values = combineFridgeData(values, key, val);
       values = combineHVACData(values, key, val);
+      values = combineGardenLawnData(values, key, val);
       values = combineParkingData(values, key, val);
       values = combinePatioData(values, key, val);
       values = combineRoofData(values, key, val);
+      values = combineSafetySecurityData(values, key, val);
+      values = combineServicesData(values, key, val);
       values = combineStoveData(values, key, val);
       values = combineStorageData(values, key, val);
       values = combineWasherDryerData(values, key, val);
+      values = combineOtherAppliancesData(values, key, val);
+      values = combineOtherInformation(values, key, val);
+      values = setStyleType(values, key, val);
     });
+
   if (!values.gross_taxes && attributes.mls_data.L_GrossTaxes) {
     const gross_taxes = Number(attributes.mls_data.L_GrossTaxes);
     values.gross_taxes = isNaN(gross_taxes) ? undefined : gross_taxes;
@@ -50,6 +75,7 @@ export function getCombinedData({ id, attributes }: { id?: number; attributes: P
   if (!values.status) values.status = attributes.mls_data.Status as 'Active' | 'Expired' | 'Sold';
   if (!values.area) values.area = attributes.mls_data.Area as string;
   if (!values.city) values.city = attributes.mls_data.City as string;
+  if (!values.state_province) values.state_province = attributes.mls_data.Province_State as string;
   if (!values.postal_zip_code) values.postal_zip_code = attributes.mls_data.PostalCode_Zip as string;
   if (!values.lon) values.lon = Number(attributes.mls_data.lng);
   if (!values.lot_sqm && attributes.mls_data.L_LotSize_SqMtrs) values.lot_sqm = Number(attributes.mls_data.L_LotSize_SqMtrs);
@@ -81,7 +107,7 @@ export function getCombinedData({ id, attributes }: { id?: number; attributes: P
   if (!values.listed_at && mls_data.ListingDate) {
     const [date, time] = mls_data.ListingDate.split('T');
     const [y, m, d] = date.split('-');
-    values.listed_at = new Date(Number(y), Number(m) - 1, Number(d), Number(time.substring(0, 2) || '0')).toISOString().substring(0, 10) as any;
+    values.listed_at = new Date(Number(y), Number(m) - 1, Number(d), time ? Number(time.substring(0, 2) || '0') : 0).toISOString().substring(0, 10) as any;
   }
   if (Number(values.age) < 0) values.age = 0;
   if (!values.garage && attributes.mls_data.B_Parking_Type) {
@@ -227,9 +253,13 @@ export function getCombinedData({ id, attributes }: { id?: number; attributes: P
     const rooms: BathroomDetails[] = [];
     for (let num = 1; num <= MAX_NUM_OF_ROOMS; num++) {
       if (attributes.mls_data[`L_Bath${num}_Pcs`]) {
+        const ensuite = (attributes.mls_data[`L_Bath${num}_Ensuite`] as string) || 'No';
         rooms.push({
-          ensuite: (attributes.mls_data[`L_Bath${num}_Ensuite`] as string) || 'No',
-          pieces: (attributes.mls_data[`L_Bath${num}_Pcs`] as number) || 1,
+          ensuite,
+          pieces:
+            (attributes.mls_data[ensuite === 'No' ? `L_Bath${num}_Pcs` : 'L_BathEnsuite_Pcs'] as number) ||
+            (attributes.mls_data[`L_Bath${num}_Pcs`] as number) ||
+            1,
           level: (attributes.mls_data[`L_Room${num}_Level`] as string) || '',
         });
       }
@@ -282,9 +312,7 @@ export async function getAgentListings(agent_id: string): Promise<{
 }> {
   try {
     // Query cached listings first to save on latency in searching
-    // let url: string = `https://pages.leagent.com/listings/${agent_id}.json`;
-    let url = `https://live-integrations.leagent.com/opensearch/agent-listings/${agent_id}`;
-    // let res = await axios.get(url);
+    let url: string = `https://pages.leagent.com/listings/${agent_id}.json`;
     let res = await axios.get(url);
     if (!res.data) {
       console.log('Cache file not found', url);

@@ -11,14 +11,16 @@ export function combineBalconyData(attributes: PropertyDataModel, key: string, v
   if (attributes.has_balcony === true) return attributes;
 
   if (['B_OutdoorArea', 'L_StrataLotsIncludes', 'L_Exterior Features'].includes(key)) {
-    if (
-      val &&
-      (val.filter(str => str.toLowerCase().indexOf('balcony') >= 0).length > 0 || val.filter(str => str.toLowerCase().indexOf('balcny') >= 0).length > 0)
-    ) {
-      return {
-        ...attributes,
-        has_balcony: true,
-      };
+    if (val && Array.isArray(val)) {
+      if (
+        val.filter(balcony_str => balcony_str.toLowerCase().indexOf('balcony') >= 0).length > 0 ||
+        val.filter(balcony_str => balcony_str.toLowerCase().indexOf('balcny') >= 0).length > 0
+      ) {
+        return {
+          ...attributes,
+          has_balcony: true,
+        };
+      }
     }
   }
   return {
@@ -37,7 +39,11 @@ export function combineBalconyData(attributes: PropertyDataModel, key: string, v
 export function combineDeckData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
   if (attributes.has_deck === true) return attributes;
   if (['B_OutdoorArea', 'L_StrataLotsIncludes', 'L_Exterior Features'].includes(key)) {
-    if (val && (val.filter(str => str.toLowerCase().indexOf('deck') >= 0).length > 0 || val.filter(str => str.toLowerCase().indexOf('dck') >= 0).length > 0)) {
+    if (
+      val &&
+      (val.filter(deck_str => `${deck_str}`.toLowerCase().indexOf('deck') >= 0).length > 0 ||
+        val.filter(deck_str => `${deck_str}`.toLowerCase().indexOf('dck') >= 0).length > 0)
+    ) {
       return {
         ...attributes,
         has_deck: true,
@@ -62,7 +68,7 @@ export function combinePatioData(attributes: PropertyDataModel, key: string, val
   return val &&
     val.length > 0 &&
     ['B_OutdoorArea', 'L_StrataLotsIncludes', 'L_Exterior Features', 'LFD_OutdoorArea_47'].includes(key) &&
-    val.filter(str => str.toLowerCase().indexOf('patio') >= 0).length > 0
+    val.filter(patio_str => `${patio_str}`.toLowerCase().indexOf('patio') >= 0).length > 0
     ? {
         ...attributes,
         has_patio: true,
@@ -84,7 +90,7 @@ export function combineDishwasherData(attributes: PropertyDataModel, key: string
   if (attributes.has_dishwasher || !val) return attributes;
 
   return Array.isArray(val) &&
-    val.filter(str => str.toLowerCase().indexOf('dishwasher') >= 0).length &&
+    val.filter(dish_str => `${dish_str}`.toLowerCase().indexOf('dishwasher') >= 0 || `${dish_str}`.toLowerCase().split('/').includes('dw')).length &&
     ['L_Features', 'LFD_FeaturesIncluded_55', 'L_Appliances'].includes(key)
     ? {
         ...attributes,
@@ -104,10 +110,9 @@ export function combineDishwasherData(attributes: PropertyDataModel, key: string
  * @returns PropertyDataModel with (or w/out) has_fenced_yard
  */
 export function combineFenceData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
-  if (attributes.has_fenced_yard) return attributes;
-
-  return Array.isArray(val) &&
-    val.filter(str => str.toLowerCase().indexOf('fenced yard') >= 0).length &&
+  if (attributes.has_fenced_yard || !val || !Array.isArray(val)) return attributes;
+  return val.length &&
+    val.filter(fence_str => `${fence_str}`.toLowerCase().indexOf('fenced yard') >= 0).length &&
     ['B_OutdoorArea', 'L_StrataLotsIncludes', 'L_Exterior Features', 'LFD_OutdoorArea_47'].includes(key)
     ? {
         ...attributes,
@@ -129,7 +134,7 @@ export function combineFenceData(attributes: PropertyDataModel, key: string, val
 export function combineStorageData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
   if (attributes.has_storage) return attributes;
 
-  return Array.isArray(val) && val.filter(str => str.toLowerCase().indexOf('storage') >= 0).length
+  return Array.isArray(val) && val.filter(str => `${str}`.toLowerCase().indexOf('storage') >= 0).length
     ? {
         ...attributes,
         has_storage: true,
@@ -151,8 +156,12 @@ export function combineFridgeData(attributes: PropertyDataModel, key: string, va
   if (attributes.has_fridge) return attributes;
 
   return Array.isArray(val) &&
-    val.filter(str => str.toLowerCase().indexOf('fridg') >= 0 || str.toLowerCase().indexOf('frdg') >= 0 || str.toLowerCase().indexOf('refrigerator') >= 0)
-      .length &&
+    val.filter(
+      fridge_str =>
+        `${fridge_str}`.toLowerCase().indexOf('fridg') >= 0 ||
+        `${fridge_str}`.toLowerCase().indexOf('frdg') >= 0 ||
+        `${fridge_str}`.toLowerCase().indexOf('refrigerator') >= 0,
+    ).length &&
     ['L_Features', 'LFD_FeaturesIncluded_55', 'L_Appliances'].includes(key)
     ? {
         ...attributes,
@@ -172,21 +181,24 @@ export function combineFridgeData(attributes: PropertyDataModel, key: string, va
  * @returns PropertyDataModel with (or w/out) HVAC
  */
 export function combineHVACData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
-  return ['L_Features', 'LFD_FeaturesIncluded_55', 'L_Appliances'].includes(key) &&
-    val &&
-    val.filter(str => {
+  if (['L_Features', 'LFD_FeaturesIncluded_55', 'L_Appliances'].includes(key) && val) {
+    const features = val.filter(str => {
       return (
         str.toLowerCase().indexOf('air condition') >= 0 ||
         str.toLowerCase().indexOf('electric') >= 0 ||
         str.toLowerCase().indexOf('heat pump') >= 0 ||
         str.toLowerCase().indexOf('heat recovery') >= 0
       );
-    }).length
-    ? {
+    });
+    if (features.length) {
+      return {
         ...attributes,
         has_hvac: true,
-      }
-    : attributes;
+        hvac_features: features.join(' / '),
+      };
+    }
+  }
+  return attributes;
 }
 
 /**
@@ -251,6 +263,277 @@ export function combineWasherDryerData(attributes: PropertyDataModel, key: strin
   return {
     ...attributes,
     has_laundry: false,
+  };
+}
+
+/**
+ *
+ * @param attributes PropertyDataModel
+ * @param key
+ * @param val
+ * @returns PropertyDataModel
+ */
+export function combineSafetySecurityData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
+  if (['L_Features', 'LFD_FeaturesIncluded_55', 'LFD_Amenities_56'].includes(key) && val) {
+    return {
+      ...attributes,
+      safety_security_features: val.filter(str => str.toLowerCase().indexOf('security') >= 0 || str.toLowerCase().indexOf('smoke') >= 0).join(' / '),
+    };
+  }
+  return attributes;
+}
+
+/**
+ *
+ * @param attributes PropertyDataModel
+ * @param key
+ * @param val
+ * @returns PropertyDataModel
+ */
+export function combineGardenLawnData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
+  if (['L_Features', 'LFD_FeaturesIncluded_55', 'LFD_Amenities_56', 'B_Amenities'].includes(key) && val) {
+    return {
+      ...attributes,
+      garden_lawn_features: val
+        .filter(str => str.toLowerCase().indexOf('sprinkler') >= 0 || str.toLowerCase().indexOf('garden') >= 0 || str.toLowerCase().indexOf('workshop') >= 0)
+        .join(' / '),
+    };
+  }
+  return attributes;
+}
+
+/**
+ *
+ * @param attributes PropertyDataModel
+ * @param key
+ * @param val
+ * @returns PropertyDataModel
+ */
+export function combineComplexCompoundName(attributes: PropertyDataModel, key: string, val?: string | string[]): PropertyDataModel {
+  if (attributes.complex_compound_name || (key.indexOf('ComplexName') === -1 && key.indexOf('Compound') === -1) || !val) return attributes;
+  if (val) {
+    return {
+      ...attributes,
+      complex_compound_name: val as string,
+    };
+  }
+  return attributes;
+}
+
+/**
+ *
+ * @param attributes PropertyDataModel
+ * @param key
+ * @param val
+ * @returns PropertyDataModel
+ */
+export function combineFrontageData(attributes: PropertyDataModel, key: string, val?: unknown): PropertyDataModel {
+  let size = 0;
+  if (Array.isArray(val)) size = Number(val.join(''));
+  else size = Number(val);
+  if (key.indexOf('Frontage') >= 0 && size) {
+    if (key.indexOf('Metre') >= 0 || key.indexOf('Meter') >= 0) {
+      return {
+        ...attributes,
+        frontage_metres: size,
+      };
+    } else if (key.indexOf('Feet') >= 0) {
+      return {
+        ...attributes,
+        frontage_feet: size,
+      };
+    }
+  }
+  return attributes;
+}
+
+/**
+ *
+ * @param attributes PropertyDataModel
+ * @param key
+ * @param val
+ * @returns PropertyDataModel
+ */
+export function combineFloorageAreaData(attributes: PropertyDataModel, key: string, val: string): PropertyDataModel {
+  const key_id = key.toLowerCase();
+  if (key_id.indexOf('floorarea') >= 0 && !isNaN(Number(val))) {
+    if (key.indexOf('Total') >= 0) {
+      return {
+        ...attributes,
+        floor_area_total: Number(val),
+      };
+    } else if (key.indexOf('Above') >= 0 || key.indexOf('Upper') >= 0) {
+      return {
+        ...attributes,
+        floor_area_upper_floors: Number(val),
+      };
+    } else if (key.indexOf('Basement') >= 0) {
+      return {
+        ...attributes,
+        floor_area_basement: Number(val),
+      };
+    } else if (key.indexOf('Unfinished') >= 0) {
+      return {
+        ...attributes,
+        floor_area_unfinished: Number(val),
+      };
+    }
+  }
+  return attributes;
+}
+
+/**
+ *
+ * @param attributes PropertyDataModel
+ * @param key
+ * @param val
+ * @returns PropertyDataModel
+ */
+export function combineConstructionData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
+  let construction_information = attributes.construction_information || '';
+  if (key.indexOf('Construction') >= 0 && val) {
+    construction_information = construction_information ? construction_information + ' / ' : '';
+    construction_information = `${construction_information}${val.join(' / ')}`;
+    return {
+      ...attributes,
+      construction_information,
+    };
+  }
+  return attributes;
+}
+
+/**
+ *
+ * @param attributes PropertyDataModel
+ * @param key
+ * @param val
+ * @returns PropertyDataModel
+ */
+export function combineFoundationSpecsData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
+  let foundation_specs = attributes.foundation_specs || '';
+  if (key.indexOf('Foundation') >= 0 && val) {
+    foundation_specs = foundation_specs ? foundation_specs + ' / ' : '';
+    foundation_specs = `${foundation_specs}${val.join(' / ')}`;
+    return {
+      ...attributes,
+      foundation_specs,
+    };
+  }
+  return attributes;
+}
+
+/**
+ *
+ * @param attributes PropertyDataModel
+ * @param key
+ * @param val
+ * @returns PropertyDataModel
+ */
+export function combineServicesData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
+  let connected_services = attributes.connected_services || '';
+  if (key.indexOf('WaterSupply') >= 0 && val) {
+    connected_services = connected_services
+      .split(' / ')
+      .concat(val.map(w => `${w} S. Water`))
+      .join(' / ');
+  }
+  if (key.indexOf('ServicesConnected') >= 0 && val) {
+    connected_services = connected_services.split(' / ').concat(val).join(' / ');
+  }
+  if (connected_services.indexOf(' / ') === 0) {
+    connected_services = connected_services.substring(3);
+  }
+  if (connected_services) {
+    return {
+      ...attributes,
+      connected_services,
+    };
+  }
+  return attributes;
+}
+
+/**
+ *
+ * @param attributes PropertyDataModel
+ * @param key
+ * @param val
+ * @returns PropertyDataModel
+ */
+export function combineOtherAppliancesData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
+  if (['L_Features', 'LFD_FeaturesIncluded_55', 'LFD_Amenities_56'].includes(key) && val) {
+    return {
+      ...attributes,
+      other_appliances: val
+        .filter(str => str.toLowerCase().indexOf('microwave') >= 0 || str.toLowerCase().indexOf('wine') >= 0 || str.toLowerCase().indexOf('vacuum') >= 0)
+        .join(' / '),
+    };
+  }
+  return attributes;
+}
+
+function isValueLikelyNeeded(key: string, val: string[] | string | number) {
+  if (!val) return '';
+  let value = Array.isArray(val) ? val.join(' / ') : `${val}`;
+  if (key.toLowerCase().indexOf('driveway') >= 0) {
+    return `${value} driveway`;
+  }
+  if (key.toLowerCase().indexOf('parking') >= 0 && key.toLowerCase().indexOf('access') >= 0) {
+    return `${value} parking access`;
+  }
+  if (key.toLowerCase().indexOf('workshop') >= 0) {
+    return `${value} workshop`;
+  }
+  if (key.toLowerCase().indexOf('garage') >= 0) {
+    return `${value} garage`;
+  }
+  if (key.toLowerCase().indexOf('construction') >= 0) {
+    return `${value} construction`;
+  }
+  if (key.toLowerCase().indexOf('influence') >= 0) {
+    return `${(val as string[]).join('\n• ')}`;
+  }
+  if (key.indexOf('FloorFinish') >= 0 && Array.isArray(val)) {
+    return `${val.join(' + ')} floor finish`;
+  }
+  if (key.indexOf('BasementArea') >= 0) {
+    return `${value} basement`;
+  }
+  if (key.indexOf('Parking') >= 0) {
+    return `${Array.isArray(val) ? val.join(' ') : val}${
+      key.toLowerCase().indexOf('covered') >= 0 ? ' covered parking' : ` parking${!isNaN(Number(val)) ? ' space in total' : ''}`
+    }`;
+  }
+  if (key.indexOf('_Frontage_') >= 0) {
+    const uom = key.split('_Frontage_').pop();
+    if (uom && ['metres', 'meters', 'feet'].includes(uom.toLowerCase())) {
+      return '';
+    } else {
+      return `Frontage: ${val} ${key.split('_Frontage_').pop()}`;
+    }
+  }
+  return '';
+}
+/**
+ *
+ * @param attributes PropertyDataModel
+ * @param key
+ * @param val
+ * @returns PropertyDataModel
+ */
+export function combineOtherInformation(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
+  let other_information = attributes.other_information || '';
+
+  if (!val) return attributes;
+
+  const add_this = isValueLikelyNeeded(key, val);
+
+  if (!add_this) return attributes;
+
+  other_information = other_information ? [other_information, add_this].join('\n• ') : `• ${add_this}`;
+
+  return {
+    ...attributes,
+    other_information,
   };
 }
 
@@ -337,5 +620,43 @@ export function combineRoofData(attributes: PropertyDataModel, key: string, val?
     : {
         ...attributes,
         roofing: attributes.roofing || undefined,
+      };
+}
+
+/**
+ *
+ * @param attributes PropertyDataModel
+ * @param key
+ * @param val
+ * @returns PropertyDataModel with (or w/out) roof
+ */
+export function combineExteriorFinishData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
+  return val && key === 'B_Exterior_Finish'
+    ? {
+        ...attributes,
+        exterior_finish: val.concat(attributes.exterior_finish ? [attributes.exterior_finish] : []).join('/'),
+      }
+    : {
+        ...attributes,
+        exterior_finish: attributes.exterior_finish || undefined,
+      };
+}
+
+/**
+ *
+ * @param attributes PropertyDataModel
+ * @param key
+ * @param val
+ * @returns PropertyDataModel with (or w/out) roof
+ */
+export function setStyleType(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
+  return val && key === 'B_Style'
+    ? {
+        ...attributes,
+        style_type: val.concat(attributes.style_type ? [attributes.style_type] : []).join(', '),
+      }
+    : {
+        ...attributes,
+        style_type: attributes.style_type || undefined,
       };
 }

@@ -1,5 +1,6 @@
 import { CheerioAPI, load } from 'cheerio';
 import { headers } from 'next/headers';
+
 import Script from 'next/script';
 
 import './globals.css';
@@ -10,6 +11,7 @@ import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getPrivatePropertyData, getPropertyData } from '@/_utilities/data-helpers/property-page';
 import { replaceMetaTags } from '@/_helpers/head-manipulations';
 import initializePlacesAutocomplete from '@/components/Scripts/places-autocomplete';
+import { appendJs } from '@/components/rexifier';
 
 const skip_pathnames = ['/favicon.ico'];
 
@@ -35,6 +37,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   } catch (e) {
     console.log('Layout.tsx ERROR.  Unable to fetch page html for', page_url);
   }
+
+  console.log('Webflow domain', page_url);
 
   const requestLink = headers().get('x-url') || '';
   const requestUrl = new URL(requestLink);
@@ -96,21 +100,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     webflow && (
-      <html {...head_props} className={className}>
+      <html>
         {webflow.head.code ? (
           <head
             suppressHydrationWarning
             dangerouslySetInnerHTML={{
-              __html: [
-                `${replaceMetaTags(webflow.head.code, agent_data, property)} <script>${initializePlacesAutocomplete({
-                  apiKey: NEXT_APP_GGL_API_KEY || '',
-                })}</script>`,
-                !cache_found
-                  ? `<script>setTimeout(() => {
-                  fetch("/api/properties?mls_id=${searchParams.mls}").then(console.log)
-                }, 10000)</script>`
-                  : `<script>console.log("Cache found.", "${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/recent.json")</script>`,
-              ].join(`
+              __html: [replaceMetaTags(webflow.head.code, agent_data, property)].join(`
               
               `),
             }}
@@ -121,11 +116,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {webflow.body ? (
           <body {...body_props} className={bodyClassName} suppressHydrationWarning>
             {children}
-            <Script
-              src={`https://maps.googleapis.com/maps/api/js?key=${NEXT_APP_GGL_API_KEY}&libraries=places,localContext&v=beta&callback=initializePlacesAutocomplete`}
-              async
-            />
-            <Script src='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js' async />
+            {requestUrl.pathname === '/map' ? <Script src='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js' async /> : <></>}
+            <script
+              type='text/javascript'
+              dangerouslySetInnerHTML={{
+                __html: initializePlacesAutocomplete({
+                  apiKey: NEXT_APP_GGL_API_KEY || '',
+                }),
+              }}
+            ></script>
+            <script
+              type='text/javascript'
+              dangerouslySetInnerHTML={{
+                __html: appendJs(
+                  `https://maps.googleapis.com/maps/api/js?key=${NEXT_APP_GGL_API_KEY}&libraries=places,localContext&v=beta&callback=initializePlacesAutocomplete`,
+                ),
+              }}
+            ></script>
           </body>
         ) : (
           <body>{children}</body>

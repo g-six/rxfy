@@ -9,7 +9,7 @@ import { fillAgentInfo, fillPropertyGrid, removeSection, replaceByCheerio, rexif
 import { WebFlow } from '@/_typings/webflow';
 import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
-import { getPrivatePropertyData, getPropertyData, getSimilarHomes } from '@/_utilities/data-helpers/property-page';
+import { getPrivatePropertyData, getPropertyData } from '@/_utilities/data-helpers/property-page';
 import { MLSProperty } from '@/_typings/property';
 import Script from 'next/script';
 import { addPropertyMapScripts } from '@/components/Scripts/google-street-map';
@@ -24,7 +24,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const { TEST_DOMAIN } = process.env as unknown as { [key: string]: string };
   const axios = (await import('axios')).default;
   const url = headers().get('x-url') as string;
-  const { hostname } = new URL(url);
+  const { hostname, pathname, origin } = new URL(url);
 
   const session_key = cookies().get('session_key')?.value || '';
   const is_realtor = cookies().get('session_as')?.value === 'realtor';
@@ -57,22 +57,26 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
   // Special cases
   if (agent_data.webflow_domain === 'leagent-website.webflow.io' && params.slug === 'my-profile') {
+    let session;
     if (session_key && is_realtor) {
-      const api_response = await axios
-        .get('/api/check-session/agent', {
-          headers: {
-            Authorization: `Bearer ${session_key}`,
-          },
-        })
-        .catch(e => {
-          console.log('User not logged in');
-        });
-      const session = api_response as unknown as RealtorInputModel & {
-        brokerage: BrokerageInputModel;
-        session_key: string;
-      };
-      return <MyProfilePage data={session}>{parse($.html()) as unknown as JSX.Element}</MyProfilePage>;
+      // const api_response = await axios
+      //   .get(`/api/check-session/agent`, {
+      //     headers: {
+      //       Authorization: `Bearer ${session_key}`,
+      //     },
+      //   })
+      //   .catch(e => {
+      //     const axerr = e as AxiosError;
+      //     console.log({ pathname, origin });
+      //     console.log('page / leagent-website.webflow.io User not logged in');
+      //     console.log(axerr.message);
+      //   });
+      // session = api_response as unknown as RealtorInputModel & {
+      //   brokerage: BrokerageInputModel;
+      //   session_key: string;
+      // };
     }
+    return <MyProfilePage data={{ session_key }}>{parse($.html()) as unknown as JSX.Element}</MyProfilePage>;
   }
 
   replaceByCheerio($, '.w-nav-menu .nav-dropdown-2', {
@@ -226,95 +230,97 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
     // Photo gallery for properties
     const photos: string[] = d.photos as string[];
-    $('a.link').each((e, el) => {
-      el.children.forEach((child, child_idx: number) => {
-        if (photos[child_idx]) {
-          if (child.type === 'script') {
-            const img_json = JSON.parse($(child).html() as string);
-            img_json.items[child_idx].url = photos[child_idx];
-            $(child).replaceWith(`<script class="w-json" type="application/json">${JSON.stringify(img_json, null, 4)}</script>`);
-          } else if ((child as { name: string }).name === 'img') {
-            $(child).attr('src', photos[child_idx]);
-            $(child).removeAttr('srcset');
-            $(child).removeAttr('sizes');
+    if (photos) {
+      $('a.link').each((e, el) => {
+        el.children.forEach((child, child_idx: number) => {
+          if (photos[child_idx]) {
+            if (child.type === 'script') {
+              const img_json = JSON.parse($(child).html() as string);
+              img_json.items[child_idx].url = photos[child_idx];
+              $(child).replaceWith(`<script class="w-json" type="application/json">${JSON.stringify(img_json, null, 4)}</script>`);
+            } else if ((child as { name: string }).name === 'img') {
+              $(child).attr('src', photos[child_idx]);
+              $(child).removeAttr('srcset');
+              $(child).removeAttr('sizes');
+            }
           }
-        }
+        });
       });
-    });
-    if ($('a.link').length < photos.length) {
-      const parent = $('a.link:first').parentsUntil('#propertyimages');
-      // const otherparent = $('.property-images-grid:first').parentsUntil('a');
-      $('.property-image-wrapper img').attr('src', `${process.env.NEXT_APP_IM_ENG}/w_999/${photos[0]}`);
-      $('.property-image-wrapper img').attr(
-        'srcset',
-        [500, 800, 999]
-          .map(size => {
-            return `${process.env.NEXT_APP_IM_ENG}/w_${size}/${photos[0]} ${size}w`;
-          })
-          .join(', '),
-      );
-      $('.property-images-more img').each((img_number, img_2and3) => {
-        if (photos.length > img_number) {
-          img_2and3.attribs.src = `${process.env.NEXT_APP_IM_ENG}/w_999/${photos[img_number + 1]}`;
-          img_2and3.attribs.srcset = [500, 800, 999]
+      if ($('a.link').length < photos.length) {
+        const parent = $('a.link:first').parentsUntil('#propertyimages');
+        // const otherparent = $('.property-images-grid:first').parentsUntil('a');
+        $('.property-image-wrapper img').attr('src', `${process.env.NEXT_APP_IM_ENG}/w_999/${photos[0]}`);
+        $('.property-image-wrapper img').attr(
+          'srcset',
+          [500, 800, 999]
             .map(size => {
-              return `${process.env.NEXT_APP_IM_ENG}/w_${size}/${photos[img_number + 1]} ${size}w`;
+              return `${process.env.NEXT_APP_IM_ENG}/w_${size}/${photos[0]} ${size}w`;
             })
-            .join(', ');
-        }
-      });
-      try {
-        const { items, group } = JSON.parse($('.property-images-lightbox script').text());
-        const updated_images: { url: string }[] = [];
-        items.forEach((item: { url: string }, idx: number) => {
-          updated_images.push({
-            ...item,
-            url: `${process.env.NEXT_APP_IM_ENG}/w_999/${photos[idx]}`,
-          });
-        });
-
-        $('.property-images-lightbox script').text(
-          JSON.stringify(
-            {
-              items: updated_images,
-              group,
-            },
-            null,
-            4,
-          ),
+            .join(', '),
         );
-      } catch (err) {
-        console.log('Skipping property-images-lightbox for ', params.slug);
-        console.error(err);
-      } finally {
-        console.log('Done rexifying gallery');
-      }
-      if (photos.length > 3)
-        photos.slice(3).forEach((url: string, thumb_idx: number) => {
-          const selector = `img.property-images-grid:nth-child(${thumb_idx + 1})`;
-          $(selector).attr('src', `${process.env.NEXT_APP_IM_ENG}/w_500/${url}`);
-          $(selector).attr(
-            'srcset',
-            [500, 800, 999]
+        $('.property-images-more img').each((img_number, img_2and3) => {
+          if (photos.length > img_number) {
+            img_2and3.attribs.src = `${process.env.NEXT_APP_IM_ENG}/w_999/${photos[img_number + 1]}`;
+            img_2and3.attribs.srcset = [500, 800, 999]
               .map(size => {
-                return `${process.env.NEXT_APP_IM_ENG}/w_${size}/${url} ${size}w`;
+                return `${process.env.NEXT_APP_IM_ENG}/w_${size}/${photos[img_number + 1]} ${size}w`;
               })
-              .join(', '),
-          );
-
-          parent.append(`<a href="#" class="lightbox-link link w-inline-block w-lightbox hidden" aria-label="open lightbox" aria-haspopup="dialog">
-        <img src="${process.env.NEXT_APP_IM_ENG}/w_999/${url}" loading="eager" alt="" class="cardimage" />
-        <script class="w-json" type="application/json">{
-          "items": [
-              {
-                  "url": "${process.env.NEXT_APP_IM_ENG}/w_1280/${url}",
-                  "type": "image"
-              }
-          ],
-          "group": "Property Images"
-      }</script>
-        </a>`);
+              .join(', ');
+          }
         });
+        try {
+          const { items, group } = JSON.parse($('.property-images-lightbox script').text());
+          const updated_images: { url: string }[] = [];
+          items.forEach((item: { url: string }, idx: number) => {
+            updated_images.push({
+              ...item,
+              url: `${process.env.NEXT_APP_IM_ENG}/w_999/${photos[idx]}`,
+            });
+          });
+
+          $('.property-images-lightbox script').text(
+            JSON.stringify(
+              {
+                items: updated_images,
+                group,
+              },
+              null,
+              4,
+            ),
+          );
+        } catch (err) {
+          console.log('Skipping property-images-lightbox for ', params.slug);
+          console.error(err);
+        } finally {
+          console.log('Done rexifying gallery');
+        }
+        if (photos.length > 3)
+          photos.slice(3).forEach((url: string, thumb_idx: number) => {
+            const selector = `img.property-images-grid:nth-child(${thumb_idx + 1})`;
+            $(selector).attr('src', `${process.env.NEXT_APP_IM_ENG}/w_500/${url}`);
+            $(selector).attr(
+              'srcset',
+              [500, 800, 999]
+                .map(size => {
+                  return `${process.env.NEXT_APP_IM_ENG}/w_${size}/${url} ${size}w`;
+                })
+                .join(', '),
+            );
+
+            parent.append(`<a href="#" class="lightbox-link link w-inline-block w-lightbox hidden" aria-label="open lightbox" aria-haspopup="dialog">
+          <img src="${process.env.NEXT_APP_IM_ENG}/w_999/${url}" loading="eager" alt="" class="cardimage" />
+          <script class="w-json" type="application/json">{
+            "items": [
+                {
+                    "url": "${process.env.NEXT_APP_IM_ENG}/w_1280/${url}",
+                    "type": "image"
+                }
+            ],
+            "group": "Property Images"
+        }</script>
+          </a>`);
+          });
+      }
     }
   }
 
