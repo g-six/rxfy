@@ -21,7 +21,6 @@ import {
   combinePatioData,
   combineRoofData,
   combineSafetySecurityData,
-  combineServicesData,
   combineStorageData,
   combineStoveData,
   combineWasherDryerData,
@@ -56,7 +55,6 @@ export function getCombinedData({ id, attributes }: { id?: number; attributes: P
       values = combinePatioData(values, key, val);
       values = combineRoofData(values, key, val);
       values = combineSafetySecurityData(values, key, val);
-      values = combineServicesData(values, key, val);
       values = combineStoveData(values, key, val);
       values = combineStorageData(values, key, val);
       values = combineWasherDryerData(values, key, val);

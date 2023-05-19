@@ -429,36 +429,6 @@ export function combineFoundationSpecsData(attributes: PropertyDataModel, key: s
  * @param val
  * @returns PropertyDataModel
  */
-export function combineServicesData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
-  let connected_services = attributes.connected_services || '';
-  if (key.indexOf('WaterSupply') >= 0 && val) {
-    connected_services = connected_services
-      .split(' / ')
-      .concat(val.map(w => `${w} S. Water`))
-      .join(' / ');
-  }
-  if (key.indexOf('ServicesConnected') >= 0 && val) {
-    connected_services = connected_services.split(' / ').concat(val).join(' / ');
-  }
-  if (connected_services.indexOf(' / ') === 0) {
-    connected_services = connected_services.substring(3);
-  }
-  if (connected_services) {
-    return {
-      ...attributes,
-      connected_services,
-    };
-  }
-  return attributes;
-}
-
-/**
- *
- * @param attributes PropertyDataModel
- * @param key
- * @param val
- * @returns PropertyDataModel
- */
 export function combineOtherAppliancesData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
   if (['L_Features', 'LFD_FeaturesIncluded_55', 'LFD_Amenities_56'].includes(key) && val) {
     return {

@@ -118,7 +118,6 @@ export interface BasePropertyDataModel {
   strata_fee?: number;
   frontage_feet?: number;
   frontage_metres?: number;
-  connected_services?: string;
   hvac_features?: string;
   other_appliances?: string;
   safety_security_features?: string;
@@ -154,6 +153,14 @@ export interface PropertyDataModel extends BasePropertyDataModel {
         photos: string;
       };
     };
+  };
+  connected_services?: {
+    data?: {
+      id?: number;
+      attributes: {
+        name: string;
+      };
+    }[];
   };
   photos?: string[]; // to remove
 }
@@ -398,7 +405,6 @@ export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
                   }
                 }
                 frontage_metres
-                connected_services
                 hvac_features
                 other_appliances
                 safety_security_features

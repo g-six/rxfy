@@ -215,13 +215,6 @@ export async function GET(request: Request) {
                   [key]: mls_data[key],
                 };
                 break;
-              case 'LFD_ServicesConnected_7':
-                output = {
-                  ...output,
-                  connected_services: mls_data[key],
-                  [key]: mls_data[key],
-                };
-                break;
               default:
                 legacy_data = {
                   ...legacy_data,
@@ -357,7 +350,11 @@ export async function GET(request: Request) {
   } catch (e) {
     const axerr = e as AxiosError;
     console.log('axerr error');
-    console.log(axerr);
+    if (axerr.response?.data) {
+      console.log(JSON.stringify(axerr.response?.data, null, 4));
+    } else {
+      console.log(axerr.response);
+    }
     console.log('end axerr error');
     return getResponse(
       {
