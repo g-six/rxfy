@@ -392,12 +392,17 @@ export function combineFloorageAreaData(attributes: PropertyDataModel, key: stri
 export function combineConstructionData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
   let construction_information = attributes.construction_information || '';
   if (key.indexOf('Construction') >= 0 && val) {
-    construction_information = construction_information ? construction_information + ' / ' : '';
-    construction_information = `${construction_information}${val.join(' / ')}`;
-    return {
-      ...attributes,
-      construction_information,
-    };
+    if (!Array.isArray(val)) {
+      console.log('combineConstructionData error:', 'val is not an Array');
+      console.log('key: val', key, val);
+    } else {
+      construction_information = construction_information ? construction_information + ' / ' : '';
+      construction_information = `${construction_information}${val.join(' / ')}`;
+      return {
+        ...attributes,
+        construction_information,
+      };
+    }
   }
   return attributes;
 }
