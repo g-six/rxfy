@@ -358,6 +358,7 @@ export async function GET(request: Request) {
     console.log('end axerr error');
     return getResponse(
       {
+        api: 'properties.GET',
         message: axerr.message,
         code: axerr.code,
       },
