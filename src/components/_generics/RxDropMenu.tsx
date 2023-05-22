@@ -53,7 +53,11 @@ export default function RxDropMenu(props: DropMenuProps) {
         const menuMatches = props.items.map(manuItem => {
           return {
             searchFn: searchByClasses(manuItem.itemClassNames),
-            transformChild: (ch: React.ReactElement) => React.cloneElement(ch, { ...ch.props, onClick: () => manuItem.itemCallback(uuid, ch) }),
+            transformChild: (ch: React.ReactElement) =>
+              React.cloneElement(ch, {
+                ...ch.props,
+                onClick: () => manuItem.itemCallback(uuid, ch),
+              }),
           };
         });
         return transformMatchingElements(rendered, menuMatches) as ReactElement;
