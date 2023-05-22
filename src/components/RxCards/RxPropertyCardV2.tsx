@@ -150,7 +150,7 @@ export default function RxPropertyCardV2({
     }
   }, [evt.data]);
 
-  return (
+  return listing ? (
     <div
       data-agent={agent}
       className={classNames(
@@ -217,5 +217,7 @@ export default function RxPropertyCardV2({
         <span className='sr-only'>Loading...</span>
       </div>
     </div>
+  ) : (
+    <></>
   );
 }
