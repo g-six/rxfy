@@ -1,9 +1,9 @@
-import { transformMatchingElements } from '@/_helpers/dom-manipulators';
-import { DocumentInterface } from '@/_typings/document';
-import { searchByClasses } from '@/_utilities/rx-element-extractor';
+import React, { ReactElement, cloneElement, useEffect, useRef, useState } from 'react';
+
 import useEvent, { Events } from '@/hooks/useEvent';
 import useOutsideClick from '@/hooks/useOutsideClick';
-import React, { ReactElement, cloneElement, useCallback, useEffect, useRef, useState, Dispatch, SetStateAction } from 'react';
+import { transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { searchByClasses } from '@/_utilities/rx-element-extractor';
 
 type Props = {
   child: ReactElement;
