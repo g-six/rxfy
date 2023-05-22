@@ -175,7 +175,7 @@ export default function RxPropertyCard({
           onClickItem: () => {
             if (isLink) {
               toggleLoading(true);
-              getMLSProperty(listing.MLS_ID).then(() => {
+              getMLSProperty(listing.MLS_ID).finally(() => {
                 // Fix the application error for properties not imported yet
                 location.href = `/property?mls=${listing.MLS_ID}`;
               });
