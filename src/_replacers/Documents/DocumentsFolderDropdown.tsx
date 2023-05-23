@@ -1,29 +1,14 @@
+import React, { ReactElement, cloneElement } from 'react';
+
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
-import { DocumentInterface } from '@/_typings/document';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
-import useEvent, { Events } from '@/hooks/useEvent';
-import useOutsideClick from '@/hooks/useOutsideClick';
-import React, { ReactElement, cloneElement, useCallback, useEffect, useRef, useState, Dispatch, SetStateAction } from 'react';
 
 type Props = {
   child: ReactElement;
-  id: number;
   deleteFolder: () => void;
 };
 
-export default function DocumentsFolderDropdown({ child, id, deleteFolder }: Props) {
-  const [show, setShow] = useState<boolean>(false);
-  const dropdownRef = useRef(null);
-  const event = useEvent(Events.DocFolderShow);
-  const handleClose = () => {
-    event.fireEvent({ show: false, key: id });
-  };
-  useOutsideClick(dropdownRef, handleClose);
-  useEffect(() => {
-    if (event?.data && event?.data.show !== undefined) {
-      setShow(event?.data.show);
-    }
-  }, [event, id]);
+export default function DocumentsFolderDropdown({ child, deleteFolder }: Props) {
   const matches = [
     {
       searchFn: searchByClasses(['doc-delete']),
@@ -32,11 +17,10 @@ export default function DocumentsFolderDropdown({ child, id, deleteFolder }: Pro
       },
     },
   ];
-  return show ? (
-    <div className={`${child.props.className} w-max min-w-max`} style={{ display: 'block' }} ref={dropdownRef}>
+
+  return (
+    <div className={`${child.props.className} w-max min-w-max`} style={{ display: 'block' }}>
       {transformMatchingElements(child.props.children, matches)}
     </div>
-  ) : (
-    <></>
   );
 }

@@ -10,6 +10,8 @@ import { transformMatchingElements, replaceAllTextWithBraces } from '@/_helpers/
 import RxPropertyActions from '@/components/RxProperty/RxPropertyActions';
 
 export default function RxPropertyTopStats(props: ReplacerPageProps) {
+  console.log('props.property', props.property);
+
   const matches = [
     {
       searchFn: searchByClasses(['price-n-address']),
