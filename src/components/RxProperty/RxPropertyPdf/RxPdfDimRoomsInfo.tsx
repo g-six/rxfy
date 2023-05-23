@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 
-import { MLSProperty } from '@/_typings/property';
+import { PropertyDataModel } from '@/_typings/property';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 
@@ -11,7 +11,7 @@ import { dimension_stats } from '@/_utilities/data-helpers/property-page';
 
 type ReplacerDimRoomsPdfProps = {
   child: React.ReactElement;
-  property: MLSProperty | undefined;
+  property: PropertyDataModel | undefined;
 };
 
 export default function RxPdfMainInfo({ property, child }: ReplacerDimRoomsPdfProps) {
@@ -19,7 +19,7 @@ export default function RxPdfMainInfo({ property, child }: ReplacerDimRoomsPdfPr
     {
       searchFn: searchByClasses(['rooms-info']),
       transformChild: (child: React.ReactElement) => {
-        return <RxPdfRoomStats property={property} nodeClassName={child.props.className} child={child} />;
+        return <RxPdfRoomStats property={property as PropertyDataModel & { [key: string]: string }} nodeClassName={child.props.className} child={child} />;
       },
     },
     {
@@ -27,7 +27,7 @@ export default function RxPdfMainInfo({ property, child }: ReplacerDimRoomsPdfPr
       transformChild: (child: React.ReactElement) => {
         return (
           <RxPdfStatsInfo
-            property={property}
+            property={property as PropertyDataModel & { [key: string]: string }}
             nodeClassName={child.props.className}
             child={child}
             stats={dimension_stats}

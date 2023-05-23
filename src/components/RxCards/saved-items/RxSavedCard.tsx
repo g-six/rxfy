@@ -1,6 +1,6 @@
 import React, { ReactElement, cloneElement } from 'react';
 import { Events } from '@/_typings/events';
-import { MLSProperty } from '@/_typings/property';
+import { MLSProperty, PropertyDataModel } from '@/_typings/property';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import { classNames } from '@/_utilities/html-helper';
@@ -10,7 +10,7 @@ import { searchByClasses } from '@/_utilities/rx-element-extractor';
 
 type Props = {
   child: ReactElement;
-  listing: MLSProperty;
+  listing: PropertyDataModel;
   agentId?: number;
   sequence?: number;
   love?: number;
@@ -21,22 +21,22 @@ type Props = {
 export default function RxSavedCard({ child, listing, love, agentId, addBtnClick = () => {}, isCompared }: Props) {
   const [loved_items, setLovedItems] = React.useState(getData(Events.LovedItem) as unknown as string[]);
   const evt = useLove();
-  const isLoved = loved_items && loved_items.includes(listing.MLS_ID);
+  const isLoved = loved_items && loved_items.includes(listing.mls_id);
   React.useEffect(() => {
-    if (evt.data?.item && evt.data.item.MLS_ID === listing.MLS_ID) {
+    if (evt.data?.item && evt.data.item.mls_id === listing.mls_id) {
       setLovedItems(getData(Events.LovedItem) as unknown as string[]);
     }
   }, [evt.data]);
 
   const textReplaced: ReactElement = replaceAllTextWithBraces(child, {
-    'PropCard Address': listing.Address,
-    'PropertyCard Address': listing.Address,
+    'PropCard Address': listing.title,
+    'PropertyCard Address': listing.title,
     'PropertyCard Price': formatValues(listing, 'AskingPrice'),
-    PArea: listing.Area || listing.City || 'N/A',
-    PBd: listing.L_BedroomTotal || 1,
-    PBth: listing.L_TotalBaths,
-    Psq: listing.L_FloorArea_GrantTotal,
-    PYear: listing.L_YearBuilt || ' ',
+    PArea: listing.area || listing.city || 'N/A',
+    PBd: listing.beds || 1,
+    PBth: listing.baths,
+    Psq: listing.floor_area_total,
+    PYear: listing.year_built || ' ',
   }) as ReactElement;
   const handleLoveClick = (e: React.SyntheticEvent) => {
     e.stopPropagation();

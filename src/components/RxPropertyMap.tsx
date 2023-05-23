@@ -1,7 +1,7 @@
 'use client';
-
-import { classNames } from '@/_utilities/html-helper';
+import axios from 'axios';
 import React, { Children, cloneElement } from 'react';
+import { classNames } from '@/_utilities/html-helper';
 import RxMapbox from './RxMapbox';
 import RxSearchInput from './RxSearchInput';
 import styles from './RxPropertyMap.module.scss';
@@ -9,7 +9,7 @@ import { Switch } from '@headlessui/react';
 import RxPropertyCard from '@/components/RxCards/RxPropertyCard';
 import { MapProvider } from '@/app/AppContext.module';
 import { getPlaceDetails } from '@/_utilities/geocoding-helper';
-import { LovedPropertyDataModel, MLSProperty } from '@/_typings/property';
+import { LovedPropertyDataModel, PropertyDataModel } from '@/_typings/property';
 import { PlaceDetails, RxPropertyMapProps } from '@/_typings/maps';
 import HomeAlertsReplacer from '@/_replacers/HomeAlerts/home-alerts';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
@@ -18,7 +18,6 @@ import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
 import { LoveDataModel } from '@/_typings/love';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 import { Events } from '@/_typings/events';
-import { useSearchParams } from 'next/navigation';
 import RxNavItemMenu from './Nav/RxNavItemMenu';
 import RxSearchFilters from './RxPropertyMap/RxSearchFilters';
 import RxToggleSavedHomes from './RxPropertyMap/RxToggleSavedHomes';
@@ -100,7 +99,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
           token={process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string}
           search_url={props.config.url}
           params={props.mapbox_params}
-          setListings={(listings: MLSProperty[]) => {
+          setListings={(listings: PropertyDataModel[]) => {
             props.setListings && props.setListings(listings);
           }}
         >
@@ -155,7 +154,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
                   token={process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string}
                   search_url={props.config.url}
                   params={props.mapbox_params}
-                  setListings={(listings: MLSProperty[]) => {
+                  setListings={(listings: PropertyDataModel[]) => {
                     props.setListings && props.setListings(listings);
                   }}
                 ></RxMapbox>
@@ -169,10 +168,10 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
         if (child.props.className.indexOf('property-card') >= 0) {
           // Just clone one
           return child.key === '1' ? (
-            props.listings.slice(0, 100).map((p: MLSProperty, sequence_no) => {
-              const record = props.loved_homes?.filter(({ mls_id }) => mls_id === p.MLS_ID).pop();
+            props.listings.slice(0, 100).map((p: PropertyDataModel, sequence_no) => {
+              const record = props.loved_homes?.filter(({ mls_id }) => mls_id === p.mls_id).pop();
               LargeCard = (
-                <RxPropertyCard key={p.MLS_ID} love={record?.love} listing={p} sequence={sequence_no} agent={props.agent_data.id}>
+                <RxPropertyCard key={p.mls_id} love={record?.love} listing={p} sequence={sequence_no} agent={props.agent_data.id}>
                   {cloneElement(child, {
                     ...child.props,
                     className: classNames(child.props.className),
@@ -217,11 +216,10 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
 }
 
 export default function RxPropertyMap(props: RxPropertyMapProps) {
-  const search = useSearchParams();
   const [show_loved, toggleLovedHomes] = React.useState(false);
   const [hide_others, setHideOthers] = React.useState(false);
   const [place, setPlace] = React.useState<google.maps.places.AutocompletePrediction>();
-  const [listings, setListings] = React.useState<MLSProperty[]>([]);
+  const [listings, setListings] = React.useState<PropertyDataModel[]>([]);
   const [loved_homes, setLovedHomes] = React.useState<LovedPropertyDataModel[]>([]);
   const [map_params, setMapParams] = React.useState<PlaceDetails>();
 
@@ -250,6 +248,12 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
   }, [place, props.agent_data]);
 
   React.useEffect(() => {
+    if (props.hide_others) {
+      axios.get('/');
+    }
+  }, [props.hide_others]);
+
+  React.useEffect(() => {
     getLovedHomes().then(response => {
       if (response && response.records) {
         processLovedHomes(response.records);
@@ -265,13 +269,13 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
           setPlace(p);
         }}
         place={place}
-        setListings={(p: MLSProperty[]) => {
+        setListings={(p: PropertyDataModel[]) => {
           setListings(p);
         }}
         listings={listings.filter(listing => {
           if (show_loved) {
             const local_loves = (getData(Events.LovedItem) as unknown as string[]) || [];
-            return local_loves.includes(listing.MLS_ID);
+            return local_loves.includes(listing.mls_id);
           }
           return true;
         })}

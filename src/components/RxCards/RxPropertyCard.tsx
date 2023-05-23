@@ -1,6 +1,6 @@
 import React from 'react';
 import { Events } from '@/_typings/events';
-import { MLSProperty } from '@/_typings/property';
+import { PropertyDataModel } from '@/_typings/property';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import { classNames } from '@/_utilities/html-helper';
@@ -137,7 +137,7 @@ export default function RxPropertyCard({
   agent?: number;
   sequence?: number;
   children: any;
-  listing: MLSProperty;
+  listing: PropertyDataModel;
   isLink?: boolean;
 }) {
   const [is_loading, toggleLoading] = React.useState(false);
@@ -145,7 +145,7 @@ export default function RxPropertyCard({
   const evt = useLove();
 
   React.useEffect(() => {
-    if (evt.data?.item && evt.data.item.MLS_ID === listing.MLS_ID) {
+    if (evt.data?.item && evt.data.item.mls_id === listing.mls_id) {
       setLovedItems(getData(Events.LovedItem) as unknown as string[]);
     }
   }, [evt.data]);
@@ -156,28 +156,28 @@ export default function RxPropertyCard({
       className={classNames(
         'group relative',
         sequence === 0 ? `` : 'hidden sm:block',
-        Cookies.get('session_key') && listing.Status.toLowerCase() === 'sold' ? styles.ShowSold : '',
+        Cookies.get('session_key') && listing.status?.toLowerCase() === 'sold' ? styles.ShowSold : '',
       )}
     >
       <RxComponentChomper
         config={{
           is_loading,
-          '{PropCard Address}': listing.Address,
-          '{PropertyCard Address}': listing.Address,
+          '{PropCard Address}': listing.title,
+          '{PropertyCard Address}': listing.title,
           '{PropertyCard Price}': formatValues(listing, 'AskingPrice'),
-          '{PArea}': listing.Area || listing.City || 'N/A',
-          '{PBd}': listing.L_BedroomTotal || 1,
-          '{PBth}': listing.L_TotalBaths,
-          '{Psq}': listing.L_FloorArea_GrantTotal,
+          '{PArea}': listing.area || listing.city || 'N/A',
+          '{PBd}': listing.beds || 1,
+          '{PBth}': listing.baths,
+          '{Psq}': listing.floor_area_total,
           photos: listing.photos as string[],
-          '{PYear}': listing.L_YearBuilt || ' ',
-          loved: loved_items && loved_items.includes(listing.MLS_ID),
+          '{PYear}': listing.year_built || ' ',
+          loved: loved_items && loved_items.includes(listing.mls_id),
           onClickItem: () => {
             if (isLink) {
               toggleLoading(true);
-              getMLSProperty(listing.MLS_ID).then(() => {
+              getMLSProperty(listing.mls_id).then(() => {
                 // Fix the application error for properties not imported yet
-                location.href = `/property?mls=${listing.MLS_ID}`;
+                location.href = `/property?mls=${listing.mls_id}`;
               });
             }
           },

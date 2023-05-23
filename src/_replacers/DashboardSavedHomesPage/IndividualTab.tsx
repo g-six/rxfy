@@ -6,7 +6,7 @@ import { replaceAllTextWithBraces, tMatch, transformMatchingElements } from '@/_
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import RxPropertyTopStats from '@/components/RxProperty/RxPropertyTopStats';
-import { MLSProperty } from '@/_typings/property';
+import { PropertyDataModel } from '@/_typings/property';
 import Image from 'next/image';
 import {
   combineAndFormatValues,
@@ -31,11 +31,11 @@ type Props = {
 export default function IndividualTab({ child, agent_data }: Props) {
   const { data } = useEvent(Events.SavedItemsIndivTab);
   const { mls_id } = data || {};
-  const [currentProperty, setCurrentProperty] = useState<MLSProperty | null>(null);
+  const [currentProperty, setCurrentProperty] = useState<PropertyDataModel | null>(null);
 
   useEffect(() => {
     if (mls_id) {
-      getMLSProperty(mls_id).then((res: MLSProperty) => {
+      getMLSProperty(mls_id).then((res: PropertyDataModel) => {
         setCurrentProperty(res);
       });
     }
@@ -54,12 +54,7 @@ export default function IndividualTab({ child, agent_data }: Props) {
       transformChild: (child: ReactElement) => {
         const el = [cloneElement(child.props.children) as ReactElement];
         return currentProperty ? (
-          <RxPropertyTopStats
-            nodeClassName={child.props.className}
-            nodeProps={child.props}
-            agent={agent_data}
-            property={{ ...currentProperty, Address: currentProperty.address as string }}
-          >
+          <RxPropertyTopStats nodeClassName={child.props.className} nodeProps={child.props} agent={agent_data} property={currentProperty}>
             {el}
           </RxPropertyTopStats>
         ) : (
@@ -75,10 +70,10 @@ export default function IndividualTab({ child, agent_data }: Props) {
           Beds: cp?.beds,
           Baths: cp?.baths,
           'Year Built': cp?.year_built,
-          Sqft: cp?.sqft,
+          Sqft: cp?.floor_area,
           Area: cp?.area,
           Description: cp?.description,
-          'Listing By': cp?.L_ManagmentCompany,
+          'Listing By': cp?.listing_by,
         }) as ReactElement;
       },
     },
@@ -90,13 +85,13 @@ export default function IndividualTab({ child, agent_data }: Props) {
     {
       searchFn: searchByClasses(['stats-level-2']),
       transformChild: (child: ReactElement) => {
-        const cp: MLSProperty | { [key: string]: string } = currentProperty || {};
+        const cp: PropertyDataModel | { [key: string]: string } = currentProperty || {};
         return replaceAllTextWithBraces(child, {
-          'Building Type': cp?.PropertyType,
-          'MLS Number': cp?.MLS_ID,
-          'Lot Size': formatValues(cp, 'L_LotSize_SqMtrs'),
-          'Land Title': cp?.LandTitle,
-          'Price Per Sqft': formatValues(cp, 'PricePerSQFT'),
+          'Building Type': cp?.property_type,
+          'MLS Number': cp?.mls_id,
+          'Lot Size': formatValues(cp, 'lot_sqm'),
+          'Land Title': cp?.land_title,
+          'Price Per Sqft': formatValues(cp, 'price_per_sqft'),
           'Property Tax': combineAndFormatValues(
             {
               gross_taxes: Number(cp.gross_taxes),
@@ -177,7 +172,7 @@ export default function IndividualTab({ child, agent_data }: Props) {
     {
       searchFn: searchByClasses(['div-features-block']),
       transformChild: (child: ReactElement) => {
-        return <RxFeatures child={child} features={mapFeatures(currentProperty)} />;
+        return <RxFeatures child={child} features={mapFeatures(currentProperty as PropertyDataModel)} />;
       },
     },
     // {

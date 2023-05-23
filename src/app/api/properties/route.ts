@@ -10,7 +10,6 @@ import {
   getGqlForInsertProperty,
   getGqlForUpdateProperty,
   getMutationForNewAgentInventory,
-  getMutationForPhotoAlbumCreation,
   retrieveFromLegacyPipeline,
   slugifyAddress,
   slugifyAddressRecord,
@@ -77,6 +76,10 @@ export async function GET(request: Request) {
               ? getGqlForInsertProperty(hit, real_estate_board)
               : getGqlForUpdateProperty(results?.data?.data?.properties?.data[0].id, hit, real_estate_board);
 
+          const d = await axios.post(`${process.env.NEXT_APP_CMS_GRAPHQL_URL}`, gql_config, {
+            headers,
+          });
+          console.log(d.data);
           const {
             data: {
               data: {
@@ -84,9 +87,7 @@ export async function GET(request: Request) {
               },
               errors,
             },
-          } = await axios.post(`${process.env.NEXT_APP_CMS_GRAPHQL_URL}`, gql_config, {
-            headers,
-          });
+          } = d;
 
           if (errors) {
             console.log('Property create error');
@@ -98,29 +99,6 @@ export async function GET(request: Request) {
             ...data.attributes,
             id: Number(data.id),
           };
-
-          if (!property.property_photo_album?.data?.photos?.length && hit.photos && Array.isArray(hit.photos)) {
-            const album_results = await axios.post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getMutationForPhotoAlbumCreation(property.id, hit.photos), {
-              headers: {
-                Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-                'Content-Type': 'application/json',
-              },
-            });
-            const {
-              data: {
-                data: { createPropertyPhotoAlbum },
-              },
-            } = album_results;
-            property = {
-              ...property,
-              property_photo_album: {
-                data: {
-                  id: Number(createPropertyPhotoAlbum.data.id),
-                  attributes: createPropertyPhotoAlbum.data.attributes,
-                },
-              },
-            };
-          }
 
           agents.forEach(agent =>
             axios.post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getMutationForNewAgentInventory(property.id, agent), {
@@ -180,33 +158,6 @@ export async function GET(request: Request) {
                     }),
                   };
                 }
-                break;
-              case 'Address':
-              case 'Status':
-              case 'Remarks':
-                output = {
-                  ...output,
-                  [key.toLowerCase()]: capitalizeFirstLetter(mls_data[key].toLowerCase()),
-                };
-                break;
-              case 'L_PublicRemakrs':
-                output = {
-                  ...output,
-                  description: capitalizeFirstLetter(mls_data[key].toLowerCase()),
-                };
-                break;
-              case 'L_TotalBaths':
-                output = {
-                  ...output,
-                  baths: Number(mls_data[key]),
-                };
-                break;
-              case 'B_Style':
-                output = {
-                  ...output,
-                  style: mls_data[key],
-                  [key]: mls_data[key],
-                };
                 break;
               case 'LandTitle':
                 output = {

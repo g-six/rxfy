@@ -1,5 +1,9 @@
 .dropdown {
-  @apply w-36 flex;
+  @apply w-36 flex rounded overflow-hidden;
+
+  &.session-dropdown {
+    @apply top-16 mt-0;
+  }
 
   min-width: 0;
   > div {

@@ -2,12 +2,12 @@ import React from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import RxPropertyCard from './RxCards/RxPropertyCard';
 import { classNames } from '@/_utilities/html-helper';
-import { MLSProperty } from '@/_typings/property';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { RxSmallPropertyCard } from './RxCards/RxSmallPropertyCard';
+import { PropertyDataModel } from '@/_typings/property';
 
 type PropertyListProps = {
-  properties: Record<string, string | number | string[]>[];
+  properties: PropertyDataModel[];
   card?: React.ReactElement;
   onClose(): void;
 };
@@ -68,7 +68,7 @@ export default function PropertyListModal(p: PropertyListProps) {
                       listing =>
                         listing.id &&
                         (p.properties.length === 1 && p.card ? (
-                          <RxPropertyCard key={listing.id as string} listing={listing as unknown as MLSProperty} sequence={0}>
+                          <RxPropertyCard key={listing.id} listing={listing} sequence={0}>
                             {React.cloneElement(<div />, {
                               ...p.card.props.children.props,
                               // Wrap grandchildren too
@@ -76,7 +76,7 @@ export default function PropertyListModal(p: PropertyListProps) {
                             })}
                           </RxPropertyCard>
                         ) : (
-                          <RxSmallPropertyCard className='w-full shadow-none m-0 hover:bg-indigo-100 p-1 rounded-2xl' key={listing.id as string} {...listing} />
+                          <RxSmallPropertyCard className='w-full shadow-none m-0 hover:bg-indigo-100 p-1 rounded-2xl' key={listing.id} {...listing} />
                         )),
                     )}
                 </div>
