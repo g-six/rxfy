@@ -89,23 +89,22 @@ export const financial_stats: Record<string, string> = {
 export const construction_stats: Record<string, string> = {
   style_type: 'Style of Home',
   construction_information: 'Construction',
-  LFD_FloorFinish_19: 'Floor Finish',
-  exterior_finish: 'Exterior Finish',
-  L_Fireplace_Fuel: 'Fireplace Fueled by',
-  LFD_Foundation_155: 'Foundation',
+  flooring: 'Floor Finish',
+  fireplace: 'Fireplace Fueled by',
+  foundation_specs: 'Foundation',
   roofing: 'Roof',
   complex_compound_name: 'Complex/Subdivision',
-  L_NoFloorLevels: 'Floor Levels',
+  floor_levels: 'Floor Levels',
 };
 
 export const dimension_stats: Record<string, string> = {
   frontage_feet: 'Frontage',
   depth: 'Depth',
   floor_area: 'Total floor area',
-  L_FloorArea_Finished_AboveMainFloor: 'Floor Area Fin - Abv Main',
-  L_FloorArea_Main: 'Main Floor Area',
+  floor_area_upper_floors: 'Total floor area (upper)',
   floor_area_main: 'Main Floor Area',
-  L_FloorArea_GrantTotal: 'Floor Area - Grant Total',
+  room_details: 'Rooms',
+  bathroom_details: 'Baths',
 };
 
 export const property_features: string[] = [
@@ -857,6 +856,17 @@ export function getMutationForNewAgentInventory(property: number, agent: number)
   };
 }
 
+export function getRoomPlusLevelText(type: string, level: string, width?: string, length?: string) {
+  const measurements = width && length ? `, ${width} x ${length}` : '';
+  switch (level.toLowerCase()) {
+    case 'above':
+      return `Upper Level: ${type}${measurements}`;
+    case 'below':
+      return `Lower Level: ${type}${measurements}`;
+    default:
+      return `${level} Level: ${type}${measurements}`;
+  }
+}
 export function formatValues(obj: any, key: string): string {
   if (!obj || !obj[key]) return '';
 
@@ -872,7 +882,30 @@ export function formatValues(obj: any, key: string): string {
     return dateStringToDMY(obj[key] as string);
   }
 
-  if (key.toLocaleLowerCase() === 'address') {
+  if (key.toLowerCase() === 'parking' && typeof obj[key] === 'object') {
+    const { data } = obj[key];
+    let values: string[] = [];
+    if (Array.isArray(data)) {
+      data.forEach(({ attributes }) => {
+        if (attributes?.name) {
+          values.push(attributes.name);
+        }
+      });
+    }
+    return values.join(' • ');
+  }
+  if (key.toLowerCase() === 'room_details' && typeof obj[key] === 'object') {
+    const { rooms } = obj[key];
+    let values: string[] = [];
+    if (Array.isArray(rooms)) {
+      rooms.forEach(({ type, level, width, length }) => {
+        values.push(getRoomPlusLevelText(type, level, width, length));
+      });
+    }
+    return values.join(' • ');
+  }
+
+  if (key.toLowerCase() === 'address') {
     return capitalizeFirstLetter((obj[key] as string).toLowerCase());
   }
   return obj[key] as unknown as string;

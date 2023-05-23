@@ -1,7 +1,7 @@
 'use client';
-
-import { classNames } from '@/_utilities/html-helper';
+import axios from 'axios';
 import React, { Children, cloneElement } from 'react';
+import { classNames } from '@/_utilities/html-helper';
 import RxMapbox from './RxMapbox';
 import RxSearchInput from './RxSearchInput';
 import styles from './RxPropertyMap.module.scss';
@@ -18,7 +18,6 @@ import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
 import { LoveDataModel } from '@/_typings/love';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 import { Events } from '@/_typings/events';
-import { useSearchParams } from 'next/navigation';
 import RxNavItemMenu from './Nav/RxNavItemMenu';
 import RxSearchFilters from './RxPropertyMap/RxSearchFilters';
 import RxToggleSavedHomes from './RxPropertyMap/RxToggleSavedHomes';
@@ -217,7 +216,6 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
 }
 
 export default function RxPropertyMap(props: RxPropertyMapProps) {
-  const search = useSearchParams();
   const [show_loved, toggleLovedHomes] = React.useState(false);
   const [hide_others, setHideOthers] = React.useState(false);
   const [place, setPlace] = React.useState<google.maps.places.AutocompletePrediction>();
@@ -248,6 +246,12 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
       });
     }
   }, [place, props.agent_data]);
+
+  React.useEffect(() => {
+    if (props.hide_others) {
+      axios.get();
+    }
+  }, [props.hide_others]);
 
   React.useEffect(() => {
     getLovedHomes().then(response => {

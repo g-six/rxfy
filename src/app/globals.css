@@ -91,3 +91,10 @@
 .react-calendar__navigation {
   @apply w-full flex items-center justify-between;
 }
+.sold-photo {
+  @apply relative;
+}
+.sold-photo::after {
+  @apply absolute top-2 left-2 rounded-full bg-red-600 text-white px-2 py-1 uppercase font-semibold;
+  content: 'Sold';
+}

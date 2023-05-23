@@ -48,6 +48,9 @@ import RxContactFormButton from './RxForms/RxContactFormButton';
 import RxStatsGridWithIcons from './RxProperty/RxStatsGridWithIcons';
 import RxGenericLabeledValueBlock from './_generics/RxGenericLabeledValueBlock';
 import RxSimilarListings from './RxProperty/RxSimilarListings';
+import Script from 'next/script';
+import RxSessionDropdown from './Nav/RxSessionDropdown';
+import RxPropertyCarousel from './RxProperty/RxPropertyCarousel';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -290,21 +293,77 @@ export function replaceInlineScripts($: CheerioAPI) {
   });
 }
 
-export function appendJs(url: string) {
-  return `
-    fetch('${url}').then((response) => {
-      response.text().then(script_txt => {
-        var js = document.createElement('script');
-        js.type = 'text/javascript';
-        js.text = script_txt.split('w-webflow-badge').join('oh-no-you-dont hidden').split('window.alert').join('console.log');
-        setTimeout(() => {
-          document.body.appendChild(js)
-        }, 2800)
+export function appendJs(url: string, delay = 1200) {
+  console.log('appendJs:', url);
+  if (url.indexOf('website-files.com') >= 0) {
+    console.log('timeout is set at', delay);
+    return `
+      var Webflow = Webflow || [];
+      Webflow.push(() => {
+        window.scrollTo({
+          top: 1,
+        });
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
       })
+      setTimeout(() => {
+        fetch('${url}').then((response) => {
+          response.text().then(script_txt => {
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.text = script_txt.split('w-webflow-badge').join('oh-no-you-dont hidden').split('window.alert').join('console.log');
+            document.body.appendChild(script)
+          })
+        })
+      }, ${delay})
+    `;
+  }
+  return `
+  fetch('${url}').then((response) => {
+    response.text().then(script_txt => {
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.text = script_txt;
+      document.body.appendChild(script)
     })
+  })
   `;
 }
 export function replaceFormsWithDiv($: CheerioAPI) {}
+
+export function rexifyScriptsV2(html_code: string) {
+  const options: HTMLReactParserOptions = {
+    replace: node => {
+      if (node.type === 'script') {
+        const { attribs } = node as unknown as {
+          attribs: Record<string, string>;
+        };
+        if (attribs.src) {
+          if (attribs.src.indexOf('jquery') >= 0) {
+            return <script src={attribs.src} type='text/javascript' crossOrigin='anonymous' integrity={attribs.integrity} />;
+          } else {
+            return (
+              <>
+                <script
+                  suppressHydrationWarning
+                  dangerouslySetInnerHTML={{
+                    __html: appendJs(attribs.src, 0),
+                  }}
+                />
+              </>
+            );
+          }
+        }
+      }
+      return <></>;
+    },
+  };
+
+  const elements = parse(html_code, options);
+  return elements;
+}
 
 export function rexifyScripts(html_code: string) {
   const options: HTMLReactParserOptions = {
@@ -377,6 +436,10 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
               {domToReact(node.children) as ReactElement[]}
             </RxIdPage>
           );
+        }
+
+        if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.SESSION_DROPDOWN) >= 0) {
+          return <RxSessionDropdown>{domToReact(node.children) as ReactElement}</RxSessionDropdown>;
         }
 
         if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.SIGNUP) {
@@ -632,31 +695,32 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
                   {domToReact(node.children) as ReactElement}
                 </RxGenericLabeledValueBlock>
               );
-            } else if (node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.SIMILAR_LISTINGS) >= 0) {
+            } else if (node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.SIMILAR_LISTINGS) >= 0)
               return (
                 <RxSimilarListings className={node.attribs.class} property={p as unknown as { [key: string]: string }}>
                   {domToReact(node.children) as ReactElement[]}
                 </RxSimilarListings>
               );
+            else if (node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_PHOTO_WRAPPER) >= 0) {
+              return <RxPropertyCarousel>{domToReact(node.children)}</RxPropertyCarousel>;
             } else if (node.attribs.class.indexOf('propinfo') >= 0) return <RexifyStatBlock node={node} record={p} groupName='propinfo' />;
             else if (node.attribs.class.indexOf('financial') >= 0) return <RexifyStatBlock node={node} record={p} groupName='financial' />;
             else if (node.attribs.class.indexOf('dimensions') >= 0) return <RexifyStatBlock node={node} record={p} groupName='dimensions' />;
             else if (node.attribs.class.indexOf('construction') >= 0) return <RexifyStatBlock node={node} record={p} groupName='construction' />;
-            else if (node.attribs.class.indexOf('div-features-block') >= 0) {
-              return <RexifyPropertyFeatureBlock node={node} record={record} />;
-            } else if (node.lastChild && (node.lastChild as HTMLNode).attribs && (node.lastChild as HTMLNode).attribs.class) {
+            else if (node.attribs.class.indexOf('div-features-block') >= 0) return <RexifyPropertyFeatureBlock node={node} record={record} />;
+            else if (node.lastChild && (node.lastChild as HTMLNode).attribs && (node.lastChild as HTMLNode).attribs.class) {
               // Building units section
               const child_class = (node.lastChild as HTMLNode).attribs.class;
 
-              if (
-                (!property.neighbours || (property.neighbours as MLSProperty[]).length === 0 || !(property.neighbours as MLSProperty[])[0].AddressUnit) &&
-                (!property.sold_history || (property.sold_history as MLSProperty[]).length === 0)
-              ) {
-                // Remove building and sold grid
-                if (child_class.indexOf('building-and-sold-grid') >= 0) {
-                  return <></>;
-                }
-              }
+              // if (
+              //   (!property.neighbours || (property.neighbours as MLSProperty[]).length === 0 || !(property.neighbours as MLSProperty[])[0].AddressUnit) &&
+              //   (!property.sold_history || (property.sold_history as MLSProperty[]).length === 0)
+              // ) {
+              //   // Remove building and sold grid
+              //   if (child_class.indexOf('building-and-sold-grid') >= 0) {
+              //     return <></>;
+              //   }
+              // }
               if (child_class.indexOf('div-building-units-on-sale') >= 0 && node.attribs.class.indexOf('building-and-sold-column') >= 0) {
                 return property.neighbours && (property.neighbours as MLSProperty[]).length ? (
                   property.AddressUnit ? (
@@ -667,8 +731,8 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
                 ) : (
                   <></>
                 );
-              } // Sold history
-              else if (child_class.indexOf('div-sold-history') >= 0 && node.attribs.class.indexOf('building-and-sold-column') >= 0) {
+              }
+              if (child_class.indexOf('div-sold-history') >= 0 && node.attribs.class.indexOf('building-and-sold-column') >= 0) {
                 return property.sold_history && (property.sold_history as MLSProperty[]).length ? (
                   <RxTable rowClassName='div-sold-history' rows={node.children} data={property.sold_history as MLSProperty[]} />
                 ) : (

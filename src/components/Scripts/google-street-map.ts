@@ -6,9 +6,9 @@ export function addPropertyMapScripts(property: Record<string, unknown>): string
             const property = {
                 lat: ${property.lat},
                 lng: ${property.lon || property.lng},
-                name: "${property.Address}",
-                neighbourhood: "${property.Area}",
-                province: "${property.Province_State}",
+                name: "${property.title}",
+                neighbourhood: "${property.neighbourhood}",
+                province: "${property.state_province}",
             };
         
             function initNeighborhoodMap(element) {
@@ -35,6 +35,11 @@ export function addPropertyMapScripts(property: Record<string, unknown>): string
                 ));
                 placeMarker(property, localContext.map);
                 localContext.search();
+            }
+
+            if (document.querySelector(".street-view-div")) {
+                console.log('Found .street-view-div, try to replace using')
+                initStreetView(".street-view-div");
             }
 
             function initStreetView(selector) {
@@ -89,14 +94,6 @@ export function addPropertyMapScripts(property: Record<string, unknown>): string
                 google.maps.event.addListener(marker, "click", function () {
                     infowindow.open(map, marker);
                 });
-            }
-
-            if (document.querySelector(".map-div")) {
-                initNeighborhoodMap();
-            }
-
-            if (document.querySelector(".street-view-div")) {
-                initStreetView(".street-view-div");
             }
         `;
 }

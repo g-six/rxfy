@@ -74,3 +74,34 @@ export const gql_by_email = `query Agent($email: String!) {
       data {${GQ_FRAG_AGENT}}
     }
 }`;
+
+export const gql_agent_inventory = `query AgentInventory($agent: ID!) {
+  inventory: agentInventories(filters: { agent: { id: { eq: $agent } } }) {
+    records: data {
+      id
+      attributes {
+        property {
+          data {
+            attributes {
+              title
+              postal_zip_code
+              state_province
+              asking_price
+              property_type
+              style_type
+              beds 
+              baths
+              property_photo_album {
+                data {
+                  attributes {
+                    photos
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}`;
