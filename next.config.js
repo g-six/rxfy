@@ -15,10 +15,6 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'swiperjs.com',
-      },
-      {
-        protocol: 'https',
         hostname: 'e52tn40a.cdn.imgeng.in',
       },
     ],
