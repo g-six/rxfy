@@ -119,7 +119,7 @@ export function RexifyStatBlock({
               }
 
               // Rooms
-              if (key === 'room_details' && record.room_details) {
+              if (key === 'room_details' && record.room_details?.rooms) {
                 let levels: {
                   [level: string]: {
                     name: string;
@@ -167,7 +167,7 @@ export function RexifyStatBlock({
               }
 
               // Bathooms
-              if (key === 'bathroom_details' && record.bathroom_details) {
+              if (key === 'bathroom_details' && record.bathroom_details?.baths) {
                 let levels: {
                   [level: string]: BathroomDetails[];
                 } = {};

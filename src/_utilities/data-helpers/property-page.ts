@@ -479,21 +479,13 @@ export async function getRecentListings(agent: AgentData, limit = 3) {
   return properties;
 }
 
-async function upsertPropertyToCMS(mls_data: MLSProperty) {
+async function upsertPropertyToCMS(mls_id: string) {
   const axios: AxiosStatic = (await import('axios')).default;
   try {
-    const real_estate_board_res = await getRealEstateBoard(mls_data as unknown as { [key: string]: string });
-    const real_estate_board = real_estate_board_res?.id || undefined;
-    const xhr = await axios.post(process.env.NEXT_APP_CMS_GRAPHQL_URL as string, getGqlForInsertProperty(mls_data, { real_estate_board }), {
-      headers: {
-        Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const xhr = await axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/test-cron?data.MLS_ID=${mls_id}`);
+    const json = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/listings/${mls_id}/recent.json`);
 
-    console.log('Real Estate Board Data', real_estate_board_res);
-
-    return xhr?.data?.data?.property || {};
+    return json || {};
   } catch (e) {
     const error = e as AxiosError;
     console.log('ERROR in upsertPropertyToCMS.axios', '\n', error, '\n\n');
@@ -616,27 +608,10 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
   if (id_is_mls && (property === undefined || !property)) {
     // Data was not picked up by the integrations API,
     // attempt to fix
-    const [mls_data] = await retrieveFromLegacyPipeline({
-      from: 0,
-      size: 1,
-      query: {
-        bool: {
-          filter: [
-            {
-              match: {
-                'data.MLS_ID': property_id,
-              },
-            },
-          ],
-          should: [],
-        },
-      },
-    });
-
     console.log('Trying to upsert a property to our CMS');
-    const on_the_fly_record = await upsertPropertyToCMS(mls_data);
+    const on_the_fly_record = await upsertPropertyToCMS(property_id as string);
 
-    console.log('DONE');
+    console.log('DONE', { on_the_fly_record });
     if (on_the_fly_record?.data) {
       property = on_the_fly_record.data;
       console.log('Property ID', property.id);
