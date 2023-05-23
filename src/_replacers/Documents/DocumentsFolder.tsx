@@ -9,6 +9,7 @@ import DocumentsFolderDropdown from './DocumentsFolderDropdown';
 import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
 import { removeDocument, removeDocumentUpload } from '@/_utilities/api-calls/call-documents';
 import RxFileUploader from '@/components/RxForms/RxFileUploader';
+import RxDropMenu from '@/components/_generics/RxDropMenu';
 
 type Props = {
   template: ReactElement;
@@ -17,9 +18,8 @@ type Props = {
   setDocuments: Dispatch<SetStateAction<DocumentsFolderInterface[]>>;
 };
 
-export default function DocumentsFolder({ template, docFolderData, agent_data, setDocuments }: Props) {
+export default function DocumentsFolder({ template, docFolderData, setDocuments }: Props) {
   const templates = captureMatchingElements(template, [{ searchFn: searchByClasses(['one-doc-description']), elementName: 'docRow' }]);
-  const event = useEvent(Events.DocFolderShow);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const deleteFolder = () => {
     removeDocument(parseInt(docFolderData.id)).then(res => {
@@ -60,18 +60,16 @@ export default function DocumentsFolder({ template, docFolderData, agent_data, s
       //making dropdown click work
       searchFn: searchByClasses(['sort-dropdown', 'w-dropdown']),
       transformChild: (child: ReactElement) => {
-        return cloneElement(child, {
-          onClick: () => {
-            event.fireEvent({ show: true, key: parseInt(docFolderData.id) });
-          },
-        });
-      },
-    },
-    {
-      //making dropdown show
-      searchFn: searchByClasses(['doc-folder-dropdown']),
-      transformChild: (child: ReactElement) => {
-        return <DocumentsFolderDropdown deleteFolder={deleteFolder} id={parseInt(docFolderData.id)} key={`${docFolderData.id}_dd`} child={child} />;
+        return (
+          <RxDropMenu
+            wrapperNode={child}
+            menuClassNames={['doc-folder-dropdown', 'w-dropdown-list']}
+            toggleClassNames={['doc-3dots-dropdown', 'w-dropdown-toggle']}
+            menuRenderer={(child: ReactElement) => {
+              return (<DocumentsFolderDropdown deleteFolder={deleteFolder} key={`${docFolderData.id}_dd`} child={child} />) as ReactElement;
+            }}
+          />
+        );
       },
     },
     {
@@ -88,7 +86,7 @@ export default function DocumentsFolder({ template, docFolderData, agent_data, s
     },
   ];
 
-  const transformed = transformMatchingElements(
+  return transformMatchingElements(
     cloneElement(template, { key: docFolderData.id }, [
       ...template.props.children.filter((child: ReactElement) => child.props.className !== 'one-doc-description'),
       docFolderData.document_uploads.data.map((doc: DocumentInterface) => (
@@ -97,6 +95,4 @@ export default function DocumentsFolder({ template, docFolderData, agent_data, s
     ]),
     matches,
   ) as ReactElement;
-
-  return transformed;
 }
