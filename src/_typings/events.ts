@@ -25,6 +25,7 @@ export enum Events {
   MyHomeAlertsFormReset = 'my-home-alerts-form-reset',
   GenericEvent = 'generic-event',
   TogglePhotoSliderModal = 'photo-slider-modal',
+  PropertyGalleryModal = 'property-gallery-modal',
   //ContactFormSubmit = 'event-contact-form-submit',
 }
 
@@ -52,6 +53,7 @@ export interface EventsData {
   metadata?: any;
   alertData?: SavedSearchInput;
   reload?: boolean;
+  photos?: string[];
 }
 export const tabEventMapping: { [key: string]: Events } = {
   'indiv-view': Events.SavedItemsIndivTab,
