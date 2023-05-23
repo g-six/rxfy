@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 
-import { MLSProperty } from '@/_typings/property';
+import { PropertyDataModel } from '@/_typings/property';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { combineAndFormatValues } from '@/_utilities/data-helpers/property-page';
 import { replaceAllTextWithBraces, transformMatchingElements } from '@/_helpers/dom-manipulators';
@@ -9,7 +9,7 @@ import { getPageImgSize, MAIN_INFO_PART } from '@/_helpers/pdf-renderer';
 
 type ReplacerMainPdfProps = {
   child: React.ReactElement;
-  property: MLSProperty | undefined;
+  property: PropertyDataModel | undefined;
   imgPhoto: string;
   imgMap: string;
   size?: 'a4' | 'us' | undefined;
@@ -22,7 +22,7 @@ export default function RxPdfMainInfo({ property, child, imgMap, imgPhoto, size 
       searchFn: searchByClasses(['stat-level2']),
       transformChild: (child: React.ReactElement) =>
         replaceAllTextWithBraces(child, {
-          'Building Type': property?.PropertyType,
+          'Building Type': property?.property_type,
           'Property Tax': combineAndFormatValues({
             L_GrossTaxes: Number(property?.gross_taxes),
             ForTaxYear: Number(property?.tax_year),

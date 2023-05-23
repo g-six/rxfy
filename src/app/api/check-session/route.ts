@@ -64,7 +64,6 @@ export async function GET(request: Request) {
   const { email, full_name, last_activity_at, session_key, first_name, last_name, ...session_data } = await getNewSessionKey(token, guid, user_type);
   const { agent, birthday, brokerage } = session_data;
   let phone_number = session_data.phone_number || session_data.phone || session_data.agent?.data?.attributes?.phone;
-
   if (email && last_activity_at && session_key) {
     return getResponse(
       {

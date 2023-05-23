@@ -145,7 +145,7 @@ export default function RxPropertyCardV2({
   const evt = useLove();
 
   React.useEffect(() => {
-    if (evt.data?.item && evt.data.item.MLS_ID === listing.mls_id) {
+    if (evt.data?.item && evt.data.item.mls_id === listing.mls_id) {
       setLovedItems(getData(Events.LovedItem) as unknown as string[]);
     }
   }, [evt.data]);

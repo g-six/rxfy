@@ -30,6 +30,10 @@ export enum WEBFLOW_NODE_SELECTOR {
   PROPERTY_MAIN_ATTRIBUTES = 'bedbath-stat-block',
   SIMILAR_LISTINGS = 'similar-homes-grid',
   HOME_SEARCH_WRAPPER = 'section---search',
+  SESSION_DROPDOWN = 'in-session-dropdown',
+  GUEST_DROPDOWN = 'login-signup',
+  PROPERTY_PHOTO_WRAPPER = 'property-images-lightbox',
+  PROPERTY_PHOTO_ITEM = 'property-carousel-item',
 }
 
 export interface WebFlow {

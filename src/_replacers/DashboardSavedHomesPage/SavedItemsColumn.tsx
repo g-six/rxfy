@@ -36,31 +36,21 @@ export default function SavedItemsColumn({ loved, child, agent_data }: Props) {
   const propertyCards =
     loved?.length > 0
       ? loved.map((p: LovedPropertyDataModel, sequence_no: number) => {
-          const { love, mls_id: MLS_ID, title: Address, asking_price: AskingPrice, area: Area, beds, baths, sqft, ...listing } = p;
+          const { love, ...listing } = p;
 
           return (
-            <div className='w-full ' key={p.mls_id} onClick={handleOnCardClick(MLS_ID)}>
+            <div className='w-full ' key={p.mls_id} onClick={handleOnCardClick(listing.mls_id)}>
               <RxSavedCard
                 love={love}
                 child={card}
-                listing={{
-                  ...(listing as unknown as MLSProperty),
-                  MLS_ID,
-                  Address,
-                  AskingPrice,
-                  Area,
-                  L_BedroomTotal: beds || 1,
-                  L_TotalBaths: baths || 1,
-                  L_FloorArea_Total: sqft || 0,
-                  L_FloorArea_GrantTotal: sqft || 0,
-                }}
+                listing={listing}
                 sequence={sequence_no}
                 agentId={agent_data.id}
                 addBtnClick={(e: React.SyntheticEvent) => {
                   e.stopPropagation();
-                  fireCustomEvent({ mls_id: MLS_ID }, Events.SavedItemsCompareTab);
+                  fireCustomEvent({ mls_id: listing.mls_id }, Events.SavedItemsCompareTab);
                 }}
-                isCompared={comparedArr.some(id => id === MLS_ID)}
+                isCompared={comparedArr.some(id => id === listing.mls_id)}
               />
             </div>
           );

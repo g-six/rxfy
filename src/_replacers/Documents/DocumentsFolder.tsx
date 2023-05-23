@@ -9,7 +9,7 @@ import DocumentsFolderDropdown from './DocumentsFolderDropdown';
 import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
 import { removeDocument, removeDocumentUpload } from '@/_utilities/api-calls/call-documents';
 import RxFileUploader from '@/components/RxForms/RxFileUploader';
-import RxDropMenu from '@/components/_generics/RxDropMenu';
+import RxDropMenu from '@/components/RxForms/RxDropMenu';
 
 type Props = {
   template: ReactElement;

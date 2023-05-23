@@ -27,7 +27,7 @@ export interface MLSPropertyExtended {
   Status: 'Active' | 'Sold';
   B_Amenities: string;
   B_Depth: number;
-  B_Heating: string;
+  heating: string;
   B_Parking_Access: string;
   B_Style: string;
   LO1_URL: string;

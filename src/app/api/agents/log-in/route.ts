@@ -133,7 +133,7 @@ async function agentAuthLogin(email: string, password: string) {
   } catch (e) {
     const { response, code } = e as AxiosError;
     if (code == 'ERR_BAD_REQUEST') {
-      console.log(response?.data);
+      console.log({ code }, response?.data);
       return;
     }
     return;

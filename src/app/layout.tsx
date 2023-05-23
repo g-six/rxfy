@@ -11,7 +11,8 @@ import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getPrivatePropertyData, getPropertyData } from '@/_utilities/data-helpers/property-page';
 import { replaceMetaTags } from '@/_helpers/head-manipulations';
 import initializePlacesAutocomplete from '@/components/Scripts/places-autocomplete';
-import { appendJs } from '@/components/rexifier';
+import { appendJs, rexifyScripts, rexifyScriptsV2 } from '@/components/rexifier';
+import { Events } from '@/_typings/events';
 
 const skip_pathnames = ['/favicon.ico'];
 
@@ -37,8 +38,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   } catch (e) {
     console.log('Layout.tsx ERROR.  Unable to fetch page html for', page_url);
   }
-
-  console.log('Webflow domain', page_url);
 
   const requestLink = headers().get('x-url') || '';
   const requestUrl = new URL(requestLink);
@@ -81,7 +80,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   const $: CheerioAPI = load(data);
-
   const webflow: WebFlow = {
     head: {
       props: {
@@ -97,7 +95,29 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const { class: className, ...head_props } = webflow.head.props;
   const { class: bodyClassName, ...body_props } = webflow.body.props;
+  if (agent_data.webflow_domain === 'leagent-website.webflow.io') {
+    return (
+      <html data-wf-domain={agent_data.webflow_domain} {...$('html').attr()}>
+        <head
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html:
+              webflow.head.code +
+              `
+            <script type="text/javascript">
+            document.addEventListener("click", console.log, false);
+            </script>
+            `,
+          }}
+        />
 
+        <body {...body_props} className={bodyClassName} suppressHydrationWarning>
+          {children}
+          {webflow.body.code && rexifyScriptsV2(webflow.body.code)}
+        </body>
+      </html>
+    );
+  }
   return (
     webflow && (
       <html>
@@ -133,6 +153,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 ),
               }}
             ></script>
+
+            {webflow.body.code && rexifyScripts(webflow.body.code)}
           </body>
         ) : (
           <body>{children}</body>

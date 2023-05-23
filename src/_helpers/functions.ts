@@ -1,4 +1,4 @@
-import { MLSProperty } from '@/_typings/property';
+import { MLSProperty, PropertyDataModel } from '@/_typings/property';
 import { Events, EventsData } from '@/_typings/events';
 import { Filter } from '@/_typings/filters_compare';
 import { FILTERS } from './constants';
@@ -105,13 +105,14 @@ export const getCurrentTab = (tabsDOMs: Element[]): string => {
   });
   return currentTabDOM ? Array.from(currentTabDOM.classList).filter(cls => tabsArray.includes(cls))[0] : 'default';
 };
-export const prepareStats = (stats: { [key: string]: string }, property: MLSProperty | null): { label: string; value: string | number | undefined }[] => {
+export const prepareStats = (stats: { [key: string]: string }, property: PropertyDataModel | null): { label: string; value: string | number | undefined }[] => {
   if (!property) return [];
+  const record = property as unknown as { [key: string]: string | number };
 
   const aggregatedArray = Object.entries(stats).map(([key, label]) => {
     return {
       label: label,
-      value: property[key] as string | number | undefined, // Type assertion for property[key]
+      value: record[key] as string | number | undefined, // Type assertion for property[key]
     };
   });
   return aggregatedArray.filter(item => item?.value);
@@ -119,6 +120,7 @@ export const prepareStats = (stats: { [key: string]: string }, property: MLSProp
 const featureMapping: Record<string, string> = {
   'Air Conditioning': 'air-conditioner',
   'Washer/Dryer': 'washing-machine',
+  'Washing Machine': 'washing-machine',
   Refrigerator: 'refrigerator',
   Stove: 'stove',
   Dishwasher: 'dish-washer',
@@ -133,21 +135,28 @@ const featureMapping: Record<string, string> = {
   'Recreation Nearby': 'park',
 };
 
-export const mapFeatures = (property: MLSProperty | null) => {
+export const mapFeatures = (property: PropertyDataModel) => {
   const features: Record<string, string> = {};
   if (!property) return {};
-  Object.keys(property)
-    .filter(key => property_features.includes(key))
-    .forEach(key => {
-      const feature = (property[key] as string[]).join(', ');
-      const lowercaseFeature = feature.toLowerCase();
-
-      Object.keys(featureMapping).forEach(mappingKey => {
-        if (lowercaseFeature.indexOf(mappingKey.toLowerCase()) >= 0) {
-          features[mappingKey] = featureMapping[mappingKey];
-        }
-      });
+  console.log('property.amenities', property.amenities);
+  if (property.amenities?.data) {
+    property.amenities?.data.map(({ attributes: { name } }) => {
+      features[name] = featureMapping[name];
     });
+  }
+  console.log({ features });
+  // Object.keys(property)
+  //   .filter(key => property_features.includes(key))
+  //   .forEach(key => {
+  //     const feature = (property[key] as string[]).join(', ');
+  //     const lowercaseFeature = feature.toLowerCase();
+
+  //     Object.keys(featureMapping).forEach(mappingKey => {
+  //       if (lowercaseFeature.indexOf(mappingKey.toLowerCase()) >= 0) {
+  //         features[mappingKey] = featureMapping[mappingKey];
+  //       }
+  //     });
+  //   });
 
   return features;
 };
