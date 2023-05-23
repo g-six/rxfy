@@ -702,7 +702,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
                 </RxSimilarListings>
               );
             else if (node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_PHOTO_WRAPPER) >= 0) {
-              return <RxPropertyCarousel>{domToReact(node.children)}</RxPropertyCarousel>;
+              //return <RxPropertyCarousel>{domToReact(node.children)}</RxPropertyCarousel>;
             } else if (node.attribs.class.indexOf('propinfo') >= 0) return <RexifyStatBlock node={node} record={p} groupName='propinfo' />;
             else if (node.attribs.class.indexOf('financial') >= 0) return <RexifyStatBlock node={node} record={p} groupName='financial' />;
             else if (node.attribs.class.indexOf('dimensions') >= 0) return <RexifyStatBlock node={node} record={p} groupName='dimensions' />;
