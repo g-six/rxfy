@@ -62,7 +62,12 @@ export default function RxPropertyCarousel(props: PropertyCarouselProps) {
     if (currentStripScrollX < 0) setStripScrollX(currentStripScrollX + 4);
   };
   const scrollStripRight = () => {
-    if (Math.abs(currentStripScrollX - 4) < photos.length) setStripScrollX(currentStripScrollX - 4);
+    const el = document.querySelector('.aspect-square:last-child');
+    if (el) {
+      if (document.body.getBoundingClientRect().width < el.getBoundingClientRect().right - 20) {
+        setStripScrollX(currentStripScrollX - 4);
+      }
+    }
   };
 
   return (
@@ -70,7 +75,7 @@ export default function RxPropertyCarousel(props: PropertyCarouselProps) {
       <div className={`${e.data?.show ? 'fixed' : 'hidden'} h-screen w-screen rexified overflow-hidden top-0 left-0 z-[9999]`} id={styles.Wrapper}>
         <button
           type='button'
-          className='absolute w-12 h-12 top-1/2 -translate-y-12 left-2 z-10 text-center flex items-center justify-center p-0 rounded-full bg-white/20'
+          className='absolute w-12 h-12 top-1/2 -translate-y-12 left-2 z-10 text-center flex items-center justify-center p-0 rounded-full bg-transparent'
           onClick={() => {
             handlePrevClick();
           }}
@@ -89,7 +94,7 @@ export default function RxPropertyCarousel(props: PropertyCarouselProps) {
         <div id={styles.RxPropertyThumb}>
           <button
             type='button'
-            className='w-10 h-10 text-center flex items-center justify-center p-0 rounded-full bg-white/20'
+            className='w-10 h-10 text-center flex items-center justify-center p-0 rounded-full bg-transparent'
             onClick={() => {
               scrollStripLeft();
             }}
@@ -117,7 +122,7 @@ export default function RxPropertyCarousel(props: PropertyCarouselProps) {
           </div>
           <button
             type='button'
-            className='w-10 h-10 text-center flex items-center justify-center p-0 rounded-full bg-white/20'
+            className='w-10 h-10 text-center flex items-center justify-center p-0 rounded-full bg-transparent'
             onClick={() => {
               scrollStripRight();
             }}
@@ -127,7 +132,7 @@ export default function RxPropertyCarousel(props: PropertyCarouselProps) {
         </div>
         <button
           type='button'
-          className='absolute w-12 h-12 top-1/2 -translate-y-12 right-6 text-center flex items-center justify-center p-0 rounded-full bg-white/20'
+          className='absolute w-12 h-12 top-1/2 -translate-y-12 right-6 text-center flex items-center justify-center p-0 rounded-full bg-transparent'
           onClick={() => {
             handleNextClick();
           }}
@@ -137,14 +142,14 @@ export default function RxPropertyCarousel(props: PropertyCarouselProps) {
 
         <button
           type='button'
-          className='absolute w-8 h-8 top-4 right-8 text-center flex items-center justify-center p-0 rounded-full bg-white/20'
+          className='absolute w-8 h-8 top-4 right-8 text-center flex items-center justify-center p-0 rounded-full bg-transparent text-white text-4xl font-thin'
           onClick={() => {
             e.fireEvent({
               show: false,
             });
           }}
         >
-          <XCircleIcon className='w-8 h-8 text-white' />
+          &times;
         </button>
       </div>
       {props.children}
