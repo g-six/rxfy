@@ -37,21 +37,21 @@ export const main_stats: Record<string, string> = {
   B_Basement: 'Basement',
   L_Fireplaces: '# of Fireplaces',
   L_KitchensTotal: '# of Kitchens',
-  L_TotalBaths: 'Total Baths',
-  L_BedroomTotal: 'Total Bedrooms',
-  L_Parking_total: 'Parking',
-  L_Frontage_Feet: 'Frontage',
-  L_LotSize_SqFt: 'Size Sqft',
-  L_NoFloorLevels: 'Floor Levels',
+  baths: 'Total Baths',
+  beds: 'Total Bedrooms',
+  total_parking: 'Parking',
+  frontage_feet: 'Frontage',
+  floor_area_total: 'Size Sqft',
+  floor_levels: 'Floor Levels',
 };
 
 export const building_stats: Record<string, string> = {
-  L_Stories: 'Stories',
-  B_Heating: 'Fuel/Heating',
+  floors: 'Stories',
+  heating: 'Heating',
   B_OutdoorArea: 'Outdoor Area',
   RainScreen: 'Rain Screen',
   B_Restrictions: 'Restrictions',
-  B_Roof: 'Roof',
+  B_Roof: 'roofing',
   L_TotalUnits: 'Tot Units in Strata Plan',
   B_TotalUnits: 'Units in Development',
   B_WaterSupply: 'Water Supply',
@@ -60,8 +60,8 @@ export const building_stats: Record<string, string> = {
 export const amenities_stats: Record<string, string> = {
   B_Amenities: 'Amenities',
   B_SiteInfluences: 'Site Influences',
-  B_Bylaws: 'By Laws',
-  L_Fireplace_Fuel: 'Fireplace Fuel',
+  B_Bylaws: 'building_by_laws',
+  L_Fireplace_Fuel: 'fireplace',
   L_Floor_Finish: 'Floor Finish',
   L_Locker: 'Locker',
 };
@@ -611,13 +611,11 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
     .catch(e => {
       console.log('ERROR in getPropertyData.axios for id', property_id, '\n', e.message, '\n\n');
     });
-  let found_in_strapi = true;
   let property = xhr?.data?.data?.property?.data || xhr?.data?.data?.properties?.data[0];
 
   if (id_is_mls && (property === undefined || !property)) {
     // Data was not picked up by the integrations API,
     // attempt to fix
-    found_in_strapi = false;
     const [mls_data] = await retrieveFromLegacyPipeline({
       from: 0,
       size: 1,

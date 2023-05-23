@@ -1,13 +1,12 @@
 'use client';
 import React from 'react';
 
-import { MLSProperty } from '@/_typings/property';
-import { room_stats } from '@/_utilities/data-helpers/property-page';
+import { PropertyDataModel } from '@/_typings/property';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import { captureMatchingElements, replaceAllTextWithBraces, transformMatchingElements } from '@/_helpers/dom-manipulators';
 
 type ReplacerRoomsPdfProps = {
-  property: MLSProperty | undefined;
+  property: (PropertyDataModel & { [key: string]: string }) | undefined;
   child: React.ReactElement;
   nodeClassName: string;
 };
@@ -24,17 +23,13 @@ export default function RxPdfRoomStats(props: ReplacerRoomsPdfProps) {
     {
       searchFn: searchByClasses(['rooms-info-rows']),
       transformChild: (ch: React.ReactElement) => {
+        const rooms = props.property?.room_details?.rooms || [];
         return React.cloneElement(ch, { ...ch.props }, [
-          ...Object.keys(room_stats).map((key, i) => {
-            const roomData = Object.keys(room_stats[key]).reduce((obj, k) => {
-              const template = room_stats[key] as Record<string, string>;
-              const val = props.property && props.property[key] ? props.property[key] : '';
-              return Object.assign({}, obj, { [`${template[k]}`]: val });
-            }, {}) as Record<string, string>;
+          ...rooms.map((room, i) => {
             return replaceAllTextWithBraces(React.cloneElement(rowTemplate.statRow, { key: i }), {
-              roomstat: roomData['Level'],
-              roomtype: roomData['Type'],
-              roomdim: roomData['Dimension1'] && roomData['Dimension2'] ? roomData['Dimension1'] + 'x' + roomData['Dimension2'] : '',
+              roomstat: room.level,
+              roomtype: room.type,
+              roomdim: room.width && room.length ? room.width + ' x ' + room.length : '',
             });
           }),
         ]);

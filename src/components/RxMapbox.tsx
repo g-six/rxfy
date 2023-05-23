@@ -6,7 +6,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { queryStringToObject } from '@/_utilities/url-helper';
 import { AgentData } from '@/_typings/agent';
 import { must_not, retrieveFromLegacyPipeline } from '@/_utilities/data-helpers/property-page';
-import { MLSProperty, PropertyAttributeFilters } from '@/_typings/property';
+import { MLSProperty, PropertyAttributeFilters, PropertyDataModel } from '@/_typings/property';
 import { getSearchPropertyFilters } from '@/_utilities/rx-map-helper';
 import { Feature } from 'geojson';
 import { classNames } from '@/_utilities/html-helper';
@@ -29,7 +29,7 @@ type RxMapboxProps = {
   params?: PlaceDetails;
   headers: Record<string, unknown>;
   agent_data?: AgentData;
-  setListings(listings: MLSProperty[]): void;
+  setListings(listings: PropertyDataModel[]): void;
 };
 
 function createMapPin() {
@@ -63,12 +63,12 @@ export function RxMapbox(props: RxMapboxProps) {
   const search = useSearchParams();
   const state = useMapState();
   const updater = useMapMultiUpdater();
-  const [selected_cluster, setSelectedCluster] = React.useState<Record<string, string | number | string[]>[]>([]);
+  const [selected_cluster, setSelectedCluster] = React.useState<PropertyDataModel[]>([]);
   const [is_loading, setLoading] = React.useState<boolean>(false);
   const [is_reloading, setReloading] = React.useState<boolean>(state.reload || false);
   const [map, setMap] = React.useState<mapboxgl.Map>();
   const [center, setCenter] = React.useState<{ lat: number; lng: number }>();
-  const [listings, setPropertyListings] = React.useState<MLSProperty[]>([]);
+  const [listings, setPropertyListings] = React.useState<PropertyDataModel[]>([]);
   const mapNode = React.useRef(null);
 
   const clickEventListener = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
@@ -94,18 +94,14 @@ export function RxMapbox(props: RxMapboxProps) {
                     ({
                       ...properties,
                       id,
-                    } as unknown as Record<string, string | number | string[]>),
+                    } as unknown as PropertyDataModel),
                 ),
               );
             });
           } else {
-            setSelectedCluster([
-              {
-                ...properties,
-                id: properties.MLS_ID,
-                photos: typeof properties.photos === 'string' ? JSON.parse(properties.photos) : properties.photos,
-              } as unknown as Record<string, string | number | string[]>,
-            ]);
+            const items: PropertyDataModel[] = [];
+            items.push(properties as unknown as PropertyDataModel);
+            setSelectedCluster(items);
           }
         }
       });
@@ -221,7 +217,7 @@ export function RxMapbox(props: RxMapboxProps) {
         headers: props.headers as any,
       },
     )
-      .then((results: MLSProperty[]) => {
+      .then((results: PropertyDataModel[]) => {
         if (window !== undefined) {
           const ne = map.getBounds().getNorthEast();
           const sw = map.getBounds().getSouthWest();
@@ -251,7 +247,7 @@ export function RxMapbox(props: RxMapboxProps) {
       });
   };
 
-  const registerMapClickHandler = (property_listings: MLSProperty[]) => {
+  const registerMapClickHandler = (property_listings: PropertyDataModel[]) => {
     if (!map) return;
     map.off('click', clickEventListener);
     map.on('click', clickEventListener);
@@ -415,31 +411,26 @@ export function RxMapbox(props: RxMapboxProps) {
   React.useEffect(() => {
     if (listings.length) {
       const points = listings
-        .filter(({ lat, lng }) => {
-          return lat !== undefined && lng !== undefined;
+        .filter(({ lat, lon }) => {
+          return lat !== undefined && lon !== undefined;
         })
         .map(p => {
           return {
             type: 'Feature' as unknown as Feature,
             properties: {
               type: 'MLSProperty',
-              title: p.Address,
-              address: p.Address,
-              price: getShortPrice(p.AskingPrice),
-              full_price: p.AskingPrice,
-              area: p.Area || p.City,
-              sqft: p.L_FloorArea_GrantTotal,
-              beds: p.L_BedroomTotal,
-              baths: p.L_TotalBaths,
-              city: p.City,
+              price: getShortPrice(p.asking_price),
+              full_price: p.asking_price,
+              sqft: p.floor_area_total,
               ...p,
+              area: p.area || p.city,
               photos: p.photos,
             },
             geometry: {
-              coordinates: [p.lng, p.lat],
+              coordinates: [p.lon, p.lat],
               type: 'Point',
             } as unknown as GeoJSON.Geometry,
-            id: p.MLS_ID,
+            id: p.mls_id,
           };
         });
 

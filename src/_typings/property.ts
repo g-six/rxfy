@@ -34,17 +34,17 @@ export enum DwellingType {
 }
 
 export const NumericFields = [
-  'B_Depth',
-  'L_Frontage_Feet',
-  'L_FloorArea_Total',
-  'L_FloorArea_Finished_AboveMainFloor',
-  'L_FloorArea_Main',
-  'L_FloorArea_GrantTotal',
-  'L_LotSize_SqMtrs',
+  'depth',
+  'frontage_metres', // 'L_Frontage_Feet',
+  'floor_area_upper_floors', //'L_FloorArea_Finished_AboveMainFloor',
+  'floor_area_main', //'L_FloorArea_Main',
+  // 'L_FloorArea_GrantTotal',
+  'lot_sqm', // 'L_LotSize_SqMtrs',
   'floor_area',
+  'floor_area_total',
 ];
 
-export const FinanceFields = ['asking_price', 'AskingPrice', 'PricePerSQFT', 'L_GrossTaxes', 'SoldPrice'];
+export const FinanceFields = ['asking_price', 'price_per_sqft', 'gross_taxes', 'SoldPrice'];
 
 export enum PropertyStatus {
   ACTIVE = 'active',
@@ -123,11 +123,11 @@ export interface BasePropertyDataModel {
   exterior_finish?: string;
   other_information?: string;
   complex_compound_name?: string;
-  construction_information?: string;
   floor_area_total?: number;
   floor_area_basement?: number;
   floor_area_unfinished?: number;
   floor_area_upper_floors?: number;
+  listing_by?: string;
 }
 
 export interface PropertyInput extends BasePropertyDataModel {
@@ -158,6 +158,7 @@ export interface PropertyDataModel extends BasePropertyDataModel {
   connected_services?: PropertyAssociations;
   facilities?: PropertyAssociations;
   hvac?: PropertyAssociations;
+  items_maintained?: PropertyAssociations;
   photos?: string[]; // to remove
 }
 

@@ -2,8 +2,9 @@
 import React from 'react';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import { classNames } from '@/_utilities/html-helper';
+import { PropertyDataModel } from '@/_typings/property';
 
-export function RxSmallPropertyCard(props: Record<string, string>) {
+export function RxSmallPropertyCard(props: PropertyDataModel & { className?: string }) {
   const [is_loading, toggleLoading] = React.useState(false);
   const [photo] = (props.photos || []) as unknown as string[];
   return (
@@ -27,18 +28,18 @@ export function RxSmallPropertyCard(props: Record<string, string>) {
                 <div className='propcard-stat'>Sqft</div>
               </div>
               <div className='propertycard-feature'>
-                <div className='propcard-stat'>{props.year}</div>
+                <div className='propcard-stat'>{props.year_built}</div>
               </div>
             </div>
           </div>
           <div className='sold-tag'>
             <div className='text-block-9'>
-              <strong className='bold-text'>{props.sold && 'Sold'}</strong>
+              <strong className='bold-text'>{props.status === 'Sold' && 'Sold'}</strong>
             </div>
           </div>
         </div>
         <div className='propcard-small-address'>
-          <div className='propcard-address capitalize'>{props.address.toLowerCase()}</div>
+          <div className='propcard-address capitalize'>{props.title.toLowerCase()}</div>
           <div className='propcard-address truncate text-ellipsis overflow-hidden'>{props.area}</div>
         </div>
         <div className='propertycard-feature-row'>
@@ -51,16 +52,16 @@ export function RxSmallPropertyCard(props: Record<string, string>) {
             <div className='propcard-stat'>Bath</div>
           </div>
           <div className='propertycard-feature'>
-            <div className='propcard-stat'>{props.sqft}</div>
+            <div className='propcard-stat'>{props.floor_area_total}</div>
             <div className='propcard-stat'>Sqft</div>
           </div>
           <div className='propertycard-feature mobno'>
-            <div className='propcard-stat'>{props.year}</div>
+            <div className='propcard-stat'>{props.year_built}</div>
           </div>
         </div>
       </div>
       <a
-        href={`/property?mls=${props.MLS_ID}`}
+        href={`/property?mls=${props.mls_id}`}
         className='absolute top-0 left-0 w-full h-full flex items-center'
         onClick={() => {
           toggleLoading(true);

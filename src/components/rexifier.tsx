@@ -193,7 +193,7 @@ export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapp
     });
 
     // Baths
-    if (p.L_TotalBaths) {
+    if (p.baths) {
       replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .bath-stat`, {
         content: `${formatValues(p, 'L_TotalBaths')}`,
       });
@@ -644,7 +644,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PDF_PAGE) >= 0) {
           return (
             <RxPdfWrapper
-              property={property as unknown as MLSProperty}
+              property={property as unknown as PropertyDataModel}
               agent={agent_data}
               nodeClassName={WEBFLOW_NODE_SELECTOR.PDF_PAGE}
               nodeProps={props}
@@ -667,7 +667,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
 
         if (property && Object.keys(property).length) {
-          const record = property as unknown as MLSProperty;
+          const record = property as unknown as PropertyDataModel;
           if (node.attribs && node.attribs.class) {
             // Property action buttons (PDF, Share links, etc)
             if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS) >= 0) {
@@ -892,7 +892,9 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
       return <div className={className}>{property.title}</div>;
 
     case '{Lot Size}':
-      return <div className={className}>{property.lot_sqft || property.lot_sqm || formatValues(property, 'L_LotSize_SqMtrs')}</div>;
+      return (
+        <div className={className}>{(property.lot_sqft && formatValues(property, 'lot_sqft')) || property.lot_sqm || formatValues(property, 'lot_sqm')}</div>
+      );
 
     case '{MLS Number}':
       return <span className={className}>{property.mls_id}</span>;
@@ -901,7 +903,7 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
       return <span className={className}>{property.land_title}</span>;
 
     case '{Price Per Sqft}':
-      return <span className={className}>{formatValues(property, 'PricePerSQFT')}</span>;
+      return <span className={className}>{formatValues(property, 'price_per_sqft')}</span>;
 
     case '{Price}':
       return <div className={className}>{property.asking_price}</div>;

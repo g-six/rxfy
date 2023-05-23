@@ -67,7 +67,6 @@ export function RexifyStatBlock({
             </div>
             {Object.keys(stat_keys).map(key => {
               if (groupName === 'construction') {
-                console.log({ groupName, key });
                 if (record.build_features?.data) {
                   const build_data = record.build_features.data;
                   if (key === 'construction_information') {

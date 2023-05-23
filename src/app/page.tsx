@@ -188,13 +188,17 @@ export default async function Home({ params, searchParams }: { params: Record<st
           $('.section-images img').each((i, e) => {
             photo_fill_count++;
             const cnt = i + 3;
-            const src = getImageSized(photos[cnt], 480);
-            $(e).replaceWith(
-              `<div class="cursor-pointer ${e.attribs.class || ''}" data-nth-child="${cnt + 1}" data-lg-src="${getImageSized(
-                photos[cnt],
-                860,
-              )}" style="background-position: center center; background-image: url('${src}');" />`,
-            );
+            if (photos[cnt]) {
+              const src = getImageSized(photos[cnt], 480);
+              $(e).replaceWith(
+                `<div class="cursor-pointer ${e.attribs.class || ''}" data-nth-child="${cnt + 1}" data-lg-src="${getImageSized(
+                  photos[cnt],
+                  860,
+                )}" style="background-position: center center; background-image: url('${src}');" />`,
+              );
+            } else {
+              $(e).remove();
+            }
           });
         }
         photos.forEach((src, num) => {

@@ -1,13 +1,14 @@
+import { PropertyDataModel } from '@/_typings/property';
 import { createNeighborhoodMapOptions } from '@/_utilities/map-helper';
 
-export function addPropertyMapScripts(property: Record<string, unknown>): string {
+export function addPropertyMapScripts(property: PropertyDataModel): string {
   return `
             const markerIcon ="https://uploads-ssl.webflow.com/63963a54d6a20c8f0853af43/63a199474828c172d28a9b05_Map.svg";
             const property = {
                 lat: ${property.lat},
-                lng: ${property.lon || property.lng},
+                lng: ${property.lon},
                 name: "${property.title}",
-                neighbourhood: "${property.neighbourhood}",
+                neighbourhood: "${property.subarea_community || property.area}",
                 province: "${property.state_province}",
             };
         
@@ -45,7 +46,7 @@ export function addPropertyMapScripts(property: Record<string, unknown>): string
             function initStreetView(selector) {
                 const posCenter = {
                     lat: ${property.lat},
-                    lng: ${property.lon || property.lng},
+                    lng: ${property.lon},
                 };
   
                 const sv = new google.maps.StreetViewService();

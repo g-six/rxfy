@@ -43,7 +43,7 @@ export const FILTERS: Filter[] = [
   // { title: 'Flood Plain', keys: ['FloodPlain'], types: ['general'] },
   { title: 'Locker', keys: ['field_3003', 'L_Locker'], types: ['general'], behaviors: ['default'] },
   // { title: 'Maint Fee Includes', keys: ['f_3195', 'B_Maintenance_Includes'], types: ['general'] },
-  { title: 'Parking', keys: ['L_Parking_total'], types: ['general'], behaviors: ['default'] },
+  { title: 'Parking', keys: ['total_parking'], types: ['general'], behaviors: ['default'] },
   { title: 'Parking Access', keys: ['f_3029', 'LFD_ParkingAccess_45'], types: ['general'] },
   // { title: 'Tax Utilities Incl', keys: ['TaxUtilitiesInclude'], types: ['general'] },
   { title: 'Zoning', keys: ['Zoning'], types: ['general'] },

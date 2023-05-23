@@ -7,8 +7,6 @@ import Image from 'next/image';
 
 function Icon({ icon }: { icon: string }) {
   switch (icon) {
-    case 'dishwasher':
-      return <BuildingStorefrontIcon className='w-12 h-12' />;
     case 'electricity':
       return <BoltIcon className='w-12 h-12' />;
     default:
@@ -19,6 +17,9 @@ function replaceIconSlug(icon: string) {
   switch (icon) {
     case 'dishwasher':
       return 'dish-washer';
+    case 'city/municipal water supply':
+    case 'municipal water supply':
+      return 'city-municipal';
     default:
       return slugifyAddress(icon);
   }
@@ -29,7 +30,7 @@ export function SinglePropertyFeature(props: Record<string, string>) {
   if (props.icon === 'baseboard') return <></>;
   if (props.icon === 'electric') return <></>;
 
-  const heroicons = ['club house', 'city/municipal water supply', 'municipal water supply', 'electricity'];
+  const heroicons = ['club house', 'electricity'];
 
   return (
     <div className='single-feature-block' style={{ width: 150, textAlign: 'center' }}>
