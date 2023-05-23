@@ -46,7 +46,7 @@ import { Events } from '@/_typings/events';
 import { RxTextInput } from './RxTextInput';
 import RxContactFormButton from './RxForms/RxContactFormButton';
 import RxStatsGridWithIcons from './RxProperty/RxStatsGridWithIcons';
-import RxGenericLabeledValueBlock from './_generics/RxGenericLabeledValueBlock';
+import RxGenericLabeledValueBlock from './RxGenericLabeledValueBlock';
 import RxSimilarListings from './RxProperty/RxSimilarListings';
 import Script from 'next/script';
 import RxSessionDropdown from './Nav/RxSessionDropdown';
