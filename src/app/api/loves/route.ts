@@ -67,7 +67,6 @@ const gql_love = `mutation LoveHome ($property_id: ID!, $agent: ID!, $customer: 
 }`;
 
 export async function GET(request: Request) {
-  console.log('get there!!!');
   const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
   if (!token || !guid)
     return getResponse(
