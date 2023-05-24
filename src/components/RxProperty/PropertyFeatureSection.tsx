@@ -1,13 +1,44 @@
 import { HTMLNode } from '@/_typings/elements';
 import { MLSProperty, PropertyDataModel } from '@/_typings/property';
-import { property_features } from '@/_utilities/data-helpers/property-page';
+import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
+import { BoltIcon, BuildingStorefrontIcon } from '@heroicons/react/24/outline';
 import { Element } from 'domhandler';
 import Image from 'next/image';
 
+function Icon({ icon }: { icon: string }) {
+  switch (icon) {
+    case 'electricity':
+      return <BoltIcon className='w-12 h-12' />;
+    default:
+      return <BuildingStorefrontIcon className='w-12 h-12' />;
+  }
+}
+function replaceIconSlug(icon: string) {
+  switch (icon) {
+    case 'dishwasher':
+      return 'dish-washer';
+    case 'city/municipal water supply':
+    case 'municipal water supply':
+      return 'city-municipal';
+    default:
+      return slugifyAddress(icon);
+  }
+}
 export function SinglePropertyFeature(props: Record<string, string>) {
+  // BLOCKER: no icon
+  if (props.icon === 'dryer') return <></>;
+  if (props.icon === 'baseboard') return <></>;
+  if (props.icon === 'electric') return <></>;
+
+  const heroicons = ['club house', 'electricity'];
+
   return (
     <div className='single-feature-block' style={{ width: 150, textAlign: 'center' }}>
-      <Image alt={props.label} src={`/icons/features/feature_${props.icon}.svg`} width={48} height={48} />
+      {heroicons.includes(props.icon) ? (
+        <Icon icon={props.icon} />
+      ) : (
+        <Image alt={props.label} src={`/icons/features/feature_${replaceIconSlug(props.icon)}.svg`} width={48} height={48} />
+      )}
       <div className='feature-description'>{props.label}</div>
     </div>
   );
@@ -24,85 +55,38 @@ export function RexifyPropertyFeatureBlock({ node, record }: { node: Element; re
     }) as HTMLNode | undefined;
     if (node.attribs.class && RowItem) {
       const features: Record<string, string> = {};
+      const property = record as PropertyDataModel;
+
+      if (property.amenities?.data) {
+        property.amenities.data.forEach(({ attributes }) => {
+          features[attributes.name] = attributes.name.toLowerCase();
+        });
+      }
+      if (property.appliances?.data) {
+        property.appliances.data.forEach(({ attributes }) => {
+          features[attributes.name] = attributes.name.toLowerCase();
+        });
+      }
+      if (property.hvac?.data) {
+        property.hvac.data.forEach(({ attributes }) => {
+          features[attributes.name] = attributes.name.toLowerCase();
+        });
+      }
+      if (property.facilities?.data) {
+        property.facilities.data.forEach(({ attributes }) => {
+          features[attributes.name] = attributes.name.toLowerCase();
+        });
+      }
+      if (property.connected_services?.data) {
+        property.connected_services.data.forEach(({ attributes }) => {
+          if (attributes.name.toLowerCase().indexOf('water supply') >= 0) features['City/Municipal Water Supply'] = 'city/municipal water supply';
+          else features[attributes.name] = attributes.name.toLowerCase();
+        });
+      }
+
       if (record.heating) {
         features['Heating'] = 'radiator';
       }
-      if (record.has_balcony) {
-        features['Balcony'] = 'balcony';
-      }
-      if (record.has_deck) {
-        features['Deck'] = 'deck';
-      }
-      if (record.hvac_features && (record.hvac_features as string).toLowerCase().indexOf('air cond') >= 0) {
-        features['Air Conditioning'] = 'air-conditioner';
-      }
-      if (record.has_laundry) {
-        features['Washer/Dryer'] = 'washing-machine';
-      }
-      if (record.has_fridge) {
-        features['Refrigerator'] = 'refrigerator';
-      }
-      if (record.has_stove) {
-        features['Stove'] = 'stove';
-      }
-      if (record.has_dishwasher) {
-        features['Dishwasher'] = 'dish-washer';
-      }
-      if (record.has_patio) {
-        features['Patio'] = 'patio';
-      }
-      if (record.has_storage) {
-        features['Storage'] = 'box';
-      }
-
-      // Object.keys(record)
-      //   .filter((key: string) => property_features.includes(key))
-      //   .forEach((key: string) => {
-      //     const feature = (record[key] as string[]).join(', ');
-
-      //     if (feature.toLowerCase().indexOf('clthwsh/dryr') >= 0) {
-      //       features['Washer/Dryer'] = 'washing-machine';
-      //     }
-      //     if (feature.toLowerCase().indexOf('frdg') >= 0) {
-      //       features['Refrigerator'] = 'refrigerator';
-      //     }
-      //     if (feature.toLowerCase().indexOf('stve') >= 0) {
-      //       features['Stove'] = 'stove';
-      //     }
-      //     if (feature.indexOf('DW') >= 0) {
-      //       features['Dishwasher'] = 'dish-washer';
-      //     }
-      //     if (feature.toLowerCase().indexOf('concrete') >= 0) {
-      //       features['Concrete'] = 'concrete';
-      //     }
-      //     if (feature.toLowerCase().indexOf('balcny') >= 0) {
-      //       features['Balcony'] = 'balcony';
-      //     }
-      //     if (feature.toLowerCase().indexOf('patio') >= 0) {
-      //       features['Patio'] = 'patio';
-      //     }
-      //     if (feature.indexOf('Dck') >= 0) {
-      //       features['Deck'] = 'deck';
-      //     }
-      //     if (feature.toLowerCase().indexOf('torch-on') >= 0) {
-      //       features['Torch On'] = 'torch';
-      //     }
-      //     if (key === 'B_WaterSupply' && feature.toLowerCase().indexOf('city/municipal') >= 0) {
-      //       features['City/Municipal Water'] = 'city-municipal';
-      //     }
-      //     if (feature.indexOf('Park') >= 0) {
-      //       features['Park'] = 'park';
-      //     }
-      //     if (feature.indexOf('storage') >= 0) {
-      //       features['Storage'] = 'box';
-      //     }
-      //     if (feature.indexOf('recreation') >= 0) {
-      //       features['Recreation Nearby'] = 'park';
-      //     }
-      //     if (feature.indexOf('heating') >= 0) {
-      //       features['Heating'] = 'heater';
-      //     }
-      //   });
       return (
         <div className={node.attribs.class}>
           {Object.keys(features)
@@ -116,39 +100,3 @@ export function RexifyPropertyFeatureBlock({ node, record }: { node: Element; re
   }
   return <></>;
 }
-/**
- * <div className={node.attribs.class}>
-            <div className={RowItem.attribs.class}>
-              <div
-                className={SectionTitle.firstChild.attribs.class}
-              >
-                {SectionTitle.firstChild.firstChild?.data}
-              </div>
-            </div>
-            {Object.keys(stat_keys).map((key) => {
-              let value = formatValues(record[key], key);
-
-              if (group_name === 'financial') {
-                switch (key) {
-                  case 'L_GrossTaxes':
-                    value = combineAndFormatValues({
-                      L_GrossTaxes: record.L_GrossTaxes,
-                      ForTaxYear: record.ForTaxYear,
-                    });
-                    break;
-                }
-              }
-
-              return (
-                <PropertyInformationRow
-                  key={key}
-                  wrapper_class={RowItem.attribs.class}
-                  label_class={RowItem.firstChild.attribs.class}
-                  value_class={RowItem.lastChild.attribs.class}
-                  label={stat_keys[key] as string}
-                  value={value}
-                />
-              );
-            })}
-          </div>
- */

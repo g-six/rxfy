@@ -1,11 +1,11 @@
 import React from 'react';
 
 import { Events } from '@/_typings/events';
-import { MLSProperty } from '@/_typings/property';
+import { PropertyDataModel } from '@/_typings/property';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 import { loveHome, unloveHome } from '@/_utilities/api-calls/call-love-home';
 
-type LovedItem = MLSProperty & { love?: number };
+type LovedItem = PropertyDataModel & { love?: number };
 export default function useLove() {
   const [data, setLovedData] = React.useState<{
     item: LovedItem;
@@ -27,13 +27,13 @@ export default function useLove() {
       const love_items: string[] = getData(Events.LovedItem) || [];
       if (data.remove) {
         // User wanted this removed
-        const idx = love_items.indexOf(data.item.MLS_ID);
+        const idx = love_items.indexOf(data.item.mls_id);
         if (idx >= 0) {
           love_items.splice(idx, 1);
           setData(Events.LovedItem, JSON.stringify(love_items, null, 4));
         }
-      } else if (love_items.includes(data.item.MLS_ID) === false) {
-        love_items.push(data.item.MLS_ID);
+      } else if (love_items.includes(data.item.mls_id) === false) {
+        love_items.push(data.item.mls_id);
         setData(Events.LovedItem, JSON.stringify(love_items, null, 4));
       }
     }
@@ -48,7 +48,7 @@ export default function useLove() {
     if (remove && item.love) {
       unloveHome(item.love);
     } else {
-      loveHome(item.MLS_ID, agent);
+      loveHome(item.mls_id, agent);
     }
 
     document.dispatchEvent(

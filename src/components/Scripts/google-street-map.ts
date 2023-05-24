@@ -1,14 +1,15 @@
+import { PropertyDataModel } from '@/_typings/property';
 import { createNeighborhoodMapOptions } from '@/_utilities/map-helper';
 
-export function addPropertyMapScripts(property: Record<string, unknown>): string {
+export function addPropertyMapScripts(property: PropertyDataModel): string {
   return `
             const markerIcon ="https://uploads-ssl.webflow.com/63963a54d6a20c8f0853af43/63a199474828c172d28a9b05_Map.svg";
             const property = {
                 lat: ${property.lat},
-                lng: ${property.lon || property.lng},
-                name: "${property.Address}",
-                neighbourhood: "${property.Area}",
-                province: "${property.Province_State}",
+                lng: ${property.lon},
+                name: "${property.title}",
+                neighbourhood: "${property.subarea_community || property.area}",
+                province: "${property.state_province}",
             };
         
             function initNeighborhoodMap(element) {
@@ -37,10 +38,15 @@ export function addPropertyMapScripts(property: Record<string, unknown>): string
                 localContext.search();
             }
 
+            if (document.querySelector(".street-view-div")) {
+                console.log('Found .street-view-div, try to replace using')
+                initStreetView(".street-view-div");
+            }
+
             function initStreetView(selector) {
                 const posCenter = {
                     lat: ${property.lat},
-                    lng: ${property.lon || property.lng},
+                    lng: ${property.lon},
                 };
   
                 const sv = new google.maps.StreetViewService();
@@ -89,14 +95,6 @@ export function addPropertyMapScripts(property: Record<string, unknown>): string
                 google.maps.event.addListener(marker, "click", function () {
                     infowindow.open(map, marker);
                 });
-            }
-
-            if (document.querySelector(".map-div")) {
-                initNeighborhoodMap();
-            }
-
-            if (document.querySelector(".street-view-div")) {
-                initStreetView(".street-view-div");
             }
         `;
 }

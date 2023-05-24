@@ -2,6 +2,15 @@ import { PlaceDetails } from './maps';
 
 export const DateFields = ['UpdateDate', 'ListingDate'];
 
+type PropertyAssociations = {
+  data?: {
+    id?: number;
+    attributes: {
+      name: string;
+    };
+  }[];
+};
+
 export type BathroomDetails = {
   ensuite?: string;
   pieces?: number;
@@ -25,17 +34,17 @@ export enum DwellingType {
 }
 
 export const NumericFields = [
-  'B_Depth',
-  'L_Frontage_Feet',
-  'L_FloorArea_Total',
-  'L_FloorArea_Finished_AboveMainFloor',
-  'L_FloorArea_Main',
-  'L_FloorArea_GrantTotal',
-  'L_LotSize_SqMtrs',
+  'depth',
+  'frontage_metres', // 'L_Frontage_Feet',
+  'floor_area_upper_floors', //'L_FloorArea_Finished_AboveMainFloor',
+  'floor_area_main', //'L_FloorArea_Main',
+  // 'L_FloorArea_GrantTotal',
+  'lot_sqm', // 'L_LotSize_SqMtrs',
   'floor_area',
+  'floor_area_total',
 ];
 
-export const FinanceFields = ['asking_price', 'AskingPrice', 'PricePerSQFT', 'L_GrossTaxes', 'SoldPrice'];
+export const FinanceFields = ['asking_price', 'price_per_sqft', 'gross_taxes', 'SoldPrice'];
 
 export enum PropertyStatus {
   ACTIVE = 'active',
@@ -66,28 +75,17 @@ export interface BasePropertyDataModel {
   lat?: number;
   beds?: number;
   baths?: number;
-  sqft?: number;
   price_per_sqft?: number;
   guid?: string;
   changes_applied?: string;
   age?: number;
   year_built?: number;
   fireplace?: string;
-  has_laundry?: boolean;
-  has_dishwasher?: boolean;
-  has_fridge?: boolean;
-  has_stove?: boolean;
-  has_hvac?: boolean;
-  has_deck?: boolean;
-  has_patio?: boolean;
-  has_balcony?: boolean;
-  has_fenced_yard?: boolean;
   garage?: 'None' | 'Single' | 'Double' | 'Triple';
   postal_zip_code?: string;
   parking?: string;
   style_type?: string;
   status?: 'Active' | 'Expired' | 'Sold';
-  has_storage?: boolean;
   listed_at?: Date;
   land_title?: string;
   gross_taxes?: number;
@@ -110,7 +108,7 @@ export interface BasePropertyDataModel {
     rooms: RoomDetails[];
   };
   bathroom_details?: {
-    rooms: BathroomDetails[];
+    baths: BathroomDetails[];
   };
   windows?: string;
   subarea_community?: string;
@@ -118,8 +116,6 @@ export interface BasePropertyDataModel {
   strata_fee?: number;
   frontage_feet?: number;
   frontage_metres?: number;
-  connected_services?: string;
-  hvac_features?: string;
   other_appliances?: string;
   safety_security_features?: string;
   garden_lawn_features?: string;
@@ -127,11 +123,11 @@ export interface BasePropertyDataModel {
   exterior_finish?: string;
   other_information?: string;
   complex_compound_name?: string;
-  construction_information?: string;
   floor_area_total?: number;
   floor_area_basement?: number;
   floor_area_unfinished?: number;
   floor_area_upper_floors?: number;
+  listing_by?: string;
 }
 
 export interface PropertyInput extends BasePropertyDataModel {
@@ -155,6 +151,14 @@ export interface PropertyDataModel extends BasePropertyDataModel {
       };
     };
   };
+
+  amenities?: PropertyAssociations;
+  appliances?: PropertyAssociations;
+  build_features?: PropertyAssociations;
+  connected_services?: PropertyAssociations;
+  facilities?: PropertyAssociations;
+  hvac?: PropertyAssociations;
+  items_maintained?: PropertyAssociations;
   photos?: string[]; // to remove
 }
 
@@ -330,88 +334,144 @@ export interface LovedPropertyDataModel extends PropertyDataModel {
 export type MapStatePropsWithFilters = MapStateProps & PropertyAttributeFilters;
 
 export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
-                mls_data
-                lat
-                lon
-                guid
-                title
-                mls_id
-                area
-                city
-                postal_zip_code
-                state_province
-                price_per_sqft
-                property_type
-                asking_price
-                changes_applied
-                age
-                year_built
-                baths
-                beds
-                has_laundry
-                has_dishwasher
-                has_fridge
-                has_stove
-                has_deck
-                has_patio
-                has_balcony
-                has_fenced_yard
-                garage
-                style_type
-                status
-                has_storage
-                listed_at
-                land_title
-                gross_taxes
-                original_price
-                lot_sqm
-                lot_sqft
-                floor_area
-                floor_area_uom
-                tax_year
-                description
-                parking
-                roofing
-                fireplace
-                region
-                residential_type
-                heating
-                year_last_renovated
-                strata_fee
-                frontage_feet
-                windows
-                subarea_community
-                depth
-                real_estate_board {
-                  data {
-                    attributes {
-                      name
-                      legal_disclaimer
-                    }
-                  }
-                }
-                property_photo_album {
-                  data {
-                    attributes {
-                      photos
-                    }
-                  }
-                }
-                frontage_metres
-                connected_services
-                hvac_features
-                other_appliances
-                safety_security_features
-                garden_lawn_features
-                foundation_specs
-                exterior_finish
-                other_information
-                complex_compound_name
-                floor_area_total
-                floor_area_basement
-                floor_area_unfinished
-                floor_area_upper_floors
-                construction_information
+                      age
+                      area
+                      asking_price
+                      basement
+                      baths
+                      bathroom_details
+                      room_details
+                      beds
+                      building_by_laws
+                      changes_applied
+                      city
+                      complex_compound_name
+                      depth
+                      description
+                      exterior_finish
+                      fireplace
+                      floor_area
+                      floor_area_basement
+                      floor_area_total
+                      floor_area_unfinished
+                      floor_area_uom
+                      floor_area_upper_floors
+                      foundation_specs
+                      frontage_feet
+                      frontage_metres
+                      garage
+                      gross_taxes
+                      guid
+                      heating
+                      land_title
+                      lat
+                      listed_at
+                      lon
+                      lot_sqft
+                      lot_sqm
+                      mls_data
+                      mls_id
+                      original_price
+                      other_appliances
+                      other_information
+                      postal_zip_code
+                      price_per_sqft
+                      property_type
+                      region
+                      residential_type
+                      roofing
+                      safety_security_features
+                      state_province
+                      status
+                      strata_fee
+                      style_type
+                      subarea_community
+                      tax_year
+                      title
+                      total_fireplaces
+                      total_parking
+                      total_covered_parking
+                      year_built
+                      year_last_renovated
+                      amenities {
+                          data {
+                              id
+                              attributes {
+                                  name
+                              }
+                          }
+                      }
+                      appliances {
+                          data {
+                              id
+                              attributes {
+                                  name
+                              }
+                          }
+                      }
+                      build_features {
+                          data {
+                              id
+                              attributes {
+                                  name
+                              }
+                          }
+                      }
+                      connected_services {
+                          data {
+                              id
+                              attributes {
+                                  name
+                              }
+                          }
+                      }
+                      facilities {
+                          data {
+                              id
+                              attributes {
+                                  name
+                              }
+                          }
+                      }
+                      hvac {
+                          data {
+                              id
+                              attributes {
+                                  name
+                              }
+                          }
+                      }
+                      parking {
+                          data {
+                              id
+                              attributes {
+                                  name
+                              }
+                          }
+                      }
+                      places_of_interest {
+                          data {
+                              id
+                              attributes {
+                                  name
+                              }
+                          }
+                      }
+                      real_estate_board {
+                        data {
+                          attributes {
+                            name
+                            legal_disclaimer
+                          }
+                        }
+                      }
+                      property_photo_album {
+                        data {
+                          attributes {
+                            photos
+                          }
+                        }
+                      }
 `;
 
 export interface PropertyPageData extends PropertyDataModel {

@@ -3,7 +3,7 @@ import React from 'react';
 import html2canvas from 'html2canvas';
 const QRious = require('qrious');
 
-import { MLSProperty } from '@/_typings/property';
+import { PropertyDataModel } from '@/_typings/property';
 import { ReplacerPageProps, DataUrl, disclaimer } from '@/_typings/forms';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
@@ -17,7 +17,7 @@ import RxPdfGallery, { PHOTOS_AMOUNT } from '@/components/RxProperty/RxPropertyP
 import RxPdfDimRoomsInfo from '@/components/RxProperty/RxPropertyPdf/RxPdfDimRoomsInfo';
 import rendererPdf, { getPageImgSize, MAIN_INFO_PART } from '@/_helpers/pdf-renderer';
 
-type MLSPropertyData = MLSProperty & {
+type MLSPropertyData = PropertyDataModel & {
   agent_info?: {
     company?: string;
     name?: string;
@@ -44,15 +44,15 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
           style: { maxHeight: Math.round(pdfSize.height * MAIN_INFO_PART) + 'px' },
         });
         return replaceAllTextWithBraces(el, {
-          Price: property ? formatValues(property, 'AskingPrice') : '',
-          Address: property?.Address || '',
-          description: property?.L_PublicRemakrs,
-          City: property?.City,
-          Area: property?.City === property?.Area ? '' : property?.Area,
-          Be: property?.L_BedroomTotal,
-          Ba: property?.L_TotalBaths,
-          Sqft: property?.L_FloorArea_Total,
-          Year: property?.L_YearBuilt,
+          Price: property ? formatValues(property, 'asking_price') : '',
+          Address: property?.title || '',
+          description: property?.description,
+          City: property?.city,
+          Area: property?.area || property?.city || '',
+          Be: property?.beds,
+          Ba: property?.baths,
+          Sqft: property ? formatValues(property, 'floor_area_total') : '',
+          Year: property?.year_built,
         }) as React.ReactElement;
       },
     },
@@ -116,7 +116,7 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
       transformChild: (child: React.ReactElement) => {
         return (
           <RxPdfStatsInfo
-            property={property}
+            property={property as PropertyDataModel & { [key: string]: string }}
             nodeClassName={child.props.className}
             child={child}
             stats={construction_stats}
@@ -132,7 +132,7 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
       transformChild: (child: React.ReactElement) => {
         return (
           <RxPdfStatsInfo
-            property={property}
+            property={property as PropertyDataModel & { [key: string]: string }}
             nodeClassName={child.props.className}
             child={child}
             stats={main_stats}
@@ -148,7 +148,7 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
       transformChild: (child: React.ReactElement) => {
         return (
           <RxPdfStatsInfo
-            property={property}
+            property={property as PropertyDataModel & { [key: string]: string }}
             nodeClassName={child.props.className}
             child={child}
             stats={building_stats}
@@ -164,7 +164,7 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
       transformChild: (child: React.ReactElement) => {
         return (
           <RxPdfStatsInfo
-            property={property}
+            property={property as PropertyDataModel & { [key: string]: string }}
             nodeClassName={child.props.className}
             child={child}
             stats={financial_stats}
@@ -190,7 +190,7 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
       transformChild: (child: React.ReactElement) => {
         return (
           <RxPdfStatsInfo
-            property={property}
+            property={property as PropertyDataModel & { [key: string]: string }}
             nodeClassName={child.props.className}
             child={child}
             stats={amenitiesSplit.first}
@@ -206,7 +206,7 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
       transformChild: (child: React.ReactElement) => {
         return (
           <RxPdfStatsInfo
-            property={property}
+            property={property as PropertyDataModel & { [key: string]: string }}
             nodeClassName={child.props.className}
             child={child}
             stats={amenitiesSplit.second}
@@ -227,7 +227,7 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
 
   React.useEffect(() => {
     const hasPictures = pictures.image || pictures.photo;
-    if (ref && ref.current && property?.AskingPrice && hasPictures && photos.length) {
+    if (ref && ref.current && property?.asking_price && hasPictures && photos.length) {
       const promises = Array.from(ref.current.children)
         .map(el => el as HTMLElement)
         .map(el => {
@@ -238,7 +238,7 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
       Promise.all(promises).then(pagesAsCanvas => {
         rendererPdf({
           images: pagesAsCanvas,
-          name: property?.Address || 'Brochure',
+          name: property?.title || 'Brochure',
           inWindow: true,
         });
       });
@@ -255,9 +255,9 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
       photo = photo ? photo : agent.metatags.profile_image;
       photo = photo ? photo : '';
 
-      const google = `https://maps.googleapis.com/maps/api/staticmap?center=${property.lat},${property.lng}&zoom=13&size=883x259&scale=2&markers=${property.lat},${property.lng}&maptype=roadmap&key=${process.env.NEXT_PUBLIC_GGL_KEY}`;
+      const google = `https://maps.googleapis.com/maps/api/staticmap?center=${property.lat},${property.lon}&zoom=13&size=883x259&scale=2&markers=${property.lat},${property.lon}&maptype=roadmap&key=${process.env.NEXT_PUBLIC_GGL_KEY}`;
       const qrPromise = new Promise(resolve => {
-        const link = `https://${window.location.host}/property?mls=${property.MLS_ID}`;
+        const link = `https://${window.location.host}/property?mls=${property.mls_id}`;
         const qr = new QRious({ backgroundAlpha: 0, value: link });
         resolve(qr.toDataURL());
       });

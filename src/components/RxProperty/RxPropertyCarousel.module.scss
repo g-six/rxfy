@@ -1,0 +1,26 @@
+#Wrapper {
+  @apply bg-black/90;
+}
+#RxPropertyCarousel {
+  @apply flex translate-x-16 translate-y-12 overflow-hidden;
+  width: calc(100vw - 9rem);
+  height: 800px;
+  div {
+    @apply flex-shrink-0 bg-cover bg-center w-full;
+  }
+}
+
+#RxPropertyThumb {
+  @apply w-full h-16 flex gap-1 items-center justify-center absolute bottom-6;
+  .filmStrip {
+    @apply flex gap-1 h-16 items-center justify-start overflow-hidden relative;
+    width: calc(100% - 12rem);
+
+    .innerStrip {
+      @apply flex gap-1 items-center justify-start overflow-hidden absolute transition-all;
+      div {
+        @apply w-16 h-16 bg-cover bg-center cursor-pointer flex-shrink-0;
+      }
+    }
+  }
+}

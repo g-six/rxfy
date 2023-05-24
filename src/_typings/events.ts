@@ -24,6 +24,7 @@ export enum Events {
   MyHomeAlertsForm = 'my-home-alerts-form',
   MyHomeAlertsFormReset = 'my-home-alerts-form-reset',
   GenericEvent = 'generic-event',
+  TogglePhotoSliderModal = 'photo-slider-modal',
   //ContactFormSubmit = 'event-contact-form-submit',
 }
 

@@ -103,6 +103,10 @@ export default function initializePlacesAutocomplete(props: Record<string, strin
         document.querySelectorAll('[data-style]').forEach(el => {
             el.style = el.dataset.style
         })
+
+        if (document.querySelector(".map-div")) {
+            initNeighborhoodMap();
+        }
     }
     // end of initializePlacesAutocomplete`;
 }

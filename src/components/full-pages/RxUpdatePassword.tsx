@@ -143,7 +143,7 @@ async function loadSession(search_params: Record<string, string | number | boole
         },
       })
       .catch(e => {
-        console.log('User not logged in');
+        console.log('RxUpdatePassword / User not logged in');
       });
     const session = api_response as unknown as {
       data?: UserInputModel & {

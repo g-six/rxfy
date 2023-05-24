@@ -55,20 +55,21 @@ function PageIterator(props: MyCompareDashboardPage) {
             })}
             {props['data-loved'] &&
               props['data-loved'].map((p: LovedPropertyDataModel, sequence_no: number) => {
-                const { love, mls_id: MLS_ID, title: Address, asking_price: AskingPrice, area: Area, beds, baths, sqft, ...listing } = p;
+                const { love, ...listing } = p;
                 return (
                   <RxPropertyCard
                     key={love}
-                    listing={{
-                      ...(listing as unknown as MLSProperty),
-                      MLS_ID,
-                      Address,
-                      AskingPrice,
-                      Area,
-                      L_BedroomTotal: beds || 1,
-                      L_TotalBaths: baths || 1,
-                      L_FloorArea_GrantTotal: sqft || 0,
-                    }}
+                    listing={listing}
+                    // listing={{
+                    //   ...(listing as unknown as MLSProperty),
+                    //   MLS_ID,
+                    //   Address,
+                    //   AskingPrice,
+                    //   Area,
+                    //   L_BedroomTotal: beds || 1,
+                    //   L_TotalBaths: baths || 1,
+                    //   L_FloorArea_GrantTotal: floor_area || 0,
+                    // }}
                     isLink={false}
                     love={love}
                     sequence={sequence_no}
