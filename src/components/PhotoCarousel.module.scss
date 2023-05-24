@@ -1,0 +1,37 @@
+.PhotoCarousel {
+  display: grid;
+  overflow: hidden;
+  grid-template-columns: 1fr;
+  grid-template-rows: max-content 5fr 1fr;
+  .swiperMain {
+    .swiperSlide {
+      @apply flex justify-center items-center;
+
+      .inner {
+        @apply w-4/5 aspect-video relative;
+      }
+    }
+  }
+  .swiperThumbs {
+    @apply w-full justify-center;
+    .wrapper {
+      @apply w-full;
+      &.centered {
+        @apply w-full justify-center flex;
+      }
+    }
+    .swiperSlide {
+      @apply flex justify-center items-center w-full h-full;
+
+      .inner {
+        @apply h-full w-full   aspect-square relative opacity-60 transition-opacity;
+        &.active {
+          @apply opacity-100;
+        }
+      }
+    }
+  }
+  .swiper-slide-active {
+    @apply opacity-0;
+  }
+}
