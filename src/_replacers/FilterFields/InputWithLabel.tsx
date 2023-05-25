@@ -1,34 +1,26 @@
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { InputPropsInterface } from '@/_typings/ui-types';
 import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import { searchByTagName } from '@/_utilities/searchFnUtils';
 import React, { ReactElement, cloneElement } from 'react';
+import Input from './Input';
 
 type Props = {
   template: ReactElement;
   label?: string;
-  inputProps?: {
-    type?: string;
-    min?: number;
-    max?: number;
-    placeholder?: string;
-    onBlur?: (e: React.FocusEventHandler<HTMLInputElement>) => void;
-  };
-
-  value: string | number | null;
+  value: string | number | undefined;
+  inputProps?: InputPropsInterface;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
-export default function InputFilter({ template, label, inputProps, value, handleChange }: Props) {
+export default function InputWithLabel({ template, label, inputProps, value, handleChange }: Props) {
   const matches: tMatch[] = [
     { searchFn: searchByPartOfClass(['field-label']), transformChild: child => cloneElement(child, {}, label ? [label] : child.props.children) },
     {
       searchFn: searchByTagName('input'),
-      transformChild: child =>
-        cloneElement(child, {
-          ...(inputProps ?? {}),
-          value,
-          onChange: handleChange,
-        }),
+      transformChild: child => {
+        return <Input key={1} template={child} value={value} onChange={handleChange} inputProps={inputProps} />;
+      },
     },
   ];
 

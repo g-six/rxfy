@@ -1,5 +1,5 @@
 import { captureMatchingElements, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
-import InputFilter from '@/_replacers/FilterFields/InputFilter';
+import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
 import { TabContentProps } from '@/_typings/agent-my-listings';
 import { searchByClasses, searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import React, { cloneElement, useState } from 'react';
@@ -9,6 +9,10 @@ export default function TabAddress({ template, nextStepClick }: TabContentProps)
   const addressFields = [
     {
       label: 'Address',
+      inputProps: {
+        placeholder: 'some placeholder',
+        name: 'neighbourhood',
+      },
     },
     {
       label: 'Unit',
@@ -30,6 +34,7 @@ export default function TabAddress({ template, nextStepClick }: TabContentProps)
       },
     },
   ];
+  /// value and handleChange are for demo purpose
   const [value, setValue] = useState('');
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log(e.target.name);
@@ -43,7 +48,14 @@ export default function TabAddress({ template, nextStepClick }: TabContentProps)
           {},
 
           addressFields.map((field, i) => (
-            <InputFilter key={i} inputProps={field.inputProps ?? {}} label={field.label} template={templates.input} value={value} handleChange={handleChange} />
+            <InputWithLabel
+              key={i}
+              inputProps={field.inputProps ?? {}}
+              label={field.label}
+              template={templates.input}
+              value={value}
+              handleChange={handleChange}
+            />
           )),
         );
       },
