@@ -1,23 +1,22 @@
-import { CheerioAPI, load } from 'cheerio';
 import parse from 'html-react-parser';
+import Image from 'next/image';
+import Script from 'next/script';
+import { CheerioAPI, load } from 'cheerio';
 import { notFound } from 'next/navigation';
 import { cookies, headers } from 'next/headers';
-import Image from 'next/image';
 import { Inter } from 'next/font/google';
-import styles from './page.module.scss';
-import { fillAgentInfo, fillPropertyGrid, removeSection, replaceByCheerio, rexify } from '@/components/rexifier';
+
 import { WebFlow } from '@/_typings/webflow';
+import { MLSProperty } from '@/_typings/property';
+import { AgentData } from '@/_typings/agent';
 import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
 import { getPrivatePropertyData, getPropertyData } from '@/_utilities/data-helpers/property-page';
-import { MLSProperty } from '@/_typings/property';
-import Script from 'next/script';
+import { fillAgentInfo, fillPropertyGrid, removeSection, replaceByCheerio, rexify } from '@/components/rexifier';
 import { addPropertyMapScripts } from '@/components/Scripts/google-street-map';
-import { AgentData, BrokerageInputModel, RealtorInputModel } from '@/_typings/agent';
 import RxNotifications from '@/components/RxNotifications';
 import MyProfilePage from '@/rexify/my-profile';
-import { getRealEstateBoard } from '@/app/api/real-estate-boards/model';
-import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import styles from './page.module.scss';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico'];
@@ -161,155 +160,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
     }
     await fillAgentInfo($, agent_data);
 
-    if (property) {
-      const d = property as unknown as MLSProperty;
-      let photo_fill_count = 0;
-      const photos: string[] = d.photos as string[];
-      if (photos && photos.length) {
-        $('.property-photos-grid img').each((i, e) => {
-          if (photos[i]) {
-            const src = getImageSized(photos[i], i === 0 ? 860 : 560);
-            photo_fill_count++;
-            let status_class = 'active';
-            if (d.status) status_class = `${d.status}`.toLowerCase();
-            $(e).replaceWith(
-              `<div class="cursor-pointer ${status_class}-photo ${e.attribs.class || ''}" data-nth-child="${i + 1}" data-lg-src="${getImageSized(
-                photos[i],
-                860,
-              )}" style="background-position: center center; background-image: url('${src}');" />`,
-            );
-          }
-        });
-
-        // Lower portion
-        if (photos.length < 4) {
-          $('.section-images').remove();
-        } else {
-          $('.section-images img').each((i, e) => {
-            photo_fill_count++;
-            const cnt = i + 3;
-            if (photos[cnt]) {
-              const src = getImageSized(photos[cnt], 480);
-              $(e).replaceWith(
-                `<div class="cursor-pointer ${e.attribs.class || ''}" data-nth-child="${cnt + 1}" data-lg-src="${getImageSized(
-                  photos[cnt],
-                  860,
-                )}" style="background-position: center center; background-image: url('${src}');" />`,
-              );
-            } else {
-              $(e).remove();
-            }
-          });
-        }
-        photos.forEach((src, num) => {
-          $('.property-images-lightbox').append(`<div class="property-carousel-item" data-nth-child="${num + 1}" data-src="${src}" />`);
-        });
-      }
-      $('a.property-images-lightbox').replaceWith(
-        `<div class="${$('a.property-images-lightbox').attr('class')}">${$('a.property-images-lightbox').html()}</div>`,
-      );
-      $('.section-images a.w-lightbox').replaceWith(
-        `<div class="${$('.section-images a.w-lightbox').attr('class')}">${$('.section-images a.w-lightbox').html()}</div>`,
-      );
-
-      // Photo gallery for properties
-      /*
-      const photos: string[] = d.photos as string[];
-      if (photos) {
-        $('a.link').each((e, el) => {
-          el.children.forEach((child, child_idx: number) => {
-            if (photos[child_idx]) {
-              if (child.type === 'script') {
-                const img_json = JSON.parse($(child).html() as string);
-                img_json.items[child_idx].url = photos[child_idx];
-                $(child).replaceWith(`<script class="w-json" type="application/json">${JSON.stringify(img_json, null, 4)}</script>`);
-              } else if ((child as { name: string }).name === 'img') {
-                $(child).attr('src', photos[child_idx]);
-                $(child).removeAttr('srcset');
-                $(child).removeAttr('sizes');
-              }
-            }
-          });
-        });
-        if ($('a.link').length < photos.length) {
-          const parent = $('a.link:first').parentsUntil('#propertyimages');
-          // const otherparent = $('.property-images-grid:first').parentsUntil('a');
-          $('.property-image-wrapper img').attr('src', `${process.env.NEXT_APP_IM_ENG}/w_999/${photos[0]}`);
-          $('.property-image-wrapper img').attr(
-            'srcset',
-            [500, 800, 999]
-              .map(size => {
-                return `${process.env.NEXT_APP_IM_ENG}/w_${size}/${photos[0]} ${size}w`;
-              })
-              .join(', '),
-          );
-          $('.property-images-more img').each((img_number, img_2and3) => {
-            if (photos.length > img_number) {
-              img_2and3.attribs.src = `${process.env.NEXT_APP_IM_ENG}/w_999/${photos[img_number + 1]}`;
-              img_2and3.attribs.srcset = [500, 800, 999]
-                .map(size => {
-                  return `${process.env.NEXT_APP_IM_ENG}/w_${size}/${photos[img_number + 1]} ${size}w`;
-                })
-                .join(', ');
-            }
-          });
-          try {
-            const { items, group } = JSON.parse($('.property-images-lightbox script').text());
-            const updated_images: { url: string }[] = [];
-            items.forEach((item: { url: string }, idx: number) => {
-              updated_images.push({
-                ...item,
-                url: `${process.env.NEXT_APP_IM_ENG}/w_999/${photos[idx]}`,
-              });
-            });
-
-            $('.property-images-lightbox script').text(
-              JSON.stringify(
-                {
-                  items: updated_images,
-                  group,
-                },
-                null,
-                4,
-              ),
-            );
-          } catch (err) {
-            console.log('Skipping property-images-lightbox for ', params.slug);
-            console.error(err);
-          } finally {
-            console.log('Done rexifying gallery');
-          }
-          if (photos.length > 3)
-            photos.slice(3).forEach((url: string, thumb_idx: number) => {
-              const selector = `img.property-images-grid:nth-child(${thumb_idx + 1})`;
-              $(selector).attr('src', `${process.env.NEXT_APP_IM_ENG}/w_500/${url}`);
-              $(selector).attr(
-                'srcset',
-                [500, 800, 999]
-                  .map(size => {
-                    return `${process.env.NEXT_APP_IM_ENG}/w_${size}/${url} ${size}w`;
-                  })
-                  .join(', '),
-              );
-
-              parent.append(`<a href="#" class="lightbox-link link w-inline-block w-lightbox hidden" aria-label="open lightbox" aria-haspopup="dialog">
-          <img src="${process.env.NEXT_APP_IM_ENG}/w_999/${url}" loading="eager" alt="" class="cardimage" />
-          <script class="w-json" type="application/json">{
-            "items": [
-                {
-                    "url": "${process.env.NEXT_APP_IM_ENG}/w_1280/${url}",
-                    "type": "image"
-                }
-            ],
-            "group": "Property Images"
-        }</script>
-          </a>`);
-            });
-        }
-        
-      }*/
-    }
-
     $('.w-webflow-badge').remove();
   }
   const webflow: WebFlow = {
@@ -329,7 +179,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     <>
       {webflow.body.code ? (
         <main className={styles['rx-realm']}>
-          {rexify(webflow.body.code, agent_data, property)}
+          {rexify(webflow.body.code, agent_data, property, params)}
           <RxNotifications />
         </main>
       ) : (

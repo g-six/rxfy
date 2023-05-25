@@ -18,8 +18,19 @@ export enum WEBFLOW_NODE_SELECTOR {
   HOME_ALERTS_WRAPPER = 'home-alert---all-screens',
   CONTACT_FORM = 'contact-form-wrapper',
   CTA_CONTACT_FORM = 'cta-contact-form',
+
+  // detailed property page
+  PROPERTY_PAGE = 'property-body-wrapper',
+  PROPERTY_TOP_IMAGES = 'section---top-images',
   PROPERTY_TOP_STATS = 'section---top-stats',
+  PROPERTY_BEDS_BATHS = 'section---beds-baths',
   PROPERTY_STATS_W_ICONS = 'stats-level-2',
+  PROPERTY_MAPS = 'section---map-n-street-view',
+  PROPERTY_IMAGES_COLLECTION = 'property-image-collection2',
+  PROPERTY_FEATURES = 'div-features-block',
+  PROPERTY_SOLD_HISTORY = 'div-sold-history',
+  PROPERTY_BUILD_HISTORY = 'div-building-units-on-sale',
+
   DOCUMENTS = 'docs-section',
   FOOTER_SOCIAL_LINKS = 'footer-social-block',
   HEART_ICON = 'heart-on-small-card',

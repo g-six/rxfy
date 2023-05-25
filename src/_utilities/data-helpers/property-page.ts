@@ -926,7 +926,7 @@ export function slugifyAddressRecord(address: string, record_id: number) {
 }
 
 export function slugifyAddress(address: string) {
-  return address
+  return (address ? address : '')
     .split(',')
     .map(s => s.trim())
     .join(' ')

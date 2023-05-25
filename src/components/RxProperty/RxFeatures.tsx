@@ -1,5 +1,5 @@
-import { SinglePropertyFeature } from '@/components/RxProperty/PropertyFeatureSection';
 import React, { ReactElement } from 'react';
+import { SinglePropertyFeature } from '@/components/RxProperty/PropertyFeatureSection';
 
 type Props = {
   child: ReactElement;

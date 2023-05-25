@@ -1,13 +1,16 @@
 'use client';
 import React, { ReactElement, cloneElement, useEffect, useState } from 'react';
-import useEvent, { Events } from '@/hooks/useEvent';
-import { AgentData } from '@/_typings/agent';
-import { replaceAllTextWithBraces, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
-import { searchByClasses } from '@/_utilities/searchFnUtils';
-import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
-import RxPropertyTopStats from '@/components/RxProperty/RxPropertyTopStats';
-import { PropertyDataModel } from '@/_typings/property';
 import Image from 'next/image';
+
+import useEvent, { Events } from '@/hooks/useEvent';
+import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
+import { AgentData } from '@/_typings/agent';
+import { PropertyDataModel } from '@/_typings/property';
+
+import { mapFeatures, prepareStats } from '@/_helpers/functions';
+import { replaceAllTextWithBraces, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { getMLSProperty } from '@/_utilities/api-calls/call-properties';
+import { searchByClasses } from '@/_utilities/searchFnUtils';
 import {
   combineAndFormatValues,
   construction_stats,
@@ -16,12 +19,12 @@ import {
   formatValues,
   general_stats,
 } from '@/_utilities/data-helpers/property-page';
-import { getMLSProperty } from '@/_utilities/api-calls/call-properties';
-import RxStreetView from '@/components/RxStreetView';
-import RxStatBlock from './RxStatBlock';
-import { mapFeatures, prepareStats } from '@/_helpers/functions';
-import RxFeatures from './RxFeatures';
-import PhotosGrid from './PhotosGrid';
+
+import RxPropertyTopStats from '@/components/RxProperty/RxPropertyTopStats';
+import RxMapOfListing from '@/components/RxMapOfListing';
+import RxStatBlock from '@/components/RxProperty/RxStatBlock';
+import RxFeatures from '@/components/RxProperty/RxFeatures';
+import PhotosGrid from '@/components/RxProperty/PhotosGrid';
 
 type Props = {
   child: ReactElement;
@@ -80,7 +83,17 @@ export default function IndividualTab({ child, agent_data }: Props) {
     {
       //street-view block
       searchFn: searchByClasses(['street-view-div']),
-      transformChild: (child: ReactElement) => <RxStreetView key={'street-view'} className={child.props.className} property={currentProperty} />,
+      transformChild: (child: ReactElement) => {
+        return (
+          <RxMapOfListing
+            key={'street-view'}
+            className={child.props.className}
+            property={currentProperty}
+            mapQuerySelector={'.street-view-div'}
+            mapType={'street'}
+          />
+        );
+      },
     },
     {
       searchFn: searchByClasses(['stats-level-2']),
