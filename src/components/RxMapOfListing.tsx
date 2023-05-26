@@ -13,13 +13,14 @@ type Props = {
 };
 
 export default function RxMapOfListing({ property, className, mapType, mapQuerySelector }: Props) {
+  const id = 'property-map-init-' + property?.id + '-' + mapType;
   return (
     <div className={className}>
       {property && property.lat && property.lon && (
         <Script
           defer
           suppressHydrationWarning
-          id='property-map-init'
+          id={id}
           dangerouslySetInnerHTML={{
             __html: addPropertyMapScripts(property, { type: mapType, elementQuerySelector: mapQuerySelector }),
           }}
