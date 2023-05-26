@@ -16,6 +16,7 @@ import RxStatBlock from '@/components/RxProperty/RxStatBlock';
 import RxFeatures from '@/components/RxProperty/RxFeatures';
 import RxTable from '@/components/RxTable';
 import RxSimilarListings from '@/components/RxProperty/RxSimilarListings';
+import RxPropertyAgent from '@/components/RxProperty/RxPropertyAgent';
 
 import {
   combineAndFormatValues,
@@ -92,6 +93,12 @@ export function RxDetailedListing(props: ReplacerPageProps) {
               )
             : 'N/A',
         }) as ReactElement;
+      },
+    },
+    {
+      searchFn: searchByClasses(['little-profile-card']),
+      transformChild: (child: ReactElement) => {
+        return <RxPropertyAgent child={child} agent={props.agent} />;
       },
     },
     {

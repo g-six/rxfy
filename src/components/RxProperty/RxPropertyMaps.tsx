@@ -14,7 +14,7 @@ type PropertyMapsProps = {
 export default function RxPropertyMaps({ child, property }: PropertyMapsProps) {
   const matches: tMatch[] = [
     {
-      searchFn: searchByClasses(['']),
+      searchFn: searchByClasses(['right-side']),
       transformChild: (child: ReactElement) => {
         return (
           <RxMapOfListing
@@ -28,7 +28,7 @@ export default function RxPropertyMaps({ child, property }: PropertyMapsProps) {
       },
     },
     {
-      searchFn: searchByClasses(['']),
+      searchFn: searchByClasses(['street-view-div']),
       transformChild: (child: ReactElement) => {
         return (
           <RxMapOfListing
