@@ -4,28 +4,19 @@ import Image from 'next/image';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { PropertyDataModel, MLSProperty } from '@/_typings/property';
 import { ReplacerPageProps } from '@/_typings/forms';
-import { mapFeatures, prepareStats } from '@/_helpers/functions';
+import { mapFeatures } from '@/_helpers/functions';
 import { replaceAllTextWithBraces, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { combineAndFormatValues, formatValues } from '@/_utilities/data-helpers/property-page';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 
 import PhotosGrid from '@/components/RxProperty/PhotosGrid';
 import RxPropertyTopStats from '@/components/RxProperty/RxPropertyTopStats';
 import RxPropertyMaps from '@/components/RxProperty/RxPropertyMaps';
-import RxStatBlock from '@/components/RxProperty/RxStatBlock';
 import RxFeatures from '@/components/RxProperty/RxFeatures';
+import RxPropertyStats from '@/components/RxProperty/RxPropertyStats';
 import RxTable from '@/components/RxTable';
 import RxSimilarListings from '@/components/RxProperty/RxSimilarListings';
-import RxPropertyAgent from '@/components/RxProperty/RxPropertyAgent';
-
-import {
-  combineAndFormatValues,
-  construction_stats,
-  dimension_stats,
-  financial_stats,
-  formatValues,
-  general_stats,
-} from '@/_utilities/data-helpers/property-page';
 
 export function RxDetailedListing(props: ReplacerPageProps) {
   const matches: tMatch[] = [
@@ -96,60 +87,6 @@ export function RxDetailedListing(props: ReplacerPageProps) {
       },
     },
     {
-      searchFn: searchByClasses(['little-profile-card']),
-      transformChild: (child: ReactElement) => {
-        return <RxPropertyAgent child={child} agent={props.agent} />;
-      },
-    },
-    {
-      searchFn: searchByClasses(['propinfo-title']),
-      transformChild: (child: ReactElement) => {
-        return (
-          <RxStatBlock
-            child={child}
-            stats={prepareStats(general_stats, props.property)}
-            config={{ label: 'Property Info Stat Name', value: 'Property Info Stat Result' }}
-          />
-        );
-      },
-    },
-    {
-      searchFn: searchByClasses(['financial-title']),
-      transformChild: (child: ReactElement) => {
-        return (
-          <RxStatBlock
-            child={child}
-            stats={prepareStats(financial_stats, props.property)}
-            config={{ label: 'Financial Stat Name', value: 'Financial Stat Result' }}
-          />
-        );
-      },
-    },
-    {
-      searchFn: searchByClasses(['dimensions-title']),
-      transformChild: (child: ReactElement) => {
-        return (
-          <RxStatBlock
-            child={child}
-            stats={prepareStats(dimension_stats, props.property)}
-            config={{ label: 'Dimensions Stat Name', value: 'Dimensions Stat Result' }}
-          />
-        );
-      },
-    },
-    {
-      searchFn: searchByClasses(['construction-title']),
-      transformChild: (child: ReactElement) => {
-        return (
-          <RxStatBlock
-            child={child}
-            stats={prepareStats(construction_stats, props.property)}
-            config={{ label: 'Construction Stat Name', value: 'Construction Stat Result' }}
-          />
-        );
-      },
-    },
-    {
       searchFn: searchByClasses([WEBFLOW_NODE_SELECTOR.PROPERTY_IMAGES_COLLECTION]),
       transformChild: (child: ReactElement) => {
         const cp: PropertyDataModel | { [key: string]: string } = props.property || {};
@@ -164,6 +101,12 @@ export function RxDetailedListing(props: ReplacerPageProps) {
             </div>
           )),
         );
+      },
+    },
+    {
+      searchFn: searchByClasses(['section-big-stats']),
+      transformChild: (child: ReactElement) => {
+        return <RxPropertyStats property={props.property} child={child} agent={props.agent} />;
       },
     },
     {
