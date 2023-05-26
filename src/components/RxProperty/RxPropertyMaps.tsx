@@ -19,10 +19,10 @@ export default function RxPropertyMaps({ child, property }: PropertyMapsProps) {
         return (
           <RxMapOfListing
             key={'neighborhood-view'}
-            className={child.props.className}
             property={property ? property : null}
             mapQuerySelector={'.right-side'}
             mapType={MapType.NEIGHBORHOOD}
+            child={child}
           />
         );
       },
@@ -33,10 +33,10 @@ export default function RxPropertyMaps({ child, property }: PropertyMapsProps) {
         return (
           <RxMapOfListing
             key={'street-view'}
-            className={child.props.className}
             property={property ? property : null}
             mapQuerySelector={'.street-view-div'}
             mapType={MapType.STREET}
+            child={child}
           />
         );
       },
