@@ -7,7 +7,7 @@ import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { AgentData } from '@/_typings/agent';
 import { PropertyDataModel } from '@/_typings/property';
 
-import { mapFeatures, prepareStats } from '@/_helpers/functions';
+import { fireCustomEvent, mapFeatures, prepareStats } from '@/_helpers/functions';
 import { replaceAllTextWithBraces, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { getMLSProperty } from '@/_utilities/api-calls/call-properties';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
@@ -20,6 +20,7 @@ import {
   general_stats,
 } from '@/_utilities/data-helpers/property-page';
 
+import PhotosCarousel from '@/components/PhotosCarousel';
 import RxPropertyTopStats from '@/components/RxProperty/RxPropertyTopStats';
 import RxMapOfListing from '@/components/RxMapOfListing';
 import RxStatBlock from '@/components/RxProperty/RxStatBlock';
@@ -35,7 +36,9 @@ export default function IndividualTab({ child, agent_data }: Props) {
   const { data } = useEvent(Events.SavedItemsIndivTab);
   const { mls_id } = data || {};
   const [currentProperty, setCurrentProperty] = useState<PropertyDataModel | null>(null);
-
+  const showGallery = (key: number) => {
+    fireCustomEvent({ show: true, photos: currentProperty?.photos ?? [], key }, Events.PropertyGalleryModal);
+  };
   useEffect(() => {
     if (mls_id) {
       getMLSProperty(mls_id).then((res: PropertyDataModel) => {
@@ -48,7 +51,7 @@ export default function IndividualTab({ child, agent_data }: Props) {
     {
       searchFn: searchByClasses(['section---top-images']),
       transformChild: (child: ReactElement) => {
-        return <PhotosGrid child={child} photos={(currentProperty?.photos as string[]) || []} />;
+        return <PhotosGrid showGallery={showGallery} child={child} photos={(currentProperty?.photos as string[]) || []} />;
       },
     },
     {
@@ -84,15 +87,7 @@ export default function IndividualTab({ child, agent_data }: Props) {
       //street-view block
       searchFn: searchByClasses(['street-view-div']),
       transformChild: (child: ReactElement) => {
-        return (
-          <RxMapOfListing
-            key={'street-view'}
-            className={child.props.className}
-            property={currentProperty}
-            mapQuerySelector={'.street-view-div'}
-            mapType={'street'}
-          />
-        );
+        return <RxMapOfListing key={'street-view'} child={child} property={currentProperty} mapType={'street'} />;
       },
     },
     {
@@ -169,13 +164,19 @@ export default function IndividualTab({ child, agent_data }: Props) {
       searchFn: searchByClasses(['property-image-collection2']),
       transformChild: (child: ReactElement) => {
         const phts = currentProperty && Array.isArray(currentProperty.photos) ? currentProperty.photos : [];
-        const sliced = phts?.slice(0, 4);
+        const sliced = phts?.slice(3, 7);
 
         return cloneElement(
           child,
           { ...child.props },
           sliced.map((src, i) => (
-            <div key={`gallery #${i}`} className='relative w-full h-full overflow-hidden rounded-lg'>
+            <div
+              key={`gallery #${i}`}
+              onClick={() => {
+                showGallery(i + 3);
+              }}
+              className='relative w-full h-full overflow-hidden rounded-lg'
+            >
               <Image src={src as string} alt={`gallery #${i}`} fill style={{ objectFit: 'cover' }} />
             </div>
           )),
@@ -205,5 +206,19 @@ export default function IndividualTab({ child, agent_data }: Props) {
     // },
   ];
 
-  return <>{currentProperty ? transformMatchingElements(child, matches) : child}</>;
+  return (
+    <>
+      <button
+        onClick={() => {
+          showGallery(0);
+        }}
+        className='text-7xl bg-fuchsia-600 text-white'
+      >
+        show carousel
+      </button>
+
+      {currentProperty ? <>{transformMatchingElements(child, matches)}</> : child}
+      <PhotosCarousel />
+    </>
+  );
 }

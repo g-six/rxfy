@@ -12,7 +12,6 @@ export enum MapType {
 type Props = {
   property: PropertyDataModel | null;
   child: ReactElement;
-  mapQuerySelector?: string;
   mapType?: MapType | string;
 };
 

@@ -16,29 +16,13 @@ export default function RxPropertyMaps({ child, property }: PropertyMapsProps) {
     {
       searchFn: searchByClasses(['right-side']),
       transformChild: (child: ReactElement) => {
-        return (
-          <RxMapOfListing
-            key={'neighborhood-view'}
-            property={property ? property : null}
-            mapQuerySelector={'.right-side'}
-            mapType={MapType.NEIGHBORHOOD}
-            child={child}
-          />
-        );
+        return <RxMapOfListing key={'neighborhood-view'} property={property ? property : null} mapType={MapType.NEIGHBORHOOD} child={child} />;
       },
     },
     {
       searchFn: searchByClasses(['street-view-div']),
       transformChild: (child: ReactElement) => {
-        return (
-          <RxMapOfListing
-            key={'street-view'}
-            property={property ? property : null}
-            mapQuerySelector={'.street-view-div'}
-            mapType={MapType.STREET}
-            child={child}
-          />
-        );
+        return <RxMapOfListing key={'street-view'} property={property ? property : null} mapType={MapType.STREET} child={child} />;
       },
     },
   ];
