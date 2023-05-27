@@ -1,6 +1,5 @@
 import parse from 'html-react-parser';
 import Image from 'next/image';
-import Script from 'next/script';
 import { CheerioAPI, load } from 'cheerio';
 import { notFound } from 'next/navigation';
 import { cookies, headers } from 'next/headers';
@@ -13,7 +12,6 @@ import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
 import { getPrivatePropertyData, getPropertyData } from '@/_utilities/data-helpers/property-page';
 import { fillAgentInfo, fillPropertyGrid, removeSection, replaceByCheerio, rexify } from '@/components/rexifier';
-import { addPropertyMapScripts } from '@/components/Scripts/google-street-map';
 import RxNotifications from '@/components/RxNotifications';
 import MyProfilePage from '@/rexify/my-profile';
 import styles from './page.module.scss';
@@ -245,16 +243,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
             </a>
           </div>
         </main>
-      )}
-      {property && property.lat && (
-        <Script
-          defer
-          suppressHydrationWarning
-          id='property-map-init'
-          dangerouslySetInnerHTML={{
-            __html: addPropertyMapScripts(property),
-          }}
-        />
       )}
     </>
   );

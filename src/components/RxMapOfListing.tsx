@@ -100,7 +100,10 @@ export default function RxMapOfListing({ property, child, mapType }: Props) {
   React.useEffect(() => {
     if (mapType === MapType.NEIGHBORHOOD) {
       initNeighborhoodView();
-    } else {
+      setTimeout(() => {
+        document.querySelectorAll('.gm-ui-hover-effect').forEach(el => (el as HTMLElement).click());
+      }, 500);
+    } else if (mapType === MapType.STREET) {
       initStreetView();
     }
   }, [mapType, mapCenter, ref, initNeighborhoodView, initStreetView]);
