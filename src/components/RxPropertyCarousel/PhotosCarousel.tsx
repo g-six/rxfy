@@ -12,7 +12,7 @@ import { ChevronLeftIcon, ChevronRightIcon, XMarkIcon } from '@heroicons/react/2
 import useEvent, { Events } from '@/hooks/useEvent';
 
 interface Props {}
-export default function App({}: Props) {
+export default function PhotosCarousel({}: Props) {
   const [mainSwiper, setMainSwiper] = useState<SwiperType | null>(null);
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
 

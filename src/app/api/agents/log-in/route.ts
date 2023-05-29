@@ -2,7 +2,7 @@ import { encrypt } from '@/_utilities/encryption-helper';
 import axios, { AxiosError } from 'axios';
 import updateSessionKey from '../../update-session';
 
-export const gql_retrieve_clients = `query RetrieveClients($id: ID!) {
+const gql_retrieve_clients = `query RetrieveClients($id: ID!) {
     agent(id: $id) {
       data {
         attributes {
