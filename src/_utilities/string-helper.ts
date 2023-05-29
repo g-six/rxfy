@@ -21,3 +21,23 @@ export function emailToSlug(email: string): string {
   // Return the slug
   return slugs.join('-');
 }
+
+export function formatAddress(input: string): string {
+  // split the input string by the blank space
+  const address = input.split(' ');
+
+  // use array mapping method to create the output
+  const output = address
+    .map(word => {
+      // If word is longer than two characters, capitalize only the first letter
+      return (word.length > 2 && isNaN(Number(word.split('').pop())) && isNaN(Number(word.charAt(0)))) || street_roads_etc.includes(word.toUpperCase())
+        ? word[0].toUpperCase() + word.slice(1).toLowerCase()
+        : // If word is two characters or shorter OR in form of 143A, keep it as is
+          word;
+    })
+    .join(' ');
+
+  return output;
+}
+
+const street_roads_etc = ['ST', 'RD', 'CRES', 'AVE', 'BLV', 'BLVD'];
