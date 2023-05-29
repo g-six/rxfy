@@ -105,7 +105,10 @@ export const getCurrentTab = (tabsDOMs: Element[]): string => {
   });
   return currentTabDOM ? Array.from(currentTabDOM.classList).filter(cls => tabsArray.includes(cls))[0] : 'default';
 };
-export const prepareStats = (stats: { [key: string]: string }, property: PropertyDataModel | null): { label: string; value: string | number | undefined }[] => {
+export const prepareStats = (
+  stats: { [key: string]: string },
+  property: PropertyDataModel | null | undefined,
+): { label: string; value: string | number | undefined }[] => {
   if (!property) return [];
   const record = property as unknown as { [key: string]: string | number };
 

@@ -17,6 +17,7 @@ import {
 import { repairIfNeeded } from '../mls-repair';
 import { getRealEstateBoard } from '@/app/api/real-estate-boards/model';
 import { createAgentsFromProperty } from './model';
+import { invalidateCache } from '../_helpers/cache-helper';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -282,8 +283,6 @@ export async function GET(request: Request) {
         client.send(command).then(console.log);
 
         invalidateCache([`/${filepath}`, `/${mls_filepath}`, `/${mls_filepath_ts}`, `/${legacy_filepath}`]);
-        // if (real_estate_board?.attributes.name && xhr?.data?.data?.property) {
-        // }
       }
 
       return getResponse(
@@ -316,29 +315,6 @@ export async function GET(request: Request) {
       400,
     );
   }
-}
-
-export function invalidateCache(Items: string[]) {
-  const NEXT_APP_SITES_DIST_ID = process.env.NEXT_APP_SITES_DIST_ID as string;
-  const client = new CloudFrontClient({
-    region: 'us-west-2',
-    credentials: {
-      accessKeyId: process.env.NEXT_APP_UPLOADER_KEY_ID as string,
-      secretAccessKey: process.env.NEXT_APP_UPLOAD_SECRET_KEY as string,
-    },
-  });
-  const command = new CreateInvalidationCommand({
-    DistributionId: NEXT_APP_SITES_DIST_ID,
-    InvalidationBatch: {
-      CallerReference: new Date().getTime().toString(),
-      Paths: {
-        Quantity: Items.length,
-        Items,
-      },
-    },
-  });
-  console.log('Invalidating cache for ', NEXT_APP_SITES_DIST_ID);
-  return client.send(command);
 }
 
 async function getNeighboursAndHistory(

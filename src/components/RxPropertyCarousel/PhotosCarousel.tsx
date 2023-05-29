@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import './PhotoCarouselOverwrite.scss';
 import 'swiper/css';
@@ -12,7 +12,7 @@ import { ChevronLeftIcon, ChevronRightIcon, XMarkIcon } from '@heroicons/react/2
 import useEvent, { Events } from '@/hooks/useEvent';
 
 interface Props {}
-export default function App({}: Props) {
+export default function PhotosCarousel({}: Props) {
   const [mainSwiper, setMainSwiper] = useState<SwiperType | null>(null);
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
 
@@ -26,7 +26,7 @@ export default function App({}: Props) {
       document.body.style.overflow = show ? 'hidden' : 'auto';
       mainSwiper?.slideTo(key ?? 0);
     }
-  }, [show]);
+  }, [show, mainSwiper, key]);
 
   return (
     <div

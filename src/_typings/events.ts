@@ -1,5 +1,5 @@
 import { MLSProperty } from './property';
-import { SavedSearch, SavedSearchInput } from './saved-search';
+import { SavedSearchInput } from './saved-search';
 
 export enum Events {
   Login = 'event-login',
