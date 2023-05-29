@@ -194,7 +194,7 @@ const agent_metatags_data_fragment = `
         }
 `;
 
-export const gql_create_metatags = `mutation CreateAgentMetatag($metatag: AgentMetatagInput!) {
+const gql_create_metatags = `mutation CreateAgentMetatag($metatag: AgentMetatagInput!) {
     record: createAgentMetatag(data: $metatag) {
       data {
         id
