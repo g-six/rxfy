@@ -6,7 +6,7 @@ import { sendTemplate } from '../../send-template';
 import { MessageRecipient } from '@mailchimp/mailchimp_transactional';
 import { createAgent } from '../model';
 
-export const gql_find_agent = `query RetrieveAgentRecord($agent_id: String!) {
+const gql_find_agent = `query RetrieveAgentRecord($agent_id: String!) {
     agents(filters: { agent_id: { eq: $agent_id } }) {
       data {
         id
