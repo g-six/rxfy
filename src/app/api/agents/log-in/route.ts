@@ -194,37 +194,7 @@ const agent_metatags_data_fragment = `
         }
 `;
 
-const gql_create_metatags = `mutation CreateAgentMetatag($metatag: AgentMetatagInput!) {
-    record: createAgentMetatag(data: $metatag) {
-      data {
-        id
-        attributes {
-          agent_id
-          favicon
-          headshot
-          target_city
-          personal_bio
-          personal_title
-          brokerage_id
-          brokerage_name
-          search_highlights
-          logo_for_light_bg
-          logo_for_dark_bg
-          title
-          description
-          profile_slug
-          profile_image
-          facebook_url
-            linkedin_url
-          twitter_url
-          youtube_url
-          mailchimp_subscription_url
-        }
-      }
-    }
-}`;
-
-export const gql_login = `query LoginAgent($email: String!, $encrypted_password: String!) {
+const gql_login = `query LoginAgent($email: String!, $encrypted_password: String!) {
     realtors(filters: { email: { eq: $email }, encrypted_password: { eq: $encrypted_password } }) {
       data {
             id
@@ -269,90 +239,5 @@ export const gql_login = `query LoginAgent($email: String!, $encrypted_password:
                 }
             }
         }
-    }
-}`;
-
-export const gql_set_agent_creds = `mutation SetAgentCredentials($id: ID!, $input: AgentInput!) {
-    realtor: updateRealtor(id: $id, data: $input) {
-      data {
-        id
-        attributes {
-          last_activity_at
-          agent {
-            data {
-              id
-              attributes {
-                agent_id
-                email
-                customers {
-                  data {
-                    id
-                    attributes {
-                      full_name
-                      email
-                      birthday
-                      phone_number
-                      loves {
-                        data {
-                          id
-                          attributes {
-                            property {
-                              data {
-                                attributes {
-                                  title
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`;
-
-export const gql_find_agent_by_agent_id = `query RetrieveAgentByAgentId($agent_id: String!) {
-    agents(filters: { agent_id: { eq: $agent_id } }) {
-      data {
-            id
-            attributes {
-                agent_id
-                customers {
-                    data {
-                        id
-                        attributes {
-                            full_name
-                            email
-                            birthday
-                            phone_number
-                            loves {
-                                data {
-                                    id
-                                    attributes {
-                                        property {
-                                            data {
-                                                attributes {
-                                                    title
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    agentMetatags(filters: { agent_id: { eq: $agent_id } }) {
-        ${agent_metatags_data_fragment}
     }
 }`;
