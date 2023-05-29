@@ -20,7 +20,7 @@ import {
   general_stats,
 } from '@/_utilities/data-helpers/property-page';
 
-import PhotosCarousel from '@/components/PhotosCarousel';
+import PhotosCarousel from '@/components/RxPropertyCarousel/PhotosCarousel';
 import RxPropertyTopStats from '@/components/RxProperty/RxPropertyTopStats';
 import RxMapOfListing from '@/components/RxMapOfListing';
 import RxStatBlock from '@/components/RxProperty/RxStatBlock';

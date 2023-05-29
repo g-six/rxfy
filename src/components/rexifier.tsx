@@ -17,7 +17,7 @@ import EmailAnchor from './A/Email';
 import FooterSocialLinks from './A/FooterSocialLinks';
 import PersonalTitle from './PersonalTitle';
 import PersonalBioParagraph from './PersonalBioParagraph';
-import PropertyCarousel from './PropertyCarousel/main';
+import PropertyCarousel from './RxPropertyCarousel/main';
 import HomeAlertsReplacer from '@/_replacers/HomeAlerts/home-alerts';
 import RxContactForm from '@/components/RxForms/RxContactForm';
 import { RxUserSessionLink } from './Nav/RxUserSessionLink';
