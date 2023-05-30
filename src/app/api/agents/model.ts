@@ -8,7 +8,7 @@ import { getSmart } from './repair';
 export async function createAgent(user_data: {
   agent_id: string;
   email: string;
-  phone: string;
+  phone?: string;
   encrypted_password?: string;
   full_name: string;
   real_estate_board_id?: number;
@@ -84,7 +84,7 @@ export async function createAgentRecordIfNoneFound(
 ) {
   if (!email) return;
   if (!agent_id) return;
-  if (!phone) return;
+
   if (!full_name) return;
 
   try {
@@ -107,6 +107,7 @@ export async function createAgentRecordIfNoneFound(
     const last_name = `${full_name}`.split(' ').slice(0, 2).pop();
 
     let [agent] = response_data?.data?.agents?.data;
+
     if (!agent) {
       console.log("Agent not found, let's create it");
       const create_this = {
