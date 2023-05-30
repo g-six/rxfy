@@ -1,7 +1,15 @@
 import { PlaceDetails } from './maps';
 
 export const DateFields = ['UpdateDate', 'ListingDate'];
-
+export const PROPERTY_ASSOCIATION_KEYS: string[] = [
+  'amenities',
+  'appliances',
+  'build_features',
+  'connected_services',
+  'facilities',
+  'hvac',
+  'items_maintained',
+];
 type PropertyAssociations = {
   data?: {
     id?: number;

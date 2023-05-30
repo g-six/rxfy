@@ -10,6 +10,23 @@ export function repeatChar(character: string, num_of_times: number) {
   return output;
 }
 
+export function toKebabCase(input_string: string) {
+  const kebab_string = input_string.replace(/[^a-z0-9]/gi, '-');
+  const kebab_string_words = kebab_string.split('-');
+
+  let result_string = '';
+
+  kebab_string_words.forEach(word => {
+    if (word.toLowerCase()) {
+      result_string = result_string + word.toLowerCase() + ' ';
+    }
+  });
+
+  const final_string = result_string.trim().split(' ').join('-');
+
+  return final_string;
+}
+
 export function emailToSlug(email: string): string {
   // Split the email address into an array of strings
   const emailArray = email.split('@');
