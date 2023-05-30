@@ -83,7 +83,6 @@ export interface BasePropertyDataModel {
   fireplace?: string;
   garage?: 'None' | 'Single' | 'Double' | 'Triple';
   postal_zip_code?: string;
-  parking?: string;
   style_type?: string;
   status?: 'Active' | 'Expired' | 'Sold';
   listed_at?: Date;
@@ -134,6 +133,35 @@ export interface PropertyInput extends BasePropertyDataModel {
   real_estate_board?: number;
 }
 
+export interface PropertyDataObject extends BasePropertyDataModel {
+  real_estate_board?: {
+    data?: {
+      id?: number;
+      attributes: {
+        legal_disclaimer: string;
+      };
+    };
+  };
+  property_photo_album?: {
+    data?: {
+      id?: number;
+      attributes: {
+        photos: string;
+      };
+    };
+  };
+
+  amenities?: string[];
+  appliances?: string[];
+  build_features?: string[];
+  connected_services?: string[];
+  facilities?: string[];
+  hvac?: string[];
+  parking?: string[];
+  places_of_interest?: string[];
+  items_maintained?: PropertyAssociations;
+  photos?: string[]; // to remove
+}
 export interface PropertyDataModel extends BasePropertyDataModel {
   real_estate_board?: {
     data?: {
