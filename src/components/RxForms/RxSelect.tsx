@@ -95,5 +95,5 @@ export default function RxSelect(props: SelectProps) {
   const wrapperClassName = props.wrapperNode.props.className;
   const style = Object.assign({}, props.wrapperNode.props.style, props.wrapperStyle);
 
-  return transformMatchingElements(props.wrapperNode, matches);
+  return transformMatchingElements(props.wrapperNode, matches) as ReactElement;
 }
