@@ -13,7 +13,7 @@ import { dateStringToDMY } from './date-helper';
 import { capitalizeFirstLetter } from '../formatters';
 import { MLSPropertyExtended } from '@/_typings/filters_compare';
 import { getCombinedData } from './listings-helper';
-import { getRealEstateBoard } from '@/app/api/real-estate-boards/model';
+import { must_not, retrieveFromLegacyPipeline } from '../api-calls/call-legacy-search';
 
 export const general_stats: Record<string, string> = {
   age: 'Age',
@@ -255,129 +255,6 @@ export function getGqlForUpdateProperty(id: number, mls_data: MLSProperty, relat
 // Let's only retrieve listings from 4 hours ago as
 // the Geocoding script might still be running on
 // the new entries (time here is UTC due to legacy server config)
-const gte = new Date(new Date().getTime() - 4 * 60 * 60000).toISOString().substring(0, 19);
-
-export const must_not: {
-  match?: { [key: string]: string };
-  range?: {
-    [key: string]: {
-      lte?: string;
-      gte?: string;
-    };
-  };
-}[] = [
-  { match: { 'data.IdxInclude': 'no' } },
-  { match: { 'data.L_Class': 'Rental' } },
-  { match: { 'data.L_Class': 'Commercial Lease' } },
-  { match: { 'data.L_Class': 'Commercial Sale' } },
-  {
-    match: {
-      'data.Status': 'Terminated',
-    },
-  },
-  {
-    range: {
-      'data.UpdateDate': {
-        gte,
-      },
-    },
-  },
-];
-
-export async function retrieveFromLegacyPipeline(
-  params: {
-    from: number;
-    size: number;
-    sort?:
-      | {
-          [key: string]: 'asc' | 'desc';
-        }
-      | {
-          [key: string]: 'asc' | 'desc' | Record<string, unknown>;
-        }[];
-    fields?: string[];
-    query: {
-      bool: {
-        filter?: {
-          match?: Record<string, string | number>;
-          range?: {};
-        }[];
-        should?: {
-          match?: Record<string, string | number>;
-          range?: {};
-        }[];
-        minimum_should_match?: number;
-        must_not?: {
-          match?: Record<string, string | number>;
-          range?: {};
-        }[];
-      };
-    };
-    _source?: boolean;
-  } = {
-    from: 0,
-    size: 3,
-    sort: { 'data.ListingDate': 'desc' },
-    query: {
-      bool: {
-        filter: [
-          {
-            match: {
-              'data.Status': 'Active',
-            },
-          },
-        ],
-        must_not,
-        should: [],
-      },
-    },
-    _source: true,
-  },
-  config = {
-    url: process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
-    headers: {
-      Authorization: `Basic ${Buffer.from(`${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`).toString('base64')}`,
-      'Content-Type': 'application/json',
-    },
-  },
-) {
-  const axios: AxiosStatic = (await import('axios')).default;
-  const {
-    data: {
-      hits: { hits },
-    },
-  } = await axios.post(config.url, params, {
-    headers: config.headers,
-  });
-
-  return hits.map(({ _source, fields }: { _source: unknown; fields: Record<string, unknown> }) => {
-    let hit: Record<string, unknown>;
-    if (_source) {
-      hit = (
-        _source as {
-          data: Record<string, unknown>;
-        }
-      ).data;
-    } else {
-      hit = fields;
-    }
-
-    let property = {
-      Address: '',
-      Status: '',
-    };
-    Object.keys(hit as Record<string, unknown>).forEach(key => {
-      if (hit[key]) {
-        property = {
-          ...property,
-          [_source ? key : key.split('.')[1]]: _source || key === 'data.photos' ? hit[key] : (hit[key] as string[] | number[]).join(','),
-        };
-      }
-    });
-
-    return property as MLSProperty;
-  });
-}
 
 export async function getRecentListings(agent: AgentData, limit = 3) {
   const should: {
@@ -482,10 +359,10 @@ export async function getRecentListings(agent: AgentData, limit = 3) {
 async function upsertPropertyToCMS(mls_id: string) {
   const axios: AxiosStatic = (await import('axios')).default;
   try {
-    const xhr = await axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/test-cron?data.MLS_ID=${mls_id}`);
+    const xhr = await axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`);
     const json = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/listings/${mls_id}/recent.json`);
 
-    return json || {};
+    return json || xhr.data;
   } catch (e) {
     const error = e as AxiosError;
     console.log('ERROR in upsertPropertyToCMS.axios', '\n', error, '\n\n');
