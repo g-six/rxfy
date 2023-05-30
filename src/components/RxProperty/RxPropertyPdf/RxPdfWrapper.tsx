@@ -7,11 +7,12 @@ import { PropertyDataModel } from '@/_typings/property';
 import { ReplacerPageProps, DataUrl, disclaimer } from '@/_typings/forms';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
-import { formatValues, construction_stats, main_stats, building_stats, financial_stats, amenities_stats } from '@/_utilities/data-helpers/property-page';
+import { formatValues, construction_stats, amenities_stats } from '@/_utilities/data-helpers/property-page';
 import { replaceAllTextWithBraces, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { splitObject, toDataURL } from '@/_helpers/functions';
 
 import RxPdfMainInfo from '@/components/RxProperty/RxPropertyPdf/RxPdfMainInfo';
+import RxPdfMainStats from '@/components/RxProperty/RxPropertyPdf/RxPdfMainStats';
 import RxPdfStatsInfo from '@/components/RxProperty/RxPropertyPdf/RxPdfStatsInfo';
 import RxPdfGallery, { PHOTOS_AMOUNT } from '@/components/RxProperty/RxPropertyPdf/RxPdfGallery';
 import RxPdfDimRoomsInfo from '@/components/RxProperty/RxPropertyPdf/RxPdfDimRoomsInfo';
@@ -128,51 +129,13 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
       },
     },
     {
-      searchFn: searchByClasses(['main-info']),
+      searchFn: searchByClasses(['b-statgrid']),
       transformChild: (child: React.ReactElement) => {
-        return (
-          <RxPdfStatsInfo
-            property={property as PropertyDataModel & { [key: string]: string }}
-            nodeClassName={child.props.className}
-            child={child}
-            stats={main_stats}
-            wrapperClassName={'main-info-rows'}
-            keyStr={'PIStat'}
-            valStr={'PIResult'}
-          />
-        );
-      },
-    },
-    {
-      searchFn: searchByClasses(['building-info']),
-      transformChild: (child: React.ReactElement) => {
-        return (
-          <RxPdfStatsInfo
-            property={property as PropertyDataModel & { [key: string]: string }}
-            nodeClassName={child.props.className}
-            child={child}
-            stats={building_stats}
-            wrapperClassName={'build-info-rows'}
-            keyStr={'PIStat'}
-            valStr={'PIResult'}
-          />
-        );
-      },
-    },
-    {
-      searchFn: searchByClasses(['financial-info']),
-      transformChild: (child: React.ReactElement) => {
-        return (
-          <RxPdfStatsInfo
-            property={property as PropertyDataModel & { [key: string]: string }}
-            nodeClassName={child.props.className}
-            child={child}
-            stats={financial_stats}
-            wrapperClassName={'financial-info-rows'}
-            keyStr={'FinStat'}
-            valStr={'FinResult'}
-          />
-        );
+        const style = Object.assign({}, child.props.style, {
+          height: pdfSize.height - 1230 + 'px',
+        });
+        const ch = React.cloneElement(child, { style });
+        return <RxPdfMainStats child={ch} property={property} size={PDF_SIZE} />;
       },
     },
     {
