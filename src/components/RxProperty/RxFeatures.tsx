@@ -1,5 +1,5 @@
-import { SinglePropertyFeature } from '@/components/RxProperty/PropertyFeatureSection';
 import React, { ReactElement } from 'react';
+import { SinglePropertyFeature } from '@/components/RxProperty/PropertyFeatureSection';
 
 type Props = {
   child: ReactElement;
@@ -7,7 +7,6 @@ type Props = {
 };
 
 export default function RxFeatures({ child, features }: Props) {
-  const hasFeatures = Object.keys(features);
   return (
     <div className={child.props.className}>
       {Object.keys(features)

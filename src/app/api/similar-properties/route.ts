@@ -1,14 +1,11 @@
-import axios, { AxiosError } from 'axios';
-import { CloudFrontClient, CreateInvalidationCommand } from '@aws-sdk/client-cloudfront';
-import { PutObjectCommand, S3Client, S3ClientConfig } from '@aws-sdk/client-s3';
+import { AxiosError } from 'axios';
 import { getResponse } from '../response-helper';
-import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 
 import { MLSProperty, PropertyDataModel } from '@/_typings/property';
-import { retrieveFromLegacyPipeline } from '@/_utilities/data-helpers/property-page';
 import { getCombinedData } from '@/_utilities/data-helpers/listings-helper';
 import { getLatLonRange } from '@/_helpers/geocoding';
+import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
 
 export async function GET(request: Request) {
   const listings: (PropertyDataModel & { photos: string[] })[] = [];
@@ -64,20 +61,10 @@ export async function GET(request: Request) {
     console.log(err.response?.data);
   });
   if (legacy_result && legacy_result.length) {
-    legacy_result.map((hit: MLSProperty) => {
+    legacy_result.map((hit: PropertyDataModel) => {
       if (hit) {
         listings.push({
-          ...getCombinedData({
-            attributes: {
-              title: hit.Address,
-              asking_price: hit.AskingPrice,
-              city: hit.City,
-              area: hit.Area,
-              mls_id: hit.MLS_ID,
-              property_type: hit.PropertyType,
-              mls_data: hit,
-            },
-          }),
+          ...hit,
           photos: hit.photos && Array.isArray(hit.photos) ? hit.photos.map(p => getImageSized(p, 480)) : [],
         });
       }

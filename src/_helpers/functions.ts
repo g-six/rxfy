@@ -105,7 +105,10 @@ export const getCurrentTab = (tabsDOMs: Element[]): string => {
   });
   return currentTabDOM ? Array.from(currentTabDOM.classList).filter(cls => tabsArray.includes(cls))[0] : 'default';
 };
-export const prepareStats = (stats: { [key: string]: string }, property: PropertyDataModel | null): { label: string; value: string | number | undefined }[] => {
+export const prepareStats = (
+  stats: { [key: string]: string },
+  property: PropertyDataModel | null | undefined,
+): { label: string; value: string | number | undefined }[] => {
   if (!property) return [];
   const record = property as unknown as { [key: string]: string | number };
 
@@ -119,7 +122,11 @@ export const prepareStats = (stats: { [key: string]: string }, property: Propert
 };
 const featureMapping: Record<string, string> = {
   'Air Conditioning': 'air-conditioner',
+  'Air Conditioner': 'air-conditioner',
+  Electricity: 'electricity',
   'Washer/Dryer': 'washing-machine',
+  'In Suite Laundry': 'washing-machine',
+  'Natural Gas': 'natural-gas',
   'Washing Machine': 'washing-machine',
   Refrigerator: 'refrigerator',
   Stove: 'stove',
@@ -130,6 +137,8 @@ const featureMapping: Record<string, string> = {
   Deck: 'deck',
   'Torch On': 'torch',
   'City/Municipal Water': 'city-municipal',
+  'City/Municipal Water Supply': 'city-municipal',
+  'Municipal Water Supply': 'city-municipal',
   Park: 'park',
   Storage: 'box',
   'Recreation Nearby': 'park',
@@ -138,25 +147,49 @@ const featureMapping: Record<string, string> = {
 export const mapFeatures = (property: PropertyDataModel) => {
   const features: Record<string, string> = {};
   if (!property) return {};
-  console.log('property.amenities', property.amenities);
+
   if (property.amenities?.data) {
+    // DataModel
     property.amenities?.data.map(({ attributes: { name } }) => {
       features[name] = featureMapping[name];
     });
+  } else if (property.amenities && Array.isArray(property.amenities)) {
+    // DataObject
+    property.amenities?.map((name: string) => {
+      features[name] = featureMapping[name];
+    });
   }
-  console.log({ features });
-  // Object.keys(property)
-  //   .filter(key => property_features.includes(key))
-  //   .forEach(key => {
-  //     const feature = (property[key] as string[]).join(', ');
-  //     const lowercaseFeature = feature.toLowerCase();
-
-  //     Object.keys(featureMapping).forEach(mappingKey => {
-  //       if (lowercaseFeature.indexOf(mappingKey.toLowerCase()) >= 0) {
-  //         features[mappingKey] = featureMapping[mappingKey];
-  //       }
-  //     });
-  //   });
+  if (property.facilities?.data) {
+    property.facilities?.data.map(({ attributes: { name } }) => {
+      features[name] = featureMapping[name];
+      console.log({ name });
+    });
+  } else if (property.facilities && Array.isArray(property.facilities)) {
+    // DataObject
+    property.facilities?.map((name: string) => {
+      features[name] = featureMapping[name];
+    });
+  }
+  if (property.connected_services?.data) {
+    property.connected_services?.data.map(({ attributes: { name } }) => {
+      features[name] = featureMapping[name];
+    });
+  } else if (property.connected_services && Array.isArray(property.connected_services)) {
+    // DataObject
+    property.connected_services?.map((name: string) => {
+      features[name] = featureMapping[name];
+    });
+  }
+  if (property.items_maintained?.data) {
+    property.items_maintained?.data.map(({ attributes: { name } }) => {
+      features[name] = featureMapping[name];
+    });
+  } else if (property.items_maintained && Array.isArray(property.items_maintained)) {
+    // DataObject
+    property.items_maintained?.map((name: string) => {
+      features[name] = featureMapping[name];
+    });
+  }
 
   return features;
 };

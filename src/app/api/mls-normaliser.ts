@@ -190,52 +190,6 @@ export function combineOtherInformation(attributes: PropertyDataModel, key: stri
  * @param attributes PropertyDataModel
  * @param key
  * @param val
- * @returns PropertyDataModel with (or w/out) parking
- */
-export function combineParkingData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {
-  let parking = attributes.parking || '';
-  let garage = attributes.garage || 'None';
-
-  if (val && key.toLowerCase().indexOf('parking') >= 0) {
-    let text = '';
-    if (Array.isArray(val)) {
-      text = val.join(' ');
-    } else {
-      switch (key.toUpperCase()) {
-        case 'L_PARKING_COVERED':
-          text = `${val} covered`;
-          break;
-        case 'L_PARKING_TOTAL':
-          text = `${val} total`;
-          break;
-      }
-    }
-    parking = `${parking ? `${parking}, ` : ''}` + text;
-
-    if (garage === 'None' && parking) {
-      if (parking.toLowerCase().indexOf('garage; triple') >= 0) garage = 'Triple';
-      if (parking.toLowerCase().indexOf('garage; double') >= 0) garage = 'Double';
-      if (parking.toLowerCase().indexOf('garage; single') >= 0) garage = 'Single';
-    }
-
-    return {
-      ...attributes,
-      parking,
-      garage,
-    };
-  }
-  return {
-    ...attributes,
-    parking,
-    garage,
-  };
-}
-
-/**
- *
- * @param attributes PropertyDataModel
- * @param key
- * @param val
  * @returns PropertyDataModel with (or w/out) fireplace
  */
 export function combineFireplaceData(attributes: PropertyDataModel, key: string, val?: string[]): PropertyDataModel {

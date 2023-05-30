@@ -5,21 +5,20 @@ import mapboxgl, { GeoJSONSource, GeoJSONSourceRaw, LngLatLike, MapboxGeoJSONFea
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { queryStringToObject } from '@/_utilities/url-helper';
 import { AgentData } from '@/_typings/agent';
-import { must_not, retrieveFromLegacyPipeline } from '@/_utilities/data-helpers/property-page';
-import { MLSProperty, PropertyAttributeFilters, PropertyDataModel } from '@/_typings/property';
+import { PropertyAttributeFilters, PropertyDataModel } from '@/_typings/property';
 import { getSearchPropertyFilters } from '@/_utilities/rx-map-helper';
 import { Feature } from 'geojson';
 import { classNames } from '@/_utilities/html-helper';
 import { MapboxBoundaries, PlaceDetails, RxPropertyFilter } from '@/_typings/maps';
 import PropertyListModal from './PropertyListModal';
 import { mergeObjects } from '@/_utilities/array-helper';
-import useDebounce from '@/hooks/useDebounce';
 import { useMapMultiUpdater, useMapState } from '@/app/AppContext.module';
 import { useSearchParams } from 'next/navigation';
 import { renderClusterBgLayer, renderClusterTextLayer, renderHomePinBgLayer, renderHomePinTextLayer } from '@/_utilities/rx-map-style-helper';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import Cookies from 'js-cookie';
 import axios from 'axios';
+import { must_not, retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
 
 type RxMapboxProps = {
   agent: AgentData;
@@ -232,7 +231,7 @@ export function RxMapbox(props: RxMapboxProps) {
           window.history.pushState({}, `${ne.lat}${ne.lng}${sw.lat}${sw.lng}`, currentUrl.href);
         }
         if (results.length) {
-          setPropertyListings(mergeObjects(include_listings, results, 'MLS_ID'));
+          setPropertyListings(mergeObjects(include_listings, results, 'mls_id'));
         } else {
           setPropertyListings([]);
         }
@@ -386,7 +385,6 @@ export function RxMapbox(props: RxMapboxProps) {
 
   React.useEffect(() => {
     if (props.params && props.params.id) {
-      console.log(props.params);
       updater(state, {
         lat: props.params.lat,
         lng: props.params.lng,
@@ -405,7 +403,6 @@ export function RxMapbox(props: RxMapboxProps) {
     if (center && center.lng && center.lat) {
       repositionMap([center.lng, center.lat]);
     }
-    console.log(center);
   }, [center]);
 
   React.useEffect(() => {

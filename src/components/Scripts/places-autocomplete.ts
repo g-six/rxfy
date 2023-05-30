@@ -4,6 +4,7 @@
  * @returns
  */
 export default function initializePlacesAutocomplete(props: Record<string, string>) {
+  console.log('initializePlacesAutocomplete', props);
   return `
     function objectToUrlParams(obj) {
         return Object.keys(obj).map(key => key + '=' + obj[key]).join('&');
@@ -36,13 +37,13 @@ export default function initializePlacesAutocomplete(props: Record<string, strin
         const url = new URL(location.href)
         if (url.pathname === '/property') {
             if (typeof initNeighborhoodMap !== 'undefined' && initNeighborhoodMap && document.querySelector('.section---map-n-street-view .p-map')) {
-                initNeighborhoodMap(document.querySelector('.section---map-n-street-view .p-map').parentElement)
+                //initNeighborhoodMap(document.querySelector('.section---map-n-street-view .p-map').parentElement)
             } else {
                 console.log('initNeighborhoodMap not loaded yet')
                 const interval = setInterval(() => {
                     if (typeof initNeighborhoodMap !== 'undefined') {
                         clearInterval(interval)
-                        initNeighborhoodMap(document.querySelector('.section---map-n-street-view .p-map').parentElement)
+                        //initNeighborhoodMap(document.querySelector('.section---map-n-street-view .p-map').parentElement)
                     } else {
                         console.log('Retry loading initNeighbourhoodMap')
                     }
@@ -104,7 +105,7 @@ export default function initializePlacesAutocomplete(props: Record<string, strin
             el.style = el.dataset.style
         })
 
-        if (document.querySelector(".map-div")) {
+        if (document.querySelector(".map-div") && typeof initNeighborhoodMap !== 'undefined') {
             initNeighborhoodMap();
         }
     }

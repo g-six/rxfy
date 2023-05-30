@@ -1,7 +1,9 @@
+import { ReactElement } from 'react';
+import { DOMNode, domToReact } from 'html-react-parser';
+
 import { MLSProperty } from '@/_typings/property';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
-import { DOMNode, domToReact } from 'html-react-parser';
-import { ReactElement } from 'react';
+
 export default function RxTable({ rows, data, rowClassName }: { rows: DOMNode[]; data: MLSProperty[]; rowClassName: string }) {
   const elements = domToReact(rows) as unknown as ReactElement[];
   const TableHeadComponents = elements.filter(el => el.props.className !== rowClassName);
@@ -13,7 +15,7 @@ export default function RxTable({ rows, data, rowClassName }: { rows: DOMNode[];
       {TableHeadComponents}
 
       {data.map(item => {
-        return (
+        return Array.isArray(row_items) && row_items.length ? (
           <div key={item.MLS_ID} className={rowClassName} data-addr={item.Address}>
             {row_items[0].props.children.map((unit: ReactElement) => {
               if (unit.props.children === '{Other Unit No}') {
@@ -80,6 +82,8 @@ export default function RxTable({ rows, data, rowClassName }: { rows: DOMNode[];
               }
             })}
           </div>
+        ) : (
+          <></>
         );
       })}
     </div>

@@ -42,7 +42,7 @@ export default function RxPdfMainInfo({ property, child, imgMap, imgPhoto, size 
                 backgroundPosition: 'center center',
                 backgroundSize: 'cover',
                 backgroundRepeat: 'no-repeat',
-                maxHeight: size === 'a4' ? Math.round(pdfSize.height * MAIN_INFO_PART) - 395 + 'px' : 'auto',
+                maxHeight: Math.round(pdfSize.height * MAIN_INFO_PART) - (size === 'a4' ? 395 : 396) + 'px',
               }
             : {},
         });
