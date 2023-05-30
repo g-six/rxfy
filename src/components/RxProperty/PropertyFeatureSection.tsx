@@ -29,6 +29,7 @@ export function SinglePropertyFeature(props: Record<string, string>) {
   if (props.icon === 'dryer') return <></>;
   if (props.icon === 'baseboard') return <></>;
   if (props.icon === 'electric') return <></>;
+  if (props.icon === 'electricity') return <></>;
 
   const heroicons = ['club house', 'electricity'];
 
