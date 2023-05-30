@@ -21,7 +21,7 @@ export default function RxMapOfListing({ property, child, mapType }: Props) {
   const [mapCenter] = React.useState({ lng: property?.lon, lat: property?.lat });
 
   const initNeighborhoodView = React.useCallback(() => {
-    if (ref && ref.current) {
+    if (ref && ref.current && window['google']) {
       const google = window['google'];
       const localContext = new google.maps.localContext.LocalContextMapView({
         element: ref.current,
@@ -59,7 +59,7 @@ export default function RxMapOfListing({ property, child, mapType }: Props) {
       });
       localContext.search();
     }
-  }, [mapCenter, mapZoom]);
+  }, [mapCenter, mapZoom, window.google]);
 
   const initStreetView = React.useCallback(() => {
     if (ref && ref.current) {
