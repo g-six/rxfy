@@ -105,7 +105,7 @@ export default function initializePlacesAutocomplete(props: Record<string, strin
             el.style = el.dataset.style
         })
 
-        if (document.querySelector(".map-div")) {
+        if (document.querySelector(".map-div") && typeof initNeighborhoodMap !== 'undefined') {
             initNeighborhoodMap();
         }
     }
