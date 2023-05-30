@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { PropertyDataModel, MLSProperty } from '@/_typings/property';
 import { ReplacerPageProps } from '@/_typings/forms';
-import { mapFeatures } from '@/_helpers/functions';
+import { getFeatureIcons } from '@/_helpers/functions';
 import { replaceAllTextWithBraces, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { combineAndFormatValues, formatValues } from '@/_utilities/data-helpers/property-page';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
@@ -113,7 +113,7 @@ export function RxDetailedListing(props: ReplacerPageProps) {
       searchFn: searchByClasses([WEBFLOW_NODE_SELECTOR.PROPERTY_FEATURES]),
       transformChild: (child: ReactElement) => {
         const cp: PropertyDataModel | { [key: string]: string } = props.property || {};
-        return <RxFeatures child={child} features={mapFeatures(cp as PropertyDataModel)} />;
+        return <RxFeatures child={child} features={getFeatureIcons(cp as PropertyDataModel)} />;
       },
     },
     {

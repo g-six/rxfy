@@ -194,10 +194,6 @@ export default function RxPropertyCard({
                   location.href = `/property?mls=${listing.mls_id}`;
                 })
                 .catch(console.error);
-              // getMLSProperty(listing.mls_id).then(() => {
-              //   // Fix the application error for properties not imported yet
-              //   location.href = `/property?mls=${listing.mls_id}`;
-              // });
             }
           },
           onLoveItem: (remove: boolean) => {
