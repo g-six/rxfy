@@ -1,15 +1,12 @@
 import { encrypt } from '@/_utilities/encryption-helper';
 import { getResponse } from '../../response-helper';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { sendTemplate } from '../../send-template';
 import { MessageRecipient } from '@mailchimp/mailchimp_transactional';
-import { emailToSlug } from '@/_utilities/string-helper';
-import { WEBFLOW_THEME_DOMAINS } from '@/_typings/webflow';
-import { gql_create_agent } from '../graphql';
 import { createAgent } from '../model';
 
-export const gql_find_agent = `query RetrieveAgentRecord($agent_id: String!) {
+const gql_find_agent = `query RetrieveAgentRecord($agent_id: String!) {
     agents(filters: { agent_id: { eq: $agent_id } }) {
       data {
         id
@@ -21,42 +18,6 @@ export const gql_find_agent = `query RetrieveAgentRecord($agent_id: String!) {
       }
     }
 }`;
-
-export const gql_retrieve_clients = `query RetrieveClients($id: ID!) {
-    agent(id: $id) {
-      data {
-        attributes {
-          agent_id
-          customers {
-            data {
-              id
-              attributes {
-                full_name
-                email
-                birthday
-                phone_number
-                loves {
-                  data {
-                    id
-                    attributes {
-                      property {
-                        data {
-                          attributes {
-                            title
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`;
 
 const gql_update_agent = `mutation UpdateAgent ($id: ID!, $data: AgentInput!) {
   updateAgent(id: $id, data: $data) {

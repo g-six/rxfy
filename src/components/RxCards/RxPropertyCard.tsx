@@ -9,7 +9,9 @@ import useLove from '@/hooks/useLove';
 import styles from './RxPropertyCard.module.scss';
 import Cookies from 'js-cookie';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
-import { getMLSProperty } from '@/_utilities/api-calls/call-properties';
+// import { getMLSProperty } from '@/_utilities/api-calls/call-properties';
+import { formatAddress } from '@/_utilities/string-helper';
+import axios from 'axios';
 
 function RxComponentChomper({ config, children }: any): any {
   const cloneChildren = React.Children.map(children, child => {
@@ -143,6 +145,14 @@ export default function RxPropertyCard({
   const [is_loading, toggleLoading] = React.useState(false);
   const [loved_items, setLovedItems] = React.useState(getData(Events.LovedItem) as unknown as string[]);
   const evt = useLove();
+  let address = listing.title && formatAddress(`${listing.title}${listing.city ? `, ${listing.city}` : ''}`);
+
+  if (listing.state_province) {
+    address = `${address} ${listing.state_province}`;
+  }
+  if (listing.postal_zip_code) {
+    address = `${address} ${listing.postal_zip_code}`;
+  }
 
   React.useEffect(() => {
     if (evt.data?.item && evt.data.item.mls_id === listing.mls_id) {
@@ -153,6 +163,7 @@ export default function RxPropertyCard({
   return (
     <div
       data-agent={agent}
+      data-mls-id={listing.mls_id}
       className={classNames(
         'group relative',
         sequence === 0 ? `` : 'hidden sm:block',
@@ -162,23 +173,31 @@ export default function RxPropertyCard({
       <RxComponentChomper
         config={{
           is_loading,
-          '{PropCard Address}': listing.title,
-          '{PropertyCard Address}': listing.title,
-          '{PropertyCard Price}': formatValues(listing, 'AskingPrice'),
+          '{PropCard Address}': address,
+          '{PropertyCard Address}': address,
+          '{PropertyCard Price}': formatValues(listing, 'asking_price'),
           '{PArea}': listing.area || listing.city || 'N/A',
           '{PBd}': listing.beds || 1,
           '{PBth}': listing.baths,
-          '{Psq}': listing.floor_area_total,
+          '{Psq}': listing?.floor_area_total ? formatValues(listing, 'floor_area_total') : formatValues(listing, 'floor_area'),
           photos: listing.photos as string[],
           '{PYear}': listing.year_built || ' ',
           loved: loved_items && loved_items.includes(listing.mls_id),
           onClickItem: () => {
             if (isLink) {
               toggleLoading(true);
-              getMLSProperty(listing.mls_id).then(() => {
-                // Fix the application error for properties not imported yet
-                location.href = `/property?mls=${listing.mls_id}`;
-              });
+              axios
+                .get(`/api/properties/mls-id/${listing.mls_id}`)
+                .then(r => {
+                  // Fix the application error for properties not imported yet
+                  console.log(r);
+                  location.href = `/property?mls=${listing.mls_id}`;
+                })
+                .catch(console.error);
+              // getMLSProperty(listing.mls_id).then(() => {
+              //   // Fix the application error for properties not imported yet
+              //   location.href = `/property?mls=${listing.mls_id}`;
+              // });
             }
           },
           onLoveItem: (remove: boolean) => {

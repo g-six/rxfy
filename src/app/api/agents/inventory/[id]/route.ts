@@ -1,9 +1,9 @@
 import axios, { AxiosError } from 'axios';
 import { gql_agent_inventory } from '../../graphql';
-import { NextApiRequest } from 'next';
 import { PropertyDataModel } from '@/_typings/property';
+import { NextRequest } from 'next/server';
 
-export async function GET(request: NextApiRequest) {
+export async function GET(request: NextRequest) {
   try {
     const { data: inventory_response } = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,

@@ -2,8 +2,8 @@ import React from 'react';
 
 import { keyCodes, generic, FILTERS } from '@/_helpers/constants';
 import { loadAddressCoords } from '@/_helpers/api-get-address-coords';
-import { must_not, retrieveFromLegacyPipeline } from '@/_utilities/data-helpers/property-page';
 import { getRouteUsingAgent } from '@/_helpers/functions';
+import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
 
 type Dataset = {
   [key: string]: any;
@@ -160,7 +160,6 @@ export function useSearchPopup({ items, handleClose, dataset = {}, config }: Use
               bool: {
                 filter,
                 should: [],
-                must_not,
               },
             },
           },

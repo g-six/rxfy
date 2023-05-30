@@ -4,8 +4,8 @@ import { Children, ReactElement } from 'react';
 import { Cheerio, CheerioAPI } from 'cheerio';
 import parse, { HTMLReactParserOptions, Element, attributesToProps, DOMNode, domToReact, htmlToDOM } from 'html-react-parser';
 
-import { HTMLNode } from '@/_typings/elements';
 import { AgentData } from '@/_typings/agent';
+import { Events } from '@/_typings/events';
 import { GeoLocation, MapboxBoundaries } from '@/_typings/maps';
 import { MLSProperty, PropertyDataModel } from '@/_typings/property';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
@@ -17,15 +17,11 @@ import EmailAnchor from './A/Email';
 import FooterSocialLinks from './A/FooterSocialLinks';
 import PersonalTitle from './PersonalTitle';
 import PersonalBioParagraph from './PersonalBioParagraph';
-import PropertyCarousel from './PropertyCarousel/main';
+import PropertyCarousel from './RxPropertyCarousel/main';
 import HomeAlertsReplacer from '@/_replacers/HomeAlerts/home-alerts';
-import RxTable from './RxTable';
 import RxContactForm from '@/components/RxForms/RxContactForm';
 import { RxUserSessionLink } from './Nav/RxUserSessionLink';
-import { RexifyStatBlock } from './RxProperty/PropertyInformationRow';
 import RxPdfWrapper from '@/components/RxProperty/RxPropertyPdf/RxPdfWrapper';
-import { RexifyPropertyFeatureBlock } from './RxProperty/PropertyFeatureSection';
-import RxPropertyTopStats from './RxProperty/RxPropertyTopStats';
 
 // TODO: should RxPropertyMap be under "full-pages"?
 import RxPropertyMap from './RxPropertyMap';
@@ -33,25 +29,20 @@ import RxPropertyMap from './RxPropertyMap';
 import { RxSignupPage } from './full-pages/RxSignupPage';
 import { RxLoginPage } from './full-pages/RxLoginPage';
 import { RxResetPasswordPage } from './full-pages/RxResetPassword';
-import { RxMyAccountPage } from './full-pages/RxMyAccountPage';
-import DocumentsReplacer from '@/_replacers/Documents/documents';
 import { RxUpdatePasswordPage } from './full-pages/RxUpdatePassword';
+import { RxMyAccountPage } from './full-pages/RxMyAccountPage';
+import { RxDetailedListing } from './full-pages/RxDetailedListing';
+import { RxMyClients } from './full-pages/RxMyClients';
+import DocumentsReplacer from '@/_replacers/Documents/documents';
 import RxMyCompareDashboardPage from './full-pages/RxMyCompareDashboardPage';
 import RxDropdownMenu from './Nav/RxDropdownMenu';
-import { RxMyClients } from './full-pages/RxMyClients';
 import RxMySavedHomesDashBoard from './full-pages/RxMySavedHomesDashBoard';
 import RxIdPage from './full-pages/RxIdPage';
 import RxMyHomeAlerts from './full-pages/RxMyHomeAlerts';
-import { Events } from '@/_typings/events';
+
 import { RxTextInput } from './RxTextInput';
 import RxContactFormButton from './RxForms/RxContactFormButton';
-import RxStatsGridWithIcons from './RxProperty/RxStatsGridWithIcons';
-import RxGenericLabeledValueBlock from './RxGenericLabeledValueBlock';
-import RxAgentMyListings from './full-pages/RxAgentMyListings';
-import RxSimilarListings from './RxProperty/RxSimilarListings';
-import Script from 'next/script';
 import RxSessionDropdown from './Nav/RxSessionDropdown';
-import RxPropertyCarousel from './RxProperty/RxPropertyCarousel';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -401,7 +392,7 @@ export function rexifyScripts(html_code: string) {
  * @param agent_data
  * @returns
  */
-export function rexify(html_code: string, agent_data: AgentData, property: Record<string, unknown> = {}) {
+export function rexify(html_code: string, agent_data: AgentData, property: Record<string, unknown> = {}, params: Record<string, unknown> = {}) {
   // Parse and replace
   let home_alert_index = 1;
   const options: HTMLReactParserOptions = {
@@ -441,6 +432,32 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
 
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.SESSION_DROPDOWN) >= 0) {
           return <RxSessionDropdown>{domToReact(node.children) as ReactElement}</RxSessionDropdown>;
+        }
+
+        // Property PDF Brochure rendering
+        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PDF_PAGE) >= 0) {
+          return (
+            <RxPdfWrapper
+              property={property as unknown as PropertyDataModel}
+              agent={agent_data}
+              nodeClassName={WEBFLOW_NODE_SELECTOR.PDF_PAGE}
+              nodeProps={props}
+              nodes={domToReact(node.children) as ReactElement[]}
+            />
+          );
+        }
+
+        // Property Detailed Page
+        if (params?.slug === 'property' && node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_PAGE) >= 0) {
+          return (
+            <RxDetailedListing
+              property={property as unknown as PropertyDataModel}
+              agent={agent_data}
+              nodeClassName={WEBFLOW_NODE_SELECTOR.PROPERTY_PAGE}
+              nodeProps={props}
+              nodes={domToReact(node.children) as ReactElement[]}
+            />
+          );
         }
 
         if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.SIGNUP) {
@@ -621,42 +638,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.HOME_ALERTS_WRAPPER) >= 0) {
           return <HomeAlertsReplacer agent={agent_data} nodeClassName={className} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
         }
-        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_STATS_W_ICONS) >= 0 && property) {
-          return (
-            <RxStatsGridWithIcons
-              values={{
-                '{Building Type}': property.property_type as string,
-                '{MLS Number}': property.mls_id as string,
-                '{Lot Size}': property.lot_sqm
-                  ? `${formatValues(property as MLSProperty, 'lot_sqm')}m²`
-                  : property.lot_sqm
-                  ? `${formatValues(property as MLSProperty, 'lot_sqft')}ft²`
-                  : 'Not Applicable',
-                '{Land Title}': `${property.land_title}`,
-                '{Price Per Sqft}': `${property.price_per_sqft || 'N/A'}`,
-                '{Property Tax}': property.gross_taxes
-                  ? `$${new Intl.NumberFormat().format(Number(property.gross_taxes))} ${property.tax_year && `(${property.tax_year})`}`
-                  : 'N/A',
-              }}
-              {...attributesToProps(node.attribs)}
-            >
-              {domToReact(node.children) as ReactElement[]}
-            </RxStatsGridWithIcons>
-          );
-        }
-
-        // Property PDF Brochure rendering
-        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PDF_PAGE) >= 0) {
-          return (
-            <RxPdfWrapper
-              property={property as unknown as PropertyDataModel}
-              agent={agent_data}
-              nodeClassName={WEBFLOW_NODE_SELECTOR.PDF_PAGE}
-              nodeProps={props}
-              nodes={domToReact(node.children) as ReactElement[]}
-            />
-          );
-        }
 
         if ((node.children && node.children.length === 1) || node.name === 'input') {
           const reX = rexifyOrSkip(
@@ -669,83 +650,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             node.name,
           );
           if (reX) return reX;
-        }
-
-        if (property && Object.keys(property).length) {
-          const record = property as unknown as PropertyDataModel;
-          if (node.attribs && node.attribs.class) {
-            // Property action buttons (PDF, Share links, etc)
-            if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS) >= 0) {
-              return (
-                <RxPropertyTopStats property={record} nodeClassName={node.attribs.class} agent={agent_data} nodeProps={props}>
-                  {domToReact(node.children) as ReactElement[]}
-                </RxPropertyTopStats>
-              );
-            }
-
-            // Grouped data table sections
-            // Property Information, Financial, Dimensions, Construction
-            const p = property as unknown as PropertyDataModel;
-
-            if (node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_MAIN_ATTRIBUTES) >= 0) {
-              const values = {
-                Beds: p.beds,
-                Baths: p.baths,
-                'Year Built': record.year_built,
-                Sqft: formatValues(record, 'floor_area') as string,
-                Area: record.area,
-              };
-              return (
-                <RxGenericLabeledValueBlock className={node.attribs.class} selector='bedbath-result' values={values}>
-                  {domToReact(node.children) as ReactElement}
-                </RxGenericLabeledValueBlock>
-              );
-            } else if (node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.SIMILAR_LISTINGS) >= 0)
-              return (
-                <RxSimilarListings className={node.attribs.class} property={p as unknown as { [key: string]: string }}>
-                  {domToReact(node.children) as ReactElement[]}
-                </RxSimilarListings>
-              );
-            else if (node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_PHOTO_WRAPPER) >= 0) {
-              //return <RxPropertyCarousel>{domToReact(node.children)}</RxPropertyCarousel>;
-            } else if (node.attribs.class.indexOf('propinfo') >= 0) return <RexifyStatBlock node={node} record={p} groupName='propinfo' />;
-            else if (node.attribs.class.indexOf('financial') >= 0) return <RexifyStatBlock node={node} record={p} groupName='financial' />;
-            else if (node.attribs.class.indexOf('dimensions') >= 0) return <RexifyStatBlock node={node} record={p} groupName='dimensions' />;
-            else if (node.attribs.class.indexOf('construction') >= 0) return <RexifyStatBlock node={node} record={p} groupName='construction' />;
-            else if (node.attribs.class.indexOf('div-features-block') >= 0) return <RexifyPropertyFeatureBlock node={node} record={record} />;
-            else if (node.lastChild && (node.lastChild as HTMLNode).attribs && (node.lastChild as HTMLNode).attribs.class) {
-              // Building units section
-              const child_class = (node.lastChild as HTMLNode).attribs.class;
-
-              // if (
-              //   (!property.neighbours || (property.neighbours as MLSProperty[]).length === 0 || !(property.neighbours as MLSProperty[])[0].AddressUnit) &&
-              //   (!property.sold_history || (property.sold_history as MLSProperty[]).length === 0)
-              // ) {
-              //   // Remove building and sold grid
-              //   if (child_class.indexOf('building-and-sold-grid') >= 0) {
-              //     return <></>;
-              //   }
-              // }
-              if (child_class.indexOf('div-building-units-on-sale') >= 0 && node.attribs.class.indexOf('building-and-sold-column') >= 0) {
-                return property.neighbours && (property.neighbours as MLSProperty[]).length ? (
-                  property.AddressUnit ? (
-                    <RxTable rows={node.children} data={property.neighbours as MLSProperty[]} rowClassName='div-building-units-on-sale' />
-                  ) : (
-                    <></>
-                  )
-                ) : (
-                  <></>
-                );
-              }
-              if (child_class.indexOf('div-sold-history') >= 0 && node.attribs.class.indexOf('building-and-sold-column') >= 0) {
-                return property.sold_history && (property.sold_history as MLSProperty[]).length ? (
-                  <RxTable rowClassName='div-sold-history' rows={node.children} data={property.sold_history as MLSProperty[]} />
-                ) : (
-                  <></>
-                );
-              }
-            }
-          }
         }
       }
     },

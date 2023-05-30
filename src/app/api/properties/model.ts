@@ -12,7 +12,8 @@ export async function createAgentsFromProperty(p: MLSProperty, real_estate_board
       if (full_name) {
         full_name = full_name.split(' PREC').join('').split('*').join('');
         const phone = p[`LA${num}_PhoneNumber1`] as string;
-        if (agent_id && email && phone && full_name) {
+
+        if (agent_id && email && full_name) {
           const agent = await createAgentRecordIfNoneFound(
             {
               agent_id,
