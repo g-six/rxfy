@@ -53,6 +53,15 @@ const QRY_PROPERTY_RELATIONSHIPS = `query PropertyRelationships {
       }
     }
   
+    types: dwellingTypes(pagination: { limit: 100 }) {
+      records: data {
+        id
+        attributes {
+          name
+        }
+      }
+    }
+  
     facilities(pagination: { limit: 100 }) {
       records: data {
         id
@@ -99,15 +108,6 @@ const QRY_PROPERTY_RELATIONSHIPS = `query PropertyRelationships {
     }
 
     places_of_interest: placesOfInterest(pagination: { limit: 100 }) {
-      records: data {
-        id
-        attributes {
-          name
-        }
-      }
-    }
-  
-    property_types: propertyTypes(pagination: { limit: 100 }) {
       records: data {
         id
         attributes {
