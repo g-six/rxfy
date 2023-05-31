@@ -1,4 +1,4 @@
-export function getResponse(data: { [key: string]: any }, status = 200 | 400 | 401 | 405) {
+export function getResponse(data: { [key: string]: any }, status: 200 | 400 | 401 | 405 = 200) {
   return new Response(JSON.stringify(data, null, 4), {
     headers: {
       'Content-Type': 'application/json',
