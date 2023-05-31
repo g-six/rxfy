@@ -212,6 +212,15 @@ function getIcon(input: string) {
       return {
         'Tile Flooring': 'hardwood',
       };
+
+    case 'construction-material-wooden-frame':
+      return {
+        'Wooden Frame': 'hardwood',
+      };
+
+    case 'locker':
+      return { Locker: 'box' };
+
     case 'in-suite-laundry':
     case 'washer':
       return {
