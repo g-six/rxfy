@@ -15,3 +15,12 @@ export async function queryPlace(address: string, zip?: string) {
   });
   return response.data;
 }
+
+export async function getPlaceDetails(place_id: string) {
+  const response = await axios.get(`/api/places/${place_id}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  return response.data;
+}
