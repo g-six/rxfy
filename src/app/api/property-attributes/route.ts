@@ -71,6 +71,15 @@ const QRY_PROPERTY_RELATIONSHIPS = `query PropertyRelationships {
       }
     }
   
+    heating: heatSources(pagination: { limit: 100 }) {
+      records: data {
+        id
+        attributes {
+          name
+        }
+      }
+    }
+  
     hvac: hvacs(pagination: { limit: 100 }) {
       records: data {
         id

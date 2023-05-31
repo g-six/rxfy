@@ -7,8 +7,10 @@ export const PROPERTY_ASSOCIATION_KEYS: string[] = [
   'build_features',
   'connected_services',
   'facilities',
+  'heating',
   'hvac',
   'items_maintained',
+  'types',
 ];
 type PropertyAssociations = {
   data?: {
