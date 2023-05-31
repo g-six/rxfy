@@ -14,15 +14,38 @@ export async function GET(req: NextRequest) {
       },
     };
     const results = await client.placeDetails(place_request);
-    const { formatted_address, geometry } = results.data?.result;
+    const { formatted_address, geometry, address_components } = results.data?.result;
 
+    console.log(JSON.stringify(address_components, null, 4));
     if (formatted_address) {
       const components = formatted_address.split(', ');
+      const address_city_state = address_components as { types: string[]; short_name: string }[];
+      let city, state_province, postal_zip_code, neighbourhood;
+
+      address_city_state.forEach(({ types, short_name }) => {
+        if (types.includes('locality') && types.includes('political')) {
+          city = short_name;
+        }
+        if (types.includes('administrative_area_level_1') && types.includes('political')) {
+          state_province = short_name;
+        }
+        if (types.includes('postal_code')) {
+          postal_zip_code = short_name;
+        }
+        if (types.includes('neighborhood')) {
+          neighbourhood = short_name;
+        }
+      });
+
       components.pop();
       return getResponse({
         address: components.join(', '),
         lat: geometry?.location.lat,
         lon: geometry?.location.lng,
+        city,
+        postal_zip_code,
+        state_province,
+        neighbourhood,
         place_id,
       });
     }
