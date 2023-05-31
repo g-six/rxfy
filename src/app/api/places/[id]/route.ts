@@ -16,7 +16,6 @@ export async function GET(req: NextRequest) {
     const results = await client.placeDetails(place_request);
     const { formatted_address, geometry, address_components } = results.data?.result;
 
-    console.log(JSON.stringify(address_components, null, 4));
     if (formatted_address) {
       const components = formatted_address.split(', ');
       const address_city_state = address_components as { types: string[]; short_name: string }[];
