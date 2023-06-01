@@ -119,6 +119,7 @@ export const property_features: string[] = [
   'LFD_FuelHeating_48',
   'LFD_MaintFeeIncludes_57',
   'LFD_OutdoorArea_47',
+  'LFD_OutdoorArea_146',
   'LFD_Parking_44',
   'LFD_Roof_43',
   'LFD_StyleofHome_32',

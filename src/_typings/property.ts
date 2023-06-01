@@ -198,6 +198,7 @@ export interface PropertyDataModel extends BasePropertyDataModel {
   hvac?: PropertyAssociations;
   items_maintained?: PropertyAssociations;
   photos?: string[]; // to remove
+  mls_data?: MLSProperty;
 }
 
 export interface MLSProperty extends Record<string, string | number | boolean | string[]> {
@@ -214,6 +215,7 @@ export interface MLSProperty extends Record<string, string | number | boolean | 
   Province_State: string;
   ForTaxYear: number;
   LandTitle: string;
+  ListingID: string;
   ListingDate: string;
   MLS_ID: string;
   PricePerSQFT: number;
@@ -252,6 +254,7 @@ export interface MLSProperty extends Record<string, string | number | boolean | 
   LFD_FuelHeating_48: string[];
   LFD_MaintFeeIncludes_57: string[];
   LFD_OutdoorArea_47: string[];
+  LFD_OutdoorArea_146: string[];
   LFD_Parking_44: string[];
   LFD_Roof_43: string[];
   LFD_StyleofHome_32: string[];
