@@ -72,7 +72,7 @@ export default function RxSelect(props: SelectProps) {
             // ref: (node: any) => (node ? setRefsMenu.set(child.key, node) : setRefsMenu.delete(child.key)),
           },
           [
-            <div key={0} className='dropdown-wrap'>
+            <div key={0} className='dropdown-wrap overflow-y-auto max-h-56'>
               {props.values.map(({ value, label }, i) => (
                 <a
                   className='dropdown-link w-dropdown-link w-full cursor-pointer'

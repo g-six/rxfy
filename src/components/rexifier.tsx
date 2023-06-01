@@ -39,7 +39,7 @@ import RxDropdownMenu from './Nav/RxDropdownMenu';
 import RxMySavedHomesDashBoard from './full-pages/RxMySavedHomesDashBoard';
 import RxIdPage from './full-pages/RxIdPage';
 import RxMyHomeAlerts from './full-pages/RxMyHomeAlerts';
-
+import RxAgentMyListings from './full-pages/RxAgentMyListings';
 import { RxTextInput } from './RxTextInput';
 import RxContactFormButton from './RxForms/RxContactFormButton';
 import RxSessionDropdown from './Nav/RxSessionDropdown';

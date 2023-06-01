@@ -12,7 +12,8 @@ import React, { cloneElement, useState } from 'react';
 
 type Props = {};
 
-export default function TabSummary({ template, nextStepClick }: TabContentProps) {
+export default function TabSummary({ template, nextStepClick, attributes }: TabContentProps) {
+  const { building_styles, connected_services, amenities, types } = attributes || {};
   const [templates] = useState(
     captureMatchingElements(template, [
       { elementName: 'selectInput', searchFn: searchByPartOfClass(['select-input']) },
@@ -44,7 +45,7 @@ export default function TabSummary({ template, nextStepClick }: TabContentProps)
     <SelectWithLabel
       key={0}
       template={templates.selectInput}
-      values={values}
+      values={types}
       label='Property Type'
       placeholder='Choose Property Type'
       selectedValue={selectedValue}
@@ -63,21 +64,21 @@ export default function TabSummary({ template, nextStepClick }: TabContentProps)
     <SelectWithLabel
       key={2}
       template={templates.selectInput}
-      values={values}
+      values={building_styles}
       label='Building Style'
       placeholder='Choose Building Style'
       selectedValue={selectedValue}
       handleSelect={handleSelectValue}
     />,
-    <SelectWithLabel
-      key={3}
-      template={templates.selectInput}
-      values={values}
-      label='Title to Land'
-      placeholder='Choose Title to Land'
-      selectedValue={selectedValue}
-      handleSelect={handleSelectValue}
-    />,
+    // <SelectWithLabel    DON"T HAVE ATTRIBUTES FOR IT
+    //   key={3}
+    //   template={templates.selectInput}
+    //   values={values}
+    //   label='Title to Land'
+    //   placeholder='Choose Title to Land'
+    //   selectedValue={selectedValue}
+    //   handleSelect={handleSelectValue}
+    // />,
   ];
   const textFields = [
     {
@@ -122,7 +123,7 @@ export default function TabSummary({ template, nextStepClick }: TabContentProps)
       template={templates.chipsWithLabel}
       values={selectedChips}
       handleSelect={handleSelect}
-      chipsList={amenitiesDemo}
+      chipsList={amenities}
     />,
     <ChipsWithLabel
       key={`chipsList-2`}
@@ -130,7 +131,7 @@ export default function TabSummary({ template, nextStepClick }: TabContentProps)
       template={templates.chipsWithLabel}
       values={selectedChips}
       handleSelect={handleSelect}
-      chipsList={amenitiesDemo}
+      chipsList={connected_services}
     />,
   ];
   const matches: tMatch[] = [
