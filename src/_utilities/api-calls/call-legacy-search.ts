@@ -1,6 +1,7 @@
 import { LegacySearchPayload } from '@/_typings/pipeline';
 import { PropertyDataModel } from '@/_typings/property';
 import { AxiosStatic } from 'axios';
+import { queryPlace } from './call-places';
 
 export async function retrieveFromLegacyPipeline(
   params: LegacySearchPayload = {
@@ -29,7 +30,7 @@ export async function retrieveFromLegacyPipeline(
       'Content-Type': 'application/json',
     },
   },
-  include_mls: boolean = true,
+  include_mls: number = 1,
 ): Promise<PropertyDataModel[]> {
   const axios: AxiosStatic = (await import('axios')).default;
   const {
@@ -57,7 +58,7 @@ export async function retrieveFromLegacyPipeline(
       hit = fields;
     }
 
-    let property = {};
+    let property: { [key: string]: unknown } = {};
     Object.keys(hit as Record<string, unknown>).forEach(key => {
       if (hit[key]) {
         const legacy_key = _source || key.substring(0, 5) !== 'data.' ? key : key.split('.')[1];
@@ -70,16 +71,26 @@ export async function retrieveFromLegacyPipeline(
             [strapi_key]: value_csv,
           };
         }
-        if (include_mls && value_csv) {
-          property = {
-            ...property,
-            [legacy_key]: value_csv,
-          };
+        if (value_csv) {
+          if (include_mls === 1)
+            property = {
+              ...property,
+              [legacy_key]: value_csv,
+            };
+          else if (include_mls === 2) {
+            property = {
+              ...property,
+              mls_data: {
+                ...(property.mls_data || {}),
+                [legacy_key]: value_csv,
+              },
+            };
+          }
         }
       }
     });
 
-    return property as PropertyDataModel;
+    return property as unknown as PropertyDataModel;
   });
 }
 
