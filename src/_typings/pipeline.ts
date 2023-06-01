@@ -5,6 +5,37 @@ export interface Hit {
   fields: Record<string, unknown>;
 }
 
+export interface LegacySearchPayload {
+  from: number;
+  size: number;
+  sort?:
+    | {
+        [key: string]: 'asc' | 'desc';
+      }
+    | {
+        [key: string]: 'asc' | 'desc' | Record<string, unknown>;
+      }[];
+  fields?: string[];
+  query: {
+    bool: {
+      filter?: {
+        match?: Record<string, string | number>;
+        range?: {};
+      }[];
+      should?: {
+        match?: Record<string, string | number>;
+        range?: {};
+      }[];
+      minimum_should_match?: number;
+      must_not?: {
+        match?: Record<string, string | number>;
+        range?: {};
+      }[];
+    };
+  };
+  _source?: boolean;
+}
+
 export interface PropertyIndexNode {
   lat: number;
   lng: number;

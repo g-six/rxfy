@@ -1,36 +1,7 @@
+import { LegacySearchPayload } from '@/_typings/pipeline';
 import { PropertyDataModel } from '@/_typings/property';
 import { AxiosStatic } from 'axios';
 
-interface LegacySearchPayload {
-  from: number;
-  size: number;
-  sort?:
-    | {
-        [key: string]: 'asc' | 'desc';
-      }
-    | {
-        [key: string]: 'asc' | 'desc' | Record<string, unknown>;
-      }[];
-  fields?: string[];
-  query: {
-    bool: {
-      filter?: {
-        match?: Record<string, string | number>;
-        range?: {};
-      }[];
-      should?: {
-        match?: Record<string, string | number>;
-        range?: {};
-      }[];
-      minimum_should_match?: number;
-      must_not?: {
-        match?: Record<string, string | number>;
-        range?: {};
-      }[];
-    };
-  };
-  _source?: boolean;
-}
 export async function retrieveFromLegacyPipeline(
   params: LegacySearchPayload = {
     from: 0,
@@ -68,6 +39,11 @@ export async function retrieveFromLegacyPipeline(
   } = await axios.post(config.url, params, {
     headers: config.headers,
   });
+
+  console.log('To debug the recent legacy search:\n-------------\n');
+  console.log(`curl -X POST ${config.url} \\\n  -H 'content-type: application/json' \\\n  -H 'Authorization: ${config.headers.Authorization}' \\`);
+  console.log("  -d '", JSON.stringify(params, null, 4), "'");
+  console.log('--------\n\n');
 
   return hits.map(({ _source, fields }: { _source: unknown; fields: Record<string, unknown> }) => {
     let hit: Record<string, unknown>;
