@@ -5,6 +5,10 @@ import { encrypt } from '@/_utilities/encryption-helper';
 import { getResponse } from '../response-helper';
 import { AxiosError } from 'axios';
 import { createAgentRecordIfNoneFound } from './model';
+import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
+import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
+import { LegacySearchPayload } from '@/_typings/pipeline';
+import { getRealEstateBoard } from '../real-estate-boards/model';
 
 export async function GET(req: Request) {
   let results = {
@@ -50,27 +54,102 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const payload = await req.json();
   let results = {
+    api: 'POST /api/agents',
+    payload,
     error: 'Auth token required',
   };
 
   try {
     // TODO: listing refactor
-    const { agent_id, email, phone, full_name, listing, real_estate_board } = await req.json();
+    const { agent_id, email, phone, full_name } = payload;
+    let { listing, real_estate_board } = payload;
+    const { customer_id, first_name, last_name } = payload; // Stripe webhook
 
-    if (agent_id && email && phone && full_name && listing) {
-      const agent = await createAgentRecordIfNoneFound(
-        {
-          agent_id,
-          email,
-          phone,
-          full_name,
-        },
-        real_estate_board,
-        listing,
-      );
-
-      return getResponse(agent, 200);
+    if (agent_id && email && phone && full_name) {
+      if (listing && real_estate_board) {
+        const agent = await createAgentRecordIfNoneFound(
+          {
+            agent_id,
+            email,
+            phone,
+            full_name,
+          },
+          real_estate_board,
+          listing,
+        );
+        return getResponse(agent, 200);
+      } else if (customer_id && first_name && last_name) {
+        // From Stripe signups
+        const legacy_params: LegacySearchPayload = {
+          from: 0,
+          size: 3,
+          query: {
+            bool: {
+              should: [
+                { match: { 'data.LA1_LoginName': agent_id } },
+                { match: { 'data.LA2_LoginName': agent_id } },
+                { match: { 'data.LA3_LoginName': agent_id } },
+                { match: { 'data.LA1_Email': email } },
+                { match: { 'data.LA2_Email': email } },
+                { match: { 'data.LA3_Email': email } },
+              ],
+              minimum_should_match: 1,
+            },
+          },
+        };
+        const legacy_listings = await retrieveFromLegacyPipeline(legacy_params, undefined, true);
+        listing = legacy_listings.length && legacy_listings[0];
+        if (listing) {
+          const {
+            description,
+            lat,
+            lng,
+            area: target_area,
+            city: target_city,
+            asking_price,
+            property_type,
+            beds,
+            baths,
+            listed_at: listing_date,
+            ...mls_data
+          } = listing;
+          real_estate_board = await getRealEstateBoard(mls_data as unknown as Record<string, string>);
+          // return getResponse({
+          //   agent: {
+          //     agent_id,
+          //     email,
+          //     phone,
+          //     full_name,
+          //   },
+          //   real_estate_board,
+          //   listing: ,
+          // });
+          const agent = await createAgentRecordIfNoneFound(
+            {
+              agent_id,
+              email,
+              phone,
+              full_name,
+            },
+            real_estate_board,
+            {
+              description,
+              lat: Number(lat),
+              lng: Number(lng),
+              target_area,
+              target_city,
+              asking_price,
+              property_type,
+              beds,
+              baths,
+              listing_date,
+            },
+          );
+          return getResponse(agent, 200);
+        }
+      }
     }
   } catch (e) {
     const axerr = e as AxiosError;
