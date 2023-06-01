@@ -1,6 +1,6 @@
 {
   "name": "rexify",
-  "version": "23.4.17",
+  "version": "23.6.1",
   "private": true,
   "scripts": {
     "dev": "next dev",

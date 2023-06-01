@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { getResponse } from '../response-helper';
 
 import { GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty } from '@/_typings/property';
+import { NextRequest } from 'next/server';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -16,8 +17,9 @@ const gql_find_home = `query FindHomeByMLSID($mls_id: String!) {
   }
 }`;
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    if (request && request.url) return getResponse({}, 201);
     const url = new URL(request.url);
     const mls_id = url.searchParams.get('mls_id') as string;
     let results = await axios.post(
@@ -43,7 +45,7 @@ export async function GET(request: Request) {
     if (axerr.response?.data) {
       console.log(JSON.stringify(axerr.response?.data, null, 4));
     } else {
-      console.log(axerr.response);
+      console.log('axerr.response', axerr);
     }
     console.log('end properties.GET  axerr error');
     return getResponse(

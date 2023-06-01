@@ -137,34 +137,38 @@ const QRY_PROPERTY_RELATIONSHIPS = `query PropertyRelationships {
 `;
 
 export async function GET(request: NextRequest) {
-  const gql_params: {
-    query: string;
-    variables?: {
-      [key: string]: string;
-    };
-  } = {
-    query: QRY_PROPERTY_RELATIONSHIPS,
-  };
-  const leagent_cms_res = await axios.post(`${process.env.NEXT_APP_CMS_GRAPHQL_URL}`, gql_params, { headers });
-
-  let response = {};
-  if (leagent_cms_res.data.data) {
-    Object.keys(leagent_cms_res.data.data).forEach(relationship => {
-      const existing: { [key: string]: any }[] = [];
-
-      leagent_cms_res.data.data[relationship].records.forEach((record: { id: number; attributes: { name: string } }) => {
-        existing.push({
-          ...record.attributes,
-          id: Number(record.id),
-        });
-      });
-
-      response = {
-        ...response,
-        [relationship]: existing,
+  const api_url = `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`;
+  if (api_url) {
+    const gql_params: {
+      query: string;
+      variables?: {
+        [key: string]: string;
       };
-    });
-  }
+    } = {
+      query: QRY_PROPERTY_RELATIONSHIPS,
+    };
+    const leagent_cms_res = await axios.post(api_url, gql_params, { headers });
 
-  return getResponse(response, 200);
+    let response = {};
+    if (leagent_cms_res.data.data) {
+      Object.keys(leagent_cms_res.data.data).forEach(relationship => {
+        const existing: { [key: string]: any }[] = [];
+
+        leagent_cms_res.data.data[relationship].records.forEach((record: { id: number; attributes: { name: string } }) => {
+          existing.push({
+            ...record.attributes,
+            id: Number(record.id),
+          });
+        });
+
+        response = {
+          ...response,
+          [relationship]: existing,
+        };
+      });
+    }
+
+    return getResponse(response, 200);
+  }
+  return getResponse({}, 201);
 }
