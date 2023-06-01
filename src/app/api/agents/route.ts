@@ -99,7 +99,7 @@ export async function POST(req: Request) {
             },
           },
         };
-        const legacy_listings = await retrieveFromLegacyPipeline(legacy_params, undefined, true);
+        const legacy_listings = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
         listing = legacy_listings.length && legacy_listings[0];
         if (listing) {
           const {
