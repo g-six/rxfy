@@ -1,4 +1,6 @@
-import { GQ_FRAGMENT_PROPERTY_ATTRIBUTES } from '@/_typings/property';
+import { GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty } from '@/_typings/property';
+import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
+import { getFormattedPlaceDetails, googlePlaceQuery } from '@/app/api/_helpers/geo-helper';
 import { getResponse } from '@/app/api/response-helper';
 import axios, { AxiosError } from 'axios';
 
@@ -19,13 +21,54 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   let mls_id = url.pathname.split('/').pop() || '';
   const json_file = `https://pages.leagent.com/listings/${mls_id}/recent.json`;
-
+  let address = '';
+  let zip = '';
   try {
-    await axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`, {
-      headers: {
-        'Content-Type': 'application/json',
+    // await axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`, {
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //   },
+    // });
+    const [legacy] = await retrieveFromLegacyPipeline(
+      {
+        from: 0,
+        size: 1,
+        sort: { 'data.ListingDate': 'desc' },
+        query: {
+          bool: {
+            filter: [
+              {
+                match: {
+                  'data.MLS_ID': mls_id,
+                },
+              },
+            ],
+            should: [],
+          },
+        },
       },
-    });
+      undefined,
+      2,
+    );
+
+    if (legacy && isNaN(Number(legacy.lat))) {
+      // No lat,lon - extra processing
+      const [place] = await googlePlaceQuery(`${legacy.title} ${legacy.postal_zip_code}`);
+      if (place && place.place_id) {
+        const details = await getFormattedPlaceDetails(place.place_id);
+        const { mls_data, ...property } = legacy;
+        const { ListingID: listing_id } = mls_data as MLSProperty;
+        return getResponse({
+          ...property,
+          ...details,
+          listing_id,
+        });
+      }
+      return getResponse({ place });
+    }
+
+    return getResponse({ legacy });
+
     const cache = await axios.get(json_file);
     return getResponse(cache.data, 200);
   } catch (e) {
@@ -33,11 +76,11 @@ export async function GET(request: Request) {
     if (axerr.response?.status === 403) {
       // Might not have cache yet, attempt to create
       console.log('Might not have cache yet, attempt to create');
-      const xhr = await axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      // const xhr = await axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`, {
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      // });
 
       if (xhr.data?.data?.attributes) {
         const cache = await axios.get(json_file);
