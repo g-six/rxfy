@@ -67,6 +67,7 @@ export async function POST(req: Request) {
           full_name,
         },
         real_estate_board,
+        listing,
       );
 
       return getResponse(agent, 200);
