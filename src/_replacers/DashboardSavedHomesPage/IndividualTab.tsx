@@ -7,7 +7,7 @@ import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { AgentData } from '@/_typings/agent';
 import { PropertyDataModel } from '@/_typings/property';
 
-import { fireCustomEvent, mapFeatures, prepareStats } from '@/_helpers/functions';
+import { fireCustomEvent, getFeatureIcons, prepareStats } from '@/_helpers/functions';
 import { replaceAllTextWithBraces, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { getMLSProperty } from '@/_utilities/api-calls/call-properties';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
@@ -186,7 +186,7 @@ export default function IndividualTab({ child, agent_data }: Props) {
     {
       searchFn: searchByClasses(['div-features-block']),
       transformChild: (child: ReactElement) => {
-        return <RxFeatures child={child} features={mapFeatures(currentProperty as PropertyDataModel)} />;
+        return <RxFeatures child={child} features={getFeatureIcons(currentProperty as PropertyDataModel)} />;
       },
     },
     // {

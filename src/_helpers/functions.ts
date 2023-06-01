@@ -1,9 +1,10 @@
-import { MLSProperty, PropertyDataModel } from '@/_typings/property';
+import { MLSProperty, PROPERTY_ASSOCIATION_KEYS, PropertyDataModel } from '@/_typings/property';
 import { Events, EventsData } from '@/_typings/events';
 import { Filter } from '@/_typings/filters_compare';
 import { FILTERS } from './constants';
 import { tabs } from '@/_typings/saved-homes-tabs';
 import { property_features } from '@/_utilities/data-helpers/property-page';
+import { toKebabCase } from '@/_utilities/string-helper';
 export function getAgentUrlFromName(name: string) {
   const agentSlug = '/' + name.toLowerCase().replace(' ', '-');
   return '/p' + agentSlug;
@@ -193,3 +194,63 @@ export const mapFeatures = (property: PropertyDataModel) => {
 
   return features;
 };
+
+function getIcon(input: string) {
+  switch (toKebabCase(input)) {
+    case 'central-air-conditioning':
+    case 'air-conditioning':
+      return {
+        'Air Conditioning': 'air-conditioner',
+      };
+    case 'city-municipal-water-supply':
+    case 'city-water-supply':
+    case 'municipal-water-supply':
+      return {
+        'City/Municipal Supplied Water': 'city-municipal',
+      };
+    case 'flooring-tile':
+      return {
+        'Tile Flooring': 'hardwood',
+      };
+
+    case 'construction-material-wooden-frame':
+      return {
+        'Wooden Frame': 'hardwood',
+      };
+
+    case 'locker':
+      return { Locker: 'box' };
+
+    case 'in-suite-laundry':
+    case 'washer':
+      return {
+        'Washing Machine': 'washing-machine',
+      };
+    case 'trash-removal':
+    case 'garbage':
+      return {
+        'Garbage Disposal': 'disposal',
+      };
+
+    default:
+      return {
+        [input]: toKebabCase(input),
+      };
+  }
+}
+export function getFeatureIcons(property: unknown) {
+  let features = {};
+  const relationships = property as Record<string, string[]>;
+  PROPERTY_ASSOCIATION_KEYS.forEach(relationship => {
+    if (relationships[relationship] && Array.isArray(relationships[relationship])) {
+      relationships[relationship].map(name => {
+        features = {
+          ...features,
+          ...getIcon(name),
+        };
+      });
+    }
+  });
+
+  return features;
+}

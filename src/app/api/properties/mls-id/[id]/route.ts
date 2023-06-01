@@ -16,27 +16,18 @@ const gql_find_home = `query FindHomeByMLSID($mls_id: String!) {
   }`;
 
 export async function GET(request: Request) {
-  let mls_id = '';
+  const url = new URL(request.url);
+  let mls_id = url.pathname.split('/').pop() || '';
+  const json_file = `https://pages.leagent.com/listings/${mls_id}/recent.json`;
+
   try {
-    const url = new URL(request.url);
-    mls_id = url.pathname.split('/').pop() || '';
-    let results = await axios.post(
-      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-      {
-        query: gql_find_home,
-        variables: {
-          mls_id,
-        },
+    await axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`, {
+      headers: {
+        'Content-Type': 'application/json',
       },
-      {
-        headers,
-      },
-    );
-    let property: any;
-
-    const cache_property = await axios.get(`https://pages.leagent.com/listings/${mls_id}/recent.json`);
-
-    return getResponse(cache_property.data || {}, 200);
+    });
+    const cache = await axios.get(json_file);
+    return getResponse(cache.data, 200);
   } catch (e) {
     const axerr = e as AxiosError;
     if (axerr.response?.status === 403) {
@@ -49,11 +40,8 @@ export async function GET(request: Request) {
       });
 
       if (xhr.data?.data?.attributes) {
-        const { id, attributes } = xhr.data.data;
-        return getResponse({
-          ...attributes,
-          id,
-        });
+        const cache = await axios.get(json_file);
+        return getResponse(cache.data, 200);
       }
     }
     console.log('properties.GET axerr error');
@@ -72,4 +60,11 @@ export async function GET(request: Request) {
       400,
     );
   }
+  return getResponse(
+    {
+      api: 'properties.mls-id.GET',
+      message: `MLS ID: ${mls_id} not found`,
+    },
+    400,
+  );
 }

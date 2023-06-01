@@ -48,7 +48,7 @@ export async function GET(request: Request) {
       {
         error: 'This API is only available for admins',
       },
-      404,
+      401,
     );
   const xhr_agents = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
