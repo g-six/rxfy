@@ -48,6 +48,7 @@ export enum WEBFLOW_NODE_SELECTOR {
 
   // Realtor signup
   AI_PROMPT_MODAL = 'ai-prompt-modal',
+  AI_THEME_PANE = 'theme-area',
 }
 
 export interface WebFlow {
