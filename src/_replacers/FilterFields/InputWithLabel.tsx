@@ -19,7 +19,15 @@ export default function InputWithLabel({ template, label, inputProps, value, han
     {
       searchFn: searchByTagName('input'),
       transformChild: child => {
-        return <Input key={1} template={child} value={value} onChange={handleChange} inputProps={inputProps} />;
+        return (
+          <Input
+            key={1}
+            template={child}
+            value={value}
+            onChange={handleChange}
+            inputProps={{ ...inputProps, placeholder: inputProps?.placeholder || label || undefined }}
+          />
+        );
       },
     },
   ];
