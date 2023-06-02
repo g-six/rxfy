@@ -8,12 +8,14 @@ import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
 import { searchByClasses, searchById } from '@/_utilities/rx-element-extractor';
 
 import styles from './ai.module.scss';
+import useEvent, { Events } from '@/hooks/useEvent';
 
 type Props = {
   children: React.ReactElement;
 };
 
 export default function AiPrompt(p: Props) {
+  const { data, fireEvent } = useEvent(Events.LoadUserSession);
   const params = useSearchParams();
   const router = useRouter();
   const [realtor, setRealtor] = React.useState<{
@@ -62,6 +64,10 @@ export default function AiPrompt(p: Props) {
         setRealtor({
           agent_id,
           realtor_id,
+        });
+        fireEvent({
+          ...data,
+          user: agent,
         });
         Cookies.set('session_key', session_key);
       });

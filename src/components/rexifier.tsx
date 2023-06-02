@@ -44,6 +44,7 @@ import { RxTextInput } from './RxTextInput';
 import RxContactFormButton from './RxForms/RxContactFormButton';
 import RxSessionDropdown from './Nav/RxSessionDropdown';
 import AiPrompt from '@/rexify/realtors/ai';
+import AiResult from '@/rexify/realtors/ai-results';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -140,6 +141,12 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
       content: `<img class="justify-self-start h-10" src="${agent_data.metatags.logo_for_light_bg}" />`,
     });
   }
+}
+
+export function replaceRealtorAiResultPage($: CheerioAPI) {
+  replaceByCheerio($, WEBFLOW_NODE_SELECTOR.AI_THEME_PANE_1, {
+    className: 'rexified rx-homepage-theme-preview',
+  });
 }
 
 export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapper_selector = '.similar-homes-grid', card_selector = '.property-card') {
@@ -342,7 +349,7 @@ export function rexifyScriptsV2(html_code: string) {
                 <script
                   suppressHydrationWarning
                   dangerouslySetInnerHTML={{
-                    __html: appendJs(attribs.src, 1000),
+                    __html: appendJs(attribs.src, 1400),
                   }}
                 />
               </>
@@ -431,16 +438,17 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           );
         }
 
-        if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL) >= 0) {
-          return (
-            <AiPrompt>
-              <>{domToReact(node.children)}</>
-            </AiPrompt>
-          );
+        if (props.className) {
+          if (props.className.indexOf(WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL) >= 0)
+            return (
+              <AiPrompt>
+                <>{domToReact(node.children)}</>
+              </AiPrompt>
+            );
         }
 
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.SESSION_DROPDOWN) >= 0) {
-          return <RxSessionDropdown>{domToReact(node.children) as ReactElement}</RxSessionDropdown>;
+          return <RxSessionDropdown agent={agent_data}>{domToReact(node.children) as ReactElement}</RxSessionDropdown>;
         }
 
         // Property PDF Brochure rendering

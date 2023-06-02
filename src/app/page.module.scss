@@ -38,6 +38,14 @@
   border-radius: var(--border-radius);
 }
 
+.scaledHomePage {
+  :global(.hero-wrapper-3) {
+    h1 {
+      @apply text-4xl #{!important};
+    }
+  }
+}
+
 .code {
   font-weight: 700;
   font-family: var(--font-mono);
