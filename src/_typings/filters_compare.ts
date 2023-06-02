@@ -57,6 +57,7 @@ export interface MLSPropertyExtended {
   LFD_FuelHeating_48: string[];
   LFD_MaintFeeIncludes_57: string[];
   LFD_OutdoorArea_47: string[];
+  LFD_OutdoorArea_146: string[];
   LFD_Parking_44: string[];
   LFD_Roof_43: string[];
   LFD_StyleofHome_32: string[];

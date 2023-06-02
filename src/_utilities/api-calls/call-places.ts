@@ -5,15 +5,20 @@ import axios from 'axios';
  * @returns property data
  */
 export async function queryPlace(address: string, zip?: string) {
-  let query = encodeURIComponent(address.split(' ').join('+'));
-  if (zip) query = encodeURIComponent(zip.split(' ').join('+'));
+  try {
+    let query = encodeURIComponent(address.split(' ').join('+'));
+    if (zip) query = encodeURIComponent(zip.split(' ').join('+'));
 
-  const response = await axios.get(`/api/places?query=${query}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  return response.data;
+    const response = await axios.get(`/api/places?query=${query}`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (e) {
+    console.log('Error in queryPlace()');
+    console.error(e);
+  }
 }
 
 export async function getPlaceDetails(place_id: string) {
