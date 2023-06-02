@@ -102,6 +102,20 @@ export async function POST(req: Request) {
       const { attributes: realtor, id: user_id } = await searchRealtorByEmail(data.email);
 
       if (realtor && Number(realtor.agent.data.id) === existing_id) {
+        const url = new URL(req.url);
+        const session_key = `${encrypt(realtor.last_activity_at)}.${encrypt(data.email)}-${user_id}`;
+        const receipients: MessageRecipient[] = [
+          {
+            email: data.email,
+            name: data.full_name,
+          },
+        ];
+        await sendTemplate('welcome-agent', receipients, {
+          send_to_email: data.email,
+          dashboard_url: `${url.origin}/ai?key=${session_key}`,
+          from_name: 'Leagent Team',
+          subject: 'Welcome aboard!',
+        });
         return getResponse({
           agent: {
             ...agent_profile,
@@ -111,7 +125,7 @@ export async function POST(req: Request) {
             ...realtor,
             id: user_id,
           },
-          session_key: `${encrypt(realtor.last_activity_at)}.${encrypt(data.email)}-${user_id}`,
+          session_key,
         });
       }
     } else {
