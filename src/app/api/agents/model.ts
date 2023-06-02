@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { gql_by_email, gql_create_agent } from './graphql';
+import { gql_by_agent_id, gql_create_agent } from './graphql';
 import { WEBFLOW_THEME_DOMAINS } from '@/_typings/webflow';
 import { RealEstateBoardDataModel } from '@/_typings/real-estate-board';
 import { AgentInput } from '@/_typings/agent';
@@ -88,11 +88,13 @@ export async function createAgentRecordIfNoneFound(
   if (!full_name) return;
 
   try {
-    const variables = { email };
+    // const variables = { email };
+    const variables = { agent_id };
     const { data: response_data } = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
       {
-        query: gql_by_email,
+        query: gql_by_agent_id,
+        // query: gql_by_email,
         variables,
       },
       {
@@ -129,7 +131,7 @@ export async function createAgentRecordIfNoneFound(
     } else {
       console.log("Agent found, let's use it");
     }
-    if (!agent.attributes.agent_metatag?.data?.attributes?.personal_bio && listing?.description) {
+    if (!agent.attributes?.agent_metatag?.data?.attributes?.personal_bio && listing?.description) {
       console.log('No agent bio, sprucing it up...');
       console.log(agent);
       const agent_attributes: AgentInput & { id: number } & { [key: string]: string | number } = {
