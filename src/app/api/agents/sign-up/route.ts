@@ -100,7 +100,8 @@ export async function POST(req: Request) {
 
     if (existing_id) {
       const { attributes: realtor, id: user_id } = await searchRealtorByEmail(data.email);
-      if (realtor && realtor.agent.data.id === existing_id) {
+
+      if (realtor && Number(realtor.agent.data.id) === existing_id) {
         return getResponse({
           agent: {
             ...agent_profile,
