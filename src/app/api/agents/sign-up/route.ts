@@ -19,6 +19,24 @@ const gql_find_agent = `query RetrieveAgentRecord($agent_id: String!) {
     }
 }`;
 
+const gql_find_realtor = `query RetrieveRealtorUserRecord($email: String!) {
+    realtors(filters: { email: { eq: $email } }) {
+      data {
+        id
+        attributes {
+          email
+          full_name
+          last_activity_at
+          agent {
+            data {
+              id
+            }
+          }
+        }
+      }
+    }
+}`;
+
 const gql_update_agent = `mutation UpdateAgent ($id: ID!, $data: AgentInput!) {
   updateAgent(id: $id, data: $data) {
     data {
@@ -80,7 +98,22 @@ export async function POST(req: Request) {
       status_code = 201;
     }
 
-    if (!existing_id)
+    if (existing_id) {
+      const { attributes: realtor, id: user_id } = await searchRealtorByEmail(data.email);
+      if (realtor && realtor.agent.data.id === existing_id) {
+        return getResponse({
+          agent: {
+            ...agent_profile,
+            id: existing_id,
+          },
+          realtor: {
+            ...realtor,
+            id: user_id,
+          },
+          session_key: `${encrypt(realtor.last_activity_at)}.${encrypt(data.email)}-${user_id}`,
+        });
+      }
+    } else {
       return getResponse(
         {
           agent_profile,
@@ -89,6 +122,7 @@ export async function POST(req: Request) {
         },
         400,
       );
+    }
 
     const claimed = await claimAgent(existing_id, {
       email: agent_profile.email,
@@ -167,6 +201,27 @@ function checkForFieldErrors(data: { [key: string]: any }) {
       password: ['required'],
     };
   return errors;
+}
+
+async function searchRealtorByEmail(email: string) {
+  const response = await axios.post(
+    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+    {
+      query: gql_find_realtor,
+      variables: {
+        email,
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  const { data: response_data } = response;
+  return response_data?.data?.realtors?.data[0] || {};
 }
 
 async function searchAgentById(agent_id: string) {
