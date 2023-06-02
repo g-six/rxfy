@@ -204,37 +204,41 @@ async function claimAgent(id: number, user_data: { email: string; encrypted_pass
   const domain_name = `r${id}.leagent.com`;
 
   console.log(`Creating vercel domain ${domain_name}`);
-  const vercel_headers = {
-    Authorization: `Bearer ${process.env.NEXT_APP_VERCEL_TOKEN as string}`,
-    'Content-Type': 'application/json',
-  };
+  try {
+    const vercel_headers = {
+      Authorization: `Bearer ${process.env.NEXT_APP_VERCEL_TOKEN as string}`,
+      'Content-Type': 'application/json',
+    };
 
-  const vercel_domains_api_url = `https://api.vercel.com/v9/projects/rexify/domains?teamId=${process.env.NEXT_APP_VERCEL_TEAM_ID}`;
+    const vercel_domains_api_url = `https://api.vercel.com/v9/projects/rexify/domains?teamId=${process.env.NEXT_APP_VERCEL_TEAM_ID}`;
 
-  const vercel_response = await axios.post(vercel_domains_api_url, { name: domain_name }, { headers: vercel_headers });
+    const vercel_response = await axios.post(vercel_domains_api_url, { name: domain_name }, { headers: vercel_headers });
 
-  if (vercel_response.data?.name) {
-    const updated_domain = await axios.post(
-      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-      {
-        query: gql_update_agent,
-        variables: {
-          id,
-          data: {
-            domain_name: vercel_response.data?.name,
+    if (vercel_response.data?.name) {
+      const updated_domain = await axios.post(
+        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+        {
+          query: gql_update_agent,
+          variables: {
+            id,
+            data: {
+              domain_name: vercel_response.data?.name,
+            },
           },
         },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-          'Content-Type': 'application/json',
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+            'Content-Type': 'application/json',
+          },
         },
-      },
-    );
-    if (updated_domain.data?.data?.updateAgent?.data?.attributes?.domain_name) {
-      console.log('Updated domain name to', updated_domain.data.data.updateAgent.data.attributes.domain_name);
+      );
+      if (updated_domain.data?.data?.updateAgent?.data?.attributes?.domain_name) {
+        console.log('Updated domain name to', updated_domain.data.data.updateAgent.data.attributes.domain_name);
+      }
     }
+  } catch (e) {
+    console.log('Unable to successfully create vercel domain.');
   }
 
   console.log(JSON.stringify({ RealtorInput }, null, 4));
