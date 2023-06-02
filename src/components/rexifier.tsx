@@ -43,6 +43,7 @@ import RxAgentMyListings from './full-pages/RxAgentMyListings';
 import { RxTextInput } from './RxTextInput';
 import RxContactFormButton from './RxForms/RxContactFormButton';
 import RxSessionDropdown from './Nav/RxSessionDropdown';
+import AiPrompt from '@/rexify/realtors/ai';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -427,6 +428,14 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             <RxIdPage {...props} agent={agent_data} className={node.attribs?.class || className}>
               {domToReact(node.children) as ReactElement[]}
             </RxIdPage>
+          );
+        }
+
+        if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL) >= 0) {
+          return (
+            <AiPrompt>
+              <>{domToReact(node.children)}</>
+            </AiPrompt>
           );
         }
 

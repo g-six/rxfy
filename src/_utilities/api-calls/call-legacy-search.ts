@@ -41,11 +41,6 @@ export async function retrieveFromLegacyPipeline(
     headers: config.headers,
   });
 
-  console.log('To debug the recent legacy search:\n-------------\n');
-  console.log(`curl -X POST ${config.url} \\\n  -H 'content-type: application/json' \\\n  -H 'Authorization: ${config.headers.Authorization}' \\`);
-  console.log("  -d '", JSON.stringify(params, null, 4), "'");
-  console.log('--------\n\n');
-
   return hits.map(({ _source, fields }: { _source: unknown; fields: Record<string, unknown> }) => {
     let hit: Record<string, unknown>;
     if (_source) {

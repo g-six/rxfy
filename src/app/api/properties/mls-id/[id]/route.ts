@@ -64,10 +64,8 @@ export async function GET(request: Request) {
           listing_id,
         });
       }
-      return getResponse({ place });
+      // return getResponse({ place });
     }
-
-    return getResponse({ legacy });
 
     const cache = await axios.get(json_file);
     return getResponse(cache.data, 200);
@@ -76,11 +74,14 @@ export async function GET(request: Request) {
     if (axerr.response?.status === 403) {
       // Might not have cache yet, attempt to create
       console.log('Might not have cache yet, attempt to create');
-      // const xhr = await axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`, {
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      // });
+      const xhr = await axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log(`From integrations: ${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`);
+      console.log(xhr.data);
 
       if (xhr.data?.data?.attributes) {
         const cache = await axios.get(json_file);

@@ -19,6 +19,24 @@ const gql_find_agent = `query RetrieveAgentRecord($agent_id: String!) {
     }
 }`;
 
+const gql_find_realtor = `query RetrieveRealtorUserRecord($email: String!) {
+    realtors(filters: { email: { eq: $email } }) {
+      data {
+        id
+        attributes {
+          email
+          full_name
+          last_activity_at
+          agent {
+            data {
+              id
+            }
+          }
+        }
+      }
+    }
+}`;
+
 const gql_update_agent = `mutation UpdateAgent ($id: ID!, $data: AgentInput!) {
   updateAgent(id: $id, data: $data) {
     data {
@@ -80,7 +98,37 @@ export async function POST(req: Request) {
       status_code = 201;
     }
 
-    if (!existing_id)
+    if (existing_id) {
+      const { attributes: realtor, id: user_id } = await searchRealtorByEmail(data.email);
+
+      if (realtor && Number(realtor.agent.data.id) === existing_id) {
+        const url = new URL(req.url);
+        const session_key = `${encrypt(realtor.last_activity_at)}.${encrypt(data.email)}-${user_id}`;
+        const receipients: MessageRecipient[] = [
+          {
+            email: data.email,
+            name: data.full_name,
+          },
+        ];
+        await sendTemplate('welcome-agent', receipients, {
+          send_to_email: data.email,
+          dashboard_url: `${url.origin}/ai?key=${session_key}`,
+          from_name: 'Leagent Team',
+          subject: 'Welcome aboard!',
+        });
+        return getResponse({
+          agent: {
+            ...agent_profile,
+            id: existing_id,
+          },
+          realtor: {
+            ...realtor,
+            id: user_id,
+          },
+          session_key,
+        });
+      }
+    } else {
       return getResponse(
         {
           agent_profile,
@@ -89,6 +137,7 @@ export async function POST(req: Request) {
         },
         400,
       );
+    }
 
     const claimed = await claimAgent(existing_id, {
       email: agent_profile.email,
@@ -127,7 +176,7 @@ export async function POST(req: Request) {
     const url = new URL(req.url);
     await sendTemplate('welcome-agent', receipients, {
       send_to_email: claimed.attributes.email,
-      dashboard_url: `${url.origin}/my-profile?key=${session_key}`,
+      dashboard_url: `${url.origin}/ai?key=${session_key}`,
       from_name: 'Leagent Team',
       subject: 'Welcome aboard!',
     });
@@ -169,6 +218,27 @@ function checkForFieldErrors(data: { [key: string]: any }) {
   return errors;
 }
 
+async function searchRealtorByEmail(email: string) {
+  const response = await axios.post(
+    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+    {
+      query: gql_find_realtor,
+      variables: {
+        email,
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  const { data: response_data } = response;
+  return response_data?.data?.realtors?.data[0] || {};
+}
+
 async function searchAgentById(agent_id: string) {
   const response = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
@@ -204,37 +274,41 @@ async function claimAgent(id: number, user_data: { email: string; encrypted_pass
   const domain_name = `r${id}.leagent.com`;
 
   console.log(`Creating vercel domain ${domain_name}`);
-  const vercel_headers = {
-    Authorization: `Bearer ${process.env.NEXT_APP_VERCEL_TOKEN as string}`,
-    'Content-Type': 'application/json',
-  };
+  try {
+    const vercel_headers = {
+      Authorization: `Bearer ${process.env.NEXT_APP_VERCEL_TOKEN as string}`,
+      'Content-Type': 'application/json',
+    };
 
-  const vercel_domains_api_url = `https://api.vercel.com/v9/projects/rexify/domains?teamId=${process.env.NEXT_APP_VERCEL_TEAM_ID}`;
+    const vercel_domains_api_url = `https://api.vercel.com/v9/projects/rexify/domains?teamId=${process.env.NEXT_APP_VERCEL_TEAM_ID}`;
 
-  const vercel_response = await axios.post(vercel_domains_api_url, { name: domain_name }, { headers: vercel_headers });
+    const vercel_response = await axios.post(vercel_domains_api_url, { name: domain_name }, { headers: vercel_headers });
 
-  if (vercel_response.data?.name) {
-    const updated_domain = await axios.post(
-      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-      {
-        query: gql_update_agent,
-        variables: {
-          id,
-          data: {
-            domain_name: vercel_response.data?.name,
+    if (vercel_response.data?.name) {
+      const updated_domain = await axios.post(
+        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+        {
+          query: gql_update_agent,
+          variables: {
+            id,
+            data: {
+              domain_name: vercel_response.data?.name,
+            },
           },
         },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-          'Content-Type': 'application/json',
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+            'Content-Type': 'application/json',
+          },
         },
-      },
-    );
-    if (updated_domain.data?.data?.updateAgent?.data?.attributes?.domain_name) {
-      console.log('Updated domain name to', updated_domain.data.data.updateAgent.data.attributes.domain_name);
+      );
+      if (updated_domain.data?.data?.updateAgent?.data?.attributes?.domain_name) {
+        console.log('Updated domain name to', updated_domain.data.data.updateAgent.data.attributes.domain_name);
+      }
     }
+  } catch (e) {
+    console.log('Unable to successfully create vercel domain.');
   }
 
   console.log(JSON.stringify({ RealtorInput }, null, 4));

@@ -46,6 +46,9 @@ export enum WEBFLOW_NODE_SELECTOR {
   GUEST_DROPDOWN = 'login-signup',
   PROPERTY_PHOTO_WRAPPER = 'property-images-lightbox',
   PROPERTY_PHOTO_ITEM = 'property-carousel-item',
+
+  // Realtor signup
+  AI_PROMPT_MODAL = 'ai-prompt-modal',
 }
 
 export interface WebFlow {

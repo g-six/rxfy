@@ -101,13 +101,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <head
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
-            __html:
-              webflow.head.code +
-              `
-            <script type="text/javascript">
-            document.addEventListener("click", console.log, false);
-            </script>
-            `,
+            __html: webflow.head.code,
           }}
         />
 
