@@ -143,6 +143,12 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
   }
 }
 
+export function replaceRealtorAiResultPage($: CheerioAPI) {
+  replaceByCheerio($, WEBFLOW_NODE_SELECTOR.AI_THEME_PANE_1, {
+    className: 'rexified rx-homepage-theme-preview',
+  });
+}
+
 export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapper_selector = '.similar-homes-grid', card_selector = '.property-card') {
   if (properties.length === 0) {
     $(wrapper_selector).remove();
@@ -343,7 +349,7 @@ export function rexifyScriptsV2(html_code: string) {
                 <script
                   suppressHydrationWarning
                   dangerouslySetInnerHTML={{
-                    __html: appendJs(attribs.src, 1000),
+                    __html: appendJs(attribs.src, 1400),
                   }}
                 />
               </>
@@ -439,16 +445,10 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
                 <>{domToReact(node.children)}</>
               </AiPrompt>
             );
-          if (props.className.indexOf(WEBFLOW_NODE_SELECTOR.AI_THEME_PANE) >= 0)
-            return (
-              <AiResult>
-                <>{domToReact(node.children)}</>
-              </AiResult>
-            );
         }
 
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.SESSION_DROPDOWN) >= 0) {
-          return <RxSessionDropdown>{domToReact(node.children) as ReactElement}</RxSessionDropdown>;
+          return <RxSessionDropdown agent={agent_data}>{domToReact(node.children) as ReactElement}</RxSessionDropdown>;
         }
 
         // Property PDF Brochure rendering

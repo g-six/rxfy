@@ -7,7 +7,7 @@ import { Inter } from 'next/font/google';
 
 import { WebFlow } from '@/_typings/webflow';
 import { MLSProperty } from '@/_typings/property';
-import { AgentData } from '@/_typings/agent';
+import { AgentData, BrokerageInputModel, RealtorInputModel } from '@/_typings/agent';
 import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
 import { getPrivatePropertyData, getPropertyData } from '@/_utilities/data-helpers/property-page';
@@ -15,6 +15,9 @@ import { fillAgentInfo, fillPropertyGrid, removeSection, replaceByCheerio, rexif
 import RxNotifications from '@/components/RxNotifications';
 import MyProfilePage from '@/rexify/my-profile';
 import styles from './page.module.scss';
+import { AxiosError } from 'axios';
+import { getNewSessionKey, getUserDataFromSessionKey } from './api/update-session';
+import { replace } from 'cypress/types/lodash';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico'];
@@ -24,10 +27,9 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const url = headers().get('x-url') as string;
   const { hostname, pathname, origin } = new URL(url);
 
-  const session_key = cookies().get('session_key')?.value || '';
-  const is_realtor = cookies().get('session_as')?.value === 'realtor';
+  let session_key = cookies().get('session_key')?.value || '';
 
-  const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? TEST_DOMAIN : hostname);
+  let agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? TEST_DOMAIN : hostname);
   let webflow_page_url =
     params && params.slug && !skip_slugs.includes(params.slug as string)
       ? `https://${agent_data.webflow_domain}/${params.slug}`
@@ -38,7 +40,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     console.log('fetching property page', webflow_page_url);
   }
 
-  let data;
+  let data, realtor;
 
   try {
     const req_page_html = await axios.get(webflow_page_url);
@@ -56,23 +58,74 @@ export default async function Home({ params, searchParams }: { params: Record<st
   // Special cases
   if (agent_data.webflow_domain === 'leagent-website.webflow.io') {
     let session;
-    if (session_key && is_realtor) {
-      // const api_response = await axios
-      //   .get(`/api/check-session/agent`, {
-      //     headers: {
-      //       Authorization: `Bearer ${session_key}`,
-      //     },
-      //   })
-      //   .catch(e => {
-      //     const axerr = e as AxiosError;
-      //     console.log({ pathname, origin });
-      //     console.log('page / leagent-website.webflow.io User not logged in');
-      //     console.log(axerr.message);
-      //   });
-      // session = api_response as unknown as RealtorInputModel & {
-      //   brokerage: BrokerageInputModel;
-      //   session_key: string;
-      // };
+    if (session_key && params.slug !== 'ai') {
+      const [session_hash, user_id] = session_key.split('-');
+      const new_session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
+      if (new_session.id) {
+        realtor = new_session;
+        $('.logo-n-contact .agent-name').text(realtor.agent.full_name);
+        agent_data = realtor.agent;
+        if (realtor.agent.agent_metatag) {
+          agent_data.metatags = realtor.agent.agent_metatag;
+          if (agent_data.metatags.personal_title && agent_data.metatags.personal_title.length > 50) {
+            agent_data.metatags.personal_title = agent_data.metatags.personal_title.split(' ').slice(0, 5).join(' ');
+          }
+          $('.section---search .address-chipss [href="#"]').each((i, el) => {
+            if (el) $(el).remove();
+          });
+        }
+        replaceByCheerio($, '.theme-area.home-oslo > div', {
+          className: styles.scaledHomePage,
+        });
+        if (realtor.agent.featured_listings?.length) {
+          const [feature_mls_id] = realtor.agent.featured_listings;
+          try {
+            const feature_listing = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${feature_mls_id}/recent.json`);
+            if (feature_listing.data) {
+              const image_wrappers = ['.property-image-wrapper', '.image-wrapper-top', '.image-wrapper-bottom'];
+              const { area, baths, beds, description, floor_area, photos, year_built } = feature_listing.data;
+              photos.forEach((photo_url: string, photo_num: number) => {
+                replaceByCheerio($, image_wrappers[photo_num] + ' img', {
+                  photo: `${process.env.NEXT_APP_IM_ENG}/w_620/${photo_url}`,
+                });
+              });
+
+              replaceByCheerio($, '.bedbath-result.number-of-beds', {
+                content: beds,
+              });
+              replaceByCheerio($, '.bedbath-result.number-of-baths', {
+                content: baths,
+              });
+              replaceByCheerio($, '.bedbath-result.year-built', {
+                content: year_built,
+              });
+              replaceByCheerio($, '.bedbath-result.sqft', {
+                content: new Intl.NumberFormat().format(floor_area) + 'sqft',
+              });
+              replaceByCheerio($, '.bedbath-result.area', {
+                content: area,
+              });
+              replaceByCheerio($, '.listing-description', {
+                content: description,
+              });
+              replaceByCheerio($, '.listing-by', {
+                content: 'Listing courtesy of ' + realtor.agent.full_name,
+              });
+            }
+          } catch (e) {
+            console.log('Unable to retrieve a listing sample');
+          }
+
+          // realtor.agent.featured_listings[0].photos.forEach((photo: string, wrapper_num: number) => {
+          //   replaceByCheerio($, image_wrappers[wrapper_num] + ' img', {
+          //     photo,
+          //   });
+          // });
+        }
+        // const malta = await axios.get('https://malta-leagent.webflow.io');
+        // const $malta: CheerioAPI = load(malta.data);
+        // $('.home-malta').html(($malta('body').html() as string).split('script>').join('descript>'));
+      }
     }
     switch (params.slug) {
       case 'my-profile':

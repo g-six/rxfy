@@ -5,9 +5,12 @@ import { Transition } from '@headlessui/react';
 import React from 'react';
 import styles from './RxDropdownMenu.module.scss';
 import useEvent, { Events } from '@/hooks/useEvent';
+import { RxAgentTextWrapper } from '../RxAgentInfoWrappers/RxAgentTextWrapper';
+import { AgentData } from '@/_typings/agent';
 
 type Props = {
   children: React.ReactElement;
+  agent?: AgentData;
   className?: string;
 };
 function DropdownLightbox(p: Props) {
@@ -49,6 +52,14 @@ export default function RxSessionDropdown(p: Props) {
         <DropdownLightbox className={child.props.className + ` w--open rexified ${styles.dropdown} ${styles['session-dropdown']}`}>
           {child.props.children}
         </DropdownLightbox>
+      ),
+    },
+    {
+      searchFn: searchByClasses(['agent-name']),
+      transformChild: (child: React.ReactElement) => (
+        <RxAgentTextWrapper attribute='full_name' className={child.props.className}>
+          <>{p.agent?.full_name ? p.agent.full_name : child.props.children}</>
+        </RxAgentTextWrapper>
       ),
     },
   ];
