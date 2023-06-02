@@ -1,6 +1,10 @@
+import { BrokerageInputModel } from '@/_typings/agent';
 import { encrypt } from '@/_utilities/encryption-helper';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import axios, { AxiosError } from 'axios';
+import { GQ_FRAG_AGENT } from './agents/graphql';
+import { MLSProperty } from '@/_typings/property';
+import { STRAPI_FIELDS } from '@/_utilities/api-calls/call-legacy-search';
 export const GQL_BROKERAGE_ATTRIBUTES = `
                 name
                 full_address
@@ -127,6 +131,10 @@ function gqlFindUser(user_type: 'realtor' | 'customer' = 'customer') {
               : `first_name
           last_name
           phone_number
+          agent {
+            data {${GQ_FRAG_AGENT}
+            }
+          }
           brokerage {
             data {
               id
@@ -141,7 +149,7 @@ function gqlFindUser(user_type: 'realtor' | 'customer' = 'customer') {
   }`;
 }
 
-export async function getNewSessionKey(previous_token: string, id: number, user_type: 'customer' | 'realtor' = 'customer') {
+export async function getUserDataFromSessionKey(session_hash: string, id: number, user_type: 'customer' | 'realtor' = 'customer') {
   const { data: response_data } = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {
@@ -159,19 +167,71 @@ export async function getNewSessionKey(previous_token: string, id: number, user_
   );
 
   if (response_data.data?.user?.data?.attributes) {
-    const { email, last_activity_at } = response_data.data?.user?.data?.attributes;
+    const { email, full_name, agent, brokerage, last_activity_at } = response_data.data?.user?.data?.attributes;
     const encrypted_email = encrypt(email);
     const compare_key = `${encrypt(last_activity_at)}.${encrypted_email}`;
+    if (compare_key === session_hash && !isNaN(Number(id))) {
+      let agent_metatag = agent?.data?.attributes?.agent_metatag?.data || {};
 
-    if (compare_key === previous_token && !isNaN(Number(id))) {
+      agent_metatag = {
+        ...agent_metatag.attributes,
+        id: agent_metatag.id ? Number(agent_metatag.id) : undefined,
+      };
+
+      let real_estate_board = agent?.data?.attributes?.real_estate_board?.data || {};
+
+      real_estate_board = {
+        ...real_estate_board.attributes,
+        id: real_estate_board.id ? Number(real_estate_board.id) : undefined,
+      };
+      const listings_cache_url = `${process.env.NEXT_APP_LISTINGS_CACHE}/${agent.data.attributes.agent_id}.json`;
+      let featured_listings = [];
       try {
-        return await updateSessionKey(id, email, user_type);
-      } catch (e) {
-        return {};
+        const listings = await axios.get(listings_cache_url);
+        if (listings?.data?.hits) {
+          const { hits } = listings.data.hits;
+          featured_listings = hits.map((hit: { fields: { [key: string]: string[] } }) => {
+            for (let key of Object.keys(hit.fields)) {
+              const field = `${key.split('.').pop()}`;
+              if (field === 'MLS_ID') {
+                return hit.fields[key][0];
+              }
+            }
+          });
+        }
+      } catch {
+        console.log(listings_cache_url, 'Listings cache does not exist');
       }
-    } else {
-      console.log(`Mismatched Session Tokens for ${id} ${previous_token}`);
-      console.log(`Mismatched Session Tokens for ${id} ${compare_key}`);
+      return {
+        id,
+        agent: {
+          ...agent.data.attributes,
+          agent_metatag,
+          real_estate_board,
+          featured_listings,
+          id: Number(agent.data.id),
+        },
+        brokerage: brokerage as unknown as BrokerageInputModel,
+        full_name,
+        email,
+        user_type,
+        session_key: `${session_hash}-${id}`,
+      };
     }
+  }
+
+  return {};
+}
+export async function getNewSessionKey(previous_token: string, id: number, user_type: 'customer' | 'realtor' = 'customer') {
+  const results = await getUserDataFromSessionKey(previous_token, id, user_type);
+
+  if (results.email) {
+    try {
+      return await updateSessionKey(id, results.email, user_type);
+    } catch (e) {
+      return {};
+    }
+  } else {
+    console.log(`Mismatched Session Tokens for ${id} ${previous_token}`);
   }
 }
