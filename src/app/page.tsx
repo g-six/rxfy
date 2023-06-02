@@ -54,7 +54,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const $: CheerioAPI = load(data);
 
   // Special cases
-  if (agent_data.webflow_domain === 'leagent-website.webflow.io' && params.slug === 'my-profile') {
+  if (agent_data.webflow_domain === 'leagent-website.webflow.io') {
     let session;
     if (session_key && is_realtor) {
       // const api_response = await axios
@@ -74,7 +74,12 @@ export default async function Home({ params, searchParams }: { params: Record<st
       //   session_key: string;
       // };
     }
-    return <MyProfilePage data={{ session_key }}>{parse($.html()) as unknown as JSX.Element}</MyProfilePage>;
+    switch (params.slug) {
+      case 'my-profile':
+        return <MyProfilePage data={{ session_key }}>{parse($.html()) as unknown as JSX.Element}</MyProfilePage>;
+      default:
+        break;
+    }
   }
 
   replaceByCheerio($, '.w-nav-menu .nav-dropdown-2', {
