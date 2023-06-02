@@ -14,9 +14,7 @@ export default function RoomsGroup({ heading, rooms, headingTemplate, inputTempl
               key={`${input.label}_${idx}`}
               label={input.label}
               value={''}
-              handleChange={e => {
-                //   console.log(e);
-              }}
+              handleChange={e => {}}
               inputProps={input.inputProps}
               template={inputTemplate}
             />

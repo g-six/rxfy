@@ -45,7 +45,6 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab }: 
         key,
         val.map(({ id, name }) => ({ label: name, value: id })),
       ]);
-      console.log(remapped);
 
       setAttributes(Object.fromEntries(remapped));
     });

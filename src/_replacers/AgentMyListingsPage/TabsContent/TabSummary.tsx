@@ -28,9 +28,7 @@ export default function TabSummary({ template, nextStepClick, attributes }: TabC
   };
   /// value and handleChange are for demo purpose
   const [value, setValue] = useState();
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.value);
-  };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {};
   const [selectedChips, setSelectedChips] = useState<ValueInterface[]>([]);
   const handleSelect = (value: ValueInterface) => {
     const isIn = selectedChips?.some((item: ValueInterface) => item.value === value.value);

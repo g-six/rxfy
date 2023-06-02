@@ -4,7 +4,6 @@ import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import React, { cloneElement, useState } from 'react';
 import RoomsGroup from './RoomsGroup';
 import BathsGroup from './BathroomsGroup';
-import { ad } from 'vitest/dist/types-ad1c3f45';
 
 export default function TabRooms({ template, nextStepClick }: TabContentProps) {
   const bedrooms = 2;

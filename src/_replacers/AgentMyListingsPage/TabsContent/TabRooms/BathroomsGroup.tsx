@@ -16,9 +16,7 @@ export default function BathsGroup({ heading, rooms, headingTemplate, checkboxTe
               key={`${input.label}_${idx}`}
               label={input.label}
               value={''}
-              handleChange={e => {
-                //   console.log(e);
-              }}
+              handleChange={e => {}}
               inputProps={input.inputProps}
               template={inputTemplate}
             />

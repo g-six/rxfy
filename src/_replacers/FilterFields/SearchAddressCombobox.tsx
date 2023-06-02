@@ -41,7 +41,6 @@ export default function SearchAddressCombobox(p: SearchInputProps) {
       value={selectedAddressData?.address ?? null}
       onChange={(value: any) => {
         getPlaceDetails(value.place_id).then(res => {
-          console.log(res);
           setSelectedAddressData(res);
           p.onPlaceSelected(res);
         });

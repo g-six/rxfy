@@ -9,6 +9,7 @@ export default function TabAddress({ template, nextStepClick }: TabContentProps)
   const addressFields = [
     {
       label: 'Address',
+
       inputProps: {
         placeholder: 'some placeholder',
         name: 'neighbourhood',
@@ -36,9 +37,7 @@ export default function TabAddress({ template, nextStepClick }: TabContentProps)
   ];
   /// value and handleChange are for demo purpose
   const [value, setValue] = useState('');
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.name);
-  };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {};
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['virtual-tours-inputs']),
