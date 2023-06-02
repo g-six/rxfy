@@ -1,13 +1,19 @@
 import React from 'react';
-import { Events } from '@/_typings/events';
 
-export interface EventsFormData {
-  reset?: boolean;
-  beds?: number;
-  baths?: number;
-  dwelling_types?: string[];
+import { Events, PrivateListingData, FormData } from '@/_typings/events';
+
+export interface ImagePreview extends File {
+  preview: string;
 }
-export default function useFormEvent(eventName: Events): { data?: EventsFormData; fireEvent: (data: EventsFormData) => void } {
+
+function throwIfNotFormData(value: any): asserts value is FormData {
+  const v = value as FormData;
+  const o = v as unknown as object;
+  if (o && typeof o === 'object' && Object.keys(o).length) return;
+  throw 'The arg. is not of FormData or its child!';
+}
+
+export default function useFormEvent<EventsFormData>(eventName: Events): { data?: EventsFormData; fireEvent: (data: EventsFormData) => void } {
   const [data, setData] = React.useState({} as EventsFormData);
 
   const onEvent = React.useCallback((e: CustomEvent) => {
@@ -17,10 +23,11 @@ export default function useFormEvent(eventName: Events): { data?: EventsFormData
   React.useEffect(() => {
     document.addEventListener(eventName.toString(), onEvent as EventListener, false);
     return () => document.removeEventListener(eventName.toString(), onEvent as EventListener, false);
-  }, [eventName]);
+  }, [eventName, onEvent]);
 
   const fireEvent = React.useCallback(
-    (data: EventsFormData = {}) => {
+    (data: EventsFormData) => {
+      throwIfNotFormData(data);
       document.dispatchEvent(new CustomEvent(eventName, { detail: data }));
     },
     [eventName],
@@ -30,5 +37,5 @@ export default function useFormEvent(eventName: Events): { data?: EventsFormData
 }
 
 export { Events } from '@/_typings/events';
-export type { EventsData } from '@/_typings/events';
+export type { EventsData, PrivateListingData } from '@/_typings/events';
 export { NotificationCategory } from '@/_typings/events';

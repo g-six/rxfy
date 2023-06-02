@@ -1,5 +1,6 @@
 import { MLSProperty } from './property';
 import { SavedSearchInput } from './saved-search';
+import { ImagePreview } from '@/hooks/useFormEvent';
 
 export enum Events {
   Login = 'event-login',
@@ -26,7 +27,7 @@ export enum Events {
   GenericEvent = 'generic-event',
   TogglePhotoSliderModal = 'photo-slider-modal',
   PropertyGalleryModal = 'property-gallery-modal',
-  //ContactFormSubmit = 'event-contact-form-submit',
+  PrivateListingForm = 'event-private-listing-form',
 }
 
 export enum NotificationCategory {
@@ -61,3 +62,21 @@ export const tabEventMapping: { [key: string]: Events } = {
   // 'compare-view': Events.SavedItemsCompareTab,
   // default: Events.SavedItemsCompareTab,
 };
+
+// FORM EVENTS
+export type FormData = {
+  // Handling data
+  submit?: boolean; // if true, will trigger form submission
+  broadcast?: boolean; // if true, means that this event is a notification for consumers
+};
+
+export interface PrivateListingData extends FormData {
+  // Tab AI
+  prompt?: string;
+  generatedPrompt?: object;
+  generatedAddress?: object;
+  photos?: ImagePreview[];
+
+  // Address
+  // ...
+}

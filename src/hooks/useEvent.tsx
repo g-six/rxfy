@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { Events, EventsData } from '@/_typings/events';
 
 export default function useEvent(eventName: Events, onlyFire?: boolean): { data?: EventsData; fireEvent: (data: EventsData) => void } {
@@ -7,17 +8,16 @@ export default function useEvent(eventName: Events, onlyFire?: boolean): { data?
   const onEvent = React.useCallback(
     (e: CustomEvent) => {
       if (!onlyFire) {
-        const newData = e.detail as EventsData;
-        setData(newData);
+        setData(prev => ({ ...prev, ...e.detail }));
       }
     },
-    [onlyFire, data],
+    [onlyFire],
   );
 
   React.useEffect(() => {
     document.addEventListener(eventName.toString(), onEvent as EventListener, false);
     return () => document.removeEventListener(eventName.toString(), onEvent as EventListener, false);
-  }, [eventName]);
+  }, [eventName, onEvent]);
 
   const fireEvent = React.useCallback(
     (data: EventsData = {}) => {

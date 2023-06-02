@@ -1,8 +1,11 @@
 'use client';
+import React, { ReactElement, useState } from 'react';
+
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { createListingTabs } from '@/_typings/agent-my-listings';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
-import React, { ReactElement, useState } from 'react';
+import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
+
 import CreateListingTabs from './CreateListingTabs';
 import CurrentTabContent from './CurrentTabContent';
 
@@ -12,6 +15,8 @@ type Props = {
 
 export default function NewOrEditListingTab({ child }: Props) {
   const [currentTab, setCurrentTab] = useState<string>(createListingTabs.AI);
+  const form = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
+  console.log('NewOrEditListingTab', form.data);
 
   const matches: tMatch[] = [
     {
