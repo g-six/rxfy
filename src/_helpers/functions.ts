@@ -214,6 +214,7 @@ function getIcon(input: string) {
       };
 
     case 'construction-material-wooden-frame':
+    case 'construction-material-wood':
       return {
         'Wooden Frame': 'hardwood',
       };

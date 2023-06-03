@@ -1,7 +1,10 @@
 import { AgentData } from '@/_typings/agent';
 import { AxiosStatic } from 'axios';
 
-export async function getAgentDataFromDomain(domain: string): Promise<AgentData> {
+export async function getAgentDataFromDomain(domain: string): Promise<AgentData | undefined> {
+  if (`${process.env.NEXT_APP_LEAGENT_DOMAINS}`.split(',').includes(domain)) {
+    return undefined;
+  }
   const axios: AxiosStatic = (await import('axios')).default;
   let data;
 

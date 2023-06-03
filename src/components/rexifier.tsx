@@ -294,9 +294,7 @@ export function replaceInlineScripts($: CheerioAPI) {
 }
 
 export function appendJs(url: string, delay = 1200) {
-  console.log('appendJs:', url);
   if (url.indexOf('website-files.com') >= 0) {
-    console.log('timeout is set at', delay);
     return `
       var Webflow = Webflow || [];
       Webflow.push(() => {
@@ -445,6 +443,19 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
                 <>{domToReact(node.children)}</>
               </AiPrompt>
             );
+          if (props.className.indexOf(WEBFLOW_NODE_SELECTOR.AI_THEME_PANE_2) >= 0) {
+            return (
+              <div className={props.className}>
+                <RxDetailedListing
+                  property={property as unknown as PropertyDataModel}
+                  agent={agent_data}
+                  nodeClassName={WEBFLOW_NODE_SELECTOR.PROPERTY_PAGE}
+                  nodeProps={props}
+                  nodes={domToReact(node.children) as ReactElement[]}
+                />
+              </div>
+            );
+          }
         }
 
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.SESSION_DROPDOWN) >= 0) {

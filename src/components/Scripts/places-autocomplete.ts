@@ -4,7 +4,6 @@
  * @returns
  */
 export default function initializePlacesAutocomplete(props: Record<string, string>) {
-  console.log('initializePlacesAutocomplete', props);
   return `
     function objectToUrlParams(obj) {
         return Object.keys(obj).map(key => key + '=' + obj[key]).join('&');
