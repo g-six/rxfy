@@ -5,7 +5,6 @@ import { encrypt } from '@/_utilities/encryption-helper';
 import { getResponse } from '../response-helper';
 import { AxiosError } from 'axios';
 import { createAgentRecordIfNoneFound } from './model';
-import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
 import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
 import { LegacySearchPayload } from '@/_typings/pipeline';
 import { getRealEstateBoard } from '../real-estate-boards/model';
