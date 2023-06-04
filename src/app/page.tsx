@@ -27,7 +27,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const { hostname, pathname, origin } = new URL(url);
 
   let session_key = cookies().get('session_key')?.value || '';
-  let agent_data: AgentData | undefined = await getAgentDataFromDomain(hostname === 'localhost' ? TEST_DOMAIN : hostname);
+  let agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? TEST_DOMAIN : hostname);
   let webflow_domain = agent_data ? agent_data.webflow_domain : process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN;
   let webflow_page_url =
     params && params.slug && !skip_slugs.includes(params.slug as string) ? `https://${webflow_domain}/${params.slug}` : `https://${webflow_domain}`;
