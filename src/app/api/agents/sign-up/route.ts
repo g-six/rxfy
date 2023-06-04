@@ -141,7 +141,7 @@ export async function POST(req: Request) {
 
     const claimed = await claimAgent(existing_id, {
       email: data.email,
-      full_name: agent_profile.attributes.full_name,
+      full_name: agent_profile.full_name,
       login_email: data.email,
       encrypted_password,
     });
