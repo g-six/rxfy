@@ -75,21 +75,36 @@ const gql_create_realtor = `mutation SignUp ($data: RealtorInput!) {
 
 export async function POST(req: Request) {
   const data = await req.json();
-  const errors = checkForFieldErrors(data);
+  const { user, stripe } = data as {
+    user: {
+      email: string;
+      password: string;
+      full_name: string;
+      agent_id: string;
+    };
+    stripe: {
+      customer: string;
+      subscriptions: {
+        [key: string]: {
+          invoice: string;
+        };
+      };
+    };
+  };
+  const errors = checkForFieldErrors(user);
 
   if (Object.keys(errors).length > 0) return getResponse({ errors }, 400);
 
-  if (data.email && data.password && data.full_name && data.agent_id) {
-    const encrypted_password = encrypt(data.password);
-    let { attributes: agent_profile, id } = await searchAgentById(data.agent_id);
+  if (user.email && user.password && user.full_name && user.agent_id) {
+    const encrypted_password = encrypt(user.password);
+    let { attributes: agent_profile, id } = await searchAgentById(user.agent_id);
     let existing_id = Number(id);
     let status_code = 202;
-    let user = {};
     let session_key = '';
 
     if (!existing_id) {
       const { attributes: new_agent, id: new_agent_id } = await createAgent({
-        ...data,
+        ...user,
         encrypted_password,
       });
       agent_profile = new_agent;
@@ -139,13 +154,17 @@ export async function POST(req: Request) {
       );
     }
 
-    const claimed = await claimAgent(existing_id, {
-      email: data.email,
-      full_name: agent_profile.full_name,
-      login_email: data.email,
-      phone_number: agent_profile.phone,
-      encrypted_password,
-    });
+    const claimed = await claimAgent(
+      existing_id,
+      {
+        email: user.email,
+        full_name: agent_profile.full_name,
+        login_email: user.email,
+        phone_number: agent_profile.phone,
+        encrypted_password,
+      },
+      stripe,
+    );
 
     if (claimed.errors) return getResponse(claimed, 400);
 
@@ -153,7 +172,7 @@ export async function POST(req: Request) {
     if (claimed.attributes.agent?.data?.id) {
       agent_record_id = Number(claimed.attributes.agent?.data?.id);
     }
-    user = {
+    const user_record = {
       ...claimed.attributes,
       agent: {
         ...(claimed.attributes.agent?.data?.attributes || {}),
@@ -184,7 +203,7 @@ export async function POST(req: Request) {
 
     return getResponse(
       {
-        user,
+        user: user_record,
         session_key,
       },
       status_code,
@@ -261,7 +280,14 @@ async function searchAgentById(agent_id: string) {
   return response_data?.data?.agents?.data[0] || {};
 }
 
-async function claimAgent(id: number, user_data: { email: string; encrypted_password: string; full_name: string; login_email: string; phone_number: string }) {
+async function claimAgent(
+  id: number,
+  user_data: { email: string; encrypted_password: string; full_name: string; login_email: string; phone_number: string },
+  stripe_data: {
+    customer: string;
+    subscriptions: { [key: string]: { [key: string]: string } };
+  },
+) {
   const last_activity_at = new Date().toISOString();
   const RealtorInput = {
     email: user_data.login_email.toLowerCase(),
@@ -271,6 +297,7 @@ async function claimAgent(id: number, user_data: { email: string; encrypted_pass
     is_verified: user_data.email.toLowerCase() === user_data.login_email.toLowerCase(),
     last_activity_at,
     agent: Number(id),
+    stripe: stripe_data,
   };
 
   const domain_name = `r${id}.leagent.com`;
