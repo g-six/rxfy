@@ -143,6 +143,7 @@ export async function POST(req: Request) {
       email: data.email,
       full_name: agent_profile.full_name,
       login_email: data.email,
+      phone_number: agent_profile.phone,
       encrypted_password,
     });
 
@@ -260,12 +261,13 @@ async function searchAgentById(agent_id: string) {
   return response_data?.data?.agents?.data[0] || {};
 }
 
-async function claimAgent(id: number, user_data: { email: string; encrypted_password: string; full_name: string; login_email: string }) {
+async function claimAgent(id: number, user_data: { email: string; encrypted_password: string; full_name: string; login_email: string; phone_number: string }) {
   const last_activity_at = new Date().toISOString();
   const RealtorInput = {
     email: user_data.login_email.toLowerCase(),
     encrypted_password: user_data.encrypted_password,
     full_name: user_data.full_name,
+    phone_number: user_data.phone_number,
     is_verified: user_data.email.toLowerCase() === user_data.login_email.toLowerCase(),
     last_activity_at,
     agent: Number(id),
