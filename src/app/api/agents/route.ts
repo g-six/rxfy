@@ -62,9 +62,11 @@ export async function POST(req: Request) {
 
   try {
     // TODO: listing refactor
-    const { agent_id, email, phone, full_name } = payload;
+    const {
+      user: { agent_id, email, phone, full_name },
+      stripe,
+    } = payload;
     let { listing, real_estate_board } = payload;
-    const { customer_id, first_name, last_name } = payload; // Stripe webhook
 
     if (agent_id && email && phone && full_name) {
       if (listing && real_estate_board) {
@@ -79,7 +81,7 @@ export async function POST(req: Request) {
           listing,
         );
         return getResponse(agent, 200);
-      } else if (customer_id && first_name && last_name) {
+      } else if (stripe?.customer_id) {
         // From Stripe signups
         const legacy_params: LegacySearchPayload = {
           from: 0,
