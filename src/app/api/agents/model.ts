@@ -105,8 +105,8 @@ export async function createAgentRecordIfNoneFound(
       },
     );
 
-    const first_name = `${full_name}`.split(' ')[0];
-    const last_name = `${full_name}`.split(' ').slice(0, 2).pop();
+    let first_name = `${full_name}`.split(' ')[0];
+    let last_name = `${full_name}`.split(' ').slice(0, 2).pop();
 
     let [agent] = response_data?.data?.agents?.data;
 
@@ -129,7 +129,10 @@ export async function createAgentRecordIfNoneFound(
       console.log('took', [Date.now() - t.getTime(), 'ms'].join(''));
       console.log('---');
     } else {
-      console.log("Agent found, let's use it");
+      first_name = agent.attributes.full_name.split(' ')[0];
+      last_name = agent.attributes.full_name.split(' ').slice(0, 2).pop();
+      last_name = (last_name && last_name.split('PREC*').join('').trim()) || '';
+      console.log(`Agent found, let's use ${first_name} ${last_name}`);
     }
     if (!agent.attributes?.agent_metatag?.data?.attributes?.personal_bio && listing?.description) {
       console.log('No agent bio, sprucing it up...');
