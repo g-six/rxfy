@@ -114,19 +114,19 @@ export async function POST(req: Request) {
     }
 
     if (existing_id) {
-      const { attributes: realtor, id: user_id } = await searchRealtorByEmail(data.email);
+      const { attributes: realtor, id: user_id } = await searchRealtorByEmail(user.email);
 
       if (realtor && Number(realtor.agent.data.id) === existing_id) {
         const url = new URL(req.url);
-        const session_key = `${encrypt(realtor.last_activity_at)}.${encrypt(data.email)}-${user_id}`;
+        const session_key = `${encrypt(realtor.last_activity_at)}.${encrypt(user.email)}-${user_id}`;
         const receipients: MessageRecipient[] = [
           {
-            email: data.email,
-            name: data.full_name,
+            email: user.email,
+            name: user.full_name,
           },
         ];
         await sendTemplate('welcome-agent', receipients, {
-          send_to_email: data.email,
+          send_to_email: user.email,
           dashboard_url: `${url.origin}/ai?key=${session_key}`,
           from_name: 'Leagent Team',
           subject: 'Welcome aboard!',
