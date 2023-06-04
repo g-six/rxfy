@@ -141,7 +141,7 @@ export async function POST(req: Request) {
 
     const claimed = await claimAgent(existing_id, {
       email: data.email,
-      full_name: data.full_name,
+      full_name: agent_profile.attributes.full_name,
       login_email: data.email,
       encrypted_password,
     });
@@ -310,8 +310,6 @@ async function claimAgent(id: number, user_data: { email: string; encrypted_pass
   } catch (e) {
     console.log('Unable to successfully create vercel domain.');
   }
-
-  console.log(JSON.stringify({ RealtorInput }, null, 4));
 
   const realtor_response = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,

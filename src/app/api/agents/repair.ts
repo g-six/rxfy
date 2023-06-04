@@ -82,13 +82,6 @@ export async function getSmart(
           .then(res => {
             const agent_metatag = Number(res.data?.data?.createAgentMetatag?.data.id);
 
-            // return {
-            //   ...attributes,
-            //   first_name,
-            //   last_name,
-            //   id: Number(agent_record_id),
-            //   real_estate_board,
-            // };
             console.log('Link agent record', agent.id, 'to metadata', { agent_metatag });
             axios
               .post(

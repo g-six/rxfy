@@ -116,16 +116,7 @@ export async function POST(req: Request) {
             ...mls_data
           } = listing;
           real_estate_board = await getRealEstateBoard(mls_data as unknown as Record<string, string>);
-          // return getResponse({
-          //   agent: {
-          //     agent_id,
-          //     email,
-          //     phone,
-          //     full_name,
-          //   },
-          //   real_estate_board,
-          //   listing: ,
-          // });
+
           const agent = await createAgentRecordIfNoneFound(
             {
               agent_id,

@@ -140,6 +140,8 @@ export async function createAgentRecordIfNoneFound(
       const agent_attributes: AgentInput & { id: number } & { [key: string]: string | number } = {
         id: Number(agent.id),
         ...agent.attributes,
+        first_name,
+        last_name,
       };
 
       Object.keys(agent_attributes).forEach(k => {
