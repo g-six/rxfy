@@ -31,7 +31,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? `${TEST_DOMAIN}` : hostname);
   let data;
-  const page_url = `https://${agent_data.webflow_domain}${getFullWebflowPagePath(pathname)}`;
+
+  const page_url = !!agent_data.webflow_domain
+    ? `https://${agent_data.webflow_domain}${getFullWebflowPagePath(pathname)}`
+    : `https://${process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN}${getFullWebflowPagePath(pathname)}`;
+
   try {
     const req_page_html = await axios.get(page_url);
     data = req_page_html.data;
