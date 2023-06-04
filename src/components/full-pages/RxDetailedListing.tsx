@@ -17,6 +17,7 @@ import RxFeatures from '@/components/RxProperty/RxFeatures';
 import RxPropertyStats from '@/components/RxProperty/RxPropertyStats';
 import RxTable from '@/components/RxTable';
 import RxSimilarListings from '@/components/RxProperty/RxSimilarListings';
+import { AgentData } from '@/_typings/agent';
 
 export function RxDetailedListing(props: ReplacerPageProps) {
   const matches: tMatch[] = [
@@ -83,6 +84,25 @@ export function RxDetailedListing(props: ReplacerPageProps) {
                 'tax_year',
               )
             : 'N/A',
+        }) as ReactElement;
+      },
+    },
+
+    {
+      searchFn: searchByClasses(['little-profile-card']),
+      transformChild: (child: ReactElement) => {
+        const agent: AgentData = props.agent || {};
+        console.log(child);
+        return replaceAllTextWithBraces(child, {
+          'Agent Name': 'asd',
+        }) as ReactElement;
+      },
+    },
+    {
+      searchFn: searchByClasses(['legal-1']),
+      transformChild: (child: ReactElement) => {
+        return replaceAllTextWithBraces(child, {
+          'Property Data Source Legal': props.property?.real_estate_board?.data?.attributes?.legal_disclaimer,
         }) as ReactElement;
       },
     },
