@@ -224,6 +224,7 @@ type ReplacementOptions = {
   backgroundImage?: string;
   content?: string;
   prepend?: string;
+  href?: string;
   className?: string;
   ['data-mls']?: string;
   city?: string;
@@ -270,6 +271,9 @@ export function replaceByCheerio($: CheerioAPI, target: string, replacement: Rep
       ];
       $(target).attr('href', `/map?${query_params.join('&')}`);
       $(target).text(replacement.city);
+    } else if (replacement.href) {
+      $(target).attr('data-original-href', $(target).attr('href'));
+      $(target).attr('href', replacement.href);
     }
   }
 }
