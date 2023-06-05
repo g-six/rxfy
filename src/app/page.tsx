@@ -57,7 +57,11 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
   // Special cases
   if (agent_data.webflow_domain === 'leagent-website.webflow.io') {
-    let session;
+    if (process.env.NEXT_PUBLIC_BUY_BUTTON)
+      replaceByCheerio($, '.btn-stripe-buy', {
+        href: process.env.NEXT_PUBLIC_BUY_BUTTON,
+      });
+
     if (session_key && params.slug !== 'ai') {
       const [session_hash, user_id] = session_key.split('-');
       const new_session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
