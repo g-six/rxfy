@@ -63,8 +63,8 @@ export default async function Home({ params, searchParams }: { params: Record<st
       const [session_hash, user_id] = session_key.split('-');
       const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
       agent_data = session.agent;
-
-      if (session.agent.featured_listings?.length) {
+      console.log({ session });
+      if (session.agent && session.agent?.featured_listings?.length) {
         try {
           const feature_listing = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${session.agent.featured_listings[0]}/recent.json`);
           property = feature_listing.data;
