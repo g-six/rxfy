@@ -30,22 +30,22 @@ export async function getSmart(
   //   }),
   // );
   console.log('---');
+  const { data } = await axios.post(
+    `${process.env.NEXT_APP_OPENAI_URI}`,
+    {
+      prompt,
+      max_tokens: 400,
+      temperature: 0.1,
+      model: 'text-davinci-003',
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.NEXT_APP_OPENAI_API}`,
+      },
+    },
+  );
   try {
-    const { data } = await axios.post(
-      `${process.env.NEXT_APP_OPENAI_URI}`,
-      {
-        prompt,
-        max_tokens: 400,
-        temperature: 0.1,
-        model: 'text-davinci-003',
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.NEXT_APP_OPENAI_API}`,
-        },
-      },
-    );
     // axios
     //   .post(
     //     `${process.env.NEXT_APP_OPENAI_URI}`,
