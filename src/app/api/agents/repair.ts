@@ -51,16 +51,16 @@ export async function getSmart(
         choices: [{ text }],
         error,
       } = data;
-      const ai_results = JSON.parse(text.trim());
       console.log(
         JSON.stringify(
           {
-            error,
+            error: error || {},
           },
           null,
           4,
         ),
       );
+      const ai_results = JSON.parse(text.trim());
       console.log(
         JSON.stringify(
           {
