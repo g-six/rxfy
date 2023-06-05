@@ -21,9 +21,8 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   let mls_id = url.pathname.split('/').pop() || '';
   const json_file = `https://pages.leagent.com/listings/${mls_id}/recent.json`;
-  let address = '';
-  let zip = '';
   try {
+    console.log(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`);
     await axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`, {
       headers: {
         'Content-Type': 'application/json',
@@ -51,7 +50,7 @@ export async function GET(request: Request) {
       2,
     );
 
-    if (legacy && isNaN(Number(legacy.lat))) {
+    if (legacy && isNaN(Number(legacy.lat)) && legacy.title && legacy.postal_zip_code) {
       // No lat,lon - extra processing
       const [place] = await googlePlaceQuery(`${legacy.title} ${legacy.postal_zip_code}`);
       if (place && place.place_id) {
@@ -64,9 +63,9 @@ export async function GET(request: Request) {
           listing_id,
         });
       }
-      // return getResponse({ place });
     }
 
+    console.log(`GET ${json_file}`);
     const cache = await axios.get(json_file);
     return getResponse(cache.data, 200);
   } catch (e) {
@@ -88,13 +87,13 @@ export async function GET(request: Request) {
         return getResponse(cache.data, 200);
       }
     }
-    console.log('properties.mls-id.GET axerr error');
+
     if (axerr.response?.data) {
       console.log(JSON.stringify(axerr.response?.data, null, 4));
     } else {
       console.log(axerr.response);
     }
-    console.log('end properties.GET  axerr error');
+    console.error(axerr);
     return getResponse(
       {
         api: 'properties.mls-id.GET',
@@ -104,11 +103,4 @@ export async function GET(request: Request) {
       400,
     );
   }
-  return getResponse(
-    {
-      api: 'properties.mls-id.GET',
-      message: `MLS ID: ${mls_id} not found`,
-    },
-    400,
-  );
 }
