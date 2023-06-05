@@ -148,7 +148,7 @@ export async function createAgentRecordIfNoneFound(
         if (agent_attributes[k] === null) delete agent_attributes[k];
       });
 
-      getSmart(agent_attributes, listing, real_estate_board);
+      await getSmart(agent_attributes, listing, real_estate_board);
     }
     return agent;
   } catch (e) {
