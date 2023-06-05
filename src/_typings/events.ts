@@ -69,7 +69,7 @@ export const tabEventMapping: { [key: string]: Events } = {
 export type FormData = {
   // Handling data
   submit?: boolean; // if true, will trigger form submission
-  broadcast?: boolean; // if true, means that this event is a notification for consumers
+  subscribe?: boolean; // if true, means that ew have a new consumer of this form data
 };
 
 export interface PrivateListingData extends FormData {
@@ -80,5 +80,13 @@ export interface PrivateListingData extends FormData {
   photos?: ImagePreview[];
 
   // Address
+  neighbourhood?: string;
+  unit?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  address_string?: string;
+
+  // Home Summary
   // ...
 }

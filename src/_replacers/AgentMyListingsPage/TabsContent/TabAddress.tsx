@@ -1,43 +1,63 @@
-import { captureMatchingElements, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
-import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
+import React, { cloneElement, useState } from 'react';
+
 import { TabContentProps } from '@/_typings/agent-my-listings';
 import { searchByClasses, searchByPartOfClass } from '@/_utilities/rx-element-extractor';
-import React, { cloneElement, useState } from 'react';
+import { captureMatchingElements, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
+import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
+import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
 
 export default function TabAddress({ template, nextStepClick }: TabContentProps) {
   const [templates] = useState(captureMatchingElements(template, [{ elementName: 'input', searchFn: searchByPartOfClass(['f-field-wrapper']) }]));
+  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
+  console.log('data', data);
+
   const addressFields = [
     {
       label: 'Address',
-
       inputProps: {
-        placeholder: 'some placeholder',
-        name: 'neighbourhood',
+        placeholder: 'Address',
+        name: 'address_string',
       },
+      generatedAddress: 'address',
     },
     {
       label: 'Unit',
+      inputProps: {
+        name: 'unit',
+      },
+      generatedAddress: '',
     },
     {
       label: 'City',
+      inputProps: {
+        name: 'city',
+      },
+      generatedAddress: 'city',
     },
     {
       label: 'Provinance / State',
+      inputProps: {
+        name: 'state',
+      },
+      generatedAddress: 'state_province',
     },
     {
       label: 'Postal Code / ZIP Code',
+      inputProps: {
+        name: 'zip',
+      },
+      generatedAddress: '',
     },
     {
       label: 'Neighbourhood',
       inputProps: {
-        placeholder: 'some placeholder',
+        placeholder: 'Neighbourhood',
         name: 'neighbourhood',
       },
+      generatedAddress: '',
     },
   ];
   /// value and handleChange are for demo purpose
-  const [value, setValue] = useState('');
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {};
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['virtual-tours-inputs']),
@@ -45,17 +65,33 @@ export default function TabAddress({ template, nextStepClick }: TabContentProps)
         return cloneElement(
           child,
           {},
+          addressFields.map(field => {
+            const obj = data as unknown as object;
+            const keyIndex = Object.keys(obj).reduce((foundIndex, k, i) => {
+              return k === field.inputProps.name ? i + 1 : foundIndex;
+            }, 0);
+            const value = keyIndex ? Object.values(data as object)[keyIndex - 1].toString() : '';
 
-          addressFields.map((field, i) => (
-            <InputWithLabel
-              key={i}
-              inputProps={field.inputProps ?? {}}
-              label={field.label}
-              template={templates.input}
-              value={value}
-              handleChange={handleChange}
-            />
-          )),
+            const keyAlternative = field.generatedAddress.toString();
+            const keyAlternativeIndex = Object.keys(obj).reduce((foundIndex, k, i) => {
+              return k === keyAlternative ? i + 1 : foundIndex;
+            }, 0);
+            const valueAlternative = keyAlternativeIndex ? Object.values(data as object)[keyAlternativeIndex - 1].toString() : null;
+            return (
+              <InputWithLabel
+                key={field.inputProps.name}
+                inputProps={field.inputProps ?? {}}
+                label={field.label}
+                template={templates.input}
+                value={value ? value : valueAlternative === null ? value : ''}
+                handleChange={e =>
+                  fireEvent({
+                    [field.inputProps.name]: e.currentTarget.value,
+                  })
+                }
+              />
+            );
+          }),
         );
       },
     },

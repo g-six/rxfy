@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { Events, PrivateListingData, FormData } from '@/_typings/events';
 import { deepEqual } from '@/_helpers/functions';
+import { Events, PrivateListingData, FormData } from '@/_typings/events';
 
 export interface ImagePreview extends File {
   preview: string;
@@ -17,21 +17,6 @@ function throwIfNotFormData(value: any): asserts value is FormData {
 export default function useFormEvent<EventsFormData>(eventName: Events): { data?: EventsFormData; fireEvent: (data: EventsFormData) => void } {
   const [data, setData] = React.useState({} as EventsFormData);
 
-  const onEvent = React.useCallback(
-    (e: CustomEvent) => {
-      const newData = Object.assign({}, data, e.detail);
-      if (!deepEqual(newData, data)) {
-        setData(prev => ({ ...prev, ...e.detail }));
-      }
-    },
-    [data],
-  );
-
-  React.useEffect(() => {
-    document.addEventListener(eventName.toString(), onEvent as EventListener, false);
-    return () => document.removeEventListener(eventName.toString(), onEvent as EventListener, false);
-  }, [eventName, onEvent]);
-
   const fireEvent = React.useCallback(
     (data: EventsFormData) => {
       throwIfNotFormData(data);
@@ -39,6 +24,47 @@ export default function useFormEvent<EventsFormData>(eventName: Events): { data?
     },
     [eventName],
   );
+
+  const onEvent = React.useCallback(
+    (e: CustomEvent) => {
+      const newData = Object.assign({}, data, e.detail);
+
+      // we want to have diff of the objects (base and full)
+      // to have data of the form only (objForm)
+      const objBase = e.detail as FormData;
+      const objFull = newData as EventsFormData;
+      const objForm = Object.keys(objFull as object).reduce((obj, key) => {
+        if (!Object.keys(objBase).includes(key)) {
+          const o = objFull as unknown as object;
+          const keyIndex = Object.keys(o).reduce((foundIndex, k, i) => {
+            return k === key ? i + 1 : foundIndex;
+          }, 0);
+          const value = keyIndex ? Object.values(o)[keyIndex - 1] : '';
+          obj = Object.assign({}, { [key]: value });
+        }
+        return obj;
+      }, {});
+
+      // if this hook listens a new subscriber, we broadcast the current state of the form
+      if (newData.subscribe && Object.keys(objForm).length) {
+        fireEvent(Object.assign({}, objForm, { subscribe: true }) as EventsFormData);
+      } else if (!deepEqual(newData, data)) {
+        setData(prev => ({ ...prev, ...e.detail, subscribe: false }));
+      }
+    },
+    [data, fireEvent],
+  );
+
+  React.useEffect(() => {
+    document.addEventListener(eventName.toString(), onEvent as EventListener, false);
+    return () => document.removeEventListener(eventName.toString(), onEvent as EventListener, false);
+  }, [eventName, onEvent]);
+
+  React.useEffect(() => {
+    // we fire an event here only one time
+    // to communicate that there is another listener to this form state
+    fireEvent({ subscribe: true } as EventsFormData);
+  }, [fireEvent]);
 
   return { data, fireEvent };
 }
