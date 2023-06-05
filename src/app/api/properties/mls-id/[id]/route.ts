@@ -24,11 +24,11 @@ export async function GET(request: Request) {
   let address = '';
   let zip = '';
   try {
-    // await axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`, {
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    // });
+    await axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
     const [legacy] = await retrieveFromLegacyPipeline(
       {
         from: 0,
@@ -88,7 +88,7 @@ export async function GET(request: Request) {
         return getResponse(cache.data, 200);
       }
     }
-    console.log('properties.GET axerr error');
+    console.log('properties.mls-id.GET axerr error');
     if (axerr.response?.data) {
       console.log(JSON.stringify(axerr.response?.data, null, 4));
     } else {

@@ -37,7 +37,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     console.log('fetching property page', webflow_page_url);
   }
 
-  let data, realtor, listings, property, legacy_data;
+  let data, listings, property, legacy_data;
 
   try {
     const req_page_html = await axios.get(webflow_page_url);
