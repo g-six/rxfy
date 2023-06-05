@@ -15,7 +15,7 @@ export async function getSmart(
     property.baths
   }-baths located in ${property.target_city} from ${
     property.listing_date
-  }.\n\n Based on that information, write me a short and straight-forward realtor introduction from a first-person point of view for prospect clients belonging to the demographic looking for listings in the same city or area.`;
+  }.\n\n Based on that information, write me a short realtor introduction from a first-person point of view for prospect clients belonging to the demographic looking for listings in the same city or area.`;
   console.log('---');
   console.log('Processing:');
   console.log(prompt);
@@ -26,7 +26,7 @@ export async function getSmart(
       {
         prompt,
         max_tokens: 400,
-        temperature: 0.2,
+        temperature: 0.08,
         model: 'text-davinci-003',
       },
       {
