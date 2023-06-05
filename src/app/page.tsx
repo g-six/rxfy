@@ -58,12 +58,15 @@ export default async function Home({ params, searchParams }: { params: Record<st
       replaceByCheerio($, '.btn-stripe-buy', {
         href: process.env.NEXT_PUBLIC_BUY_BUTTON,
       });
-
+    if (!session_key && params.slug && ['ai', 'ai-result'].includes(params.slug as string)) {
+      data = '<html><head><meta name="title" content="Not found" /></head><body>Not found</body></html>';
+      notFound();
+    }
     if (session_key && params.slug !== 'ai') {
       const [session_hash, user_id] = session_key.split('-');
       const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
       agent_data = session.agent;
-      console.log({ session });
+
       if (session.agent && session.agent?.featured_listings?.length) {
         try {
           const feature_listing = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${session.agent.featured_listings[0]}/recent.json`);
