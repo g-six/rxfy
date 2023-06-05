@@ -19,13 +19,13 @@ export async function getSmart(
   console.log('---');
   console.log('Processing:');
   // console.log(prompt);
-  console.log(`curl ${process.env.NEXT_APP_OPENAI_URI} -H 'content-type: application/json' -H 'authorization: bearer ${process.env.NEXT_APP_OPENAI_API}' \\`);
+  console.log(`curl ${process.env.NEXT_APP_OPENAI_URI} -H 'content-type: application/json' -H 'Authorization: Bearer ${process.env.NEXT_APP_OPENAI_API}' \\`);
   console.log(
     ' -d',
     JSON.stringify({
       prompt,
       max_tokens: 400,
-      temperature: 0.12,
+      temperature: 0.2,
       model: 'text-davinci-003',
     }),
   );
