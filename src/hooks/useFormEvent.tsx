@@ -20,7 +20,7 @@ export default function useFormEvent<EventsFormData>(eventName: Events): { data?
   const onEvent = React.useCallback(
     (e: CustomEvent) => {
       const newData = Object.assign({}, data, e.detail);
-      if (!deepEqual(newData as object, data as object)) {
+      if (!deepEqual(newData, data)) {
         setData(prev => ({ ...prev, ...e.detail }));
       }
     },
