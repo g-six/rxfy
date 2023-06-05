@@ -1,10 +1,10 @@
-import { MLSProperty, PROPERTY_ASSOCIATION_KEYS, PropertyDataModel } from '@/_typings/property';
+import { PROPERTY_ASSOCIATION_KEYS, PropertyDataModel } from '@/_typings/property';
 import { Events, EventsData } from '@/_typings/events';
 import { Filter } from '@/_typings/filters_compare';
 import { FILTERS } from './constants';
-import { tabs } from '@/_typings/saved-homes-tabs';
-import { property_features } from '@/_utilities/data-helpers/property-page';
+import { savedHomesTabs } from '@/_typings/saved-homes-tabs';
 import { toKebabCase } from '@/_utilities/string-helper';
+
 export function getAgentUrlFromName(name: string) {
   const agentSlug = '/' + name.toLowerCase().replace(' ', '-');
   return '/p' + agentSlug;
@@ -100,7 +100,7 @@ export const fireCustomEvent = (data: EventsData = {}, eventName: Events) => {
   document.dispatchEvent(new CustomEvent(eventName, { detail: data }));
 };
 export const getCurrentTab = (tabsDOMs: Element[]): string => {
-  const tabsArray: string[] = Object.values(tabs);
+  const tabsArray: string[] = Object.values(savedHomesTabs);
   const currentTabDOM = tabsDOMs.find(child => {
     return Array.from(child.classList).find(cls => ['w--current'].includes(cls));
   });
@@ -255,3 +255,37 @@ export function getFeatureIcons(property: unknown) {
 
   return features;
 }
+
+export const deepEqual = (objA: any, objB: any, map = new WeakMap()) => {
+  if (Object.is(objA, objB)) return true;
+
+  if (objA instanceof Date && objB instanceof Date) {
+    return objA.getTime() === objB.getTime();
+  }
+  if (objA instanceof RegExp && objB instanceof RegExp) {
+    return objA.toString() === objB.toString();
+  }
+
+  objA = objA ? (objA as object) : null;
+  objB = objB ? (objB as object) : null;
+  if (typeof objA !== 'object' || objA === null || typeof objB !== 'object' || objB === null) {
+    return false;
+  }
+
+  if (map.get(objA) === objB) return true;
+  map.set(objA, objB);
+
+  const keysA = Reflect.ownKeys(objA);
+  const keysB = Reflect.ownKeys(objB);
+
+  if (keysA.length !== keysB.length) {
+    return false;
+  }
+
+  for (let i = 0; i < keysA.length; i++) {
+    if (!Reflect.has(objB, keysA[i]) || !deepEqual(objA[keysA[i]], objB[keysA[i]], map)) {
+      return false;
+    }
+  }
+  return true;
+};

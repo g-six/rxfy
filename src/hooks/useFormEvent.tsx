@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Events, PrivateListingData, FormData } from '@/_typings/events';
+import { deepEqual } from '@/_helpers/functions';
 
 export interface ImagePreview extends File {
   preview: string;
@@ -16,9 +17,15 @@ function throwIfNotFormData(value: any): asserts value is FormData {
 export default function useFormEvent<EventsFormData>(eventName: Events): { data?: EventsFormData; fireEvent: (data: EventsFormData) => void } {
   const [data, setData] = React.useState({} as EventsFormData);
 
-  const onEvent = React.useCallback((e: CustomEvent) => {
-    setData(prev => ({ ...prev, ...e.detail }));
-  }, []);
+  const onEvent = React.useCallback(
+    (e: CustomEvent) => {
+      const newData = Object.assign({}, data, e.detail);
+      if (!deepEqual(newData as object, data as object)) {
+        setData(prev => ({ ...prev, ...e.detail }));
+      }
+    },
+    [data],
+  );
 
   React.useEffect(() => {
     document.addEventListener(eventName.toString(), onEvent as EventListener, false);
