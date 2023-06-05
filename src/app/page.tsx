@@ -53,7 +53,12 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const $: CheerioAPI = load(data);
 
   // Special cases
-  if (webflow_domain === `${process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN}`) {
+  if (agent_data.webflow_domain === 'leagent-website.webflow.io') {
+    if (process.env.NEXT_PUBLIC_BUY_BUTTON)
+      replaceByCheerio($, '.btn-stripe-buy', {
+        href: process.env.NEXT_PUBLIC_BUY_BUTTON,
+      });
+
     if (session_key && params.slug !== 'ai') {
       const [session_hash, user_id] = session_key.split('-');
       const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');

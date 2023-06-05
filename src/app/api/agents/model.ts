@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { gql_by_email, gql_create_agent } from './graphql';
+import { gql_by_agent_id, gql_create_agent } from './graphql';
 import { WEBFLOW_THEME_DOMAINS } from '@/_typings/webflow';
 import { RealEstateBoardDataModel } from '@/_typings/real-estate-board';
 import { AgentInput } from '@/_typings/agent';
@@ -88,11 +88,13 @@ export async function createAgentRecordIfNoneFound(
   if (!full_name) return;
 
   try {
-    const variables = { email };
+    // const variables = { email };
+    const variables = { agent_id };
     const { data: response_data } = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
       {
-        query: gql_by_email,
+        query: gql_by_agent_id,
+        // query: gql_by_email,
         variables,
       },
       {
@@ -103,8 +105,8 @@ export async function createAgentRecordIfNoneFound(
       },
     );
 
-    const first_name = `${full_name}`.split(' ')[0];
-    const last_name = `${full_name}`.split(' ').slice(0, 2).pop();
+    let first_name = `${full_name}`.split(' ')[0];
+    let last_name = `${full_name}`.split(' ').slice(0, 2).pop();
 
     let [agent] = response_data?.data?.agents?.data;
 
@@ -127,14 +129,19 @@ export async function createAgentRecordIfNoneFound(
       console.log('took', [Date.now() - t.getTime(), 'ms'].join(''));
       console.log('---');
     } else {
-      console.log("Agent found, let's use it");
+      first_name = agent.attributes.full_name.split(' ')[0];
+      last_name = agent.attributes.full_name.split(' ').slice(0, 2).pop();
+      last_name = (last_name && last_name.split('PREC*').join('').trim()) || '';
+      console.log(`Agent found, let's use ${first_name} ${last_name}`);
     }
-    if (!agent.attributes.agent_metatag?.data?.attributes?.personal_bio && listing?.description) {
+    if (!agent.attributes?.agent_metatag?.data?.attributes?.personal_bio && listing?.description) {
       console.log('No agent bio, sprucing it up...');
       console.log(agent);
       const agent_attributes: AgentInput & { id: number } & { [key: string]: string | number } = {
         id: Number(agent.id),
         ...agent.attributes,
+        first_name,
+        last_name,
       };
 
       Object.keys(agent_attributes).forEach(k => {
