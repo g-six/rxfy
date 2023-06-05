@@ -281,30 +281,12 @@ async function searchAgentById(agent_id: string) {
   return response_data?.data?.agents?.data[0] || {};
 }
 
-async function claimAgent(
-  id: number,
-  user_data: { email: string; encrypted_password: string; full_name: string; login_email: string; phone_number: string },
-  stripe_data: {
-    customer_id: string;
-    subscriptions: { [key: string]: { [key: string]: string } };
-  },
-) {
-  const { customer_id: stripe_customer, subscriptions: stripe_subscriptions } = stripe_data;
-  const last_activity_at = new Date().toISOString();
-  const input: RealtorInput = {
-    email: user_data.login_email.toLowerCase(),
-    encrypted_password: user_data.encrypted_password,
-    full_name: user_data.full_name,
-    phone_number: user_data.phone_number,
-    is_verified: user_data.email.toLowerCase() === user_data.login_email.toLowerCase(),
-    last_activity_at,
-    agent: Number(id),
-    stripe_customer,
-    stripe_subscriptions,
-  };
-
-  const domain_name = `r${id}.leagent.com`;
-
+/**
+ * Creates a domain (under the rexify project) using Vercel's API
+ * @param domain_name string
+ * @param agent_record_id number agents.id
+ */
+async function createRealtorVercelDomain(domain_name: string, id: number) {
   console.log(`Creating vercel domain ${domain_name}`);
   try {
     const vercel_headers = {
@@ -342,6 +324,31 @@ async function claimAgent(
   } catch (e) {
     console.log('Unable to successfully create vercel domain.');
   }
+}
+
+async function claimAgent(
+  id: number,
+  user_data: { email: string; encrypted_password: string; full_name: string; login_email: string; phone_number: string },
+  stripe_data: {
+    customer_id: string;
+    subscriptions: { [key: string]: { [key: string]: string } };
+  },
+) {
+  const { customer_id: stripe_customer, subscriptions: stripe_subscriptions } = stripe_data;
+  const last_activity_at = new Date().toISOString();
+  const input: RealtorInput = {
+    email: user_data.login_email.toLowerCase(),
+    encrypted_password: user_data.encrypted_password,
+    full_name: user_data.full_name,
+    phone_number: user_data.phone_number,
+    is_verified: user_data.email.toLowerCase() === user_data.login_email.toLowerCase(),
+    last_activity_at,
+    agent: Number(id),
+    stripe_customer,
+    stripe_subscriptions,
+  };
+
+  // await createRealtorVercelDomain(`r${id}.leagent.com`, id);
 
   const realtor_response = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
