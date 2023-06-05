@@ -30,8 +30,8 @@ export async function getSmart(
   //   }),
   // );
   console.log('---');
-  axios
-    .post(
+  try {
+    const { data } = await axios.post(
       `${process.env.NEXT_APP_OPENAI_URI}`,
       {
         prompt,
@@ -45,103 +45,118 @@ export async function getSmart(
           Authorization: `Bearer ${process.env.NEXT_APP_OPENAI_API}`,
         },
       },
-    )
-    .then(({ data }) => {
-      const {
-        choices: [{ text }],
-        error,
-      } = data;
-      console.log(
-        JSON.stringify(
-          {
-            error: error || {},
-          },
-          null,
-          4,
-        ),
-      );
-      const ai_results = JSON.parse(text.trim());
-      console.log(
-        JSON.stringify(
-          {
-            ai_results,
-          },
-          null,
-          4,
-        ),
-      );
-      if (ai_results.bio) {
-        const { target_city, lat, lng } = property;
-        const metatag = {
-          agent_id: agent.agent_id,
-          target_city,
-          lat,
-          lng,
-          title: agent.full_name,
-          personal_title: ai_results.tagline,
-          personal_bio: ai_results.bio,
-          description: ai_results.metatags,
-          profile_slug: [
-            `${real_estate_board?.abbreviation || 'la'}`,
-            slugifyAddress(agent.full_name).split('-')[0],
-            `${`${agent.phone}`.split('').reverse().join('').substring(0, 4).split('').reverse().join('')}`,
-          ].join('-'),
-        };
-        console.log({ metatag });
-        axios
-          .post(
-            `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-            {
-              query: mutation_create_meta,
-              variables: {
-                data: metatag,
-              },
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-                'Content-Type': 'application/json',
-              },
-            },
-          )
-          .then(res => {
-            const agent_metatag = Number(res.data?.data?.createAgentMetatag?.data.id);
+    );
+    // axios
+    //   .post(
+    //     `${process.env.NEXT_APP_OPENAI_URI}`,
+    //     {
+    //       prompt,
+    //       max_tokens: 400,
+    //       temperature: 0.1,
+    //       model: 'text-davinci-003',
+    //     },
+    //     {
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //         Authorization: `Bearer ${process.env.NEXT_APP_OPENAI_API}`,
+    //       },
+    //     },
+    //   )
+    // .then(({ data }) => {
+    const {
+      choices: [{ text }],
+      error,
+    } = data;
+    console.log(
+      JSON.stringify(
+        {
+          error: error || {},
+        },
+        null,
+        4,
+      ),
+    );
+    const ai_results = JSON.parse(text.trim());
+    console.log(
+      JSON.stringify(
+        {
+          ai_results,
+        },
+        null,
+        4,
+      ),
+    );
+    if (ai_results.bio) {
+      const { target_city, lat, lng } = property;
+      const metatag = {
+        agent_id: agent.agent_id,
+        target_city,
+        lat,
+        lng,
+        title: agent.full_name,
+        personal_title: ai_results.tagline,
+        personal_bio: ai_results.bio,
+        description: ai_results.metatags,
+        profile_slug: [
+          `${real_estate_board?.abbreviation || 'la'}`,
+          slugifyAddress(agent.full_name).split('-')[0],
+          `${`${agent.phone}`.split('').reverse().join('').substring(0, 4).split('').reverse().join('')}`,
+        ].join('-'),
+      };
 
-            console.log('Link agent record', agent.id, 'to metadata', { agent_metatag });
-            axios
-              .post(
-                `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-                {
-                  query: mutation_update_agent,
-                  variables: {
-                    id: Number(agent.id),
-                    data: {
-                      agent_metatag,
-                    },
-                  },
-                },
-                {
-                  headers: {
-                    Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-                    'Content-Type': 'application/json',
-                  },
-                },
-              )
-              .then(res => {
-                console.log(res.data?.data?.updateAgent);
-                console.log('...[DONE] mutation_create_meta');
-              });
-          })
-          .catch(e => {
-            console.log('OpenAI error for prompt:');
-            console.log(prompt);
-            console.log(e);
-          });
-      }
-    })
-    .catch(e => {
-      console.log('OpenAI error for prompt:');
-      console.log(prompt);
-      console.log(e);
-    });
+      const created_metatag = await axios.post(
+        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+        {
+          query: mutation_create_meta,
+          variables: {
+            data: metatag,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      const agent_metatag = Number(created_metatag.data?.data?.createAgentMetatag?.data.id);
+
+      console.log('Link agent record', agent.id, 'to metadata', { agent_metatag });
+      axios
+        .post(
+          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+          {
+            query: mutation_update_agent,
+            variables: {
+              id: Number(agent.id),
+              data: {
+                agent_metatag,
+              },
+            },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+        .then(res => {
+          console.log(res.data?.data?.updateAgent);
+          console.log('...[DONE] mutation_create_meta');
+        });
+
+      // .catch(e => {
+      //   console.log('OpenAI error for prompt:');
+      //   console.log(prompt);
+      //   console.log(e);
+      // });
+    }
+    // })
+  } catch (e) {
+    console.log('OpenAI error for prompt:');
+    console.log(prompt);
+    console.log(e);
+  }
 }
