@@ -15,5 +15,5 @@ export async function getUserBySessionKey(session_key: string, user_type: 'realt
       [key: string]: string | number;
     };
   };
-  return session.data || { error: 'Invalid token provided' };
+  return session?.data || { error: 'Invalid token provided' };
 }
