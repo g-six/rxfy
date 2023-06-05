@@ -285,11 +285,11 @@ async function claimAgent(
   id: number,
   user_data: { email: string; encrypted_password: string; full_name: string; login_email: string; phone_number: string },
   stripe_data: {
-    customer: string;
+    customer_id: string;
     subscriptions: { [key: string]: { [key: string]: string } };
   },
 ) {
-  const { customer: stripe_customer, subscriptions: stripe_subscriptions } = stripe_data;
+  const { customer_id: stripe_customer, subscriptions: stripe_subscriptions } = stripe_data;
   const last_activity_at = new Date().toISOString();
   const input: RealtorInput = {
     email: user_data.login_email.toLowerCase(),
