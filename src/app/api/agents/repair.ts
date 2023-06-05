@@ -18,7 +18,7 @@ export async function getSmart(
   }.\n\nBased on that information, write me a 5-sentence realtor bio (JSON key "bio") from a first-person point of view for prospect clients belonging to the demographic looking for listings in the same city or area, a set of SEO metatags (JSON key "metatags") fit for my professional website and a well structured SEO friendly tagline  (JSON key "tagline").  Contain the results in JSON key-value pair format.`;
   console.log('---');
   console.log('Processing:');
-  console.log(prompt);
+  // console.log(prompt);
   console.log('---');
   axios
     .post(
