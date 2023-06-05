@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   let prompt =
     'A JSON summarizing the real estate property:\n\n' +
     payload.description +
-    '\n\n{ "beds": Bedrooms, "baths": Bathrooms, "property_type": Style of Home, "panoramic_view": "View" }';
+    '\nContain the results in the following JSON format:\n{ "beds": Bedrooms, "baths": Bathrooms, "property_type": Style of Home, "panoramic_view": "View" }';
   //   prompt = `\n\n ${ai_instructions}`;
   const ai_response = await axios.post(
     `${process.env.NEXT_APP_OPENAI_URI}`,
