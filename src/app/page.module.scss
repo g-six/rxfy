@@ -38,6 +38,55 @@
   border-radius: var(--border-radius);
 }
 
+.scaledHomePage {
+  @apply px-6 #{!important};
+  > div {
+    @apply origin-top scale-95 #{!important};
+    h1 {
+      @apply origin-top-left scale-75 #{!important};
+    }
+  }
+}
+.scaledHomePageFeaturedListings {
+  @apply px-6 #{!important};
+  > div {
+    @apply origin-top scale-95 #{!important};
+    :global(.featured-listings-header) {
+      @apply origin-top scale-75 #{!important};
+    }
+  }
+}
+.previewListingPage {
+  @apply px-0;
+  :global(.section---top-stats),
+  :global(.section---beds-baths) {
+    @apply px-4 #{!important};
+  }
+  :global(.section-images) {
+    :global(.w-lightbox) {
+      @apply h-36 #{!important};
+    }
+  }
+}
+.propertyBottomPhotoGrid {
+  @apply h-36 #{!important};
+}
+.propertyTopPhotoGrid {
+  @apply flex justify-center p-0 #{!important};
+  :global(.property-images-lightbox) {
+    @apply h-80 w-full px-4 #{!important};
+  }
+  :global(.property-photos-grid-4) {
+    @apply h-80 #{!important};
+  }
+  :global(.property-image-wrapper) {
+    @apply h-80 #{!important};
+  }
+  :global(.property-images-more-4) {
+    @apply h-80 #{!important};
+  }
+}
+
 .code {
   font-weight: 700;
   font-family: var(--font-mono);

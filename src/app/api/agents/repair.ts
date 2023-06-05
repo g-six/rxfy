@@ -9,16 +9,26 @@ export async function getSmart(
   property: { [key: string]: string | number },
   real_estate_board?: { id: number; name: string; abbreviation: string },
 ) {
-  let prompt = `My name's ${agent.full_name} and I'm a licenced realtor ${`${real_estate_board?.name ? `(${real_estate_board.name}) ` : ''}`}who sells ${
+  let prompt = `My name's ${agent.full_name} and I'm a licenced realtor for ${`${real_estate_board?.name ? `(${real_estate_board.name}) ` : ''}`}who sells ${
     property.property_type
-  } homes.  For instance, I've recently listed a ${getShortPrice(Number(property.asking_price), '$')}, ${property.beds}-bedroom / ${
+  } homes, among many others.  For instance, I've recently listed a ${getShortPrice(Number(property.asking_price), '$')}, ${property.beds}-bedroom / ${
     property.baths
   }-baths located in ${property.target_city} from ${
     property.listing_date
-  }.\n\n Based on that information, write me a good realtor bio from a first-person point of view for prospect clients belonging to the demographic looking for listings in the same city or area.`;
+  }.\n\nBased on that information, write me a realtor bio (JSON key "bio") from a first-person point of view for prospect clients belonging to the demographic looking for listings in the same city or area, a set of SEO metatags (JSON key "metatags") fit for my professional website and a well structured SEO friendly tagline  (JSON key "tagline").  Contain the results in JSON key-value pair format.`;
   console.log('---');
   console.log('Processing:');
-  console.log(prompt);
+  // console.log(prompt);
+  console.log(`curl ${process.env.NEXT_APP_OPENAI_URI} -H 'content-type: application/json' -H 'Authorization: Bearer ${process.env.NEXT_APP_OPENAI_API}' \\`);
+  // console.log(
+  //   ' -d',
+  //   JSON.stringify({
+  //     prompt,
+  //     max_tokens: 400,
+  //     temperature: 0.2,
+  //     model: 'text-davinci-003',
+  //   }),
+  // );
   console.log('---');
   axios
     .post(
@@ -26,7 +36,7 @@ export async function getSmart(
       {
         prompt,
         max_tokens: 400,
-        temperature: 0.2,
+        temperature: 0.1,
         model: 'text-davinci-003',
       },
       {
@@ -39,13 +49,28 @@ export async function getSmart(
     .then(({ data }) => {
       const {
         choices: [{ text }],
+        error,
       } = data;
-      const personal_bio = text.trim();
-
-      if (personal_bio) {
-        const personal_title = personal_bio.trim().split('. ')[0];
-        const description = [personal_bio.trim().split('. ').slice(1, 3).join('. '), '.'].join('');
-
+      console.log(
+        JSON.stringify(
+          {
+            error: error || {},
+          },
+          null,
+          4,
+        ),
+      );
+      const ai_results = JSON.parse(text.trim());
+      console.log(
+        JSON.stringify(
+          {
+            ai_results,
+          },
+          null,
+          4,
+        ),
+      );
+      if (ai_results.bio) {
         const { target_city, lat, lng } = property;
         const metatag = {
           agent_id: agent.agent_id,
@@ -53,9 +78,9 @@ export async function getSmart(
           lat,
           lng,
           title: agent.full_name,
-          personal_title,
-          personal_bio,
-          description,
+          personal_title: ai_results.tagline,
+          personal_bio: ai_results.bio,
+          description: ai_results.metatags,
           profile_slug: [
             `${real_estate_board?.abbreviation || 'la'}`,
             slugifyAddress(agent.full_name).split('-')[0],
@@ -82,13 +107,6 @@ export async function getSmart(
           .then(res => {
             const agent_metatag = Number(res.data?.data?.createAgentMetatag?.data.id);
 
-            // return {
-            //   ...attributes,
-            //   first_name,
-            //   last_name,
-            //   id: Number(agent_record_id),
-            //   real_estate_board,
-            // };
             console.log('Link agent record', agent.id, 'to metadata', { agent_metatag });
             axios
               .post(

@@ -28,6 +28,7 @@ export enum Events {
   TogglePhotoSliderModal = 'photo-slider-modal',
   PropertyGalleryModal = 'property-gallery-modal',
   PrivateListingForm = 'event-private-listing-form',
+  LoadUserSession = 'load-session',
 }
 
 export enum NotificationCategory {
@@ -55,6 +56,7 @@ export interface EventsData {
   alertData?: SavedSearchInput;
   reload?: boolean;
   photos?: string[];
+  user?: unknown;
 }
 export const tabEventMapping: { [key: string]: Events } = {
   'indiv-view': Events.SavedItemsIndivTab,

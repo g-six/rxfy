@@ -29,6 +29,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   PROPERTY_IMAGES_COLLECTION = 'property-image-collection2',
   PROPERTY_FEATURES = 'div-features-block',
   PROPERTY_SOLD_HISTORY = 'div-sold-history',
+  PROPERTY_AGENT = 'little-profile-card',
   PROPERTY_BUILD_HISTORY = 'div-building-units-on-sale',
 
   DOCUMENTS = 'docs-section',
@@ -49,6 +50,9 @@ export enum WEBFLOW_NODE_SELECTOR {
 
   // Realtor signup
   AI_PROMPT_MODAL = 'ai-prompt-modal',
+  AI_THEME_PANE_1 = '.w-tabs-1-data-w-pane-0 .theme-area',
+  AI_THEME_PANE_2 = 'realtor-ai-property-page',
+  AGENT_NAME_WRAPPER = 'agent-name',
 }
 
 export interface WebFlow {

@@ -3,6 +3,7 @@ import { MLSProperty, PropertyDataModel } from '@/_typings/property';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 
 export function replaceMetaTags(headCode: string, agent: AgentData, property?: object) {
+  if (!agent || !agent.metatags) return headCode;
   const prop = property as PropertyDataModel & { photos?: string[] };
   if (headCode.length) {
     // fields to place
