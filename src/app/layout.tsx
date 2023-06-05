@@ -99,7 +99,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const { class: className, ...head_props } = webflow.head.props;
   const { class: bodyClassName, ...body_props } = webflow.body.props;
-  if (!agent_data) {
+  if (!agent_data || agent_data.webflow_domain === process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN) {
     return (
       <html data-wf-domain={`${process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN}`} {...$('html').attr()}>
         <head
