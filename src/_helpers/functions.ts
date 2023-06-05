@@ -2,7 +2,7 @@ import { MLSProperty, PROPERTY_ASSOCIATION_KEYS, PropertyDataModel } from '@/_ty
 import { Events, EventsData } from '@/_typings/events';
 import { Filter } from '@/_typings/filters_compare';
 import { FILTERS } from './constants';
-import { tabs } from '@/_typings/saved-homes-tabs';
+import { savedHomesTabs } from '@/_typings/saved-homes-tabs';
 import { property_features } from '@/_utilities/data-helpers/property-page';
 import { toKebabCase } from '@/_utilities/string-helper';
 export function getAgentUrlFromName(name: string) {
@@ -100,7 +100,7 @@ export const fireCustomEvent = (data: EventsData = {}, eventName: Events) => {
   document.dispatchEvent(new CustomEvent(eventName, { detail: data }));
 };
 export const getCurrentTab = (tabsDOMs: Element[]): string => {
-  const tabsArray: string[] = Object.values(tabs);
+  const tabsArray: string[] = Object.values(savedHomesTabs);
   const currentTabDOM = tabsDOMs.find(child => {
     return Array.from(child.classList).find(cls => ['w--current'].includes(cls));
   });
@@ -214,6 +214,7 @@ function getIcon(input: string) {
       };
 
     case 'construction-material-wooden-frame':
+    case 'construction-material-wood':
       return {
         'Wooden Frame': 'hardwood',
       };

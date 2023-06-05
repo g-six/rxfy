@@ -29,9 +29,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const { hostname, pathname } = new URL(url);
 
-  const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? `${TEST_DOMAIN}` : hostname);
+  const agent_data: AgentData | undefined = await getAgentDataFromDomain(hostname === 'localhost' ? `${TEST_DOMAIN}` : hostname);
   let data;
-  const page_url = `https://${agent_data.webflow_domain}${getFullWebflowPagePath(pathname)}`;
+
+  const page_url = !!agent_data.webflow_domain
+    ? `https://${agent_data.webflow_domain}${getFullWebflowPagePath(pathname)}`
+    : `https://${process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN}${getFullWebflowPagePath(pathname)}`;
+
   try {
     const req_page_html = await axios.get(page_url);
     data = req_page_html.data;
@@ -95,9 +99,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const { class: className, ...head_props } = webflow.head.props;
   const { class: bodyClassName, ...body_props } = webflow.body.props;
-  if (agent_data.webflow_domain === 'leagent-website.webflow.io') {
+  if (!agent_data || agent_data.webflow_domain === process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN) {
     return (
-      <html data-wf-domain={agent_data.webflow_domain} {...$('html').attr()}>
+      <html data-wf-domain={`${process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN}`} {...$('html').attr()}>
         <head
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
@@ -108,6 +112,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <body {...body_props} className={bodyClassName} suppressHydrationWarning>
           {children}
           {webflow.body.code && rexifyScriptsV2(webflow.body.code)}
+          <script
+            type='text/javascript'
+            dangerouslySetInnerHTML={{
+              __html: initializePlacesAutocomplete({
+                apiKey: NEXT_APP_GGL_API_KEY || '',
+              }),
+            }}
+          ></script>
+          <Script
+            src={`https://maps.googleapis.com/maps/api/js?key=${NEXT_APP_GGL_API_KEY}&libraries=places,localContext&v=beta&callback=initializePlacesAutocomplete`}
+          />
         </body>
       </html>
     );

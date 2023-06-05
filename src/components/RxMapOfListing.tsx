@@ -20,7 +20,7 @@ export default function RxMapOfListing({ property, child, mapType }: Props) {
   const [mapZoom] = React.useState(15); //zoom level
   const [mapCenter] = React.useState({ lng: property?.lon, lat: property?.lat });
 
-  const google = window?.google ? window['google'] : undefined;
+  const google = typeof window !== 'undefined' && window?.google ? window['google'] : undefined;
 
   const initNeighborhoodView = React.useCallback(() => {
     if (ref && ref.current && google) {
