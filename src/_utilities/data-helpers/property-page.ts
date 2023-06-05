@@ -361,7 +361,7 @@ async function upsertPropertyToCMS(mls_id: string) {
   const axios: AxiosStatic = (await import('axios')).default;
   try {
     const xhr = await axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`);
-    const json = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/listings/${mls_id}/recent.json`);
+    const json = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/listings/${mls_id}/recent.json`);
 
     return json || xhr.data;
   } catch (e) {

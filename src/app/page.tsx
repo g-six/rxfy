@@ -66,7 +66,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
       console.log({ session });
       if (session.agent && session.agent?.featured_listings?.length) {
         try {
-          const feature_listing = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${session.agent.featured_listings[0]}/recent.json`);
+          const feature_listing = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${session.agent.featured_listings[0]}/recent.json`);
           property = feature_listing.data;
           property.listing_by = `Listing courtesy of ${session.agent.full_name}`;
         } catch (e) {
@@ -152,8 +152,8 @@ export default async function Home({ params, searchParams }: { params: Record<st
           property = await getPropertyData(searchParams.id);
         } else {
           try {
-            const cached_xhr = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/recent.json`);
-            const cached_legacy_xhr = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/legacy.json`);
+            const cached_xhr = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/recent.json`);
+            const cached_legacy_xhr = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/legacy.json`);
             property = cached_xhr.data;
             legacy_data = cached_legacy_xhr.data;
           } catch (e) {
