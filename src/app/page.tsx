@@ -58,7 +58,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
       replaceByCheerio($, '.btn-stripe-buy', {
         href: process.env.NEXT_PUBLIC_BUY_BUTTON,
       });
-    if (!session_key && params.slug && ['ai', 'ai-result'].includes(params.slug as string)) {
+    if (!session_key && params.slug && ['ai-result'].includes(params.slug as string)) {
       data = '<html><head><meta name="title" content="Not found" /></head><body>Not found</body></html>';
       notFound();
     }
