@@ -234,9 +234,7 @@ function getIcon(input: string) {
       };
 
     default:
-      return {
-        [input]: toKebabCase(input),
-      };
+      return {};
   }
 }
 export function getFeatureIcons(property: unknown) {
