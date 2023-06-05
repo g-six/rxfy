@@ -49,8 +49,18 @@ export async function getSmart(
     .then(({ data }) => {
       const {
         choices: [{ text }],
+        error,
       } = data;
       const ai_results = JSON.parse(text.trim());
+      console.log(
+        JSON.stringify(
+          {
+            error,
+          },
+          null,
+          4,
+        ),
+      );
       console.log(
         JSON.stringify(
           {
