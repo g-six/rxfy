@@ -84,7 +84,7 @@ export async function POST(req: Request) {
       agent_id: string;
     };
     stripe: {
-      customer: string;
+      customer_id: string;
       subscriptions: {
         [key: string]: {
           invoice: string;
