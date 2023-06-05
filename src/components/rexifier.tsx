@@ -43,6 +43,8 @@ import RxMyHomeAlerts from './full-pages/RxMyHomeAlerts';
 import { RxTextInput } from './RxTextInput';
 import RxContactFormButton from './RxForms/RxContactFormButton';
 import RxSessionDropdown from './Nav/RxSessionDropdown';
+import AiPrompt from '@/rexify/realtors/ai';
+import AiResult from '@/rexify/realtors/ai-results';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -141,6 +143,12 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
   }
 }
 
+export function replaceRealtorAiResultPage($: CheerioAPI) {
+  replaceByCheerio($, WEBFLOW_NODE_SELECTOR.AI_THEME_PANE_1, {
+    className: 'rexified rx-homepage-theme-preview',
+  });
+}
+
 export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapper_selector = '.similar-homes-grid', card_selector = '.property-card') {
   if (properties.length === 0) {
     $(wrapper_selector).remove();
@@ -216,6 +224,7 @@ type ReplacementOptions = {
   backgroundImage?: string;
   content?: string;
   prepend?: string;
+  href?: string;
   className?: string;
   ['data-mls']?: string;
   city?: string;
@@ -262,6 +271,9 @@ export function replaceByCheerio($: CheerioAPI, target: string, replacement: Rep
       ];
       $(target).attr('href', `/map?${query_params.join('&')}`);
       $(target).text(replacement.city);
+    } else if (replacement.href) {
+      $(target).attr('data-original-href', $(target).attr('href'));
+      $(target).attr('href', replacement.href);
     }
   }
 }
@@ -286,9 +298,7 @@ export function replaceInlineScripts($: CheerioAPI) {
 }
 
 export function appendJs(url: string, delay = 1200) {
-  console.log('appendJs:', url);
   if (url.indexOf('website-files.com') >= 0) {
-    console.log('timeout is set at', delay);
     return `
       var Webflow = Webflow || [];
       Webflow.push(() => {
@@ -341,7 +351,7 @@ export function rexifyScriptsV2(html_code: string) {
                 <script
                   suppressHydrationWarning
                   dangerouslySetInnerHTML={{
-                    __html: appendJs(attribs.src, 1000),
+                    __html: appendJs(attribs.src, 1400),
                   }}
                 />
               </>
@@ -430,8 +440,30 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           );
         }
 
+        if (props.className) {
+          if (props.className.indexOf(WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL) >= 0)
+            return (
+              <AiPrompt>
+                <>{domToReact(node.children)}</>
+              </AiPrompt>
+            );
+          if (props.className.indexOf(WEBFLOW_NODE_SELECTOR.AI_THEME_PANE_2) >= 0) {
+            return (
+              <div className={props.className}>
+                <RxDetailedListing
+                  property={property as unknown as PropertyDataModel}
+                  agent={agent_data}
+                  nodeClassName={WEBFLOW_NODE_SELECTOR.PROPERTY_PAGE}
+                  nodeProps={props}
+                  nodes={domToReact(node.children) as ReactElement[]}
+                />
+              </div>
+            );
+          }
+        }
+
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.SESSION_DROPDOWN) >= 0) {
-          return <RxSessionDropdown>{domToReact(node.children) as ReactElement}</RxSessionDropdown>;
+          return <RxSessionDropdown agent={agent_data}>{domToReact(node.children) as ReactElement}</RxSessionDropdown>;
         }
 
         // Property PDF Brochure rendering

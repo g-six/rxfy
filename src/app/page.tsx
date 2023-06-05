@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { cookies, headers } from 'next/headers';
 import { Inter } from 'next/font/google';
 
-import { WebFlow } from '@/_typings/webflow';
+import { WEBFLOW_NODE_SELECTOR, WebFlow } from '@/_typings/webflow';
 import { MLSProperty } from '@/_typings/property';
 import { AgentData } from '@/_typings/agent';
 import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
@@ -15,30 +15,29 @@ import { fillAgentInfo, fillPropertyGrid, removeSection, replaceByCheerio, rexif
 import RxNotifications from '@/components/RxNotifications';
 import MyProfilePage from '@/rexify/my-profile';
 import styles from './page.module.scss';
+import { getUserDataFromSessionKey } from './api/update-session';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico'];
+
 export default async function Home({ params, searchParams }: { params: Record<string, unknown>; searchParams: Record<string, string> }) {
   const { TEST_DOMAIN } = process.env as unknown as { [key: string]: string };
   const axios = (await import('axios')).default;
   const url = headers().get('x-url') as string;
   const { hostname, pathname, origin } = new URL(url);
 
-  const session_key = cookies().get('session_key')?.value || '';
-  const is_realtor = cookies().get('session_as')?.value === 'realtor';
-
-  const agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? TEST_DOMAIN : hostname);
+  let session_key = cookies().get('session_key')?.value || '';
+  let agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? TEST_DOMAIN : hostname);
+  let webflow_domain = agent_data ? agent_data.webflow_domain : process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN;
   let webflow_page_url =
-    params && params.slug && !skip_slugs.includes(params.slug as string)
-      ? `https://${agent_data.webflow_domain}/${params.slug}`
-      : `https://${agent_data.webflow_domain}`;
+    params && params.slug && !skip_slugs.includes(params.slug as string) ? `https://${webflow_domain}/${params.slug}` : `https://${webflow_domain}`;
 
   if (params && params.slug === 'property') {
     webflow_page_url = `${webflow_page_url}/${params.slug}id`;
     console.log('fetching property page', webflow_page_url);
   }
 
-  let data;
+  let data, realtor, listings, property, legacy_data;
 
   try {
     const req_page_html = await axios.get(webflow_page_url);
@@ -54,27 +53,50 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const $: CheerioAPI = load(data);
 
   // Special cases
-  if (agent_data.webflow_domain === 'leagent-website.webflow.io' && params.slug === 'my-profile') {
-    let session;
-    if (session_key && is_realtor) {
-      // const api_response = await axios
-      //   .get(`/api/check-session/agent`, {
-      //     headers: {
-      //       Authorization: `Bearer ${session_key}`,
-      //     },
-      //   })
-      //   .catch(e => {
-      //     const axerr = e as AxiosError;
-      //     console.log({ pathname, origin });
-      //     console.log('page / leagent-website.webflow.io User not logged in');
-      //     console.log(axerr.message);
-      //   });
-      // session = api_response as unknown as RealtorInputModel & {
-      //   brokerage: BrokerageInputModel;
-      //   session_key: string;
-      // };
+  if (agent_data.webflow_domain === 'leagent-website.webflow.io') {
+    if (process.env.NEXT_PUBLIC_BUY_BUTTON)
+      replaceByCheerio($, '.btn-stripe-buy', {
+        href: process.env.NEXT_PUBLIC_BUY_BUTTON,
+      });
+
+    if (session_key && params.slug !== 'ai') {
+      const [session_hash, user_id] = session_key.split('-');
+      const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
+      agent_data = session.agent;
+
+      if (session.agent.featured_listings?.length) {
+        try {
+          const feature_listing = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${session.agent.featured_listings[0]}/recent.json`);
+          property = feature_listing.data;
+          property.listing_by = `Listing courtesy of ${session.agent.full_name}`;
+        } catch (e) {
+          console.log('Featured listing not found');
+        }
+      }
+      if (agent_data) {
+        agent_data.metatags = session.agent.agent_metatag;
+        replaceByCheerio($, '[data-w-tab="Tab 1"] .theme-area .hero-heading-2', {
+          className: styles.scaledHomePage,
+        });
+        replaceByCheerio($, '[data-w-tab="Tab 1"] .section---featured-listings', {
+          className: styles.scaledHomePageFeaturedListings,
+        });
+        $('.building-and-sold-info').remove();
+        $('[class^="similar-homes"]').remove();
+        replaceByCheerio($, '[data-w-tab="Tab 2"] .f-section-large-11', {
+          className: [WEBFLOW_NODE_SELECTOR.AI_THEME_PANE_2, styles.previewListingPage].join(' '),
+        });
+        replaceByCheerio($, '[data-w-tab="Tab 2"] .section---top-images', {
+          className: styles.propertyTopPhotoGrid,
+        });
+      }
     }
-    return <MyProfilePage data={{ session_key }}>{parse($.html()) as unknown as JSX.Element}</MyProfilePage>;
+    switch (params.slug) {
+      case 'my-profile':
+        return <MyProfilePage data={{ session_key }}>{parse($.html()) as unknown as JSX.Element}</MyProfilePage>;
+      default:
+        break;
+    }
   }
 
   replaceByCheerio($, '.w-nav-menu .nav-dropdown-2', {
@@ -98,9 +120,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     className: 'filter-group-modal',
   });
 
-  let listings, property, legacy_data;
-
-  if (agent_data.webflow_domain != 'leagent-website.webflow.io') {
+  if (webflow_domain !== `${process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN}`) {
     if (!params || !params.slug || params.slug === '/') {
       if (agent_data && agent_data.agent_id) {
         listings = await getAgentListings(agent_data.agent_id);
@@ -117,6 +137,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
         } else {
           removeSection($, '.sold-listings-grid');
         }
+        await fillAgentInfo($, agent_data);
       } else {
         console.log('\n\nHome.agent_data not available');
       }
@@ -134,7 +155,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
             const cached_xhr = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/recent.json`);
             const cached_legacy_xhr = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/legacy.json`);
             property = cached_xhr.data;
-            console.log({ searchParams }, `${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/recent.json found`);
             legacy_data = cached_legacy_xhr.data;
           } catch (e) {
             // No cache, do the long query
@@ -156,7 +176,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
         });
       }
     }
-    await fillAgentInfo($, agent_data);
 
     $('.w-webflow-badge').remove();
   }

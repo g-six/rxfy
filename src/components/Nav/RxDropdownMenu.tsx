@@ -34,6 +34,14 @@ function RxNavPopup(p: PopupProps) {
       transformChild: (child: React.ReactElement) => <RxUserSessionLink {...child.props}>{child.props.children}</RxUserSessionLink>,
     },
     {
+      searchFn: searchByClasses(['dropdown-wrap']),
+      transformChild: (child: React.ReactElement) =>
+        React.cloneElement(child, {
+          ...child.props,
+          className: [child.props.className, styles.dropdown].join(' '),
+        }),
+    },
+    {
       searchFn: searchByClasses(['out-session']),
       transformChild: (child: React.ReactElement) =>
         React.cloneElement(child, {

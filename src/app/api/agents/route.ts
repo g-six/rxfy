@@ -5,7 +5,6 @@ import { encrypt } from '@/_utilities/encryption-helper';
 import { getResponse } from '../response-helper';
 import { AxiosError } from 'axios';
 import { createAgentRecordIfNoneFound } from './model';
-import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
 import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
 import { LegacySearchPayload } from '@/_typings/pipeline';
 import { getRealEstateBoard } from '../real-estate-boards/model';
@@ -63,9 +62,11 @@ export async function POST(req: Request) {
 
   try {
     // TODO: listing refactor
-    const { agent_id, email, phone, full_name } = payload;
+    const {
+      user: { agent_id, email, phone, full_name },
+      stripe,
+    } = payload;
     let { listing, real_estate_board } = payload;
-    const { customer_id, first_name, last_name } = payload; // Stripe webhook
 
     if (agent_id && email && phone && full_name) {
       if (listing && real_estate_board) {
@@ -80,7 +81,7 @@ export async function POST(req: Request) {
           listing,
         );
         return getResponse(agent, 200);
-      } else if (customer_id && first_name && last_name) {
+      } else if (stripe?.customer_id) {
         // From Stripe signups
         const legacy_params: LegacySearchPayload = {
           from: 0,
@@ -99,7 +100,7 @@ export async function POST(req: Request) {
             },
           },
         };
-        const legacy_listings = await retrieveFromLegacyPipeline(legacy_params, undefined, true);
+        const legacy_listings = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
         listing = legacy_listings.length && legacy_listings[0];
         if (listing) {
           const {
@@ -116,16 +117,7 @@ export async function POST(req: Request) {
             ...mls_data
           } = listing;
           real_estate_board = await getRealEstateBoard(mls_data as unknown as Record<string, string>);
-          // return getResponse({
-          //   agent: {
-          //     agent_id,
-          //     email,
-          //     phone,
-          //     full_name,
-          //   },
-          //   real_estate_board,
-          //   listing: ,
-          // });
+
           const agent = await createAgentRecordIfNoneFound(
             {
               agent_id,
