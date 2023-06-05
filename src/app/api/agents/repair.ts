@@ -41,7 +41,15 @@ export async function getSmart(
         choices: [{ text }],
       } = data;
       const ai_results = JSON.parse(text.trim());
-
+      console.log(
+        JSON.stringify(
+          {
+            ai_results,
+          },
+          null,
+          4,
+        ),
+      );
       if (ai_results.bio) {
         const { target_city, lat, lng } = property;
         const metatag = {
