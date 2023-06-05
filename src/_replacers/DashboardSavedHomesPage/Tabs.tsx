@@ -1,5 +1,5 @@
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
-import { tabs } from '@/_typings/saved-homes-tabs';
+import { savedHomesTabs } from '@/_typings/saved-homes-tabs';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 
 import React, { Dispatch, ReactElement, SetStateAction, cloneElement, useEffect } from 'react';
@@ -10,7 +10,7 @@ type Props = {
 };
 
 export default function Tabs({ child, setCurrentTab }: Props) {
-  const tabsArray: string[] = Object.values(tabs);
+  const tabsArray: string[] = Object.values(savedHomesTabs);
   const makeCurrent = (child: ReactElement) => () => {
     setCurrentTab(getTabVal(child) ?? '');
   };
@@ -32,7 +32,7 @@ export default function Tabs({ child, setCurrentTab }: Props) {
   }, []);
   const matches = [
     {
-      searchFn: searchByClasses([tabs.INDIVIDUAL]),
+      searchFn: searchByClasses([savedHomesTabs.INDIVIDUAL]),
       transformChild: (child: ReactElement) => {
         return cloneElement(child, {
           onClick: makeCurrent(child),
@@ -40,7 +40,7 @@ export default function Tabs({ child, setCurrentTab }: Props) {
       },
     },
     {
-      searchFn: searchByClasses([tabs.MAP_VIEW]),
+      searchFn: searchByClasses([savedHomesTabs.MAP_VIEW]),
       transformChild: (child: ReactElement) => {
         return cloneElement(child, {
           onClick: makeCurrent(child),
@@ -48,7 +48,7 @@ export default function Tabs({ child, setCurrentTab }: Props) {
       },
     },
     {
-      searchFn: searchByClasses([tabs.COMPARE]),
+      searchFn: searchByClasses([savedHomesTabs.COMPARE]),
       transformChild: (child: ReactElement) => {
         return cloneElement(child, {
           onClick: makeCurrent(child),
