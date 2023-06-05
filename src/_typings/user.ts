@@ -17,3 +17,19 @@ export interface UserData extends UserDataCore {
     login?: UserDataCore;
   };
 }
+
+export interface RealtorInput {
+  email: string;
+  encrypted_password: string;
+  full_name: string;
+  phone_number: string;
+  is_verified: boolean;
+  last_activity_at: string;
+  agent: number;
+  stripe_customer: string;
+  stripe_subscriptions: {
+    [key: string]: {
+      [key: string]: string;
+    };
+  };
+}

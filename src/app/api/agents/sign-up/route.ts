@@ -5,6 +5,7 @@ import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { sendTemplate } from '../../send-template';
 import { MessageRecipient } from '@mailchimp/mailchimp_transactional';
 import { createAgent } from '../model';
+import { RealtorInput } from '@/_typings/user';
 
 const gql_find_agent = `query RetrieveAgentRecord($agent_id: String!) {
     agents(filters: { agent_id: { eq: $agent_id } }) {
@@ -288,8 +289,9 @@ async function claimAgent(
     subscriptions: { [key: string]: { [key: string]: string } };
   },
 ) {
+  const { customer: stripe_customer, subscriptions: stripe_subscriptions } = stripe_data;
   const last_activity_at = new Date().toISOString();
-  const RealtorInput = {
+  const input: RealtorInput = {
     email: user_data.login_email.toLowerCase(),
     encrypted_password: user_data.encrypted_password,
     full_name: user_data.full_name,
@@ -297,7 +299,8 @@ async function claimAgent(
     is_verified: user_data.email.toLowerCase() === user_data.login_email.toLowerCase(),
     last_activity_at,
     agent: Number(id),
-    stripe: stripe_data,
+    stripe_customer,
+    stripe_subscriptions,
   };
 
   const domain_name = `r${id}.leagent.com`;
@@ -345,7 +348,7 @@ async function claimAgent(
     {
       query: gql_create_realtor,
       variables: {
-        data: RealtorInput,
+        data: input,
       },
     },
     {
