@@ -184,7 +184,7 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
         ...real_estate_board.attributes,
         id: real_estate_board.id ? Number(real_estate_board.id) : undefined,
       };
-      const listings_cache_url = `${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${agent.data.attributes.agent_id}.json`;
+      const listings_cache_url = `${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent.data.attributes.agent_id}?regen=1`;
       console.log({ listings_cache_url });
       let featured_listings = [];
       try {
