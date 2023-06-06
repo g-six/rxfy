@@ -107,14 +107,14 @@ export async function createAgentRecordIfNoneFound(
 
     let first_name = `${full_name}`.split(' ')[0];
     let last_name = `${full_name}`.split(' ').slice(0, 2).pop();
-
+    last_name = (last_name && last_name.split('PREC*').join('').trim()) || '';
     let [agent] = response_data?.data?.agents?.data;
 
     if (!agent) {
       console.log("Agent not found, let's create it");
       const create_this = {
         agent_id,
-        full_name,
+        full_name: full_name.split('PREC').join('').trim().split('*').join(''),
         first_name,
         last_name,
         phone,
@@ -129,14 +129,12 @@ export async function createAgentRecordIfNoneFound(
       console.log('took', [Date.now() - t.getTime(), 'ms'].join(''));
       console.log('---');
     } else {
-      first_name = agent.attributes.full_name.split(' ')[0];
-      last_name = agent.attributes.full_name.split(' ').slice(0, 2).pop();
-      last_name = (last_name && last_name.split('PREC*').join('').trim()) || '';
       console.log(`Agent found, let's use ${first_name} ${last_name}`);
     }
     if (!agent.attributes?.agent_metatag?.data?.attributes?.personal_bio && listing?.description) {
       console.log('No agent bio, sprucing it up...');
-      console.log(agent);
+      console.log(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent.attributes.agent_id}`);
+      axios.get(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent.attributes.agent_id}`);
       const agent_attributes: AgentInput & { id: number } & { [key: string]: string | number } = {
         id: Number(agent.id),
         ...agent.attributes,
