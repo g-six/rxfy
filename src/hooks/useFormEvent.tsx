@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { deepEqual } from '@/_helpers/functions';
+import { ValueInterface } from '@/_typings/ui-types';
 import { Events, PrivateListingData, FormData } from '@/_typings/events';
 
 export interface ImagePreview extends File {
@@ -14,14 +15,21 @@ function throwIfNotFormData(value: any): asserts value is FormData {
   throw 'The arg. is not of FormData or its child!';
 }
 
-export function getValueByKey(key: string, obj: object) {
+export function getValueByKey(key: string, data: any) {
+  const obj = data as Object;
   const keyIndex =
     obj && Object.keys(obj).length
       ? Object.keys(obj).reduce((foundIndex, k, i) => {
           return k === key ? i + 1 : foundIndex;
         }, 0)
       : 0;
-  return keyIndex && obj && Object.keys(obj).length ? Object.values(obj)[keyIndex - 1].toString() : null;
+  return keyIndex && obj && Object.keys(obj).length ? Object.values(obj)[keyIndex - 1] : null;
+}
+
+export function setMultiSelectValue(val: ValueInterface, currentVal: ValueInterface[]) {
+  const isIn = currentVal?.some((item: ValueInterface) => item.value === val.value);
+  const newArr = isIn ? currentVal?.filter((item: ValueInterface) => item.value !== val.value) : [...(currentVal ?? []), val];
+  return [...newArr];
 }
 
 export default function useFormEvent<EventsFormData>(eventName: Events): { data?: EventsFormData; fireEvent: (data: EventsFormData) => void } {

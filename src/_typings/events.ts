@@ -1,6 +1,7 @@
 import { MLSProperty } from './property';
 import { SavedSearchInput } from './saved-search';
 import { ImagePreview } from '@/hooks/useFormEvent';
+import { ValueInterface } from '@/_typings/ui-types';
 
 export enum Events {
   Login = 'event-login',
@@ -88,15 +89,15 @@ export interface PrivateListingData extends FormData {
   address_string?: string;
 
   // Home Summary
-  built_year?: string;
-  property_disclosure?: string;
-  property_tax?: string;
-  tax_year?: string;
-  property_type?: string;
   asking_price?: string;
-  building_style?: string;
-  amenities?: string[];
-  utilities?: string[];
+  built_year?: string;
+  tax_year?: string;
+  property_tax?: string;
+  property_disclosure?: string;
+  property_type?: ValueInterface;
+  building_style?: ValueInterface;
+  amenities?: ValueInterface[];
+  utilities?: ValueInterface[];
 
   // ...
 }

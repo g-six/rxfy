@@ -9,10 +9,11 @@ import ChipsWithLabel from '@/_replacers/FilterFields/ChipsWithLabel';
 import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
 import SelectWithLabel from '@/_replacers/FilterFields/SelectWithLabel';
 
-import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
+import useFormEvent, { Events, PrivateListingData, getValueByKey, setMultiSelectValue } from '@/hooks/useFormEvent';
 
 export default function TabSummary({ template, nextStepClick, attributes }: TabContentProps) {
   const { building_styles, connected_services, amenities, types } = attributes || {};
+
   const [templates] = useState(
     captureMatchingElements(template, [
       { elementName: 'selectInput', searchFn: searchByPartOfClass(['select-input']) },
@@ -20,22 +21,8 @@ export default function TabSummary({ template, nextStepClick, attributes }: TabC
       { elementName: 'chipsWithLabel', searchFn: searchByPartOfClass(['chips-fieldset']) },
     ]),
   );
-  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
-  // state and handleSelectValue are just for demo purpose only
-  const [selectedValue, setSelectedValue] = useState<ValueInterface | null>(null);
-  const handleSelectValue = (value: ValueInterface) => {
-    setSelectedValue(value);
-  };
 
-  /// value and handleChange are for demo purpose
-  const [value, setValue] = useState();
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {};
-  const [selectedChips, setSelectedChips] = useState<ValueInterface[]>([]);
-  const handleSelect = (value: ValueInterface) => {
-    const isIn = selectedChips?.some((item: ValueInterface) => item.value === value.value);
-    const newArr = isIn ? selectedChips?.filter((item: ValueInterface) => item.value !== value.value) : [...(selectedChips ?? []), value];
-    setSelectedChips([...newArr]);
-  };
+  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
 
   const summaryFields = [
     {
@@ -46,7 +33,6 @@ export default function TabSummary({ template, nextStepClick, attributes }: TabC
         name: 'property_type',
       },
       template: templates.selectInput,
-      onChange: handleSelectValue,
     },
     {
       label: 'Asking Price',
@@ -55,7 +41,6 @@ export default function TabSummary({ template, nextStepClick, attributes }: TabC
         name: 'asking_price',
       },
       template: templates.input,
-      onChange: handleChange,
     },
     {
       label: 'Building Style',
@@ -65,7 +50,6 @@ export default function TabSummary({ template, nextStepClick, attributes }: TabC
         name: 'building_style',
       },
       template: templates.selectInput,
-      onChange: handleSelectValue,
     },
     {
       label: 'Year Built',
@@ -74,7 +58,6 @@ export default function TabSummary({ template, nextStepClick, attributes }: TabC
         name: 'built_year',
       },
       template: templates.input,
-      onChange: handleChange,
     },
     {
       label: '??? Property Disclosure',
@@ -83,7 +66,6 @@ export default function TabSummary({ template, nextStepClick, attributes }: TabC
         name: 'property_disclosure',
       },
       template: templates.input,
-      onChange: handleChange,
     },
     {
       label: 'Property Tax Amount',
@@ -92,7 +74,6 @@ export default function TabSummary({ template, nextStepClick, attributes }: TabC
         name: 'property_tax',
       },
       template: templates.input,
-      onChange: handleChange,
     },
     {
       label: 'For Tax Year',
@@ -101,7 +82,6 @@ export default function TabSummary({ template, nextStepClick, attributes }: TabC
         name: 'tax_year',
       },
       template: templates.input,
-      onChange: handleChange,
     },
   ];
 
@@ -113,7 +93,6 @@ export default function TabSummary({ template, nextStepClick, attributes }: TabC
         list: amenities,
       },
       template: templates.chipsWithLabel,
-      onChange: handleSelect,
     },
     {
       label: 'Utilities',
@@ -122,7 +101,6 @@ export default function TabSummary({ template, nextStepClick, attributes }: TabC
         list: connected_services,
       },
       template: templates.chipsWithLabel,
-      onChange: handleSelect,
     },
   ];
 
@@ -133,8 +111,7 @@ export default function TabSummary({ template, nextStepClick, attributes }: TabC
         return cloneElement(child, {}, [
           ...summaryFields.map(field => {
             const isInput = !field.inputProps.values;
-            const handleChangeInput = field.onChange as (e: React.ChangeEvent<HTMLInputElement>) => void;
-            const handleChangeSelect = field.onChange as (value: ValueInterface) => void;
+            const value = getValueByKey(field.inputProps.name, data);
             return isInput ? (
               <InputWithLabel
                 key={field.inputProps.name}
@@ -144,7 +121,7 @@ export default function TabSummary({ template, nextStepClick, attributes }: TabC
                 }}
                 value={value}
                 label={field.label}
-                handleChange={handleChangeInput}
+                handleChange={e => fireEvent({ [field.inputProps.name]: e.currentTarget.value })}
               />
             ) : (
               <SelectWithLabel
@@ -153,19 +130,23 @@ export default function TabSummary({ template, nextStepClick, attributes }: TabC
                 values={field.inputProps.values as ValueInterface[]}
                 label={field.label}
                 placeholder={field.inputProps.placeholder}
-                selectedValue={selectedValue}
-                handleSelect={handleChangeSelect}
+                selectedValue={value}
+                handleSelect={val => fireEvent({ [field.inputProps.name]: val })}
               />
             );
           }),
           ...chipFields.map(field => {
+            const value = getValueByKey(field.inputProps.name, data);
             return (
               <ChipsWithLabel
                 key={field.inputProps.name}
                 label={field.label}
                 template={field.template}
-                values={selectedChips}
-                handleSelect={field.onChange}
+                values={value ? value : []}
+                handleSelect={val => {
+                  const newValue = setMultiSelectValue(val, value ? value : []);
+                  fireEvent({ [field.inputProps.name]: newValue });
+                }}
                 chipsList={field.inputProps.list}
               />
             );
