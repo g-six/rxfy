@@ -6,6 +6,7 @@ import Script from 'next/script';
 import React from 'react';
 interface DataModel extends RealtorInputModel {
   session_key?: string;
+  'user-type'?: string;
 }
 type Props = {
   data: DataModel;
@@ -96,7 +97,7 @@ export function RxPageIterator(props: Props) {
     if (child.props && child.props.children) {
       if (child.props?.className?.split(' ').includes('my-account-wrapper')) {
         return (
-          <RxMyAccountPage {...child.props} data={props.data}>
+          <RxMyAccountPage {...child.props} data={props.data} user-type={props.data['user-type']}>
             {child.props.children}
           </RxMyAccountPage>
         );

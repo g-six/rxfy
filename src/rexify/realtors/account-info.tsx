@@ -8,6 +8,7 @@ import { RxPageIterator } from '@/components/full-pages/RxMyAccountPage';
 type Props = {
   children: React.ReactElement[];
   className?: string;
+  'user-type': string;
 };
 
 export default function RealtorAccountInfo(p: Props) {

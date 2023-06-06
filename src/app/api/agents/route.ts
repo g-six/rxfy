@@ -62,11 +62,11 @@ export async function POST(req: Request) {
 
   try {
     // TODO: listing refactor
-    const {
-      user: { agent_id, email, phone, full_name },
-      stripe,
-    } = payload;
-    let { listing, real_estate_board } = payload;
+    const { user, stripe, agent_id } = payload;
+    let { email, phone, full_name, listing, real_estate_board } = payload;
+    if (user?.email) email = user.email;
+    if (user?.phone) phone = user.phone;
+    if (user?.full_name) full_name = user.full_name;
 
     if (agent_id && email && phone && full_name) {
       if (listing && real_estate_board) {

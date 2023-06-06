@@ -8,7 +8,7 @@ export function PersonalTitle(props: Record<string, unknown>) {
     const agent = data as AgentData;
     if (agent.metatags && agent.metatags.personal_title) {
       return (
-        <h1 id='reidget-personal-title' {...attribs}>
+        <h1 id='rexified-personal-title' {...attribs}>
           {agent.metatags.personal_title}
         </h1>
       );
