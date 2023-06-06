@@ -104,5 +104,18 @@ export interface PrivateListingData extends FormData {
   amenities?: ValueInterface[];
   utilities?: ValueInterface[];
 
+  // Size
+  living_area?: string;
+  living_area_units?: ValueInterface;
+  total_size?: string;
+  total_size_units?: ValueInterface;
+  beds?: string;
+  baths?: string;
+  baths_full?: string;
+  baths_half?: string;
+  kitchens?: string;
+  additional_rooms?: string;
+  name?: string;
+
   // ...
 }

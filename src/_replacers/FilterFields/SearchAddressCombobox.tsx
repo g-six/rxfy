@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { Combobox } from '@headlessui/react';
 
 import { CheckIcon, MapPinIcon } from '@heroicons/react/20/solid';
-import { Combobox } from '@headlessui/react';
 import { classNames } from '@/_utilities/html-helper';
 
 import useDebounce from '@/hooks/useDebounce';

@@ -13,7 +13,7 @@ export interface InputPropsInterface {
 }
 export interface SelectPropsInterface {
   values: ValueInterface[];
-  selectedValue: ValueInterface | null;
+  selectedValue: ValueInterface | null | undefined;
   handleSelect: (value: ValueInterface) => void;
   placeholder?: string;
 }
