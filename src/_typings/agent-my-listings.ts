@@ -1,5 +1,5 @@
 import { ReactElement } from 'react';
-import { ValueInterface } from './ui-types';
+import { ValueInterface, RoomDimension } from './ui-types';
 
 export enum createListingTabs {
   AI = 'tab-ai',
@@ -17,6 +17,7 @@ export interface TabContentProps {
   attributes: {
     [key: string]: ValueInterface[];
   };
+  initialState: any | undefined;
 }
 export interface RoomsGroupProps {
   heading?: string;
@@ -25,30 +26,36 @@ export interface RoomsGroupProps {
   inputTemplate: ReactElement;
   rowClassName?: string;
   checkboxTemplate?: ReactElement;
+  data?: RoomDimension[];
+  onChange: (index: number, param: string, val: string | boolean) => void;
 }
 export const regularRow = [
   {
     label: 'Room Name',
     inputProps: {
       placeholder: 'Room Name',
+      name: 'name',
     },
   },
   {
     label: 'Level',
     inputProps: {
       placeholder: 'Level',
+      name: 'level',
     },
   },
   {
     label: 'Dimensions 1',
     inputProps: {
       placeholder: 'Dimensions 1',
+      name: 'dimension1',
     },
   },
   {
     label: 'Dimensions 2',
     inputProps: {
       placeholder: 'Dimensions 2',
+      name: 'dimension2',
     },
   },
 ];

@@ -10,6 +10,7 @@ import { DwellingType } from '@/_typings/property';
 import { format } from 'date-fns';
 import { updateSearch } from '@/_utilities/api-calls/call-saved-search';
 import { AgentData } from '@/_typings/agent';
+import { ValueInterface } from '@/_typings/ui-types';
 
 type Props = {
   child: ReactElement;
@@ -19,7 +20,7 @@ type Props = {
 
 export default function MyHomeAlertCard({ child, data, agent_data }: Props) {
   const [wait, setWait] = useState(false);
-  let dwelling_types: string[] = data.dwelling_types?.map(ptype => ptype.name) || [];
+  let dwelling_types: ValueInterface[] = data.dwelling_types || [];
 
   const replace = {
     area: data.area || '',
@@ -41,7 +42,7 @@ export default function MyHomeAlertCard({ child, data, agent_data }: Props) {
       {
         show: true,
         message: 'Edit',
-        alertData: { ...data, dwelling_types: data.dwelling_types?.map(type => DwellingType[type.code as keyof typeof DwellingType]) ?? [] },
+        alertData: { ...data, dwelling_types },
       },
       Events.MyHomeAlertsModal,
     );

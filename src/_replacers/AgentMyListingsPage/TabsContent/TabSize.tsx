@@ -1,28 +1,25 @@
-import { captureMatchingElements, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
-import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
-import InputWithSelect from '@/_replacers/FilterFields/InputWithSelect';
-import { TabContentProps } from '@/_typings/agent-my-listings';
-import { ValueInterface } from '@/_typings/ui-types';
-import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import React, { cloneElement, useState } from 'react';
 
-export default function TabSize({ template, nextStepClick }: TabContentProps) {
+import { ValueInterface } from '@/_typings/ui-types';
+import { TabContentProps } from '@/_typings/agent-my-listings';
+import { captureMatchingElements, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
+
+import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
+import InputWithSelect from '@/_replacers/FilterFields/InputWithSelect';
+
+import useFormEvent, { Events, PrivateListingData, getValueByKey } from '@/hooks/useFormEvent';
+
+export default function TabSize({ template, nextStepClick, initialState }: TabContentProps) {
   const [templates] = useState(
     captureMatchingElements(template, [
       { elementName: 'mixedSelectInput', searchFn: searchByPartOfClass(['mixed-select-input']) },
       { elementName: 'input', searchFn: searchByPartOfClass(['text-input']) },
     ]),
   );
-  /// value and handleChange are for demo purpose
-  const [value, setValue] = useState();
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.name);
-  };
-  // state and handleSelectValue are just for demo purpose only
-  const [selectedValue, setSelectedValue] = useState<ValueInterface | null>({ value: 'sqft', label: 'sqft' });
-  const handleSelectValue = (value: ValueInterface) => {
-    setSelectedValue(value);
-  };
+
+  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
+
   const sizesElements = [
     {
       Component: InputWithSelect,
@@ -30,21 +27,18 @@ export default function TabSize({ template, nextStepClick }: TabContentProps) {
         template: templates.mixedSelectInput,
         label: 'Living Area',
         inputElementProps: {
-          value,
-          handleChange,
-          inputProps: {
-            placeholder: 'Living Area',
-          },
+          value: data?.living_area ?? '',
+          handleChange: (e: React.ChangeEvent<HTMLInputElement>) => fireEvent({ living_area: parseInt(e.currentTarget.value) }),
+          inputProps: { placeholder: 'Living Area' },
         },
         selectProps: {
           values: [
             { value: 'sqft', label: 'Sqft' },
             { value: 'sqm', label: 'SqM' },
           ],
-
-          placeholder: 'Choose Building Style',
-          selectedValue: selectedValue,
-          handleSelect: handleSelectValue,
+          placeholder: 'units',
+          selectedValue: data?.living_area_units,
+          handleSelect: (val: ValueInterface) => fireEvent({ living_area_units: val }),
         },
       },
     },
@@ -54,11 +48,9 @@ export default function TabSize({ template, nextStepClick }: TabContentProps) {
         template: templates.mixedSelectInput,
         label: 'Total Lot Size',
         inputElementProps: {
-          value,
-          handleChange,
-          inputProps: {
-            placeholder: 'Total Lot Size',
-          },
+          value: data?.total_size ?? '',
+          handleChange: (e: React.ChangeEvent<HTMLInputElement>) => fireEvent({ total_size: parseInt(e.currentTarget.value) }),
+          inputProps: { placeholder: 'Total Lot Size' },
         },
         selectProps: {
           values: [
@@ -66,9 +58,9 @@ export default function TabSize({ template, nextStepClick }: TabContentProps) {
             { value: 'sqm', label: 'SqM' },
           ],
 
-          placeholder: 'Choose Building Style',
-          selectedValue: selectedValue,
-          handleSelect: handleSelectValue,
+          placeholder: 'units',
+          selectedValue: data?.total_size_units,
+          handleSelect: (val: ValueInterface) => fireEvent({ total_size_units: val }),
         },
       },
     },
@@ -92,14 +84,14 @@ export default function TabSize({ template, nextStepClick }: TabContentProps) {
       label: '# of Full Baths',
       inputProps: {
         placeholder: '# of Full Baths',
-        name: 'baths-full',
+        name: 'baths_full',
       },
     },
     {
       label: '# of Half Baths',
       inputProps: {
         placeholder: '# of Half Baths',
-        name: 'baths-half',
+        name: 'baths_half',
       },
     },
     {
@@ -113,7 +105,7 @@ export default function TabSize({ template, nextStepClick }: TabContentProps) {
       label: '# of Additional Rooms',
       inputProps: {
         placeholder: '# of Additional Rooms',
-        name: 'additional-rooms',
+        name: 'additional_rooms',
       },
     },
     {
@@ -128,27 +120,25 @@ export default function TabSize({ template, nextStepClick }: TabContentProps) {
     {
       searchFn: searchByPartOfClass(['virtual-tours-inputs']),
       transformChild: child => {
-        return cloneElement(
-          child,
-          {},
-
-          [
-            ...sizesElements.map(({ Component, props }, i) => <Component key={i} {...props} />),
-            ...textFields.map((field, i) => (
-              <InputWithLabel
-                key={`${field.label}_${i}`}
-                inputProps={field.inputProps ?? {}}
-                label={field.label}
-                template={templates.input}
-                value={value}
-                handleChange={handleChange}
-              />
-            )),
-          ],
-        );
+        return cloneElement(child, {}, [
+          ...sizesElements.map(({ Component, props }, i) => <Component key={i} {...props} />),
+          ...textFields.map((field, i) => (
+            <InputWithLabel
+              key={`${field.label}_${i}`}
+              inputProps={field.inputProps ?? {}}
+              label={field.label}
+              template={templates.input}
+              value={getValueByKey(field.inputProps.name, data)}
+              handleChange={e => fireEvent({ [field.inputProps.name]: parseInt(e.currentTarget.value) })}
+            />
+          )),
+        ]);
       },
     },
-    { searchFn: searchByPartOfClass(['f-button-neutral', 'w-button']), transformChild: child => cloneElement(child, { onClick: nextStepClick }) },
+    {
+      searchFn: searchByPartOfClass(['f-button-neutral', 'w-button']),
+      transformChild: child => cloneElement(child, { onClick: nextStepClick }),
+    },
   ];
   return <>{transformMatchingElements(template, matches)}</>;
 }

@@ -15,10 +15,20 @@ export async function getSmart(
     property.baths
   }-baths located in ${property.target_city} from ${
     property.listing_date
-  }.\n\nBased on that information, write me a 5-sentence realtor bio (JSON key "bio") from a first-person point of view for prospect clients belonging to the demographic looking for listings in the same city or area, a set of SEO metatags (JSON key "metatags") fit for my professional website and a well structured SEO friendly tagline  (JSON key "tagline").  Contain the results in JSON key-value pair format.`;
+  }.\n\nBased on that information, write me a realtor bio (JSON key "bio") from a first-person point of view for prospect clients belonging to the demographic looking for listings in the same city or area, a set of SEO metatags (JSON key "metatags") fit for my professional website and a well structured SEO friendly tagline  (JSON key "tagline").  Contain the results in JSON key-value pair format.`;
   console.log('---');
   console.log('Processing:');
-  console.log(prompt);
+  // console.log(prompt);
+  console.log(`curl ${process.env.NEXT_APP_OPENAI_URI} -H 'content-type: application/json' -H 'Authorization: Bearer ${process.env.NEXT_APP_OPENAI_API}' \\`);
+  // console.log(
+  //   ' -d',
+  //   JSON.stringify({
+  //     prompt,
+  //     max_tokens: 400,
+  //     temperature: 0.2,
+  //     model: 'text-davinci-003',
+  //   }),
+  // );
   console.log('---');
   axios
     .post(
@@ -39,9 +49,27 @@ export async function getSmart(
     .then(({ data }) => {
       const {
         choices: [{ text }],
+        error,
       } = data;
+      console.log(
+        JSON.stringify(
+          {
+            error: error || {},
+          },
+          null,
+          4,
+        ),
+      );
       const ai_results = JSON.parse(text.trim());
-
+      console.log(
+        JSON.stringify(
+          {
+            ai_results,
+          },
+          null,
+          4,
+        ),
+      );
       if (ai_results.bio) {
         const { target_city, lat, lng } = property;
         const metatag = {

@@ -1,19 +1,19 @@
+import React, { cloneElement, useState } from 'react';
+
+import { TabContentProps } from '@/_typings/agent-my-listings';
+import { ValueInterface } from '@/_typings/ui-types';
+import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import { captureMatchingElements, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
-import ChipsList from '@/_replacers/FilterFields/ChipList';
+
 import ChipsWithLabel from '@/_replacers/FilterFields/ChipsWithLabel';
 import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
 import SelectWithLabel from '@/_replacers/FilterFields/SelectWithLabel';
 
-import { TabContentProps } from '@/_typings/agent-my-listings';
-import { DwellingType } from '@/_typings/property';
-import { ValueInterface } from '@/_typings/ui-types';
-import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
-import React, { cloneElement, useState } from 'react';
+import useFormEvent, { Events, PrivateListingData, getValueByKey, setMultiSelectValue } from '@/hooks/useFormEvent';
 
-type Props = {};
-
-export default function TabSummary({ template, nextStepClick, attributes }: TabContentProps) {
+export default function TabSummary({ template, nextStepClick, attributes, initialState }: TabContentProps) {
   const { building_styles, connected_services, amenities, types } = attributes || {};
+
   const [templates] = useState(
     captureMatchingElements(template, [
       { elementName: 'selectInput', searchFn: searchByPartOfClass(['select-input']) },
@@ -21,143 +21,143 @@ export default function TabSummary({ template, nextStepClick, attributes }: TabC
       { elementName: 'chipsWithLabel', searchFn: searchByPartOfClass(['chips-fieldset']) },
     ]),
   );
-  // state and handleSelectValue are just for demo purpose only
-  const [selectedValue, setSelectedValue] = useState<ValueInterface | null>(null);
-  const handleSelectValue = (value: ValueInterface) => {
-    setSelectedValue(value);
-  };
-  /// value and handleChange are for demo purpose
-  const [value, setValue] = useState();
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {};
-  const [selectedChips, setSelectedChips] = useState<ValueInterface[]>([]);
-  const handleSelect = (value: ValueInterface) => {
-    const isIn = selectedChips?.some((item: ValueInterface) => item.value === value.value);
-    const newArr = isIn ? selectedChips?.filter((item: ValueInterface) => item.value !== value.value) : [...(selectedChips ?? []), value];
-    setSelectedChips([...newArr]);
-  };
-  const values = [
-    { label: 'House', value: 'house' },
-    { label: 'Condo', value: 'condo' },
-  ];
-  const summaryInputElements = [
-    <SelectWithLabel
-      key={0}
-      template={templates.selectInput}
-      values={types}
-      label='Property Type'
-      placeholder='Choose Property Type'
-      selectedValue={selectedValue}
-      handleSelect={handleSelectValue}
-    />,
-    <InputWithLabel
-      key={1}
-      template={templates.input}
-      inputProps={{
-        placeholder: 'Asking Price',
-      }}
-      value={value}
-      handleChange={handleChange}
-    />,
 
-    <SelectWithLabel
-      key={2}
-      template={templates.selectInput}
-      values={building_styles}
-      label='Building Style'
-      placeholder='Choose Building Style'
-      selectedValue={selectedValue}
-      handleSelect={handleSelectValue}
-    />,
-    // <SelectWithLabel    DON"T HAVE ATTRIBUTES FOR IT
-    //   key={3}
-    //   template={templates.selectInput}
-    //   values={values}
-    //   label='Title to Land'
-    //   placeholder='Choose Title to Land'
-    //   selectedValue={selectedValue}
-    //   handleSelect={handleSelectValue}
-    // />,
-  ];
-  const textFields = [
+  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
+
+  const summaryFields = [
+    {
+      label: 'Property Type',
+      inputProps: {
+        placeholder: 'Choose Property Type',
+        values: types,
+        name: 'property_type',
+      },
+      template: templates.selectInput,
+    },
+    {
+      label: 'Asking Price',
+      inputProps: {
+        placeholder: 'Asking Price',
+        name: 'asking_price',
+      },
+      template: templates.input,
+    },
+    {
+      label: 'Building Style',
+      inputProps: {
+        placeholder: 'Choose Building Style',
+        values: building_styles,
+        name: 'building_style',
+      },
+      template: templates.selectInput,
+    },
     {
       label: 'Year Built',
       inputProps: {
         placeholder: 'Year Built',
         name: 'built_year',
       },
+      template: templates.input,
     },
     {
       label: '??? Property Disclosure',
       inputProps: {
         placeholder: 'Property Disclosure',
+        name: 'property_disclosure',
       },
+      template: templates.input,
     },
     {
       label: 'Property Tax Amount',
       inputProps: {
         placeholder: '$1,000',
+        name: 'property_tax',
       },
+      template: templates.input,
     },
     {
       label: 'For Tax Year',
       inputProps: {
         placeholder: '2021',
+        name: 'tax_year',
       },
+      template: templates.input,
     },
   ];
-  const amenitiesDemo = [
-    { label: 'House', value: DwellingType.HOUSE },
-    { label: 'Apartment/Condo', value: DwellingType.APARTMENT_CONDO },
-    { label: 'Townhouse', value: DwellingType.TOWNHOUSE },
-    { label: 'Duplex +', value: DwellingType.DUPLEX },
-    { label: 'Row House (Non-Strata)', value: DwellingType.ROW_HOUSE },
-    { label: 'Manufactured', value: DwellingType.MANUFACTURED },
-    { label: 'Other', value: DwellingType.OTHER },
+
+  const chipFields = [
+    {
+      label: 'Amenities',
+      inputProps: {
+        name: 'amenities',
+        list: amenities,
+      },
+      template: templates.chipsWithLabel,
+    },
+    {
+      label: 'Utilities',
+      inputProps: {
+        name: 'utilities',
+        list: connected_services,
+      },
+      template: templates.chipsWithLabel,
+    },
   ];
-  const chipsItems = [
-    <ChipsWithLabel
-      key={`chipsList-1`}
-      label='Amenities'
-      template={templates.chipsWithLabel}
-      values={selectedChips}
-      handleSelect={handleSelect}
-      chipsList={amenities}
-    />,
-    <ChipsWithLabel
-      key={`chipsList-2`}
-      label='Utilities'
-      template={templates.chipsWithLabel}
-      values={selectedChips}
-      handleSelect={handleSelect}
-      chipsList={connected_services}
-    />,
-  ];
+
   const matches: tMatch[] = [
     {
       searchFn: searchByPartOfClass(['virtual-tours-inputs']),
       transformChild: child => {
-        return cloneElement(
-          child,
-          {},
-
-          [
-            ...summaryInputElements,
-            ...textFields.map((field, i) => (
+        return cloneElement(child, {}, [
+          ...summaryFields.map(field => {
+            const isInput = !field.inputProps.values;
+            const value = getValueByKey(field.inputProps.name, data);
+            return isInput ? (
               <InputWithLabel
-                key={i + 3}
-                inputProps={field.inputProps ?? {}}
-                label={field.label}
-                template={templates.input}
+                key={field.inputProps.name}
+                template={field.template}
+                inputProps={{
+                  placeholder: field.inputProps.placeholder,
+                }}
                 value={value}
-                handleChange={handleChange}
+                label={field.label}
+                handleChange={e => fireEvent({ [field.inputProps.name]: e.currentTarget.value })}
               />
-            )),
-            ...chipsItems,
-          ],
-        );
+            ) : (
+              <SelectWithLabel
+                key={field.inputProps.name}
+                template={field.template}
+                values={field.inputProps.values as ValueInterface[]}
+                label={field.label}
+                placeholder={field.inputProps.placeholder}
+                selectedValue={value}
+                handleSelect={val => fireEvent({ [field.inputProps.name]: val })}
+              />
+            );
+          }),
+          ...chipFields.map(field => {
+            const value = getValueByKey(field.inputProps.name, data);
+            return (
+              <ChipsWithLabel
+                key={field.inputProps.name}
+                label={field.label}
+                template={field.template}
+                values={value ? value : []}
+                handleSelect={val => {
+                  const newValue = setMultiSelectValue(val, value ? value : []);
+                  fireEvent({ [field.inputProps.name]: newValue });
+                }}
+                chipsList={field.inputProps.list}
+              />
+            );
+          }),
+        ]);
       },
     },
-    { searchFn: searchByPartOfClass(['f-button-neutral', 'w-button']), transformChild: child => cloneElement(child, { onClick: nextStepClick }) },
+    {
+      searchFn: searchByPartOfClass(['f-button-neutral', 'w-button']),
+      transformChild: child => cloneElement(child, { onClick: nextStepClick }),
+    },
   ];
   // return template;
   return <>{transformMatchingElements(template, matches)}</>;

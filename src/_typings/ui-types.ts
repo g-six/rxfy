@@ -9,11 +9,20 @@ export interface InputPropsInterface {
   min?: number;
   max?: number;
   placeholder?: string;
+  name?: string;
   onBlur?: FocusEventHandler<HTMLInputElement>;
 }
 export interface SelectPropsInterface {
   values: ValueInterface[];
-  selectedValue: ValueInterface | null;
+  selectedValue: ValueInterface | null | undefined;
   handleSelect: (value: ValueInterface) => void;
   placeholder?: string;
+}
+
+export interface RoomDimension {
+  name?: string;
+  level?: string;
+  dimension1?: string;
+  dimension2?: string;
+  ensuite?: boolean;
 }

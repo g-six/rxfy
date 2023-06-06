@@ -1,5 +1,5 @@
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
-import { InputPropsInterface, SelectPropsInterface, ValueInterface } from '@/_typings/ui-types';
+import { InputPropsInterface, SelectPropsInterface } from '@/_typings/ui-types';
 import { searchByClasses, searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import RxSelect from '@/components/RxForms/RxSelect';
 import React, { ReactElement, cloneElement } from 'react';

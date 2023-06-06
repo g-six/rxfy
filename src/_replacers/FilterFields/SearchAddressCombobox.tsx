@@ -1,8 +1,8 @@
 'use client';
-import { ChangeEvent, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Combobox } from '@headlessui/react';
 
 import { CheckIcon, MapPinIcon } from '@heroicons/react/20/solid';
-import { Combobox } from '@headlessui/react';
 import { classNames } from '@/_utilities/html-helper';
 
 import useDebounce from '@/hooks/useDebounce';
@@ -14,6 +14,7 @@ export type SearchInputProps = {
   placeholder?: string;
   className?: string;
   onPlaceSelected(place: any): void;
+  search?: string;
 };
 interface SuggestionInterface {
   suggestion: string;
@@ -23,27 +24,26 @@ export default function SearchAddressCombobox(p: SearchInputProps) {
   const [address, setAddressQuery] = useState('');
   const debounced = useDebounce(address ?? '', 900);
   const [suggestions, setSuggestions] = useState<SuggestionInterface[]>([]);
-  const [selectedAddressData, setSelectedAddressData] = useState<any>();
-  function setValue(e: ChangeEvent<HTMLInputElement>) {
-    setAddressQuery(e.currentTarget.value);
-  }
+  const [selectedAddressData, setSelectedAddressData] = useState<any>({ address: p.search ?? '' });
+
   useEffect(() => {
     if (debounced.length > 4) {
-      queryPlace(debounced).then(res => {
-        setSuggestions(res);
-      });
+      queryPlace(debounced).then(res => setSuggestions(res));
     }
   }, [debounced]);
+
   return (
     <Combobox
       nullable
       as='div'
       value={selectedAddressData?.address ?? null}
       onChange={(value: any) => {
-        getPlaceDetails(value.place_id).then(res => {
-          setSelectedAddressData(res);
-          p.onPlaceSelected(res);
-        });
+        if (value?.place_id) {
+          getPlaceDetails(value.place_id).then(res => {
+            setSelectedAddressData(res);
+            p.onPlaceSelected(Object.assign({}, res));
+          });
+        }
       }}
       className='flex-1 w-full'
     >
@@ -52,12 +52,8 @@ export default function SearchAddressCombobox(p: SearchInputProps) {
           placeholder={p.placeholder}
           className={[p.className, 'pr-10'].join(' ')}
           autoComplete='off'
-          onChange={e => {
-            setAddressQuery(e.target.value);
-          }}
-          displayValue={(addressData: any) => {
-            return addressData;
-          }}
+          onChange={e => setAddressQuery(e.target.value)}
+          displayValue={(addressData: any) => addressData}
         />
 
         {suggestions && suggestions.length > 0 && (

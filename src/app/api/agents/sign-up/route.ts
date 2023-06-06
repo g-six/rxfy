@@ -188,11 +188,11 @@ export async function POST(req: Request) {
         email: claimed.attributes.email,
         name: claimed.attributes.full_name,
       },
-      {
-        email: 'team@leagent.com',
-        name: 'The Leagent Team',
-        type: 'bcc',
-      },
+      // {
+      //   email: 'team@leagent.com',
+      //   name: 'The Leagent Team',
+      //   type: 'bcc',
+      // },
     ];
     const url = new URL(req.url);
     await sendTemplate('welcome-agent', receipients, {

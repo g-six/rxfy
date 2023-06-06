@@ -15,8 +15,7 @@ type Props = {
 
 export default function NewOrEditListingTab({ child }: Props) {
   const [currentTab, setCurrentTab] = useState<string>(createListingTabs.AI);
-  const form = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
-  console.log('NewOrEditListingTab', form.data);
+  const { data } = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
 
   const matches: tMatch[] = [
     {
@@ -25,7 +24,7 @@ export default function NewOrEditListingTab({ child }: Props) {
     },
     {
       searchFn: searchByClasses(['tabs-content-2', 'w-tab-content']),
-      transformChild: child => <CurrentTabContent child={child} currentTab={currentTab} setCurrentTab={setCurrentTab} />,
+      transformChild: child => <CurrentTabContent child={child} currentTab={currentTab} setCurrentTab={setCurrentTab} data={data} />,
     },
   ];
   return <>{transformMatchingElements(child, matches)}</>;
