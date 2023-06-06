@@ -121,7 +121,13 @@ export default async function Home({ params, searchParams }: { params: Record<st
     }
     switch (params.slug) {
       case 'my-profile':
-        return <MyProfilePage data={{ session_key }}>{parse($.html()) as unknown as JSX.Element}</MyProfilePage>;
+        return (
+          <MyProfilePage
+            data={{ session_key, 'user-type': webflow_domain === (process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN as string) ? 'realtor' : 'customer' }}
+          >
+            {parse($.html()) as unknown as JSX.Element}
+          </MyProfilePage>
+        );
       default:
         break;
     }
@@ -224,7 +230,10 @@ export default async function Home({ params, searchParams }: { params: Record<st
     <>
       {webflow.body.code ? (
         <main className={styles['rx-realm']}>
-          {rexify(webflow.body.code, agent_data, property, params)}
+          {rexify(webflow.body.code, agent_data, property, {
+            ...params,
+            webflow_domain,
+          })}
           <RxNotifications />
         </main>
       ) : (
