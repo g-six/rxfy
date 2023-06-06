@@ -40,7 +40,8 @@ export default async function Home({ params, searchParams }: { params: Record<st
         metatags: agent_record.data.user.data.attributes.agent.data.attributes.agent_metatag.data.attributes,
       };
       console.log(`Load up ${pathname} ${searchParams.theme}`);
-      webflow_domain = `${searchParams.theme}-leagent.webflow.io`;
+      if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
+      else webflow_domain = `${searchParams.theme}-leagent.webflow.io`;
       agent_data.webflow_domain = webflow_domain;
     }
   }
@@ -99,14 +100,19 @@ export default async function Home({ params, searchParams }: { params: Record<st
         agent_data.metatags = session.agent.agent_metatag;
         ['oslo', 'hamburg', 'malta'].forEach(theme => {
           $(`.theme-area.home-${theme}`).replaceWith(
-            `<iframe src="https://rx.leagent.com?agent=${user_id}&theme=${theme}" className="${styles.homePagePreview} theme-area home-${theme}" />`,
+            `<iframe src="https://dev.leagent.com?agent=${user_id}&theme=${theme}" className="${styles.homePagePreview} theme-area home-${theme}" />`,
           );
         });
+
+        console.log('Load property sample', `/property?agent=${user_id}&theme=default&mls=R2782417`);
+        $(`[data-w-tab="Tab 2"] .f-section-large-11`).html(
+          `<iframe src="https://dev.leagent.com/property?agent=${user_id}&theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
+        );
 
         $('.building-and-sold-info').remove();
         $('[class^="similar-homes"]').remove();
         replaceByCheerio($, '[data-w-tab="Tab 2"] .f-section-large-11', {
-          className: [WEBFLOW_NODE_SELECTOR.AI_THEME_PANE_2, styles.previewListingPage].join(' '),
+          className: [WEBFLOW_NODE_SELECTOR.AI_THEME_PANE_2, styles.homePagePreview].join(' '),
         });
         replaceByCheerio($, '[data-w-tab="Tab 2"] .section---top-images', {
           className: styles.propertyTopPhotoGrid,
