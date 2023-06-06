@@ -227,6 +227,7 @@ function getIcon(input: string) {
       return {
         'Washing Machine': 'washing-machine',
       };
+    case 'recycling-services':
     case 'trash-removal':
     case 'garbage':
       return {
@@ -234,9 +235,7 @@ function getIcon(input: string) {
       };
 
     default:
-      return {
-        [input]: toKebabCase(input),
-      };
+      return {};
   }
 }
 export function getFeatureIcons(property: unknown) {

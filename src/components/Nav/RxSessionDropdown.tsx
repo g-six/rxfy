@@ -40,7 +40,7 @@ export default function RxSessionDropdown(p: Props) {
       transformChild: (child: React.ReactElement) =>
         React.cloneElement(child, {
           id: `${Events.ToggleUserMenu}-trigger`,
-          className: child.props.className + `${evt.data?.show ? ' w--open' : ''} rexified`,
+          className: child.props.className + ` RxSessionDropdown ${evt.data?.show ? ' w--open' : ''} rexified`,
           onClick: () => {
             evt.fireEvent({ show: !evt.data?.show });
           },

@@ -13,6 +13,7 @@ import { replaceMetaTags } from '@/_helpers/head-manipulations';
 import initializePlacesAutocomplete from '@/components/Scripts/places-autocomplete';
 import { appendJs, rexifyScripts, rexifyScriptsV2 } from '@/components/rexifier';
 import { Events } from '@/_typings/events';
+import { getUserById } from './api/check-session/route';
 
 const skip_pathnames = ['/favicon.ico'];
 
@@ -28,14 +29,34 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const url = headers().get('x-url') as string;
 
   const { hostname, pathname } = new URL(url);
+  const requestLink = headers().get('x-url') || '';
+  const requestUrl = new URL(requestLink);
+  const searchParams = Object.fromEntries(requestUrl.searchParams);
 
-  const agent_data: AgentData | undefined = await getAgentDataFromDomain(hostname === 'localhost' ? `${TEST_DOMAIN}` : hostname);
+  let agent_data: AgentData | undefined = await getAgentDataFromDomain(hostname === 'localhost' ? `${TEST_DOMAIN}` : hostname);
   let data;
 
-  const page_url = !!agent_data.webflow_domain
+  if (searchParams.theme && searchParams.agent) {
+    const agent_record = await getUserById(Number(searchParams.agent), 'realtor');
+    if (agent_record?.data.user) {
+      agent_data = {
+        ...agent_data,
+        ...agent_record.data.user.data.attributes.agent.data,
+        id: Number(agent_record.data.user.data.attributes.agent.data.id),
+        metatags: {
+          ...agent_record.data.user.data.attributes.agent.data.attributes.agent_metatag.data.attributes,
+          id: Number(agent_record.data.user.data.attributes.agent.data.attributes.agent_metatag.data.id),
+        },
+        webflow_domain: searchParams.theme === 'default' ? 'leagent-webflow-rebuild.webflow.io' : `${searchParams.theme}-leagent.webflow.io`,
+      };
+    }
+  }
+
+  const page_url = !!agent_data?.webflow_domain
     ? `https://${agent_data.webflow_domain}${getFullWebflowPagePath(pathname)}`
     : `https://${process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN}${getFullWebflowPagePath(pathname)}`;
 
+  console.log('page_url:', page_url);
   try {
     const req_page_html = await axios.get(page_url);
     data = req_page_html.data;
@@ -43,9 +64,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     console.log('Layout.tsx ERROR.  Unable to fetch page html for', page_url);
   }
 
-  const requestLink = headers().get('x-url') || '';
-  const requestUrl = new URL(requestLink);
-  const searchParams = Object.fromEntries(requestUrl.searchParams);
   let property;
   let cache_found = false;
   if (requestUrl.pathname === '/property' && searchParams && (searchParams.lid || searchParams.id || searchParams.mls)) {
@@ -60,8 +78,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       console.log('Started', start);
       if (searchParams.mls) {
         try {
-          const cached_property = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/recent.json`);
-          const cached_legacy = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/legacy.json`);
+          const cached_property = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/recent.json`);
+          const cached_legacy = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/legacy.json`);
           property = cached_property?.data || undefined;
           cache_found = true;
         } catch (e) {

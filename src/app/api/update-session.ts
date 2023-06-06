@@ -184,31 +184,13 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
         ...real_estate_board.attributes,
         id: real_estate_board.id ? Number(real_estate_board.id) : undefined,
       };
-      const listings_cache_url = `${process.env.NEXT_APP_LISTINGS_CACHE}/${agent.data.attributes.agent_id}.json`;
-      let featured_listings = [];
-      try {
-        const listings = await axios.get(listings_cache_url);
-        if (listings?.data?.hits) {
-          const { hits } = listings.data.hits;
-          featured_listings = hits.map((hit: { fields: { [key: string]: string[] } }) => {
-            for (let key of Object.keys(hit.fields)) {
-              const field = `${key.split('.').pop()}`;
-              if (field === 'MLS_ID') {
-                return hit.fields[key][0];
-              }
-            }
-          });
-        }
-      } catch {
-        console.log(listings_cache_url, 'Listings cache does not exist');
-      }
+
       return {
         id,
         agent: {
           ...agent.data.attributes,
           agent_metatag,
           real_estate_board,
-          featured_listings,
           id: Number(agent.data.id),
         },
         brokerage: brokerage as unknown as BrokerageInputModel,
@@ -233,5 +215,6 @@ export async function getNewSessionKey(previous_token: string, id: number, user_
     }
   } else {
     console.log(`Mismatched Session Tokens for ${id} ${previous_token}`);
+    return {};
   }
 }
