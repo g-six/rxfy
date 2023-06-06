@@ -14,6 +14,16 @@ function throwIfNotFormData(value: any): asserts value is FormData {
   throw 'The arg. is not of FormData or its child!';
 }
 
+export function getValueByKey(key: string, obj: object) {
+  const keyIndex =
+    obj && Object.keys(obj).length
+      ? Object.keys(obj).reduce((foundIndex, k, i) => {
+          return k === key ? i + 1 : foundIndex;
+        }, 0)
+      : 0;
+  return keyIndex && obj && Object.keys(obj).length ? Object.values(obj)[keyIndex - 1].toString() : null;
+}
+
 export default function useFormEvent<EventsFormData>(eventName: Events): { data?: EventsFormData; fireEvent: (data: EventsFormData) => void } {
   const [data, setData] = React.useState({} as EventsFormData);
 

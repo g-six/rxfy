@@ -3,13 +3,12 @@ import React, { cloneElement, useState } from 'react';
 import { TabContentProps } from '@/_typings/agent-my-listings';
 import { searchByClasses, searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import { captureMatchingElements, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
-import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
+import useFormEvent, { Events, PrivateListingData, getValueByKey } from '@/hooks/useFormEvent';
 import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
 
 export default function TabAddress({ template, nextStepClick }: TabContentProps) {
   const [templates] = useState(captureMatchingElements(template, [{ elementName: 'input', searchFn: searchByPartOfClass(['f-field-wrapper']) }]));
   const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
-  console.log('data', data);
 
   const addressFields = [
     {
@@ -67,23 +66,15 @@ export default function TabAddress({ template, nextStepClick }: TabContentProps)
           {},
           addressFields.map(field => {
             const obj = data as unknown as object;
-            const keyIndex = Object.keys(obj).reduce((foundIndex, k, i) => {
-              return k === field.inputProps.name ? i + 1 : foundIndex;
-            }, 0);
-            const value = keyIndex ? Object.values(data as object)[keyIndex - 1].toString() : '';
-
-            const keyAlternative = field.generatedAddress.toString();
-            const keyAlternativeIndex = Object.keys(obj).reduce((foundIndex, k, i) => {
-              return k === keyAlternative ? i + 1 : foundIndex;
-            }, 0);
-            const valueAlternative = keyAlternativeIndex ? Object.values(data as object)[keyAlternativeIndex - 1].toString() : null;
+            const value = getValueByKey(field.inputProps.name, obj);
+            const valueAlternative = data?.generatedAddress ? getValueByKey(field.generatedAddress, data.generatedAddress as object) : '';
             return (
               <InputWithLabel
                 key={field.inputProps.name}
                 inputProps={field.inputProps ?? {}}
                 label={field.label}
                 template={templates.input}
-                value={value ? value : valueAlternative === null ? value : ''}
+                value={value !== null ? value : valueAlternative}
                 handleChange={e =>
                   fireEvent({
                     [field.inputProps.name]: e.currentTarget.value,
@@ -95,7 +86,10 @@ export default function TabAddress({ template, nextStepClick }: TabContentProps)
         );
       },
     },
-    { searchFn: searchByPartOfClass(['f-button-neutral', 'w-button']), transformChild: child => cloneElement(child, { onClick: nextStepClick }) },
+    {
+      searchFn: searchByPartOfClass(['f-button-neutral', 'w-button']),
+      transformChild: child => cloneElement(child, { onClick: nextStepClick }),
+    },
   ];
   return <>{transformMatchingElements(template, matches)}</>;
 }
