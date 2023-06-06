@@ -129,7 +129,7 @@ export async function POST(req: Request) {
         ];
         await sendTemplate('welcome-agent', receipients, {
           send_to_email: user.email,
-          dashboard_url: `${url.origin}/ai?key=${session_key}`,
+          dashboard_url: `${url.origin}/my-profile?key=${session_key}`,
           from_name: 'Leagent Team',
           subject: 'Welcome aboard!',
         });
@@ -198,7 +198,7 @@ export async function POST(req: Request) {
     const url = new URL(req.url);
     await sendTemplate('welcome-agent', receipients, {
       send_to_email: claimed.attributes.email,
-      dashboard_url: `${url.origin}/ai?key=${session_key}`,
+      dashboard_url: `${url.origin}/my-profile?key=${session_key}`,
       from_name: 'Leagent Team',
       subject: 'Welcome aboard!',
     });
