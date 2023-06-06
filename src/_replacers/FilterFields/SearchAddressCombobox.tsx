@@ -21,16 +21,14 @@ interface SuggestionInterface {
   place_id: string;
 }
 export default function SearchAddressCombobox(p: SearchInputProps) {
-  const [address, setAddressQuery] = useState(p.search ?? '');
+  const [address, setAddressQuery] = useState('');
   const debounced = useDebounce(address ?? '', 900);
   const [suggestions, setSuggestions] = useState<SuggestionInterface[]>([]);
-  const [selectedAddressData, setSelectedAddressData] = useState<any>();
+  const [selectedAddressData, setSelectedAddressData] = useState<any>({ address: p.search ?? '' });
 
   useEffect(() => {
     if (debounced.length > 4) {
-      queryPlace(debounced).then(res => {
-        setSuggestions(res);
-      });
+      queryPlace(debounced).then(res => setSuggestions(res));
     }
   }, [debounced]);
 
@@ -40,10 +38,12 @@ export default function SearchAddressCombobox(p: SearchInputProps) {
       as='div'
       value={selectedAddressData?.address ?? null}
       onChange={(value: any) => {
-        getPlaceDetails(value.place_id).then(res => {
-          setSelectedAddressData(res);
-          p.onPlaceSelected(Object.assign({}, res, { search: address }));
-        });
+        if (value?.place_id) {
+          getPlaceDetails(value.place_id).then(res => {
+            setSelectedAddressData(res);
+            p.onPlaceSelected(Object.assign({}, res));
+          });
+        }
       }}
       className='flex-1 w-full'
     >
@@ -52,12 +52,8 @@ export default function SearchAddressCombobox(p: SearchInputProps) {
           placeholder={p.placeholder}
           className={[p.className, 'pr-10'].join(' ')}
           autoComplete='off'
-          onChange={e => {
-            setAddressQuery(e.target.value);
-          }}
-          displayValue={(addressData: any) => {
-            return addressData;
-          }}
+          onChange={e => setAddressQuery(e.target.value)}
+          displayValue={(addressData: any) => addressData}
         />
 
         {suggestions && suggestions.length > 0 && (
