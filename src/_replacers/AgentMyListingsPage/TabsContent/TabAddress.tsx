@@ -56,7 +56,7 @@ export default function TabAddress({ template, nextStepClick }: TabContentProps)
       generatedAddress: '',
     },
   ];
-  /// value and handleChange are for demo purpose
+
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['virtual-tours-inputs']),
@@ -67,14 +67,17 @@ export default function TabAddress({ template, nextStepClick }: TabContentProps)
           addressFields.map(field => {
             const obj = data as unknown as object;
             const value = getValueByKey(field.inputProps.name, obj);
-            const valueAlternative = data?.generatedAddress ? getValueByKey(field.generatedAddress, data.generatedAddress as object) : '';
+            const valueAlternative = data?.generatedAddress ? getValueByKey(field.generatedAddress, data.generatedAddress as object) : null;
+            if (valueAlternative && !value) {
+              fireEvent({ [field.inputProps.name]: valueAlternative });
+            }
             return (
               <InputWithLabel
                 key={field.inputProps.name}
                 inputProps={field.inputProps ?? {}}
                 label={field.label}
                 template={templates.input}
-                value={value !== null ? value : valueAlternative}
+                value={value ?? ''}
                 handleChange={e =>
                   fireEvent({
                     [field.inputProps.name]: e.currentTarget.value,

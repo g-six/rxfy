@@ -38,7 +38,9 @@ export default function useFormEvent<EventsFormData>(eventName: Events): { data?
   const fireEvent = React.useCallback(
     (data: EventsFormData) => {
       throwIfNotFormData(data);
-      document.dispatchEvent(new CustomEvent(eventName, { detail: data }));
+      if (document && document.dispatchEvent && !!data) {
+        document.dispatchEvent(new CustomEvent(eventName, { detail: data }));
+      }
     },
     [eventName],
   );
@@ -65,7 +67,7 @@ export default function useFormEvent<EventsFormData>(eventName: Events): { data?
 
       // if this hook listens a new subscriber, we broadcast the current state of the form
       if (newData.subscribe && Object.keys(objForm).length) {
-        fireEvent(Object.assign({}, objForm, { subscribe: true }) as EventsFormData);
+        fireEvent(Object.assign({}, objForm, { subscribe: false }) as EventsFormData);
       } else if (!deepEqual(newData, data)) {
         setData(prev => ({ ...prev, ...e.detail, subscribe: false }));
       }
