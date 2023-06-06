@@ -9,6 +9,7 @@ export interface InputPropsInterface {
   min?: number;
   max?: number;
   placeholder?: string;
+  name?: string;
   onBlur?: FocusEventHandler<HTMLInputElement>;
 }
 export interface SelectPropsInterface {

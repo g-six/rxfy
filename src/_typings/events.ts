@@ -125,5 +125,16 @@ export interface PrivateListingData extends FormData {
   garage_dimensions?: RoomDimension[];
   additional_dimensions?: RoomDimension[];
 
+  // Strata
+  building_bylaws?: string;
+  maintenance_fee?: string;
+  restrictions?: string;
+  age_restriction?: string;
+  dogs?: string;
+  cats?: string;
+  total_pets_allowed?: string;
+  total_rentals_allowed?: string;
+  complex_name?: string;
+
   // ...
 }
