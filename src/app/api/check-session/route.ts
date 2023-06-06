@@ -1,8 +1,8 @@
 import axios from 'axios';
-import { encrypt } from '@/_utilities/encryption-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getResponse } from '../response-helper';
 import { getNewSessionKey } from '../update-session';
+import { GQ_FRAG_AGENT } from '../agents/graphql';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -23,7 +23,10 @@ function gqlFindUser(user_type: 'realtor' | 'customer') {
               ? `birthday
           yes_to_marketing`
               : `first_name
-          last_name`
+          last_name
+          agent {
+            data {${GQ_FRAG_AGENT}}
+          }`
           }
         }
       }
