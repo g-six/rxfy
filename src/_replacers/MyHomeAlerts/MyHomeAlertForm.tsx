@@ -56,14 +56,14 @@ export default function MyHomeAlertForm({ child, formState, handleChange, handle
           { label: 'Manufactured', value: DwellingType.MANUFACTURED },
           { label: 'Other', value: DwellingType.OTHER },
         ];
-
-        const handleSelect = (value: ValueInterface) => {
-          const isIn = dwelling_types?.some((item: ValueInterface) => item.value === value.value);
-          const newArr = isIn ? dwelling_types?.filter((item: ValueInterface) => item.value !== value.value) : [...(dwelling_types ?? []), value];
-          handleChange('dwelling_types', newArr);
-        };
-
-        return <ChipsList template={child} values={dwelling_types ?? []} chipsList={propertyTypes} handleSelect={handleSelect} />;
+        // const prepdDwellingTypes = dwelling_types;
+        // const handleSelect = (value: ValueInterface) => {
+        //   const isIn = dwelling_types?.some((item: ValueInterface) => item.value === value.value);
+        //   const newArr = isIn ? dwelling_types?.filter((item: ValueInterface) => item.value !== value.value) : [...(dwelling_types ?? []), value];
+        //   handleChange('dwelling_types', newArr);
+        // };
+        return <></>;
+        // return <ChipsList template={child} values={dwelling_types?.map() ?? []} chipsList={propertyTypes} handleSelect={handleSelect} />;
       },
     },
     {

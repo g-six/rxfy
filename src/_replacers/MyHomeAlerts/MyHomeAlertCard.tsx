@@ -20,8 +20,8 @@ type Props = {
 
 export default function MyHomeAlertCard({ child, data, agent_data }: Props) {
   const [wait, setWait] = useState(false);
-  let dwelling_types: ValueInterface[] = data.dwelling_types || [];
-
+  let dwelling_types: string[] = data.dwelling_types || [];
+  console.log(data.dwelling_types);
   const replace = {
     area: data.area || '',
     city: data.city || '',
