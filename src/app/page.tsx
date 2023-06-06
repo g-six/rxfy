@@ -16,6 +16,7 @@ import RxNotifications from '@/components/RxNotifications';
 import MyProfilePage from '@/rexify/my-profile';
 import styles from './page.module.scss';
 import { getUserDataFromSessionKey } from './api/update-session';
+import { getUserById } from './api/check-session/route';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico'];
@@ -29,15 +30,33 @@ export default async function Home({ params, searchParams }: { params: Record<st
   let session_key = cookies().get('session_key')?.value || '';
   let agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? TEST_DOMAIN : hostname);
   let webflow_domain = agent_data ? agent_data.webflow_domain : process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN;
+
+  // TODO: Refactor into Theme middleware
+  if (searchParams.theme && searchParams.agent) {
+    const agent_record = await getUserById(Number(searchParams.agent), 'realtor');
+    if (agent_record?.data.user) {
+      agent_data = {
+        ...agent_record.data.user.data.attributes.agent.data.attributes,
+        metatags: agent_record.data.user.data.attributes.agent.data.attributes.agent_metatag.data.attributes,
+      };
+      console.log(`Load up ${pathname} ${searchParams.theme}`);
+      if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
+      else webflow_domain = `${searchParams.theme}-leagent.webflow.io`;
+      agent_data.webflow_domain = webflow_domain;
+    }
+  }
+
   let webflow_page_url =
     params && params.slug && !skip_slugs.includes(params.slug as string) ? `https://${webflow_domain}/${params.slug}` : `https://${webflow_domain}`;
 
   if (params && params.slug === 'property') {
     webflow_page_url = `${webflow_page_url}/${params.slug}id`;
     console.log('fetching property page', webflow_page_url);
+  } else {
+    console.log('fetching page', webflow_page_url);
   }
 
-  let data, realtor, listings, property, legacy_data;
+  let data, listings, property, legacy_data;
 
   try {
     const req_page_html = await axios.get(webflow_page_url);
@@ -53,20 +72,24 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const $: CheerioAPI = load(data);
 
   // Special cases
-  if (agent_data.webflow_domain === 'leagent-website.webflow.io') {
+  if (!(searchParams.theme && searchParams.agent) && agent_data.webflow_domain === 'leagent-website.webflow.io') {
     if (process.env.NEXT_PUBLIC_BUY_BUTTON)
       replaceByCheerio($, '.btn-stripe-buy', {
         href: process.env.NEXT_PUBLIC_BUY_BUTTON,
       });
-
+    if (!session_key && params.slug && ['ai-result'].includes(params.slug as string)) {
+      data = '<html><head><meta name="title" content="Not found" /></head><body>Not found</body></html>';
+      notFound();
+    }
     if (session_key && params.slug !== 'ai') {
       const [session_hash, user_id] = session_key.split('-');
       const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
       agent_data = session.agent;
 
-      if (session.agent.featured_listings?.length) {
+      if (session.agent && session.agent?.featured_listings?.length) {
         try {
-          const feature_listing = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${session.agent.featured_listings[0]}/recent.json`);
+          await axios.get(`https://beta.leagent.com/api/properties/mls-id/${session.agent.featured_listings[0]}`);
+          const feature_listing = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${session.agent.featured_listings[0]}/recent.json`);
           property = feature_listing.data;
           property.listing_by = `Listing courtesy of ${session.agent.full_name}`;
         } catch (e) {
@@ -75,16 +98,21 @@ export default async function Home({ params, searchParams }: { params: Record<st
       }
       if (agent_data) {
         agent_data.metatags = session.agent.agent_metatag;
-        replaceByCheerio($, '[data-w-tab="Tab 1"] .theme-area .hero-heading-2', {
-          className: styles.scaledHomePage,
+        ['oslo', 'hamburg', 'malta'].forEach(theme => {
+          $(`.theme-area.home-${theme}`).replaceWith(
+            `<iframe src="https://dev.leagent.com?agent=${user_id}&theme=${theme}" className="${styles.homePagePreview} theme-area home-${theme}" />`,
+          );
         });
-        replaceByCheerio($, '[data-w-tab="Tab 1"] .section---featured-listings', {
-          className: styles.scaledHomePageFeaturedListings,
-        });
+
+        console.log('Load property sample', `/property?agent=${user_id}&theme=default&mls=R2782417`);
+        $(`[data-w-tab="Tab 2"] .f-section-large-11`).html(
+          `<iframe src="https://dev.leagent.com/property?agent=${user_id}&theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
+        );
+
         $('.building-and-sold-info').remove();
         $('[class^="similar-homes"]').remove();
         replaceByCheerio($, '[data-w-tab="Tab 2"] .f-section-large-11', {
-          className: [WEBFLOW_NODE_SELECTOR.AI_THEME_PANE_2, styles.previewListingPage].join(' '),
+          className: [WEBFLOW_NODE_SELECTOR.AI_THEME_PANE_2, styles.homePagePreview].join(' '),
         });
         replaceByCheerio($, '[data-w-tab="Tab 2"] .section---top-images', {
           className: styles.propertyTopPhotoGrid,
@@ -152,8 +180,8 @@ export default async function Home({ params, searchParams }: { params: Record<st
           property = await getPropertyData(searchParams.id);
         } else {
           try {
-            const cached_xhr = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/recent.json`);
-            const cached_legacy_xhr = await axios.get(`${process.env.NEXT_APP_LISTINGS_CACHE}/${searchParams.mls}/legacy.json`);
+            const cached_xhr = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/recent.json`);
+            const cached_legacy_xhr = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/legacy.json`);
             property = cached_xhr.data;
             legacy_data = cached_legacy_xhr.data;
           } catch (e) {

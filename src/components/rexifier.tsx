@@ -44,7 +44,6 @@ import { RxTextInput } from './RxTextInput';
 import RxContactFormButton from './RxForms/RxContactFormButton';
 import RxSessionDropdown from './Nav/RxSessionDropdown';
 import AiPrompt from '@/rexify/realtors/ai';
-import AiResult from '@/rexify/realtors/ai-results';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -447,19 +446,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
                 <>{domToReact(node.children)}</>
               </AiPrompt>
             );
-          if (props.className.indexOf(WEBFLOW_NODE_SELECTOR.AI_THEME_PANE_2) >= 0) {
-            return (
-              <div className={props.className}>
-                <RxDetailedListing
-                  property={property as unknown as PropertyDataModel}
-                  agent={agent_data}
-                  nodeClassName={WEBFLOW_NODE_SELECTOR.PROPERTY_PAGE}
-                  nodeProps={props}
-                  nodes={domToReact(node.children) as ReactElement[]}
-                />
-              </div>
-            );
-          }
         }
 
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.SESSION_DROPDOWN) >= 0) {
