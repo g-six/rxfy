@@ -25,6 +25,7 @@ type RxMyAccountPageProps = {
   children: React.ReactElement;
   className?: string;
   data: CustomerInputModel & RealtorInputModel;
+  'user-type': string;
 };
 
 export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit: MouseEventHandler }) {
@@ -166,21 +167,20 @@ function validInput(data: CustomerInputModel | RealtorInputModel): {
   };
 }
 
-async function loadSession(search_params: Record<string, string | number | boolean>) {
-  let session_key = '';
-  let guid = '';
+async function loadSession(search_params: Record<string, string | number | boolean>, user_type = 'customer') {
+  let session_key = Cookies.get('session_key') as string;
+  let guid = session_key ? session_key.split('-')[1] : '';
 
-  if (search_params?.key) {
+  if (search_params?.key && !session_key) {
     session_key = search_params.key as string;
     guid = session_key.split('-')[1];
   }
-  if (!session_key) session_key = Cookies.get('session_key') as string;
 
+  const is_realtor = `${Cookies.get('session_as') || user_type}` === 'realtor';
   if (session_key && session_key.split('-').length === 2) {
-    if (!Cookies.get('session_as') || Cookies.get('session_as') !== 'realtor') {
-      // Customer flow
+    if (session_key) {
       const api_response = await axios
-        .get('/api/check-session', {
+        .get(`/api/check-session${is_realtor ? '/agent' : ''}`, {
           headers: {
             Authorization: `Bearer ${session_key}`,
           },
@@ -198,9 +198,12 @@ async function loadSession(search_params: Record<string, string | number | boole
         Cookies.set('session_key', session.data?.session_key);
         return session.data;
       } else {
-        clearSessionCookies();
-        location.href = '/log-in';
+        // clearSessionCookies();
+        // location.href = '/log-in';
       }
+    } else {
+      console.log('session_key', session_key);
+      console.log('is_realtor', is_realtor);
     }
   } else {
     // location.href = '/log-in';
@@ -314,7 +317,7 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
 
   React.useEffect(() => {
     const params = queryStringToObject(search_params.toString() || '');
-    loadSession(params).then(user_data => {
+    loadSession(params, props['user-type']).then(user_data => {
       if (user_data) setFormData(user_data);
     });
   }, [search_params]);
