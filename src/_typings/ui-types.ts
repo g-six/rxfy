@@ -17,3 +17,11 @@ export interface SelectPropsInterface {
   handleSelect: (value: ValueInterface) => void;
   placeholder?: string;
 }
+
+export interface RoomDimension {
+  name?: string;
+  level?: string;
+  dimension1?: string;
+  dimension2?: string;
+  ensuite?: boolean;
+}

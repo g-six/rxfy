@@ -28,7 +28,7 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
         label: 'Living Area',
         inputElementProps: {
           value: data?.living_area ?? '',
-          handleChange: (e: React.ChangeEvent<HTMLInputElement>) => fireEvent({ living_area: e.currentTarget.value }),
+          handleChange: (e: React.ChangeEvent<HTMLInputElement>) => fireEvent({ living_area: parseInt(e.currentTarget.value) }),
           inputProps: { placeholder: 'Living Area' },
         },
         selectProps: {
@@ -49,7 +49,7 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
         label: 'Total Lot Size',
         inputElementProps: {
           value: data?.total_size ?? '',
-          handleChange: (e: React.ChangeEvent<HTMLInputElement>) => fireEvent({ total_size: e.currentTarget.value }),
+          handleChange: (e: React.ChangeEvent<HTMLInputElement>) => fireEvent({ total_size: parseInt(e.currentTarget.value) }),
           inputProps: { placeholder: 'Total Lot Size' },
         },
         selectProps: {
@@ -120,24 +120,19 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
     {
       searchFn: searchByPartOfClass(['virtual-tours-inputs']),
       transformChild: child => {
-        return cloneElement(
-          child,
-          {},
-
-          [
-            ...sizesElements.map(({ Component, props }, i) => <Component key={i} {...props} />),
-            ...textFields.map((field, i) => (
-              <InputWithLabel
-                key={`${field.label}_${i}`}
-                inputProps={field.inputProps ?? {}}
-                label={field.label}
-                template={templates.input}
-                value={getValueByKey(field.inputProps.name, data)}
-                handleChange={e => fireEvent({ [field.inputProps.name]: e.currentTarget.value })}
-              />
-            )),
-          ],
-        );
+        return cloneElement(child, {}, [
+          ...sizesElements.map(({ Component, props }, i) => <Component key={i} {...props} />),
+          ...textFields.map((field, i) => (
+            <InputWithLabel
+              key={`${field.label}_${i}`}
+              inputProps={field.inputProps ?? {}}
+              label={field.label}
+              template={templates.input}
+              value={getValueByKey(field.inputProps.name, data)}
+              handleChange={e => fireEvent({ [field.inputProps.name]: parseInt(e.currentTarget.value) })}
+            />
+          )),
+        ]);
       },
     },
     {

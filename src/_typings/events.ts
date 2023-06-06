@@ -1,7 +1,7 @@
 import { MLSProperty } from './property';
 import { SavedSearchInput } from './saved-search';
 import { ImagePreview } from '@/hooks/useFormEvent';
-import { ValueInterface } from '@/_typings/ui-types';
+import { ValueInterface, RoomDimension } from '@/_typings/ui-types';
 
 export enum Events {
   Login = 'event-login',
@@ -105,17 +105,25 @@ export interface PrivateListingData extends FormData {
   utilities?: ValueInterface[];
 
   // Size
-  living_area?: string;
+  living_area?: number;
   living_area_units?: ValueInterface;
-  total_size?: string;
+  total_size?: number;
   total_size_units?: ValueInterface;
-  beds?: string;
-  baths?: string;
-  baths_full?: string;
-  baths_half?: string;
-  kitchens?: string;
-  additional_rooms?: string;
-  name?: string;
+  beds?: number;
+  baths?: number;
+  baths_full?: number;
+  baths_half?: number;
+  kitchens?: number;
+  additional_rooms?: number;
+  garage?: number;
+
+  // Rooms
+  beds_dimensions?: RoomDimension[];
+  baths_full_dimensions?: RoomDimension[];
+  baths_half_dimensions?: RoomDimension[];
+  kitchen_dimensions?: RoomDimension[];
+  garage_dimensions?: RoomDimension[];
+  additional_dimensions?: RoomDimension[];
 
   // ...
 }
