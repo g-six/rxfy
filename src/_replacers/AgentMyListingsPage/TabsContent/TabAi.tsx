@@ -12,8 +12,8 @@ import RxDragNDrop from '@/components/RxDragNDrop';
 import RxDropzone from '@/components/RxDropzone';
 import useDebounce from '@/hooks/useDebounce';
 
-export default function TabAi({ template, nextStepClick }: TabContentProps) {
-  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
+export default function TabAi({ template, nextStepClick, initialState }: TabContentProps) {
+  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
   const debouncedPrompt = useDebounce(data?.prompt ?? '', 900);
 
   const checkPrompt = React.useCallback(
@@ -62,6 +62,7 @@ export default function TabAi({ template, nextStepClick }: TabContentProps) {
           name='address'
           id='address-input'
           onPlaceSelected={place => fireEvent({ generatedAddress: place })}
+          search={data?.generatedAddress?.address}
         />
       ),
     },

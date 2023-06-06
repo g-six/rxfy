@@ -17,6 +17,7 @@ export interface TabContentProps {
   attributes: {
     [key: string]: ValueInterface[];
   };
+  initialState: any | undefined;
 }
 export interface RoomsGroupProps {
   heading?: string;

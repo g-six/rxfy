@@ -32,8 +32,11 @@ export function setMultiSelectValue(val: ValueInterface, currentVal: ValueInterf
   return [...newArr];
 }
 
-export default function useFormEvent<EventsFormData>(eventName: Events): { data?: EventsFormData; fireEvent: (data: EventsFormData) => void } {
-  const [data, setData] = React.useState({} as EventsFormData);
+export default function useFormEvent<EventsFormData>(
+  eventName: Events,
+  initialState?: EventsFormData | {} | undefined,
+): { data?: EventsFormData; fireEvent: (data: EventsFormData) => void } {
+  const [data, setData] = React.useState(initialState as EventsFormData);
 
   const fireEvent = React.useCallback(
     (data: EventsFormData) => {
@@ -83,7 +86,9 @@ export default function useFormEvent<EventsFormData>(eventName: Events): { data?
   React.useEffect(() => {
     // we fire an event here only one time
     // to communicate that there is another listener to this form state
-    fireEvent({ subscribe: true } as EventsFormData);
+    setTimeout(() => {
+      fireEvent({ subscribe: true } as EventsFormData);
+    }, 500);
   }, [fireEvent]);
 
   return { data, fireEvent };

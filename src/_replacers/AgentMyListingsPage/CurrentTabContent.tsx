@@ -1,5 +1,5 @@
 import { captureMatchingElements } from '@/_helpers/dom-manipulators';
-import React, { Dispatch, ReactElement, SetStateAction, cloneElement, useEffect, useState } from 'react';
+import React, { Dispatch, ReactElement, SetStateAction, useEffect, useState } from 'react';
 import { createListingTabs } from '@/_typings/agent-my-listings';
 import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import TabAi from './TabsContent/TabAi';
@@ -16,9 +16,10 @@ type Props = {
   child: ReactElement;
   currentTab: string;
   setCurrentTab: Dispatch<SetStateAction<string>>;
+  data: any | undefined;
 };
 
-export default function CurrentTabContent({ child, currentTab, setCurrentTab }: Props) {
+export default function CurrentTabContent({ child, currentTab, setCurrentTab, data }: Props) {
   const tabsComponents = {
     'tab-ai': TabAi,
     'tab-address': TabAddress,
@@ -60,7 +61,7 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab }: 
   return (
     <div className={child.props.className}>
       {tabsTemplates[currentTab] && attributes ? (
-        <CurrentTabComponent template={tabsTemplates[currentTab]} nextStepClick={nextStepClick} attributes={attributes} />
+        <CurrentTabComponent template={tabsTemplates[currentTab]} nextStepClick={nextStepClick} attributes={attributes} initialState={data} />
       ) : (
         <> </>
       )}

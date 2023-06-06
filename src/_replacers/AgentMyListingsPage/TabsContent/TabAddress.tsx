@@ -6,9 +6,9 @@ import { captureMatchingElements, tMatch, transformMatchingElements } from '@/_h
 import useFormEvent, { Events, PrivateListingData, getValueByKey } from '@/hooks/useFormEvent';
 import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
 
-export default function TabAddress({ template, nextStepClick }: TabContentProps) {
+export default function TabAddress({ template, nextStepClick, initialState }: TabContentProps) {
   const [templates] = useState(captureMatchingElements(template, [{ elementName: 'input', searchFn: searchByPartOfClass(['f-field-wrapper']) }]));
-  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
+  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
 
   const addressFields = [
     {

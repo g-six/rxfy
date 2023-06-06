@@ -11,7 +11,7 @@ import SelectWithLabel from '@/_replacers/FilterFields/SelectWithLabel';
 
 import useFormEvent, { Events, PrivateListingData, getValueByKey, setMultiSelectValue } from '@/hooks/useFormEvent';
 
-export default function TabSummary({ template, nextStepClick, attributes }: TabContentProps) {
+export default function TabSummary({ template, nextStepClick, attributes, initialState }: TabContentProps) {
   const { building_styles, connected_services, amenities, types } = attributes || {};
 
   const [templates] = useState(
@@ -22,7 +22,7 @@ export default function TabSummary({ template, nextStepClick, attributes }: TabC
     ]),
   );
 
-  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
+  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
 
   const summaryFields = [
     {

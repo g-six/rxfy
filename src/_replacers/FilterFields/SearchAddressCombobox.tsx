@@ -1,5 +1,5 @@
 'use client';
-import { ChangeEvent, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { CheckIcon, MapPinIcon } from '@heroicons/react/20/solid';
 import { Combobox } from '@headlessui/react';
@@ -14,19 +14,18 @@ export type SearchInputProps = {
   placeholder?: string;
   className?: string;
   onPlaceSelected(place: any): void;
+  search?: string;
 };
 interface SuggestionInterface {
   suggestion: string;
   place_id: string;
 }
 export default function SearchAddressCombobox(p: SearchInputProps) {
-  const [address, setAddressQuery] = useState('');
+  const [address, setAddressQuery] = useState(p.search ?? '');
   const debounced = useDebounce(address ?? '', 900);
   const [suggestions, setSuggestions] = useState<SuggestionInterface[]>([]);
   const [selectedAddressData, setSelectedAddressData] = useState<any>();
-  function setValue(e: ChangeEvent<HTMLInputElement>) {
-    setAddressQuery(e.currentTarget.value);
-  }
+
   useEffect(() => {
     if (debounced.length > 4) {
       queryPlace(debounced).then(res => {
@@ -34,6 +33,7 @@ export default function SearchAddressCombobox(p: SearchInputProps) {
       });
     }
   }, [debounced]);
+
   return (
     <Combobox
       nullable
@@ -42,7 +42,7 @@ export default function SearchAddressCombobox(p: SearchInputProps) {
       onChange={(value: any) => {
         getPlaceDetails(value.place_id).then(res => {
           setSelectedAddressData(res);
-          p.onPlaceSelected(res);
+          p.onPlaceSelected(Object.assign({}, res, { search: address }));
         });
       }}
       className='flex-1 w-full'

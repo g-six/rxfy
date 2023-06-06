@@ -77,7 +77,12 @@ export interface PrivateListingData extends FormData {
   // Tab AI
   prompt?: string;
   generatedPrompt?: object;
-  generatedAddress?: object;
+  generatedAddress?: {
+    address?: string;
+    city?: string;
+    state_province?: string;
+    search?: string;
+  };
   photos?: ImagePreview[];
 
   // Address
