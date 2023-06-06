@@ -88,5 +88,15 @@ export interface PrivateListingData extends FormData {
   address_string?: string;
 
   // Home Summary
+  built_year?: string;
+  property_disclosure?: string;
+  property_tax?: string;
+  tax_year?: string;
+  property_type?: string;
+  asking_price?: string;
+  building_style?: string;
+  amenities?: string[];
+  utilities?: string[];
+
   // ...
 }
