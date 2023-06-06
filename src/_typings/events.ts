@@ -135,6 +135,9 @@ export interface PrivateListingData extends FormData {
   total_pets_allowed?: string;
   total_rentals_allowed?: string;
   complex_name?: string;
+  building_amenities?: ValueInterface[];
+  council_approval_required?: boolean;
+  locked?: boolean;
 
   // ...
 }
