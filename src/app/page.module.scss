@@ -310,3 +310,7 @@
     transform: rotate(0deg);
   }
 }
+
+.homePagePreview {
+  @apply h-full w-full outline-none border-none;
+}

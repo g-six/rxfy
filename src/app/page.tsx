@@ -16,6 +16,7 @@ import RxNotifications from '@/components/RxNotifications';
 import MyProfilePage from '@/rexify/my-profile';
 import styles from './page.module.scss';
 import { getUserDataFromSessionKey } from './api/update-session';
+import { getUserById } from './api/check-session/route';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico'];
@@ -29,12 +30,29 @@ export default async function Home({ params, searchParams }: { params: Record<st
   let session_key = cookies().get('session_key')?.value || '';
   let agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? TEST_DOMAIN : hostname);
   let webflow_domain = agent_data ? agent_data.webflow_domain : process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN;
+
+  // TODO: Refactor into Theme middleware
+  if (searchParams.theme && searchParams.agent) {
+    const agent_record = await getUserById(Number(searchParams.agent), 'realtor');
+    if (agent_record?.data.user) {
+      agent_data = {
+        ...agent_record.data.user.data.attributes.agent.data.attributes,
+        metatags: agent_record.data.user.data.attributes.agent.data.attributes.agent_metatag.data.attributes,
+      };
+      console.log(`Load up ${pathname} ${searchParams.theme}`);
+      webflow_domain = `${searchParams.theme}-leagent.webflow.io`;
+      agent_data.webflow_domain = webflow_domain;
+    }
+  }
+
   let webflow_page_url =
     params && params.slug && !skip_slugs.includes(params.slug as string) ? `https://${webflow_domain}/${params.slug}` : `https://${webflow_domain}`;
 
   if (params && params.slug === 'property') {
     webflow_page_url = `${webflow_page_url}/${params.slug}id`;
     console.log('fetching property page', webflow_page_url);
+  } else {
+    console.log('fetching page', webflow_page_url);
   }
 
   let data, listings, property, legacy_data;
@@ -53,7 +71,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const $: CheerioAPI = load(data);
 
   // Special cases
-  if (agent_data.webflow_domain === 'leagent-website.webflow.io') {
+  if (!(searchParams.theme && searchParams.agent) && agent_data.webflow_domain === 'leagent-website.webflow.io') {
     if (process.env.NEXT_PUBLIC_BUY_BUTTON)
       replaceByCheerio($, '.btn-stripe-buy', {
         href: process.env.NEXT_PUBLIC_BUY_BUTTON,
@@ -79,12 +97,12 @@ export default async function Home({ params, searchParams }: { params: Record<st
       }
       if (agent_data) {
         agent_data.metatags = session.agent.agent_metatag;
-        replaceByCheerio($, '[data-w-tab="Tab 1"] .theme-area .hero-heading-2', {
-          className: styles.scaledHomePage,
+        ['oslo', 'hamburg', 'malta'].forEach(theme => {
+          $(`.theme-area.home-${theme}`).replaceWith(
+            `<iframe src="https://rx.leagent.com?agent=${user_id}&theme=${theme}" className="${styles.homePagePreview} theme-area home-${theme}" />`,
+          );
         });
-        replaceByCheerio($, '[data-w-tab="Tab 1"] .section---featured-listings', {
-          className: styles.scaledHomePageFeaturedListings,
-        });
+
         $('.building-and-sold-info').remove();
         $('[class^="similar-homes"]').remove();
         replaceByCheerio($, '[data-w-tab="Tab 2"] .f-section-large-11', {
