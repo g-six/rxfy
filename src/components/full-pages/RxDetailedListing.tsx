@@ -1,15 +1,12 @@
 import React, { cloneElement, ReactElement } from 'react';
-import Image from 'next/image';
-
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { PropertyDataModel, MLSProperty } from '@/_typings/property';
 import { ReplacerPageProps } from '@/_typings/forms';
-import { getFeatureIcons } from '@/_helpers/functions';
+import { fireCustomEvent, getFeatureIcons } from '@/_helpers/functions';
 import { replaceAllTextWithBraces, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { combineAndFormatValues, formatValues } from '@/_utilities/data-helpers/property-page';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
-
 import PhotosGrid from '@/components/RxProperty/PhotosGrid';
 import RxPropertyTopStats from '@/components/RxProperty/RxPropertyTopStats';
 import RxPropertyMaps from '@/components/RxProperty/RxPropertyMaps';
@@ -18,14 +15,21 @@ import RxPropertyStats from '@/components/RxProperty/RxPropertyStats';
 import RxTable from '@/components/RxTable';
 import RxSimilarListings from '@/components/RxProperty/RxSimilarListings';
 import { AgentData } from '@/_typings/agent';
+import PhotosCarousel from '../RxPropertyCarousel/PhotosCarousel';
+import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
+import { Events } from '@/_typings/events';
+import RxSecondPhotosGrid from '../RxProperty/RxSecondPhotosGrid';
 
 export function RxDetailedListing(props: ReplacerPageProps) {
+  const photos = props?.property?.photos ? props?.property?.photos : [];
+  const cdnPhotos = photos.map(link => getImageSized(link));
+  const showGallery = (key: number) => {
+    fireCustomEvent({ show: true, key }, Events.PropertyGalleryModal);
+  };
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses([WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_IMAGES]),
       transformChild: (child: ReactElement) => {
-        const photos = props?.property?.photos ? props?.property?.photos : [];
-        const cdnPhotos = photos.map(link => getImageSized(link));
         return props?.property ? <PhotosGrid child={child} photos={cdnPhotos} /> : child;
       },
     },
@@ -92,7 +96,7 @@ export function RxDetailedListing(props: ReplacerPageProps) {
       searchFn: searchByClasses(['little-profile-card']),
       transformChild: (child: ReactElement) => {
         const agent: AgentData = props.agent || {};
-        console.log(child);
+
         return replaceAllTextWithBraces(child, {
           'Agent Name': 'asd',
         }) as ReactElement;
@@ -106,21 +110,14 @@ export function RxDetailedListing(props: ReplacerPageProps) {
         }) as ReactElement;
       },
     },
+    { searchFn: searchByClasses(['property-lightbox-2']), transformChild: child => <div className={'property-lightbox-2'}>{child.props.children}</div> },
     {
-      searchFn: searchByClasses([WEBFLOW_NODE_SELECTOR.PROPERTY_IMAGES_COLLECTION]),
+      searchFn: searchByPartOfClass([WEBFLOW_NODE_SELECTOR.PROPERTY_IMAGES_COLLECTION]),
       transformChild: (child: ReactElement) => {
         const cp: PropertyDataModel | { [key: string]: string } = props.property || {};
         const phts = cp && Array.isArray(cp.photos) ? cp.photos : [];
         const sliced = phts?.slice(0, 4).map(link => getImageSized(link));
-        return cloneElement(
-          child,
-          { ...child.props },
-          sliced.map((src, i) => (
-            <div key={`gallery #${i}`} className='relative w-full h-full overflow-hidden rounded-lg'>
-              <Image src={src as string} alt={`gallery #${i}`} fill style={{ objectFit: 'cover' }} />
-            </div>
-          )),
-        );
+        return <RxSecondPhotosGrid child={child} photos={sliced} />;
       },
     },
     {
@@ -170,5 +167,10 @@ export function RxDetailedListing(props: ReplacerPageProps) {
     },
   ];
 
-  return <>{props?.property ? transformMatchingElements(props.nodes, matches) : props.nodes}</>;
+  return (
+    <>
+      {props?.property ? transformMatchingElements(props.nodes, matches) : props.nodes}
+      <PhotosCarousel propertyPhotos={cdnPhotos ?? []} />
+    </>
+  );
 }

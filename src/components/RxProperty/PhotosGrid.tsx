@@ -16,11 +16,12 @@ export default function PhotosGrid({ showGallery, photos, child }: PropertyCarou
   //const hasClientNote = false;
   const show = showGallery
     ? showGallery
-    : () => {
-        fireCustomEvent({ show: true, photos: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'] }, Events.PropertyGalleryModal);
+    : (key: number) => {
+        fireCustomEvent({ show: true, key }, Events.PropertyGalleryModal);
       };
   //const [clientNote] = useState(captureMatchingElements(child, [{ elementName: 'clientNote', searchFn: searchByClasses(['comment-box']) }]));
   const matches: tMatch[] = [
+    { searchFn: searchByClasses(['property-images-lightbox']), transformChild: child => <>{child.props.children}</> },
     {
       searchFn: searchByClasses(['property-image-main']),
       transformChild: (child: ReactElement) => {

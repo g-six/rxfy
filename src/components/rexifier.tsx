@@ -170,7 +170,14 @@ export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapp
         backgroundImage: (p.photos as string[])[0],
       });
     }
-
+    // Heart-Full
+    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .heart-empty`, {
+      className: 'hidden',
+    });
+    // Heart-Full
+    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .heart-full`, {
+      className: 'hidden',
+    });
     // Area
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .area-text`, {
       content: p.Area,
