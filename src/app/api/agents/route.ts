@@ -63,8 +63,9 @@ export async function POST(req: Request) {
   try {
     // TODO: listing refactor
     const {
-      user: { agent_id, email, phone, full_name },
+      user: { email, phone, full_name },
       stripe,
+      agent_id,
     } = payload;
     let { listing, real_estate_board } = payload;
 
