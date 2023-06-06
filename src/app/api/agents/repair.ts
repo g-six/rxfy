@@ -9,13 +9,12 @@ export async function getSmart(
   property: { [key: string]: string | number },
   real_estate_board?: { id: number; name: string; abbreviation: string },
 ) {
-  let prompt = `My name's ${agent.full_name} and I'm a licenced realtor for ${`${real_estate_board?.name ? `(${real_estate_board.name}) ` : ''}`}who sells ${
-    property.property_type
-  } homes, among many others.  For instance, I've recently listed a ${getShortPrice(Number(property.asking_price), '$')}, ${property.beds}-bedroom / ${
-    property.baths
-  }-baths located in ${property.target_city} from ${
-    property.listing_date
-  }.\n\nBased on that information, write me a realtor bio (JSON key "bio") from a first-person point of view for prospect clients belonging to the demographic looking for listings in the same city or area, a set of SEO metatags (JSON key "metatags") fit for my professional website and a well structured SEO friendly tagline  (JSON key "tagline").  Contain the results in JSON key-value pair format.`;
+  let prompt = `Retrieve the public information of a realtor named ${agent.full_name} a licenced realtor for ${`${
+    real_estate_board?.name ? `(${real_estate_board.name})` : property.city
+  } `} with Paragon ID "${agent.agent_id}" from the internet and only use the most recently published source or article anytime from November ${
+    new Date().getFullYear() - 1
+  } to today. Based on that factual information, write me a realtor bio (JSON key "bio") from a first-person point of view for prospect clients belonging to the demographic looking for listings in the same city or area, a set of SEO metatags (JSON key "metatags") fit for my professional website, website title (JSON key "title") and a well structured, 3-worded, SEO friendly tagline  (JSON key "tagline").  Contain the results in JSON key-value pair format.
+  `;
   console.log('---');
   console.log('Processing:');
   // console.log(prompt);
