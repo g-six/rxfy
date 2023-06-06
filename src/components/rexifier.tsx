@@ -550,7 +550,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           ///// END OF HOME PAGE
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.MY_ACCOUNT_WRAPPER)) {
             return (
-              <RxMyAccountPage {...props} type={node.type} data={agent_data}>
+              <RxMyAccountPage {...props} type={node.type} data={agent_data} user-type={params.session_as as string}>
                 <>{domToReact(node.children) as ReactElement[]}</>
               </RxMyAccountPage>
             );
