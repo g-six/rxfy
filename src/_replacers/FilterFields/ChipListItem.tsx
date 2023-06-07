@@ -1,15 +1,13 @@
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { ValueInterface } from '@/_typings/ui-types';
 import { classNames } from '@/_utilities/html-helper';
 import { searchByClasses, searchByProp } from '@/_utilities/rx-element-extractor';
 import React, { ReactElement, cloneElement } from 'react';
 
 type Props = {
   chip: ReactElement;
-  item: {
-    label: string;
-    value: string | number;
-  };
-  handleSelect: (val: string | number) => void;
+  item: ValueInterface;
+  handleSelect: (val: ValueInterface) => void;
   isSelected: boolean;
 };
 
@@ -20,7 +18,7 @@ export default function ChipListItem({ chip, item, handleSelect, isSelected }: P
         cloneElement(chip, {
           key: item.value,
           onClick: () => {
-            handleSelect(item.value);
+            handleSelect(item);
           },
         }),
         [

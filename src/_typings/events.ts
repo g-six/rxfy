@@ -1,5 +1,7 @@
 import { MLSProperty } from './property';
 import { SavedSearchInput } from './saved-search';
+import { ImagePreview } from '@/hooks/useFormEvent';
+import { ValueInterface, RoomDimension } from '@/_typings/ui-types';
 
 export enum Events {
   Login = 'event-login',
@@ -26,7 +28,7 @@ export enum Events {
   GenericEvent = 'generic-event',
   TogglePhotoSliderModal = 'photo-slider-modal',
   PropertyGalleryModal = 'property-gallery-modal',
-  //ContactFormSubmit = 'event-contact-form-submit',
+  PrivateListingForm = 'event-private-listing-form',
   LoadUserSession = 'load-session',
 }
 
@@ -63,3 +65,79 @@ export const tabEventMapping: { [key: string]: Events } = {
   // 'compare-view': Events.SavedItemsCompareTab,
   // default: Events.SavedItemsCompareTab,
 };
+
+// FORM EVENTS
+export type FormData = {
+  // Handling data
+  submit?: boolean; // if true, will trigger form submission
+  subscribe?: boolean; // if true, means that ew have a new consumer of this form data
+};
+
+export interface PrivateListingData extends FormData {
+  // Tab AI
+  prompt?: string;
+  generatedPrompt?: object;
+  generatedAddress?: {
+    address?: string;
+    city?: string;
+    state_province?: string;
+    search?: string;
+  };
+  photos?: ImagePreview[];
+
+  // Address
+  neighbourhood?: string;
+  unit?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  address_string?: string;
+
+  // Home Summary
+  asking_price?: string;
+  built_year?: string;
+  tax_year?: string;
+  property_tax?: string;
+  property_disclosure?: string;
+  property_type?: ValueInterface;
+  building_style?: ValueInterface;
+  amenities?: ValueInterface[];
+  utilities?: ValueInterface[];
+
+  // Size
+  living_area?: number;
+  living_area_units?: ValueInterface;
+  total_size?: number;
+  total_size_units?: ValueInterface;
+  beds?: number;
+  baths?: number;
+  baths_full?: number;
+  baths_half?: number;
+  kitchens?: number;
+  additional_rooms?: number;
+  garage?: number;
+
+  // Rooms
+  beds_dimensions?: RoomDimension[];
+  baths_full_dimensions?: RoomDimension[];
+  baths_half_dimensions?: RoomDimension[];
+  kitchen_dimensions?: RoomDimension[];
+  garage_dimensions?: RoomDimension[];
+  additional_dimensions?: RoomDimension[];
+
+  // Strata
+  building_bylaws?: string;
+  maintenance_fee?: string;
+  restrictions?: string;
+  age_restriction?: string;
+  dogs?: string;
+  cats?: string;
+  total_pets_allowed?: string;
+  total_rentals_allowed?: string;
+  complex_name?: string;
+  building_amenities?: ValueInterface[];
+  council_approval_required?: boolean;
+  locked?: boolean;
+
+  // ...
+}

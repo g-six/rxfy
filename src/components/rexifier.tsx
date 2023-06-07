@@ -39,7 +39,7 @@ import RxDropdownMenu from './Nav/RxDropdownMenu';
 import RxMySavedHomesDashBoard from './full-pages/RxMySavedHomesDashBoard';
 import RxIdPage from './full-pages/RxIdPage';
 import RxMyHomeAlerts from './full-pages/RxMyHomeAlerts';
-
+import RxAgentMyListings from './full-pages/RxAgentMyListings';
 import { RxTextInput } from './RxTextInput';
 import RxContactFormButton from './RxForms/RxContactFormButton';
 import RxSessionDropdown from './Nav/RxSessionDropdown';
@@ -440,7 +440,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
 
         if (props.className) {
-          if (props.className.indexOf(WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL) >= 0)
+          if (props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL))
             return (
               <AiPrompt>
                 <>{domToReact(node.children)}</>
@@ -449,6 +449,10 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
 
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.SESSION_DROPDOWN) >= 0) {
+          if (params.slug && `${params.slug}`.indexOf('ai') === 0) {
+            // We do not show the session dropdown on ai-results pages
+            return <></>;
+          }
           return <RxSessionDropdown agent={agent_data}>{domToReact(node.children) as ReactElement}</RxSessionDropdown>;
         }
 
@@ -606,7 +610,11 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             );
           }
         }
-
+        //AGENT SIDE  START
+        if (node.attribs.class === WEBFLOW_NODE_SELECTOR.AGENT_MY_LISTINGS) {
+          return <RxAgentMyListings nodeProps={props} agent_data={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
+        }
+        //AGENT SIDE  END
         if (node.attribs['data-type'] === 'email' && node.tagName === 'a') {
           // Emai link
           return <EmailAnchor {...props} agent={agent_data} />;
