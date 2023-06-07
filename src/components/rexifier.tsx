@@ -564,7 +564,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.MY_ACCOUNT_WRAPPER)) {
             // Customer session
             return (
-              <RxMyAccountPage {...props} type={node.type} data={agent_data} user-type={params.session_as as string} domain={params.webflow_domain}>
+              <RxMyAccountPage {...props} type={node.type} data={agent_data} user-type={params.session_as as string} domain={params.webflow_domain as string}>
                 <>{domToReact(node.children) as ReactElement[]}</>
               </RxMyAccountPage>
             );
