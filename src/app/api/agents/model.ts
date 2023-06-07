@@ -43,7 +43,17 @@ export async function createAgent(user_data: {
       },
     );
 
-    return agent_response?.data?.data?.createAgent?.data || {};
+    const agent = agent_response?.data?.data?.createAgent?.data || {};
+    return {
+      ...agent.attributes,
+      id: agent.id ? Number(agent.id) : undefined,
+      metatags: agent.agent_metatag.data
+        ? {
+            ...agent.agent_metatag.data.attributes,
+            id: Number(agent.agent_metatag.data.id),
+          }
+        : undefined,
+    };
   } catch (e) {
     console.log('Error in createAgent');
     const axerr = e as AxiosError;
@@ -211,7 +221,8 @@ export async function createAgentRecordIfNoneFound(
     } else {
       console.log(`Agent found, let's use ${first_name} ${last_name}`);
     }
-    if (!agent.attributes?.agent_metatag?.data?.attributes?.personal_bio && listing?.description) {
+    console.log(JSON.stringify({ agent }, null, 4));
+    if (!agent.metatags?.personal_bio && listing?.description) {
       console.log('No agent bio, sprucing it up...');
       console.log(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent.attributes.agent_id}`);
       axios.get(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent.attributes.agent_id}`);
