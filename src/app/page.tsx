@@ -59,7 +59,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
     else webflow_domain = `${searchParams.theme}-leagent.webflow.io`;
   }
-  console.log({ webflow_domain });
+
   let webflow_page_url =
     params && params.slug && !skip_slugs.includes(params.slug as string) ? `https://${webflow_domain}/${params.slug}` : `https://${webflow_domain}`;
 
@@ -96,7 +96,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
     agent_data.webflow_domain = webflow_domain;
     loadAiResults($, agent_data.agent_id);
   } else if (searchParams.agent) {
-    //searchParams.agent
     if (searchParams.theme) {
       //V56820
       const agent_record = await findAgentRecordByAgentId(searchParams.agent);
