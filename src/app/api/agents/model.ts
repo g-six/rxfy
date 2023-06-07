@@ -87,8 +87,8 @@ export async function findAgentRecordByAgentId(agent_id: string) {
     },
   );
 
-  let [agent] = response_data?.data?.agents.data;
-  if (!agent.attributes.agent_metatag?.data) {
+  let [record] = response_data?.data?.agents.data;
+  if (!record.attributes.agent_metatag?.data) {
     const recent = await getMostRecentListing(agent_id);
     const property = recent as { [key: string]: string | number };
     const { real_estate_board } = recent as {
@@ -102,16 +102,25 @@ export async function findAgentRecordByAgentId(agent_id: string) {
     const ai_results = await getSmart(
       {
         agent_id,
-        full_name: agent.attributes.full_name,
-        email: agent.attributes.email,
-        id: agent.id,
+        full_name: record.attributes.full_name,
+        email: record.attributes.email,
+        id: record.id,
       },
       property,
       real_estate_board,
     );
     console.log({ ai_results });
   }
-  return agent || null;
+  return record?.attributes
+    ? {
+        ...record.attributes,
+        id: Number(record.id),
+        metatags: {
+          ...record.attributes.agent_metatag.data?.attributes,
+          id: record.attributes.agent_metatag.data ? Number(record.attributes.agent_metatag.data) : undefined,
+        },
+      }
+    : null;
 }
 
 export async function getMostRecentListing(agent_id: string): Promise<unknown> {

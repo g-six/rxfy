@@ -55,9 +55,14 @@ export default async function Home({ params, searchParams }: { params: Record<st
   let webflow_domain = agent_data ? agent_data.webflow_domain : process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN;
 
   // TODO: Refactor into Theme middleware
-
+  if (searchParams.theme) {
+    if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
+    else webflow_domain = `${searchParams.theme}-leagent.webflow.io`;
+  }
+  console.log({ webflow_domain });
   let webflow_page_url =
     params && params.slug && !skip_slugs.includes(params.slug as string) ? `https://${webflow_domain}/${params.slug}` : `https://${webflow_domain}`;
+
   if (params && params.slug === 'property') {
     webflow_page_url = `${webflow_page_url}/${params.slug}id`;
     console.log('fetching property page', webflow_page_url);
@@ -83,11 +88,8 @@ export default async function Home({ params, searchParams }: { params: Record<st
   // Special cases
 
   if (searchParams.paragon) {
-    const agent = await findAgentRecordByAgentId(searchParams.paragon);
-    agent_data = {
-      ...agent.attributes,
-      metatags: agent.attributes.agent_metatag?.data?.attributes,
-    };
+    agent_data = await findAgentRecordByAgentId(searchParams.paragon);
+
     console.log(`Load up ${pathname} ${searchParams.theme}`);
     if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
     else webflow_domain = `${searchParams.theme || 'oslo'}-leagent.webflow.io`;

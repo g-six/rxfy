@@ -42,10 +42,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       agent_data = {
         ...agent_data,
         ...agent_record,
-        metatags: {
-          ...agent_record.data.user.data.attributes.agent.data.attributes.agent_metatag.data.attributes,
-          id: Number(agent_record.data.user.data.attributes.agent.data.attributes.agent_metatag.data.id),
-        },
         webflow_domain: searchParams.theme === 'default' ? 'leagent-webflow-rebuild.webflow.io' : `${searchParams.theme}-leagent.webflow.io`,
       };
     }
