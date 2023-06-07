@@ -1,8 +1,11 @@
 'use client';
 import { BrokerageInputModel, RealtorInputModel } from '@/_typings/agent';
+import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
+import RxKeyValueRow from '@/components/RxProperty/RxKeyValueRow';
 // import { RxBrokerageInformation } from '@/components/RxForms/RxBrokerageInformation';
 import { RxMyAccountPage } from '@/components/full-pages/RxMyAccountPage';
+import { AxiosError } from 'axios';
 import Cookies from 'js-cookie';
 import Script from 'next/script';
 import React from 'react';
@@ -26,36 +29,46 @@ export default function MyProfilePage(p: Props) {
 
   React.useEffect(() => {
     if (Cookies.get('session_key')) {
-      getUserBySessionKey(Cookies.get('session_key') as string, p.data['user-type'] && p.data['user-type'] === 'realtor' ? 'realtor' : undefined).then(data => {
-        if (data.error) location.href = '/log-in';
-        if (p.children.type === 'html') {
-          Object.keys(p.children.props).forEach((key: string) => {
-            if (key !== 'children') {
-              html_props = {
-                ...html_props,
-                [key]: p.children.props[key],
-              };
-            } else {
-              p.children.props[key].forEach((child: React.ReactElement) => {
-                if (child.type === 'body') {
-                  child.props.children.forEach((div: React.ReactElement) => {
-                    if (div.type === 'div') {
-                      setNavBar(buildNavigationComponent(div.props.children));
-                      setDashArea(buildMainComponent(div.props.children, { ...p, session: data }));
-                    } else if (div.type === 'script') {
-                      scripts.push({
-                        src: div.props.src,
-                        type: div.props.type,
-                      });
-                    }
-                  });
-                }
-              });
-            }
-          });
-          setSession(data);
-        }
-      });
+      getUserBySessionKey(Cookies.get('session_key') as string, p.data['user-type'] && p.data['user-type'] === 'realtor' ? 'realtor' : undefined)
+        .then(data => {
+          if (data.error) location.href = '/log-in';
+          if (p.children.type === 'html') {
+            Object.keys(p.children.props).forEach((key: string) => {
+              if (key !== 'children') {
+                html_props = {
+                  ...html_props,
+                  [key]: p.children.props[key],
+                };
+              } else {
+                p.children.props[key].forEach((child: React.ReactElement) => {
+                  if (child.type === 'body') {
+                    child.props.children.forEach((div: React.ReactElement) => {
+                      if (div.type === 'div') {
+                        setNavBar(buildNavigationComponent(div.props.children));
+                        setDashArea(buildMainComponent(div.props.children, { ...p, session: data }));
+                      } else if (div.type === 'script') {
+                        scripts.push({
+                          src: div.props.src,
+                          type: div.props.type,
+                        });
+                      }
+                    });
+                  }
+                });
+              }
+            });
+            setSession(data);
+          }
+        })
+        .catch(e => {
+          const axerr = e as AxiosError;
+          if (axerr.response?.status === 401) {
+            clearSessionCookies();
+            setTimeout(() => {
+              location.href = '/log-in';
+            }, 200);
+          }
+        });
     } else {
       location.href = '/log-in';
     }
@@ -117,7 +130,11 @@ export function RxPageIterator(props: Props) {
         );
       }
       if (child.props?.className?.split(' ').includes('plan-title')) {
-        return <div {...child.props}>test</div>;
+        if (props.session?.stripe_subscriptions) {
+          const [subscription_id] = Object.keys(props.session.stripe_subscriptions);
+          console.log(subscription_id);
+        }
+        return <RxKeyValueRow {...child.props} />;
       }
       // TODO
       // if (child.props?.className?.split(' ').includes('my-brokerage-wrapper')) {
