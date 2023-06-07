@@ -49,7 +49,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const page_url = !!agent_data?.webflow_domain
     ? `https://${agent_data.webflow_domain}${getFullWebflowPagePath(pathname)}`
-    : `https://${process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN}${getFullWebflowPagePath(pathname)}`;
+    : `https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}${getFullWebflowPagePath(pathname)}`;
 
   try {
     const req_page_html = await axios.get(page_url);
@@ -110,9 +110,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   };
 
   const { class: bodyClassName, ...body_props } = webflow.body.props;
-  if (!agent_data || agent_data.webflow_domain === process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN) {
+  if (!agent_data || agent_data.webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN) {
     return (
-      <html data-wf-domain={`${process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN}`} {...$('html').attr()}>
+      <html data-wf-domain={`${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`} {...$('html').attr()}>
         <head
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
