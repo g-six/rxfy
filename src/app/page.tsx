@@ -93,8 +93,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
   // Special cases
   if (searchParams.paragon) {
     agent_data = await findAgentRecordByAgentId(searchParams.paragon);
-
-    console.log(`Load up ${pathname} ${searchParams.theme}`);
     if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
     else webflow_domain = `${searchParams.theme || 'oslo'}-leagent.webflow.io`;
     agent_data.webflow_domain = webflow_domain;
