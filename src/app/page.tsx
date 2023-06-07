@@ -17,20 +17,20 @@ import MyProfilePage from '@/rexify/my-profile';
 import styles from './page.module.scss';
 import { getUserDataFromSessionKey } from './api/update-session';
 import { findAgentRecordByAgentId } from './api/agents/model';
+import { AxiosError } from 'axios';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico', 'sign-out'];
 
-function loadAiResults($: CheerioAPI, user_id: string) {
+function loadAiResults($: CheerioAPI, user_id: string, origin?: string) {
   ['oslo', 'hamburg', 'malta'].forEach(theme => {
     $(`.theme-area.home-${theme}`).replaceWith(
-      `<iframe src="https://dev.leagent.com?agent=${user_id}&theme=${theme}" className="${styles.homePagePreview} theme-area home-${theme}" />`,
+      `<iframe data-src="${origin}?agent=${user_id}&theme=${theme}" className="${styles.homePagePreview} theme-area home-${theme}" />`,
     );
   });
-
-  console.log('Load property sample', `/property?agent=${user_id}&theme=default&mls=R2782417`);
+  console.log('Load property sample', `${origin}/property?agent=${user_id}&theme=default&mls=R2782417`);
   $(`[data-w-tab="Tab 2"] .f-section-large-11`).html(
-    `<iframe src="https://dev.leagent.com/property?agent=${user_id}&theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
+    `<iframe src="${origin}/property?agent=${user_id}&theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
   );
 
   $('.building-and-sold-info').remove();
@@ -94,11 +94,21 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
   // Special cases
   if (searchParams.paragon) {
+    axios
+      .get(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${searchParams.paragon}?regen=1`)
+      .then(response => {
+        console.log('Successfully retrieved agent cache json');
+        console.log(response.data?.hits?.hits);
+      })
+      .catch(e => {
+        const axerr = e as AxiosError;
+        console.log(`Error in generating ${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${searchParams.paragon}?regen=1`, axerr.response?.status);
+      });
     agent_data = await findAgentRecordByAgentId(searchParams.paragon);
     if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
     else webflow_domain = `${searchParams.theme || 'oslo'}-leagent.webflow.io`;
     agent_data.webflow_domain = webflow_domain;
-    loadAiResults($, agent_data.agent_id);
+    loadAiResults($, agent_data.agent_id, origin);
   } else if (searchParams.agent) {
     if (searchParams.theme) {
       //V56820
@@ -134,7 +144,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
       }
       if (agent_data) {
         agent_data.metatags = session.agent.agent_metatag;
-        loadAiResults($, session.agent.agent_id);
+        loadAiResults($, session.agent.agent_id, origin);
       }
     }
     switch (params.slug) {
@@ -189,6 +199,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
         } else {
           removeSection($, '.sold-listings-grid');
         }
+        console.log(agent_data);
         await fillAgentInfo($, agent_data);
       } else {
         console.log('\n\nHome.agent_data not available');
