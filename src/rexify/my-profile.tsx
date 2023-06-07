@@ -7,6 +7,7 @@ import RxKeyValueRow from '@/components/RxProperty/RxKeyValueRow';
 import { RxMyAccountPage } from '@/components/full-pages/RxMyAccountPage';
 import { AxiosError } from 'axios';
 import Cookies from 'js-cookie';
+import { useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import React from 'react';
 interface DataModel extends RealtorInputModel {
@@ -20,6 +21,8 @@ type Props = {
 };
 
 export default function MyProfilePage(p: Props) {
+  const params = useSearchParams();
+  console.log(params.get('key'));
   const [session, setSession] = React.useState<{ [key: string]: string | number }>();
   const scripts: { [key: string]: string }[] = [];
   const [dash_area, setDashArea] = React.useState<React.ReactElement>();
@@ -70,7 +73,14 @@ export default function MyProfilePage(p: Props) {
           }
         });
     } else {
-      location.href = '/log-in';
+      if (params.get('key')) {
+        Cookies.set('session_key', params.get('key') as string);
+        setTimeout(() => {
+          location.reload();
+        }, 200);
+      } else {
+        location.href = '/log-in';
+      }
     }
   }, []);
 
