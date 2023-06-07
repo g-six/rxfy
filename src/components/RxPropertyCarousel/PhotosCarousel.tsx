@@ -104,7 +104,7 @@ export default function PhotosCarousel({ propertyPhotos }: Props) {
             currentPhotos.map(i => (
               <SwiperSlide key={i}>
                 <div className={`${styles.inner} relative h-full`}>
-                  <Image fill style={{ objectFit: 'cover' }} sizes='100%' alt='pic' src={i} priority />
+                  <Image fill style={{ objectFit: 'cover' }} sizes='100%' alt='pic' src={i} />
                 </div>
               </SwiperSlide>
             ))}

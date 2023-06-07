@@ -1,5 +1,5 @@
 'use client';
-import { ReactElement, cloneElement } from 'react';
+import { CSSProperties, ReactElement, cloneElement } from 'react';
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import Image from 'next/image';
@@ -14,6 +14,7 @@ type PropertyCarouselProps = {
 };
 export default function PhotosGrid({ showGallery, photos, child }: PropertyCarouselProps) {
   //const hasClientNote = false;
+  const wrapperStyles: CSSProperties = { overflow: 'hidden;', position: 'relative' };
   const show = showGallery
     ? showGallery
     : (key: number) => {
@@ -23,32 +24,44 @@ export default function PhotosGrid({ showGallery, photos, child }: PropertyCarou
   const matches: tMatch[] = [
     { searchFn: searchByClasses(['property-images-lightbox']), transformChild: child => <>{child.props.children}</> },
     {
+      searchFn: searchByClasses(['property-image-wrapper']),
+      transformChild: child => <div className={`${child.props.className} ${!photos?.[1] ? 'xl:col-span-2' : ''} `}>{child.props.children}</div>,
+    },
+    {
+      searchFn: searchByClasses(['property-images-more']),
+      transformChild: child => <div className={`${child.props.className} ${!photos?.[1] ? 'hidden' : ''} `}>{child.props.children}</div>,
+    },
+    {
       searchFn: searchByClasses(['property-image-main']),
       transformChild: (child: ReactElement) => {
         return (
-          <div onClick={() => show(0)} className={classNames(child.props.className, 'relative overflow-hidden ')}>
+          <div style={wrapperStyles} onClick={() => show(0)} className={classNames(child.props.className, ` `)}>
             <Image alt='main' src={photos?.[0]} fill style={{ objectFit: 'cover' }} />
           </div>
         );
       },
     },
     {
-      searchFn: searchByClasses(['property-image-2']),
+      searchFn: searchByClasses(['image-wrapper-top']),
       transformChild: (child: ReactElement) => {
-        return (
-          <div onClick={() => show(1)} className={classNames(child.props.className, 'relative overflow-hidden ')}>
-            <Image alt='main' src={photos?.[1]} fill style={{ objectFit: 'cover' }} />
+        return photos?.[1] ? (
+          <div style={wrapperStyles} onClick={() => show(1)} className={classNames(child.props.className, ` `)}>
+            <Image alt='main' src={photos?.[1]} fill width={800} style={{ objectFit: 'cover' }} />
           </div>
+        ) : (
+          <></>
         );
       },
     },
     {
-      searchFn: searchByClasses(['comment-box']),
+      searchFn: searchByClasses(['image-wrapper-bottom']),
       transformChild: (child: ReactElement) => {
-        return (
-          <div onClick={() => show(2)} className={classNames(child.props.className, 'relative overflow-hidden ')}>
+        return photos?.[2] ? (
+          <div style={wrapperStyles} onClick={() => show(2)} className={classNames(child.props.className, ' ')}>
             <Image alt='main' src={photos?.[2]} fill style={{ objectFit: 'cover' }} />
           </div>
+        ) : (
+          <></>
         );
       },
     },

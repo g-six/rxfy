@@ -137,7 +137,7 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
     $('.navbar-wrapper-2 .logo---phone-email a[data-type="phone"]').text(agent_data.phone);
     $('.navbar-wrapper-2 > a[href="#"]').attr('href', '/');
     $('.navbar-wrapper-2 > a h3').remove();
-    replaceByCheerio($, '.navbar-wrapper-2 > a', {
+    replaceByCheerio($, '.navbar-wrapper-2 > a,[class^="navbar-dashboard-wrapper"] > a', {
       content: `<img class="justify-self-start h-10" src="${agent_data.metatags.logo_for_light_bg}" />`,
     });
   }

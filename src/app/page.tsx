@@ -173,8 +173,10 @@ export default async function Home({ params, searchParams }: { params: Record<st
   });
 
   if (webflow_domain !== `${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`) {
-    if (!params || !params.slug || params.slug === '/') {
-      if (agent_data && agent_data.agent_id) {
+    if (agent_data && agent_data.agent_id) {
+      await fillAgentInfo($, agent_data);
+
+      if (!params || !params.slug || params.slug === '/') {
         listings = await getAgentListings(agent_data.agent_id);
         // Recent listings
         if (listings?.active?.length) {
@@ -189,10 +191,9 @@ export default async function Home({ params, searchParams }: { params: Record<st
         } else {
           removeSection($, '.sold-listings-grid');
         }
-        await fillAgentInfo($, agent_data);
-      } else {
-        console.log('\n\nHome.agent_data not available');
       }
+    } else {
+      console.log('\n\nHome.agent_data not available');
     }
 
     if (params && (params.slug === 'property' || params.slug === 'brochure') && searchParams && (searchParams.lid || searchParams.id || searchParams.mls)) {

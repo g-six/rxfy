@@ -62,12 +62,12 @@ export function RxDetailedListing(props: ReplacerPageProps) {
           : child;
       },
     },
-    {
-      searchFn: searchByClasses([WEBFLOW_NODE_SELECTOR.PROPERTY_MAPS]),
-      transformChild: (child: ReactElement) => {
-        return <RxPropertyMaps child={child} property={props.property} />;
-      },
-    },
+    // {
+    //   searchFn: searchByClasses([WEBFLOW_NODE_SELECTOR.PROPERTY_MAPS]),
+    //   transformChild: (child: ReactElement) => {
+    //     return <RxPropertyMaps child={child} property={props.property} />;
+    //   },
+    // },
     {
       searchFn: searchByClasses([WEBFLOW_NODE_SELECTOR.PROPERTY_STATS_W_ICONS]),
       transformChild: (child: ReactElement) => {
@@ -110,14 +110,14 @@ export function RxDetailedListing(props: ReplacerPageProps) {
         }) as ReactElement;
       },
     },
-    { searchFn: searchByClasses(['property-lightbox-2']), transformChild: child => <div className={'property-lightbox-2'}>{child.props.children}</div> },
+    // { searchFn: searchByClasses(['property-lightbox-2']), transformChild: child => <div className={'property-lightbox-2'}>{child.props.children}</div> },
     {
       searchFn: searchByPartOfClass([WEBFLOW_NODE_SELECTOR.PROPERTY_IMAGES_COLLECTION]),
       transformChild: (child: ReactElement) => {
         const cp: PropertyDataModel | { [key: string]: string } = props.property || {};
         const phts = cp && Array.isArray(cp.photos) ? cp.photos : [];
-        const sliced = phts?.slice(0, 4).map(link => getImageSized(link));
-        return <RxSecondPhotosGrid child={child} photos={sliced} />;
+        const sliced = phts?.slice(3, 7).map(link => getImageSized(link));
+        return sliced?.length > 0 ? <RxSecondPhotosGrid child={child} photos={sliced} /> : <></>;
       },
     },
     {
@@ -170,7 +170,7 @@ export function RxDetailedListing(props: ReplacerPageProps) {
   return (
     <>
       {props?.property ? transformMatchingElements(props.nodes, matches) : props.nodes}
-      <PhotosCarousel propertyPhotos={cdnPhotos ?? []} />
+      {cdnPhotos?.length > 1 && <PhotosCarousel propertyPhotos={cdnPhotos ?? []} />}
     </>
   );
 }
