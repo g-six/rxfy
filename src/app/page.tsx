@@ -16,10 +16,32 @@ import RxNotifications from '@/components/RxNotifications';
 import MyProfilePage from '@/rexify/my-profile';
 import styles from './page.module.scss';
 import { getUserDataFromSessionKey } from './api/update-session';
-import { getUserById } from './api/check-session/route';
+import { findAgentRecordByAgentId } from './api/agents/model';
 
 const inter = Inter({ subsets: ['latin'] });
-const skip_slugs = ['favicon.ico'];
+const skip_slugs = ['favicon.ico', 'sign-out'];
+
+function loadAiResults($: CheerioAPI, user_id: string) {
+  ['oslo', 'hamburg', 'malta'].forEach(theme => {
+    $(`.theme-area.home-${theme}`).replaceWith(
+      `<iframe src="https://dev.leagent.com?agent=${user_id}&theme=${theme}" className="${styles.homePagePreview} theme-area home-${theme}" />`,
+    );
+  });
+
+  console.log('Load property sample', `/property?agent=${user_id}&theme=default&mls=R2782417`);
+  $(`[data-w-tab="Tab 2"] .f-section-large-11`).html(
+    `<iframe src="https://dev.leagent.com/property?agent=${user_id}&theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
+  );
+
+  $('.building-and-sold-info').remove();
+  $('[class^="similar-homes"]').remove();
+  replaceByCheerio($, '[data-w-tab="Tab 2"] .f-section-large-11', {
+    className: [WEBFLOW_NODE_SELECTOR.AI_THEME_PANE_2, styles.homePagePreview].join(' '),
+  });
+  replaceByCheerio($, '[data-w-tab="Tab 2"] .section---top-images', {
+    className: styles.propertyTopPhotoGrid,
+  });
+}
 
 export default async function Home({ params, searchParams }: { params: Record<string, unknown>; searchParams: Record<string, string> }) {
   const { TEST_DOMAIN } = process.env as unknown as { [key: string]: string };
@@ -28,22 +50,14 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const { hostname, pathname, origin } = new URL(url);
 
   let session_key = cookies().get('session_key')?.value || '';
+
   let agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? TEST_DOMAIN : hostname);
   let webflow_domain = agent_data ? agent_data.webflow_domain : process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN;
 
   // TODO: Refactor into Theme middleware
-  if (searchParams.theme && searchParams.agent) {
-    const agent_record = await getUserById(Number(searchParams.agent), 'realtor');
-    if (agent_record?.data.user) {
-      agent_data = {
-        ...agent_record.data.user.data.attributes.agent.data.attributes,
-        metatags: agent_record.data.user.data.attributes.agent.data.attributes.agent_metatag.data.attributes,
-      };
-      console.log(`Load up ${pathname} ${searchParams.theme}`);
-      if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
-      else webflow_domain = `${searchParams.theme}-leagent.webflow.io`;
-      agent_data.webflow_domain = webflow_domain;
-    }
+  if (searchParams.theme) {
+    if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
+    else webflow_domain = `${searchParams.theme}-leagent.webflow.io`;
   }
 
   let webflow_page_url =
@@ -71,12 +85,34 @@ export default async function Home({ params, searchParams }: { params: Record<st
   }
   const $: CheerioAPI = load(data);
 
+  $('form').removeAttr('id');
+  $('form').removeAttr('name');
+  if (process.env.NEXT_PUBLIC_BUY_BUTTON)
+    replaceByCheerio($, '.btn-stripe-buy', {
+      href: process.env.NEXT_PUBLIC_BUY_BUTTON,
+    });
+
   // Special cases
-  if (!(searchParams.theme && searchParams.agent) && agent_data.webflow_domain === 'leagent-website.webflow.io') {
-    if (process.env.NEXT_PUBLIC_BUY_BUTTON)
-      replaceByCheerio($, '.btn-stripe-buy', {
-        href: process.env.NEXT_PUBLIC_BUY_BUTTON,
-      });
+  if (searchParams.paragon) {
+    agent_data = await findAgentRecordByAgentId(searchParams.paragon);
+    if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
+    else webflow_domain = `${searchParams.theme || 'oslo'}-leagent.webflow.io`;
+    agent_data.webflow_domain = webflow_domain;
+    loadAiResults($, agent_data.agent_id);
+  } else if (searchParams.agent) {
+    if (searchParams.theme) {
+      //V56820
+      const agent_record = await findAgentRecordByAgentId(searchParams.agent);
+      // const agent_record = await getUserById(Number(searchParams.agent), 'realtor');
+      if (agent_record) {
+        agent_data = agent_record;
+
+        if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
+        else webflow_domain = `${searchParams.theme}-leagent.webflow.io`;
+        agent_data.webflow_domain = webflow_domain;
+      }
+    }
+  } else if (!(searchParams.theme && searchParams.agent) && agent_data.webflow_domain === 'leagent-website.webflow.io') {
     if (!session_key && params.slug && ['ai-result'].includes(params.slug as string)) {
       data = '<html><head><meta name="title" content="Not found" /></head><body>Not found</body></html>';
       notFound();
@@ -98,25 +134,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
       }
       if (agent_data) {
         agent_data.metatags = session.agent.agent_metatag;
-        ['oslo', 'hamburg', 'malta'].forEach(theme => {
-          $(`.theme-area.home-${theme}`).replaceWith(
-            `<iframe src="https://dev.leagent.com?agent=${user_id}&theme=${theme}" className="${styles.homePagePreview} theme-area home-${theme}" />`,
-          );
-        });
-
-        console.log('Load property sample', `/property?agent=${user_id}&theme=default&mls=R2782417`);
-        $(`[data-w-tab="Tab 2"] .f-section-large-11`).html(
-          `<iframe src="https://dev.leagent.com/property?agent=${user_id}&theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
-        );
-
-        $('.building-and-sold-info').remove();
-        $('[class^="similar-homes"]').remove();
-        replaceByCheerio($, '[data-w-tab="Tab 2"] .f-section-large-11', {
-          className: [WEBFLOW_NODE_SELECTOR.AI_THEME_PANE_2, styles.homePagePreview].join(' '),
-        });
-        replaceByCheerio($, '[data-w-tab="Tab 2"] .section---top-images', {
-          className: styles.propertyTopPhotoGrid,
-        });
+        loadAiResults($, session.agent.agent_id);
       }
     }
     switch (params.slug) {

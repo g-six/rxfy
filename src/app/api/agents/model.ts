@@ -4,6 +4,10 @@ import { WEBFLOW_THEME_DOMAINS } from '@/_typings/webflow';
 import { RealEstateBoardDataModel } from '@/_typings/real-estate-board';
 import { AgentInput } from '@/_typings/agent';
 import { getSmart } from './repair';
+import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
+import { LegacySearchPayload } from '@/_typings/pipeline';
+import { getRealEstateBoard } from '../real-estate-boards/model';
+import { MLSProperty, PropertyDataModel } from '@/_typings/property';
 
 export async function createAgent(user_data: {
   agent_id: string;
@@ -39,7 +43,17 @@ export async function createAgent(user_data: {
       },
     );
 
-    return agent_response?.data?.data?.createAgent?.data || {};
+    const agent = agent_response?.data?.data?.createAgent?.data || {};
+    return {
+      ...agent.attributes,
+      id: agent.id ? Number(agent.id) : undefined,
+      metatags: agent.agent_metatag.data
+        ? {
+            ...agent.agent_metatag.data.attributes,
+            id: Number(agent.agent_metatag.data.id),
+          }
+        : undefined,
+    };
   } catch (e) {
     console.log('Error in createAgent');
     const axerr = e as AxiosError;
@@ -66,6 +80,97 @@ export async function createAgent(user_data: {
   return {};
 }
 
+export async function findAgentRecordByAgentId(agent_id: string) {
+  const { data: response_data } = await axios.post(
+    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+    {
+      query: gql_by_agent_id,
+      variables: {
+        agent_id,
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  let [record] = response_data?.data?.agents.data;
+  if (!record.attributes.agent_metatag?.data) {
+    const recent = await getMostRecentListing(agent_id);
+    const property = recent as { [key: string]: string | number };
+    const { real_estate_board } = recent as {
+      real_estate_board: {
+        id: number;
+        abbreviation: string;
+        name: string;
+      };
+    };
+    console.log({ property });
+    const ai_results = await getSmart(
+      {
+        agent_id,
+        full_name: record.attributes.full_name,
+        email: record.attributes.email,
+        id: record.id,
+      },
+      property,
+      real_estate_board,
+    );
+    console.log({ ai_results });
+  }
+  return record?.attributes
+    ? {
+        ...record.attributes,
+        id: Number(record.id),
+        metatags: {
+          ...record.attributes.agent_metatag.data?.attributes,
+          id: record.attributes.agent_metatag.data ? Number(record.attributes.agent_metatag.data) : undefined,
+        },
+      }
+    : null;
+}
+
+export async function getMostRecentListing(agent_id: string): Promise<unknown> {
+  const legacy_params: LegacySearchPayload = {
+    from: 0,
+    size: 1,
+    query: {
+      bool: {
+        should: [{ match: { 'data.LA1_LoginName': agent_id } }, { match: { 'data.LA2_LoginName': agent_id } }, { match: { 'data.LA3_LoginName': agent_id } }],
+        minimum_should_match: 0,
+      },
+    },
+  };
+  const legacy_listings = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
+  const listing = legacy_listings.length && legacy_listings[0];
+  if (listing) {
+    const {
+      title,
+      description,
+      lat,
+      lon,
+      area: target_area,
+      city: target_city,
+      asking_price,
+      property_type,
+      beds,
+      baths,
+      listed_at: listing_date,
+      ...mls_data
+    } = listing;
+    const legacy = mls_data as unknown as MLSProperty;
+    const real_estate_board = await getRealEstateBoard(mls_data as unknown as Record<string, string>);
+    let listed_by = legacy.LA1_FullName || legacy.LA2_FullName || legacy.LA3_FullName;
+    return {
+      ...listing,
+      listed_by,
+    };
+  }
+}
+
 export async function createAgentRecordIfNoneFound(
   { agent_id, email, phone, full_name }: AgentInput,
   real_estate_board?: RealEstateBoardDataModel,
@@ -89,26 +194,11 @@ export async function createAgentRecordIfNoneFound(
 
   try {
     // const variables = { email };
-    const variables = { agent_id };
-    const { data: response_data } = await axios.post(
-      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-      {
-        query: gql_by_agent_id,
-        // query: gql_by_email,
-        variables,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-          'Content-Type': 'application/json',
-        },
-      },
-    );
+    let agent = await findAgentRecordByAgentId(agent_id);
 
     let first_name = `${full_name}`.split(' ')[0];
     let last_name = `${full_name}`.split(' ').slice(0, 2).pop();
     last_name = (last_name && last_name.split('PREC*').join('').trim()) || '';
-    let [agent] = response_data?.data?.agents?.data;
 
     if (!agent) {
       console.log("Agent not found, let's create it");
@@ -131,7 +221,8 @@ export async function createAgentRecordIfNoneFound(
     } else {
       console.log(`Agent found, let's use ${first_name} ${last_name}`);
     }
-    if (!agent.attributes?.agent_metatag?.data?.attributes?.personal_bio && listing?.description) {
+    console.log(JSON.stringify({ agent }, null, 4));
+    if (!agent.metatags?.personal_bio && listing?.description) {
       console.log('No agent bio, sprucing it up...');
       console.log(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent.attributes.agent_id}`);
       axios.get(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent.attributes.agent_id}`);
