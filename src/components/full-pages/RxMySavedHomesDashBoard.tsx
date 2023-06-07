@@ -10,8 +10,6 @@ import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
 import { LoveDataModel } from '@/_typings/love';
 
 import IndividualTab from '@/_replacers/DashboardSavedHomesPage/IndividualTab';
-// import { RxMapbox } from '../RxMapbox';
-// import MapProvider from '@/app/AppContext.module';
 import CompareTab from '@/_replacers/DashboardSavedHomesPage/CompareTab';
 import { fireCustomEvent } from '@/_helpers/functions';
 
@@ -24,7 +22,6 @@ type Props = {
 };
 
 export default function RxMySavedHomesDashBoard({ agent_data, className, children }: Props) {
-  // const [currentTab, setCurrentTab] = useState<string>('');
   const [loved, setLoved] = useState<LovedPropertyDataModel[]>([]);
 
   const processLovedHomes = async (records: LoveDataModel[]) => {
@@ -103,28 +100,7 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
         return <IndividualTab child={child} agent_data={agent_data} />;
       },
     },
-    // {
-    //   //map tab
-    //   searchFn: searchByClasses(['map-placeholder']),
-    //   transformChild: (child: ReactElement) => {
-    //     const Div = (props: any) => React.createElement('div', { agent_data }, [,]);
-    //     return (
-    //       <MapProvider>
-    //         <RxMapbox
-    //           agent_data={agent_data}
-    //           key='0'
-    //           headers={{
-    //             Authorization: config.authorization,
-    //           }}
-    //           search_url=''
-    //           agent={agent_data}
-    //           token={process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string}
-    //           setListings={setProperties}
-    //         />
-    //       </MapProvider>
-    //     );
-    //   },
-    // },
+
     {
       //compare tab
       searchFn: searchByClasses(['compare-tab']),
