@@ -71,6 +71,8 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
       inputProps: {
         placeholder: '# of Bedrooms (Total)',
         name: 'beds',
+        type: 'number',
+        min: 0,
       },
     },
     {
@@ -78,6 +80,8 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
       inputProps: {
         placeholder: '# of Bathrooms (Total)',
         name: 'baths',
+        type: 'number',
+        min: 0,
       },
     },
     {
@@ -85,6 +89,8 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
       inputProps: {
         placeholder: '# of Full Baths',
         name: 'baths_full',
+        type: 'number',
+        min: 0,
       },
     },
     {
@@ -92,6 +98,8 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
       inputProps: {
         placeholder: '# of Half Baths',
         name: 'baths_half',
+        type: 'number',
+        min: 0,
       },
     },
     {
@@ -99,6 +107,8 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
       inputProps: {
         placeholder: '# of Kitchens',
         name: 'kitchens',
+        type: 'number',
+        min: 0,
       },
     },
     {
@@ -106,6 +116,8 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
       inputProps: {
         placeholder: '# of Additional Rooms',
         name: 'additional_rooms',
+        type: 'number',
+        min: 0,
       },
     },
     {
@@ -113,6 +125,8 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
       inputProps: {
         placeholder: '# of Garage',
         name: 'garage',
+        type: 'number',
+        min: 0,
       },
     },
   ];
