@@ -85,6 +85,8 @@ export default async function Home({ params, searchParams }: { params: Record<st
   }
   const $: CheerioAPI = load(data);
 
+  $('form').removeAttr('id');
+  $('form').removeAttr('name');
   if (process.env.NEXT_PUBLIC_BUY_BUTTON)
     replaceByCheerio($, '.btn-stripe-buy', {
       href: process.env.NEXT_PUBLIC_BUY_BUTTON,

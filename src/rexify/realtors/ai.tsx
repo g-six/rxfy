@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
-import { searchByClasses, searchById } from '@/_utilities/rx-element-extractor';
+import { searchByClasses, searchById, searchByTagName } from '@/_utilities/rx-element-extractor';
 
 import styles from './ai.module.scss';
 import useEvent, { Events } from '@/hooks/useEvent';
@@ -36,6 +36,20 @@ export default function AiPrompt(p: Props) {
           defaultValue: realtor?.agent_id,
           onChange: (evt: React.KeyboardEvent<HTMLInputElement>) => {
             setAgentId(evt.currentTarget.value);
+          },
+          onSubmit: (evt: React.KeyboardEvent<HTMLInputElement>) => {
+            evt.preventDefault();
+          },
+        });
+      },
+    },
+    {
+      searchFn: searchByTagName('form'),
+      transformChild: (child: React.ReactElement) => {
+        return React.cloneElement(<div />, {
+          ...child.props,
+          onSubmit: (evt: React.KeyboardEvent<HTMLInputElement>) => {
+            evt.preventDefault();
           },
         });
       },
