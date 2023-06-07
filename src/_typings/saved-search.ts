@@ -1,4 +1,5 @@
 import { DwellingType } from './property';
+import { ValueInterface } from './ui-types';
 
 export interface SavedSearchBaseModel {
   beds?: number;
@@ -26,7 +27,7 @@ export interface SavedSearchBaseModel {
 
 export interface SavedSearchInput extends SavedSearchBaseModel {
   id?: number;
-  dwelling_types?: DwellingType[];
+  dwelling_types?: string[];
 }
 
 export interface CustomerSavedSearch extends SavedSearchInput {
@@ -37,5 +38,5 @@ export interface CustomerSavedSearch extends SavedSearchInput {
 export interface SavedSearch extends SavedSearchBaseModel {
   id: number;
   is_active: boolean;
-  dwelling_types?: { id: number; name: string; code: keyof typeof DwellingType }[];
+  dwelling_types?: string[];
 }

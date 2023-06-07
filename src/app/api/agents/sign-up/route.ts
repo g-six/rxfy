@@ -76,7 +76,8 @@ const gql_create_realtor = `mutation SignUp ($data: RealtorInput!) {
 
 export async function POST(req: Request) {
   const data = await req.json();
-  const { user, stripe } = data as {
+  const { agent_id, user, stripe } = data as {
+    agent_id: string;
     user: {
       email: string;
       password: string;
@@ -96,9 +97,9 @@ export async function POST(req: Request) {
 
   if (Object.keys(errors).length > 0) return getResponse({ errors }, 400);
 
-  if (user.email && user.password && user.full_name && user.agent_id) {
+  if (user.email && user.password && user.full_name && agent_id) {
     const encrypted_password = encrypt(user.password);
-    let { attributes: agent_profile, id } = await searchAgentById(user.agent_id);
+    let { attributes: agent_profile, id } = await searchAgentById(agent_id);
     let existing_id = Number(id);
     let status_code = 202;
     let session_key = '';
@@ -128,7 +129,7 @@ export async function POST(req: Request) {
         ];
         await sendTemplate('welcome-agent', receipients, {
           send_to_email: user.email,
-          dashboard_url: `${url.origin}/ai?key=${session_key}`,
+          dashboard_url: `${url.origin}/my-profile?key=${session_key}`,
           from_name: 'Leagent Team',
           subject: 'Welcome aboard!',
         });
@@ -197,7 +198,7 @@ export async function POST(req: Request) {
     const url = new URL(req.url);
     await sendTemplate('welcome-agent', receipients, {
       send_to_email: claimed.attributes.email,
-      dashboard_url: `${url.origin}/ai?key=${session_key}`,
+      dashboard_url: `${url.origin}/my-profile?key=${session_key}`,
       from_name: 'Leagent Team',
       subject: 'Welcome aboard!',
     });

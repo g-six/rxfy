@@ -12,14 +12,14 @@ import { getPrivatePropertyData, getPropertyData } from '@/_utilities/data-helpe
 import { replaceMetaTags } from '@/_helpers/head-manipulations';
 import initializePlacesAutocomplete from '@/components/Scripts/places-autocomplete';
 import { appendJs, rexifyScripts, rexifyScriptsV2 } from '@/components/rexifier';
-import { Events } from '@/_typings/events';
-import { getUserById } from './api/check-session/route';
+import { findAgentRecordByAgentId } from './api/agents/model';
 
 const skip_pathnames = ['/favicon.ico'];
 
 function getFullWebflowPagePath(pathname: string) {
   if (!pathname || pathname === '/' || skip_pathnames.includes(pathname)) return '/';
   if (pathname === '/property') return '/property/propertyid';
+  if (pathname === '/sign-out') return '/';
   return pathname;
 }
 
@@ -37,16 +37,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let data;
 
   if (searchParams.theme && searchParams.agent) {
-    const agent_record = await getUserById(Number(searchParams.agent), 'realtor');
-    if (agent_record?.data.user) {
+    const agent_record = await findAgentRecordByAgentId(searchParams.agent);
+    if (agent_record?.agent_id) {
       agent_data = {
         ...agent_data,
-        ...agent_record.data.user.data.attributes.agent.data,
-        id: Number(agent_record.data.user.data.attributes.agent.data.id),
-        metatags: {
-          ...agent_record.data.user.data.attributes.agent.data.attributes.agent_metatag.data.attributes,
-          id: Number(agent_record.data.user.data.attributes.agent.data.attributes.agent_metatag.data.id),
-        },
+        ...agent_record,
         webflow_domain: searchParams.theme === 'default' ? 'leagent-webflow-rebuild.webflow.io' : `${searchParams.theme}-leagent.webflow.io`,
       };
     }
@@ -56,7 +51,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ? `https://${agent_data.webflow_domain}${getFullWebflowPagePath(pathname)}`
     : `https://${process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN}${getFullWebflowPagePath(pathname)}`;
 
-  console.log('page_url:', page_url);
   try {
     const req_page_html = await axios.get(page_url);
     data = req_page_html.data;
@@ -115,7 +109,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     },
   };
 
-  const { class: className, ...head_props } = webflow.head.props;
   const { class: bodyClassName, ...body_props } = webflow.body.props;
   if (!agent_data || agent_data.webflow_domain === process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN) {
     return (

@@ -1,16 +1,17 @@
 import { removeKeys, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
-import React, { ReactElement, createElement } from 'react';
+import React, { FocusEventHandler, ReactElement, createElement } from 'react';
 import MapProvider from '@/app/AppContext.module';
 import { searchInput } from '@/_typings/my-home-alerts';
 import ChipsList from '../FilterFields/ChipList';
 import { DwellingType } from '@/_typings/property';
 import AddOrSubtract from '../FilterFields/AddOrSubtract';
-import InputFilter from '../FilterFields/InputFilter';
+import InputWithLabel from '../FilterFields/InputWithLabel';
 import TextAreaFilter from '../FilterFields/TextAreaFilter';
 import { SearchInputProxy } from './FilterProxies';
 import { SavedSearchInput } from '@/_typings/saved-search';
 import DatePickerFilter from '../FilterFields/DatePicker';
+import { ValueInterface } from '@/_typings/ui-types';
 
 type Props = {
   child: ReactElement;
@@ -55,14 +56,14 @@ export default function MyHomeAlertForm({ child, formState, handleChange, handle
           { label: 'Manufactured', value: DwellingType.MANUFACTURED },
           { label: 'Other', value: DwellingType.OTHER },
         ];
-
-        const handleSelect = (value: string | number) => {
-          const isIn = dwelling_types?.some((item: string) => item === value);
-          const newArr = isIn ? dwelling_types?.filter((item: string) => item !== value) : [...(dwelling_types ?? []), value];
-          handleChange('dwelling_types', newArr);
-        };
-
-        return <ChipsList template={child} values={dwelling_types ?? []} chipsList={propertyTypes} handleSelect={handleSelect} />;
+        // const prepdDwellingTypes = dwelling_types;
+        // const handleSelect = (value: ValueInterface) => {
+        //   const isIn = dwelling_types?.some((item: ValueInterface) => item.value === value.value);
+        //   const newArr = isIn ? dwelling_types?.filter((item: ValueInterface) => item.value !== value.value) : [...(dwelling_types ?? []), value];
+        //   handleChange('dwelling_types', newArr);
+        // };
+        return <></>;
+        // return <ChipsList template={child} values={dwelling_types?.map() ?? []} chipsList={propertyTypes} handleSelect={handleSelect} />;
       },
     },
     {
@@ -91,13 +92,13 @@ export default function MyHomeAlertForm({ child, formState, handleChange, handle
       transformChild: (child: ReactElement) => {
         const handleOnChange = handleNumberState('minprice');
         return (
-          <InputFilter
+          <InputWithLabel
             template={child}
             inputProps={{
               type: 'number',
               min: 0,
-              onBlur: (e: React.FocusEventHandler<HTMLInputElement>) => {
-                console.log(e);
+              onBlur: e => {
+                console.log(e.target.value);
               },
             }}
             value={minprice ?? 0}
@@ -111,14 +112,14 @@ export default function MyHomeAlertForm({ child, formState, handleChange, handle
       transformChild: (child: ReactElement) => {
         const handleOnChange = handleNumberState('maxprice');
         const prepdMax = maxprice && minprice && Math.max(minprice, maxprice);
-        return <InputFilter template={child} inputProps={{ type: 'number', min: minprice ?? 0 }} value={prepdMax ?? 0} handleChange={handleOnChange} />;
+        return <InputWithLabel template={child} inputProps={{ type: 'number', min: minprice ?? 0 }} value={prepdMax ?? 0} handleChange={handleOnChange} />;
       },
     },
     {
       searchFn: searchByClasses(['size-min-filter']),
       transformChild: (child: ReactElement) => {
         const handleOnChange = handleNumberState('minsqft');
-        return <InputFilter template={child} inputProps={{ type: 'number', min: 0 }} value={minsqft ?? 0} handleChange={handleOnChange} />;
+        return <InputWithLabel template={child} inputProps={{ type: 'number', min: 0 }} value={minsqft ?? 0} handleChange={handleOnChange} />;
       },
     },
     {
@@ -126,7 +127,7 @@ export default function MyHomeAlertForm({ child, formState, handleChange, handle
       transformChild: (child: ReactElement) => {
         const handleOnChange = handleNumberState('maxsqft');
         const prepdMax = maxprice && minprice && Math.max(minprice, maxprice);
-        return <InputFilter template={child} inputProps={{ type: 'number', min: 0 }} value={maxsqft ?? 0} handleChange={handleOnChange} />;
+        return <InputWithLabel template={child} inputProps={{ type: 'number', min: 0 }} value={maxsqft ?? 0} handleChange={handleOnChange} />;
       },
     },
     {
@@ -150,7 +151,7 @@ export default function MyHomeAlertForm({ child, formState, handleChange, handle
       transformChild: (child: ReactElement) => {
         const handleOnChange = handleNumberState('build_year');
         return (
-          <InputFilter
+          <InputWithLabel
             template={child}
             inputProps={{ type: 'number', min: 0, max: 10000, placeholder: 'Type Year' }}
             value={build_year ?? 0}

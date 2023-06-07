@@ -5,10 +5,13 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
-import { searchByClasses, searchById } from '@/_utilities/rx-element-extractor';
+import { searchByClasses, searchById, searchByTagName } from '@/_utilities/rx-element-extractor';
 
 import styles from './ai.module.scss';
 import useEvent, { Events } from '@/hooks/useEvent';
+import useDebounce from '@/hooks/useDebounce';
+import { findAgentRecordByAgentId } from '@/app/api/agents/model';
+import { getAgentByParagonId } from '@/_utilities/api-calls/call-realtor';
 
 type Props = {
   children: React.ReactElement;
@@ -18,10 +21,12 @@ export default function AiPrompt(p: Props) {
   const { data, fireEvent } = useEvent(Events.LoadUserSession);
   const params = useSearchParams();
   const router = useRouter();
+  const [agent_id, setAgentId] = React.useState('');
   const [realtor, setRealtor] = React.useState<{
     agent_id?: string;
     realtor_id?: number;
   }>();
+  const debounced = useDebounce(agent_id, 500);
 
   const matches = [
     {
@@ -30,10 +35,21 @@ export default function AiPrompt(p: Props) {
         return React.cloneElement(child, {
           defaultValue: realtor?.agent_id,
           onChange: (evt: React.KeyboardEvent<HTMLInputElement>) => {
-            setRealtor({
-              ...realtor,
-              agent_id: evt.currentTarget.value,
-            });
+            setAgentId(evt.currentTarget.value);
+          },
+          onSubmit: (evt: React.KeyboardEvent<HTMLInputElement>) => {
+            evt.preventDefault();
+          },
+        });
+      },
+    },
+    {
+      searchFn: searchByTagName('form'),
+      transformChild: (child: React.ReactElement) => {
+        return React.cloneElement(<div />, {
+          ...child.props,
+          onSubmit: (evt: React.KeyboardEvent<HTMLInputElement>) => {
+            evt.preventDefault();
           },
         });
       },
@@ -43,8 +59,15 @@ export default function AiPrompt(p: Props) {
       transformChild: (child: React.ReactElement) => {
         return React.cloneElement(<button type='button'></button>, {
           className: `f-button-neutral ${styles.button}`,
+          disabled: !debounced,
           onClick: () => {
-            router.push(`${child.props.href}?agent=${realtor?.agent_id}`);
+            if (debounced) {
+              getAgentByParagonId(debounced).then(data => {
+                if (data && data.id) {
+                  router.push(`${child.props.href}?paragon=${debounced}`);
+                }
+              });
+            }
           },
           children: React.Children.map(child.props.children, (gchild: React.ReactElement) => {
             if (gchild.type === 'div') {
@@ -65,6 +88,7 @@ export default function AiPrompt(p: Props) {
           agent_id,
           realtor_id,
         });
+        setAgentId(agent_id);
         fireEvent({
           ...data,
           user: agent,

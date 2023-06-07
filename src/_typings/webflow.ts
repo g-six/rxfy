@@ -39,6 +39,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   ID_PAGE = 'total-id-card',
   PDF_PAGE = 'pdf-wrapper',
   AGENT_ID_INPUT = 'txt-agentid',
+  AGENT_MY_LISTINGS = 'dash-area',
   PROPERTY_MAIN_ATTRIBUTES = 'bedbath-stat-block',
   SIMILAR_LISTINGS = 'similar-homes-grid',
   HOME_SEARCH_WRAPPER = 'section---search',
