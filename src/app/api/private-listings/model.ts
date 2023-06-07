@@ -1,8 +1,9 @@
-import { PropertyInput } from '@/_typings/property';
-export async function createPrivateListing(listing: PropertyInput, session_key: string) {
+import { PrivateListingInput } from '@/_typings/private-listing';
+export async function createPrivateListing(listing: PrivateListingInput, session_hash: string, realtor_id: number) {
   console.log({
     listing,
-    session_key,
+    session_hash,
+    realtor_id,
   });
 }
 
