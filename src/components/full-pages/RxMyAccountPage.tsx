@@ -1,6 +1,5 @@
 'use client';
 
-import axios from 'axios';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { NotificationCategory } from '@/_typings/events';
 import React, { MouseEventHandler, useState } from 'react';
@@ -9,23 +8,25 @@ import { RxEmail } from '../RxEmail';
 import { RxPassword } from '../RxPassword';
 import { RxTextInput } from '../RxTextInput';
 import Cookies from 'js-cookie';
-import { useSearchParams } from 'next/navigation';
 import { RxCheckBox } from '../RxCheckBox';
 import { RxPhoneInput } from '../RxPhoneInput';
 import { CustomerInputModel } from '@/_typings/customer';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
-import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
-import { queryStringToObject } from '@/_utilities/url-helper';
 import { RealtorInputModel } from '@/_typings/agent';
 import RxDatePicker from '@/components/RxForms/RxInputs/RxDatePicker';
 import { CakeIcon } from '@heroicons/react/20/solid';
+import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
+import { AxiosError } from 'axios';
+import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 
 type RxMyAccountPageProps = {
   type: string;
   children: React.ReactElement;
   className?: string;
   data: CustomerInputModel & RealtorInputModel;
+  session?: { [key: string]: string | number };
   'user-type': string;
+  domain?: string;
 };
 
 export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit: MouseEventHandler }) {
@@ -56,39 +57,74 @@ export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit: MouseEv
           );
         }
         if (child_node.props.className.split(' ').includes('txt-email')) {
-          return <RxEmail {...child_node.props} rx-event={Events.SaveAccountChanges} name='email' defaultValue={props.data.email} />;
+          return <RxEmail {...child_node.props} rx-event={Events.SaveAccountChanges} name='email' defaultValue={props.data?.email || props.session?.email} />;
         }
         if (child_node.props.className.split(' ').includes('txt-password')) {
           return <RxPassword {...child_node.props} rx-event={Events.SaveAccountChanges} name='password' />;
         }
         if (child_node.props.className.split(' ').includes('txt-name')) {
-          return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='full_name' defaultValue={props.data.full_name} />;
+          return (
+            <RxTextInput
+              {...child_node.props}
+              rx-event={Events.SaveAccountChanges}
+              name='full_name'
+              defaultValue={props.data?.full_name || props.session?.full_name}
+            />
+          );
         }
         if (child_node.props.className.split(' ').includes('txt-firstname')) {
-          return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='first_name' defaultValue={props.data.first_name} />;
+          return (
+            <RxTextInput
+              {...child_node.props}
+              rx-event={Events.SaveAccountChanges}
+              name='first_name'
+              defaultValue={props.data?.first_name || props.session?.first_name}
+            />
+          );
         }
         if (child_node.props.className.split(' ').includes('txt-lastname')) {
-          return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='last_name' defaultValue={props.data.last_name} />;
+          return (
+            <RxTextInput
+              {...child_node.props}
+              rx-event={Events.SaveAccountChanges}
+              name='last_name'
+              defaultValue={props.data?.last_name || props.session?.last_name}
+            />
+          );
         }
         if (child_node.props.className.split(' ').includes('txt-phone-number')) {
-          return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='phone_number' defaultValue={props.data.phone_number} />;
+          return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='phone_number' defaultValue={props.session?.phone_number} />;
         }
         if (child_node.props.className.split(' ').includes('txt-agentid')) {
-          return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='agent_id' defaultValue={props.data.agent_id} />;
+          return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='agent_id' defaultValue={props.session?.agent_id} />;
         }
         if (child_node.props.className.split(' ').includes('txt-phone')) {
-          return <RxPhoneInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='phone_number' defaultValue={props.data.phone_number} />;
+          return (
+            <RxPhoneInput
+              {...child_node.props}
+              rx-event={Events.SaveAccountChanges}
+              name='phone_number'
+              defaultValue={props.data?.phone_number || props.session?.phone_number}
+            />
+          );
         }
         if (child_node.props.className.split(' ').includes('txt-birthday')) {
           const adult_on = new Date();
           adult_on.setFullYear(adult_on.getFullYear() - 17);
+          const dmy_birthday = `${props.data?.birthday || props.session?.birthday}`;
+          const [d, m, y] =
+            dmy_birthday && dmy_birthday.split('/').length === 3
+              ? dmy_birthday.split('/')
+              : [new Date().getDate(), new Date().getMonth() + 1, new Date().getFullYear()];
+          const birthday = dmy_birthday ? new Date(Number(y), Number(m) - 1, Number(d)) : new Date();
+
           return (
             <RxDatePicker
               {...child_node.props}
               icon={<CakeIcon className='w-4 h-4 text-slate-600/50' />}
               rx-event={Events.SaveAccountChanges}
               name='birthday'
-              defaultValue={props.data.birthday || ''}
+              defaultValue={birthday}
               maxvalue={adult_on}
             />
           );
@@ -167,51 +203,7 @@ function validInput(data: CustomerInputModel | RealtorInputModel): {
   };
 }
 
-async function loadSession(search_params: Record<string, string | number | boolean>, user_type = 'customer') {
-  let session_key = Cookies.get('session_key') as string;
-  let guid = session_key ? session_key.split('-')[1] : '';
-
-  if (search_params?.key && !session_key) {
-    session_key = search_params.key as string;
-    guid = session_key.split('-')[1];
-  }
-
-  const is_realtor = `${Cookies.get('session_as') || user_type}` === 'realtor';
-  if (session_key && session_key.split('-').length === 2) {
-    if (session_key) {
-      const api_response = await axios
-        .get(`/api/check-session${is_realtor ? '/agent' : ''}`, {
-          headers: {
-            Authorization: `Bearer ${session_key}`,
-          },
-        })
-        .catch(e => {
-          console.log('RxMyAccountPage / User not logged in');
-        });
-      const session = api_response as unknown as {
-        data?: (CustomerInputModel | RealtorInputModel) & {
-          session_key: string;
-        };
-      };
-
-      if (session && session.data?.session_key) {
-        Cookies.set('session_key', session.data?.session_key);
-        return session.data;
-      } else {
-        // clearSessionCookies();
-        // location.href = '/log-in';
-      }
-    } else {
-      console.log('session_key', session_key);
-      console.log('is_realtor', is_realtor);
-    }
-  } else {
-    // location.href = '/log-in';
-  }
-}
-
 export function RxMyAccountPage(props: RxMyAccountPageProps) {
-  const search_params = useSearchParams();
   const { data, fireEvent } = useEvent(Events.SaveAccountChanges);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [is_processing, processing] = React.useState(false);
@@ -316,11 +308,22 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
   }, [data]);
 
   React.useEffect(() => {
-    const params = queryStringToObject(search_params.toString() || '');
-    loadSession(params, props['user-type']).then(user_data => {
-      if (user_data) setFormData(user_data);
-    });
-  }, [search_params]);
+    if (!props.session && props.domain !== process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN) {
+      getUserBySessionKey(Cookies.get('session_key') as string, 'customer')
+        .then(data => {
+          setFormData(data);
+        })
+        .catch(e => {
+          const axerr = e as AxiosError;
+          if (axerr.response?.status === 401) {
+            clearSessionCookies();
+            setTimeout(() => {
+              location.href = '/log-in';
+            }, 500);
+          }
+        });
+    }
+  }, []);
 
   return (
     <div id='rx-my-account-page' className={[props.className || '', is_processing ? 'loading' : ''].join(' ').trim()}>

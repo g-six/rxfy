@@ -15,6 +15,7 @@ import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 
 type RxUpdatePasswordPageProps = {
   type: string;
+  'user-type'?: string;
   disabled?: boolean;
   loading?: boolean;
   children: React.ReactElement;
@@ -108,7 +109,7 @@ export function RxUpdatePasswordPage(props: RxUpdatePasswordPageProps) {
 
   React.useEffect(() => {
     const params = queryStringToObject(search_params.toString() || '');
-    loadSession(params);
+    loadSession(params, props['user-type']);
   }, []);
 
   return (
@@ -125,7 +126,7 @@ export function RxUpdatePasswordPage(props: RxUpdatePasswordPageProps) {
   );
 }
 
-async function loadSession(search_params: Record<string, string | number | boolean>) {
+async function loadSession(search_params: Record<string, string | number | boolean>, user_type?: string) {
   let session_key = '';
   let customer_id = '';
 
@@ -133,11 +134,12 @@ async function loadSession(search_params: Record<string, string | number | boole
     session_key = search_params.key as string;
     customer_id = session_key.split('-')[1];
   }
+
   if (!session_key) session_key = Cookies.get('session_key') as string;
 
   if (session_key && session_key.split('-').length === 2) {
     const api_response = await axios
-      .get('/api/check-session', {
+      .get(`/api/check-session${user_type === 'realtor' ? '/agent' : ''}`, {
         headers: {
           Authorization: `Bearer ${session_key}`,
         },
@@ -150,14 +152,14 @@ async function loadSession(search_params: Record<string, string | number | boole
         session_key: string;
       };
     };
-
-    if (session && session.data?.session_key) {
-      Cookies.set('session_key', session.data?.session_key);
-      return session.data;
-    } else {
-      clearSessionCookies();
-      location.href = '/log-in';
-    }
+    console.log(user_type);
+    // if (session && session.data?.session_key) {
+    //   Cookies.set('session_key', session.data?.session_key);
+    //   return session.data;
+    // } else {
+    //   clearSessionCookies();
+    //   location.href = '/log-in';
+    // }
   } else {
     location.href = '/log-in';
   }

@@ -52,7 +52,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   let session_key = cookies().get('session_key')?.value || '';
 
   let agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? TEST_DOMAIN : hostname);
-  let webflow_domain = agent_data ? agent_data.webflow_domain : process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN;
+  let webflow_domain = agent_data ? agent_data.webflow_domain : process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN;
 
   // TODO: Refactor into Theme middleware
   if (searchParams.theme) {
@@ -141,7 +141,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
       case 'my-profile':
         return (
           <MyProfilePage
-            data={{ session_key, 'user-type': webflow_domain === (process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN as string) ? 'realtor' : 'customer' }}
+            data={{ session_key, 'user-type': webflow_domain === (process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN as string) ? 'realtor' : 'customer' }}
           >
             {parse($.html()) as unknown as JSX.Element}
           </MyProfilePage>
@@ -172,7 +172,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     className: 'filter-group-modal',
   });
 
-  if (webflow_domain !== `${process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN}`) {
+  if (webflow_domain !== `${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`) {
     if (!params || !params.slug || params.slug === '/') {
       if (agent_data && agent_data.agent_id) {
         listings = await getAgentListings(agent_data.agent_id);
