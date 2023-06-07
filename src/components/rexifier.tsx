@@ -44,6 +44,7 @@ import { RxTextInput } from './RxTextInput';
 import RxContactFormButton from './RxForms/RxContactFormButton';
 import RxSessionDropdown from './Nav/RxSessionDropdown';
 import AiPrompt from '@/rexify/realtors/ai';
+import { cookies } from 'next/headers';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -504,14 +505,22 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
         if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.RESET_PASSWORD) {
           return (
-            <RxResetPasswordPage {...props} type={node.type}>
+            <RxResetPasswordPage
+              {...props}
+              type={node.type}
+              user-type={params.webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN ? 'realtor' : 'customer'}
+            >
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxResetPasswordPage>
           );
         }
         if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.UPDATE_PASSWORD) {
           return (
-            <RxUpdatePasswordPage {...props} type={node.type}>
+            <RxUpdatePasswordPage
+              {...props}
+              type={node.type}
+              user-type={params.webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN ? 'realtor' : 'customer'}
+            >
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxUpdatePasswordPage>
           );
@@ -553,8 +562,9 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
 
           ///// END OF HOME PAGE
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.MY_ACCOUNT_WRAPPER)) {
+            // Customer session
             return (
-              <RxMyAccountPage {...props} type={node.type} data={agent_data} user-type={params.session_as as string}>
+              <RxMyAccountPage {...props} type={node.type} data={agent_data} user-type={params.session_as as string} domain={params.webflow_domain}>
                 <>{domToReact(node.children) as ReactElement[]}</>
               </RxMyAccountPage>
             );

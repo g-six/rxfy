@@ -7,6 +7,7 @@ import useEvent from '@/hooks/useEvent';
 interface DatePickerProps {
   className: string;
   name?: string;
+  defaultValue?: Date;
   icon?: React.ReactElement;
   onChange?: (timestamp: number) => {};
   placeholder?: string;
@@ -18,7 +19,7 @@ interface DatePickerProps {
 export default function RxDatePicker(p: DatePickerProps) {
   const evt = useEvent(p['rx-event'] || Events.GenericEvent);
   const [opened, toggleCalendar] = React.useState(false);
-  const [value, onChange] = React.useState(new Date());
+  const [value, onChange] = React.useState(p.defaultValue || new Date());
   const month_ref = React.useRef(null);
   const year_ref = React.useRef(null);
 
