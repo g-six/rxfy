@@ -113,6 +113,13 @@ export default function RxDropdownMenu(p: DropdownProps) {
           ...child.props,
         }),
     },
+    {
+      searchFn: searchByClasses(['in-session']),
+      transformChild: (child: React.ReactElement) =>
+        React.cloneElement(child, {
+          className: child.props.className + ' rexified',
+        }),
+    },
   ];
 
   return <>{transformMatchingElements(p.children, matches)}</>;

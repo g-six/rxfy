@@ -449,6 +449,10 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
 
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.SESSION_DROPDOWN) >= 0) {
+          if (params.slug && `${params.slug}`.indexOf('ai') === 0) {
+            // We do not show the session dropdown on ai-results pages
+            return <></>;
+          }
           return <RxSessionDropdown agent={agent_data}>{domToReact(node.children) as ReactElement}</RxSessionDropdown>;
         }
 
