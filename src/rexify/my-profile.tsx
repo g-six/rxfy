@@ -22,7 +22,7 @@ type Props = {
 
 export default function MyProfilePage(p: Props) {
   const params = useSearchParams();
-  console.log(params.get('key'));
+
   const [session, setSession] = React.useState<{ [key: string]: string | number }>();
   const scripts: { [key: string]: string }[] = [];
   const [dash_area, setDashArea] = React.useState<React.ReactElement>();
