@@ -7,6 +7,7 @@ import MyHomeAlertCard from './MyHomeAlertCard';
 import { SavedSearch } from '@/_typings/saved-search';
 import { AgentData } from '@/_typings/agent';
 import useEvent, { Events } from '@/hooks/useEvent';
+import useGetAttributes from '@/hooks/useGetAttributes';
 
 type Props = {
   child: ReactElement;
@@ -18,6 +19,8 @@ export default function MyHomeAlertsList({ child, agent_data }: Props) {
   const { key, alertData, reload } = data || {};
   const { card } = captureMatchingElements(child, [{ elementName: 'card', searchFn: searchByClasses(['home-alert-div']) }]);
   const [savedList, setSavedList] = useState<SavedSearch[]>([]);
+  const attributes = useGetAttributes();
+
   useEffect(() => {
     getSearches().then(res => {
       setSavedList(res);

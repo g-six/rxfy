@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Stripe from 'stripe';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getResponse } from '../response-helper';
 import { getNewSessionKey } from '../update-session';
@@ -65,9 +66,33 @@ export async function GET(request: Request) {
   const user_type = request.url.split('/').includes('agent') ? 'realtor' : 'customer';
 
   const { email, full_name, last_activity_at, session_key, first_name, last_name, ...session_data } = await getNewSessionKey(token, guid, user_type);
-  const { agent, birthday, brokerage } = session_data;
+  const { agent, birthday, brokerage, stripe_customer, stripe_subscriptions } = session_data;
+
   let phone_number = session_data.phone_number || session_data.phone || session_data.agent?.data?.attributes?.phone;
   if (email && last_activity_at && session_key) {
+    let subscription: { [key: string]: string } = {};
+    if (stripe_subscriptions) {
+      const [subscription_id] = Object.keys(stripe_subscriptions);
+      if (subscription_id) {
+        const stripe = new Stripe(`${process.env.NEXT_APP_STRIPE_SECRET}`, {
+          apiVersion: '2022-11-15',
+        });
+        const stripe_subscription = await stripe.subscriptions.retrieve(subscription_id);
+        if (stripe_subscription.items.data[0].plan)
+          if (stripe_subscription.items.data[0].plan.nickname) {
+            subscription = {
+              ...subscription,
+              name: stripe_subscription.items.data[0].plan.nickname,
+            };
+          }
+        if (stripe_subscription.items.data[0].plan.interval) {
+          subscription = {
+            ...subscription,
+            interval: stripe_subscription.items.data[0].plan.interval,
+          };
+        }
+      }
+    }
     return getResponse(
       {
         ...(agent
@@ -78,6 +103,9 @@ export async function GET(request: Request) {
           : {}),
         brokerage,
         phone_number,
+        stripe_customer,
+        stripe_subscriptions,
+        subscription,
         id: guid,
         last_activity_at,
         email,

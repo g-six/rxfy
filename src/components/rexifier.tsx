@@ -39,11 +39,13 @@ import RxDropdownMenu from './Nav/RxDropdownMenu';
 import RxMySavedHomesDashBoard from './full-pages/RxMySavedHomesDashBoard';
 import RxIdPage from './full-pages/RxIdPage';
 import RxMyHomeAlerts from './full-pages/RxMyHomeAlerts';
-
+import RxAgentMyListings from './full-pages/RxAgentMyListings';
 import { RxTextInput } from './RxTextInput';
 import RxContactFormButton from './RxForms/RxContactFormButton';
 import RxSessionDropdown from './Nav/RxSessionDropdown';
 import AiPrompt from '@/rexify/realtors/ai';
+import { cookies } from 'next/headers';
+import RxThemePreview from './RxThemePreview';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -431,6 +433,9 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
       } else if (node instanceof Element && node.attribs) {
         const { class: className, ...props } = attributesToProps(node.attribs);
 
+        if (node.attribs['data-src']) {
+          return <RxThemePreview className={`${props.className ? props.className + ' ' : ''} rexified`} src={node.attribs['data-src']} />;
+        }
         if (node.attribs.class && node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.ID_PAGE)) {
           return (
             <RxIdPage {...props} agent={agent_data} className={node.attribs?.class || className}>
@@ -440,7 +445,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
 
         if (props.className) {
-          if (props.className.indexOf(WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL) >= 0)
+          if (props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL))
             return (
               <AiPrompt>
                 <>{domToReact(node.children)}</>
@@ -449,6 +454,10 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
 
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.SESSION_DROPDOWN) >= 0) {
+          if (params.slug && `${params.slug}`.indexOf('ai') === 0) {
+            // We do not show the session dropdown on ai-results pages
+            return <></>;
+          }
           return <RxSessionDropdown agent={agent_data}>{domToReact(node.children) as ReactElement}</RxSessionDropdown>;
         }
 
@@ -500,14 +509,22 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
         if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.RESET_PASSWORD) {
           return (
-            <RxResetPasswordPage {...props} type={node.type}>
+            <RxResetPasswordPage
+              {...props}
+              type={node.type}
+              user-type={params.webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN ? 'realtor' : 'customer'}
+            >
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxResetPasswordPage>
           );
         }
         if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.UPDATE_PASSWORD) {
           return (
-            <RxUpdatePasswordPage {...props} type={node.type}>
+            <RxUpdatePasswordPage
+              {...props}
+              type={node.type}
+              user-type={params.webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN ? 'realtor' : 'customer'}
+            >
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxUpdatePasswordPage>
           );
@@ -549,8 +566,9 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
 
           ///// END OF HOME PAGE
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.MY_ACCOUNT_WRAPPER)) {
+            // Customer session
             return (
-              <RxMyAccountPage {...props} type={node.type} data={agent_data} user-type={params.session_as as string}>
+              <RxMyAccountPage {...props} type={node.type} data={agent_data} user-type={params.session_as as string} domain={params.webflow_domain as string}>
                 <>{domToReact(node.children) as ReactElement[]}</>
               </RxMyAccountPage>
             );
@@ -606,7 +624,11 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             );
           }
         }
-
+        //AGENT SIDE  START
+        if (node.attribs.class === WEBFLOW_NODE_SELECTOR.AGENT_MY_LISTINGS) {
+          return <RxAgentMyListings nodeProps={props} agent_data={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
+        }
+        //AGENT SIDE  END
         if (node.attribs['data-type'] === 'email' && node.tagName === 'a') {
           // Emai link
           return <EmailAnchor {...props} agent={agent_data} />;

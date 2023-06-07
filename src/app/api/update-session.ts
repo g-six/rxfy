@@ -3,8 +3,6 @@ import { encrypt } from '@/_utilities/encryption-helper';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import axios, { AxiosError } from 'axios';
 import { GQ_FRAG_AGENT } from './agents/graphql';
-import { MLSProperty } from '@/_typings/property';
-import { STRAPI_FIELDS } from '@/_utilities/api-calls/call-legacy-search';
 export const GQL_BROKERAGE_ATTRIBUTES = `
                 name
                 full_address
@@ -30,6 +28,8 @@ function getUpdateSessionGql(user_type: 'realtor' | 'customer') {
               : `first_name
           last_name
           phone_number
+          stripe_customer
+          stripe_subscriptions
           agent {
             data {
               id
@@ -127,10 +127,16 @@ function gqlFindUser(user_type: 'realtor' | 'customer' = 'customer') {
           ${
             user_type === 'customer'
               ? `birthday
-          yes_to_marketing`
+          yes_to_marketing
+          agents {
+            data {${GQ_FRAG_AGENT}
+            }
+          }`
               : `first_name
           last_name
           phone_number
+          stripe_customer
+          stripe_subscriptions
           agent {
             data {${GQ_FRAG_AGENT}
             }
@@ -150,7 +156,7 @@ function gqlFindUser(user_type: 'realtor' | 'customer' = 'customer') {
 }
 
 export async function getUserDataFromSessionKey(session_hash: string, id: number, user_type: 'customer' | 'realtor' = 'customer') {
-  const { data: response_data } = await axios.post(
+  const response = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {
       query: gqlFindUser(user_type),
@@ -165,9 +171,10 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
       },
     },
   );
+  const response_data = response ? response.data : {};
 
   if (response_data.data?.user?.data?.attributes) {
-    const { email, full_name, agent, brokerage, last_activity_at } = response_data.data?.user?.data?.attributes;
+    const { email, full_name, agent, agents, brokerage, last_activity_at, stripe_customer, stripe_subscriptions } = response_data.data?.user?.data?.attributes;
     const encrypted_email = encrypt(email);
     const compare_key = `${encrypt(last_activity_at)}.${encrypted_email}`;
     if (compare_key === session_hash && !isNaN(Number(id))) {
@@ -187,17 +194,21 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
 
       return {
         id,
-        agent: {
-          ...agent.data.attributes,
-          agent_metatag,
-          real_estate_board,
-          id: Number(agent.data.id),
-        },
+        agent: agent
+          ? {
+              ...agent.data.attributes,
+              agent_metatag,
+              real_estate_board,
+              id: Number(agent.data.id),
+            }
+          : undefined,
         brokerage: brokerage as unknown as BrokerageInputModel,
         full_name,
         email,
         user_type,
         session_key: `${session_hash}-${id}`,
+        stripe_customer,
+        stripe_subscriptions,
       };
     }
   }

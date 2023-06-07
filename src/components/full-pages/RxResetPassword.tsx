@@ -9,6 +9,7 @@ import { NotificationCategory } from '@/_typings/events';
 
 type RxResetPasswordPageProps = {
   type: string;
+  'user-type'?: string;
   disabled?: boolean;
   loading?: boolean;
   children: React.ReactElement;
@@ -32,7 +33,7 @@ export function RxResetPasswordPageIterator(props: RxResetPasswordPageProps) {
           </RxButton>
         );
       }
-      if (child_node.props.className.split(' ').includes('txt-email')) {
+      if (child_node.props.className.split(' ').includes('txt-email') || child_node.props.type === 'email') {
         return <RxEmail {...child_node.props} rx-event={Events.ResetPassword} name='email' />;
       }
       return <input {...child_node.props} className={[child_node.props.className || '', 'rexified'].join(' ')} />;
@@ -63,7 +64,7 @@ export function RxResetPasswordPage(props: RxResetPasswordPageProps) {
     toggleLoading(true);
     try {
       const api_response = await axios.put(
-        '/api/reset-password',
+        `/api/reset-password${props['user-type'] === 'realtor' ? '/realtor' : ''}`,
         { email },
         {
           headers: {
@@ -91,8 +92,11 @@ export function RxResetPasswordPage(props: RxResetPasswordPageProps) {
   React.useEffect(() => {
     if (data?.clicked === `${Events.ResetPassword}-trigger`) {
       const { clicked, ...evt_data } = data;
-      notify({});
-      fireEvent(evt_data);
+      // notify({});
+      fireEvent({
+        ...evt_data,
+        clicked: undefined,
+      });
       const { email } = evt_data as unknown as { email?: string };
       if (email) {
         submitForm(email);
