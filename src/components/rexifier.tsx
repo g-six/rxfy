@@ -440,7 +440,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
 
         if (props.className) {
-          if (props.className.indexOf(WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL) >= 0)
+          if (props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL))
             return (
               <AiPrompt>
                 <>{domToReact(node.children)}</>
