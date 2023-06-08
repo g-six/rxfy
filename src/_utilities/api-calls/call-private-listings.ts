@@ -4,31 +4,6 @@ import Cookies from 'js-cookie';
 import { getResponse } from '@/app/api/response-helper';
 import { toKebabCase } from '../string-helper';
 
-export async function uploadListingPhoto(file: File, index: number, listing: PrivateListingOutput) {
-  return axios
-    .post(
-      '/api/private-listings/upload',
-      { name: `${listing.id}-${toKebabCase(listing.title)}/${index.toString().padStart(3, '0')}-${file.name}`, type: file.type },
-      {
-        headers: {
-          Authorization: `Bearer ${Cookies.get('session_key')}`,
-          'Content-Type': 'application/json',
-        },
-      },
-    )
-    .then(response => {
-      return {
-        ...response.data,
-        success: true,
-      };
-      // setFile(undefined);
-      // fireEvent({
-      //   category: NotificationCategory.SUCCESS,
-      //   message: NotificationMessages.DOC_UPLOAD_COMPLETE,
-      //   timeout: 5000,
-      // });
-    });
-}
 export async function createPrivateListing(listing: PrivateListingInput) {
   try {
     const record = await axios.post('/api/private-listings', listing, {
@@ -53,6 +28,7 @@ export async function createPrivateListing(listing: PrivateListingInput) {
     );
   }
 }
+
 export async function updatePrivateListing(id: number, updates: Record<string, unknown>) {
   try {
     const record = await axios.put(`/api/private-listings/${id}`, updates, {
@@ -76,4 +52,49 @@ export async function updatePrivateListing(id: number, updates: Record<string, u
       400,
     );
   }
+}
+
+export async function getMyPrivateListings() {
+  try {
+    const record = await axios.get('/api/private-listings', {
+      headers: {
+        Authorization: `Bearer ${Cookies.get('session_key')}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return getResponse(record.data);
+  } catch (e) {
+    const { response } = e as AxiosError;
+    if (response && response.data) {
+      return getResponse(response.data, response.status);
+    }
+    return getResponse(
+      {
+        error: 'Unhandled error',
+        path: 'api-calls/call-private-listings',
+        subroutine: 'getMyPrivateListings',
+      },
+      400,
+    );
+  }
+}
+
+export async function uploadListingPhoto(file: File, index: number, listing: PrivateListingOutput) {
+  return axios
+    .post(
+      '/api/private-listings/upload',
+      { name: `${listing.id}-${toKebabCase(listing.title)}/${index.toString().padStart(3, '0')}-${file.name}`, type: file.type },
+      {
+        headers: {
+          Authorization: `Bearer ${Cookies.get('session_key')}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    )
+    .then(response => {
+      return {
+        ...response.data,
+        success: true,
+      };
+    });
 }

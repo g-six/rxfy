@@ -1,4 +1,4 @@
-import { PrivateListingInput } from '@/_typings/private-listing';
+import { PrivateListingInput, PrivateListingOutput } from '@/_typings/private-listing';
 import axios, { AxiosError } from 'axios';
 export async function createPrivateListing(listing: PrivateListingInput, session_hash: string, realtor_id: number) {
   try {
@@ -160,6 +160,72 @@ export async function updatePrivateListing(id: number, listing: PrivateListingIn
     realtor_id,
   };
 }
+export async function getPrivateListingsByRealtorId(realtor_id: number) {
+  try {
+    const response = await axios.post(
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+      {
+        query: gql_retrieve,
+        variables: {
+          realtor_id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    if (response.data?.data?.listings?.records) {
+      return response.data?.data?.listings?.records.map(record => {
+        Object.keys(record.attributes).forEach(key => {
+          if (record.attributes[key] === null) record.attributes[key] = undefined;
+          else if (record.attributes[key].data) {
+            // This is a relationship link, let's normalize
+            if (Array.isArray(record.attributes[key].data)) {
+              record.attributes[key] = record.attributes[key].data.map(({ id, attributes }: { id: string; attributes: { [key: string]: unknown } }) => {
+                return {
+                  ...attributes,
+                  id: Number(id),
+                };
+              });
+            } else {
+              record.attributes[key] = {
+                ...record.attributes[key].data,
+                ...record.attributes[key].data.attributes,
+                id: record.attributes[key].data.id ? Number(record.attributes[key].data.id) : undefined,
+                attributes: undefined,
+              };
+            }
+          }
+        });
+        return {
+          ...record.attributes,
+          id: Number(record.id),
+        };
+      });
+    } else {
+      return {
+        error: 'Fail to retrieve records in private-listings/model.getPrivateListingsByRealtorId',
+        code: 406,
+        realtor_id,
+      };
+    }
+  } catch (e) {
+    const axerr = e as AxiosError;
+    console.log(axerr);
+    console.log(JSON.stringify(axerr.response?.data || {}, null, 4));
+    return {
+      error: 'Caught error in private-listings/model.getPrivateListingsByRealtorId',
+      realtor_id,
+    };
+  }
+  return {
+    realtor_id,
+  };
+}
 const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
     id
     attributes {
@@ -307,15 +373,24 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
                   name
               }
           }
-      } 
+      }
+      photos
     }
   }
 `;
+
 const gql_create = `mutation CreatePrivateListing($data: PrivateListingInput!) {
     listing: createPrivateListing(data: $data) {
         record: ${GQ_DATA_FRAG_PRIVATE_LISTING}
     }
 }`;
+
+const gql_retrieve = `query GetMyPrivateListings($realtor_id: ID!) {
+    listings: privateListings(filters: { realtor: { id: { eq: $realtor_id } } }) {
+        records: ${GQ_DATA_FRAG_PRIVATE_LISTING}
+    }
+}`;
+
 const gql_update = `mutation UpdatePrivateListing($id: ID!, $data: PrivateListingInput!) {
     listing: updatePrivateListing(id: $id, data: $data) {
         record: ${GQ_DATA_FRAG_PRIVATE_LISTING}
