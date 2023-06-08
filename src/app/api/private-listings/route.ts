@@ -16,18 +16,9 @@ export async function GET(req: NextRequest) {
     );
   // We'll handle photos after creation of the listing
   try {
-    const record = await getPrivateListingsByRealtorId(Number(guid));
-    if (record.error) {
-      const { error, errors, code } = record;
-      return getResponse(
-        {
-          error,
-          errors,
-        },
-        code || 400,
-      );
-    }
-    return getResponse(record);
+    const records = await getPrivateListingsByRealtorId(Number(guid));
+
+    return getResponse({ records });
   } catch (e) {
     console.log('Error in private-listings.POST');
     console.error(e);
