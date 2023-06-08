@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { gql_by_agent_id, gql_create_agent } from './graphql';
+import { gql_by_agent_id, gql_create_agent, mutation_update_meta } from './graphql';
 import { WEBFLOW_THEME_DOMAINS } from '@/_typings/webflow';
 import { RealEstateBoardDataModel } from '@/_typings/real-estate-board';
 import { AgentInput } from '@/_typings/agent';
@@ -120,6 +120,62 @@ export async function updateAgent(
     };
   } catch (e) {
     console.log('Error in updateAgent');
+    const axerr = e as AxiosError;
+    const { error, errors } = axerr.response?.data as {
+      error?: {
+        code: string;
+      };
+      errors?: {
+        message: string;
+        extensions: unknown[];
+      }[];
+    };
+    console.log(
+      JSON.stringify(
+        {
+          response: axerr.response,
+          error,
+          errors,
+        },
+        null,
+        4,
+      ),
+    );
+  }
+  return {};
+}
+export async function updateAgentMetatags(
+  id: number,
+  metatags: {
+    [key: string]: unknown;
+  },
+) {
+  try {
+    const update_object = {
+      id,
+      data: metatags,
+    };
+    const metatag_response = await axios.post(
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+      {
+        query: mutation_update_meta,
+        variables: update_object,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    const results = metatag_response?.data?.data?.updateAgentMetatag?.data || {};
+    return {
+      ...results.attributes,
+      id: results.id ? Number(results.id) : undefined,
+    };
+  } catch (e) {
+    console.log('Error in updateAgentMetatags');
     const axerr = e as AxiosError;
     const { error, errors } = axerr.response?.data as {
       error?: {

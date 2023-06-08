@@ -86,6 +86,11 @@ function Iterator(p: {
   const { data, fireEvent: updateValues } = useEvent(Events.LoadUserSession);
   let theme_name = '';
   let theme_domain = '';
+  const { metatags } = data as unknown as {
+    metatags: {
+      [key: string]: string;
+    };
+  };
   if (data) {
     const theme = data as unknown as {
       webflow_domain?: string;
@@ -104,9 +109,24 @@ function Iterator(p: {
               className={p.children.props.className}
               id={`${Events.SaveUserSession}-trigger`}
               onClick={() => {
-                saveValues({
-                  progress: 0,
-                } as unknown as EventsData);
+                if (p.children.props.className.indexOf('cta-save-seo') >= 0 && metatags.id) {
+                  let updates = {};
+                  Object.keys(metatags).forEach(tag => {
+                    if (metatags[tag] !== null)
+                      updates = {
+                        ...updates,
+                        [tag]: metatags[tag],
+                      };
+                  });
+                  saveValues({
+                    metatags: updates,
+                    progress: 0,
+                  } as unknown as EventsData);
+                } else {
+                  saveValues({
+                    progress: 0,
+                  } as unknown as EventsData);
+                }
               }}
             >
               {p.children.props.children}
@@ -183,10 +203,24 @@ function Iterator(p: {
         name={field_name}
         defaultValue={`${field_value || ''}`}
         onChange={e => {
-          updateValues({
-            ...p.data,
-            [e.currentTarget.name]: e.currentTarget.value,
-          } as unknown as EventsData);
+          let key = field_name;
+          if (key) {
+            if (key.indexOf('agent_metatag.') === 0) {
+              const [, metatag] = key.split('.');
+              updateValues({
+                ...agent,
+                metatags: {
+                  ...agent.metatags,
+                  [metatag]: e.currentTarget.value,
+                },
+              } as unknown as EventsData);
+            } else {
+              updateValues({
+                ...p.data,
+                [key]: e.currentTarget.value,
+              } as unknown as EventsData);
+            }
+          }
         }}
       />
     );

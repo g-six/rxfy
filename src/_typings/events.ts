@@ -95,7 +95,7 @@ export interface PrivateListingData extends FormData {
   city?: string;
   state?: string;
   zip?: string;
-  address_string?: string;
+  title?: string;
 
   // Home Summary
   asking_price?: string;
@@ -104,6 +104,7 @@ export interface PrivateListingData extends FormData {
   property_tax?: string;
   property_disclosure?: string;
   property_type?: ValueInterface;
+  dwelling_type?: ValueInterface;
   building_style?: ValueInterface;
   amenities?: ValueInterface[];
   utilities?: ValueInterface[];
@@ -142,6 +143,14 @@ export interface PrivateListingData extends FormData {
   building_amenities?: ValueInterface[];
   council_approval_required?: boolean;
   locked?: boolean;
+
+  // strapi record id
+  id?: number;
+
+  // Not to be saved in Strapi
+  upload_queue?: {
+    [key: string]: string | number | boolean;
+  };
 
   // ...
 }

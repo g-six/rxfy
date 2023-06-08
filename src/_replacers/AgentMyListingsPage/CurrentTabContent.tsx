@@ -12,6 +12,7 @@ import TabMore from './TabsContent/TabMore';
 import TabPreview from './TabsContent/TabPreview';
 import { getPropertyAttributes } from '@/_utilities/api-calls/call-property-attributes';
 import { ValueInterface } from '@/_typings/ui-types';
+import { createPrivateListing } from '@/_utilities/api-calls/call-private-listings';
 type Props = {
   child: ReactElement;
   currentTab: string;

@@ -6,6 +6,7 @@ import { Events, PrivateListingData, FormData } from '@/_typings/events';
 
 export interface ImagePreview extends File {
   preview: string;
+  url?: string;
 }
 
 function throwIfNotFormData(value: any): asserts value is FormData {

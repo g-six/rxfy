@@ -9,13 +9,12 @@ import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
 export default function TabAddress({ template, nextStepClick, initialState }: TabContentProps) {
   const [templates] = useState(captureMatchingElements(template, [{ elementName: 'input', searchFn: searchByPartOfClass(['f-field-wrapper']) }]));
   const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
-
   const addressFields = [
     {
       label: 'Address',
       inputProps: {
         placeholder: 'Address',
-        name: 'address_string',
+        name: 'title',
       },
       generatedAddress: 'address',
     },

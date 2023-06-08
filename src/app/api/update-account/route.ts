@@ -4,7 +4,7 @@ import { encrypt } from '@/_utilities/encryption-helper';
 import axios, { AxiosError } from 'axios';
 import { getResponse } from '@/app/api/response-helper';
 import { GQ_FRAG_AGENT } from '../agents/graphql';
-import { updateAgent } from '../agents/model';
+import { updateAgent, updateAgentMetatags } from '../agents/model';
 
 const gql = `query GetUserId ($id: ID!) {
   user: customer(id: $id) {
@@ -80,7 +80,7 @@ export async function PUT(request: Request) {
       },
       401,
     );
-  const { email, full_name, phone_number, birthday, password, first_name, last_name, phone, ...agent_updates } = await request.json();
+  const { email, full_name, phone_number, birthday, password, first_name, last_name, phone, metatags, ...agent_updates } = await request.json();
   try {
     if (!token || !guid)
       return getResponse(
@@ -193,15 +193,10 @@ export async function PUT(request: Request) {
 
     let agent = {};
     if (record.agent?.data?.id) {
-      // agent = {
-      //   ...record.agent.data.attributes,
-      //   id: Number(record.agent.data.id),
-      //   metatags: {
-      //     ...record.agent.data.attributes.agent_metatag?.data?.attributes,
-      //     id: record.agent.data.attributes.agent_metatag?.data?.id ? Number(record.agent.data.attributes.agent_metatag.data.id) : undefined,
-      //   },
-      //   agent_metatag: undefined,
-      // };
+      if (metatags && metatags.id && Object.keys(metatags).length) {
+        const { id: metatag_id, ...updates } = metatags;
+        await updateAgentMetatags(metatag_id, updates);
+      }
       agent = await updateAgent(Number(record.agent.data.id), agent_updates);
     }
 

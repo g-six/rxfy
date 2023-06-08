@@ -30,7 +30,7 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
       inputProps: {
         placeholder: 'Choose Property Type',
         values: types,
-        name: 'property_type',
+        name: 'dwelling_type',
       },
       template: templates.selectInput,
     },
