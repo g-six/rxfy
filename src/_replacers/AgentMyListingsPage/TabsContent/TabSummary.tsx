@@ -39,6 +39,8 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
       inputProps: {
         placeholder: 'Asking Price',
         name: 'asking_price',
+        type: 'number',
+        min: 0,
       },
       template: templates.input,
     },
@@ -56,6 +58,8 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
       inputProps: {
         placeholder: 'Year Built',
         name: 'built_year',
+        type: 'number',
+        min: 0,
       },
       template: templates.input,
     },
@@ -72,6 +76,8 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
       inputProps: {
         placeholder: '$1,000',
         name: 'property_tax',
+        type: 'number',
+        min: 0,
       },
       template: templates.input,
     },
@@ -80,6 +86,8 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
       inputProps: {
         placeholder: '2021',
         name: 'tax_year',
+        type: 'number',
+        min: 0,
       },
       template: templates.input,
     },
@@ -116,9 +124,7 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
               <InputWithLabel
                 key={field.inputProps.name}
                 template={field.template}
-                inputProps={{
-                  placeholder: field.inputProps.placeholder,
-                }}
+                inputProps={field.inputProps ?? {}}
                 value={value}
                 label={field.label}
                 handleChange={e => fireEvent({ [field.inputProps.name]: e.currentTarget.value })}

@@ -84,6 +84,8 @@ export interface PrivateListingData extends FormData {
     city?: string;
     state_province?: string;
     search?: string;
+    postal_zip_code?: string;
+    neighbourhood?: string;
   };
   photos?: ImagePreview[];
 
