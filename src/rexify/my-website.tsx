@@ -1,5 +1,6 @@
 'use client';
-import { RealtorInputModel } from '@/_typings/agent';
+import { AgentData, RealtorInputModel } from '@/_typings/agent';
+import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
@@ -33,14 +34,15 @@ export function MyWebsite(p: Props) {
           const axerr = e as AxiosError;
           if (axerr.response?.status === 401) {
             console.log(axerr.response.statusText);
-            // clearSessionCookies();
-            // setTimeout(() => {
-            //   location.href = '/log-in';
-            // }, 500);
+            clearSessionCookies();
+            setTimeout(() => {
+              location.href = '/log-in';
+            }, 500);
           }
         });
     }
   }, [data]);
+
   React.useEffect(() => {
     const { progress, ...updates } = acted as unknown as { [key: string]: unknown };
     if (progress === 0) {
@@ -109,12 +111,14 @@ function Iterator(p: {
         children: undefined,
       };
     }
-
-    console.log({ data });
+    const agent = data as unknown as AgentData;
+    const field_name = getAgentFieldName(p);
+    const field_value = getAgentFieldValue(agent, field_name);
     return (
       <input
         {...props}
-        name={getAgentFieldName(p)}
+        name={field_name}
+        defaultValue={`${field_value || ''}`}
         onChange={e => {
           fireEvent({
             ...p.data,
@@ -137,7 +141,22 @@ function getAgentFieldName(props: { id?: string; placeholder?: string }) {
   if (props.placeholder) {
     switch (props.placeholder.toLowerCase()) {
       case 'site title':
-        return 'metatag_title';
+        return 'agent_metatag.personal_title';
+      case 'description meta tags':
+        return 'agent_metatag.description';
     }
   }
+}
+
+function getAgentFieldValue(agent: AgentData, field_name?: string) {
+  if (agent.metatags && field_name?.indexOf('agent_metatag.') === 0) {
+    const [, metatag] = field_name.split('.');
+    const metatags = agent.metatags as unknown as { [key: string]: unknown };
+    return metatags[metatag];
+  }
+  if (agent && field_name) {
+    const values = agent as unknown as { [key: string]: unknown };
+    return values[field_name] || '';
+  }
+  return '';
 }
