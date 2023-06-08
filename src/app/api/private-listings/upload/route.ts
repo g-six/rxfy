@@ -16,7 +16,6 @@ export async function POST(request: NextRequest) {
     );
 
   const { name, type } = await request.json();
-
   if (name) {
     const Key = `private-listings/${name}`;
     const command = new PutObjectCommand({

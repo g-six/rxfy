@@ -144,6 +144,9 @@ export interface PrivateListingData extends FormData {
   council_approval_required?: boolean;
   locked?: boolean;
 
+  // strapi record id
+  id?: number;
+
   // Not to be saved in Strapi
   upload_queue?: {
     [key: string]: string | number | boolean;

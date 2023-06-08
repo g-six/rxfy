@@ -1,10 +1,9 @@
 import { NextRequest } from 'next/server';
-import { createPrivateListing } from './model';
-import { getResponse } from '../response-helper';
+import { updatePrivateListing } from '@/app/api/private-listings/model';
+import { getResponse } from '@/app/api/response-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
-import { PrivateListingInput } from '@/_typings/private-listing';
 
-export async function POST(req: NextRequest) {
+export async function PUT(req: NextRequest) {
   const { token, guid } = getTokenAndGuidFromSessionKey(req.headers.get('authorization') || '');
 
   if (!token && isNaN(guid))
@@ -17,7 +16,8 @@ export async function POST(req: NextRequest) {
   // We'll handle photos after creation of the listing
   try {
     const { area, title, beds, baths, lat, lon, city, neighbourhood, postal_zip_code, state_province, dwelling_type }: PrivateListingInput = await req.json();
-    const record = await createPrivateListing(
+    const record = await updatePrivateListing(
+      Number(new URL(req.url).pathname.split('/').pop()),
       { area, title, beds, baths, lat, lon, city, neighbourhood, postal_zip_code, state_province, dwelling_type },
       token,
       Number(guid),

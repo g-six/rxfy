@@ -11,7 +11,7 @@ import SearchAddressCombobox from '@/_replacers/FilterFields/SearchAddressCombob
 import RxDragNDrop from '@/components/RxDragNDrop';
 import RxDropzone from '@/components/RxDropzone';
 import useDebounce from '@/hooks/useDebounce';
-import { createPrivateListing, uploadListingPhoto } from '@/_utilities/api-calls/call-private-listings';
+import { createPrivateListing, updatePrivateListing, uploadListingPhoto } from '@/_utilities/api-calls/call-private-listings';
 import { PrivateListingInput, PrivateListingOutput } from '@/_typings/private-listing';
 import axios from 'axios';
 import { formatAddress } from '@/_utilities/string-helper';
@@ -19,6 +19,19 @@ import { formatAddress } from '@/_utilities/string-helper';
 export default function TabAi({ template, nextStepClick, initialState }: TabContentProps) {
   const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
   const debouncedPrompt = useDebounce(data?.prompt ?? '', 900);
+
+  // Upload photos one data has been created - this is just a quick and dirty solution
+  // Rosty / Sasha please refactor this as you see fit.
+  if (data?.id && data?.upload_queue && data?.photos && data.photos.filter(({ url }) => url).length === data?.upload_queue.total) {
+    // Photo upload completed, update listing
+    let photos: string[] = [];
+    data.photos.forEach(({ url }) => {
+      if (url) photos.push(url);
+    });
+    updatePrivateListing(data.id, {
+      photos,
+    });
+  }
 
   const checkPrompt = React.useCallback(
     (str: string) => {
@@ -133,13 +146,14 @@ export default function TabAi({ template, nextStepClick, initialState }: TabCont
                       ...(rec as unknown as PrivateListingData),
                     });
 
-                    if (data.photos) {
+                    if (data.photos && rec.id) {
                       let count = 0;
                       if (data && data.upload_queue?.count) {
                         count = data.upload_queue.count as number;
                       }
+
                       data?.photos?.map((photo: File, cnt: number) => {
-                        uploadListingPhoto(photo).then((upload_item: { success: boolean; upload_url: string; file_path: string }) => {
+                        uploadListingPhoto(photo, cnt + 1, rec).then((upload_item: { success: boolean; upload_url: string; file_path: string }) => {
                           axios
                             .put(upload_item.upload_url, photo, {
                               headers: {
@@ -148,6 +162,7 @@ export default function TabAi({ template, nextStepClick, initialState }: TabCont
                             })
                             .then(r => {
                               count++;
+                              if (data.photos && data.photos[cnt]) data.photos[cnt].url = 'https://' + new URL(upload_item.upload_url).pathname.substring(1);
                               fireEvent({
                                 ...data,
                                 upload_queue: {

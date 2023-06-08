@@ -1,13 +1,14 @@
 import axios, { AxiosError } from 'axios';
-import { PrivateListingInput } from '@/_typings/private-listing';
+import { PrivateListingInput, PrivateListingOutput } from '@/_typings/private-listing';
 import Cookies from 'js-cookie';
 import { getResponse } from '@/app/api/response-helper';
+import { toKebabCase } from '../string-helper';
 
-export async function uploadListingPhoto(file: File) {
+export async function uploadListingPhoto(file: File, index: number, listing: PrivateListingOutput) {
   return axios
     .post(
       '/api/private-listings/upload',
-      { name: file.name, type: file.type },
+      { name: `${listing.id}-${toKebabCase(listing.title)}/${index.toString().padStart(3, '0')}-${file.name}`, type: file.type },
       {
         headers: {
           Authorization: `Bearer ${Cookies.get('session_key')}`,
@@ -47,6 +48,30 @@ export async function createPrivateListing(listing: PrivateListingInput) {
         error: 'Unhandled error',
         path: 'api-calls/call-private-listings',
         subroutine: 'createPrivateListing',
+      },
+      400,
+    );
+  }
+}
+export async function updatePrivateListing(id: number, updates: Record<string, unknown>) {
+  try {
+    const record = await axios.put(`/api/private-listings/${id}`, updates, {
+      headers: {
+        Authorization: `Bearer ${Cookies.get('session_key')}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return getResponse(record.data);
+  } catch (e) {
+    const { response } = e as AxiosError;
+    if (response && response.data) {
+      return getResponse(response.data, response.status);
+    }
+    return getResponse(
+      {
+        error: 'Unhandled error',
+        path: 'api-calls/call-private-listings',
+        subroutine: 'updatePrivateListing',
       },
       400,
     );
