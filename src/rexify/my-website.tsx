@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 import { AgentData, RealtorInputModel } from '@/_typings/agent';
 import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
@@ -6,7 +7,9 @@ import { updateAccount } from '@/_utilities/api-calls/call-update-account';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { AxiosError } from 'axios';
 import Cookies from 'js-cookie';
-import React from 'react';
+import styles from './my-website.module.scss';
+import { formatAddress } from '@/_utilities/string-helper';
+
 type Props = {
   children: React.ReactElement;
 };
@@ -19,7 +22,15 @@ export function MyWebsite(p: Props) {
     if (updates && Cookies.get('session_key')) {
       setUpdates(undefined);
       updateAccount(Cookies.get('session_key') as string, updates as RealtorInputModel, true)
-        .then(console.log)
+        .then(
+          (d: {
+            agent?: {
+              [key: string]: string;
+            };
+          }) => {
+            console.log('Successfully updated', d.agent?.agent_id);
+          },
+        )
         .catch(console.error);
     }
   }, [updates]);
@@ -33,7 +44,6 @@ export function MyWebsite(p: Props) {
         .catch(e => {
           const axerr = e as AxiosError;
           if (axerr.response?.status === 401) {
-            console.log(axerr.response.statusText);
             clearSessionCookies();
             setTimeout(() => {
               location.href = '/log-in';
@@ -72,8 +82,19 @@ function Iterator(p: {
   type: string;
   children: React.ReactElement;
 }) {
-  const { fireEvent } = useEvent(Events.SaveUserSession);
-  const { data } = useEvent(Events.LoadUserSession);
+  const { fireEvent: saveValues } = useEvent(Events.SaveUserSession);
+  const { data, fireEvent: updateValues } = useEvent(Events.LoadUserSession);
+  let theme_name = '';
+  let theme_domain = '';
+  if (data) {
+    const theme = data as unknown as {
+      webflow_domain?: string;
+    };
+    if (theme.webflow_domain) {
+      theme_domain = theme.webflow_domain;
+      theme_name = theme_domain.split('-').reverse().pop() as string;
+    }
+  }
   if (p.children?.props?.children) {
     if (p.children.type === 'a') {
       switch (p.children.props.children) {
@@ -83,7 +104,7 @@ function Iterator(p: {
               className={p.children.props.className}
               id={`${Events.SaveUserSession}-trigger`}
               onClick={() => {
-                fireEvent({
+                saveValues({
                   progress: 0,
                 } as unknown as EventsData);
               }}
@@ -92,6 +113,32 @@ function Iterator(p: {
             </button>
           );
       }
+    }
+
+    if (p.children.type === 'div' && p.id && p.id.indexOf('-leagent-webflow.io')) {
+      const { webflow_domain } = data as unknown as { webflow_domain?: string };
+      return React.cloneElement(
+        <div
+          id={p.id}
+          className={[p.className, styles.themeOption, p.id === webflow_domain ? styles.selected : ''].join(' ')}
+          onClick={() => {
+            updateValues({
+              ...data,
+              webflow_domain: p.id,
+            } as unknown as EventsData);
+
+            saveValues({
+              progress: 0,
+              webflow_domain: p.id,
+            } as unknown as EventsData);
+          }}
+        />,
+        {
+          children: React.Children.map(p.children.props.children, child => {
+            return <Iterator {...child.props}>{child}</Iterator>;
+          }),
+        },
+      );
     }
     return (
       <>
@@ -102,6 +149,22 @@ function Iterator(p: {
         })}
       </>
     );
+  } else {
+    if (p.children.type === 'img' && p.id && p.id === `${theme_name}-thumbnail`) {
+      return React.cloneElement(<img {...p} className={[p.className, 'rexified', styles.selectedThumbnail].join(' ')} />, {
+        children: React.Children.map(p.children.props.children, child => {
+          return <Iterator {...child.props}>{child}</Iterator>;
+        }),
+      });
+    }
+    if (typeof p.children === 'string' && `${p.children}`.indexOf('Your theme:') === 0 && data) {
+      const { webflow_domain } = data as unknown as {
+        webflow_domain?: string;
+      };
+      if (webflow_domain) {
+        return <>Your theme: {formatAddress(theme_name)}</>;
+      }
+    }
   }
   if ((p.type === 'text' && p.id) || p.placeholder) {
     let props = p as unknown as { [key: string]: unknown };
@@ -120,7 +183,7 @@ function Iterator(p: {
         name={field_name}
         defaultValue={`${field_value || ''}`}
         onChange={e => {
-          fireEvent({
+          updateValues({
             ...p.data,
             [e.currentTarget.name]: e.currentTarget.value,
           } as unknown as EventsData);
