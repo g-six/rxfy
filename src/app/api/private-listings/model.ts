@@ -1,4 +1,4 @@
-import { PrivateListingInput, PrivateListingOutput } from '@/_typings/private-listing';
+import { PrivateListingInput, PrivateListingOutput, PrivateListingResult } from '@/_typings/private-listing';
 import axios, { AxiosError } from 'axios';
 export async function createPrivateListing(listing: PrivateListingInput, session_hash: string, realtor_id: number) {
   try {
@@ -179,23 +179,26 @@ export async function getPrivateListingsByRealtorId(realtor_id: number) {
     );
 
     if (response.data?.data?.listings?.records) {
-      return response.data?.data?.listings?.records.map(record => {
+      return (response.data?.data?.listings?.records as PrivateListingResult[]).map((record: PrivateListingResult) => {
+        record.attributes.status = record.attributes.status || 'draft';
+
         Object.keys(record.attributes).forEach(key => {
-          if (record.attributes[key] === null) record.attributes[key] = undefined;
-          else if (record.attributes[key].data) {
+          const attributes = record.attributes as unknown as { [key: string]: any };
+          if (attributes[key] === null) attributes[key] = undefined;
+          else if (attributes[key].data) {
             // This is a relationship link, let's normalize
-            if (Array.isArray(record.attributes[key].data)) {
-              record.attributes[key] = record.attributes[key].data.map(({ id, attributes }: { id: string; attributes: { [key: string]: unknown } }) => {
+            if (Array.isArray(attributes[key].data)) {
+              attributes[key] = attributes[key].data.map(({ id, attributes }: { id: string; attributes: { [key: string]: unknown } }) => {
                 return {
                   ...attributes,
                   id: Number(id),
                 };
               });
             } else {
-              record.attributes[key] = {
-                ...record.attributes[key].data,
-                ...record.attributes[key].data.attributes,
-                id: record.attributes[key].data.id ? Number(record.attributes[key].data.id) : undefined,
+              attributes[key] = {
+                ...attributes[key].data,
+                ...attributes[key].data.attributes,
+                id: attributes[key].data.id ? Number(attributes[key].data.id) : undefined,
                 attributes: undefined,
               };
             }

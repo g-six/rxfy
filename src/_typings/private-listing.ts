@@ -97,3 +97,21 @@ export interface PrivateListingOutput extends PrivateListingModel {
   places_of_interest?: { id: number; name: string }[];
   construction_information?: { id: number; name: string }[];
 }
+
+export interface PrivateListingResult {
+  id: number;
+  attributes: PrivateListingModel & {
+    dwelling_type: { data: { id: number; attributes: { name: string } } };
+    amenities?: { data: { id: number; attributes: { name: string } }[] };
+    appliances?: { data: { id: number; attributes: { name: string } }[] };
+    building_maintenance_items?: { data: { id: number; attributes: { name: string } }[] };
+    by_law_restrictions?: { data: { id: number; attributes: { name: string } }[] };
+    connected_services?: { data: { id: number; attributes: { name: string } }[] };
+    facilities?: { data: { id: number; attributes: { name: string } }[] };
+    hvacs?: { data: { id: number; attributes: { name: string } }[] };
+    parkings?: { data: { id: number; attributes: { name: string } }[] };
+    allowed_pets?: { data: { id: number; attributes: { name: string } }[] };
+    places_of_interest?: { data: { id: number; attributes: { name: string } }[] };
+    construction_information?: { data: { id: number; attributes: { name: string } }[] };
+  };
+}
