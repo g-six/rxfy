@@ -10,6 +10,8 @@ import Cookies from 'js-cookie';
 import { useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import React from 'react';
+import RxLeftMenuTab from './realtors/RxLeftMenuTab';
+import useEvent, { Events } from '@/hooks/useEvent';
 interface DataModel extends RealtorInputModel {
   session_key?: string;
   'user-type'?: string;
@@ -130,8 +132,15 @@ function buildMainComponent(children: React.ReactElement[], container_props: Pro
 }
 
 export function RxPageIterator(props: Props) {
+  const { data: active_data } = useEvent(Events.DashboardMenuTab);
+  const { tab: active_tab } = active_data as unknown as { tab?: string };
   const wrappedChildren = React.Children.map(props.children, child => {
     if (child.props && child.props.children) {
+      if (child.props?.className?.split(' ').includes('dash-tabs')) {
+        return React.cloneElement(child, {
+          children: React.Children.map(child.props.children, RxLeftMenuTab),
+        });
+      }
       if (child.props?.className?.split(' ').includes('my-account-wrapper')) {
         return (
           <RxMyAccountPage {...child.props} data={props.data} user-type={props.data['user-type']} session={props.session}>
@@ -140,9 +149,12 @@ export function RxPageIterator(props: Props) {
         );
       }
       if (child.props?.className?.split(' ').includes('plan-title')) {
-        if (props.session?.stripe_subscriptions) {
-          const [subscription_id] = Object.keys(props.session.stripe_subscriptions);
-          console.log(subscription_id);
+        if (props.session?.subscription) {
+          const subscription = props.session.subscription as unknown as {
+            name: string;
+            interval: 'monthly' | 'yearly';
+          };
+          return <RxKeyValueRow {...child.props} value={subscription.name} />;
         }
         return <RxKeyValueRow {...child.props} />;
       }

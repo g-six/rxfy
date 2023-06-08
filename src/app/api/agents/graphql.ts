@@ -38,6 +38,8 @@ export const GQ_FRAG_AGENT = `
           street_1
           street_2
           api_key
+          domain_name
+          webflow_domain
           agent_metatag {
             data {${GQ_FRAG_AGENT_METATAG}}
           }

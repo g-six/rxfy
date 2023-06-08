@@ -8,6 +8,7 @@ import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-s
 import { LegacySearchPayload } from '@/_typings/pipeline';
 import { getRealEstateBoard } from '../real-estate-boards/model';
 import { MLSProperty, PropertyDataModel } from '@/_typings/property';
+import { mutation_update_agent } from './graphql';
 
 export async function createAgent(user_data: {
   agent_id: string;
@@ -69,6 +70,70 @@ export async function createAgent(user_data: {
     console.log(
       JSON.stringify(
         {
+          error,
+          errors,
+        },
+        null,
+        4,
+      ),
+    );
+  }
+  return {};
+}
+export async function updateAgent(
+  id: number,
+  user_data: {
+    [key: string]: unknown;
+  },
+) {
+  try {
+    const update_object = {
+      id,
+      data: user_data,
+    };
+    console.log(JSON.stringify(update_object, null, 4));
+    const agent_response = await axios.post(
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+      {
+        query: mutation_update_agent,
+        variables: update_object,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    const agent = agent_response?.data?.data?.updateAgent?.data || {};
+    console.log(JSON.stringify(agent, null, 4));
+    return {
+      ...agent.attributes,
+      id: agent.id ? Number(agent.id) : undefined,
+      metatags: agent.attributes.agent_metatag.data
+        ? {
+            ...agent.attributes.agent_metatag.data.attributes,
+            id: Number(agent.attributes.agent_metatag.data.id),
+          }
+        : undefined,
+    };
+  } catch (e) {
+    console.log('Error in updateAgent');
+    const axerr = e as AxiosError;
+    const { error, errors } = axerr.response?.data as {
+      error?: {
+        code: string;
+      };
+      errors?: {
+        message: string;
+        extensions: unknown[];
+      }[];
+    };
+    console.log(
+      JSON.stringify(
+        {
+          response: axerr.response,
           error,
           errors,
         },

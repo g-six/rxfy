@@ -31,13 +31,7 @@ function getUpdateSessionGql(user_type: 'realtor' | 'customer') {
           stripe_customer
           stripe_subscriptions
           agent {
-            data {
-              id
-              attributes {
-                agent_id
-                phone
-              }
-            }
+            data {${GQ_FRAG_AGENT}}
           }
           brokerage {
             data {
@@ -87,7 +81,7 @@ export default async function updateSessionKey(guid: number, email: string, user
       },
     );
 
-    const { birthday: birthdate, brokerage: brokerage_results, ...attributes } = record.attributes;
+    const { birthday: birthdate, brokerage: brokerage_results, agent_metatag, ...attributes } = record.attributes;
     let birthday;
     if (birthdate) {
       birthday = new Intl.DateTimeFormat('en-CA').format(new Date(`${birthdate}T00:00:00`));
@@ -103,6 +97,12 @@ export default async function updateSessionKey(guid: number, email: string, user
 
     return {
       ...attributes,
+      metatags: agent_metatag?.data
+        ? {
+            ...agent_metatag.data.attributes,
+            id: Number(agent_metatag.data.id),
+          }
+        : undefined,
       session_key: `${encrypt(dt)}.${encrypt(email)}-${guid}`,
       birthday,
       brokerage,
