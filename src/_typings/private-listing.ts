@@ -8,6 +8,7 @@ export interface PrivateListingModel {
   baths: number;
   postal_zip_code: string;
   state_province: string;
+  status: 'active' | 'draft' | 'sold' | 'terminated';
   price_per_sqft?: number;
   asking_price?: number;
   year_built?: number;
