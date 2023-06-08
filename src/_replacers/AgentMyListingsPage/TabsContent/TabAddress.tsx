@@ -45,7 +45,7 @@ export default function TabAddress({ template, nextStepClick, initialState }: Ta
       inputProps: {
         name: 'zip',
       },
-      generatedAddress: '',
+      generatedAddress: 'postal_zip_code',
     },
     {
       label: 'Neighbourhood',
@@ -53,7 +53,7 @@ export default function TabAddress({ template, nextStepClick, initialState }: Ta
         placeholder: 'Neighbourhood',
         name: 'neighbourhood',
       },
-      generatedAddress: '',
+      generatedAddress: 'neighbourhood',
     },
   ];
 
