@@ -79,7 +79,7 @@ export default function TabRooms({ template, nextStepClick, initialState }: TabC
           });
         }
         return cloneElement(child, {}, [
-          data?.beds && (
+          data?.beds ? (
             <RoomsGroup
               heading='Bedrooms'
               key={0}
@@ -88,8 +88,10 @@ export default function TabRooms({ template, nextStepClick, initialState }: TabC
               data={data?.beds_dimensions}
               onChange={(index, param, val) => setDimension('garage_dimensions', index, param, val)}
             />
+          ) : (
+            <></>
           ),
-          data?.baths_full && (
+          data?.baths_full ? (
             <BathsGroup
               heading='Full Baths'
               key={1}
@@ -98,8 +100,10 @@ export default function TabRooms({ template, nextStepClick, initialState }: TabC
               data={data?.baths_full_dimensions}
               onChange={(index, param, val) => setDimension('baths_full_dimensions', index, param, val)}
             />
+          ) : (
+            <></>
           ),
-          data?.baths_half && (
+          data?.baths_half ? (
             <BathsGroup
               heading='Half Baths'
               key={2}
@@ -108,8 +112,10 @@ export default function TabRooms({ template, nextStepClick, initialState }: TabC
               data={data?.baths_half_dimensions}
               onChange={(index, param, val) => setDimension('baths_half_dimensions', index, param, val)}
             />
+          ) : (
+            <></>
           ),
-          data?.kitchens && (
+          data?.kitchens ? (
             <RoomsGroup
               heading='Kitchens'
               key={3}
@@ -118,8 +124,10 @@ export default function TabRooms({ template, nextStepClick, initialState }: TabC
               data={data?.kitchen_dimensions}
               onChange={(index, param, val) => setDimension('garage_dimensions', index, param, val)}
             />
+          ) : (
+            <></>
           ),
-          data?.additional_rooms && (
+          data?.additional_rooms ? (
             <RoomsGroup
               heading='Additional Rooms'
               key={4}
@@ -128,8 +136,10 @@ export default function TabRooms({ template, nextStepClick, initialState }: TabC
               data={data?.additional_dimensions}
               onChange={(index, param, val) => setDimension('garage_dimensions', index, param, val)}
             />
+          ) : (
+            <></>
           ),
-          data?.garage && (
+          data?.garage ? (
             <RoomsGroup
               heading='Garage'
               key={5}
@@ -138,6 +148,8 @@ export default function TabRooms({ template, nextStepClick, initialState }: TabC
               data={data?.garage_dimensions}
               onChange={(index, param, val) => setDimension('garage_dimensions', index, param, val)}
             />
+          ) : (
+            <></>
           ),
         ]);
       },

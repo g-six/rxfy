@@ -19,6 +19,9 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
   );
 
   const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
+  const baths_half = data?.baths_half ?? 0;
+  const baths = data?.baths ?? 0;
+  const baths_full = parseInt(baths.toString()) - parseInt(baths_half.toString());
 
   const sizesElements = [
     {
@@ -65,7 +68,6 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
             { value: 'sqft', label: 'Sqft' },
             { value: 'sqm', label: 'SqM' },
           ],
-
           placeholder: 'units',
           selectedValue: data?.total_size_units,
           handleSelect: (val: ValueInterface) => fireEvent({ total_size_units: val }),
@@ -82,6 +84,7 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
         type: 'number',
         min: 0,
       },
+      generatedPrompt: 'beds',
     },
     {
       label: 'Total Bathrooms',
@@ -91,6 +94,7 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
         type: 'number',
         min: 0,
       },
+      generatedPrompt: 'baths',
     },
     {
       label: '# of Full Baths',
@@ -99,7 +103,10 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
         name: 'baths_full',
         type: 'number',
         min: 0,
+        disabled: true,
+        value: baths_full > 0 ? baths_full : 0,
       },
+      generatedPrompt: '',
     },
     {
       label: '# of Half Baths',
@@ -109,6 +116,7 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
         type: 'number',
         min: 0,
       },
+      generatedPrompt: '',
     },
     {
       label: '# of Kitchens',
@@ -118,6 +126,7 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
         type: 'number',
         min: 0,
       },
+      generatedPrompt: 'kitchens',
     },
     {
       label: '# of Additional Rooms',
@@ -127,6 +136,7 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
         type: 'number',
         min: 0,
       },
+      generatedPrompt: '',
     },
     {
       label: '# of Garage',
@@ -136,6 +146,7 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
         type: 'number',
         min: 0,
       },
+      generatedPrompt: 'garages',
     },
   ];
   const matches: tMatch[] = [
@@ -144,16 +155,23 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
       transformChild: child => {
         return cloneElement(child, {}, [
           ...sizesElements.map(({ Component, props }, i) => <Component key={i} {...props} />),
-          ...textFields.map((field, i) => (
-            <InputWithLabel
-              key={`${field.label}_${i}`}
-              inputProps={field.inputProps ?? {}}
-              label={field.label}
-              template={templates.input}
-              value={getValueByKey(field.inputProps.name, data)}
-              handleChange={e => fireEvent({ [field.inputProps.name]: parseInt(e.currentTarget.value) })}
-            />
-          )),
+          ...textFields.map((field, i) => {
+            const value = getValueByKey(field.inputProps.name, data);
+            const valueAlternative = data?.generatedPrompt ? getValueByKey(field.generatedPrompt, data.generatedPrompt as object) : null;
+            if (valueAlternative && (value === undefined || value === null)) {
+              fireEvent({ [field.inputProps.name]: valueAlternative });
+            }
+            return (
+              <InputWithLabel
+                key={`${field.label}_${i}`}
+                inputProps={field.inputProps ?? {}}
+                label={field.label}
+                template={templates.input}
+                value={(field.inputProps?.value ? field.inputProps.value : value) ?? ''}
+                handleChange={e => fireEvent({ [field.inputProps.name]: parseInt(e.currentTarget.value) })}
+              />
+            );
+          }),
         ]);
       },
     },
