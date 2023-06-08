@@ -4,7 +4,7 @@ import { AxiosStatic } from 'axios';
 export async function getAgentDataFromDomain(domain: string): Promise<AgentData> {
   if (`${process.env.NEXT_APP_LEAGENT_DOMAINS}`.split(',').includes(domain)) {
     return {
-      webflow_domain: process.env.NEXT_APP_LEAGENT_WEBFLOW_DOMAIN,
+      webflow_domain: process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN,
     } as any;
   }
   const axios: AxiosStatic = (await import('axios')).default;

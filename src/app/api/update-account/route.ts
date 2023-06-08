@@ -3,6 +3,8 @@ import { convertDateStringToDateObject } from '@/_utilities/data-helpers/date-he
 import { encrypt } from '@/_utilities/encryption-helper';
 import axios, { AxiosError } from 'axios';
 import { getResponse } from '@/app/api/response-helper';
+import { GQ_FRAG_AGENT } from '../agents/graphql';
+import { updateAgent } from '../agents/model';
 
 const gql = `query GetUserId ($id: ID!) {
   user: customer(id: $id) {
@@ -23,6 +25,9 @@ const gql_realtor = `query GetUserId ($id: ID!) {
       attributes {
         email
         last_activity_at
+        agent {
+          data {${GQ_FRAG_AGENT}}
+        }
       }
     }
   }
@@ -55,6 +60,9 @@ const mutation_realtor = `mutation UpdateAccount ($id: ID!, $data: RealtorInput!
           last_name
           phone_number
           last_activity_at
+          agent {
+            data {${GQ_FRAG_AGENT}}
+          }
         }
       }
     }
@@ -72,7 +80,7 @@ export async function PUT(request: Request) {
       },
       401,
     );
-  const { email, full_name, phone_number, birthday, password, first_name, last_name, phone } = await request.json();
+  const { email, full_name, phone_number, birthday, password, first_name, last_name, phone, ...agent_updates } = await request.json();
   try {
     if (!token || !guid)
       return getResponse(
@@ -101,6 +109,7 @@ export async function PUT(request: Request) {
         },
       },
     );
+
     const record = response_data.data?.user?.data?.attributes || {};
     if (!record.email || !record.last_activity_at || `${encrypt(record.last_activity_at)}.${encrypt(record.email)}` !== token) {
       return new Response(
@@ -182,6 +191,20 @@ export async function PUT(request: Request) {
       data: updates,
     };
 
+    let agent = {};
+    if (record.agent?.data?.id) {
+      // agent = {
+      //   ...record.agent.data.attributes,
+      //   id: Number(record.agent.data.id),
+      //   metatags: {
+      //     ...record.agent.data.attributes.agent_metatag?.data?.attributes,
+      //     id: record.agent.data.attributes.agent_metatag?.data?.id ? Number(record.agent.data.attributes.agent_metatag.data.id) : undefined,
+      //   },
+      //   agent_metatag: undefined,
+      // };
+      agent = await updateAgent(Number(record.agent.data.id), agent_updates);
+    }
+
     const {
       data: {
         data: { user },
@@ -206,6 +229,7 @@ export async function PUT(request: Request) {
           id: guid,
           ...user.record.attributes,
         },
+        agent,
         session_key: `${encrypt(last_activity_at)}.${encrypt(user.record.attributes.email)}-${guid}`,
       },
       200,

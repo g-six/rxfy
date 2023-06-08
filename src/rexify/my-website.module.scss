@@ -1,0 +1,14 @@
+.selectedThumbnail {
+  @apply block;
+}
+.themeOption {
+  h6 + div {
+    @apply hidden;
+  }
+
+  &.selected {
+    h6 + div {
+      @apply block;
+    }
+  }
+}
