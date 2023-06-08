@@ -13,5 +13,8 @@ export default function Input({ template, inputProps, value, onChange }: Props) 
     inputProps?.onBlur?.(event as React.FocusEvent<HTMLInputElement, Element>);
   };
 
+  const isNumber = inputProps?.type === 'number';
+  value = isNumber && !value ? '' : value;
+
   return <input className={template.props.className} value={value} onChange={onChange} onBlur={handleBlur} {...(inputProps || {})} />;
 }

@@ -30,7 +30,11 @@ export default function TabStrata({ template, nextStepClick, attributes, initial
     },
     {
       label: 'Maintenance Fee',
-      inputProps: { name: 'maintenance_fee' },
+      inputProps: {
+        name: 'maintenance_fee',
+        type: 'number',
+        min: 0,
+      },
     },
     {
       label: 'Restrictions',
@@ -38,23 +42,43 @@ export default function TabStrata({ template, nextStepClick, attributes, initial
     },
     {
       label: 'Age Restriction',
-      inputProps: { name: 'age_restriction' },
+      inputProps: {
+        name: 'age_restriction',
+        type: 'number',
+        min: 0,
+      },
     },
     {
       label: 'Dogs',
-      inputProps: { name: 'dogs' },
+      inputProps: {
+        name: 'dogs',
+        type: 'number',
+        min: 0,
+      },
     },
     {
       label: 'Cats',
-      inputProps: { name: 'cats' },
+      inputProps: {
+        name: 'cats',
+        type: 'number',
+        min: 0,
+      },
     },
     {
       label: 'Total Pets Allowed',
-      inputProps: { name: 'total_pets_allowed' },
+      inputProps: {
+        name: 'total_pets_allowed',
+        type: 'number',
+        min: 0,
+      },
     },
     {
       label: 'Total Rentals Allowed',
-      inputProps: { name: 'total_rentals_allowed' },
+      inputProps: {
+        name: 'total_rentals_allowed',
+        type: 'number',
+        min: 0,
+      },
     },
     {
       label: 'Complex Name',

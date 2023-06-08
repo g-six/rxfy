@@ -54,6 +54,38 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
     });
   }, []);
   const matches = [
+    // {
+    //   searchFn: searchByClasses(['indiv-map-tabs']),
+    //   transformChild: (child: ReactElement) => {
+    // const matches = [
+    //   {
+    //     searchFn: searchByClasses([tabs.INDIVIDUAL]),
+    //     transformChild: (child: ReactElement) => {
+    //       return cloneElement(child, {
+    //         onClick: makeCurrent(child),
+    //       });
+    //     },
+    //   },
+    //   {
+    //     searchFn: searchByClasses([tabs.MAP_VIEW]),
+    //     transformChild: (child: ReactElement) => {
+    //       return cloneElement(child, {
+    //         onClick: makeCurrent(child),
+    //       });
+    //     },
+    //   },
+    //   {
+    //     searchFn: searchByClasses([tabs.COMPARE]),
+    //     transformChild: (child: ReactElement) => {
+    //       return cloneElement(child, {
+    //         onClick: makeCurrent(child),
+    //       });
+    //     },
+    //   },
+    // ];
+    //     return <Tabs child={child} setCurrentTab={setCurrentTab} tabs={tabs} matches={matches} />;
+    //   },
+    // },
     {
       //left sidebar with saved loved , shared between each tab
       searchFn: searchByClasses(['properties-column']),

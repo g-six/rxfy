@@ -34,22 +34,7 @@ export default function initializePlacesAutocomplete(props: Record<string, strin
     function initializePlacesAutocomplete() {
         // First we need to block all form submissions to WebFlow!
         const url = new URL(location.href)
-        if (url.pathname === '/property') {
-            if (typeof initNeighborhoodMap !== 'undefined' && initNeighborhoodMap && document.querySelector('.section---map-n-street-view .p-map')) {
-                //initNeighborhoodMap(document.querySelector('.section---map-n-street-view .p-map').parentElement)
-            } else {
-                console.log('initNeighborhoodMap not loaded yet')
-                const interval = setInterval(() => {
-                    if (typeof initNeighborhoodMap !== 'undefined') {
-                        clearInterval(interval)
-                        //initNeighborhoodMap(document.querySelector('.section---map-n-street-view .p-map').parentElement)
-                    } else {
-                        console.log('Retry loading initNeighbourhoodMap')
-                    }
-                }, 3000)
-            }
-        }
-
+        
         console.log('initializePlacesAutocomplete running...')
 
         var gpaInput = document.getElementById('search-input');
