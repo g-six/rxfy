@@ -10,9 +10,9 @@ import { RealtorInputModel } from '@/_typings/agent';
  * @param opts { search_url? }
  * @returns
  */
-export async function updateAccount(session_key: string, data: CustomerInputModel | RealtorInputModel) {
+export async function updateAccount(session_key: string, data: CustomerInputModel | RealtorInputModel, realtor_mode = false) {
   const response = await axios.put(
-    `/api${(data as RealtorInputModel).agent_id ? '/agents' : ''}/update-account`,
+    `/api${realtor_mode ? '/agents' : ''}/update-account`,
     {
       ...data,
     },

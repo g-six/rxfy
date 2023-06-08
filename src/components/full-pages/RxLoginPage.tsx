@@ -84,7 +84,7 @@ export function RxLoginPage(props: RxLoginPageProps) {
         Cookies.set('session_key', session.data?.session_key);
         setTimeout(() => {
           location.href = '/my-profile';
-        }, 700);
+        }, 1400);
       } else {
         clearSessionCookies();
       }
@@ -117,7 +117,7 @@ export function RxLoginPage(props: RxLoginPageProps) {
         Cookies.set('session_as', hasClassName(props.className || '', 'use-agent') ? 'realtor' : 'customer');
         setTimeout(() => {
           location.href = '/my-profile';
-        }, 700);
+        }, 1400);
       } else {
         notify({
           category: NotificationCategory.ERROR,

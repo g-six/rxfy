@@ -30,6 +30,8 @@ export enum Events {
   PropertyGalleryModal = 'property-gallery-modal',
   PrivateListingForm = 'event-private-listing-form',
   LoadUserSession = 'load-session',
+  SaveUserSession = 'save-session',
+  DashboardMenuTab = 'dashboard-menu-tab',
 }
 
 export enum NotificationCategory {

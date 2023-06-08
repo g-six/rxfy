@@ -1,11 +1,17 @@
 'use client';
 import { BrokerageInputModel, RealtorInputModel } from '@/_typings/agent';
+import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
+import RxKeyValueRow from '@/components/RxProperty/RxKeyValueRow';
 // import { RxBrokerageInformation } from '@/components/RxForms/RxBrokerageInformation';
 import { RxMyAccountPage } from '@/components/full-pages/RxMyAccountPage';
+import { AxiosError } from 'axios';
 import Cookies from 'js-cookie';
+import { useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import React from 'react';
+import RxLeftMenuTab from './realtors/RxLeftMenuTab';
+import useEvent, { Events } from '@/hooks/useEvent';
 interface DataModel extends RealtorInputModel {
   session_key?: string;
   'user-type'?: string;
@@ -17,6 +23,8 @@ type Props = {
 };
 
 export default function MyProfilePage(p: Props) {
+  const params = useSearchParams();
+
   const [session, setSession] = React.useState<{ [key: string]: string | number }>();
   const scripts: { [key: string]: string }[] = [];
   const [dash_area, setDashArea] = React.useState<React.ReactElement>();
@@ -26,38 +34,55 @@ export default function MyProfilePage(p: Props) {
 
   React.useEffect(() => {
     if (Cookies.get('session_key')) {
-      getUserBySessionKey(Cookies.get('session_key') as string, p.data['user-type'] && p.data['user-type'] === 'realtor' ? 'realtor' : undefined).then(data => {
-        if (data.error) location.href = '/log-in';
-        if (p.children.type === 'html') {
-          Object.keys(p.children.props).forEach((key: string) => {
-            if (key !== 'children') {
-              html_props = {
-                ...html_props,
-                [key]: p.children.props[key],
-              };
-            } else {
-              p.children.props[key].forEach((child: React.ReactElement) => {
-                if (child.type === 'body') {
-                  child.props.children.forEach((div: React.ReactElement) => {
-                    if (div.type === 'div') {
-                      setNavBar(buildNavigationComponent(div.props.children));
-                      setDashArea(buildMainComponent(div.props.children, { ...p, session: data }));
-                    } else if (div.type === 'script') {
-                      scripts.push({
-                        src: div.props.src,
-                        type: div.props.type,
-                      });
-                    }
-                  });
-                }
-              });
-            }
-          });
-          setSession(data);
-        }
-      });
+      getUserBySessionKey(Cookies.get('session_key') as string, p.data['user-type'] && p.data['user-type'] === 'realtor' ? 'realtor' : undefined)
+        .then(data => {
+          if (data.error) location.href = '/log-in';
+          if (p.children.type === 'html') {
+            Object.keys(p.children.props).forEach((key: string) => {
+              if (key !== 'children') {
+                html_props = {
+                  ...html_props,
+                  [key]: p.children.props[key],
+                };
+              } else {
+                p.children.props[key].forEach((child: React.ReactElement) => {
+                  if (child.type === 'body') {
+                    child.props.children.forEach((div: React.ReactElement) => {
+                      if (div.type === 'div') {
+                        setNavBar(buildNavigationComponent(div.props.children));
+                        setDashArea(buildMainComponent(div.props.children, { ...p, session: data }));
+                      } else if (div.type === 'script') {
+                        scripts.push({
+                          src: div.props.src,
+                          type: div.props.type,
+                        });
+                      }
+                    });
+                  }
+                });
+              }
+            });
+            setSession(data);
+          }
+        })
+        .catch(e => {
+          const axerr = e as AxiosError;
+          if (axerr.response?.status === 401) {
+            clearSessionCookies();
+            setTimeout(() => {
+              location.href = '/log-in';
+            }, 200);
+          }
+        });
     } else {
-      location.href = '/log-in';
+      if (params.get('key')) {
+        Cookies.set('session_key', params.get('key') as string);
+        setTimeout(() => {
+          location.reload();
+        }, 200);
+      } else {
+        location.href = '/log-in';
+      }
     }
   }, []);
 
@@ -107,8 +132,15 @@ function buildMainComponent(children: React.ReactElement[], container_props: Pro
 }
 
 export function RxPageIterator(props: Props) {
+  const { data: active_data } = useEvent(Events.DashboardMenuTab);
+  const { tab: active_tab } = active_data as unknown as { tab?: string };
   const wrappedChildren = React.Children.map(props.children, child => {
     if (child.props && child.props.children) {
+      if (child.props?.className?.split(' ').includes('dash-tabs')) {
+        return React.cloneElement(child, {
+          children: React.Children.map(child.props.children, RxLeftMenuTab),
+        });
+      }
       if (child.props?.className?.split(' ').includes('my-account-wrapper')) {
         return (
           <RxMyAccountPage {...child.props} data={props.data} user-type={props.data['user-type']} session={props.session}>
@@ -117,7 +149,14 @@ export function RxPageIterator(props: Props) {
         );
       }
       if (child.props?.className?.split(' ').includes('plan-title')) {
-        return <div {...child.props}>test</div>;
+        if (props.session?.subscription) {
+          const subscription = props.session.subscription as unknown as {
+            name: string;
+            interval: 'monthly' | 'yearly';
+          };
+          return <RxKeyValueRow {...child.props} value={subscription.name} />;
+        }
+        return <RxKeyValueRow {...child.props} />;
       }
       // TODO
       // if (child.props?.className?.split(' ').includes('my-brokerage-wrapper')) {
