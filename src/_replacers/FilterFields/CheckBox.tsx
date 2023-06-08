@@ -1,7 +1,7 @@
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByClasses, searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 
-import React, { cloneElement, ReactElement } from 'react';
+import React, { cloneElement, createElement, ReactElement } from 'react';
 
 type Props = {
   item: {
@@ -20,9 +20,14 @@ export default function Checkbox({ item, template, isPicked, handleCheckList }: 
     {
       searchFn: searchByClasses(['checkbox']),
       transformChild: (child: ReactElement) => {
-        return cloneElement(child, {
+        const filtered = child.props.className
+          .split(' ')
+          .filter((cls: string) => cls.includes('inputType'))
+          .join(' ');
+
+        return createElement('div', {
           onClick: handleCheckClick,
-          className: `${child.props.className} cursor-pointer ${isPicked ? 'w--redirected-checked' : ''}`,
+          className: `${filtered} checkbox cursor-pointer ${isPicked ? 'w--redirected-checked' : ''}`,
         });
       },
     },
