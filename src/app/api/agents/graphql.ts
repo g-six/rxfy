@@ -71,6 +71,11 @@ export const mutation_create_meta = `mutation CreateMeta($data: AgentMetatagInpu
     data {${GQ_FRAG_AGENT_METATAG}}
   }
 }`;
+export const mutation_update_meta = `mutation UpdateMeta($id: ID!, $data: AgentMetatagInput!) {
+  updateAgentMetatag(id: $id, data: $data) {
+    data {${GQ_FRAG_AGENT_METATAG}}
+  }
+}`;
 export const gql_by_email = `query Agent($email: String!) {
     agents(filters: { email: { eqi: $email } }) {
       data {${GQ_FRAG_AGENT}}
