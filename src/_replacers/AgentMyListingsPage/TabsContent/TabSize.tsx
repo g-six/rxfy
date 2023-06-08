@@ -29,7 +29,11 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
         inputElementProps: {
           value: data?.living_area ?? '',
           handleChange: (e: React.ChangeEvent<HTMLInputElement>) => fireEvent({ living_area: parseInt(e.currentTarget.value) }),
-          inputProps: { placeholder: 'Living Area' },
+          inputProps: {
+            placeholder: 'Living Area',
+            type: 'number',
+            min: 0,
+          },
         },
         selectProps: {
           values: [
@@ -50,7 +54,11 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
         inputElementProps: {
           value: data?.total_size ?? '',
           handleChange: (e: React.ChangeEvent<HTMLInputElement>) => fireEvent({ total_size: parseInt(e.currentTarget.value) }),
-          inputProps: { placeholder: 'Total Lot Size' },
+          inputProps: {
+            placeholder: 'Total Lot Size',
+            type: 'number',
+            min: 0,
+          },
         },
         selectProps: {
           values: [
