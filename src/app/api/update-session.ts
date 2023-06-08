@@ -28,14 +28,10 @@ function getUpdateSessionGql(user_type: 'realtor' | 'customer') {
               : `first_name
           last_name
           phone_number
+          stripe_customer
+          stripe_subscriptions
           agent {
-            data {
-              id
-              attributes {
-                agent_id
-                phone
-              }
-            }
+            data {${GQ_FRAG_AGENT}}
           }
           brokerage {
             data {
@@ -85,7 +81,7 @@ export default async function updateSessionKey(guid: number, email: string, user
       },
     );
 
-    const { birthday: birthdate, brokerage: brokerage_results, ...attributes } = record.attributes;
+    const { birthday: birthdate, brokerage: brokerage_results, agent_metatag, ...attributes } = record.attributes;
     let birthday;
     if (birthdate) {
       birthday = new Intl.DateTimeFormat('en-CA').format(new Date(`${birthdate}T00:00:00`));
@@ -101,6 +97,12 @@ export default async function updateSessionKey(guid: number, email: string, user
 
     return {
       ...attributes,
+      metatags: agent_metatag?.data
+        ? {
+            ...agent_metatag.data.attributes,
+            id: Number(agent_metatag.data.id),
+          }
+        : undefined,
       session_key: `${encrypt(dt)}.${encrypt(email)}-${guid}`,
       birthday,
       brokerage,
@@ -133,6 +135,8 @@ function gqlFindUser(user_type: 'realtor' | 'customer' = 'customer') {
               : `first_name
           last_name
           phone_number
+          stripe_customer
+          stripe_subscriptions
           agent {
             data {${GQ_FRAG_AGENT}
             }
@@ -170,7 +174,7 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
   const response_data = response ? response.data : {};
 
   if (response_data.data?.user?.data?.attributes) {
-    const { email, full_name, agent, agents, brokerage, last_activity_at } = response_data.data?.user?.data?.attributes;
+    const { email, full_name, agent, agents, brokerage, last_activity_at, stripe_customer, stripe_subscriptions } = response_data.data?.user?.data?.attributes;
     const encrypted_email = encrypt(email);
     const compare_key = `${encrypt(last_activity_at)}.${encrypted_email}`;
     if (compare_key === session_hash && !isNaN(Number(id))) {
@@ -203,6 +207,8 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
         email,
         user_type,
         session_key: `${session_hash}-${id}`,
+        stripe_customer,
+        stripe_subscriptions,
       };
     }
   }
