@@ -43,6 +43,7 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
     setData(Events.LovedItem, JSON.stringify(local_loves));
   };
   React.useEffect(() => {
+    console.log('REDENDERD');
     getLovedHomes().then(response => {
       if (response && response.records) {
         processLovedHomes(response.records);

@@ -255,6 +255,7 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
 
   React.useEffect(() => {
     getLovedHomes().then(response => {
+      console.log('RESPONSE ', response);
       if (response && response.records) {
         processLovedHomes(response.records);
       }

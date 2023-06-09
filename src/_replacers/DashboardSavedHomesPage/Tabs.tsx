@@ -1,4 +1,4 @@
-import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { savedHomesTabs } from '@/_typings/saved-homes-tabs';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 
@@ -40,17 +40,43 @@ export default function Tabs({ child, currentTab, setCurrentTab, tabs = savedHom
       });
     }
   }, []);
-
-  const matches = Object.values(tabs).map(tab => ({
-    searchFn: searchByClasses([tab]),
-    transformChild: (child: ReactElement) => {
-      const isCurrent = getTabVal(child) === currentTab;
-      return cloneElement(child, {
-        className: `${removeCurrent(child.props.className)} ${isCurrent ? `w--current` : ''}`,
-        onClick: makeCurrent(child),
-      });
+  const matches = [
+    {
+      searchFn: searchByClasses([savedHomesTabs.INDIVIDUAL]),
+      transformChild: (child: ReactElement) => {
+        return cloneElement(child, {
+          onClick: makeCurrent(child),
+        });
+      },
     },
-  }));
+    {
+      searchFn: searchByClasses([savedHomesTabs.MAP_VIEW]),
+      transformChild: (child: ReactElement) => {
+        return cloneElement(child, {
+          onClick: makeCurrent(child),
+        });
+      },
+    },
+    {
+      searchFn: searchByClasses([savedHomesTabs.COMPARE]),
+      transformChild: (child: ReactElement) => {
+        return cloneElement(child, {
+          onClick: makeCurrent(child),
+        });
+      },
+    },
+  ];
+
+  // const matches = Object.values(tabs).map(tab => ({
+  //   searchFn: searchByClasses([tab]),
+  //   transformChild: (child: ReactElement) => {
+  //     const isCurrent = getTabVal(child) === currentTab;
+  //     return cloneElement(child, {
+  //       className: `${removeCurrent(child.props.className)} ${isCurrent ? `w--current` : ''}`,
+  //       onClick: makeCurrent(child),
+  //     });
+  //   },
+  // }));
 
   return <>{transformMatchingElements(child, matches)}</>;
 }
