@@ -31,7 +31,13 @@ export enum Events {
   PrivateListingForm = 'event-private-listing-form',
   LoadUserSession = 'load-session',
   SaveUserSession = 'save-session',
+  UpdateWebsite = 'update-website',
+  UpdateBrokerage = 'update-brokerage',
   DashboardMenuTab = 'dashboard-menu-tab',
+  ResetForm = 'evt-reset-form',
+  UploadBrokerageLogo = 'evt-upload-brokerage-logo',
+  UploadOGImage = 'evt-upload-ogimage',
+  UploadFavicon = 'evt-upload-favicon',
 }
 
 export enum NotificationCategory {
