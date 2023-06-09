@@ -98,33 +98,24 @@
   @apply absolute top-2 left-2 rounded-full bg-red-600 text-white px-2 py-1 uppercase font-semibold;
   content: 'Sold';
 }
-.w-tab-link {
-  .navigation-arrow {
-    @apply opacity-0 transition-all;
-  }
-  &:not(.w--current) {
-    .navigation-arrow {
-      @apply -translate-x-3;
-    }
-  }
-  &:not(.w--current):hover {
-    .navigation-arrow {
-      @apply opacity-100 translate-x-0;
-    }
-  }
-  &.w--current {
-    .navigation-arrow {
-      @apply opacity-100;
-    }
-  }
+.w-tab-link .navigation-arrow {
+  @apply opacity-0 transition-all;
 }
-.tab-pane {
-  > div {
-    @apply opacity-0 transition-all duration-500;
-  }
-  &.w--tab-active {
-    > div {
-      @apply opacity-100;
-    }
-  }
+.w-tab-link:not(.w--current) .navigation-arrow {
+  @apply -translate-x-3;
+}
+.w-tab-link:not(.w--current):hover .navigation-arrow {
+  @apply opacity-100 translate-x-0;
+}
+.w-tab-link.w--current .navigation-arrow {
+  @apply opacity-100;
+}
+.tab-pane > div {
+  @apply opacity-0 transition-all duration-500;
+}
+.tab-pane.w--tab-active > div {
+  @apply opacity-100;
+}
+.hide-placeholder > div {
+  @apply hidden;
 }
