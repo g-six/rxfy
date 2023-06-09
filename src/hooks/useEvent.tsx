@@ -8,7 +8,12 @@ export default function useEvent(eventName: Events, onlyFire?: boolean): { data?
   const onEvent = React.useCallback(
     (e: CustomEvent) => {
       if (!onlyFire) {
-        setData(prev => ({ ...prev, ...e.detail }));
+        // This is the source of a major bug.
+        // How are we supposed to reset the data (ie. erase it so that it is {})?
+        //    setData(prev => ({ ...prev, ...e.detail }));
+
+        // Fix for the above line
+        setData(prev => (Object.keys(e.detail).length > 0 ? { ...prev, ...e.detail } : {}));
       }
     },
     [onlyFire],
