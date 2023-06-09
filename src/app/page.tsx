@@ -99,7 +99,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
       .get(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${searchParams.paragon}?regen=1`)
       .then(response => {
         console.log('Successfully retrieved agent cache json');
-        console.log(response.data?.hits?.hits);
       })
       .catch(e => {
         const axerr = e as AxiosError;
@@ -151,11 +150,15 @@ export default async function Home({ params, searchParams }: { params: Record<st
     switch (params.slug) {
       case 'my-profile':
         return (
-          <MyProfilePage
-            data={{ session_key, 'user-type': webflow_domain === (process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN as string) ? 'realtor' : 'customer' }}
-          >
-            {parse($.html()) as unknown as JSX.Element}
-          </MyProfilePage>
+          <>
+            <MyProfilePage
+              data={{ session_key, 'user-type': webflow_domain === (process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN as string) ? 'realtor' : 'customer' }}
+            >
+              {parse($.html()) as unknown as JSX.Element}
+            </MyProfilePage>
+
+            <RxNotifications />
+          </>
         );
       default:
         break;
@@ -200,7 +203,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
         } else {
           removeSection($, '.sold-listings-grid');
         }
-        console.log(agent_data);
         await fillAgentInfo($, agent_data);
       } else {
         console.log('\n\nHome.agent_data not available');

@@ -111,8 +111,6 @@ export async function POST(request: Request) {
         }
       } catch (e) {
         console.log(JSON.stringify(e, null, 4));
-      } finally {
-        console.log(JSON.stringify({ user }, null, 4));
       }
     }
   } else {

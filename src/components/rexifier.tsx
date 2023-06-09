@@ -346,7 +346,7 @@ export function rexifyScriptsV2(html_code: string) {
         };
         if (attribs.src) {
           if (attribs.src.indexOf('jquery') >= 0) {
-            return <script src={attribs.src} type='text/javascript' crossOrigin='anonymous' integrity={attribs.integrity} />;
+            return <script src={attribs.src} data-version='v2' type='text/javascript' crossOrigin='anonymous' integrity={attribs.integrity} />;
           } else {
             return (
               <>
@@ -433,7 +433,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
       } else if (node instanceof Element && node.attribs) {
         const { class: className, ...props } = attributesToProps(node.attribs);
-
         if (node.attribs['data-src']) {
           return <RxThemePreview className={`${props.className ? props.className + ' ' : ''} rexified`} src={node.attribs['data-src']} />;
         }
