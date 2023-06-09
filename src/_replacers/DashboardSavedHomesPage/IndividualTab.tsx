@@ -218,7 +218,7 @@ export default function IndividualTab({ child, agent_data }: Props) {
       </button>
 
       {currentProperty ? <>{transformMatchingElements(child, matches)}</> : child}
-      <PhotosCarousel />
+      {currentProperty?.photos && <PhotosCarousel propertyPhotos={currentProperty?.photos} />}
     </>
   );
 }
