@@ -354,8 +354,8 @@ export async function createAgentRecordIfNoneFound(
     }
     if (!agent.metatags?.personal_bio && listing?.description) {
       console.log('No agent bio, sprucing it up...');
-      console.log(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent.attributes.agent_id}`);
-      axios.get(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent.attributes.agent_id}`);
+      console.log(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent_id}`);
+      axios.get(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent_id}`);
       const agent_attributes: AgentInput & { id: number } & { [key: string]: string | number } = {
         id: Number(agent.id),
         ...agent.attributes,
