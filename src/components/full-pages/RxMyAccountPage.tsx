@@ -263,24 +263,6 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
     }
   }, [data]);
 
-  // React.useEffect(() => {
-  //   if (!props.session && props.domain !== process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN) {
-  //     getUserBySessionKey(Cookies.get('session_key') as string, 'customer')
-  //       .then(data => {
-  //         setFormData(data);
-  //       })
-  //       .catch(e => {
-  //         const axerr = e as AxiosError;
-  //         if (axerr.response?.status === 401) {
-  //           clearSessionCookies();
-  //           setTimeout(() => {
-  //             location.href = '/log-in';
-  //           }, 500);
-  //         }
-  //       });
-  //   }
-  // }, []);
-
   return (
     <div id='rx-my-account-page' className={[props.className || '', is_processing ? 'loading' : ''].join(' ').trim()}>
       <RxPageIterator
