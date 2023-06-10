@@ -2,8 +2,9 @@ import axios from 'axios';
 import { saveDocumentUpload } from '@/_utilities/api-calls/call-documents';
 import { ChangeEvent, ReactNode, useEffect, useRef, useState } from 'react';
 import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
-import { NotificationMessages } from '@/_typings/events';
+import { EventsData, NotificationMessages } from '@/_typings/events';
 import styles from './RxFileUploader.module.scss';
+import { getUploadUrl } from '@/_utilities/api-calls/call-uploader';
 
 type FileUploaderProps = {
   className: string;
@@ -14,8 +15,10 @@ type FileUploaderProps = {
   data: {
     [key: string]: string | number;
   };
+  ['event-name']?: Events;
 };
-function RxFileUploader({ accept, buttonClassName, className, children, data, uploadHandler }: FileUploaderProps) {
+function RxFileUploader({ accept, buttonClassName, className, children, data, uploadHandler, ...etc }: FileUploaderProps) {
+  const handler = useEvent(etc['event-name'] || Events.Blank);
   const { fireEvent } = useEvent(Events.SystemNotification);
   const file_input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File>();
@@ -36,9 +39,18 @@ function RxFileUploader({ accept, buttonClassName, className, children, data, up
   useEffect(() => {
     if (file) {
       try {
-        if (uploadHandler && data.folder_file_name) {
+        if (data.folder_file_name) {
           toggleUploading(true);
-          uploadHandler(data.folder_file_name as string, file);
+          if (uploadHandler) uploadHandler(data.folder_file_name as string, file);
+          if (etc['event-name']) {
+            getUploadUrl(`${data.folder_file_name}.${file.name.split('.').pop()}`, file).then(({ upload_url }) => {
+              handler.fireEvent({
+                file,
+                preview: URL.createObjectURL(file),
+                upload_url,
+              } as unknown as EventsData);
+            });
+          }
         } else if (data.document_id) {
           toggleUploading(true);
           saveDocumentUpload(Number(data.document_id), {
