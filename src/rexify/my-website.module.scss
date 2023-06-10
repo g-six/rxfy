@@ -1,5 +1,20 @@
+.hasValue {
+  > div {
+    display: none;
+  }
+}
 .selectedThumbnail {
   @apply block;
+}
+.uploadFileBrowserTrigger {
+  @apply relative;
+  min-width: 123px;
+  > input {
+    @apply w-full h-full absolute;
+  }
+}
+.uploadButton {
+  @apply w-full h-full p-0 bg-transparent absolute;
 }
 .themeOption {
   h6 + div {
