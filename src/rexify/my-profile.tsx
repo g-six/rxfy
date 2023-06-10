@@ -1,9 +1,7 @@
 'use client';
-import { BrokerageInputModel, RealtorInputModel } from '@/_typings/agent';
 import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
 import RxKeyValueRow from '@/components/RxProperty/RxKeyValueRow';
-// import { RxBrokerageInformation } from '@/components/RxForms/RxBrokerageInformation';
 import { RxMyAccountPage } from '@/components/full-pages/RxMyAccountPage';
 import { AxiosError } from 'axios';
 import Cookies from 'js-cookie';
@@ -11,9 +9,13 @@ import { useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import React from 'react';
 import RxLeftMenuTab from './realtors/RxLeftMenuTab';
-import useEvent, { Events } from '@/hooks/useEvent';
+import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { BrokerageInformationForm } from './realtors/brokerage-information';
 import { BrokerageDataModel } from '@/_typings/brokerage';
+import RxFileUploader from '@/components/RxForms/RxFileUploader';
+import { getUploadUrl } from '@/_utilities/api-calls/call-uploader';
+import RxBrandPreferences, { BrandUploads } from './realtors/brand-preferences';
+import { RxButton } from '@/components/RxButton';
 
 type Props = {
   data?: { [key: string]: string | number };
@@ -130,7 +132,9 @@ function buildMainComponent(children: React.ReactElement[], container_props: Pro
 
 export function RxPageIterator(props: Props) {
   const { data: active_data } = useEvent(Events.DashboardMenuTab);
+  const { data: brand_preferences, fireEvent: updateBrandPreferences } = useEvent(Events.UpdateBrandPreferences);
   const { tab: active_tab } = active_data as unknown as { tab?: string };
+
   const wrappedChildren = React.Children.map(props.children, child => {
     if (child.props && child.props.children) {
       if (child.props?.className?.split(' ').includes('dash-tabs')) {
@@ -153,7 +157,22 @@ export function RxPageIterator(props: Props) {
           </BrokerageInformationForm>
         );
       }
-      if (child.props?.className?.split(' ').includes('plan-title')) {
+      if (child.props?.className?.split(' ').includes('brand-prefs')) {
+        return (
+          <RxBrandPreferences {...child.props} session={props.session}>
+            {child.props.children}
+          </RxBrandPreferences>
+        );
+      }
+      if (child.props?.className?.indexOf('cta-save-account') >= 0) {
+        if (child.type === 'a') {
+          return (
+            <RxButton {...child.props} type='button' id={`${Events.UpdateBrandPreferences}-trigger`} rx-event={Events.UpdateBrandPreferences}>
+              {child.props.children}
+            </RxButton>
+          );
+        }
+      } else if (child.props?.className?.split(' ').includes('plan-title')) {
         if (props.session?.subscription) {
           const subscription = props.session.subscription as unknown as {
             name: string;
@@ -163,6 +182,7 @@ export function RxPageIterator(props: Props) {
         }
         return <RxKeyValueRow {...child.props} />;
       }
+
       // TODO
       // if (child.props?.className?.split(' ').includes('my-brokerage-wrapper')) {
       //   return <RxBrokerageInformation {...child.props}>{child.props.children}</RxBrokerageInformation>;

@@ -13,6 +13,8 @@ import { replaceMetaTags } from '@/_helpers/head-manipulations';
 import initializePlacesAutocomplete from '@/components/Scripts/places-autocomplete';
 import { appendJs, rexifyScripts, rexifyScriptsV2 } from '@/components/rexifier';
 import { findAgentRecordByAgentId } from './api/agents/model';
+import Head from 'next/head';
+import { attributesToProps } from 'html-react-parser';
 
 const skip_pathnames = ['/favicon.ico'];
 
@@ -109,16 +111,35 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     },
   };
 
+  // To fix the issue with HMR on leagent-website, I needed to extract each
+  // element in the <head> section and rexify them below
+  const head_links = $('head link');
+  const head_meta = $('head meta');
+  const metas: React.ReactElement[] = [];
+
+  head_meta.toArray().map(meta => {
+    metas.push(<meta {...attributesToProps(meta.attribs)} key={meta.attribs.property || meta.attribs.name} />);
+  });
+
+  head_links.toArray().map(meta => {
+    metas.push(<link {...attributesToProps(meta.attribs)} key={new URL(meta.attribs.href).pathname} />);
+  });
+  // end of extracting and assigning <head> elements
+
   const { class: bodyClassName, ...body_props } = webflow.body.props;
   if (!agent_data || agent_data.webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN) {
     return (
       <html data-wf-domain={`${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`} {...$('html').attr()}>
-        <head
+        <head>
+          <title>{$('head title').text()}</title>
+          {metas}
+        </head>
+        {/* <head
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
-            __html: webflow.head.code,
+            __html: webflow.head.code.split('<script').join('\n\n<!-- <script').split('/script>').join('/script> -->\n\n'),
           }}
-        />
+        /> */}
 
         <body {...body_props} className={bodyClassName} suppressHydrationWarning>
           {children}

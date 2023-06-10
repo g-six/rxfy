@@ -44,7 +44,6 @@ export default function RxLeftMenuTab(p: React.ReactElement) {
   };
   if (p.props.style) {
     p.props.style = undefined;
-    console.log('p.props.style', p.props.style);
   }
   if (p.type === 'a') {
     return (

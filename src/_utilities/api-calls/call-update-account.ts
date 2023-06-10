@@ -4,10 +4,10 @@ import { CustomerInputModel } from '@/_typings/customer';
 import { RealtorInputModel } from '@/_typings/agent';
 
 /**
- * Sign up a customer under the agent's account
+ * Update realtor or customer's account.
  * @param agent { id, logo? }
- * @param customer { email, full_name?, password? }
- * @param opts { search_url? }
+ * @param user Customer or Realtor
+ * @param realtor_mode defaults to false (customer mode)
  * @returns
  */
 export async function updateAccount(session_key: string, data: CustomerInputModel | RealtorInputModel, realtor_mode = false) {
