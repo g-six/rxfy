@@ -50,18 +50,22 @@ export async function GET(request: Request) {
       2,
     );
 
-    if (legacy && isNaN(Number(legacy.lat)) && legacy.title && legacy.postal_zip_code) {
-      // No lat,lon - extra processing
-      const [place] = await googlePlaceQuery(`${legacy.title} ${legacy.postal_zip_code}`);
-      if (place && place.place_id) {
-        const details = await getFormattedPlaceDetails(place.place_id);
-        const { mls_data, ...property } = legacy;
-        const { ListingID: listing_id } = mls_data as MLSProperty;
-        return getResponse({
-          ...property,
-          ...details,
-          listing_id,
-        });
+    if (legacy) {
+      const { mls_data, ...property } = legacy;
+      if (isNaN(Number(legacy.lat)) && legacy.title && legacy.postal_zip_code) {
+        // No lat,lon - extra processing
+        const [place] = await googlePlaceQuery(`${legacy.title} ${legacy.postal_zip_code}`);
+        if (place && place.place_id) {
+          const details = await getFormattedPlaceDetails(place.place_id);
+
+          const { ListingID: listing_id } = mls_data as MLSProperty;
+          return getResponse({
+            ...property,
+            ...details,
+            listing_id,
+          });
+        }
+      } else {
       }
     }
 
@@ -80,7 +84,7 @@ export async function GET(request: Request) {
       });
 
       console.log(`From integrations: ${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`);
-      console.log(xhr.data);
+      console.log(xhr.data?.data);
 
       if (xhr.data?.data?.attributes) {
         const cache = await axios.get(json_file);
