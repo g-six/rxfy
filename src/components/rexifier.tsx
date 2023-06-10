@@ -139,7 +139,7 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
     $('.navbar-wrapper-2 .logo---phone-email a[data-type="phone"]').text(agent_data.phone);
     $('.navbar-wrapper-2 > a[href="#"]').attr('href', '/');
     $('.navbar-wrapper-2 > a h3').remove();
-    replaceByCheerio($, '.navbar-wrapper-2 > a', {
+    replaceByCheerio($, '.navbar-wrapper-2 > a,[class^="navbar-dashboard-wrapper"] > a', {
       content: `<img class="justify-self-start h-10" src="${agent_data.metatags.logo_for_light_bg}" />`,
     });
   }
@@ -173,7 +173,14 @@ export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapp
         backgroundImage: (p.photos as string[])[0],
       });
     }
-
+    // Heart-Full
+    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .heart-empty`, {
+      className: 'hidden',
+    });
+    // Heart-Full
+    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .heart-full`, {
+      className: 'hidden',
+    });
     // Area
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .area-text`, {
       content: p.Area,
