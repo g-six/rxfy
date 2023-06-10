@@ -65,7 +65,7 @@ export function RxLoginPage(props: RxLoginPageProps) {
   const checkSession = async () => {
     if (Cookies.get('session_key')) {
       const api_response = await axios
-        .get('/api/check-session', {
+        .get('/api/check-session' + hasClassName(props.className || '', 'use-agent') ? '/agent' : '', {
           headers: {
             Authorization: `Bearer ${Cookies.get('session_key')}`,
           },
