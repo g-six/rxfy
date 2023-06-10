@@ -1,8 +1,8 @@
 'use client';
 
+import React from 'react';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { NotificationCategory } from '@/_typings/events';
-import React, { MouseEventHandler, useState } from 'react';
 import { RxButton } from '../RxButton';
 import { RxEmail } from '../RxEmail';
 import { RxPassword } from '../RxPassword';
@@ -170,7 +170,7 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
   const { data, fireEvent } = useEvent(Events.SaveAccountChanges);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [is_processing, processing] = React.useState(false);
-  const [form_data, setFormData] = useState<
+  const [form_data, setFormData] = React.useState<
     EventsData & {
       agent_id?: string;
       phone?: string;
