@@ -90,9 +90,9 @@ export async function GET(request: Request) {
       headers,
     },
   );
-
-  if (love_response?.data) {
-    const { data: response_data } = love_response.data;
+  console.log('LOVE RESPONSE', love_response?.data);
+  if (love_response?.data?.loves) {
+    const { data: response_data } = love_response;
     try {
       const records = response_data.loves.data.map(
         (
