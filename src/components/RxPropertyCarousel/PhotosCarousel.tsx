@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import './PhotoCarouselOverwrite.scss';
@@ -11,11 +12,13 @@ import Image from 'next/image';
 import { ChevronLeftIcon, ChevronRightIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import useEvent, { Events } from '@/hooks/useEvent';
 
-interface Props {}
-export default function PhotosCarousel({}: Props) {
+interface Props {
+  propertyPhotos: string[];
+}
+export default function PhotosCarousel({ propertyPhotos }: Props) {
   const [mainSwiper, setMainSwiper] = useState<SwiperType | null>(null);
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
-
+  const [currentPhotos, setCurrentPhotos] = useState(propertyPhotos);
   const { data, fireEvent } = useEvent(Events.PropertyGalleryModal);
   const { key, show, photos } = data || {};
   const closeModal = () => {
@@ -25,6 +28,9 @@ export default function PhotosCarousel({}: Props) {
     if (document) {
       document.body.style.overflow = show ? 'hidden' : 'auto';
       mainSwiper?.slideTo(key ?? 0);
+    }
+    if (show && photos) {
+      setCurrentPhotos(photos);
     }
   }, [show, mainSwiper, key]);
 
@@ -67,12 +73,12 @@ export default function PhotosCarousel({}: Props) {
           modules={[FreeMode, Navigation, Thumbs]}
           className={`${styles.swiperMain} main-swiper`}
         >
-          {photos &&
-            photos?.length &&
-            photos.map(i => (
+          {currentPhotos &&
+            currentPhotos?.length &&
+            currentPhotos.map(i => (
               <SwiperSlide key={i} className={styles.swiperSlide}>
                 <div className={`${styles.inner} relative`}>
-                  <Image fill style={{ objectFit: 'cover' }} sizes='100%' alt='pic' src={i} priority />
+                  <Image fill style={{ objectFit: 'cover' }} sizes='100%' alt='pic' src={`${!i.includes('https:') ? `https:${i}` : i}`} />
                 </div>
               </SwiperSlide>
             ))}
@@ -93,12 +99,12 @@ export default function PhotosCarousel({}: Props) {
           className={`${styles.swiperThumbs} thumbs-swiper`}
           wrapperClass={`${styles.wrapper} ${photos && photos?.length < 8 ? styles.centered : ''}`}
         >
-          {photos &&
-            photos?.length &&
-            photos.map(i => (
+          {currentPhotos &&
+            currentPhotos?.length &&
+            currentPhotos.map(i => (
               <SwiperSlide key={i}>
                 <div className={`${styles.inner} relative h-full`}>
-                  <Image fill style={{ objectFit: 'cover' }} sizes='100%' alt='pic' src={i} priority />
+                  <Image fill style={{ objectFit: 'cover' }} sizes='100%' alt='pic' src={i} />
                 </div>
               </SwiperSlide>
             ))}

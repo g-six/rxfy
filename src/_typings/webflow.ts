@@ -26,7 +26,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   PROPERTY_BEDS_BATHS = 'section---beds-baths',
   PROPERTY_STATS_W_ICONS = 'stats-level-2',
   PROPERTY_MAPS = 'section---map-n-street-view',
-  PROPERTY_IMAGES_COLLECTION = 'property-image-collection2',
+  PROPERTY_IMAGES_COLLECTION = 'property-image-collection',
   PROPERTY_FEATURES = 'div-features-block',
   PROPERTY_SOLD_HISTORY = 'div-sold-history',
   PROPERTY_AGENT = 'little-profile-card',
