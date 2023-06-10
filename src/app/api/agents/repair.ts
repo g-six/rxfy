@@ -59,7 +59,7 @@ export async function getSmart(
       ),
     );
     if (ai_results.bio) {
-      const { target_city, lat, lng } = property;
+      const { city: target_city, lat, lng } = property;
       const metatag = {
         agent_id: agent.agent_id,
         target_city,
