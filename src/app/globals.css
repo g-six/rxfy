@@ -119,3 +119,9 @@
 .hide-placeholder > div {
   @apply hidden;
 }
+[data-wf-domain='leagent-website.webflow.io'] .navigation-container .sessions-wrapper {
+  @apply block;
+}
+[data-wf-domain='leagent-website.webflow.io'] .navigation-container .sessions-wrapper > .dropdown-list {
+  @apply min-w-0;
+}
