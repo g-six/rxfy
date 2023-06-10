@@ -29,6 +29,7 @@ export function RxButton(p: RxProps) {
   return (
     <button
       type={p.type || 'button'}
+      id={p.id}
       className={[p.className || '', 'rexified disabled:opacity-30 relative'].join(' ')}
       disabled={p.disabled || loading}
       onClick={() => {

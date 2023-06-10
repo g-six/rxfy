@@ -91,7 +91,6 @@ export async function updateAgent(
       id,
       data: user_data,
     };
-    console.log(JSON.stringify(update_object, null, 4));
     const agent_response = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
       {
@@ -107,7 +106,6 @@ export async function updateAgent(
     );
 
     const agent = agent_response?.data?.data?.updateAgent?.data || {};
-    console.log(JSON.stringify(agent, null, 4));
     return {
       ...agent.attributes,
       id: agent.id ? Number(agent.id) : undefined,
@@ -121,26 +119,38 @@ export async function updateAgent(
   } catch (e) {
     console.log('Error in updateAgent');
     const axerr = e as AxiosError;
-    const { error, errors } = axerr.response?.data as {
-      error?: {
-        code: string;
+    if (axerr.response?.data) {
+      const { error, errors } = axerr.response?.data as {
+        error?: {
+          code: string;
+        };
+        errors?: {
+          message: string;
+          extensions: unknown[];
+        }[];
       };
-      errors?: {
-        message: string;
-        extensions: unknown[];
-      }[];
-    };
-    console.log(
-      JSON.stringify(
-        {
-          response: axerr.response,
-          error,
-          errors,
-        },
-        null,
-        4,
-      ),
-    );
+      console.log(
+        JSON.stringify(
+          {
+            response: axerr.response,
+            error,
+            errors,
+          },
+          null,
+          4,
+        ),
+      );
+    } else {
+      console.log(
+        JSON.stringify(
+          {
+            response: axerr.response,
+          },
+          null,
+          4,
+        ),
+      );
+    }
   }
   return {};
 }
@@ -342,7 +352,6 @@ export async function createAgentRecordIfNoneFound(
     } else {
       console.log(`Agent found, let's use ${first_name} ${last_name}`);
     }
-    console.log(JSON.stringify({ agent }, null, 4));
     if (!agent.metatags?.personal_bio && listing?.description) {
       console.log('No agent bio, sprucing it up...');
       console.log(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent.attributes.agent_id}`);

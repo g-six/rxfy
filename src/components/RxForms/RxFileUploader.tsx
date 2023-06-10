@@ -3,15 +3,19 @@ import { saveDocumentUpload } from '@/_utilities/api-calls/call-documents';
 import { ChangeEvent, ReactNode, useEffect, useRef, useState } from 'react';
 import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
 import { NotificationMessages } from '@/_typings/events';
+import styles from './RxFileUploader.module.scss';
 
 type FileUploaderProps = {
   className: string;
+  buttonClassName?: string;
+  accept?: string;
   children: ReactNode;
+  uploadHandler?: (full_path: string, file: File) => Promise<void>;
   data: {
     [key: string]: string | number;
   };
 };
-function RxFileUploader({ className, children, data }: FileUploaderProps) {
+function RxFileUploader({ accept, buttonClassName, className, children, data, uploadHandler }: FileUploaderProps) {
   const { fireEvent } = useEvent(Events.SystemNotification);
   const file_input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File>();
@@ -30,30 +34,35 @@ function RxFileUploader({ className, children, data }: FileUploaderProps) {
   };
 
   useEffect(() => {
-    if (file && data.document_id) {
-      toggleUploading(true);
+    if (file) {
       try {
-        saveDocumentUpload(Number(data.document_id), {
-          file,
-          name: file.name,
-          type: file.type,
-          size: file.size,
-        }).then(({ document_upload }) => {
-          axios
-            .put(document_upload.upload_url, file, {
-              headers: {
-                'Content-Type': file.type,
-              },
-            })
-            .then(() => {
-              setFile(undefined);
-              fireEvent({
-                category: NotificationCategory.SUCCESS,
-                message: NotificationMessages.DOC_UPLOAD_COMPLETE,
-                timeout: 5000,
+        if (uploadHandler && data.folder_file_name) {
+          toggleUploading(true);
+          uploadHandler(data.folder_file_name as string, file);
+        } else if (data.document_id) {
+          toggleUploading(true);
+          saveDocumentUpload(Number(data.document_id), {
+            file,
+            name: file.name,
+            type: file.type,
+            size: file.size,
+          }).then(({ document_upload }) => {
+            axios
+              .put(document_upload.upload_url, file, {
+                headers: {
+                  'Content-Type': file.type,
+                },
+              })
+              .then(() => {
+                setFile(undefined);
+                fireEvent({
+                  category: NotificationCategory.SUCCESS,
+                  message: NotificationMessages.DOC_UPLOAD_COMPLETE,
+                  timeout: 5000,
+                });
               });
-            });
-        });
+          });
+        }
       } catch (e) {
         console.log('error');
         console.log(e);
@@ -65,9 +74,9 @@ function RxFileUploader({ className, children, data }: FileUploaderProps) {
 
   return (
     <div className={`${className} overflow-hidden relative`}>
-      <input type='file' ref={file_input} onChange={handleFileChange} className='absolute sr-only' />
+      <input type='file' ref={file_input} accept={accept || ''} onChange={handleFileChange} className={styles.fileInput} />
 
-      <button onClick={handleUploadClick} className={`bg-transparent bg-contain w-8 h-8 ${is_uploading ? 'cursor-wait' : ''}`}>
+      <button type='button' onClick={handleUploadClick} className={buttonClassName || `bg-transparent bg-contain w-8 h-8 ${is_uploading ? 'cursor-wait' : ''}`}>
         {children}
       </button>
     </div>

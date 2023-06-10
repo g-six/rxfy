@@ -22,6 +22,9 @@ export const GQ_FRAG_AGENT_METATAG = `
       brokerage_name
       brokerage_id
       profile_slug
+      head_code
+      footer_code
+      ogimage_url
     }
 `;
 

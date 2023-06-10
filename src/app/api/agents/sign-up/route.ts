@@ -372,7 +372,6 @@ async function claimAgent(
   let errors: {
     [key: string]: string[];
   } = {};
-  console.log(JSON.stringify(response_data, null, 4));
   if (response_data.errors) {
     response_data.errors.forEach((e: { [key: string]: any }) => {
       if (e.extensions?.error?.details?.errors) {

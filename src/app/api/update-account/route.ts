@@ -61,7 +61,7 @@ const mutation_realtor = `mutation UpdateAccount ($id: ID!, $data: RealtorInput!
           phone_number
           last_activity_at
           agent {
-            data {${GQ_FRAG_AGENT}}
+            record: data {${GQ_FRAG_AGENT}}
           }
         }
       }
@@ -150,7 +150,7 @@ export async function PUT(request: Request) {
     if (last_name) {
       updates = {
         ...updates,
-        full_name: first_name ? `${first_name} ${last_name}` : 'last_name',
+        full_name: first_name ? `${first_name} ${last_name}` : last_name,
         last_name,
       };
     }
@@ -191,13 +191,12 @@ export async function PUT(request: Request) {
       data: updates,
     };
 
-    let agent = {};
     if (record.agent?.data?.id) {
       if (metatags && metatags.id && Object.keys(metatags).length) {
         const { id: metatag_id, ...updates } = metatags;
         await updateAgentMetatags(metatag_id, updates);
       }
-      agent = await updateAgent(Number(record.agent.data.id), agent_updates);
+      await updateAgent(Number(record.agent.data.id), agent_updates);
     }
 
     const {
@@ -218,13 +217,10 @@ export async function PUT(request: Request) {
       },
     );
 
+    const { agent, ...updated_user } = user.record.attributes;
+
     return getResponse(
       {
-        user: {
-          id: guid,
-          ...user.record.attributes,
-        },
-        agent,
         session_key: `${encrypt(last_activity_at)}.${encrypt(user.record.attributes.email)}-${guid}`,
       },
       200,

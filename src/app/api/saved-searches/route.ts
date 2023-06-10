@@ -84,7 +84,6 @@ export async function POST(request: Request) {
         },
       },
     );
-    console.log(JSON.stringify({ search_response }, null, 4));
     let saved_search;
     if (search_response.data?.createSavedSearch?.data?.id) {
       const { id, attributes } = search_response.data?.createSavedSearch?.data;

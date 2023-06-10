@@ -17,6 +17,7 @@ export interface AgentMetatagsInput {
   personal_title?: string;
   personal_bio?: string;
   favicon?: string;
+  ogimage_url?: string;
   logo_for_dark_bg?: string;
   logo_for_light_bg?: string;
   profile_image?: string;
@@ -43,6 +44,8 @@ export interface AgentMetatagsInput {
   brokerage_name?: string;
   brokerage_id?: string;
   profile_slug?: string;
+  head_code?: string;
+  footer_code?: string;
 }
 export interface AgentMetatags extends AgentMetatagsInput {
   id: number;
@@ -67,6 +70,9 @@ export interface BrokerageInputModel {
   full_address?: string;
   phone_number?: string;
   website_url?: string;
+  logo_url?: string;
+  lat?: number;
+  lon?: number;
 }
 
 export interface RealtorInputModel extends UserInputModel {
@@ -74,6 +80,21 @@ export interface RealtorInputModel extends UserInputModel {
   first_name?: string;
   last_name?: string;
   phone_number?: string;
+  metatags?: {
+    [key: string]: unknown;
+  };
+}
+
+export interface BrokerageData {
+  id?: number;
+  name: string;
+  full_address?: string;
+  phone_number?: string;
+  website_url?: string;
+  logo_url?: string;
+  lat?: number;
+  lon?: number;
+  slug?: string;
 }
 
 export interface AgentData {
@@ -84,6 +105,7 @@ export interface AgentData {
   first_name: string;
   last_name: string;
   full_name: string;
+  brokerages?: BrokerageData[];
   sold_properties?: {
     data: Property[];
   };

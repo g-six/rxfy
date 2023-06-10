@@ -174,9 +174,15 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
   const response_data = response ? response.data : {};
 
   if (response_data.data?.user?.data?.attributes) {
-    const { email, full_name, agent, agents, brokerage, last_activity_at, stripe_customer, stripe_subscriptions } = response_data.data?.user?.data?.attributes;
+    const { email, full_name, agent, agents, brokerages, last_activity_at, stripe_customer, stripe_subscriptions } = response_data.data?.user?.data?.attributes;
     const encrypted_email = encrypt(email);
     const compare_key = `${encrypt(last_activity_at)}.${encrypted_email}`;
+    const brokerage =
+      brokerages?.data && brokerages.data.length
+        ? {
+            ...brokerages.pop().attributes,
+          }
+        : undefined;
     if (compare_key === session_hash && !isNaN(Number(id))) {
       let agent_metatag = agent?.data?.attributes?.agent_metatag?.data || {};
 

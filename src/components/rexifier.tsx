@@ -4,7 +4,7 @@ import { Children, ReactElement } from 'react';
 import { Cheerio, CheerioAPI } from 'cheerio';
 import parse, { HTMLReactParserOptions, Element, attributesToProps, DOMNode, domToReact, htmlToDOM } from 'html-react-parser';
 
-import { AgentData } from '@/_typings/agent';
+import { AgentData, RealtorInputModel } from '@/_typings/agent';
 import { Events } from '@/_typings/events';
 import { GeoLocation, MapboxBoundaries } from '@/_typings/maps';
 import { MLSProperty, PropertyDataModel } from '@/_typings/property';
@@ -353,7 +353,7 @@ export function rexifyScriptsV2(html_code: string) {
         };
         if (attribs.src) {
           if (attribs.src.indexOf('jquery') >= 0) {
-            return <script src={attribs.src} type='text/javascript' crossOrigin='anonymous' integrity={attribs.integrity} />;
+            return <script src={attribs.src} data-version='v2' type='text/javascript' crossOrigin='anonymous' integrity={attribs.integrity} />;
           } else {
             return (
               <>
@@ -440,7 +440,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
       } else if (node instanceof Element && node.attribs) {
         const { class: className, ...props } = attributesToProps(node.attribs);
-
         if (node.attribs['data-src']) {
           return <RxThemePreview className={`${props.className ? props.className + ' ' : ''} rexified`} src={node.attribs['data-src']} />;
         }
@@ -581,7 +580,13 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.MY_ACCOUNT_WRAPPER)) {
             // Customer session
             return (
-              <RxMyAccountPage {...props} type={node.type} data={agent_data} user-type={params.session_as as string} domain={params.webflow_domain as string}>
+              <RxMyAccountPage
+                {...props}
+                type={node.type}
+                data={agent_data as unknown as RealtorInputModel}
+                user-type={params.session_as as string}
+                domain={params.webflow_domain as string}
+              >
                 <>{domToReact(node.children) as ReactElement[]}</>
               </RxMyAccountPage>
             );
