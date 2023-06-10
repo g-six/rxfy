@@ -351,24 +351,28 @@ export async function createAgentRecordIfNoneFound(
       console.log('---');
     } else {
       console.log(`Agent found, let's use ${first_name} ${last_name}`);
+      console.log(JSON.stringify(agent, null, 4));
     }
-    if (!agent.metatags?.personal_bio && listing?.description) {
-      console.log('No agent bio, sprucing it up...');
-      console.log(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent_id}`);
-      axios.get(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent_id}`);
-      const agent_attributes: AgentInput & { id: number } & { [key: string]: string | number } = {
-        id: Number(agent.id),
-        ...agent.attributes,
-        first_name,
-        last_name,
-      };
 
-      Object.keys(agent_attributes).forEach(k => {
-        if (agent_attributes[k] === null) delete agent_attributes[k];
-      });
+    // A hook is already working on this
+    // if (!agent.metatags?.personal_bio && listing?.description) {
+    //   console.log('No agent bio, sprucing it up...');
+    //   console.log(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent_id}`);
+    //   axios.get(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent_id}`);
+    //   const agent_attributes: AgentInput & { id: number } & { [key: string]: string | number } = {
+    //     id: Number(agent.id),
+    //     ...agent.attributes,
+    //     agent_id,
+    //     first_name,
+    //     last_name,
+    //   };
 
-      await getSmart(agent_attributes, listing, real_estate_board);
-    }
+    //   Object.keys(agent_attributes).forEach(k => {
+    //     if (agent_attributes[k] === null) delete agent_attributes[k];
+    //   });
+
+    //   getSmart(agent_attributes, listing, real_estate_board);
+    // }
     return agent;
   } catch (e) {
     console.log('Caught error in createAgentRecordIfNoneFound');

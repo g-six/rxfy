@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import { mutation_create_meta, mutation_update_agent } from './graphql';
 import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
 import { AgentInput } from '@/_typings/agent';
@@ -17,17 +16,8 @@ export async function getSmart(
   `;
   console.log('---');
   console.log('Processing:');
-  // console.log(prompt);
   console.log(`curl ${process.env.NEXT_APP_OPENAI_URI} -H 'content-type: application/json' -H 'Authorization: Bearer ${process.env.NEXT_APP_OPENAI_API}' \\`);
-  // console.log(
-  //   ' -d',
-  //   JSON.stringify({
-  //     prompt,
-  //     max_tokens: 400,
-  //     temperature: 0.2,
-  //     model: 'text-davinci-003',
-  //   }),
-  // );
+
   console.log('---');
   const { data } = await axios.post(
     `${process.env.NEXT_APP_OPENAI_URI}`,
@@ -45,23 +35,6 @@ export async function getSmart(
     },
   );
   try {
-    // axios
-    //   .post(
-    //     `${process.env.NEXT_APP_OPENAI_URI}`,
-    //     {
-    //       prompt,
-    //       max_tokens: 400,
-    //       temperature: 0.1,
-    //       model: 'text-davinci-003',
-    //     },
-    //     {
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //         Authorization: `Bearer ${process.env.NEXT_APP_OPENAI_API}`,
-    //       },
-    //     },
-    //   )
-    // .then(({ data }) => {
     const {
       choices: [{ text }],
       error,
@@ -99,10 +72,13 @@ export async function getSmart(
         profile_slug: [
           `${real_estate_board?.abbreviation || 'la'}`,
           slugifyAddress(agent.full_name).split('-')[0],
+          agent.id,
           `${`${agent.phone}`.split('').reverse().join('').substring(0, 4).split('').reverse().join('')}`,
         ].join('-'),
       };
 
+      console.log('[BEGIN] mutation_create_meta');
+      console.log(JSON.stringify({ metatag }, null, 4));
       const created_metatag = await axios.post(
         `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
         {
@@ -118,9 +94,10 @@ export async function getSmart(
           },
         },
       );
+      console.log('...[DONE] mutation_create_meta');
 
       const agent_metatag = Number(created_metatag.data?.data?.createAgentMetatag?.data.id);
-
+      console.log(created_metatag.data);
       console.log('Link agent record', agent.id, 'to metadata', { agent_metatag });
       axios
         .post(
@@ -143,16 +120,9 @@ export async function getSmart(
         )
         .then(res => {
           console.log(res.data?.data?.updateAgent);
-          console.log('...[DONE] mutation_create_meta');
+          console.log('...[DONE] mutation_update_agent');
         });
-
-      // .catch(e => {
-      //   console.log('OpenAI error for prompt:');
-      //   console.log(prompt);
-      //   console.log(e);
-      // });
     }
-    // })
   } catch (e) {
     console.log('OpenAI error for prompt:');
     console.log(prompt);
