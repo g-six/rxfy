@@ -11,6 +11,7 @@ export default function RxNotifications() {
   const { data, fireEvent } = useEvent(Events.SystemNotification);
   const [error, setErrorMessage] = useState('');
   const [success, setSuccessMessage] = useState('');
+  const [timeout, setTimer] = useState(-1);
 
   useEffect(() => {
     const { message, category } = data as EventsData & {
@@ -30,10 +31,12 @@ export default function RxNotifications() {
 
   useEffect(() => {
     if (data?.timeout) {
-      setTimeout(() => {
+      timeout > -1 && clearTimeout(timeout);
+      const t = setTimeout(() => {
         fireEvent({});
         data.onClose && data.onClose();
       }, data.timeout);
+      setTimer(t as unknown as number);
     }
   }, [data]);
 
