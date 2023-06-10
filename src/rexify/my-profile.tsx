@@ -12,12 +12,11 @@ import Script from 'next/script';
 import React from 'react';
 import RxLeftMenuTab from './realtors/RxLeftMenuTab';
 import useEvent, { Events } from '@/hooks/useEvent';
-interface DataModel extends RealtorInputModel {
-  session_key?: string;
-  'user-type'?: string;
-}
+import { BrokerageInformationForm } from './realtors/brokerage-information';
+import { BrokerageDataModel } from '@/_typings/brokerage';
+
 type Props = {
-  data: DataModel;
+  data?: { [key: string]: string | number };
   session?: { [key: string]: string | number };
   children: JSX.Element;
 };
@@ -34,7 +33,7 @@ export default function MyProfilePage(p: Props) {
 
   React.useEffect(() => {
     if (Cookies.get('session_key')) {
-      getUserBySessionKey(Cookies.get('session_key') as string, p.data['user-type'] && p.data['user-type'] === 'realtor' ? 'realtor' : undefined)
+      getUserBySessionKey(Cookies.get('session_key') as string, 'realtor')
         .then(data => {
           if (data.error) location.href = '/log-in';
           if (p.children.type === 'html') {
@@ -121,9 +120,7 @@ function buildMainComponent(children: React.ReactElement[], container_props: Pro
     .map(({ props }) => {
       return (
         <div key='dash-area' className={[props.className, 'rexified'].join(' ')}>
-          <RxPageIterator data={container_props.data || {}} session={container_props.session}>
-            {props.children}
-          </RxPageIterator>
+          <RxPageIterator session={container_props.session}>{props.children}</RxPageIterator>
         </div>
       );
     });
@@ -143,9 +140,17 @@ export function RxPageIterator(props: Props) {
       }
       if (child.props?.className?.split(' ').includes('my-account-wrapper')) {
         return (
-          <RxMyAccountPage {...child.props} data={props.data} user-type={props.data['user-type']} session={props.session}>
+          <RxMyAccountPage {...child.props} session={props.session}>
             {child.props.children}
           </RxMyAccountPage>
+        );
+      }
+      if (child.props?.className?.split(' ').includes('my-brokerage-wrapper')) {
+        const [brokerage] = (props.session?.brokerages as unknown as BrokerageDataModel[]) || [];
+        return (
+          <BrokerageInformationForm {...child.props} data={brokerage} session={props.session}>
+            {child.props.children}
+          </BrokerageInformationForm>
         );
       }
       if (child.props?.className?.split(' ').includes('plan-title')) {
