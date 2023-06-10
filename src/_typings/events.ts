@@ -33,11 +33,17 @@ export enum Events {
   SaveUserSession = 'save-session',
   UpdateWebsite = 'update-website',
   UpdateBrokerage = 'update-brokerage',
+  UpdateBrandPreferences = 'update-brand-preferences',
   DashboardMenuTab = 'dashboard-menu-tab',
   ResetForm = 'evt-reset-form',
   UploadBrokerageLogo = 'evt-upload-brokerage-logo',
   UploadOGImage = 'evt-upload-ogimage',
   UploadFavicon = 'evt-upload-favicon',
+  UploadHeadshot = 'evt-upload-headshot',
+  UploadProfileImage = 'evt-upload-profile-image',
+  UploadLogoForLightBg = 'evt-upload-logo-for-light-bg',
+  UploadLogoForDarkBg = 'evt-upload-logo-for-dark-bg',
+  Blank = 'blank',
 }
 
 export enum NotificationCategory {
