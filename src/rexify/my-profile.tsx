@@ -12,12 +12,13 @@ import RxLeftMenuTab from './realtors/RxLeftMenuTab';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { BrokerageInformationForm } from './realtors/brokerage-information';
 import { BrokerageDataModel } from '@/_typings/brokerage';
-import RxFileUploader from '@/components/RxForms/RxFileUploader';
-import { getUploadUrl } from '@/_utilities/api-calls/call-uploader';
 import RxBrandPreferences, { BrandUploads } from './realtors/brand-preferences';
 import { RxButton } from '@/components/RxButton';
+import RxSessionDropdown from '@/components/Nav/RxSessionDropdown';
+import { AgentData } from '@/_typings/agent';
 
 type Props = {
+  className?: string;
   data?: { [key: string]: string | number };
   session?: { [key: string]: string | number };
   children: JSX.Element;
@@ -25,7 +26,6 @@ type Props = {
 
 export default function MyProfilePage(p: Props) {
   const params = useSearchParams();
-
   const [session, setSession] = React.useState<{ [key: string]: string | number }>();
   const scripts: { [key: string]: string }[] = [];
   const [dash_area, setDashArea] = React.useState<React.ReactElement>();
@@ -50,7 +50,7 @@ export default function MyProfilePage(p: Props) {
                   if (child.type === 'body') {
                     child.props.children.forEach((div: React.ReactElement) => {
                       if (div.type === 'div') {
-                        setNavBar(buildNavigationComponent(div.props.children));
+                        setNavBar(buildNavigationComponent(div.props.children, { ...p, session: data }));
                         setDashArea(buildMainComponent(div.props.children, { ...p, session: data }));
                       } else if (div.type === 'script') {
                         scripts.push({
@@ -102,13 +102,39 @@ export default function MyProfilePage(p: Props) {
   );
 }
 
-function buildNavigationComponent(children: React.ReactElement[]) {
+function NavIterator(p: Props) {
+  return (
+    <>
+      {React.Children.map(p.children, child => {
+        if (child.props?.children) {
+          const className = (child.props.className ? child.props.className + ' ' : '') + 'rexified';
+          if (className.split(' ').includes('in-session-dropdown'))
+            return <RxSessionDropdown agent={p.session as unknown as AgentData}>{child.props?.children}</RxSessionDropdown>;
+          return React.cloneElement(child, {
+            className,
+            children: (
+              <NavIterator {...child.props} session={p.session} className={className}>
+                {className.split(' ').includes('agent-name') ? p.session?.full_name : child.props.children}
+              </NavIterator>
+            ),
+          });
+        }
+        return child;
+      })}
+    </>
+  );
+}
+function buildNavigationComponent(children: React.ReactElement[], container_props: Props) {
   const [wrapper] = children
     .filter(f => f.props.className.split(' ').includes('navigation-full-wrapper-2'))
     .map(({ props }) => {
       return (
-        <div key='navigation-full-wrapper-2' className={[props.className, 'rexified'].join(' ')}>
-          {props.children}
+        <div key='navigation-full-wrapper-2' id={props.id} className={[props.className, 'rexified'].join(' ')}>
+          {React.Children.map(props.children, child => (
+            <NavIterator {...child.props} {...container_props}>
+              {child}
+            </NavIterator>
+          ))}
         </div>
       );
     });

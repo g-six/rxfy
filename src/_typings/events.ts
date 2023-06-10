@@ -43,6 +43,7 @@ export enum Events {
   UploadProfileImage = 'evt-upload-profile-image',
   UploadLogoForLightBg = 'evt-upload-logo-for-light-bg',
   UploadLogoForDarkBg = 'evt-upload-logo-for-dark-bg',
+  Logout = 'evt-logout',
   Blank = 'blank',
 }
 

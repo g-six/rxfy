@@ -47,6 +47,7 @@ import AiPrompt from '@/rexify/realtors/ai';
 import { cookies } from 'next/headers';
 import RxThemePreview from './RxThemePreview';
 import { MyWebsite } from '@/rexify/my-website';
+import RxGuestNavButtons from './Nav/RxGuestNavButtons';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -391,7 +392,7 @@ export function rexifyScripts(html_code: string) {
               <script
                 suppressHydrationWarning
                 dangerouslySetInnerHTML={{
-                  __html: appendJs(attribs.src),
+                  __html: appendJs(attribs.src, 1400),
                 }}
               />
             );
@@ -466,6 +467,14 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             return <></>;
           }
           return <RxSessionDropdown agent={agent_data}>{domToReact(node.children) as ReactElement}</RxSessionDropdown>;
+        }
+        if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.GUEST_DROPDOWN) >= 0) {
+          // We hide the guest login / sign up buttons if an agent is already signed in using agent_data
+          return (
+            <RxGuestNavButtons {...props} show={agent_data.id === undefined}>
+              <>{domToReact(node.children)}</>
+            </RxGuestNavButtons>
+          );
         }
 
         // Property PDF Brochure rendering

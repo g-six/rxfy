@@ -142,6 +142,7 @@ function Iterator(p: {
   value?: string;
   type?: string;
   ['element-type']?: string;
+  ['event-name']?: string;
   children: React.ReactElement;
 }) {
   const { fireEvent: saveValues } = useEvent(Events.SaveUserSession);
@@ -156,11 +157,10 @@ function Iterator(p: {
     upload_url?: string;
     file?: File;
   };
-  const form_updates = data as unknown as AgentMetatagsInput;
   const [updates, setUpdates] = React.useState(p.agent);
 
   let theme_name = '';
-  let theme_domain = '';
+  let theme_domain = p.agent.webflow_domain;
 
   if (!updates) return <Iterator {...p}>{p.children}</Iterator>;
   if (updates.webflow_domain) {
@@ -288,7 +288,7 @@ function Iterator(p: {
       return React.cloneElement(
         <div
           id={p.id}
-          className={[p.className, styles.themeOption, p.id === p.agent.webflow_domain ? styles.selected : ''].join(' ')}
+          className={[p.className, styles.themeOption, p.id === theme_domain ? styles.selected : ''].join(' ')}
           onClick={() => {
             if (p.id) {
               setUpdates({

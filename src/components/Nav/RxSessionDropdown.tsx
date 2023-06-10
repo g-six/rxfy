@@ -1,12 +1,14 @@
 'use client';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
-import { searchByClasses } from '@/_utilities/rx-element-extractor';
+import { searchByClasses, searchByProp } from '@/_utilities/rx-element-extractor';
 import { Transition } from '@headlessui/react';
 import React from 'react';
 import styles from './RxDropdownMenu.module.scss';
 import useEvent, { Events } from '@/hooks/useEvent';
 import { RxAgentTextWrapper } from '../RxAgentInfoWrappers/RxAgentTextWrapper';
 import { AgentData } from '@/_typings/agent';
+import { RxButton } from '../RxButton';
+import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 
 type Props = {
   children: React.ReactElement;
@@ -34,25 +36,46 @@ function DropdownLightbox(p: Props) {
 }
 export default function RxSessionDropdown(p: Props) {
   const evt = useEvent(Events.ToggleUserMenu);
+  const logout = useEvent(Events.Logout);
+  const [in_session, setSession] = React.useState(p.agent?.full_name !== undefined);
+
+  React.useEffect(() => {
+    if (logout.data?.clicked) {
+      logout.fireEvent({});
+      clearSessionCookies();
+      setSession(false);
+      setTimeout(() => {
+        location.href = '/';
+      }, 100);
+    }
+  }, [logout.data?.clicked]);
+
   const matches = [
     {
       searchFn: searchByClasses(['w-dropdown-toggle']),
       transformChild: (child: React.ReactElement) =>
-        React.cloneElement(child, {
-          id: `${Events.ToggleUserMenu}-trigger`,
-          className: child.props.className + ` RxSessionDropdown ${evt.data?.show ? ' w--open' : ''} rexified`,
-          onClick: () => {
-            evt.fireEvent({ show: !evt.data?.show });
-          },
-        }),
+        in_session ? (
+          React.cloneElement(child, {
+            id: `${Events.ToggleUserMenu}-trigger`,
+            className: child.props.className + ` RxSessionDropdown ${evt.data?.show ? ' w--open' : ''} rexified`,
+            onClick: () => {
+              evt.fireEvent({ show: !evt.data?.show });
+            },
+          })
+        ) : (
+          <></>
+        ),
     },
     {
       searchFn: searchByClasses(['w-dropdown-list']),
-      transformChild: (child: React.ReactElement) => (
-        <DropdownLightbox className={child.props.className + ` w--open rexified ${styles.dropdown} ${styles['session-dropdown']}`}>
-          {child.props.children}
-        </DropdownLightbox>
-      ),
+      transformChild: (child: React.ReactElement) =>
+        in_session ? (
+          <DropdownLightbox className={child.props.className + ` w--open rexified ${styles.dropdown} ${styles['session-dropdown']}`}>
+            {child.props.children}
+          </DropdownLightbox>
+        ) : (
+          <></>
+        ),
     },
     {
       searchFn: searchByClasses(['agent-name']),
@@ -62,8 +85,15 @@ export default function RxSessionDropdown(p: Props) {
         </RxAgentTextWrapper>
       ),
     },
+    {
+      searchFn: searchByProp('children', 'Sign Out'),
+      transformChild: (child: React.ReactElement) => (
+        <RxButton {...child.props} id={`${Events.Logout}-trigger`} rx-event={Events.Logout}>
+          {child.props.children}
+        </RxButton>
+      ),
+    },
   ];
-  //sessions-wrapper
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       const global = globalThis as any;
