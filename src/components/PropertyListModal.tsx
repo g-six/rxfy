@@ -66,9 +66,9 @@ export default function PropertyListModal(p: PropertyListProps) {
                   {p.properties &&
                     p.properties.map(
                       listing =>
-                        listing.id &&
+                        listing.mls_id &&
                         (p.properties.length === 1 && p.card ? (
-                          <RxPropertyCard key={listing.id} listing={listing} sequence={0}>
+                          <RxPropertyCard key={listing.mls_id} listing={listing} sequence={0}>
                             {React.cloneElement(<div />, {
                               ...p.card.props.children.props,
                               // Wrap grandchildren too
