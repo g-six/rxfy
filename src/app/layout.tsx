@@ -13,8 +13,8 @@ import { replaceMetaTags } from '@/_helpers/head-manipulations';
 import initializePlacesAutocomplete from '@/components/Scripts/places-autocomplete';
 import { appendJs, rexifyScripts, rexifyScriptsV2 } from '@/components/rexifier';
 import { findAgentRecordByAgentId } from './api/agents/model';
-import Head from 'next/head';
 import { attributesToProps } from 'html-react-parser';
+import NotFound from './not-found';
 
 const skip_pathnames = ['/favicon.ico'];
 
@@ -30,15 +30,47 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const { NEXT_APP_GGL_API_KEY, TEST_DOMAIN } = process.env;
   const url = headers().get('x-url') as string;
 
-  const { hostname, pathname } = new URL(url);
+  let { hostname, pathname } = new URL(url);
   const requestLink = headers().get('x-url') || '';
   const requestUrl = new URL(requestLink);
   const searchParams = Object.fromEntries(requestUrl.searchParams);
-
-  let agent_data: AgentData | undefined = await getAgentDataFromDomain(hostname === 'localhost' ? `${TEST_DOMAIN}` : hostname);
   let data;
 
-  if (searchParams.theme && searchParams.agent) {
+  let agent_data: AgentData | undefined = undefined;
+  let theme = searchParams.theme;
+  let page_url = '';
+  if (pathname && pathname.split('/').length >= 3) {
+    // Check if the slug matches a realtor
+    const [, agent_id, profile_slug, ...page_route] = pathname.split('/');
+    if (profile_slug.indexOf('la-') === 0) {
+      const agent_record = await findAgentRecordByAgentId(agent_id);
+      const metatags = {
+        ...agent_record?.agent_metatag?.data?.attributes,
+      };
+      if (agent_record) {
+        pathname = page_route.join('/') || '';
+        agent_data = {
+          ...agent_record,
+        };
+
+        if (!agent_data || !metatags.profile_slug || metatags.profile_slug !== profile_slug) return <NotFound></NotFound>;
+        page_url = `https://${agent_data.webflow_domain}/${pathname}`;
+      } else {
+        return <NotFound></NotFound>;
+      }
+    } else {
+      // If we have a 404 - uncomment this and update...
+      // const req_page_html = await axios.get(`https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`);
+      // data = req_page_html.data;
+      data = '<html><head></head><body></body></html>';
+
+      return <NotFound></NotFound>;
+    }
+  } else {
+    agent_data = await getAgentDataFromDomain(hostname === 'localhost' ? `${TEST_DOMAIN}` : hostname);
+  }
+
+  if (theme && searchParams.agent) {
     const agent_record = await findAgentRecordByAgentId(searchParams.agent);
     if (agent_record?.agent_id) {
       agent_data = {
@@ -49,9 +81,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     }
   }
 
-  const page_url = !!agent_data?.webflow_domain
-    ? `https://${agent_data.webflow_domain}${getFullWebflowPagePath(pathname)}`
-    : `https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}${getFullWebflowPagePath(pathname)}`;
+  if (!page_url) {
+    page_url = !!agent_data?.webflow_domain
+      ? `https://${agent_data.webflow_domain}${getFullWebflowPagePath(pathname)}`
+      : `https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}${getFullWebflowPagePath(pathname)}`;
+  }
 
   try {
     const req_page_html = await axios.get(page_url);
@@ -176,8 +210,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         )}
         {webflow.body ? (
           <body {...body_props} className={bodyClassName} suppressHydrationWarning>
-            {children}
-            {requestUrl.pathname === '/map' ? <Script src='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js' async /> : <></>}
+            {React.cloneElement(<main>{children}</main>, {
+              agent: JSON.stringify(agent_data),
+            })}
+            {requestUrl.pathname && requestUrl.pathname.split('/').pop() === 'map' ? (
+              <Script src='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js' async />
+            ) : (
+              <></>
+            )}
             <script
               type='text/javascript'
               dangerouslySetInnerHTML={{
