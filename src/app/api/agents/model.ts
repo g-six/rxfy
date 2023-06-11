@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { gql_by_agent_id, gql_create_agent, mutation_update_meta } from './graphql';
+import { gql_by_agent_uniq, gql_create_agent, mutation_update_meta } from './graphql';
 import { WEBFLOW_THEME_DOMAINS } from '@/_typings/webflow';
 import { RealEstateBoardDataModel } from '@/_typings/real-estate-board';
 import { AgentInput } from '@/_typings/agent';
@@ -211,22 +211,45 @@ export async function updateAgentMetatags(
   return {};
 }
 
-export async function findAgentRecordByAgentId(agent_id: string) {
-  const { data: response_data } = await axios.post(
-    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-    {
-      query: gql_by_agent_id,
-      variables: {
-        agent_id,
+export async function findAgentBy(attributes: { [key: string]: string }) {
+  const { agent_id, profile_slug } = attributes;
+
+  let filters: {
+    agent_id?: {
+      eqi: string;
+    };
+    profile_slug?: {
+      eqi: string;
+    };
+  } = {};
+  if (attributes.agent_id) {
+    filters = {
+      agent_id: {
+        eqi: agent_id,
       },
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-        'Content-Type': 'application/json',
+    };
+  } else if (attributes.profile_slug) {
+    filters = {
+      agent_id: {
+        eqi: agent_id,
       },
+    };
+  } else {
+    return;
+  }
+
+  const query = {
+    query: gql_by_agent_uniq,
+    variables: {
+      filters,
     },
-  );
+  };
+  const { data: response_data } = await axios.post(`${process.env.NEXT_APP_CMS_GRAPHQL_URL}`, query, {
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+      'Content-Type': 'application/json',
+    },
+  });
 
   let [record] = response_data?.data?.agents.data;
   if (!record.attributes.agent_metatag?.data) {
@@ -239,12 +262,12 @@ export async function findAgentRecordByAgentId(agent_id: string) {
         name: string;
       };
     };
-    console.log({ property });
     const ai_results = await getSmart(
       {
         agent_id,
         full_name: record.attributes.full_name,
         email: record.attributes.email,
+        phone: record.attributes.phone,
         id: record.id,
       },
       property,
@@ -258,10 +281,13 @@ export async function findAgentRecordByAgentId(agent_id: string) {
         id: Number(record.id),
         metatags: {
           ...record.attributes.agent_metatag.data?.attributes,
-          id: record.attributes.agent_metatag.data ? Number(record.attributes.agent_metatag.data) : undefined,
+          id: record.attributes.agent_metatag.data ? Number(record.attributes.agent_metatag.data.id) : undefined,
         },
       }
     : null;
+}
+export async function findAgentRecordByAgentId(agent_id: string) {
+  return await findAgentBy({ agent_id });
 }
 
 export async function getMostRecentListing(agent_id: string): Promise<unknown> {
