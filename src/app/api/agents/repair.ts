@@ -73,7 +73,7 @@ export async function getSmart(
           `${real_estate_board?.abbreviation || 'la'}`,
           slugifyAddress(agent.full_name).split('-')[0],
           agent.id,
-          `${`${agent.phone}`.split('').reverse().join('').substring(0, 4).split('').reverse().join('')}`,
+          `${`${agent.phone || target_city || agent.agent_id}`.split('').reverse().join('').substring(0, 4).split('').reverse().join('')}`,
         ].join('-'),
       };
 
