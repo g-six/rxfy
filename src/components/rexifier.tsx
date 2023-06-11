@@ -189,7 +189,7 @@ export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapp
 
     // Price
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .propcard-price`, {
-      content: `${formatValues(p, 'AskingPrice')}`,
+      content: `$${new Intl.NumberFormat().format(p.AskingPrice)}`,
     });
 
     // Address
@@ -203,7 +203,7 @@ export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapp
     });
 
     // Baths
-    if (p.baths) {
+    if (p.L_TotalBaths) {
       replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .bath-stat`, {
         content: `${formatValues(p, 'L_TotalBaths')}`,
       });
@@ -213,7 +213,7 @@ export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapp
 
     // Sqft
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .sqft-stat`, {
-      content: `${formatValues(p, 'L_FloorArea_GrantTotal')}` || `${formatValues(p, 'L_FloorArea_GrantTotal')}`,
+      content: new Intl.NumberFormat().format(p.L_FloorArea_Total || p.L_FloorArea_GrantTotal),
     });
 
     // Year
