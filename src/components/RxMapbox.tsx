@@ -18,7 +18,7 @@ import { renderClusterBgLayer, renderClusterTextLayer, renderHomePinBgLayer, ren
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import Cookies from 'js-cookie';
 import axios from 'axios';
-import { must_not, retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
+import { STRAPI_FIELDS, must_not, retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
 
 type RxMapboxProps = {
   agent: AgentData;
@@ -69,7 +69,7 @@ export function RxMapbox(props: RxMapboxProps) {
   const [center, setCenter] = React.useState<{ lat: number; lng: number }>();
   const [listings, setPropertyListings] = React.useState<PropertyDataModel[]>([]);
   const mapNode = React.useRef(null);
-
+  console.log({ listings });
   const clickEventListener = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
     const features = e.target.queryRenderedFeatures(e.point, {
       layers: ['rx-clusters', 'rx-home-price-bg'],
@@ -231,7 +231,22 @@ export function RxMapbox(props: RxMapboxProps) {
           window.history.pushState({}, `${ne.lat}${ne.lng}${sw.lat}${sw.lng}`, currentUrl.href);
         }
         if (results.length) {
-          setPropertyListings(mergeObjects(include_listings, results, 'mls_id'));
+          setPropertyListings(
+            mergeObjects(
+              include_listings,
+              results.map(listing => {
+                let cleaned = {};
+                Object.keys(listing).forEach(k => {
+                  cleaned = {
+                    ...cleaned,
+                    [STRAPI_FIELDS[k]]: (listing as unknown as { [old: string]: string })[k],
+                  };
+                });
+                return cleaned;
+              }),
+              'mls_id',
+            ),
+          );
         } else {
           setPropertyListings([]);
         }
@@ -489,6 +504,7 @@ export function RxMapbox(props: RxMapboxProps) {
       }
     }
   }, []);
+
   return (
     <main className={classNames(styles.MainWrapper, 'mapbox-canvas')}>
       <div
