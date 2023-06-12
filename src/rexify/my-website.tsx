@@ -167,6 +167,7 @@ function Iterator(p: {
     theme_domain = updates.webflow_domain as string;
     theme_name = theme_domain.split('-').reverse().pop() as string;
   }
+
   if (p.children?.props?.children) {
     if (p.children.type === 'form') {
       return React.cloneElement(<div></div>, {
@@ -329,16 +330,29 @@ function Iterator(p: {
       </>
     );
   } else {
-    if (p.children.type === 'img' && p.id && p.id === `${theme_name}-thumbnail`) {
-      return React.cloneElement(<img {...p} className={[p.className, 'rexified', styles.selectedThumbnail].join(' ')} />, {
-        children: React.Children.map(p.children.props.children, child => {
-          return (
-            <Iterator {...child.props} agent={p.agent}>
-              {child}
-            </Iterator>
-          );
-        }),
-      });
+    if (p.children.type === 'img' && p.id && p.id === `${theme_name}-thumbnail` && p.className) {
+      return React.cloneElement(
+        <img
+          {...p}
+          className={[
+            p.className
+              .split(' ')
+              .filter(c => c !== 'hidden')
+              .join(' '),
+            'rexified',
+            styles.selectedThumbnail,
+          ].join(' ')}
+        />,
+        {
+          children: React.Children.map(p.children.props.children, child => {
+            return (
+              <Iterator {...child.props} agent={p.agent}>
+                {child}
+              </Iterator>
+            );
+          }),
+        },
+      );
     }
     if (typeof p.children === 'string' && `${p.children}`.indexOf('Your theme:') === 0 && updates) {
       if (updates.webflow_domain) {
