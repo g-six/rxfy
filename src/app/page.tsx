@@ -103,7 +103,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
       console.log('fetching page', page_url);
     }
   }
-  console.log('page.tsx', { page_url });
 
   try {
     const req_page_html = await axios.get(page_url);
@@ -143,7 +142,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
       agent_data.webflow_domain = webflow_domain;
       loadAiResults($, agent_data.agent_id, origin);
     }
-  } else if (!(searchParams.theme && searchParams.agent) && agent_data.webflow_domain === 'leagent-website.webflow.io') {
+  } else if (!(searchParams.theme && searchParams.agent) && agent_data?.webflow_domain === 'leagent-website.webflow.io') {
     if (!session_key && params.slug && ['ai-result'].includes(params.slug as string)) {
       data = '<html><head><meta name="title" content="Not found" /></head><body>Not found</body></html>';
       notFound();

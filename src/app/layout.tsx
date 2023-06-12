@@ -92,24 +92,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     webflow_domain = agent_data.webflow_domain;
   }
 
-  console.log({ [pathname]: webflow_domain });
-
-  page_url = `https://${webflow_domain}/${pathname}`;
-
-  if (!page_url) {
-    if (!agent_data?.webflow_domain) {
-      page_url = `https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}${getFullWebflowPagePath(pathname)}`;
-    } else if (webflow_domain && webflow_domain !== process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN) {
-      page_url = `https://${webflow_domain}${getFullWebflowPagePath(pathname)}`;
-    } else {
-      page_url = `https://leagent-webflow-rebuild.webflow.io${getFullWebflowPagePath(pathname)}`;
-    }
-    console.log({ page_url });
-    // page_url = !!agent_data?.webflow_domain
-    //   ? `https://${agent_data.webflow_domain}${getFullWebflowPagePath(pathname)}`
-    //   : `https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}${getFullWebflowPagePath(pathname)}`;
-    // if (agent_data.webflow_domain)
-  }
+  page_url = `https://${webflow_domain}${pathname === '/property' ? '/property/propertyid' : pathname}`;
 
   try {
     const req_page_html = await axios.get(page_url);
@@ -117,6 +100,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   } catch (e) {
     console.log('Layout.tsx ERROR.  Unable to fetch page html for', page_url);
   }
+
+  console.log('layout.tsx:104', page_url);
 
   let property;
   let cache_found = false;
