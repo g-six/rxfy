@@ -38,7 +38,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   let agent_data: AgentData | undefined = undefined;
   let theme = searchParams.theme;
+  let webflow_domain = 'leagent-website.webflow.io';
   let page_url = '';
+
   if (pathname && pathname.split('/').length >= 3) {
     // Check if the slug matches a realtor
     const [, agent_id, profile_slug, ...page_route] = pathname.split('/');
@@ -48,13 +50,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         ...agent_record?.agent_metatag?.data?.attributes,
       };
       if (agent_record) {
+        webflow_domain = agent_record.webflow_domain;
         pathname = page_route.join('/') || '';
         agent_data = {
           ...agent_record,
         };
 
         if (!agent_data || !metatags.profile_slug || metatags.profile_slug !== profile_slug) return <NotFound></NotFound>;
-        page_url = `https://${agent_data.webflow_domain}/${pathname}`;
       } else {
         return <NotFound></NotFound>;
       }
@@ -64,28 +66,33 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       // data = req_page_html.data;
       data = '<html><head></head><body></body></html>';
 
-      return <NotFound></NotFound>;
+      return <NotFound>test</NotFound>;
     }
   } else {
     agent_data = await getAgentDataFromDomain(hostname === 'localhost' ? `${TEST_DOMAIN}` : hostname);
   }
 
-  if (theme && searchParams.agent) {
+  if (theme && searchParams.paragon) {
+    if (['/ai', '/ai-result'].includes(pathname)) {
+      webflow_domain = 'leagent-website.webflow.io';
+    } else if (theme === 'default') {
+      webflow_domain = 'leagent-webflow-rebuild.webflow.io';
+    } else {
+      webflow_domain = `${searchParams.theme}-leagent.webflow.io`;
+    }
     const agent_record = await findAgentRecordByAgentId(searchParams.agent);
     if (agent_record?.agent_id) {
       agent_data = {
         ...agent_data,
         ...agent_record,
-        webflow_domain: searchParams.theme === 'default' ? 'leagent-webflow-rebuild.webflow.io' : `${searchParams.theme}-leagent.webflow.io`,
+        webflow_domain,
       };
     }
+  } else if (agent_data?.webflow_domain) {
+    webflow_domain = agent_data.webflow_domain;
   }
 
-  if (!page_url) {
-    page_url = !!agent_data?.webflow_domain
-      ? `https://${agent_data.webflow_domain}${getFullWebflowPagePath(pathname)}`
-      : `https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}${getFullWebflowPagePath(pathname)}`;
-  }
+  page_url = `https://${webflow_domain}${pathname === '/property' ? '/property/propertyid' : pathname}`;
 
   try {
     const req_page_html = await axios.get(page_url);
@@ -93,6 +100,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   } catch (e) {
     console.log('Layout.tsx ERROR.  Unable to fetch page html for', page_url);
   }
+
+  console.log('layout.tsx:104', page_url);
 
   let property;
   let cache_found = false;
@@ -156,7 +165,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   });
 
   head_links.toArray().map(meta => {
-    metas.push(<link {...attributesToProps(meta.attribs)} key={new URL(meta.attribs.href).pathname} />);
+    let page_key = new URL(meta.attribs.href).pathname;
+    if (new URL(meta.attribs.href).pathname.length < 2) {
+      page_key = new URL(meta.attribs.href).hostname;
+    }
+    metas.push(<link {...attributesToProps(meta.attribs)} key={page_key} />);
   });
   // end of extracting and assigning <head> elements
 

@@ -26,12 +26,12 @@ const skip_slugs = ['favicon.ico', 'sign-out'];
 function loadAiResults($: CheerioAPI, user_id: string, origin?: string) {
   ['oslo', 'hamburg', 'malta'].forEach(theme => {
     $(`.theme-area.home-${theme}`).replaceWith(
-      `<iframe data-src="${origin}?agent=${user_id}&theme=${theme}" className="${styles.homePagePreview} theme-area home-${theme}" />`,
+      `<iframe data-src="${origin}?paragon=${user_id}&theme=${theme}" className="${styles.homePagePreview} theme-area home-${theme}" />`,
     );
   });
-  console.log('Load property sample', `${origin}/property?agent=${user_id}&theme=default&mls=R2782417`);
+  console.log('Load property sample', `${origin}/property?paragon=${user_id}&theme=default&mls=R2782417`);
   $(`[data-w-tab="Tab 2"] .f-section-large-11`).html(
-    `<iframe src="${origin}/property?agent=${user_id}&theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
+    `<iframe src="${origin}/property?paragon=${user_id}&theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
   );
 
   $('.building-and-sold-info').remove();
@@ -82,13 +82,18 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
   let session_key = cookies().get('session_key')?.value || '';
 
-  if (!agent_data) {
+  if (['ai', 'ai-result'].includes(`${params?.slug || ''}`)) {
+    page_url = `https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}/${params.slug || ''}`;
+  } else if (!agent_data) {
     agent_data = await getAgentDataFromDomain(hostname === 'localhost' ? TEST_DOMAIN : hostname);
-    page_url = agent_data?.webflow_domain ? `https://${agent_data.webflow_domain}` : `https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`;
+    page_url =
+      agent_data?.webflow_domain && !['/ai', '/ai-result'].includes(pathname)
+        ? `https://${agent_data.webflow_domain}`
+        : `https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`;
     // TODO: Refactor into Theme middleware
     if (searchParams.theme) {
-      if (searchParams.theme === 'default') page_url = 'leagent-webflow-rebuild.webflow.io';
-      else page_url = `${searchParams.theme}-leagent.webflow.io`;
+      if (searchParams.theme === 'default') page_url = 'https://leagent-webflow-rebuild.webflow.io';
+      else page_url = `https://${searchParams.theme}-leagent.webflow.io`;
     }
     page_url = params && params.slug && !skip_slugs.includes(params.slug as string) ? `${page_url}/${params.slug}` : page_url;
     if (params && params.slug === 'property') {
@@ -111,7 +116,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     notFound();
   }
   const $: CheerioAPI = load(data);
-  const { hostname: webflow_domain, pathname: slug } = new URL(page_url);
+  let { hostname: webflow_domain, pathname: slug } = new URL(page_url);
   $('form').removeAttr('id');
   $('form').removeAttr('name');
   if (process.env.NEXT_PUBLIC_BUY_BUTTON)
@@ -133,35 +138,43 @@ export default async function Home({ params, searchParams }: { params: Record<st
     agent_data = await findAgentRecordByAgentId(searchParams.paragon);
 
     if (agent_data) {
-      let webflow_domain = '';
       if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
-      else webflow_domain = `${searchParams.theme || 'oslo'}-leagent.webflow.io`;
       agent_data.webflow_domain = webflow_domain;
       loadAiResults($, agent_data.agent_id, origin);
     }
-  } else if (!(searchParams.theme && searchParams.agent) && agent_data.webflow_domain === 'leagent-website.webflow.io') {
+  } else if (!(searchParams.theme && searchParams.agent) && agent_data?.webflow_domain === 'leagent-website.webflow.io') {
     if (!session_key && params.slug && ['ai-result'].includes(params.slug as string)) {
       data = '<html><head><meta name="title" content="Not found" /></head><body>Not found</body></html>';
       notFound();
     }
     if (session_key && params.slug !== 'ai') {
       const [session_hash, user_id] = session_key.split('-');
-      const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
-      agent_data = session.agent;
 
-      if (session.agent && session.agent?.featured_listings?.length) {
+      if (session_hash && user_id) {
         try {
-          await axios.get(`https://beta.leagent.com/api/properties/mls-id/${session.agent.featured_listings[0]}`);
-          const feature_listing = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${session.agent.featured_listings[0]}/recent.json`);
-          property = feature_listing.data;
-          property.listing_by = `Listing courtesy of ${session.agent.full_name}`;
+          const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
+          agent_data = session.agent;
+
+          if (session.agent) {
+            if (session.agent?.featured_listings?.length) {
+              try {
+                await axios.get(`https://beta.leagent.com/api/properties/mls-id/${session.agent.featured_listings[0]}`);
+                const feature_listing = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${session.agent.featured_listings[0]}/recent.json`);
+                property = feature_listing.data;
+                property.listing_by = `Listing courtesy of ${session.agent.full_name}`;
+              } catch (e) {
+                console.log('Featured listing not found');
+              }
+            }
+            if (agent_data) {
+              agent_data.metatags = session.agent.agent_metatag;
+              loadAiResults($, session.agent.agent_id, origin);
+            }
+            console.log('test');
+          }
         } catch (e) {
-          console.log('Featured listing not found');
+          console.log('Invalid session key');
         }
-      }
-      if (agent_data) {
-        agent_data.metatags = session.agent.agent_metatag;
-        loadAiResults($, session.agent.agent_id, origin);
       }
     }
 
@@ -204,7 +217,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     className: 'filter-group-modal',
   });
 
-  if (hostname !== `${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`) {
+  if (hostname !== `${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}` || searchParams.paragon) {
     if (agent_data && agent_data.agent_id) {
       await fillAgentInfo($, agent_data);
 
@@ -291,14 +304,10 @@ export default async function Home({ params, searchParams }: { params: Record<st
     <>
       {webflow.body.code ? (
         <main className={styles['rx-realm']}>
-          {agent_data ? (
-            rexify(webflow.body.code, agent_data, property, {
-              ...params,
-              webflow_domain: hostname,
-            })
-          ) : (
-            <NotFound />
-          )}
+          {rexify(webflow.body.code, agent_data, property, {
+            ...params,
+            webflow_domain: hostname,
+          })}
           <RxNotifications />
         </main>
       ) : (

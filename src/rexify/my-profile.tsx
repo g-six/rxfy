@@ -9,13 +9,12 @@ import { useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import React from 'react';
 import RxLeftMenuTab from './realtors/RxLeftMenuTab';
-import useEvent, { Events, EventsData } from '@/hooks/useEvent';
+import useEvent, { Events } from '@/hooks/useEvent';
 import { BrokerageInformationForm } from './realtors/brokerage-information';
 import { BrokerageDataModel } from '@/_typings/brokerage';
-import RxBrandPreferences, { BrandUploads } from './realtors/brand-preferences';
+import RxBrandPreferences from './realtors/brand-preferences';
 import { RxButton } from '@/components/RxButton';
-import RxSessionDropdown from '@/components/Nav/RxSessionDropdown';
-import { AgentData } from '@/_typings/agent';
+import { buildNavigationComponent } from './realtors/RxNavIterator';
 
 type Props = {
   className?: string;
@@ -100,46 +99,6 @@ export default function MyProfilePage(p: Props) {
   ) : (
     <></>
   );
-}
-
-function NavIterator(p: Props) {
-  return (
-    <>
-      {React.Children.map(p.children, child => {
-        if (child.props?.children) {
-          const className = (child.props.className ? child.props.className + ' ' : '') + 'rexified';
-          if (className.split(' ').includes('in-session-dropdown'))
-            return <RxSessionDropdown agent={p.session as unknown as AgentData}>{child.props?.children}</RxSessionDropdown>;
-          return React.cloneElement(child, {
-            className,
-            children: (
-              <NavIterator {...child.props} session={p.session} className={className}>
-                {className.split(' ').includes('agent-name') ? p.session?.full_name : child.props.children}
-              </NavIterator>
-            ),
-          });
-        }
-        return child;
-      })}
-    </>
-  );
-}
-function buildNavigationComponent(children: React.ReactElement[], container_props: Props) {
-  const [wrapper] = children
-    .filter(f => f.props.className.split(' ').includes('navigation-full-wrapper-2'))
-    .map(({ props }) => {
-      return (
-        <div key='navigation-full-wrapper-2' id={props.id} className={[props.className, 'rexified'].join(' ')}>
-          {React.Children.map(props.children, child => (
-            <NavIterator {...child.props} {...container_props}>
-              {child}
-            </NavIterator>
-          ))}
-        </div>
-      );
-    });
-
-  return wrapper || <></>;
 }
 
 function buildMainComponent(children: React.ReactElement[], container_props: Props) {

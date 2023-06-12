@@ -37,7 +37,7 @@ export default function RxContactForm({ nodes, agent, nodeProps, nodeClassName }
   const style = Object.assign({}, nodeProps.style, { display: show ? 'inherit' : 'none' });
 
   return (
-    <div className={nodeClassName} style={style}>
+    <div {...nodeProps} className={nodeClassName} style={style}>
       {transformMatchingElements(nodes, matches)}
     </div>
   );
