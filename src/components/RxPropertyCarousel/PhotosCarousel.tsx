@@ -24,15 +24,16 @@ export default function PhotosCarousel({ propertyPhotos }: Props) {
   const closeModal = () => {
     fireEvent({ show: false, photos: [] });
   };
+  console.log(currentPhotos);
   useEffect(() => {
     if (document) {
       document.body.style.overflow = show ? 'hidden' : 'auto';
       mainSwiper?.slideTo(key ?? 0);
     }
-    if (show && photos) {
+    if (show && photos && photos?.length > 0) {
       setCurrentPhotos(photos);
     }
-  }, [show, mainSwiper, key]);
+  }, [show, mainSwiper, key, photos]);
 
   return (
     <div
@@ -40,7 +41,6 @@ export default function PhotosCarousel({ propertyPhotos }: Props) {
         show ? 'bg-black/90 opacity-100' : 'bg-black/0 opacity-0 pointer-events-none'
       } p-5 gap-5`}
     >
-      {' '}
       <div className='flex justify-end'>
         <button onClick={closeModal} className='bg-transparent  z-[901]'>
           <XMarkIcon className='text-white w-10 h-10' />

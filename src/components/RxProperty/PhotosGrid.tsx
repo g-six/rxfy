@@ -14,7 +14,7 @@ type PropertyCarouselProps = {
 };
 export default function PhotosGrid({ showGallery, photos, child }: PropertyCarouselProps) {
   //const hasClientNote = false;
-  const wrapperStyles: CSSProperties = { overflow: 'hidden;', position: 'relative' };
+  const wrapperStyles: CSSProperties = { overflow: 'hidden;', position: 'relative', borderRadius: '10px' };
   const show = showGallery
     ? showGallery
     : (key: number) => {
@@ -25,11 +25,11 @@ export default function PhotosGrid({ showGallery, photos, child }: PropertyCarou
     { searchFn: searchByClasses(['property-images-lightbox']), transformChild: child => <>{child.props.children}</> },
     {
       searchFn: searchByClasses(['property-image-wrapper']),
-      transformChild: child => <div className={`${child.props.className} ${!photos?.[1] ? 'xl:col-span-2' : ''} `}>{child.props.children}</div>,
+      transformChild: child => <div className={`${child.props.className}  ${!photos?.[1] ? 'xl:col-span-2' : ''} `}>{child.props.children}</div>,
     },
     {
       searchFn: searchByClasses(['property-images-more']),
-      transformChild: child => <div className={`${child.props.className} ${!photos?.[1] ? 'hidden' : ''} `}>{child.props.children}</div>,
+      transformChild: child => <div className={`${child.props.className}  ${!photos?.[1] ? 'hidden' : ''} `}>{child.props.children}</div>,
     },
     {
       searchFn: searchByClasses(['property-image-main']),
@@ -45,8 +45,10 @@ export default function PhotosGrid({ showGallery, photos, child }: PropertyCarou
       searchFn: searchByClasses(['image-wrapper-top']),
       transformChild: (child: ReactElement) => {
         return photos?.[1] ? (
-          <div style={wrapperStyles} onClick={() => show(1)} className={classNames(child.props.className, ` `)}>
-            <Image alt='main' src={photos?.[1]} fill width={800} style={{ objectFit: 'cover' }} />
+          <div onClick={() => show(1)} className={classNames(child.props.className, ` `)}>
+            <div style={wrapperStyles} className='w-full overflow-hidden'>
+              <Image alt='top' src={photos?.[1]} fill style={{ objectFit: 'cover' }} />
+            </div>
           </div>
         ) : (
           <></>
@@ -57,8 +59,10 @@ export default function PhotosGrid({ showGallery, photos, child }: PropertyCarou
       searchFn: searchByClasses(['image-wrapper-bottom']),
       transformChild: (child: ReactElement) => {
         return photos?.[2] ? (
-          <div style={wrapperStyles} onClick={() => show(2)} className={classNames(child.props.className, ' ')}>
-            <Image alt='main' src={photos?.[2]} fill style={{ objectFit: 'cover' }} />
+          <div onClick={() => show(2)} className={classNames(child.props.className, ' ')}>
+            <div style={wrapperStyles} className='w-full overflow-hidden'>
+              <Image alt='bottom' src={photos?.[1]} fill style={{ objectFit: 'cover' }} />
+            </div>
           </div>
         ) : (
           <></>
