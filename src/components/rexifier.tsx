@@ -412,7 +412,7 @@ export function rexifyScripts(html_code: string) {
  * @param agent_data
  * @returns
  */
-export function rexify(html_code: string, agent_data: AgentData, property: Record<string, unknown> = {}, params: Record<string, unknown> = {}) {
+export function rexify(html_code: string, agent_data?: AgentData, property: Record<string, unknown> = {}, params: Record<string, unknown> = {}) {
   // Parse and replace
   let home_alert_index = 1;
   const options: HTMLReactParserOptions = {
@@ -446,9 +446,11 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
         if (node.attribs.class && node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.ID_PAGE)) {
           return (
-            <RxIdPage {...props} agent={agent_data} className={node.attribs?.class || className}>
-              {domToReact(node.children) as ReactElement[]}
-            </RxIdPage>
+            agent_data && (
+              <RxIdPage {...props} agent={agent_data} className={node.attribs?.class || className}>
+                {domToReact(node.children) as ReactElement[]}
+              </RxIdPage>
+            )
           );
         }
 
@@ -471,14 +473,14 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.GUEST_DROPDOWN) >= 0) {
           // We hide the guest login / sign up buttons if an agent is already signed in using agent_data
           return (
-            <RxGuestNavButtons {...props} show={agent_data.id === undefined}>
+            <RxGuestNavButtons {...props} show={agent_data === undefined}>
               <>{domToReact(node.children)}</>
             </RxGuestNavButtons>
           );
         }
 
         // Property PDF Brochure rendering
-        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PDF_PAGE) >= 0) {
+        if (agent_data && node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PDF_PAGE) >= 0) {
           return (
             <RxPdfWrapper
               property={property as unknown as PropertyDataModel}
@@ -491,7 +493,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
 
         // Property Detailed Page
-        if (params?.slug === 'property' && node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_PAGE) >= 0) {
+        if (agent_data && params?.slug === 'property' && node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_PAGE) >= 0) {
           return (
             <RxDetailedListing
               property={property as unknown as PropertyDataModel}
@@ -508,7 +510,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           return <MyWebsite>{domToReact(node.children) as ReactElement}</MyWebsite>;
         }
 
-        if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.SIGNUP) {
+        if (agent_data && node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.SIGNUP) {
           return (
             <RxSignupPage
               {...props}
@@ -573,13 +575,13 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             return <RxContactFormButton className={node.attribs.class}>{domToReact(node.children) as ReactElement[]}</RxContactFormButton>;
           }
 
-          if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CONTACT_FORM) >= 0) {
+          if (agent_data && node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CONTACT_FORM) >= 0) {
             return (
               <RxContactForm agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />
             );
           }
 
-          if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.FOOTER_SOCIAL_LINKS) >= 0) {
+          if (agent_data && node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.FOOTER_SOCIAL_LINKS) >= 0) {
             return (
               <FooterSocialLinks agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />
             );
@@ -608,7 +610,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             );
           }
 
-          if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.USER_MENU_DROPDOWN)) {
+          if (agent_data && node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.USER_MENU_DROPDOWN)) {
             return (
               <RxDropdownMenu {...props} className={className} agent-data={agent_data}>
                 {domToReact(node.children) as ReactElement[]}
@@ -626,24 +628,24 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
               </RxUserSessionLink>
             );
           }
-          if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.DOCUMENTS)) {
+          if (agent_data && node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.DOCUMENTS)) {
             return <DocumentsReplacer nodeProps={props} agent_data={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
           }
-          if (node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_SAVED_PROPERTIES_DASHBOARD) {
+          if (agent_data && node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_SAVED_PROPERTIES_DASHBOARD) {
             return (
               <RxMySavedHomesDashBoard agent_data={agent_data} className={node.attribs.class}>
                 {domToReact(node.children)}
               </RxMySavedHomesDashBoard>
             );
           }
-          if (node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_HOME_ALERTS) {
+          if (agent_data && node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_HOME_ALERTS) {
             return <RxMyHomeAlerts agent_data={agent_data} child={domToReact(node.children)} className={node.attribs.class} />;
           }
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.PROPERTY_CARD)) {
             return;
             // return <RxMyHomeAlerts agent_data={agent_data} child={domToReact(node.children)} className={node.attribs.class} />;
           }
-          if (node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_COMPARE_DASHBOARD) {
+          if (agent_data && node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_COMPARE_DASHBOARD) {
             return (
               <RxMyCompareDashboardPage agent-data={agent_data} className={node.attribs.class}>
                 {domToReact(node.children)}
@@ -652,7 +654,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           }
         }
         //AGENT SIDE  START
-        if (node.attribs.class === WEBFLOW_NODE_SELECTOR.AGENT_MY_LISTINGS) {
+        if (agent_data && node.attribs.class === WEBFLOW_NODE_SELECTOR.AGENT_MY_LISTINGS) {
           return <RxAgentMyListings nodeProps={props} agent_data={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
         }
         //AGENT SIDE  END
@@ -677,7 +679,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         /**
          * This is where the magic happens
          */
-        if (node.attribs.class === 'map-div') {
+        if (agent_data && node.attribs.class === 'map-div') {
           // Mapbox Voodoo here
           // Check for improvement
           return (
@@ -698,7 +700,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           );
         }
 
-        if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.HOME_ALERTS_WRAPPER) >= 0) {
+        if (agent_data && node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.HOME_ALERTS_WRAPPER) >= 0) {
           return <HomeAlertsReplacer agent={agent_data} nodeClassName={className} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
         }
 
