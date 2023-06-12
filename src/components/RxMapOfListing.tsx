@@ -3,6 +3,7 @@ import React, { ReactElement } from 'react';
 
 import { PropertyDataModel } from '@/_typings/property';
 import { createNeighborhoodMapOptions } from '@/_utilities/map-helper';
+import { LatLng } from '@/_typings/agent-my-listings';
 
 export enum MapType {
   STREET = 'street',
@@ -10,7 +11,7 @@ export enum MapType {
 }
 
 type Props = {
-  property: PropertyDataModel | null;
+  property: PropertyDataModel | LatLng | null;
   child: ReactElement;
   mapType?: MapType | string;
 };
@@ -108,9 +109,9 @@ export default function RxMapOfListing({ property, child, mapType }: Props) {
     }
   }, [mapType, mapCenter, ref, initNeighborhoodView, initStreetView]);
 
-  const style = Object.assign({}, child.props.style, {
-    height: child.props?.style?.height ? child.props.style.height : '300px',
+  const style = Object.assign({}, child?.props?.style, {
+    height: child?.props?.style?.height ? child.props.style.height : '300px',
   });
 
-  return <div className={child.props.className} style={style} ref={ref} />;
+  return <div className={`${child?.props?.className}`} style={style} ref={ref} />;
 }

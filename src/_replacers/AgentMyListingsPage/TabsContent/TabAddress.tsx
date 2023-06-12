@@ -5,10 +5,18 @@ import { searchByClasses, searchByPartOfClass } from '@/_utilities/rx-element-ex
 import { captureMatchingElements, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import useFormEvent, { Events, PrivateListingData, getValueByKey } from '@/hooks/useFormEvent';
 import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
+import MapsTabs from './MapsTabs';
 
 export default function TabAddress({ template, nextStepClick, initialState }: TabContentProps) {
   const [templates] = useState(captureMatchingElements(template, [{ elementName: 'input', searchFn: searchByPartOfClass(['f-field-wrapper']) }]));
   const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
+  const coords =
+    (data?.lon &&
+      data?.lat && {
+        lat: data.lat,
+        lon: data.lon,
+      }) ||
+    undefined;
   const addressFields = [
     {
       label: 'Address',
@@ -88,6 +96,7 @@ export default function TabAddress({ template, nextStepClick, initialState }: Ta
         );
       },
     },
+    { searchFn: searchByClasses(['tabs-standard', 'w-tabs']), transformChild: child => <MapsTabs child={child} coords={coords} /> },
     {
       searchFn: searchByPartOfClass(['f-button-neutral', 'w-button']),
       transformChild: child => cloneElement(child, { onClick: nextStepClick }),

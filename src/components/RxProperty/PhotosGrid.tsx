@@ -61,7 +61,7 @@ export default function PhotosGrid({ showGallery, photos, child }: PropertyCarou
         return photos?.[2] ? (
           <div onClick={() => show(2)} className={classNames(child.props.className, ' ')}>
             <div style={wrapperStyles} className='w-full overflow-hidden'>
-              <Image alt='bottom' src={photos?.[1]} fill style={{ objectFit: 'cover' }} />
+              <Image alt='bottom' src={photos?.[2]} fill style={{ objectFit: 'cover' }} />
             </div>
           </div>
         ) : (
