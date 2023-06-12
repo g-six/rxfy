@@ -62,12 +62,12 @@ export function RxDetailedListing(props: ReplacerPageProps) {
           : child;
       },
     },
-    // {
-    //   searchFn: searchByClasses([WEBFLOW_NODE_SELECTOR.PROPERTY_MAPS]),
-    //   transformChild: (child: ReactElement) => {
-    //     return <RxPropertyMaps child={child} property={props.property} />;
-    //   },
-    // },
+    {
+      searchFn: searchByClasses([WEBFLOW_NODE_SELECTOR.PROPERTY_MAPS]),
+      transformChild: (child: ReactElement) => {
+        return <RxPropertyMaps child={child} property={props.property} />;
+      },
+    },
     {
       searchFn: searchByClasses([WEBFLOW_NODE_SELECTOR.PROPERTY_STATS_W_ICONS]),
       transformChild: (child: ReactElement) => {

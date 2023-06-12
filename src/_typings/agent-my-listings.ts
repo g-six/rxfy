@@ -11,6 +11,10 @@ export enum createListingTabs {
   MORE = 'tab-more',
   PREVIEW = 'tab-preview',
 }
+export enum mapsViewsTabs {
+  NEIGHBORHOOD = 'tab-neighborhood',
+  STREET = 'tab-street',
+}
 export interface TabContentProps {
   template: ReactElement;
   nextStepClick: () => void;
@@ -59,3 +63,8 @@ export const regularRow = [
     },
   },
 ];
+
+export type LatLng = {
+  lat: number;
+  lon: number;
+};

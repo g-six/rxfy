@@ -15,10 +15,11 @@ type Props = {
 
 export default function Tabs({ child, currentTab, setCurrentTab, tabs = savedHomesTabs }: Props) {
   const tabsArray: string[] = Object.values(tabs);
+
   const makeCurrent = (child: ReactElement) => () => {
     setCurrentTab(getTabVal(child) ?? '');
   };
-  console.log(currentTab);
+
   const getTabVal = (child: ReactElement) => {
     const className = child?.props?.className;
     return className?.split(' ')?.find((cls: string) => tabsArray.includes(cls));
@@ -40,31 +41,18 @@ export default function Tabs({ child, currentTab, setCurrentTab, tabs = savedHom
       });
     }
   }, []);
+
   const matches = [
-    {
-      searchFn: searchByClasses([savedHomesTabs.INDIVIDUAL]),
+    ...tabsArray.map(tab => ({
+      searchFn: searchByClasses([tab]),
       transformChild: (child: ReactElement) => {
+        const isCurrent = getTabVal(child) === currentTab;
         return cloneElement(child, {
+          className: `${removeCurrent(child.props.className)} ${isCurrent ? `w--current` : ''}`,
           onClick: makeCurrent(child),
         });
       },
-    },
-    {
-      searchFn: searchByClasses([savedHomesTabs.MAP_VIEW]),
-      transformChild: (child: ReactElement) => {
-        return cloneElement(child, {
-          onClick: makeCurrent(child),
-        });
-      },
-    },
-    {
-      searchFn: searchByClasses([savedHomesTabs.COMPARE]),
-      transformChild: (child: ReactElement) => {
-        return cloneElement(child, {
-          onClick: makeCurrent(child),
-        });
-      },
-    },
+    })),
   ];
 
   // const matches = Object.values(tabs).map(tab => ({

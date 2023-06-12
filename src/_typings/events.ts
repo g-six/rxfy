@@ -109,6 +109,8 @@ export interface PrivateListingData extends FormData {
   state?: string;
   zip?: string;
   title?: string;
+  lat?: number;
+  lon?: number;
 
   // Home Summary
   asking_price?: string;

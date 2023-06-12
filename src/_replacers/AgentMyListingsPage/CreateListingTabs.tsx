@@ -7,13 +7,14 @@ type Props = {
   child: ReactElement;
   currentTab: string;
   setCurrentTab: Dispatch<SetStateAction<string>>;
+  tabs?: { [key: string]: string };
 };
 
-export default function CreateListingTabs({ child, currentTab, setCurrentTab }: Props) {
+export default function CreateListingTabs({ child, currentTab, setCurrentTab, tabs = createListingTabs }: Props) {
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['w-tab-menu']),
-      transformChild: child => <Tabs child={child} currentTab={currentTab} setCurrentTab={setCurrentTab} tabs={createListingTabs} />,
+      transformChild: child => <Tabs child={child} currentTab={currentTab} setCurrentTab={setCurrentTab} tabs={tabs} />,
     },
   ];
   return <>{transformMatchingElements(child, matches)}</>;
