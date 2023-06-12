@@ -26,12 +26,12 @@ const skip_slugs = ['favicon.ico', 'sign-out'];
 function loadAiResults($: CheerioAPI, user_id: string, origin?: string) {
   ['oslo', 'hamburg', 'malta'].forEach(theme => {
     $(`.theme-area.home-${theme}`).replaceWith(
-      `<iframe data-src="${origin}?agent=${user_id}&theme=${theme}" className="${styles.homePagePreview} theme-area home-${theme}" />`,
+      `<iframe data-src="${origin}?paragon=${user_id}&theme=${theme}" className="${styles.homePagePreview} theme-area home-${theme}" />`,
     );
   });
-  console.log('Load property sample', `${origin}/property?agent=${user_id}&theme=default&mls=R2782417`);
+  console.log('Load property sample', `${origin}/property?paragon=${user_id}&theme=default&mls=R2782417`);
   $(`[data-w-tab="Tab 2"] .f-section-large-11`).html(
-    `<iframe src="${origin}/property?agent=${user_id}&theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
+    `<iframe src="${origin}/property?paragon=${user_id}&theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
   );
 
   $('.building-and-sold-info').remove();
@@ -82,13 +82,18 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
   let session_key = cookies().get('session_key')?.value || '';
 
-  if (!agent_data) {
+  if (['ai', 'ai-result'].includes(`${params?.slug || ''}`)) {
+    page_url = `https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}/${params.slug || ''}`;
+  } else if (!agent_data) {
     agent_data = await getAgentDataFromDomain(hostname === 'localhost' ? TEST_DOMAIN : hostname);
-    page_url = agent_data?.webflow_domain ? `https://${agent_data.webflow_domain}` : `https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`;
+    page_url =
+      agent_data?.webflow_domain && !['/ai', '/ai-result'].includes(pathname)
+        ? `https://${agent_data.webflow_domain}`
+        : `https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`;
     // TODO: Refactor into Theme middleware
     if (searchParams.theme) {
-      if (searchParams.theme === 'default') page_url = 'leagent-webflow-rebuild.webflow.io';
-      else page_url = `${searchParams.theme}-leagent.webflow.io`;
+      if (searchParams.theme === 'default') page_url = 'https://leagent-webflow-rebuild.webflow.io';
+      else page_url = `https://${searchParams.theme}-leagent.webflow.io`;
     }
     page_url = params && params.slug && !skip_slugs.includes(params.slug as string) ? `${page_url}/${params.slug}` : page_url;
     if (params && params.slug === 'property') {
@@ -98,6 +103,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
       console.log('fetching page', page_url);
     }
   }
+  console.log('page.tsx', { page_url });
 
   try {
     const req_page_html = await axios.get(page_url);
@@ -111,7 +117,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     notFound();
   }
   const $: CheerioAPI = load(data);
-  const { hostname: webflow_domain, pathname: slug } = new URL(page_url);
+  let { hostname: webflow_domain, pathname: slug } = new URL(page_url);
   $('form').removeAttr('id');
   $('form').removeAttr('name');
   if (process.env.NEXT_PUBLIC_BUY_BUTTON)
@@ -133,9 +139,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     agent_data = await findAgentRecordByAgentId(searchParams.paragon);
 
     if (agent_data) {
-      let webflow_domain = '';
       if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
-      else webflow_domain = `${searchParams.theme || 'oslo'}-leagent.webflow.io`;
       agent_data.webflow_domain = webflow_domain;
       loadAiResults($, agent_data.agent_id, origin);
     }
@@ -214,7 +218,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     className: 'filter-group-modal',
   });
 
-  if (hostname !== `${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`) {
+  if (hostname !== `${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}` || searchParams.paragon) {
     if (agent_data && agent_data.agent_id) {
       await fillAgentInfo($, agent_data);
 
