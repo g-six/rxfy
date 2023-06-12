@@ -18,7 +18,7 @@ import styles from './page.module.scss';
 import { getUserDataFromSessionKey } from './api/update-session';
 import { findAgentRecordByAgentId } from './api/agents/model';
 import { AxiosError } from 'axios';
-import { MyWebsite } from '@/rexify/my-website';
+import NotFound from './not-found';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico', 'sign-out'];
@@ -48,36 +48,62 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const { TEST_DOMAIN } = process.env as unknown as { [key: string]: string };
   const axios = (await import('axios')).default;
   const url = headers().get('x-url') as string;
-  const { hostname, pathname, origin } = new URL(url);
+  const { hostname, pathname: original_path, origin } = new URL(url);
+  let pathname = original_path;
+  let agent_data: AgentData | undefined = undefined;
+  let data, listings, property, legacy_data;
+  let page_url = '';
+  if (params?.slug && params?.['profile-slug']) {
+    // Check if the slug matches a realtor
+    pathname = '';
+    const profile_slug = params?.['profile-slug'] as string;
+    const possible_agent = params.slug as string;
+
+    if (profile_slug.indexOf('la-') === 0) {
+      const agent_record = await findAgentRecordByAgentId(possible_agent);
+      const metatags = {
+        ...agent_record?.agent_metatag?.data?.attributes,
+      };
+
+      if (agent_record) {
+        agent_data = {
+          ...agent_record,
+        };
+
+        if (params?.['site-page']) pathname = params['site-page'] as string;
+
+        if (!agent_data || !metatags.profile_slug || metatags.profile_slug !== profile_slug) return <NotFound></NotFound>;
+        page_url = `https://${agent_data.webflow_domain}/${pathname}`;
+      } else {
+        return <NotFound></NotFound>;
+      }
+    }
+  }
 
   let session_key = cookies().get('session_key')?.value || '';
 
-  let agent_data: AgentData = await getAgentDataFromDomain(hostname === 'localhost' ? TEST_DOMAIN : hostname);
-  let webflow_domain = agent_data ? agent_data.webflow_domain : process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN;
-
-  // TODO: Refactor into Theme middleware
-  if (searchParams.theme) {
-    if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
-    else webflow_domain = `${searchParams.theme}-leagent.webflow.io`;
+  if (!agent_data) {
+    agent_data = await getAgentDataFromDomain(hostname === 'localhost' ? TEST_DOMAIN : hostname);
+    page_url = agent_data?.webflow_domain ? `https://${agent_data.webflow_domain}` : `https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`;
+    // TODO: Refactor into Theme middleware
+    if (searchParams.theme) {
+      if (searchParams.theme === 'default') page_url = 'leagent-webflow-rebuild.webflow.io';
+      else page_url = `${searchParams.theme}-leagent.webflow.io`;
+    }
+    page_url = params && params.slug && !skip_slugs.includes(params.slug as string) ? `${page_url}/${params.slug}` : page_url;
+    if (params && params.slug === 'property') {
+      page_url = `${page_url}/${params.slug}id`;
+      console.log('fetching property page', page_url);
+    } else {
+      console.log('fetching page', page_url);
+    }
   }
-
-  let webflow_page_url =
-    params && params.slug && !skip_slugs.includes(params.slug as string) ? `https://${webflow_domain}/${params.slug}` : `https://${webflow_domain}`;
-
-  if (params && params.slug === 'property') {
-    webflow_page_url = `${webflow_page_url}/${params.slug}id`;
-    console.log('fetching property page', webflow_page_url);
-  } else {
-    console.log('fetching page', webflow_page_url);
-  }
-
-  let data, listings, property, legacy_data;
 
   try {
-    const req_page_html = await axios.get(webflow_page_url);
+    const req_page_html = await axios.get(page_url);
     data = req_page_html.data;
   } catch (e) {
-    console.log('Unable to fetch page html for', webflow_page_url);
+    console.log('Unable to fetch page html for', page_url);
   }
 
   if (typeof data !== 'string') {
@@ -85,7 +111,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     notFound();
   }
   const $: CheerioAPI = load(data);
-
+  const { hostname: webflow_domain, pathname: slug } = new URL(page_url);
   $('form').removeAttr('id');
   $('form').removeAttr('name');
   if (process.env.NEXT_PUBLIC_BUY_BUTTON)
@@ -105,22 +131,13 @@ export default async function Home({ params, searchParams }: { params: Record<st
         console.log(`Error in generating ${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${searchParams.paragon}?regen=1`, axerr.response?.status);
       });
     agent_data = await findAgentRecordByAgentId(searchParams.paragon);
-    if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
-    else webflow_domain = `${searchParams.theme || 'oslo'}-leagent.webflow.io`;
-    agent_data.webflow_domain = webflow_domain;
-    loadAiResults($, agent_data.agent_id, origin);
-  } else if (searchParams.agent) {
-    if (searchParams.theme) {
-      //V56820
-      const agent_record = await findAgentRecordByAgentId(searchParams.agent);
-      // const agent_record = await getUserById(Number(searchParams.agent), 'realtor');
-      if (agent_record) {
-        agent_data = agent_record;
 
-        if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
-        else webflow_domain = `${searchParams.theme}-leagent.webflow.io`;
-        agent_data.webflow_domain = webflow_domain;
-      }
+    if (agent_data) {
+      let webflow_domain = '';
+      if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
+      else webflow_domain = `${searchParams.theme || 'oslo'}-leagent.webflow.io`;
+      agent_data.webflow_domain = webflow_domain;
+      loadAiResults($, agent_data.agent_id, origin);
     }
   } else if (!(searchParams.theme && searchParams.agent) && agent_data.webflow_domain === 'leagent-website.webflow.io') {
     if (!session_key && params.slug && ['ai-result'].includes(params.slug as string)) {
@@ -147,12 +164,13 @@ export default async function Home({ params, searchParams }: { params: Record<st
         loadAiResults($, session.agent.agent_id, origin);
       }
     }
+
     switch (params.slug) {
       case 'my-profile':
         return (
           <>
             <MyProfilePage
-              data={{ session_key, 'user-type': webflow_domain === (process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN as string) ? 'realtor' : 'customer' }}
+              data={{ session_key, 'user-type': hostname === (process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN as string) ? 'realtor' : 'customer' }}
             >
               {parse($.html()) as unknown as JSX.Element}
             </MyProfilePage>
@@ -186,17 +204,19 @@ export default async function Home({ params, searchParams }: { params: Record<st
     className: 'filter-group-modal',
   });
 
-  if (webflow_domain !== `${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`) {
+  if (hostname !== `${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`) {
     if (agent_data && agent_data.agent_id) {
       await fillAgentInfo($, agent_data);
 
-      if (!params || !params.slug || params.slug === '/') {
+      if (!slug || slug === '/') {
         listings = await getAgentListings(agent_data.agent_id);
         // Recent listings
         if (listings?.active?.length) {
           fillPropertyGrid($, listings.active, '.recent-listings-grid');
+          fillPropertyGrid($, listings.active, '.featured-grid');
         } else {
           removeSection($, '.recent-listings-grid');
+          removeSection($, '.featured-grid');
         }
 
         // Sold listings
@@ -205,11 +225,17 @@ export default async function Home({ params, searchParams }: { params: Record<st
         } else {
           removeSection($, '.sold-listings-grid');
         }
-      } else {
-        console.log('\n\nHome.agent_data not available');
       }
     } else {
       console.log('\n\nHome.agent_data not available');
+    }
+    if (params?.['profile-slug'] && params?.slug) {
+      console.log(params);
+      if (agent_data?.metatags.target_city) {
+        $('[href="/map"]').attr('href', `/${params.slug}/${params['profile-slug']}/map?q=${agent_data.metatags.target_city}`);
+      } else {
+        $('[href="/map"]').attr('href', `/${params.slug}/${params['profile-slug']}/map?q=Vancouver`);
+      }
     }
 
     if (params && (params.slug === 'property' || params.slug === 'brochure') && searchParams && (searchParams.lid || searchParams.id || searchParams.mls)) {
@@ -265,10 +291,14 @@ export default async function Home({ params, searchParams }: { params: Record<st
     <>
       {webflow.body.code ? (
         <main className={styles['rx-realm']}>
-          {rexify(webflow.body.code, agent_data, property, {
-            ...params,
-            webflow_domain,
-          })}
+          {agent_data ? (
+            rexify(webflow.body.code, agent_data, property, {
+              ...params,
+              webflow_domain: hostname,
+            })
+          ) : (
+            <NotFound />
+          )}
           <RxNotifications />
         </main>
       ) : (

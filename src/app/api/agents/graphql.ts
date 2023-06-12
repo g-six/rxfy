@@ -84,8 +84,8 @@ export const gql_by_email = `query Agent($email: String!) {
       data {${GQ_FRAG_AGENT}}
     }
 }`;
-export const gql_by_agent_id = `query Agent($agent_id: String!) {
-    agents(filters: { agent_id: { eqi: $agent_id } }) {
+export const gql_by_agent_uniq = `query Agent($filters: AgentFiltersInput!) {
+    agents(filters: $filters) {
       data {${GQ_FRAG_AGENT}}
     }
 }`;
