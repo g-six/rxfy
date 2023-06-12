@@ -20,7 +20,7 @@ export default function RxSecondPhotosGrid({ child, photos }: Props) {
       <div
         key={`gallery #${i}`}
         onClick={() => {
-          show(i);
+          show(i + 3);
         }}
         className='relative w-full h-full overflow-hidden rounded-lg brrr'
       >
