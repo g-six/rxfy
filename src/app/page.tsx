@@ -146,22 +146,24 @@ export default async function Home({ params, searchParams }: { params: Record<st
     }
     if (session_key && params.slug !== 'ai') {
       const [session_hash, user_id] = session_key.split('-');
-      const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
-      agent_data = session.agent;
 
-      if (session.agent && session.agent?.featured_listings?.length) {
-        try {
-          await axios.get(`https://beta.leagent.com/api/properties/mls-id/${session.agent.featured_listings[0]}`);
-          const feature_listing = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${session.agent.featured_listings[0]}/recent.json`);
-          property = feature_listing.data;
-          property.listing_by = `Listing courtesy of ${session.agent.full_name}`;
-        } catch (e) {
-          console.log('Featured listing not found');
+      if (session_hash && user_id) {
+        const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
+        agent_data = session.agent;
+        if (session.agent && session.agent?.featured_listings?.length) {
+          try {
+            await axios.get(`https://beta.leagent.com/api/properties/mls-id/${session.agent.featured_listings[0]}`);
+            const feature_listing = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${session.agent.featured_listings[0]}/recent.json`);
+            property = feature_listing.data;
+            property.listing_by = `Listing courtesy of ${session.agent.full_name}`;
+          } catch (e) {
+            console.log('Featured listing not found');
+          }
         }
-      }
-      if (agent_data) {
-        agent_data.metatags = session.agent.agent_metatag;
-        loadAiResults($, session.agent.agent_id, origin);
+        if (agent_data) {
+          agent_data.metatags = session.agent.agent_metatag;
+          loadAiResults($, session.agent.agent_id, origin);
+        }
       }
     }
 

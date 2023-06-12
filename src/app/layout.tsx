@@ -64,7 +64,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       // data = req_page_html.data;
       data = '<html><head></head><body></body></html>';
 
-      return <NotFound></NotFound>;
+      return <NotFound>test</NotFound>;
     }
   } else {
     agent_data = await getAgentDataFromDomain(hostname === 'localhost' ? `${TEST_DOMAIN}` : hostname);
