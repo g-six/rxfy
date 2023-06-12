@@ -44,15 +44,7 @@ function loadAiResults($: CheerioAPI, user_id: string, origin?: string) {
   });
 }
 
-export default async function Home({
-  agent,
-  params,
-  searchParams,
-}: {
-  agent?: AgentData;
-  params: Record<string, unknown>;
-  searchParams: Record<string, string>;
-}) {
+export default async function Home({ params, searchParams }: { params: Record<string, unknown>; searchParams: Record<string, string> }) {
   const { TEST_DOMAIN } = process.env as unknown as { [key: string]: string };
   const axios = (await import('axios')).default;
   const url = headers().get('x-url') as string;
