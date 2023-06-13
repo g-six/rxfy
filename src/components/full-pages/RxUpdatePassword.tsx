@@ -4,14 +4,13 @@ import axios from 'axios';
 import useEvent, { Events } from '@/hooks/useEvent';
 import React from 'react';
 import { RxButton } from '../RxButton';
-import { NotificationCategory } from '@/_typings/events';
+import { EventsData, NotificationCategory } from '@/_typings/events';
 import { RxPassword } from '../RxPassword';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
 import { queryStringToObject } from '@/_utilities/url-helper';
 import { useSearchParams } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { UserInputModel } from '@/_typings/base-user';
-import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 
 type RxUpdatePasswordPageProps = {
   type: string;
@@ -39,7 +38,7 @@ export function RxUpdatePasswordPageIterator(props: RxUpdatePasswordPageProps) {
           </RxButton>
         );
       }
-      if (child_node.props.className.split(' ').includes('txt-password')) {
+      if (child_node.props.type === 'password') {
         return <RxPassword {...child_node.props} rx-event={Events.UpdatePassword} name='password' />;
       }
       return <input {...child_node.props} className={[child_node.props.className || '', 'rexified'].join(' ')} />;
@@ -71,8 +70,12 @@ export function RxUpdatePasswordPage(props: RxUpdatePasswordPageProps) {
     if (is_loading) return;
     toggleLoading(true);
     try {
-      const { user } = await updateAccount(Cookies.get('session_key') as string, { password });
-      if (user) {
+      const { user, session_key: new_session } = await updateAccount(
+        Cookies.get('session_key') as string,
+        { password },
+        `${props?.['user-type']}` === 'realtor',
+      );
+      if (user || new_session) {
         notify({
           category: NotificationCategory.SUCCESS,
           message: 'Your password has been updated and you have been automagically logged in. You will be redirected to your account page in a few second(s)',
@@ -97,12 +100,13 @@ export function RxUpdatePasswordPage(props: RxUpdatePasswordPageProps) {
   React.useEffect(() => {
     if (data?.clicked === `${Events.UpdatePassword}-trigger`) {
       const { clicked, ...evt_data } = data;
-      notify({});
-      fireEvent(evt_data);
       const { password } = evt_data as unknown as { password?: string };
-      if (password) {
-        submitForm(password);
-      }
+      notify({});
+      fireEvent({
+        clicked: undefined,
+        password: undefined,
+      } as unknown as EventsData);
+      password && submitForm(password);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
@@ -127,10 +131,10 @@ export function RxUpdatePasswordPage(props: RxUpdatePasswordPageProps) {
 }
 
 async function loadSession(search_params: Record<string, string | number | boolean>, user_type?: string) {
-  let session_key = '';
+  let session_key = Cookies.get('session_key') as string;
   let customer_id = '';
 
-  if (search_params?.key) {
+  if (!session_key && search_params?.key) {
     session_key = search_params.key as string;
     customer_id = session_key.split('-')[1];
   }
@@ -152,14 +156,11 @@ async function loadSession(search_params: Record<string, string | number | boole
         session_key: string;
       };
     };
-    console.log(user_type);
-    // if (session && session.data?.session_key) {
-    //   Cookies.set('session_key', session.data?.session_key);
-    //   return session.data;
-    // } else {
-    //   clearSessionCookies();
-    //   location.href = '/log-in';
-    // }
+
+    if (session && session.data?.session_key) {
+      Cookies.set('session_key', session.data?.session_key);
+      return session.data;
+    }
   } else {
     location.href = '/log-in';
   }

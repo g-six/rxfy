@@ -415,6 +415,7 @@ export function rexifyScripts(html_code: string) {
 export function rexify(html_code: string, agent_data?: AgentData, property: Record<string, unknown> = {}, params: Record<string, unknown> = {}) {
   // Parse and replace
   let home_alert_index = 1;
+  console.log({ params });
   const options: HTMLReactParserOptions = {
     replace: node => {
       // Take out script / replace DOM placeholders with our Rexify
@@ -457,7 +458,13 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
         if (props.className) {
           if (props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL))
             return (
-              <AiPrompt>
+              <AiPrompt {...props}>
+                <>{domToReact(node.children)}</>
+              </AiPrompt>
+            );
+          if (props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL_BLANK))
+            return (
+              <AiPrompt {...props}>
                 <>{domToReact(node.children)}</>
               </AiPrompt>
             );
@@ -535,7 +542,7 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
             <RxResetPasswordPage
               {...props}
               type={node.type}
-              user-type={params.webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN ? 'realtor' : 'customer'}
+              user-type={`${process.env.NEXT_PUBLIC_LEAGENT_DOMAINS}`.split(',').includes(`${params.webflow_domain}`) ? 'realtor' : 'customer'}
             >
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxResetPasswordPage>
@@ -546,7 +553,7 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
             <RxUpdatePasswordPage
               {...props}
               type={node.type}
-              user-type={params.webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN ? 'realtor' : 'customer'}
+              user-type={`${process.env.NEXT_PUBLIC_LEAGENT_DOMAINS}`.split(',').includes(`${params.webflow_domain}`) ? 'realtor' : 'customer'}
             >
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxUpdatePasswordPage>
