@@ -15,6 +15,7 @@ import { BrokerageDataModel } from '@/_typings/brokerage';
 import RxBrandPreferences from './realtors/brand-preferences';
 import { RxButton } from '@/components/RxButton';
 import { buildNavigationComponent } from './realtors/RxNavIterator';
+import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 
 type Props = {
   className?: string;
@@ -30,8 +31,6 @@ export default function MyProfilePage(p: Props) {
   const [dash_area, setDashArea] = React.useState<React.ReactElement>();
   const [navigation_wrapper, setNavBar] = React.useState<React.ReactElement>();
 
-  let html_props: { [key: string]: string } = {};
-
   React.useEffect(() => {
     if (Cookies.get('session_key')) {
       getUserBySessionKey(Cookies.get('session_key') as string, 'realtor')
@@ -39,12 +38,7 @@ export default function MyProfilePage(p: Props) {
           if (data.error) location.href = '/log-in';
           if (p.children.type === 'html') {
             Object.keys(p.children.props).forEach((key: string) => {
-              if (key !== 'children') {
-                html_props = {
-                  ...html_props,
-                  [key]: p.children.props[key],
-                };
-              } else {
+              if (key === 'children') {
                 p.children.props[key].forEach((child: React.ReactElement) => {
                   if (child.type === 'body') {
                     child.props.children.forEach((div: React.ReactElement) => {
@@ -116,10 +110,6 @@ function buildMainComponent(children: React.ReactElement[], container_props: Pro
 }
 
 export function RxPageIterator(props: Props) {
-  const { data: active_data } = useEvent(Events.DashboardMenuTab);
-  const { data: brand_preferences, fireEvent: updateBrandPreferences } = useEvent(Events.UpdateBrandPreferences);
-  const { tab: active_tab } = active_data as unknown as { tab?: string };
-
   const wrappedChildren = React.Children.map(props.children, child => {
     if (child.props && child.props.children) {
       if (child.props?.className?.split(' ').includes('dash-tabs')) {
@@ -127,7 +117,7 @@ export function RxPageIterator(props: Props) {
           children: React.Children.map(child.props.children, RxLeftMenuTab),
         });
       }
-      if (child.props?.className?.split(' ').includes('my-account-wrapper')) {
+      if (child.props?.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.MY_ACCOUNT_WRAPPER)) {
         return (
           <RxMyAccountPage {...child.props} session={props.session}>
             {child.props.children}

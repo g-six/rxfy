@@ -415,7 +415,6 @@ export function rexifyScripts(html_code: string) {
 export function rexify(html_code: string, agent_data?: AgentData, property: Record<string, unknown> = {}, params: Record<string, unknown> = {}) {
   // Parse and replace
   let home_alert_index = 1;
-  console.log({ params });
   const options: HTMLReactParserOptions = {
     replace: node => {
       // Take out script / replace DOM placeholders with our Rexify
@@ -475,12 +474,16 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
             // We do not show the session dropdown on ai-results pages
             return <></>;
           }
-          return <RxSessionDropdown agent={agent_data}>{domToReact(node.children) as ReactElement}</RxSessionDropdown>;
+          return (
+            <RxSessionDropdown agent={agent_data} className={props.className}>
+              {domToReact(node.children) as ReactElement}
+            </RxSessionDropdown>
+          );
         }
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.GUEST_DROPDOWN) >= 0) {
           // We hide the guest login / sign up buttons if an agent is already signed in using agent_data
           return (
-            <RxGuestNavButtons {...props} show={agent_data === undefined}>
+            <RxGuestNavButtons {...props}>
               <>{domToReact(node.children)}</>
             </RxGuestNavButtons>
           );
