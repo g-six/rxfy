@@ -72,12 +72,6 @@ export async function GET(request: Request) {
     false,
   );
   const { agent, birthday, brokerage, stripe_customer, stripe_subscriptions } = session_data;
-  const agent_attributes = agent?.data?.id
-    ? {
-        ...agent.data.attributes,
-        id: Number(agent.data.id),
-      }
-    : undefined;
 
   let phone_number = session_data.phone_number || session_data.phone || session_data.agent?.data?.attributes?.phone;
   if (email && last_activity_at && session_key) {
@@ -106,14 +100,9 @@ export async function GET(request: Request) {
     }
     return getResponse(
       {
-        ...(agent_attributes ? agent_attributes : {}),
+        ...agent,
         agent_metatag: undefined,
-        metatags: agent_attributes?.agent_metatag?.data
-          ? {
-              ...agent_attributes.agent_metatag.data.attributes,
-              id: Number(agent_attributes.agent_metatag.data.id),
-            }
-          : undefined,
+        metatags: agent?.agent_metatag ? agent?.agent_metatag : undefined,
         brokerage,
         phone_number,
         stripe_customer,
