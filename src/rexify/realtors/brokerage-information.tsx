@@ -86,7 +86,7 @@ export function RxPageIterator(props: Props & { onSubmit: MouseEventHandler }) {
                 upload_url,
               } as unknown as EventsData);
               if (upload_url) {
-                const logo_url = 'http:/' + new URL(upload_url).pathname;
+                const logo_url = 'https:/' + new URL(upload_url).pathname;
                 updateForm({
                   logo_url,
                 } as unknown as EventsData);
