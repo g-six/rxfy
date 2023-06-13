@@ -183,7 +183,7 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
   const response_data = response ? response.data : {};
 
   if (response_data.data?.user?.data?.attributes) {
-    const { email, agent, agents, brokerages, last_activity_at, stripe_customer, stripe_subscriptions, ...fields } = response_data.data?.user?.data?.attributes;
+    const { email, agent, agents, brokerage, last_activity_at, stripe_customer, stripe_subscriptions, ...fields } = response_data.data?.user?.data?.attributes;
     const now = Math.ceil(Date.now() / 1000);
     const expires_at = new Date(new Date(last_activity_at).getTime() + SESSION_LIFE_SECS * 1000);
     const expires_in = Math.ceil(expires_at.getTime() / 1000) - now;
@@ -195,12 +195,7 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
     }
     const encrypted_email = encrypt(email);
     const compare_key = `${encrypt(last_activity_at)}.${encrypted_email}`;
-    const brokerage =
-      brokerages?.data && brokerages.data.length
-        ? {
-            ...brokerages.pop().attributes,
-          }
-        : undefined;
+
     if (compare_key === session_hash && !isNaN(Number(id))) {
       let agent_metatag = agent?.data?.attributes?.agent_metatag?.data || {};
 
@@ -225,7 +220,12 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
               id: Number(agent.data.id),
             }
           : undefined,
-        brokerage: brokerage as unknown as BrokerageInputModel,
+        brokerage: brokerage?.data
+          ? ({
+              ...brokerage.data.attributes,
+              id: Number(brokerage.data.id),
+            } as unknown as BrokerageInputModel)
+          : undefined,
         full_name,
         email,
         user_type,
