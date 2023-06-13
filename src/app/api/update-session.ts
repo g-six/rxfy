@@ -215,7 +215,6 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
         ...real_estate_board.attributes,
         id: real_estate_board.id ? Number(real_estate_board.id) : undefined,
       };
-
       return {
         id,
         agent: agent
@@ -248,7 +247,6 @@ export async function getNewSessionKey(previous_token: string, id: number, user_
   let expires_in = results.expires_in || 0;
   if (results.email) {
     if (results.last_activity_at) {
-      const ts = Math.ceil(new Date(results.last_activity_at).getTime() / 1000);
       // session life is at 2 hours
       if (expires_in > 0) {
         return {
