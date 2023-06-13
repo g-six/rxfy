@@ -159,7 +159,7 @@ function Iterator(props: Props & { uploads?: BrandUploads }) {
           const metatags = session.metatags as unknown as {
             [key: string]: string;
           };
-          console.log({ metatags });
+
           if (metatags[child.props.id]) {
             return React.cloneElement(child, {
               className: child.props.className + ` bg-cover bg-center`,

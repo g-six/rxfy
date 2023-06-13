@@ -251,7 +251,7 @@ export function BrokerageInformationForm(props: Props) {
   }, [form_data]);
 
   return (
-    <div id='rx-my-account-page' className={[props.className || '', is_processing ? 'loading' : ''].join(' ').trim()}>
+    <div id='rx-my-brokerage-page' className={[props.className || '', is_processing ? 'loading' : ''].join(' ').trim()}>
       <RxPageIterator
         {...props}
         data={form_data as unknown as BrokerageData}
