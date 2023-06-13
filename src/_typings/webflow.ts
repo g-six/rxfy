@@ -51,6 +51,7 @@ export enum WEBFLOW_NODE_SELECTOR {
 
   // Realtor signup
   AI_PROMPT_MODAL = 'ai-prompt-modal',
+  AI_PROMPT_MODAL_BLANK = 'ai-prompt-modal-noresult',
   AI_THEME_PANE_1 = '.w-tabs-1-data-w-pane-0 .theme-area',
   AI_THEME_PANE_2 = 'realtor-ai-property-page',
   AGENT_NAME_WRAPPER = 'agent-name',
