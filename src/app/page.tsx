@@ -306,7 +306,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
         <main className={styles['rx-realm']}>
           {rexify(webflow.body.code, agent_data, property, {
             ...params,
-            webflow_domain: hostname,
+            webflow_domain: hostname === 'localhost' ? TEST_DOMAIN : hostname,
           })}
           <RxNotifications />
         </main>
