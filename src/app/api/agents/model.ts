@@ -106,6 +106,7 @@ export async function updateAgent(
     );
 
     const agent = agent_response?.data?.data?.updateAgent?.data || {};
+
     return {
       ...agent.attributes,
       id: agent.id ? Number(agent.id) : undefined,
@@ -222,13 +223,13 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
       eqi: string;
     };
   } = {};
-  if (attributes.agent_id) {
+  if (agent_id) {
     filters = {
       agent_id: {
         eqi: agent_id,
       },
     };
-  } else if (attributes.profile_slug) {
+  } else if (profile_slug) {
     filters = {
       agent_id: {
         eqi: agent_id,
@@ -252,8 +253,14 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
   });
 
   let [record] = response_data?.data?.agents.data;
-  if (!record.attributes.agent_metatag?.data) {
+  if (!record) {
+    // agent record does not exist,
+    console.log('agent record does not exist');
+    return record;
+  } else if (!record.attributes.agent_metatag?.data) {
     const recent = await getMostRecentListing(agent_id);
+    if (recent) {
+    }
     const property = recent as { [key: string]: string | number };
     const { real_estate_board } = recent as {
       real_estate_board: {
@@ -290,18 +297,24 @@ export async function findAgentRecordByAgentId(agent_id: string) {
   return await findAgentBy({ agent_id });
 }
 
-export async function getMostRecentListing(agent_id: string): Promise<unknown> {
+export async function getMostRecentListing(agent_id: string, city: string, size: number): Promise<unknown> {
   const legacy_params: LegacySearchPayload = {
     from: 0,
     size: 1,
     query: {
       bool: {
-        should: [{ match: { 'data.LA1_LoginName': agent_id } }, { match: { 'data.LA2_LoginName': agent_id } }, { match: { 'data.LA3_LoginName': agent_id } }],
+        should: [
+          { match: { 'data.LA1_LoginName': agent_id } },
+          { match: { 'data.LA2_LoginName': agent_id } },
+          { match: { 'data.LA3_LoginName': agent_id } },
+          { match: { 'data.Status': 'Active' } },
+        ],
         minimum_should_match: 0,
       },
     },
   };
   const legacy_listings = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
+
   const listing = legacy_listings.length && legacy_listings[0];
   if (listing) {
     const {
@@ -325,6 +338,30 @@ export async function getMostRecentListing(agent_id: string): Promise<unknown> {
       ...listing,
       listed_by,
     };
+  }
+}
+
+export async function createAgentRecord(agent_id: string, email: string, phone: string, full_name: string, target_city: string, neighbourhoods: string) {
+  try {
+    // const variables = { email };
+    const sample_listings = await retrieveFromLegacyPipeline({
+      from: 0,
+      size: 3,
+      query: {
+        bool: {
+          filter: [{ match: { 'data.Status': 'Active' } }],
+          should: [{ match: { 'data.City': target_city } }],
+        },
+      },
+    });
+
+    let first_name = `${full_name}`.split(' ')[0];
+    let last_name = `${full_name}`.split(' ').slice(0, 2).pop();
+    last_name = (last_name && last_name.split('PREC*').join('').trim()) || '';
+    return sample_listings;
+  } catch (e) {
+    console.log('Caught error in createAgentRecordIfNoneFound');
+    console.error(e);
   }
 }
 
