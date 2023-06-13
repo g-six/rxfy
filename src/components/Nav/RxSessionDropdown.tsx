@@ -43,7 +43,6 @@ export default function RxSessionDropdown(p: Props) {
   const evt = useEvent(Events.ToggleUserMenu);
   const logout = useEvent(Events.Logout);
   const [in_session, setSession] = React.useState(false);
-
   React.useEffect(() => {
     if (logout.data?.clicked) {
       logout.fireEvent({});
@@ -118,7 +117,7 @@ export default function RxSessionDropdown(p: Props) {
     }
   }, []);
 
-  return (
+  return in_session ? (
     <ToggleIterator
       data-session={session.data}
       id={`${Events.ToggleUserMenu}-trigger`}
@@ -131,6 +130,8 @@ export default function RxSessionDropdown(p: Props) {
     >
       <div className={p.className + ' rexified RxSessionDropdown'}>{transformMatchingElements(p.children, matches)}</div>
     </ToggleIterator>
+  ) : (
+    <></>
   );
 }
 
