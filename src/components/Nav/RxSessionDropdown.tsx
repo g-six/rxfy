@@ -9,6 +9,9 @@ import { RxAgentTextWrapper } from '../RxAgentInfoWrappers/RxAgentTextWrapper';
 import { AgentData } from '@/_typings/agent';
 import { RxButton } from '../RxButton';
 import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
+import Cookies from 'js-cookie';
+import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
+import { AxiosError } from 'axios';
 
 type Props = {
   children: React.ReactElement;
@@ -17,10 +20,11 @@ type Props = {
 };
 function DropdownLightbox(p: Props) {
   const evt = useEvent(Events.ToggleUserMenu);
+
   return (
     <Transition
       key='confirmation'
-      show={evt.data?.show || false}
+      show={evt.data?.clicked !== undefined || false}
       as='div'
       className={p.className || ''}
       enter='transform ease-out duration-200 transition'
@@ -35,9 +39,10 @@ function DropdownLightbox(p: Props) {
   );
 }
 export default function RxSessionDropdown(p: Props) {
+  const session = useEvent(Events.LoadUserSession);
   const evt = useEvent(Events.ToggleUserMenu);
   const logout = useEvent(Events.Logout);
-  const [in_session, setSession] = React.useState(p.agent?.full_name !== undefined);
+  const [in_session, setSession] = React.useState(false);
 
   React.useEffect(() => {
     if (logout.data?.clicked) {
@@ -50,32 +55,41 @@ export default function RxSessionDropdown(p: Props) {
     }
   }, [logout.data?.clicked]);
 
+  React.useEffect(() => {
+    if (Cookies.get('session_key') && session.data) {
+      let { session_key } = session.data as unknown as {
+        session_key: string;
+      };
+      if (!session_key) {
+        getUserBySessionKey(Cookies.get('session_key') as string, 'realtor')
+          .then(data => {
+            const { expires_in } = data as unknown as { expires_in: number };
+            session.fireEvent(data);
+            if (expires_in > 0) {
+              setSession(true);
+            }
+          })
+          .catch(e => {
+            const axerr = e as AxiosError;
+            if (axerr.response?.status === 401) {
+              clearSessionCookies();
+              setTimeout(() => {
+                location.href = '/log-in';
+              }, 500);
+            }
+          });
+      }
+    }
+  }, []);
+
   const matches = [
     {
-      searchFn: searchByClasses(['w-dropdown-toggle']),
-      transformChild: (child: React.ReactElement) =>
-        in_session ? (
-          React.cloneElement(child, {
-            id: `${Events.ToggleUserMenu}-trigger`,
-            className: child.props.className + ` RxSessionDropdown ${evt.data?.show ? ' w--open' : ''} rexified`,
-            onClick: () => {
-              evt.fireEvent({ show: !evt.data?.show });
-            },
-          })
-        ) : (
-          <></>
-        ),
-    },
-    {
       searchFn: searchByClasses(['w-dropdown-list']),
-      transformChild: (child: React.ReactElement) =>
-        in_session ? (
-          <DropdownLightbox className={child.props.className + ` w--open rexified ${styles.dropdown} ${styles['session-dropdown']}`}>
-            {child.props.children}
-          </DropdownLightbox>
-        ) : (
-          <></>
-        ),
+      transformChild: (child: React.ReactElement) => (
+        <DropdownLightbox className={child.props.className + ` w--open rexified ${styles.dropdown} ${styles['session-dropdown']}`}>
+          {child.props.children}
+        </DropdownLightbox>
+      ),
     },
     {
       searchFn: searchByClasses(['agent-name']),
@@ -94,6 +108,7 @@ export default function RxSessionDropdown(p: Props) {
       ),
     },
   ];
+
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       const global = globalThis as any;
@@ -102,5 +117,50 @@ export default function RxSessionDropdown(p: Props) {
       }
     }
   }, []);
-  return <>{transformMatchingElements(p.children, matches)}</>;
+
+  return (
+    <ToggleIterator
+      data-session={session.data}
+      id={`${Events.ToggleUserMenu}-trigger`}
+      onClick={elem => {
+        evt.fireEvent({
+          ...evt.data,
+          clicked: evt.data?.clicked ? undefined : elem.currentTarget.id,
+        });
+      }}
+    >
+      <div className={p.className + ' rexified RxSessionDropdown'}>{transformMatchingElements(p.children, matches)}</div>
+    </ToggleIterator>
+  );
+}
+
+function ToggleIterator(p: Props & { id?: string; 'data-session': unknown; onClick: React.MouseEventHandler }) {
+  const session = p['data-session'] as {
+    [key: string]: string;
+  };
+
+  const collection = React.Children.map(p.children, child => {
+    if (!child.props) {
+      return child;
+    } else if (typeof child.props.children === 'string') {
+      return React.cloneElement(child, {
+        className: `${child?.props?.className || ''} rexified`.trim(),
+      });
+    } else if (child.props.attribute) {
+      return <div {...child.props}>{session && session[child.props.attribute]}</div>;
+    } else if (child.type !== 'div') {
+      return child;
+    }
+    return (
+      <ToggleIterator {...child.props} data-session={p['data-session']} onClick={p.onClick}>
+        {child.props.children}
+      </ToggleIterator>
+    );
+  });
+
+  return (
+    <div className={p.className} id={p.id} onClick={p.onClick}>
+      {collection}
+    </div>
+  );
 }

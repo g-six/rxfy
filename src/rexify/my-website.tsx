@@ -42,6 +42,7 @@ export function MyWebsite(p: Props) {
 
   const [updates, setUpdates] = React.useState<RealtorInputModel | undefined>();
   const [agent, setAgent] = React.useState<AgentData | undefined>();
+
   React.useEffect(() => {
     if (updates && Cookies.get('session_key')) {
       setUpdates(undefined);
@@ -69,6 +70,21 @@ export function MyWebsite(p: Props) {
 
   React.useEffect(() => {
     if (websiteHandler.data?.clicked && agent) {
+      console.log(ogimage);
+      if (ogimage.upload_url && ogimage.file) {
+        axios.put(ogimage.upload_url as string, ogimage.file, {
+          headers: {
+            'Content-Type': ogimage.file.type,
+          },
+        });
+      }
+      if (favicon.upload_url && favicon.file) {
+        axios.put(favicon.upload_url as string, favicon.file, {
+          headers: {
+            'Content-Type': favicon.file.type,
+          },
+        });
+      }
       let metatags = getCleanObject(websiteHandler.data);
       websiteHandler.fireEvent({
         clicked: undefined,
@@ -95,6 +111,7 @@ export function MyWebsite(p: Props) {
   }, [websiteHandler.data]);
 
   // Let's load up the session
+
   React.useEffect(() => {
     if (Cookies.get('session_key')) {
       getUserBySessionKey(Cookies.get('session_key') as string, 'realtor')
@@ -212,7 +229,7 @@ function Iterator(p: {
                   upload_url,
                 } as unknown as EventsData);
                 if (upload_url) {
-                  const ogimage_url = 'http:/' + new URL(upload_url).pathname;
+                  const ogimage_url = 'https:/' + new URL(upload_url).pathname;
                   updateForm({
                     ogimage_url,
                   } as unknown as EventsData);
@@ -239,7 +256,7 @@ function Iterator(p: {
                   upload_url,
                 } as unknown as EventsData);
                 if (upload_url) {
-                  const favicon = 'http:/' + new URL(upload_url).pathname;
+                  const favicon = 'https:/' + new URL(upload_url).pathname;
                   updateForm({
                     favicon,
                   } as unknown as EventsData);
@@ -370,6 +387,7 @@ function Iterator(p: {
     }
     const field_name = getAgentFieldName(p);
     const field_value = getAgentFieldValue(updates, field_name);
+
     if (field_name)
       return (
         <RxTextInput {...props} rx-event={Events.UpdateWebsite} name={field_name.split('.').pop() as string} defaultValue={(field_value as string) || ''} />
