@@ -6,18 +6,17 @@ import React from 'react';
 type Props = {
   children: React.ReactElement;
   className?: string;
-  show: boolean;
 };
 
 export default function RxGuestNavButtons(p: Props) {
   const evt = useEvent(Events.Logout);
-  const [show, toggleShow] = React.useState(p.show);
+  const [hide, hideMenu] = React.useState(false);
 
   React.useEffect(() => {
     if (evt.data?.clicked) {
       Cookies.remove('session_key');
-      toggleShow(true);
+      hideMenu(true);
     }
   }, [evt.data?.clicked]);
-  return <div className={p.className}>{show ? p.children : ''}</div>;
+  return <div className={p.className + ' RxGuestNavButtons'}>{!Cookies.get('session_key') || hide ? p.children : ''}</div>;
 }
