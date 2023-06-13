@@ -206,7 +206,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
   return (
     webflow && (
-      <html>
+      <html {...$('html').attr()}>
         {webflow.head.code ? (
           <head
             suppressHydrationWarning
@@ -221,9 +221,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         )}
         {webflow.body ? (
           <body {...body_props} className={bodyClassName} suppressHydrationWarning>
-            {React.cloneElement(<main>{children}</main>, {
-              agent: JSON.stringify(agent_data),
-            })}
+            {children}
             {requestUrl.pathname && requestUrl.pathname.split('/').pop() === 'map' ? (
               <Script src='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js' async />
             ) : (

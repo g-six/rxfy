@@ -65,7 +65,12 @@ export async function GET(request: Request) {
 
   const user_type = request.url.split('/').includes('agent') ? 'realtor' : 'customer';
 
-  const { email, full_name, last_activity_at, session_key, first_name, last_name, ...session_data } = await getNewSessionKey(token, guid, user_type);
+  const { email, full_name, last_activity_at, expires_in, session_key, first_name, last_name, ...session_data } = await getNewSessionKey(
+    token,
+    guid,
+    user_type,
+    false,
+  );
   const { agent, birthday, brokerage, stripe_customer, stripe_subscriptions } = session_data;
   const agent_attributes = agent?.data?.id
     ? {
@@ -116,6 +121,7 @@ export async function GET(request: Request) {
         subscription,
         id: guid,
         last_activity_at,
+        expires_in,
         email,
         birthday,
         full_name: full_name || '',
