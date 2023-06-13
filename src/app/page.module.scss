@@ -9,7 +9,8 @@
 }
 
 .rx-realm {
-  position: relative;
+  @apply relative flex flex-col;
+  height: 100dvh;
 }
 
 .description {
