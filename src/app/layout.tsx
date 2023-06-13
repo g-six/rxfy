@@ -101,8 +101,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     console.log('Layout.tsx ERROR.  Unable to fetch page html for', page_url);
   }
 
-  console.log('layout.tsx:104', page_url);
-
   let property;
   let cache_found = false;
   if (requestUrl.pathname === '/property' && searchParams && (searchParams.lid || searchParams.id || searchParams.mls)) {
