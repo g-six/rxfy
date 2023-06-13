@@ -127,6 +127,7 @@ export default function RxBrandPreferences(p: Props) {
 
 function Iterator(props: Props & { uploads?: BrandUploads }) {
   const { uploads, session } = props;
+
   const wrappedChildren = React.Children.map(props.children, (child: React.ReactElement) => {
     if (child.props?.['event-name'] && child.props?.className.indexOf('upload-button') >= 0) {
       return (
@@ -154,10 +155,11 @@ function Iterator(props: Props & { uploads?: BrandUploads }) {
               backgroundImage: `url(${upload.preview})`,
             },
           });
-        } else if (props.session.metatags) {
-          const metatags = props.session.metatags as unknown as {
+        } else if (session.metatags) {
+          const metatags = session.metatags as unknown as {
             [key: string]: string;
           };
+          console.log({ metatags });
           if (metatags[child.props.id]) {
             return React.cloneElement(child, {
               className: child.props.className + ` bg-cover bg-center`,
