@@ -102,7 +102,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   }
 
   try {
-    console.log('Fetch data for:', { agent_data, page_url });
+    console.log('Fetch data for:', { agent_id: agent_data?.agent_id, page_url });
     const req_page_html = await axios.get(page_url);
     data = req_page_html.data;
   } catch (e) {
