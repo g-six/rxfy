@@ -40,9 +40,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       const metatags = {
         ...agent_record?.agent_metatag?.data?.attributes,
       };
+
       if (agent_record) {
         webflow_domain = agent_record.webflow_domain;
-        pathname = page_route.join('/') || '';
+        pathname = `/${page_route.join('/') || ''}`;
         agent_data = {
           ...agent_record,
         };
@@ -86,6 +87,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   page_url = `https://${webflow_domain}${pathname === '/property' ? '/property/propertyid' : pathname}`;
 
   try {
+    console.log('Load into layout:', { pathname, page_url });
     const req_page_html = await axios.get(page_url);
     data = req_page_html.data;
   } catch (e) {
