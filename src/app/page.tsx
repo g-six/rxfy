@@ -61,9 +61,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
     if (profile_slug.indexOf('la-') === 0) {
       const agent_record = await findAgentRecordByAgentId(possible_agent);
-      const metatags = {
-        ...agent_record?.agent_metatag?.data?.attributes,
-      };
+      const { metatags } = agent_record;
 
       if (agent_record) {
         agent_data = {

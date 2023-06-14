@@ -16,15 +16,6 @@ import { findAgentRecordByAgentId } from './api/agents/model';
 import { attributesToProps } from 'html-react-parser';
 import NotFound from './not-found';
 
-const skip_pathnames = ['/favicon.ico'];
-
-function getFullWebflowPagePath(pathname: string) {
-  if (!pathname || pathname === '/' || skip_pathnames.includes(pathname)) return '/';
-  if (pathname === '/property') return '/property/propertyid';
-  if (pathname === '/sign-out') return '/';
-  return pathname;
-}
-
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const axios = (await import('axios')).default;
   const { NEXT_APP_GGL_API_KEY, TEST_DOMAIN } = process.env;
@@ -66,7 +57,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       // data = req_page_html.data;
       data = '<html><head></head><body></body></html>';
 
-      return <NotFound>test</NotFound>;
+      return <NotFound>404</NotFound>;
     }
   } else {
     agent_data = await getAgentDataFromDomain(hostname === 'localhost' ? `${TEST_DOMAIN}` : hostname);
