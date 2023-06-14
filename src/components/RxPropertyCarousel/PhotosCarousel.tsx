@@ -24,7 +24,7 @@ export default function PhotosCarousel({ propertyPhotos }: Props) {
   const closeModal = () => {
     fireEvent({ show: false, photos: [] });
   };
-  console.log(currentPhotos);
+
   useEffect(() => {
     if (document) {
       document.body.style.overflow = show ? 'hidden' : 'auto';
