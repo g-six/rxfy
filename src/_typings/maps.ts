@@ -83,6 +83,34 @@ export interface PlaceDetails {
   vicinity: string;
 }
 
+export type SelectedPlaceDetails = {
+  address: string;
+  short_address: string;
+  area: string;
+  city: string;
+  lat: number;
+  lon: number;
+  nelat: number;
+  nelng: number;
+  swlat: number;
+  swlng: number;
+  place_id: string;
+  state_province: string;
+  postal_code?: string;
+  neighbourhood?: string;
+};
+
+export type SearchHighlightInput = {
+  name: string;
+  place_id: string;
+  lat: number;
+  lng: number;
+  nelat: number;
+  nelng: number;
+  swlat: number;
+  swlng: number;
+};
+
 export interface CreateNeighborhoodMapOptions {
   clickableIcons: false;
   mapTypeControl: false;

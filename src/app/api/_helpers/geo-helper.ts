@@ -69,9 +69,14 @@ export async function getFormattedPlaceDetails(place_id: string) {
 
       components.pop();
       return {
+        ...geometry?.location,
         address: components.join(', '),
         lat: geometry?.location.lat,
         lon: geometry?.location.lng,
+        nelat: geometry?.viewport.northeast.lat,
+        nelng: geometry?.viewport.northeast.lng,
+        swlat: geometry?.viewport.southwest.lat,
+        swlng: geometry?.viewport.southwest.lng,
         area,
         city,
         postal_zip_code,

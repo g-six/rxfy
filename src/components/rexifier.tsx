@@ -83,20 +83,20 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
     await replaceTargetCityComponents($, agent_data.metatags.target_city);
   }
 
-  if (agent_data.metatags.search_highlights && agent_data.metatags.search_highlights.labels) {
-    const areas = agent_data.metatags.search_highlights.labels;
+  if (agent_data.metatags.search_highlights && agent_data.metatags.search_highlights) {
+    const areas = agent_data.metatags.search_highlights;
 
     areas.forEach((area, i) => {
-      if (area.ne && area.sw && area.lat && area.lng) {
+      if (area.nelat && area.swlat && area.lat && area.lng) {
         replaceSearchHighlights(
           $,
           `.address-chip:nth-child(${i + 2})`,
-          area.title,
+          area.name,
           {
-            nelat: area.ne.lat,
-            nelng: area.ne.lng,
-            swlat: area.sw.lat,
-            swlng: area.sw.lng,
+            nelat: area.nelat,
+            nelng: area.nelng,
+            swlat: area.swlat,
+            swlng: area.swlng,
           },
           {
             lat: area.lat,

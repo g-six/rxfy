@@ -7,18 +7,25 @@ import { getSmart } from './repair';
 import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
 import { LegacySearchPayload } from '@/_typings/pipeline';
 import { getRealEstateBoard } from '../real-estate-boards/model';
-import { MLSProperty, PropertyDataModel } from '@/_typings/property';
+import { MLSProperty } from '@/_typings/property';
 import { mutation_update_agent } from './graphql';
+import { SearchHighlightInput } from '@/_typings/maps';
 
 export async function createAgent(user_data: {
   agent_id: string;
   email: string;
   phone?: string;
+  street_1?: string;
+  street_2?: string;
   encrypted_password?: string;
   full_name: string;
   real_estate_board_id?: number;
 }) {
   try {
+    const parts = `${user_data.full_name.split('PREC*').join('').trim()}`.split(' ');
+    let last_name = parts.pop();
+    let first_name = parts.join(' ');
+
     const agent_response = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
       {
@@ -29,8 +36,10 @@ export async function createAgent(user_data: {
             email: user_data.email,
             phone: user_data.phone,
             full_name: user_data.full_name,
-            first_name: user_data.full_name.split(' ')[0] || '',
-            last_name: user_data.full_name.split(' PREC').join('').split(' ').pop(),
+            street_1: user_data.street_1,
+            street_2: user_data.street_2,
+            first_name,
+            last_name,
             real_estate_board: user_data.real_estate_board_id,
             webflow_domain: WEBFLOW_THEME_DOMAINS.DEFAULT,
           },
@@ -48,7 +57,7 @@ export async function createAgent(user_data: {
     return {
       ...agent.attributes,
       id: agent.id ? Number(agent.id) : undefined,
-      metatags: agent.agent_metatag.data
+      metatags: agent.agent_metatag?.data
         ? {
             ...agent.agent_metatag.data.attributes,
             id: Number(agent.agent_metatag.data.id),
@@ -213,7 +222,7 @@ export async function updateAgentMetatags(
 }
 
 export async function findAgentBy(attributes: { [key: string]: string }) {
-  const { agent_id, profile_slug } = attributes;
+  const { agent_id, profile_slug, target_city, email, full_name, neighbourhoods, phone } = attributes;
 
   let filters: {
     agent_id?: {
@@ -258,7 +267,7 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
     console.log('agent record does not exist');
     return record;
   } else if (!record.attributes.agent_metatag?.data) {
-    const recent = await getMostRecentListing(agent_id);
+    const recent = await getMostRecentListing(agent_id, target_city);
     if (recent) {
     }
     const property = recent as { [key: string]: string | number };
@@ -297,7 +306,7 @@ export async function findAgentRecordByAgentId(agent_id: string) {
   return await findAgentBy({ agent_id });
 }
 
-export async function getMostRecentListing(agent_id: string, city: string, size: number): Promise<unknown> {
+export async function getMostRecentListing(agent_id: string, city: string, size: number = 1): Promise<unknown> {
   const legacy_params: LegacySearchPayload = {
     from: 0,
     size: 1,
@@ -313,6 +322,7 @@ export async function getMostRecentListing(agent_id: string, city: string, size:
       },
     },
   };
+  console.log({ legacy_params });
   const legacy_listings = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
 
   const listing = legacy_listings.length && legacy_listings[0];
@@ -341,24 +351,44 @@ export async function getMostRecentListing(agent_id: string, city: string, size:
   }
 }
 
-export async function createAgentRecord(agent_id: string, email: string, phone: string, full_name: string, target_city: string, neighbourhoods: string) {
+export async function createAgentRecord(agent: {
+  agent_id: string;
+  email: string;
+  phone: string;
+  full_name: string;
+  search_highlights?: SearchHighlightInput[];
+}) {
+  let street_1, street_2, real_estate_board_id;
   try {
-    // const variables = { email };
-    const sample_listings = await retrieveFromLegacyPipeline({
-      from: 0,
-      size: 3,
-      query: {
-        bool: {
-          filter: [{ match: { 'data.Status': 'Active' } }],
-          should: [{ match: { 'data.City': target_city } }],
+    if (agent.search_highlights) {
+      const [{ subarea_community, area, title: address, city, state_province, style_type, beds, baths, ...mls_data }] = await retrieveFromLegacyPipeline({
+        from: 0,
+        size: 3,
+        sort: {
+          'data.ListingDate': 'desc',
         },
-      },
+        query: {
+          bool: {
+            filter: [{ match: { 'data.Status': 'Active' } }, { match: { 'data.City': agent.search_highlights[0].name } }],
+            should: agent.search_highlights.length === 1 ? [] : agent.search_highlights.slice(1).map(highlight => ({ match: { 'data.Area': highlight.name } })),
+          },
+        },
+      });
+
+      street_1 = city;
+      street_2 = state_province;
+      const real_estate_board = await getRealEstateBoard(mls_data as unknown as { [key: string]: string });
+      real_estate_board_id = real_estate_board.id;
+    }
+
+    const new_agent = await createAgent({
+      real_estate_board_id,
+      ...agent,
+      street_1,
+      street_2,
     });
 
-    let first_name = `${full_name}`.split(' ')[0];
-    let last_name = `${full_name}`.split(' ').slice(0, 2).pop();
-    last_name = (last_name && last_name.split('PREC*').join('').trim()) || '';
-    return sample_listings;
+    return new_agent;
   } catch (e) {
     console.log('Caught error in createAgentRecordIfNoneFound');
     console.error(e);
@@ -390,9 +420,9 @@ export async function createAgentRecordIfNoneFound(
     // const variables = { email };
     let agent = await findAgentRecordByAgentId(agent_id);
 
-    let first_name = `${full_name}`.split(' ')[0];
-    let last_name = `${full_name}`.split(' ').slice(0, 2).pop();
-    last_name = (last_name && last_name.split('PREC*').join('').trim()) || '';
+    const parts = `${full_name.split('PREC*').join('').trim()}`.split(' ');
+    let last_name = parts.pop();
+    let first_name = parts.join(' ');
 
     if (!agent) {
       console.log("Agent not found, let's create it");
@@ -416,26 +446,6 @@ export async function createAgentRecordIfNoneFound(
       console.log(`Agent found, let's use ${first_name} ${last_name}`);
       console.log(JSON.stringify(agent, null, 4));
     }
-
-    // A hook is already working on this
-    // if (!agent.metatags?.personal_bio && listing?.description) {
-    //   console.log('No agent bio, sprucing it up...');
-    //   console.log(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent_id}`);
-    //   axios.get(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${agent_id}`);
-    //   const agent_attributes: AgentInput & { id: number } & { [key: string]: string | number } = {
-    //     id: Number(agent.id),
-    //     ...agent.attributes,
-    //     agent_id,
-    //     first_name,
-    //     last_name,
-    //   };
-
-    //   Object.keys(agent_attributes).forEach(k => {
-    //     if (agent_attributes[k] === null) delete agent_attributes[k];
-    //   });
-
-    //   getSmart(agent_attributes, listing, real_estate_board);
-    // }
     return agent;
   } catch (e) {
     console.log('Caught error in createAgentRecordIfNoneFound');

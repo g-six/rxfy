@@ -1,5 +1,6 @@
 import { AgentData } from '@/_typings/agent';
-import { BrokerageDataModel, BrokerageInput } from '@/_typings/brokerage';
+import { BrokerageInput } from '@/_typings/brokerage';
+import { SearchHighlightInput } from '@/_typings/maps';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
@@ -27,4 +28,17 @@ export async function updateBrokerageInformation(data: BrokerageInput & { id?: n
     return xhr.data;
   }
   return data;
+}
+
+export async function createAgentRecord(record: {
+  agent_id: string;
+  email: string;
+  phone: string;
+  full_name: string;
+  target_city: SearchHighlightInput;
+  neighbourhoods?: SearchHighlightInput[];
+}) {
+  const xhr = await axios.post('/api/new-agent', record);
+  let agent: AgentData | undefined = xhr.data || {};
+  return agent;
 }

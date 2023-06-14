@@ -83,9 +83,6 @@ export default function RxPropertyActions(props: PropertyActionsProps) {
       transformChild: (child: React.ReactElement) =>
         React.cloneElement(child, {
           ...child.props,
-          href: `mailto:?subject=Very lovely property on Leagent&body=Very lovely property at ${
-            props?.property?.title ? props.property.title : 'nice location'
-          } on Leagent ${typeof window !== 'undefined' ? window.location.href : ''}`,
           target: '_blank',
           onClick: () => 'javascript:window.open(this.href,"", "menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600");return false;',
           rel: 'noopener noreferrer',

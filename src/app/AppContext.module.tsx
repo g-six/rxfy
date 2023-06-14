@@ -75,18 +75,18 @@ export const MapProvider = (props: any) => {
   const setDefaultQueryKeyValues = () => {
     let query = '?beds=2&baths=1&minprice=750000&maxprice=20000000';
     const child = Array.isArray(props.children) ? props.children[0] : props.children;
-    if (child.props.agent_data?.metatags.search_highlights?.labels) {
-      const default_location = child.props.agent_data.metatags.search_highlights.labels[0];
+    if (child.props.agent_data?.metatags.search_highlights?.length) {
+      const default_location = child.props.agent_data.metatags.search_highlights[0];
       query = [
         query,
-        `city=${default_location.title}`,
+        `city=${default_location.city}`,
         `lat=${default_location.lat}`,
         `lng=${default_location.lng}`,
-        `nelat=${default_location.ne.lat}`,
-        `nelng=${default_location.ne.lng}`,
-        `swlat=${default_location.sw.lat}`,
-        `swlng=${default_location.sw.lng}`,
-        `zoom=${default_location.zoom}`,
+        `nelat=${default_location.nelat}`,
+        `nelng=${default_location.nelng}`,
+        `swlat=${default_location.swlat}`,
+        `swlng=${default_location.swlng}`,
+        `zoom=${default_location.zoom || 11}`,
         `type=R`,
       ].join('&');
     } else {

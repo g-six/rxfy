@@ -1,5 +1,11 @@
 .button {
   @apply w-full;
+  &.loading {
+    @apply bg-slate-300 text-slate-500;
+    img {
+      @apply opacity-60;
+    }
+  }
 }
 .hide {
   @apply hidden #{!important};

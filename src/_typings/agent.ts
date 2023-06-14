@@ -1,5 +1,5 @@
 import { UserInputModel } from './base-user';
-import { GeoLocation } from './maps';
+import { GeoLocation, SearchHighlightInput } from './maps';
 
 export type ThemeName = 'hamburg' | 'lisbon' | 'malaga' | 'malta' | 'oslo';
 
@@ -30,17 +30,7 @@ export interface AgentMetatagsInput {
   mailchimp_subscription_url?: string;
   target_city?: string;
   listings_title?: string;
-  search_highlights?: {
-    labels: {
-      ne: GeoLocation;
-      sw: GeoLocation;
-      lat: number;
-      lng: number;
-      name: string;
-      zoom: number;
-      title: string;
-    }[];
-  };
+  search_highlights?: SearchHighlightInput[];
   brokerage_name?: string;
   brokerage_id?: string;
   profile_slug?: string;

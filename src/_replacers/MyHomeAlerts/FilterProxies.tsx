@@ -1,6 +1,6 @@
 import { ReactElement, useEffect, useState } from 'react';
 
-import SearchInput from '@/components/RxSearchInput';
+import SearchInput from '@/components/RxMapSearchInput';
 import { PlaceDetails } from '@/_typings/maps';
 import { getPlaceDetails } from '@/_utilities/geocoding-helper';
 import { searchInput } from '@/_typings/my-home-alerts';

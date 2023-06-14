@@ -3,7 +3,7 @@ import axios from 'axios';
 import React, { Children, cloneElement } from 'react';
 import { classNames } from '@/_utilities/html-helper';
 import RxMapbox from './RxMapbox';
-import RxSearchInput from './RxSearchInput';
+import RxSearchInput from './RxMapSearchInput';
 import styles from './RxPropertyMap.module.scss';
 import { Switch } from '@headlessui/react';
 import RxPropertyCard from '@/components/RxCards/RxPropertyCard';

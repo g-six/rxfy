@@ -2,17 +2,27 @@ import axios from 'axios';
 import { mutation_create_meta, mutation_update_agent } from './graphql';
 import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
 import { AgentInput } from '@/_typings/agent';
+import { SearchHighlightInput } from '@/_typings/maps';
 
 export async function getSmart(
-  agent: AgentInput & { id: number },
+  agent: AgentInput & { id: number; search_highlights?: SearchHighlightInput[] },
   property: { [key: string]: string | number },
   real_estate_board?: { id: number; name: string; abbreviation: string },
 ) {
-  let prompt = `Retrieve the public information of a realtor named ${agent.full_name} a licenced realtor for ${`${
-    real_estate_board?.name ? `(${real_estate_board.name})` : property.city
-  } `} with Paragon ID "${agent.agent_id}" from the internet and only use the most recently published source or article anytime from November ${
-    new Date().getFullYear() - 1
-  } to today. Based on that factual information, write me a realtor bio (JSON key "bio") from a first-person point of view for prospect clients belonging to the demographic looking for listings in the same city or area, a set of SEO metatags (JSON key "metatags") fit for my professional website, website title (JSON key "title") and a well structured, 3-worded, SEO friendly tagline  (JSON key "tagline").  Contain the results in JSON key-value pair format.
+  let prompt = `My name's ${agent.full_name} and I'm a licenced realtor catering to the city of ${property.city}, ${property.province_state}`;
+
+  if (real_estate_board) {
+    prompt = `Retrieve the public information of a realtor named ${agent.full_name}, a licenced realtor for ${`${
+      real_estate_board?.name ? `(${real_estate_board.name})` : property.city
+    } `} with Paragon ID "${agent.agent_id}" from the internet and only use the most recently published source or article anytime from November ${
+      new Date().getFullYear() - 1
+    } to today. Based on that factual information`;
+  }
+
+  prompt = `${prompt}, write me a realtor bio (JSON key "bio") from a first-person point of view for prospect clients 
+  belonging to the demographic looking for listings in the same city or area, 
+  a set of SEO metatags (JSON key "metatags") fit for my professional website, website title (JSON key "title") and a well structured, 
+  3-worded, SEO friendly tagline  (JSON key "tagline").  Contain the results in JSON key-value pair format.
   `;
   console.log('---');
   console.log('Processing:');
@@ -69,6 +79,7 @@ export async function getSmart(
         personal_title: ai_results.tagline,
         personal_bio: ai_results.bio,
         description: ai_results.metatags,
+        search_highlights: agent.search_highlights || [],
         profile_slug: [
           `${real_estate_board?.abbreviation || 'la'}`,
           slugifyAddress(agent.full_name).split('-')[0],
@@ -99,29 +110,32 @@ export async function getSmart(
       const agent_metatag = Number(created_metatag.data?.data?.createAgentMetatag?.data.id);
       console.log(created_metatag.data);
       console.log('Link agent record', agent.id, 'to metadata', { agent_metatag });
-      axios
-        .post(
-          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-          {
-            query: mutation_update_agent,
-            variables: {
-              id: Number(agent.id),
-              data: {
-                agent_metatag,
-              },
+      const prom = axios.post(
+        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+        {
+          query: mutation_update_agent,
+          variables: {
+            id: Number(agent.id),
+            data: {
+              agent_metatag,
             },
           },
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-              'Content-Type': 'application/json',
-            },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+            'Content-Type': 'application/json',
           },
-        )
-        .then(res => {
+        },
+      );
+      if (!real_estate_board) {
+        return prom;
+      } else {
+        prom.then(res => {
           console.log(res.data?.data?.updateAgent);
           console.log('...[DONE] mutation_update_agent');
         });
+      }
     }
   } catch (e) {
     console.log('OpenAI error for prompt:');

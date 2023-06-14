@@ -14,7 +14,7 @@ type PropertyCarouselProps = {
 };
 export default function PhotosGrid({ showGallery, photos, child }: PropertyCarouselProps) {
   //const hasClientNote = false;
-  const wrapperStyles: CSSProperties = { overflow: 'hidden;', position: 'relative', borderRadius: '10px' };
+  const wrapperStyles: CSSProperties = { overflow: 'hidden', position: 'relative', borderRadius: '10px' };
   const show = showGallery
     ? showGallery
     : (key: number) => {
