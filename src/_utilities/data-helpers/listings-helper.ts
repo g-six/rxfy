@@ -294,7 +294,6 @@ export async function getAgentListings(agent_id: string): Promise<{
             return hit._index !== 'private';
           }),
         );
-        console.log('regen_xhr', hits);
 
         return {
           active,

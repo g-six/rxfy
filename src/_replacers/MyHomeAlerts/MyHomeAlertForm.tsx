@@ -98,7 +98,7 @@ export default function MyHomeAlertForm({ child, formState, handleChange, handle
               type: 'number',
               min: 0,
               onBlur: e => {
-                console.log(e.target.value);
+                console.log('.price-min-filter: onBlur', e.target.value);
               },
             }}
             value={minprice ?? 0}

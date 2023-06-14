@@ -255,7 +255,6 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
 
   React.useEffect(() => {
     getLovedHomes().then(response => {
-      console.log('RESPONSE ', response);
       if (response && response.records) {
         processLovedHomes(response.records);
       }
@@ -286,7 +285,6 @@ export default function RxPropertyMap(props: RxPropertyMapProps) {
         }}
         toggleLovedHomes={() => {
           toggleLovedHomes(!show_loved);
-          console.log(loved_homes);
         }}
         hide_others={hide_others}
         mapbox_params={map_params}

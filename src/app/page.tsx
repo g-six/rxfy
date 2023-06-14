@@ -77,7 +77,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
       }
     }
   }
-
   let session_key = cookies().get('session_key')?.value || '';
 
   if (['ai', 'ai-result'].includes(`${params?.slug || ''}`)) {
@@ -103,6 +102,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   }
 
   try {
+    console.log('Fetch data for:', { agent_data, page_url });
     const req_page_html = await axios.get(page_url);
     data = req_page_html.data;
   } catch (e) {
@@ -168,7 +168,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
               agent_data.metatags = session.agent.agent_metatag;
               loadAiResults($, session.agent.agent_id, origin);
             }
-            console.log('test');
           }
         } catch (e) {
           console.log('Invalid session key');
@@ -241,7 +240,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
       console.log('\n\nHome.agent_data not available');
     }
     if (params?.['profile-slug'] && params?.slug) {
-      console.log(params);
       if (agent_data?.metatags.target_city) {
         $('[href="/map"]').attr('href', `/${params.slug}/${params['profile-slug']}/map?q=${agent_data.metatags.target_city}`);
       } else {

@@ -15,7 +15,7 @@ type Props = {
 export default function MapsTabs({ child, coords }: Props) {
   const [currentTab, setCurrentTab] = useState<string>(mapsViewsTabs.NEIGHBORHOOD);
   const activeTabClassName = 'w--tab-active';
-  console.log(coords);
+
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['w-tab-menu']),

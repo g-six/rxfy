@@ -630,7 +630,7 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
       console.log('photo_album_result', photo_album_result);
     } catch (e) {
       const axerr = e as AxiosError;
-      console.log(axerr.response?.data);
+      console.log('axerr.response?.data:', axerr.response?.data);
     }
   } else {
     console.log('Problem with data');

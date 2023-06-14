@@ -164,7 +164,6 @@ export const mapFeatures = (property: PropertyDataModel) => {
   if (property.facilities?.data) {
     property.facilities?.data.map(({ attributes: { name } }) => {
       features[name] = featureMapping[name];
-      console.log({ name });
     });
   } else if (property.facilities && Array.isArray(property.facilities)) {
     // DataObject

@@ -19,7 +19,7 @@ export async function retrieveClients() {
     if (session_key) {
       Cookies.set('session_key', session_key);
     } else {
-      console.log('Warning: no new session key has bee issued in retrieveDocuments()');
+      console.log('Warning: no new session key has bee issued in retrieveClients()');
     }
 
     return documents;

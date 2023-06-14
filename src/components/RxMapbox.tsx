@@ -69,7 +69,7 @@ export function RxMapbox(props: RxMapboxProps) {
   const [center, setCenter] = React.useState<{ lat: number; lng: number }>();
   const [listings, setPropertyListings] = React.useState<PropertyDataModel[]>([]);
   const mapNode = React.useRef(null);
-  console.log({ listings });
+
   const clickEventListener = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
     const features = e.target.queryRenderedFeatures(e.point, {
       layers: ['rx-clusters', 'rx-home-price-bg'],
