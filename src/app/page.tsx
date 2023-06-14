@@ -26,12 +26,12 @@ const skip_slugs = ['favicon.ico', 'sign-out'];
 function loadAiResults($: CheerioAPI, user_id: string, origin?: string) {
   ['oslo', 'hamburg', 'malta'].forEach(theme => {
     $(`.theme-area.home-${theme}`).replaceWith(
-      `<iframe data-src="${origin}?paragon=${user_id}&theme=${theme}" className="${styles.homePagePreview} theme-area home-${theme}" />`,
+      `<iframe data-src="https://leagent.com?paragon=${user_id}&theme=${theme}" className="${styles.homePagePreview} theme-area home-${theme}" />`,
     );
   });
   console.log('Load property sample', `${origin}/property?paragon=${user_id}&theme=default&mls=R2782417`);
   $(`[data-w-tab="Tab 2"] .f-section-large-11`).html(
-    `<iframe src="${origin}/property?paragon=${user_id}&theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
+    `<iframe src="https://leagent.com/property?paragon=${user_id}&theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
   );
 
   $('.building-and-sold-info').remove();
@@ -308,6 +308,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
         <main className={styles['rx-realm']}>
           {rexify(webflow.body.code, agent_data, property, {
             ...params,
+            origin,
             webflow_domain: hostname === 'localhost' ? TEST_DOMAIN : hostname,
           })}
           <RxNotifications />

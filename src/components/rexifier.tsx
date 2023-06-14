@@ -44,7 +44,6 @@ import { RxTextInput } from './RxTextInput';
 import RxContactFormButton from './RxForms/RxContactFormButton';
 import RxSessionDropdown from './Nav/RxSessionDropdown';
 import AiPrompt from '@/rexify/realtors/ai';
-import { cookies } from 'next/headers';
 import RxThemePreview from './RxThemePreview';
 import { MyWebsite } from '@/rexify/my-website';
 import RxGuestNavButtons from './Nav/RxGuestNavButtons';
@@ -457,7 +456,7 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
         if (props.className) {
           if (props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL))
             return (
-              <AiPrompt {...props}>
+              <AiPrompt {...props} {...params}>
                 <>{domToReact(node.children)}</>
               </AiPrompt>
             );

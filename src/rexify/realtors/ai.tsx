@@ -20,6 +20,7 @@ import { SearchHighlightInput, SelectedPlaceDetails } from '@/_typings/maps';
 type Props = {
   children: React.ReactElement;
   className?: string;
+  origin?: string;
 };
 
 export default function AiPrompt(p: Props) {
@@ -207,8 +208,7 @@ export default function AiPrompt(p: Props) {
                 neighbourhoods,
               })
                 .then(data => {
-                  console.log(data);
-                  if (data?.agent_id) location.href = `/ai-result?paragon=${data.agent_id}`;
+                  if (data?.agent_id) location.href = `${origin || ''}/ai-result?paragon=${data.agent_id}`;
                 })
                 .catch(console.error);
             }
