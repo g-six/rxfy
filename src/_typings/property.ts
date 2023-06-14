@@ -198,6 +198,7 @@ export interface PropertyDataModel extends BasePropertyDataModel {
   hvac?: PropertyAssociations;
   items_maintained?: PropertyAssociations;
   photos?: string[]; // to remove
+  cover_photo?: string;
   mls_data?: MLSProperty;
 }
 

@@ -19,6 +19,7 @@ import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import { STRAPI_FIELDS, must_not, retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 
 type RxMapboxProps = {
   agent: AgentData;
@@ -86,7 +87,6 @@ export function RxMapbox(props: RxMapboxProps) {
           if (is_cluster) {
             cluster_source.getClusterLeaves(cluster_id, point_count, 0, (error, feats: Feature[]) => {
               // Refactor this into a standalone function
-
               setSelectedCluster(
                 feats.map(
                   ({ id, properties }) =>
@@ -235,14 +235,27 @@ export function RxMapbox(props: RxMapboxProps) {
             mergeObjects(
               include_listings,
               results.map(listing => {
-                let cleaned = {};
+                let cleaned: {
+                  [key: string]: string | number;
+                } = {};
+                let cover_photo = listing.photos && listing.photos[0];
+                if (cover_photo) {
+                  cover_photo = getImageSized(cover_photo, 320);
+                }
                 Object.keys(listing).forEach(k => {
-                  cleaned = {
-                    ...cleaned,
-                    [STRAPI_FIELDS[k]]: (listing as unknown as { [old: string]: string })[k],
-                  };
+                  if (STRAPI_FIELDS[k])
+                    cleaned = {
+                      ...cleaned,
+                      [STRAPI_FIELDS[k]]: (listing as unknown as { [old: string]: string })[k],
+                    } as unknown as {
+                      [key: string]: string | number;
+                    };
                 });
-                return cleaned;
+
+                return {
+                  ...cleaned,
+                  cover_photo,
+                };
               }),
               'mls_id',
             ),

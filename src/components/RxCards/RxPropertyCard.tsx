@@ -90,13 +90,13 @@ function RxComponentChomper({ config, children }: any): any {
         });
       } else if (child.type !== 'img') {
         //heart-full
-        if (RxElement.props.className === 'propcard-image') {
+        if (RxElement.props.className === 'propcard-image' && config.photos) {
           return React.cloneElement(child, {
             ...RxElement.props,
             className: [RxElement.props.className, config.onClickItem ? 'cursor-pointer' : ''].join(' ').trim(),
-            style: config.photos
+            style: config.cover_photo
               ? {
-                  backgroundImage: `url(${getImageSized((config.photos as string[])[0], 540)})`,
+                  backgroundImage: `url(${getImageSized(config.cover_photo, 540)})`,
                 }
               : {},
             onClick: () => {
@@ -181,6 +181,7 @@ export default function RxPropertyCard({
           '{PBth}': listing.baths,
           '{Psq}': listing?.floor_area_total ? formatValues(listing, 'floor_area_total') : formatValues(listing, 'floor_area'),
           photos: listing.photos as string[],
+          cover_photo: listing.cover_photo as string,
           '{PYear}': listing.year_built || ' ',
           loved: loved_items && loved_items.includes(listing.mls_id),
           onClickItem: () => {
@@ -190,7 +191,6 @@ export default function RxPropertyCard({
                 .get(`/api/properties/mls-id/${listing.mls_id}`)
                 .then(r => {
                   // Fix the application error for properties not imported yet
-                  console.log(r);
                   location.href = `/property?mls=${listing.mls_id}`;
                 })
                 .catch(console.error);
