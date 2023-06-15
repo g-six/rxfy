@@ -113,7 +113,11 @@ export default async function Home({ params, searchParams }: { params: Record<st
     data = '<html><head><meta name="title" content="Not found" /></head><body>Not found</body></html>';
     notFound();
   }
-  const $: CheerioAPI = load(data);
+
+  const $: CheerioAPI = load(
+    `${data}`.split('</title>').join(`</title>
+  <link rel='canonical' href='${origin}${original_path}' />`),
+  );
   let { hostname: webflow_domain, pathname: slug } = new URL(page_url);
   $('form').removeAttr('id');
   $('form').removeAttr('name');
@@ -216,7 +220,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
   if (hostname !== `${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}` || searchParams.paragon) {
     if (agent_data && agent_data.agent_id) {
-      await fillAgentInfo($, agent_data);
+      await fillAgentInfo($, agent_data, params);
 
       if (!slug || slug === '/') {
         listings = await getAgentListings(agent_data.agent_id);

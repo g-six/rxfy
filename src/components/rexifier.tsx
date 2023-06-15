@@ -77,12 +77,12 @@ function replaceSearchHighlights(
   });
 }
 
-export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
+export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData, params: { [key: string]: unknown }) {
   if (agent_data.metatags.target_city) {
     await replaceTargetCityComponents($, agent_data.metatags.target_city);
   }
 
-  if (agent_data.metatags.search_highlights && agent_data.metatags.search_highlights) {
+  if (agent_data.metatags.search_highlights && Array.isArray(agent_data.metatags.search_highlights)) {
     const areas = agent_data.metatags.search_highlights;
 
     areas.forEach((area, i) => {
@@ -142,6 +142,11 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData) {
     replaceByCheerio($, '.navbar-wrapper-2 > a,[class^="navbar-dashboard-wrapper"] > a', {
       content: `<img class="justify-self-start h-10" src="${agent_data.metatags.logo_for_light_bg}" />`,
     });
+  }
+
+  // This should be last because of the logo button on the nav logic
+  if (params['site-page']) {
+    $('.navbar-wrapper-2 a[href="/"]').attr('href', ['', params.slug, params['profile-slug']].join('/'));
   }
 }
 
@@ -269,6 +274,7 @@ export function replaceByCheerio($: CheerioAPI, target: string, replacement: Rep
     } else if (replacement['data-mls']) {
       $(target).attr('data-mls', replacement['data-mls']);
     } else if (replacement.city && replacement.pin_location && replacement.mapbox_boundaries) {
+      let uri = $('head link[rel="canonical"]') === undefined ? '' : $('link[rel="canonical"]').attr('href');
       const query_params = [
         `nelat=${replacement.mapbox_boundaries.nelat}`,
         `nelng=${replacement.mapbox_boundaries.nelng}`,
@@ -278,7 +284,7 @@ export function replaceByCheerio($: CheerioAPI, target: string, replacement: Rep
         `lng=${replacement.pin_location.lng}`,
         `city=${encodeURIComponent(replacement.city)}`,
       ];
-      $(target).attr('href', `/map?${query_params.join('&')}`);
+      $(target).attr('href', `${uri}/map?${query_params.join('&')}`);
       $(target).text(replacement.city);
     } else if (replacement.href) {
       $(target).attr('data-original-href', $(target).attr('href'));
@@ -774,6 +780,7 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
               htmlToDOM(
                 `<${tagName || 'span'}
             class="${className}"
+            data-rx-src="components/rexifier"
           >
             ${agent_data.full_name}
           </${tagName || 'span'}>`,

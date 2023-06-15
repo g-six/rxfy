@@ -131,7 +131,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     data = '<html><head></head><body></body></html>';
   }
 
-  const $: CheerioAPI = load(data);
+  const $: CheerioAPI = load(
+    `${data}`.split('</title>').join(`</title>
+  <link rel='canonical' href='${requestUrl.origin}${requestUrl.pathname}' />`),
+  );
+
   const webflow: WebFlow = {
     head: {
       props: {
@@ -163,7 +167,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     metas.push(<link {...attributesToProps(meta.attribs)} key={page_key} />);
   });
   // end of extracting and assigning <head> elements
-
   const { class: bodyClassName, ...body_props } = webflow.body.props;
   if (!agent_data || agent_data.webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN) {
     return (

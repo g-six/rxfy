@@ -13,6 +13,7 @@ import RxLiveTextDDOption from '@/components/RxLiveUrlBased/RxLiveTextDropdownOp
 import { getPropertyTypeFromSelector, getSortingKey } from '@/_utilities/rx-map-helper';
 import RxMapTermsFilter from '../RxMapTermsFilter';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
+import RxLiveToggle from '../RxLiveUrlBased/RxLiveToggle';
 type Props = {
   children: React.ReactElement[];
   className?: string;
@@ -76,6 +77,15 @@ export default function RxSearchFilters(p: Props) {
 
   const matches = [
     {
+      searchFn: searchByClasses(['toggle-base']),
+      transformChild: (child: React.ReactElement) => {
+        const { 'data-agent-id': agent_id } = p as unknown as {
+          [key: string]: string;
+        };
+        return <RxLiveToggle filter='agent' value={agent_id} />;
+      },
+    },
+    {
       searchFn: searchByPartOfClass(['ptype-']),
       transformChild: (child: React.ReactElement) => {
         return <RxLiveCheckbox child={child} filter='types' value={getPropertyTypeFromSelector(child.props.className)} />;
@@ -86,8 +96,6 @@ export default function RxSearchFilters(p: Props) {
       transformChild: (child: React.ReactElement) => {
         const sorting = getSortingKey(child.props.className);
         return <RxLiveTextDDOption child={child} filter='sorting' value={sorting} />;
-        // return <RxLiveText child={child} filter='sorting' value={sorting} />;
-        // return <RxLiveCheckbox child={child} filter='types' value={getPropertyTypeFromSelector(child.props.className)} />;
       },
     },
     {

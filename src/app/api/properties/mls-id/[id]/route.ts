@@ -20,14 +20,22 @@ const gql_find_home = `query FindHomeByMLSID($mls_id: String!) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   let mls_id = url.pathname.split('/').pop() || '';
-  const json_file = `https://pages.leagent.com/listings/${mls_id}/recent.json`;
+  console.log('');
+  console.log('[GET] /api/properties/mls-id/[id]/route.ts');
   try {
-    console.log(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`);
-    await axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const json_file = `https://pages.leagent.com/listings/${mls_id}/recent.json`;
+    console.log('  Retrieve:', json_file);
+
+    const cache = await axios.get(json_file);
+    const { mls_data, ...property } = cache.data;
+    console.log('  Cache for legacy data found', mls_data.guid);
+    console.log('');
+    return getResponse(property, 200);
+  } catch (e) {
+    console.log('No JSON cache for', mls_id);
+  }
+
+  try {
     const [legacy] = await retrieveFromLegacyPipeline(
       {
         from: 0,
@@ -52,26 +60,27 @@ export async function GET(request: Request) {
 
     if (legacy) {
       const { mls_data, ...property } = legacy;
+      const { ListingID: listing_id } = mls_data as MLSProperty;
+      let details: { [key: string]: unknown } = {
+        listing_id,
+      };
       if (isNaN(Number(legacy.lat)) && legacy.title && legacy.postal_zip_code) {
         // No lat,lon - extra processing
         const [place] = await googlePlaceQuery(`${legacy.title} ${legacy.postal_zip_code}`);
         if (place && place.place_id) {
-          const details = await getFormattedPlaceDetails(place.place_id);
+          details = await getFormattedPlaceDetails(place.place_id);
 
-          const { ListingID: listing_id } = mls_data as MLSProperty;
-          return getResponse({
-            ...property,
+          details = {
             ...details,
             listing_id,
-          });
+          };
         }
-      } else {
       }
+      return getResponse({
+        ...property,
+        ...details,
+      });
     }
-
-    console.log(`GET ${json_file}`);
-    const cache = await axios.get(json_file);
-    return getResponse(cache.data, 200);
   } catch (e) {
     const axerr = e as AxiosError;
     if (axerr.response?.status === 403) {
@@ -85,11 +94,6 @@ export async function GET(request: Request) {
 
       console.log(`From integrations: ${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`);
       console.log(xhr.data?.data);
-
-      if (xhr.data?.data?.attributes) {
-        const cache = await axios.get(json_file);
-        return getResponse(cache.data, 200);
-      }
     }
 
     if (axerr.response?.data) {

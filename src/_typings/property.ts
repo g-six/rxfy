@@ -354,6 +354,7 @@ export type PropertyAttributeFilters = {
   dt_from?: Date;
   dt_to?: Date;
   tags?: string[];
+  agent?: string;
 };
 
 export interface MapStateProps extends BaseKeyValuePairStateProps {

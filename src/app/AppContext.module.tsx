@@ -15,6 +15,7 @@ const initialState: MapStatePropsWithFilters = {
   maxprice: 20000000,
   maxsqft: 63591,
   city: '',
+  agent: '',
   suggestions: [],
 };
 // Create the Map context
@@ -107,11 +108,21 @@ export const MapProvider = (props: any) => {
   };
 
   const initializeFilters = () => {
-    const keys = ['baths', 'beds', 'minprice', 'maxprice', 'minsqft', 'maxsqft', 'swlat', 'swlng', 'nelat', 'nelng', 'city'];
+    const keys = ['baths', 'beds', 'minprice', 'maxprice', 'minsqft', 'maxsqft', 'swlat', 'swlng', 'nelat', 'nelng'];
     keys.forEach(key => {
       if (search.get(key)) {
         let value = Number(search.get(key));
-        if (!isNaN(value)) {
+        if (!isNaN(value) && value !== undefined) {
+          init[key] = value;
+        }
+      }
+    });
+
+    const strings: string[] = ['city', 'agent'];
+    strings.forEach(key => {
+      if (search.get(key)) {
+        let value = search.get(key);
+        if (value !== undefined && value !== null) {
           init[key] = value;
         }
       }
@@ -154,7 +165,8 @@ export const MapProvider = (props: any) => {
 
   useEffect(() => {
     if (state.query) {
-      router.push(`/map?${state.address ? `address=${encodeURIComponent(state.address.replace(/ /g, '+'))}&` : ''}${state.query}`);
+      const { pathname } = new URL(location.href);
+      router.push(`${pathname}?${state.address ? `address=${encodeURIComponent(state.address.replace(/ /g, '+'))}&` : ''}${state.query}`);
     }
   }, [state.query, state.address]);
 

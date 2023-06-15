@@ -179,6 +179,38 @@ export function RxMapbox(props: RxMapboxProps) {
       }
     }
 
+    const should: {
+      match: {
+        [key: string]: string | number;
+      };
+    }[] = Cookies.get('session_key')
+      ? [{ match: { 'data.Status': 'Active' } }, { match: { 'data.Status': 'Sold' } }]
+      : [{ match: { 'data.Status': 'Active' } }];
+
+    let minimum_should_match = 1;
+
+    if (q.agent) {
+      // Should only retrieve listings by agent id
+      should.push({
+        match: {
+          'data.LA1_LoginName': q.agent,
+        },
+      });
+      should.push({
+        match: {
+          'data.LA2_LoginName': q.agent,
+        },
+      });
+      should.push({
+        match: {
+          'data.LA3_LoginName': q.agent,
+        },
+      });
+
+      // Should match status active OR sold AND LoginName
+      minimum_should_match++;
+    }
+
     retrieveFromLegacyPipeline(
       {
         from: 0,
@@ -203,10 +235,8 @@ export function RxMapbox(props: RxMapboxProps) {
         query: {
           bool: {
             filter,
-            should: Cookies.get('session_key')
-              ? [{ match: { 'data.Status': 'Active' } }, { match: { 'data.Status': 'Sold' } }]
-              : [{ match: { 'data.Status': 'Active' } }],
-            minimum_should_match: 1,
+            should,
+            minimum_should_match,
             must_not: must_not.concat([{ match: { 'data.Status': 'Sold' } }]),
           },
         },
@@ -434,7 +464,7 @@ export function RxMapbox(props: RxMapboxProps) {
   }, [center]);
 
   React.useEffect(() => {
-    if (listings.length) {
+    if (Array.isArray(listings)) {
       const points = listings
         .filter(({ lat, lon }) => {
           return lat !== undefined && lon !== undefined;

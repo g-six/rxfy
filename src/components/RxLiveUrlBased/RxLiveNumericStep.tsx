@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useMapMultiUpdater, useMapState, useMapUpdater } from '@/app/AppContext.module';
+import { useMapMultiUpdater, useMapState } from '@/app/AppContext.module';
 import { objectToQueryString, queryStringToObject } from '@/_utilities/url-helper';
 
 export function RxLiveNumericStep({ child, filter }: { child: React.ReactElement; filter: string }) {

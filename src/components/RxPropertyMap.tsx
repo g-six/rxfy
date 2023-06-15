@@ -5,11 +5,10 @@ import { classNames } from '@/_utilities/html-helper';
 import RxMapbox from './RxMapbox';
 import RxSearchInput from './RxMapSearchInput';
 import styles from './RxPropertyMap.module.scss';
-import { Switch } from '@headlessui/react';
 import RxPropertyCard from '@/components/RxCards/RxPropertyCard';
-import { MapProvider } from '@/app/AppContext.module';
+import { MapProvider, useMapMultiUpdater, useMapState } from '@/app/AppContext.module';
 import { getPlaceDetails } from '@/_utilities/geocoding-helper';
-import { LovedPropertyDataModel, PropertyDataModel } from '@/_typings/property';
+import { LovedPropertyDataModel, MapStatePropsWithFilters, PropertyDataModel } from '@/_typings/property';
 import { PlaceDetails, RxPropertyMapProps } from '@/_typings/maps';
 import HomeAlertsReplacer from '@/_replacers/HomeAlerts/home-alerts';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
@@ -63,7 +62,22 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
         if (child.props.className.indexOf('nav-menu-list-wrapper') >= 0 || child.props.className.indexOf('login-logout-dropdown') >= 0) {
           return <RxNavItemMenu {...child.props}>{child.props.children}</RxNavItemMenu>;
         } else if (child.props.className.split(' ').includes('map-filters')) {
-          return <RxSearchFilters className={child.props.className || ''}>{child.props.children}</RxSearchFilters>;
+          return (
+            <RxSearchFilters className={child.props.className || ''} data-agent-id={props.agent_data?.agent_id}>
+              {child.props.children}
+            </RxSearchFilters>
+          );
+        } else if (child.props.className.indexOf('listings-by-agent-field') >= 0) {
+          return (
+            <RxSearchFilters className={child.props.className || ''} data-agent-id={props.agent_data?.agent_id}>
+              {React.Children.map(child.props.children, child => {
+                if (child.props.children === '{Agent Name}') {
+                  return <span className='propcard-stat map'>{props.agent_data?.first_name}</span>;
+                }
+                return child;
+              })}
+            </RxSearchFilters>
+          );
         } else if (child.props.className.split(' ').includes('heart-button')) {
           return (
             <RxToggleSavedHomes {...child.props} onClick={props.toggleLovedHomes}>
@@ -114,24 +128,24 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
           child.props.className = `${styles.LeftBar} ${child.props.className} md:max-h-screen max-h-[calc(100dvh_-_6rem)]`;
         }
         if (child.props.className === 'toggle-base') {
-          return (
-            <Switch
-              onChange={props.setHideOthers}
-              className={classNames(
-                props.hide_others ? 'bg-indigo-600' : 'bg-gray-200',
-                'ml-1 relative inline-flex items-center h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
-              )}
-            >
-              <span className='sr-only'>{props.hide_others ? 'Other properties hidden' : 'Showing all properties'}</span>
-              <span
-                aria-hidden='true'
-                className={classNames(
-                  props.hide_others ? 'translate-x-4' : '-translate-x-1',
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                )}
-              />
-            </Switch>
-          );
+          // return (
+          //   <Switch
+          //     onChange={props.setHideOthers}
+          //     className={classNames(
+          //       props.hide_others ? 'bg-indigo-600' : 'bg-gray-200',
+          //       'ml-1 relative inline-flex items-center h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
+          //     )}
+          //   >
+          //     <span className='sr-only'>{props.hide_others ? 'Other properties hidden' : 'Showing all properties'}</span>
+          //     <span
+          //       aria-hidden='true'
+          //       className={classNames(
+          //         props.hide_others ? 'translate-x-4' : '-translate-x-1',
+          //         'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+          //       )}
+          //     />
+          //   </Switch>
+          // );
         }
 
         if (
@@ -216,6 +230,8 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
 }
 
 export default function RxPropertyMap(props: RxPropertyMapProps) {
+  const updater = useMapMultiUpdater();
+  const d: MapStatePropsWithFilters = useMapState();
   const [show_loved, toggleLovedHomes] = React.useState(false);
   const [hide_others, setHideOthers] = React.useState(false);
   const [place, setPlace] = React.useState<google.maps.places.AutocompletePrediction>();
