@@ -47,7 +47,7 @@ export function convertPrivateListingToPropertyData(prop: PrivateListingData): P
   return {
     mls_id: prop?.id?.toString() ?? '',
     title: prop?.title ?? '',
-    description: prop.prompt,
+    description: prop?.prompt,
     asking_price: prop?.asking_price ? parseInt(prop.asking_price) : 0,
     area: prop?.living_area?.toString() ?? '',
     year_built: prop?.built_year ? parseInt(prop.built_year) : 0,
