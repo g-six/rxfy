@@ -3,7 +3,6 @@ import { Events, EventsData } from '@/_typings/events';
 import { Filter } from '@/_typings/filters_compare';
 import { FILTERS } from './constants';
 import { savedHomesTabs } from '@/_typings/saved-homes-tabs';
-import { property_features } from '@/_utilities/data-helpers/property-page';
 import { toKebabCase } from '@/_utilities/string-helper';
 
 export function getAgentUrlFromName(name: string) {
@@ -76,6 +75,15 @@ export const toDataURL = (url: string) =>
     .catch(err => {
       console.log('Caught error in _helpers/functions.toDataURL:', err);
     });
+
+const urlToFile = (image: string) => {
+  return fetch(image)
+    .then(response => response.blob())
+    .then(blob => {
+      const file = new File([blob], 'image.jpg', { type: blob.type });
+      return { ...file, url: image, preview: image };
+    });
+};
 
 export function splitObject(obj: Record<string, string>) {
   const keys = Object.keys(obj);

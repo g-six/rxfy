@@ -23,6 +23,7 @@ import RxSecondPhotosGrid from '../RxProperty/RxSecondPhotosGrid';
 export function RxDetailedListing(props: ReplacerPageProps) {
   const photos = props?.property?.photos ? props?.property?.photos : [];
   const cdnPhotos = photos.map(link => getImageSized(link));
+
   const showGallery = (key: number) => {
     fireCustomEvent({ show: true, key }, Events.PropertyGalleryModal);
   };

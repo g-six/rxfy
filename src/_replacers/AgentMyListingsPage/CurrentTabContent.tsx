@@ -1,7 +1,12 @@
-import { captureMatchingElements } from '@/_helpers/dom-manipulators';
 import React, { Dispatch, ReactElement, SetStateAction, useEffect, useState } from 'react';
+
+import { AgentData } from '@/_typings/agent';
+import { ValueInterface } from '@/_typings/ui-types';
 import { createListingTabs } from '@/_typings/agent-my-listings';
+import { captureMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
+import { getPropertyAttributes } from '@/_utilities/api-calls/call-property-attributes';
+
 import TabAi from './TabsContent/TabAi';
 import TabAddress from './TabsContent/TabAddress';
 import TabSummary from './TabsContent/TabSummary';
@@ -10,17 +15,16 @@ import TabRooms from './TabsContent/TabRooms/TabRooms';
 import TabStrata from './TabsContent/TabStrata';
 import TabMore from './TabsContent/TabMore';
 import TabPreview from './TabsContent/TabPreview';
-import { getPropertyAttributes } from '@/_utilities/api-calls/call-property-attributes';
-import { ValueInterface } from '@/_typings/ui-types';
-import { createPrivateListing } from '@/_utilities/api-calls/call-private-listings';
+
 type Props = {
   child: ReactElement;
   currentTab: string;
   setCurrentTab: Dispatch<SetStateAction<string>>;
   data: any | undefined;
+  agent: AgentData;
 };
 
-export default function CurrentTabContent({ child, currentTab, setCurrentTab, data }: Props) {
+export default function CurrentTabContent({ child, currentTab, setCurrentTab, data, agent }: Props) {
   const tabsComponents = {
     'tab-ai': TabAi,
     'tab-address': TabAddress,
@@ -32,14 +36,12 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, da
     'tab-preview': TabPreview,
   };
   const [attributes, setAttributes] = useState<{ [key: string]: ValueInterface[] }>();
-  const [tabsTemplates] = useState(
-    captureMatchingElements(
-      child,
-      Object.values(createListingTabs).map(tab => ({
-        elementName: tab,
-        searchFn: searchByPartOfClass([`${tab}-content`]),
-      })),
-    ),
+  const tabsTemplates = captureMatchingElements(
+    child,
+    Object.values(createListingTabs).map(tab => ({
+      elementName: tab,
+      searchFn: searchByPartOfClass([`${tab}-content`]),
+    })),
   );
   useEffect(() => {
     getPropertyAttributes().then((res: { [key: string]: { id: number; name: string }[] }) => {
@@ -62,7 +64,7 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, da
   return (
     <div className={child.props.className}>
       {tabsTemplates[currentTab] && attributes ? (
-        <CurrentTabComponent template={tabsTemplates[currentTab]} nextStepClick={nextStepClick} attributes={attributes} initialState={data} />
+        <CurrentTabComponent template={tabsTemplates[currentTab]} nextStepClick={nextStepClick} attributes={attributes} initialState={data} agent={agent} />
       ) : (
         <> </>
       )}

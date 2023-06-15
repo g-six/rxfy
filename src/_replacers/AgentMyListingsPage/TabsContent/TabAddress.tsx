@@ -76,7 +76,11 @@ export default function TabAddress({ template, nextStepClick, initialState }: Ta
             const value = getValueByKey(field.inputProps.name, obj);
             const valueAlternative = data?.generatedAddress ? getValueByKey(field.generatedAddress, data.generatedAddress as object) : null;
             if (valueAlternative && !value) {
-              fireEvent({ [field.inputProps.name]: valueAlternative });
+              fireEvent({
+                [field.inputProps.name]: valueAlternative,
+                lon: data?.generatedAddress?.lon,
+                lat: data?.generatedAddress?.lat,
+              });
             }
             return (
               <InputWithLabel

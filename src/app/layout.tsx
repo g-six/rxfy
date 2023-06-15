@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 
 import Script from 'next/script';
 
-import './globals.css';
+import './globals.scss';
 import React from 'react';
 import { WebFlow } from '@/_typings/webflow';
 import { AgentData } from '@/_typings/agent';

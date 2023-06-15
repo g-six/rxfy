@@ -159,7 +159,9 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
             const value = getValueByKey(field.inputProps.name, data);
             const valueAlternative = data?.generatedPrompt ? getValueByKey(field.generatedPrompt, data.generatedPrompt as object) : null;
             if (valueAlternative && (value === undefined || value === null)) {
-              fireEvent({ [field.inputProps.name]: valueAlternative });
+              fireEvent({ [field.inputProps.name]: valueAlternative, baths_full: baths_full });
+            } else if (data && data.baths_full !== baths_full) {
+              fireEvent({ baths_full: baths_full });
             }
             return (
               <InputWithLabel
@@ -168,7 +170,12 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
                 label={field.label}
                 template={templates.input}
                 value={(field.inputProps?.value ? field.inputProps.value : value) ?? ''}
-                handleChange={e => fireEvent({ [field.inputProps.name]: parseInt(e.currentTarget.value) })}
+                handleChange={e =>
+                  fireEvent({
+                    [field.inputProps.name]: parseInt(e.currentTarget.value),
+                    baths_full: baths_full,
+                  })
+                }
               />
             );
           }),

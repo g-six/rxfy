@@ -86,6 +86,7 @@ export type FormData = {
   // Handling data
   submit?: boolean; // if true, will trigger form submission
   subscribe?: boolean; // if true, means that ew have a new consumer of this form data
+  id?: number; // strapi record id, if item of the form data should be saved in DB
 };
 
 export interface PrivateListingData extends FormData {
@@ -99,7 +100,10 @@ export interface PrivateListingData extends FormData {
     search?: string;
     postal_zip_code?: string;
     neighbourhood?: string;
+    lat?: number;
+    lon?: number;
   };
+  strapi?: object;
   photos?: ImagePreview[];
 
   // Address
@@ -108,9 +112,9 @@ export interface PrivateListingData extends FormData {
   city?: string;
   state?: string;
   zip?: string;
-  title?: string;
   lat?: number;
   lon?: number;
+  title?: string;
 
   // Home Summary
   asking_price?: string;
@@ -158,9 +162,6 @@ export interface PrivateListingData extends FormData {
   building_amenities?: ValueInterface[];
   council_approval_required?: boolean;
   locked?: boolean;
-
-  // strapi record id
-  id?: number;
 
   // Not to be saved in Strapi
   upload_queue?: {

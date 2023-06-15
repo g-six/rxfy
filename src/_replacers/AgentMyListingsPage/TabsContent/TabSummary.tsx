@@ -1,7 +1,6 @@
 import React, { cloneElement, useState } from 'react';
 
 import { TabContentProps } from '@/_typings/agent-my-listings';
-import { ValueInterface } from '@/_typings/ui-types';
 import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import { captureMatchingElements, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 
@@ -33,6 +32,7 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
         name: 'dwelling_type',
       },
       template: templates.selectInput,
+      generatedPrompt: 'dwelling_type',
     },
     {
       label: 'Asking Price',
@@ -43,6 +43,7 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
         min: 0,
       },
       template: templates.input,
+      generatedPrompt: '',
     },
     {
       label: 'Building Style',
@@ -52,6 +53,7 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
         name: 'building_style',
       },
       template: templates.selectInput,
+      generatedPrompt: '',
     },
     {
       label: 'Year Built',
@@ -62,6 +64,7 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
         min: 0,
       },
       template: templates.input,
+      generatedPrompt: '',
     },
     {
       label: '??? Property Disclosure',
@@ -70,6 +73,7 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
         name: 'property_disclosure',
       },
       template: templates.input,
+      generatedPrompt: '',
     },
     {
       label: 'Property Tax Amount',
@@ -80,6 +84,7 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
         min: 0,
       },
       template: templates.input,
+      generatedPrompt: '',
     },
     {
       label: 'For Tax Year',
@@ -90,6 +95,7 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
         min: 0,
       },
       template: templates.input,
+      generatedPrompt: '',
     },
   ];
 
@@ -120,6 +126,10 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
           ...summaryFields.map(field => {
             const isInput = !field.inputProps.values;
             const value = getValueByKey(field.inputProps.name, data);
+            const values = field.inputProps.values ?? [];
+            const strapiData = data?.strapi ? getValueByKey('strapi', data as object) : null;
+            const valueStrapi = strapiData && strapiData[field.generatedPrompt] ? getValueByKey(field.generatedPrompt, strapiData) : null;
+            const valueSelect = (value && value.label) || !valueStrapi ? value : { label: valueStrapi.name, value: valueStrapi.id };
             return isInput ? (
               <InputWithLabel
                 key={field.inputProps.name}
@@ -133,10 +143,10 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
               <SelectWithLabel
                 key={field.inputProps.name}
                 template={field.template}
-                values={field.inputProps.values as ValueInterface[]}
+                values={values}
                 label={field.label}
                 placeholder={field.inputProps.placeholder}
-                selectedValue={value}
+                selectedValue={valueSelect}
                 handleSelect={val => fireEvent({ [field.inputProps.name]: val })}
               />
             );

@@ -1,5 +1,7 @@
 import { ReactElement } from 'react';
+
 import { ValueInterface, RoomDimension } from './ui-types';
+import { AgentData } from '@/_typings/agent';
 
 export enum createListingTabs {
   AI = 'tab-ai',
@@ -22,6 +24,7 @@ export interface TabContentProps {
     [key: string]: ValueInterface[];
   };
   initialState: any | undefined;
+  agent: AgentData;
 }
 export interface RoomsGroupProps {
   heading?: string;

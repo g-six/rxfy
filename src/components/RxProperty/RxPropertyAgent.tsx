@@ -15,9 +15,9 @@ export default function RxPropertyAgent(props: Props) {
     {
       searchFn: searchByClasses(['agentface-wrapper']),
       transformChild: (child: ReactElement) => {
-        let photo = props.agent.metatags.logo_for_light_bg;
-        photo = photo ? photo : props.agent.metatags.logo_for_dark_bg;
-        photo = photo ? photo : props.agent.metatags.profile_image;
+        let photo = props?.agent?.metatags?.logo_for_light_bg;
+        photo = photo ? photo : props?.agent?.metatags?.logo_for_dark_bg;
+        photo = photo ? photo : props?.agent?.metatags?.profile_image;
         photo = photo ? photo : '';
         const style = Object.assign({}, child.props.style, {
           backgroundImage: `url(${photo})`,
@@ -32,9 +32,9 @@ export default function RxPropertyAgent(props: Props) {
       searchFn: searchByClasses(['div-block-44']),
       transformChild: (child: ReactElement) => {
         return replaceAllTextWithBraces(child, {
-          'Agent Name': props.agent.full_name,
-          'Agent Email': props.agent.email,
-          'Agent Phone Number': props.agent.phone,
+          'Agent Name': props?.agent?.full_name,
+          'Agent Email': props?.agent?.email,
+          'Agent Phone Number': props?.agent?.phone,
         }) as ReactElement;
       },
     },

@@ -1,4 +1,4 @@
-import './globals.css';
+import './globals.scss';
 import { headers } from 'next/headers';
 export default function NotFound(p: any) {
   const header = headers();
