@@ -120,6 +120,7 @@ export const MapProvider = (props: any) => {
 
     const strings: string[] = ['city', 'agent', 'sorting'];
     strings.forEach(key => {
+      delete init[key];
       if (search.get(key)) {
         let value = search.get(key);
         if (value !== undefined && value !== null) {

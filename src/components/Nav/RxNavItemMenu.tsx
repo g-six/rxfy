@@ -35,7 +35,6 @@ export default function RxNavItemMenu(p: Props) {
         return React.cloneElement(child, {
           ...child.props,
           children: React.Children.map(child.props.children, child => {
-            console.log(child.type);
             if (child.type === 'div') {
               return <RxNavItemMenu {...child.props}>{child.props.children}</RxNavItemMenu>;
             }

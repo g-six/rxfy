@@ -227,6 +227,7 @@ export function RxMapbox(props: RxMapboxProps) {
 
       // Should match status active OR sold AND LoginName
       minimum_should_match++;
+    } else {
     }
 
     retrieveFromLegacyPipeline(
