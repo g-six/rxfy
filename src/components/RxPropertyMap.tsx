@@ -59,7 +59,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
     if (child.props) {
       // Map filters or Header Nav
       if (child.props.className) {
-        if (child.props.className.indexOf('nav-menu-list-wrapper') >= 0 || child.props.className.indexOf('login-logout-dropdown') >= 0) {
+        if (child.props.className.indexOf('nav-menu-list-wrapper') >= 0 || child.props.className.indexOf(WEBFLOW_NODE_SELECTOR.USER_MENU_DROPDOWN) >= 0) {
           return <RxNavItemMenu {...child.props}>{child.props.children}</RxNavItemMenu>;
         } else if (child.props.className.split(' ').includes('map-filters')) {
           return (

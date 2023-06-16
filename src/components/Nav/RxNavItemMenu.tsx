@@ -1,6 +1,8 @@
 'use client';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
+import Cookies from 'js-cookie';
 import React from 'react';
 
 type Props = {
@@ -32,9 +34,27 @@ export default function RxNavItemMenu(p: Props) {
       transformChild: (child: React.ReactElement) => {
         return React.cloneElement(child, {
           ...child.props,
+          children: React.Children.map(child.props.children, child => {
+            console.log(child.type);
+            if (child.type === 'div') {
+              return <RxNavItemMenu {...child.props}>{child.props.children}</RxNavItemMenu>;
+            }
+          }),
           className: `${is_opened ? 'w--open' : ''} ${child.props.className}`.trim(),
           onClick: handleClick,
         });
+      },
+    },
+    {
+      searchFn: searchByClasses(['w-dropdown-link', 'out-session']),
+      transformChild: (child: React.ReactElement) => {
+        return Cookies.get('session_key') ? <></> : child;
+      },
+    },
+    {
+      searchFn: searchByClasses(['w-dropdown-link', 'in-session']),
+      transformChild: (child: React.ReactElement) => {
+        return Cookies.get('session_key') ? child : <></>;
       },
     },
     {
