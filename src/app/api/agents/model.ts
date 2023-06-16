@@ -10,6 +10,7 @@ import { getRealEstateBoard } from '../real-estate-boards/model';
 import { MLSProperty } from '@/_typings/property';
 import { mutation_update_agent } from './graphql';
 import { SearchHighlightInput } from '@/_typings/maps';
+import { cache } from 'react';
 
 export async function createAgent(user_data: {
   agent_id: string;
@@ -267,6 +268,10 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
     console.log('agent record does not exist');
     return record;
   } else if (!record.attributes.agent_metatag?.data) {
+    console.log('');
+    console.log('');
+    console.log('agent metatag record does not exist');
+    console.log('');
     const recent = await getMostRecentListing(agent_id, target_city);
     if (recent) {
     }
@@ -278,7 +283,7 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
         name: string;
       };
     };
-    const ai_results = await getSmart(
+    await getSmart(
       {
         agent_id,
         full_name: record.attributes.full_name,
@@ -289,7 +294,6 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
       property,
       real_estate_board,
     );
-    console.log({ ai_results });
   }
   return record?.attributes
     ? {
@@ -302,9 +306,9 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
       }
     : null;
 }
-export async function findAgentRecordByAgentId(agent_id: string) {
+export const findAgentRecordByAgentId = cache(async (agent_id: string) => {
   return await findAgentBy({ agent_id });
-}
+});
 
 export async function getMostRecentListing(agent_id: string, city: string, size: number = 1): Promise<unknown> {
   const legacy_params: LegacySearchPayload = {
@@ -322,7 +326,6 @@ export async function getMostRecentListing(agent_id: string, city: string, size:
       },
     },
   };
-  console.log({ legacy_params });
   const legacy_listings = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
 
   const listing = legacy_listings.length && legacy_listings[0];
@@ -417,7 +420,6 @@ export async function createAgentRecordIfNoneFound(
   if (!full_name) return;
 
   try {
-    // const variables = { email };
     let agent = await findAgentRecordByAgentId(agent_id);
 
     const parts = `${full_name.split('PREC*').join('').trim()}`.split(' ');

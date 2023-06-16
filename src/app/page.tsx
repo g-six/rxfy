@@ -1,4 +1,5 @@
 import parse from 'html-react-parser';
+import { AxiosError } from 'axios';
 import Image from 'next/image';
 import { CheerioAPI, load } from 'cheerio';
 import { notFound } from 'next/navigation';
@@ -17,7 +18,6 @@ import MyProfilePage from '@/rexify/my-profile';
 import styles from './page.module.scss';
 import { getUserDataFromSessionKey } from './api/update-session';
 import { findAgentRecordByAgentId } from './api/agents/model';
-import { AxiosError } from 'axios';
 import NotFound from './not-found';
 import { buildCacheFiles } from './api/properties/model';
 
@@ -71,8 +71,10 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
         if (params?.['site-page']) pathname = params['site-page'] as string;
 
-        if (!agent_data || !metatags.profile_slug || metatags.profile_slug !== profile_slug) return <NotFound></NotFound>;
-        page_url = `https://${agent_data.webflow_domain}/${pathname}`;
+        if (!agent_data || !metatags.profile_slug || metatags.profile_slug !== profile_slug) {
+          return <NotFound></NotFound>;
+        }
+        page_url = `https://${agent_data.webflow_domain || process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}/${pathname}`;
       } else {
         return <NotFound></NotFound>;
       }
@@ -104,7 +106,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     if (agent_data.webflow_domain) {
       page_url = `https://${agent_data.webflow_domain}`;
     } else {
-      page_url = `https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`;
+      page_url = `https://${process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}`;
     }
 
     if (params['site-page']) page_url = `${page_url}/${params['site-page']}${params['site-page'] === 'property' ? '/propertyid' : ''}`;

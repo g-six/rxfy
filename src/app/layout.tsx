@@ -42,12 +42,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       };
 
       if (agent_record) {
-        webflow_domain = agent_record.webflow_domain;
+        // If agent does not have any webflow_domain assigned yet, use the default theme
+        webflow_domain = agent_record.webflow_domain || process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN;
         pathname = `/${page_route.join('/') || ''}`;
         agent_data = {
           ...agent_record,
         };
-
         if (!agent_data || !metatags.profile_slug || metatags.profile_slug !== profile_slug) return <NotFound></NotFound>;
       } else {
         return <NotFound></NotFound>;
@@ -68,7 +68,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     if (['/ai', '/ai-result'].includes(pathname)) {
       webflow_domain = 'leagent-website.webflow.io';
     } else if (theme === 'default') {
-      webflow_domain = 'leagent-webflow-rebuild.webflow.io';
+      webflow_domain = `${process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}`;
     } else {
       webflow_domain = `${searchParams.theme}-leagent.webflow.io`;
     }

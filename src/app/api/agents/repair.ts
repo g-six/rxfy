@@ -49,25 +49,9 @@ export async function getSmart(
       choices: [{ text }],
       error,
     } = data;
-    console.log(
-      JSON.stringify(
-        {
-          error: error || {},
-        },
-        null,
-        4,
-      ),
-    );
+
     const ai_results = JSON.parse(text.trim());
-    console.log(
-      JSON.stringify(
-        {
-          ai_results,
-        },
-        null,
-        4,
-      ),
-    );
+
     if (ai_results.bio) {
       const { city: target_city, lat, lng } = property;
       const metatag = {
@@ -108,7 +92,6 @@ export async function getSmart(
       console.log('...[DONE] mutation_create_meta');
 
       const agent_metatag = Number(created_metatag.data?.data?.createAgentMetatag?.data.id);
-      console.log(created_metatag.data);
       console.log('Link agent record', agent.id, 'to metadata', { agent_metatag });
       const prom = axios.post(
         `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
