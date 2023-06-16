@@ -118,7 +118,7 @@ export const MapProvider = (props: any) => {
       }
     });
 
-    const strings: string[] = ['city', 'agent'];
+    const strings: string[] = ['city', 'agent', 'sorting'];
     strings.forEach(key => {
       if (search.get(key)) {
         let value = search.get(key);

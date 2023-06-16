@@ -5,7 +5,7 @@ import mapboxgl, { GeoJSONSource, GeoJSONSourceRaw, LngLatLike, MapboxGeoJSONFea
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { queryStringToObject } from '@/_utilities/url-helper';
 import { AgentData } from '@/_typings/agent';
-import { PropertyAttributeFilters, PropertyDataModel } from '@/_typings/property';
+import { PropertyAttributeFilters, PropertyDataModel, PropertySortBy } from '@/_typings/property';
 import { getSearchPropertyFilters } from '@/_utilities/rx-map-helper';
 import { Feature } from 'geojson';
 import { classNames } from '@/_utilities/html-helper';
@@ -120,7 +120,25 @@ export function RxMapbox(props: RxMapboxProps) {
       .map(kv => {
         const [k, v] = kv.split('=');
         // We want these fields to be the latest
-        if (['baths', 'beds', 'minprice', 'maxprice', 'minsqft', 'maxsqft', 'types', 'lat', 'lng', 'swlat', 'nelat', 'swlng', 'nelng'].includes(k)) {
+        if (
+          [
+            'baths',
+            'beds',
+            'minprice',
+            'maxprice',
+            'minsqft',
+            'maxsqft',
+            'types',
+            'lat',
+            'lng',
+            'swlat',
+            'nelat',
+            'swlng',
+            'nelng',
+            'sorting',
+            'agent',
+          ].includes(k)
+        ) {
           updated_state[k] = updated_state[k];
           include_listings = [];
         }
@@ -148,14 +166,14 @@ export function RxMapbox(props: RxMapboxProps) {
             },
           ];
           break;
-        case 'price_asc':
+        case PropertySortBy.PRICE_ASC:
           sort = [
             {
               'data.AskingPrice': 'asc',
             },
           ];
           break;
-        case 'price_desc':
+        case PropertySortBy.PRICE_DESC:
           sort = [
             {
               'data.AskingPrice': 'desc',

@@ -99,6 +99,13 @@ export default function RxSearchFilters(p: Props) {
       },
     },
     {
+      searchFn: searchByPartOfClass(['-asc']),
+      transformChild: (child: React.ReactElement) => {
+        const sorting = getSortingKey(child.props.className);
+        return <RxLiveTextDDOption child={child} filter='sorting' value={sorting} />;
+      },
+    },
+    {
       searchFn: searchByPartOfClass(['input-keywords']),
       transformChild: (child: React.ReactElement) => {
         return <RxMapTermsFilter className={child.props.className || ''} filter='tags' />;

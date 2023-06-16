@@ -1,15 +1,15 @@
 'use client';
 
 import { MapboxBoundaries, RxPropertyFilter } from '@/_typings/maps';
-import { PropertyAttributeFilters } from '@/_typings/property';
+import { PropertyAttributeFilters, PropertySortBy } from '@/_typings/property';
 import Cookies from 'js-cookie';
 import { getSelectedPropertyTypes } from './data-helpers/dwelling-type-helper';
 
 export function getSortingKey(class_name: string) {
   if (class_name.indexOf('date-asc') >= 0) return 'date_asc';
   if (class_name.indexOf('date-desc') >= 0) return 'date_desc';
-  if (class_name.indexOf('price-asc') >= 0) return 'price_asc';
-  if (class_name.indexOf('price-desc') >= 0) return 'price_desc';
+  if (class_name.indexOf('price-asc') >= 0) return PropertySortBy.PRICE_ASC;
+  if (class_name.indexOf('price-desc') >= 0) return PropertySortBy.PRICE_DESC;
   if (class_name.indexOf('size-asc') >= 0) return 'size_asc';
   if (class_name.indexOf('size-desc') >= 0) return 'size_desc';
   return '';
