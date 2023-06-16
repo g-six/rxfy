@@ -47,6 +47,7 @@ import AiPrompt from '@/rexify/realtors/ai';
 import RxThemePreview from './RxThemePreview';
 import { MyWebsite } from '@/rexify/my-website';
 import RxGuestNavButtons from './Nav/RxGuestNavButtons';
+import RxSearchPlaceForm from './RxForms/RxSearchPlaceForm';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -508,7 +509,12 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
         }
 
         // Property Detailed Page
-        if (agent_data && params?.slug === 'property' && node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_PAGE) >= 0) {
+        if (
+          agent_data &&
+          (params?.slug === 'property' || params?.['site-page'] === 'property') &&
+          node.attribs.class &&
+          node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_PAGE) >= 0
+        ) {
           return (
             <RxDetailedListing
               property={property as unknown as PropertyDataModel}
@@ -588,6 +594,18 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
 
           if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CTA_CONTACT_FORM) >= 0) {
             return <RxContactFormButton className={node.attribs.class}>{domToReact(node.children) as ReactElement[]}</RxContactFormButton>;
+          }
+          if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.HOME_SEARCH_WRAPPER) >= 0) {
+            return (
+              <section className={node.attribs.class + ' rexified'}>
+                {Children.map(domToReact(node.children) as ReactElement, child => {
+                  if (child.props?.className === 'w-form') {
+                    return <RxSearchPlaceForm className={child.props.className}>{child}</RxSearchPlaceForm>;
+                  }
+                  return child;
+                })}
+              </section>
+            );
           }
 
           if (agent_data && node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CONTACT_FORM) >= 0) {

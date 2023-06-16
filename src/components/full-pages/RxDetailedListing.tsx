@@ -23,7 +23,6 @@ import RxSecondPhotosGrid from '../RxProperty/RxSecondPhotosGrid';
 export function RxDetailedListing(props: ReplacerPageProps) {
   const photos = props?.property?.photos ? props?.property?.photos : [];
   const cdnPhotos = photos.map(link => getImageSized(link));
-
   const showGallery = (key: number) => {
     fireCustomEvent({ show: true, key }, Events.PropertyGalleryModal);
   };
@@ -107,7 +106,7 @@ export function RxDetailedListing(props: ReplacerPageProps) {
       searchFn: searchByClasses(['legal-1']),
       transformChild: (child: ReactElement) => {
         return replaceAllTextWithBraces(child, {
-          'Property Data Source Legal': props.property?.real_estate_board?.data?.attributes?.legal_disclaimer,
+          'Property Data Source Legal': props.property?.real_estate_board?.legal_disclaimer || '',
         }) as ReactElement;
       },
     },

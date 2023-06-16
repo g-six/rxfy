@@ -174,6 +174,8 @@ export interface PropertyDataObject extends BasePropertyDataModel {
 }
 export interface PropertyDataModel extends BasePropertyDataModel {
   real_estate_board?: {
+    id?: number;
+    legal_disclaimer: string;
     data?: {
       id?: number;
       attributes: {

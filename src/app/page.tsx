@@ -19,6 +19,7 @@ import { getUserDataFromSessionKey } from './api/update-session';
 import { findAgentRecordByAgentId } from './api/agents/model';
 import { AxiosError } from 'axios';
 import NotFound from './not-found';
+import { buildCacheFiles } from './api/properties/model';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico', 'sign-out'];
@@ -99,6 +100,14 @@ export default async function Home({ params, searchParams }: { params: Record<st
     } else {
       console.log('fetching page', page_url);
     }
+  } else {
+    if (agent_data.webflow_domain) {
+      page_url = `https://${agent_data.webflow_domain}`;
+    } else {
+      page_url = `https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`;
+    }
+
+    if (params['site-page']) page_url = `${page_url}/${params['site-page']}${params['site-page'] === 'property' ? '/propertyid' : ''}`;
   }
 
   try {
@@ -251,7 +260,12 @@ export default async function Home({ params, searchParams }: { params: Record<st
       }
     }
 
-    if (params && (params.slug === 'property' || params.slug === 'brochure') && searchParams && (searchParams.lid || searchParams.id || searchParams.mls)) {
+    if (
+      params &&
+      (params.slug === 'property' || params.slug === 'brochure' || params['site-page'] === 'property') &&
+      searchParams &&
+      (searchParams.lid || searchParams.id || searchParams.mls)
+    ) {
       if (searchParams.lid) {
         property = await getPrivatePropertyData(searchParams.lid);
       } else {
@@ -259,23 +273,33 @@ export default async function Home({ params, searchParams }: { params: Record<st
         if (searchParams.id) {
           property = await getPropertyData(searchParams.id);
         } else {
+          const cache_json = `${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/recent.json`;
           try {
-            const cached_xhr = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/recent.json`);
-            const cached_legacy_xhr = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/legacy.json`);
+            const cached_xhr = await axios.get(cache_json);
             property = cached_xhr.data;
-            legacy_data = cached_legacy_xhr.data;
+            console.log('Loading cached file', cache_json);
+            if (property) {
+              const legacy_json = `${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/legacy.json`;
+              try {
+                const cached_legacy_xhr = await axios.get(legacy_json);
+                legacy_data = cached_legacy_xhr.data;
+              } catch (e) {
+                console.log('Property legacy data', legacy_json);
+                console.log('No legacy cache, do the long query');
+              }
+            }
           } catch (e) {
             // No cache, do the long query
+            console.log('building cache');
+            buildCacheFiles(searchParams.mls);
+            console.log('Property page', cache_json);
+            console.log('No cache, do the long query');
             property = await getPropertyData(searchParams.mls, true);
             legacy_data = property;
           }
         }
         const { LA1_FullName, LA2_FullName, LA3_FullName, SO1_FullName, SO2_FullName, SO3_FullName, LO1_Name, LO2_Name, LO3_Name } =
           legacy_data as unknown as MLSProperty;
-
-        replaceByCheerio($, '.legal-text', {
-          content: property.real_estate_board?.data?.attributes?.legal_disclaimer || '',
-        });
 
         const listing_by =
           LA1_FullName || LA2_FullName || LA3_FullName || SO1_FullName || SO2_FullName || SO3_FullName || LO1_Name || LO2_Name || LO3_Name || '';

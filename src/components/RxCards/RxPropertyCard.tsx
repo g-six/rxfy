@@ -142,6 +142,11 @@ export default function RxPropertyCard({
   listing: PropertyDataModel;
   isLink?: boolean;
 }) {
+  const url = new URL(location.href);
+  // e.g /agent-id/profile-slug/map
+  const segments = url.pathname.split('/');
+  // e.g. map
+  segments.pop();
   const [is_loading, toggleLoading] = React.useState(false);
   const [loved_items, setLovedItems] = React.useState(getData(Events.LovedItem) as unknown as string[]);
   const evt = useLove();
@@ -191,7 +196,7 @@ export default function RxPropertyCard({
                 .get(`/api/properties/mls-id/${listing.mls_id}`)
                 .then(r => {
                   // Fix the application error for properties not imported yet
-                  location.href = `/property?mls=${listing.mls_id}`;
+                  location.href = `${segments.join('/')}/property?mls=${listing.mls_id}`;
                 })
                 .catch(console.error);
             }
