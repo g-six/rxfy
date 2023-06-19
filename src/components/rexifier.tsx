@@ -601,6 +601,18 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
                   if (child.props?.className === 'w-form') {
                     return <RxSearchPlaceForm className={child.props.className}>{child}</RxSearchPlaceForm>;
                   }
+                  if (child.props?.className === 'address-chips') {
+                    return (
+                      <div className={child.props.className + ' rexified'}>
+                        {Children.map(child.props.children, (chip, i) => {
+                          if (chip.props?.href === '#') {
+                            return <></>;
+                          }
+                          return chip;
+                        })}
+                      </div>
+                    );
+                  }
                   return child;
                 })}
               </section>
