@@ -195,7 +195,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
         return (
           <>
             <MyProfilePage
-              data={{ session_key, 'user-type': hostname === (process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN as string) ? 'realtor' : 'customer' }}
+              data={{ session_key, 'user-type': webflow_domain === (process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN as string) ? 'realtor' : 'customer' }}
             >
               {parse($.html()) as unknown as JSX.Element}
             </MyProfilePage>
