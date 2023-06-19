@@ -72,7 +72,7 @@ export async function GET(request: Request) {
     false,
   );
   const { agent, birthday, brokerage, stripe_customer, stripe_subscriptions } = session_data;
-
+  console.log({ session_data });
   let phone_number = session_data.phone_number || session_data.phone || session_data.agent?.data?.attributes?.phone;
   if (email && last_activity_at && session_key) {
     let subscription: { [key: string]: string } = {};

@@ -11,6 +11,7 @@ export enum Events {
   SignUp = 'event-signup',
   SaveAccountChanges = 'event-save-acct-changes',
   SystemNotification = 'system-notification',
+  MapHomeAlertToast = 'event-map-home-alert',
   HomeAlertDismiss = 'event-home-alert-dismiss',
   HomeAlertSuccess = 'event-home-alert-success',
   ContactFormShow = 'event-contact-form-show',

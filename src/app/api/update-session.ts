@@ -133,6 +133,8 @@ function gqlFindUser(user_type: 'realtor' | 'customer' = 'customer') {
         attributes {
           email
           last_activity_at
+          full_name
+          phone_number
           ${
             user_type === 'customer'
               ? `birthday
@@ -187,6 +189,7 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
     const now = Math.ceil(Date.now() / 1000);
     const expires_at = new Date(new Date(last_activity_at).getTime() + SESSION_LIFE_SECS * 1000);
     const expires_in = Math.ceil(expires_at.getTime() / 1000) - now;
+    const phone_number = fields.phone_number || fields.phone;
     let full_name = fields.full_name;
     if (!full_name) {
       if (agent?.data?.attributes?.full_name) {
@@ -230,6 +233,7 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
         email,
         user_type,
         last_activity_at,
+        phone_number,
         expires_at,
         expires_in,
         session_key: `${session_hash}-${id}`,

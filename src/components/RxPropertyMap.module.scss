@@ -5,7 +5,7 @@
 }
 
 .RxPropertyMap {
-  @apply flex flex-col w-full;
+  @apply flex flex-col w-full relative;
 }
 .RxPropertyMapSmallCard {
   .txt {

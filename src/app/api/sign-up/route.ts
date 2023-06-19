@@ -171,59 +171,6 @@ async function createLegacyRecords(record: {
 
       const client = await (<Promise<{ id: number }>>client_xhr.json());
 
-      // If search url was added
-      if (record.search_url) {
-        try {
-          const url = new URL(record.search_url);
-
-          const saved_search_input = {
-            alert_active: true,
-            Search_query: url.search[0] === '?' ? url.search.substring(1) : url.search,
-            Client_profile: client.id,
-            users_permissions_user: user.id,
-          };
-
-          const saved_search_xhr = await fetch(`${process.env.NEXT_APP_STRAPI_URL}/saved-searches`, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${jwt}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(saved_search_input),
-          });
-
-          if (saved_search_xhr.ok) {
-            const saved_search = await (<
-              Promise<{
-                [key: string]:
-                  | string
-                  | number
-                  | Date
-                  | {
-                      [key: string]: string;
-                    };
-              }>
-            >saved_search_xhr.json());
-            return {
-              client,
-              saved_search,
-              user,
-            };
-          } else {
-            const error = await (<Promise<string>>saved_search_xhr.text());
-            console.log({
-              error,
-            });
-            return {
-              error: 'Legacy API request went OK but Saved Search failed',
-            };
-          }
-        } catch (e) {
-          return {
-            error: 'Legacy API request went OK but Saved Search failed',
-          };
-        }
-      }
       return {
         client,
         user,
@@ -268,7 +215,7 @@ export async function POST(request: Request) {
       });
 
       if (input_error) return { error: input_error };
-
+      console.log({ valid_data });
       if (valid_data) {
         const encrypted_password = encrypt(valid_data.password);
         const response = await axios.post(
@@ -334,6 +281,7 @@ export async function POST(request: Request) {
                 variables: {
                   data: {
                     ...saved_search,
+                    zoom: saved_search.zoom ? Math.ceil(saved_search.zoom) : 9,
                     customer: data.id,
                   },
                 },
@@ -361,6 +309,7 @@ export async function POST(request: Request) {
           });
 
           if (legacy_error) {
+            console.log({ legacy_error });
             return getResponse({
               message: 'Unable to sign user up based on Strapi a v3 thrown error',
             });

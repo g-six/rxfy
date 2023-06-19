@@ -166,9 +166,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     }
     metas.push(<link {...attributesToProps(meta.attribs)} key={page_key} />);
   });
+  console.log('Loading meta');
   // end of extracting and assigning <head> elements
   const { class: bodyClassName, ...body_props } = webflow.body.props;
-  if (!agent_data || agent_data.webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN) {
+
+  if (!agent_data || agent_data.webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN || requestUrl.pathname.split('/').pop() === 'map') {
     return (
       <html data-wf-domain={`${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`} {...$('html').attr()}>
         <head>

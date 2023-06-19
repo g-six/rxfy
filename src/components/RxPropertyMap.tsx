@@ -41,7 +41,9 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
       );
     }
     if (child.props && child.props.className && child.props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.HOME_ALERTS_WRAPPER)) {
-      return <HomeAlertsReplacer agent={props.agent_data} nodeClassName='absolute' nodeProps={child.props} nodes={child.props.children} />;
+      return (
+        <HomeAlertsReplacer agent={props.agent_data} nodeClassName={child.props.className + ' absolute'} nodeProps={child.props} nodes={child.props.children} />
+      );
     }
     if (child.type === 'input' && child.props.className && child.props.className.indexOf('search-input-field') >= 0) {
       return (

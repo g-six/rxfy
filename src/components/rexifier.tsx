@@ -18,7 +18,6 @@ import FooterSocialLinks from './A/FooterSocialLinks';
 import PersonalTitle from './PersonalTitle';
 import PersonalBioParagraph from './PersonalBioParagraph';
 import PropertyCarousel from './RxPropertyCarousel/main';
-import HomeAlertsReplacer from '@/_replacers/HomeAlerts/home-alerts';
 import RxContactForm from '@/components/RxForms/RxContactForm';
 import { RxUserSessionLink } from './Nav/RxUserSessionLink';
 import RxPdfWrapper from '@/components/RxProperty/RxPropertyPdf/RxPdfWrapper';
@@ -628,7 +627,7 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
                 {...props}
                 type={node.type}
                 data={agent_data as unknown as RealtorInputModel}
-                user-type={params.session_as as string}
+                user-type='customer'
                 domain={params.webflow_domain as string}
               >
                 <>{domToReact(node.children) as ReactElement[]}</>
@@ -731,10 +730,6 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
               </RxPropertyMap>
             </div>
           );
-        }
-
-        if (agent_data && node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.HOME_ALERTS_WRAPPER) >= 0) {
-          return <HomeAlertsReplacer agent={agent_data} nodeClassName={className} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />;
         }
 
         if ((node.children && node.children.length === 1) || node.name === 'input') {

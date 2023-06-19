@@ -6,15 +6,17 @@ import { searchByClasses } from '@/_utilities/searchFnUtils';
 
 import { ReplacerHomeAlerts } from '@/_typings/forms';
 import Cookies from 'js-cookie';
-import { getData } from '@/_utilities/data-helpers/local-storage-helper';
-import useHomeAlert from '@/hooks/useHomeAlert';
+import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 import { HomeAlertStep } from '@/_typings/home-alert';
+import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 
 export default function HomeAlertsIcon({ agent, child }: ReplacerHomeAlerts) {
-  const hook = useHomeAlert(agent);
-  const [show, toggleShow] = useState(false);
+  const evt = useEvent(Events.MapHomeAlertToast);
+  const { step } = {
+    ...evt.data,
+  } as unknown as { step: HomeAlertStep };
+  const [show, toggleShow] = useState(true);
   const [full_url, setCurrentFullUrl] = useState('');
-
   const matches = [
     {
       searchFn: searchByClasses(['ha-icon']),
@@ -24,14 +26,31 @@ export default function HomeAlertsIcon({ agent, child }: ReplacerHomeAlerts) {
           {
             ...child.props,
             onClick: () => {
-              let step: HomeAlertStep = HomeAlertStep.STEP_1;
-              if (getData('dismissSavedSearch')) {
-                const d = getData('dismissSavedSearch') as unknown as { step: number };
-                step = d.step;
-              } else if (Cookies.get('session_key')) {
-                step = HomeAlertStep.STEP_1;
+              switch (getData('HomeAlertStep') as unknown as number) {
+                case HomeAlertStep.DISS_0:
+                  evt.fireEvent({
+                    step: HomeAlertStep.STEP_0,
+                  } as unknown as EventsData);
+                  setData('HomeAlertStep', `${HomeAlertStep.STEP_0}`);
+                  break;
+                case HomeAlertStep.DISS_1:
+                  evt.fireEvent({
+                    step: HomeAlertStep.STEP_1,
+                  } as unknown as EventsData);
+                  setData('HomeAlertStep', `${HomeAlertStep.STEP_1}`);
+                  break;
+                case HomeAlertStep.DISS_2:
+                  evt.fireEvent({
+                    step: HomeAlertStep.STEP_2,
+                  } as unknown as EventsData);
+                  setData('HomeAlertStep', `${HomeAlertStep.STEP_2}`);
+                  break;
+                default:
+                  evt.fireEvent({
+                    step: HomeAlertStep.STEP_1,
+                  } as unknown as EventsData);
+                  setData('HomeAlertStep', `${HomeAlertStep.STEP_1}`);
               }
-              hook.onAction({ step, url: full_url });
             },
           },
           child.props.children,
@@ -40,17 +59,16 @@ export default function HomeAlertsIcon({ agent, child }: ReplacerHomeAlerts) {
   ];
 
   useEffect(() => {
-    if (getData('dismissSavedSearch') && getData('dismissSavedSearch') !== null) {
-      const { dismissed_at } = getData('dismissSavedSearch') as unknown as { dismissed_at: string; step: number };
-      toggleShow(dismissed_at !== undefined);
-    } else {
-      toggleShow(false);
-    }
-  }, [hook]);
+    toggleShow(![HomeAlertStep.STEP_1, HomeAlertStep.STEP_2].includes(step));
+  }, [step]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setCurrentFullUrl(location.href);
+    }
+    const step = getData('HomeAlertStep');
+    if (step !== null) {
+      toggleShow(![HomeAlertStep.STEP_1, HomeAlertStep.STEP_2].includes(step));
     }
   }, []);
 
@@ -65,6 +83,7 @@ export default function HomeAlertsIcon({ agent, child }: ReplacerHomeAlerts) {
       leave='transition ease-in duration-100'
       leaveFrom='opacity-100'
       leaveTo='opacity-0'
+      className={child?.props.className}
     >
       <div className='ha-success'>{transformMatchingElements([child], matches)}</div>
     </Transition>

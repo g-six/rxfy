@@ -11,7 +11,7 @@ import HomeAlertsStep2 from '@/_replacers/HomeAlerts/home-alerts-step2';
 import HomeAlertsSuccess from '@/_replacers/HomeAlerts/home-alerts-success';
 import HomeAlertsIcon from '@/_replacers/HomeAlerts/home-alerts-icon';
 
-export default function HomeAlertsReplacer({ nodes, agent }: ReplacerPageProps) {
+export default function HomeAlertsReplacer({ nodes, agent, nodeClassName }: ReplacerPageProps) {
   const matches = [
     {
       searchFn: searchByClasses(['ha-step-1']),
@@ -51,7 +51,7 @@ export default function HomeAlertsReplacer({ nodes, agent }: ReplacerPageProps) 
       leaveFrom='opacity-100'
       leaveTo='opacity-0'
     >
-      <section className='absolute top-24 z-50 left-1/2 -translate-x-1/2'>{transformMatchingElements(nodes, matches)}</section>
+      <section className={nodeClassName}>{transformMatchingElements(nodes, matches)}</section>
     </Transition>
   );
 }

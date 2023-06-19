@@ -30,10 +30,9 @@ export default function MyProfilePage(p: Props) {
   const scripts: { [key: string]: string }[] = [];
   const [dash_area, setDashArea] = React.useState<React.ReactElement>();
   const [navigation_wrapper, setNavBar] = React.useState<React.ReactElement>();
-
   React.useEffect(() => {
     if (Cookies.get('session_key')) {
-      getUserBySessionKey(Cookies.get('session_key') as string, 'realtor')
+      getUserBySessionKey(Cookies.get('session_key') as string, `${p.data ? (p.data['user-type'] as 'realtor' | 'customer') : ''}` || 'realtor')
         .then(data => {
           if (data.error) location.href = '/log-in';
           if (p.children.type === 'html') {

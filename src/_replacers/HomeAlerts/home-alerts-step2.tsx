@@ -7,13 +7,17 @@ import { ReplacerHomeAlerts } from '@/_typings/forms';
 import { HomeAlertStep } from '@/_typings/home-alert';
 import { searchByClasses, searchById } from '@/_utilities/searchFnUtils';
 import { validateEmail } from '@/_utilities/validation-helper';
-import { getData } from '@/_utilities/data-helpers/local-storage-helper';
+import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 
 import useHomeAlert from '@/hooks/useHomeAlert';
-import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
+import useEvent, { Events, EventsData, NotificationCategory } from '@/hooks/useEvent';
 
 export default function HomeAlertsStep2({ child, agent }: ReplacerHomeAlerts) {
+  const evt = useEvent(Events.MapHomeAlertToast);
+  const { step } = {
+    ...evt.data,
+  } as unknown as { step: HomeAlertStep };
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [email, setEmail] = useState('');
   const [show, toggleShow] = useState(false);
@@ -51,7 +55,10 @@ export default function HomeAlertsStep2({ child, agent }: ReplacerHomeAlerts) {
           {
             ...child.props,
             onClick: () => {
-              hook.onDismiss(HomeAlertStep.STEP_2);
+              setData('HomeAlertStep', `${HomeAlertStep.DISS_2}`);
+              evt.fireEvent({
+                step: HomeAlertStep.DISS_2,
+              } as unknown as EventsData);
               toggleShow(false);
             },
           },
@@ -104,20 +111,12 @@ export default function HomeAlertsStep2({ child, agent }: ReplacerHomeAlerts) {
     },
   ];
 
-  // hook
+  useEffect(() => {
+    toggleShow(step === HomeAlertStep.STEP_2 || getData('HomeAlertStep') === HomeAlertStep.STEP_2);
+  }, [step]);
 
   useEffect(() => {
-    if (Cookies.get('session_key')) {
-    } else if (getData('dismissSavedSearch') && getData('dismissSavedSearch') !== null) {
-      const { dismissed_at, step } = getData('dismissSavedSearch') as unknown as { dismissed_at: string; step: number };
-      toggleShow(step === HomeAlertStep.STEP_2 && dismissed_at === undefined);
-    } else {
-      toggleShow(false);
-    }
-  }, [hook]);
-
-  useEffect(() => {
-    toggleShow(!Cookies.get('session_key') && getData('dismissSavedSearch') !== null);
+    toggleShow(step === HomeAlertStep.STEP_2 || getData('HomeAlertStep') === HomeAlertStep.STEP_2);
 
     if (typeof window !== 'undefined') {
       setCurrentFullUrl(location.href);

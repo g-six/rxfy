@@ -46,7 +46,7 @@ function loadAiResults($: CheerioAPI, user_id: string, origin?: string) {
 }
 
 export default async function Home({ params, searchParams }: { params: Record<string, unknown>; searchParams: Record<string, string> }) {
-  const { TEST_DOMAIN } = process.env as unknown as { [key: string]: string };
+  const { TEST_WF_DOMAIN, TEST_DOMAIN } = process.env as unknown as { [key: string]: string };
   const axios = (await import('axios')).default;
   const url = headers().get('x-url') as string;
   const { hostname, pathname: original_path, origin } = new URL(url);
@@ -335,7 +335,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
           {rexify(webflow.body.code, agent_data, property, {
             ...params,
             origin,
-            webflow_domain: hostname === 'localhost' ? TEST_DOMAIN : hostname,
+            webflow_domain: hostname === 'localhost' ? TEST_WF_DOMAIN : hostname,
           })}
           <RxNotifications />
         </main>

@@ -3,19 +3,19 @@ import React, { ReactElement, cloneElement, useEffect, useState } from 'react';
 import { Transition } from '@headlessui/react';
 
 import { ReplacerHomeAlerts } from '@/_typings/forms';
-// import { getUserData } from '@/_helpers/storeCore';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
-import useHomeAlert from '@/hooks/useHomeAlert';
-import Cookies from 'js-cookie';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
-import useEvent, { Events } from '@/hooks/useEvent';
+import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { HomeAlertStep } from '@/_typings/home-alert';
 
 export default function HomeAlertsStep1({ child, agent }: ReplacerHomeAlerts) {
-  const hook = useHomeAlert(agent);
-  const eventHookDismiss = useEvent(Events.HomeAlertDismiss);
-  const [show, toggleShow] = useState(false);
+  const evt = useEvent(Events.MapHomeAlertToast);
+  const { step } = {
+    ...evt.data,
+  } as unknown as { step: HomeAlertStep };
+  // const hook = useHomeAlert(agent);
+  const [show, toggleShow] = useState(step === undefined && step === HomeAlertStep.STEP_1);
   const [full_url, setCurrentFullUrl] = useState('');
   const matches = [
     {
@@ -26,8 +26,11 @@ export default function HomeAlertsStep1({ child, agent }: ReplacerHomeAlerts) {
           {
             ...child.props,
             onClick: () => {
-              hook.onDismiss(HomeAlertStep.STEP_1);
               toggleShow(false);
+              evt.fireEvent({
+                step: HomeAlertStep.DISS_1,
+              } as unknown as EventsData);
+              setData('HomeAlertStep', `${HomeAlertStep.DISS_1}`);
             },
           },
           child.props.children,
@@ -41,7 +44,10 @@ export default function HomeAlertsStep1({ child, agent }: ReplacerHomeAlerts) {
           {
             ...child.props,
             onClick: () => {
-              hook.onAction({ step: HomeAlertStep.STEP_2, url: full_url });
+              evt.fireEvent({
+                step: HomeAlertStep.STEP_2,
+              } as unknown as EventsData);
+              setData('HomeAlertStep', `${HomeAlertStep.STEP_2}`);
             },
           },
           child.props.children,
@@ -50,24 +56,13 @@ export default function HomeAlertsStep1({ child, agent }: ReplacerHomeAlerts) {
   ];
 
   useEffect(() => {
-    if (getData('dismissSavedSearch') && getData('dismissSavedSearch') !== null) {
-      const { dismissed_at, show_step } = getData('dismissSavedSearch') as unknown as { show_step: number; dismissed_at?: string };
-      if (Cookies.get('session_key') !== undefined) {
-        toggleShow(!dismissed_at);
-      } else {
-        toggleShow(show_step === 1 || (!dismissed_at && !show_step));
-      }
-    }
-  }, [hook]);
+    toggleShow(step === HomeAlertStep.STEP_1);
+  }, [step]);
 
   useEffect(() => {
-    if (getData('dismissSavedSearch') !== null) {
-      const { dismissed_at, step } = getData('dismissSavedSearch') as unknown as { dismissed_at?: string; step: number };
-      if (Cookies.get('session_key') !== undefined) {
-        toggleShow(false);
-      } else {
-        toggleShow(!dismissed_at && step === 1);
-      }
+    const step = getData('HomeAlertStep');
+    if (step !== null) {
+      toggleShow(step === HomeAlertStep.STEP_1);
     }
     if (typeof window !== 'undefined') {
       setCurrentFullUrl(location.href);
@@ -85,6 +80,7 @@ export default function HomeAlertsStep1({ child, agent }: ReplacerHomeAlerts) {
       leave='transition ease-in duration-100'
       leaveFrom='opacity-100'
       leaveTo='opacity-0'
+      className={child?.props?.className}
     >
       {transformMatchingElements([child], matches)}
     </Transition>
