@@ -55,6 +55,9 @@ export enum WEBFLOW_NODE_SELECTOR {
   AI_THEME_PANE_1 = '.w-tabs-1-data-w-pane-0 .theme-area',
   AI_THEME_PANE_2 = 'realtor-ai-property-page',
   AGENT_NAME_WRAPPER = 'agent-name',
+
+  // REALTOR CRM
+  CRM_AREA_WRAPPER = 'crm-area',
 }
 
 export interface WebFlow {

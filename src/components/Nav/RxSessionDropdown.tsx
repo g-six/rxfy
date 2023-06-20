@@ -43,6 +43,8 @@ export default function RxSessionDropdown(p: Props) {
   const evt = useEvent(Events.ToggleUserMenu);
   const logout = useEvent(Events.Logout);
   const [in_session, setSession] = React.useState(false);
+  const [user, setUser] = React.useState<{ [key: string]: string | number }>();
+
   React.useEffect(() => {
     if (logout.data?.clicked) {
       logout.fireEvent({});
@@ -55,6 +57,12 @@ export default function RxSessionDropdown(p: Props) {
   }, [logout.data?.clicked]);
 
   React.useEffect(() => {
+    if (session.data) {
+      setUser(session.data as unknown as { [key: string]: string | number });
+    }
+  }, [session.data]);
+
+  React.useEffect(() => {
     if (Cookies.get('session_key') && session.data) {
       let { session_key } = session.data as unknown as {
         session_key: string;
@@ -63,6 +71,7 @@ export default function RxSessionDropdown(p: Props) {
         getUserBySessionKey(Cookies.get('session_key') as string, 'realtor')
           .then(data => {
             const { expires_in } = data as unknown as { expires_in: number };
+
             session.fireEvent(data);
             if (expires_in > 0) {
               setSession(true);
@@ -88,14 +97,6 @@ export default function RxSessionDropdown(p: Props) {
         <DropdownLightbox className={child.props.className + ` w--open rexified ${styles.dropdown} ${styles['session-dropdown']}`}>
           {child.props.children}
         </DropdownLightbox>
-      ),
-    },
-    {
-      searchFn: searchByClasses(['agent-name']),
-      transformChild: (child: React.ReactElement) => (
-        <RxAgentTextWrapper attribute='full_name' className={child.props.className}>
-          <>{p.agent?.full_name ? p.agent.full_name : child.props.children}</>
-        </RxAgentTextWrapper>
       ),
     },
     {
@@ -147,8 +148,12 @@ function ToggleIterator(p: Props & { id?: string; 'data-session': unknown; onCli
       return React.cloneElement(child, {
         className: `${child?.props?.className || ''} rexified`.trim(),
       });
-    } else if (child.props.attribute) {
-      return <div {...child.props}>{session && session[child.props.attribute]}</div>;
+    } else if (child.type === 'div' && child.props.className?.indexOf('agent-name') >= 0 && child.props.className?.indexOf('rexified') === -1) {
+      return (
+        <div data-value={session.full_name} className={[child.props.className, 'rexified'].join(' ')}>
+          <div>{session && session.full_name}</div>
+        </div>
+      );
     } else if (child.type !== 'div') {
       return child;
     }

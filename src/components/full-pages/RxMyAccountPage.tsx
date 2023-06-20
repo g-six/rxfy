@@ -270,12 +270,6 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
     }
   }, [data]);
 
-  React.useEffect(() => {
-    if (Cookies.get('session_key')) {
-      getUserBySessionKey(Cookies.get('session_key') as string).then(setFormData);
-    }
-  }, []);
-
   return (
     <div id='rx-my-account-page' className={[props.className || '', is_processing ? 'loading' : ''].join(' ').trim()}>
       <RxPageIterator

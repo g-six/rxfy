@@ -10,8 +10,11 @@ type Props = {
 export function RxAgentTextWrapper(p: Props) {
   const { data } = useEvent(Events.LoadUserSession);
   let user;
-  if (data?.user) {
-    user = data.user as {
+  React.useEffect(() => {
+    console.log({ data });
+  }, [data]);
+  if (data) {
+    user = data as {
       [key: string]: string;
     } & {
       brokerage?: {

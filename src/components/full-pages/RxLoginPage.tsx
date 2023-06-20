@@ -22,7 +22,6 @@ type RxLoginPageProps = {
 export function RxLoginPageIterator(props: RxLoginPageProps) {
   const wrappedChildren = React.Children.map(props.children, child => {
     const child_node = child as React.ReactElement;
-
     if (child_node.type === 'input') {
       if (child_node.props.type === 'submit') {
         return (
@@ -96,14 +95,18 @@ export function RxLoginPage(props: RxLoginPageProps) {
     toggleLoading(true);
     try {
       const { email, password } = data as unknown as { [key: string]: string };
-      const api_response = await login(email, password, { is_agent: hasClassName(props.className || '', 'use-agent') }).catch((e: AxiosError) => {
-        if (e.response && e.response.data) {
-          const { error } = e.response.data as { error: string };
-          if (error) {
-            throw { response: { statusText: error } };
+      const api_response = await login(email, password, { is_agent: hasClassName(props.className || '', 'use-agent') })
+        .catch((e: AxiosError) => {
+          if (e.response && e.response.data) {
+            const { error } = e.response.data as { error: string };
+            if (error) {
+              throw { response: { statusText: error } };
+            }
           }
-        }
-      });
+        })
+        .finally(() => {
+          toggleLoading(false);
+        });
 
       const session = api_response as unknown as {
         user?: {
@@ -130,6 +133,9 @@ export function RxLoginPage(props: RxLoginPageProps) {
         category: NotificationCategory.ERROR,
         message: error.response?.statusText,
       });
+    } finally {
+      toggleLoading(false);
+      fireEvent({ clicked: '' });
     }
 
     toggleLoading(false);

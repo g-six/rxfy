@@ -46,6 +46,42 @@ export const GQ_FRAG_AGENT = `
           agent_metatag {
             data {${GQ_FRAG_AGENT_METATAG}}
           }
+          customers(pagination: { limit: 200 }) {
+            data {
+              attributes {
+                status
+                customer {
+                  data {
+                    id
+                    attributes {
+                      full_name
+                      email
+                      phone_number
+                      birthday
+                      last_activity_at
+                      saved_searches(filters: { city: { notNull: true } }, pagination: { limit: 1 }, sort: "desc" ) {
+                        data {
+                          id
+                          attributes {
+                            city
+                            minprice
+                            maxprice
+                            dwelling_types {
+                              data {
+                                attributes {
+                                  name
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
           real_estate_board {
             data {
               id

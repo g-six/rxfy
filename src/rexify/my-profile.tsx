@@ -25,61 +25,57 @@ type Props = {
 };
 
 export default function MyProfilePage(p: Props) {
-  const params = useSearchParams();
-  const [session, setSession] = React.useState<{ [key: string]: string | number }>();
+  const { data } = useEvent(Events.LoadUserSession);
   const scripts: { [key: string]: string }[] = [];
   const [dash_area, setDashArea] = React.useState<React.ReactElement>();
   const [navigation_wrapper, setNavBar] = React.useState<React.ReactElement>();
+
   React.useEffect(() => {
-    if (Cookies.get('session_key')) {
-      getUserBySessionKey(Cookies.get('session_key') as string, `${p.data ? (p.data['user-type'] as 'realtor' | 'customer') : ''}` || 'realtor')
-        .then(data => {
-          if (data.error) location.href = '/log-in';
-          if (p.children.type === 'html') {
-            Object.keys(p.children.props).forEach((key: string) => {
-              if (key === 'children') {
-                p.children.props[key].forEach((child: React.ReactElement) => {
-                  if (child.type === 'body') {
-                    child.props.children.forEach((div: React.ReactElement) => {
-                      if (div.type === 'div') {
-                        setNavBar(buildNavigationComponent(div.props.children, { ...p, session: data }));
-                        setDashArea(buildMainComponent(div.props.children, { ...p, session: data }));
-                      } else if (div.type === 'script') {
-                        scripts.push({
-                          src: div.props.src,
-                          type: div.props.type,
-                        });
-                      }
-                    });
+    const session = data as unknown as { [key: string]: string | number };
+    if (session?.id) {
+      if (p.children.type === 'html') {
+        Object.keys(p.children.props).forEach((key: string) => {
+          if (key === 'children') {
+            p.children.props[key].forEach((child: React.ReactElement) => {
+              if (child.type === 'body') {
+                child.props.children.forEach((div: React.ReactElement) => {
+                  if (div.type === 'div') {
+                    setDashArea(buildMainComponent(div.props.children, { ...p, session }));
                   }
                 });
               }
             });
-            setSession(data);
-          }
-        })
-        .catch(e => {
-          const axerr = e as AxiosError;
-          if (axerr.response?.status === 401) {
-            clearSessionCookies();
-            setTimeout(() => {
-              location.href = '/log-in';
-            }, 200);
           }
         });
-    } else {
-      if (params.get('key')) {
-        Cookies.set('session_key', params.get('key') as string);
-        setTimeout(() => {
-          location.reload();
-        }, 200);
-      } else {
-        location.href = '/log-in';
       }
+    }
+  }, [data]);
+
+  React.useEffect(() => {
+    if (p.children.type === 'html') {
+      Object.keys(p.children.props).forEach((key: string) => {
+        if (key === 'children') {
+          p.children.props[key].forEach((child: React.ReactElement) => {
+            if (child.type === 'body') {
+              child.props.children.forEach((div: React.ReactElement) => {
+                if (div.type === 'div') {
+                  setNavBar(buildNavigationComponent(div.props.children, { ...p, session: data as unknown as { [key: string]: string | number } }));
+                  // setDashArea(buildMainComponent(div.props.children, { ...p, session }));
+                } else if (div.type === 'script') {
+                  scripts.push({
+                    src: div.props.src,
+                    type: div.props.type,
+                  });
+                }
+              });
+            }
+          });
+        }
+      });
     }
   }, []);
 
-  return session && session.session_key ? (
+  return (
     <>
       <div className='dash-wrapper rexified'>
         {navigation_wrapper}
@@ -89,8 +85,6 @@ export default function MyProfilePage(p: Props) {
         <Script key={src.split('/').pop()} src={src} type={type} />
       ))}
     </>
-  ) : (
-    <></>
   );
 }
 

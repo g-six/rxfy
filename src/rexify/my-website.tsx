@@ -112,24 +112,24 @@ export function MyWebsite(p: Props) {
 
   // Let's load up the session
 
-  React.useEffect(() => {
-    if (Cookies.get('session_key')) {
-      getUserBySessionKey(Cookies.get('session_key') as string, 'realtor')
-        .then(data => {
-          loadUserDataIntoEventState(data);
-          setAgent(data as unknown as AgentData);
-        })
-        .catch(e => {
-          const axerr = e as AxiosError;
-          if (axerr.response?.status === 401) {
-            clearSessionCookies();
-            setTimeout(() => {
-              location.href = '/log-in';
-            }, 500);
-          }
-        });
-    }
-  }, []);
+  // React.useEffect(() => {
+  //   if (Cookies.get('session_key')) {
+  //     getUserBySessionKey(Cookies.get('session_key') as string, 'realtor')
+  //       .then(data => {
+  //         loadUserDataIntoEventState(data);
+  //         setAgent(data as unknown as AgentData);
+  //       })
+  //       .catch(e => {
+  //         const axerr = e as AxiosError;
+  //         if (axerr.response?.status === 401) {
+  //           clearSessionCookies();
+  //           setTimeout(() => {
+  //             location.href = '/log-in';
+  //           }, 500);
+  //         }
+  //       });
+  //   }
+  // }, []);
 
   return (
     <>

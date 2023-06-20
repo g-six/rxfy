@@ -47,6 +47,7 @@ import RxThemePreview from './RxThemePreview';
 import { MyWebsite } from '@/rexify/my-website';
 import RxGuestNavButtons from './Nav/RxGuestNavButtons';
 import RxSearchPlaceForm from './RxForms/RxSearchPlaceForm';
+import RxCRM from '@/rexify/realtors/RxCRM';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -474,6 +475,10 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
             );
         }
 
+        if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.CRM_AREA_WRAPPER) >= 0) {
+          return <RxCRM className={props.className}>{domToReact(node.children) as ReactElement}</RxCRM>;
+        }
+
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.SESSION_DROPDOWN) >= 0) {
           if (params.slug && `${params.slug}`.indexOf('ai') === 0) {
             // We do not show the session dropdown on ai-results pages
@@ -555,7 +560,7 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
             <RxResetPasswordPage
               {...props}
               type={node.type}
-              user-type={`${process.env.NEXT_PUBLIC_LEAGENT_DOMAINS}`.split(',').includes(`${params.webflow_domain}`) ? 'realtor' : 'customer'}
+              user-type={process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN === params.webflow_domain ? 'realtor' : 'customer'}
             >
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxResetPasswordPage>
@@ -566,7 +571,7 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
             <RxUpdatePasswordPage
               {...props}
               type={node.type}
-              user-type={`${process.env.NEXT_PUBLIC_LEAGENT_DOMAINS}`.split(',').includes(`${params.webflow_domain}`) ? 'realtor' : 'customer'}
+              user-type={process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN === params.webflow_domain ? 'realtor' : 'customer'}
             >
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxUpdatePasswordPage>

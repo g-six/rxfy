@@ -4,6 +4,7 @@ import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extr
 import { getResponse } from '../response-helper';
 import { getNewSessionKey } from '../update-session';
 import { GQ_FRAG_AGENT } from '../agents/graphql';
+import { CustomerRecord } from '@/_typings/customer';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -72,7 +73,6 @@ export async function GET(request: Request) {
     false,
   );
   const { agent, birthday, brokerage, stripe_customer, stripe_subscriptions } = session_data;
-  console.log({ session_data });
   let phone_number = session_data.phone_number || session_data.phone || session_data.agent?.data?.attributes?.phone;
   if (email && last_activity_at && session_key) {
     let subscription: { [key: string]: string } = {};
@@ -98,10 +98,101 @@ export async function GET(request: Request) {
         }
       }
     }
+    const customers: CustomerRecord[] = [];
+    agent.customers.data.forEach((customer: unknown) => {
+      const { id, attributes: agent_customer } = customer as {
+        id: number;
+        attributes?: {
+          status: 'active' | 'lead' | 'closed';
+          customer: {
+            data: {
+              id: number;
+              attributes: {
+                [key: string]: unknown;
+              };
+            };
+          };
+        };
+      };
+      agent_customer?.customer.data.attributes &&
+        Object.keys(agent_customer?.customer.data.attributes).forEach(k => {
+          if (agent_customer?.customer.data.attributes[k] === null) delete agent_customer?.customer.data.attributes[k];
+        });
+      const {
+        full_name,
+        email,
+        birthday,
+        last_activity_at,
+        saved_searches: saved_recs,
+      } = agent_customer?.customer.data.attributes as {
+        full_name: string;
+        birthday: string;
+        last_activity_at: string;
+        email: string;
+        saved_searches: {
+          data?: {
+            id: number;
+            attributes: {
+              city?: string;
+              minprice?: number;
+              maxprice?: number;
+              dwelling_types?: {
+                data?: {
+                  attributes: {
+                    name: string;
+                  };
+                }[];
+              };
+            };
+          }[];
+        };
+      };
+
+      const saved_searches: {
+        id: number;
+        city?: string;
+        minprice?: number;
+        maxprice?: number;
+        dwelling_types?: string[];
+      }[] = [];
+
+      saved_recs.data?.forEach(s => {
+        const dwelling_types: string[] = [];
+        if (s.attributes.dwelling_types?.data) {
+          s.attributes.dwelling_types.data.forEach(dt => {
+            dwelling_types.push(dt.attributes.name);
+          });
+        }
+        let city, minprice, maxprice;
+        if (s.attributes.city) city = s.attributes.city;
+        if (s.attributes.minprice) minprice = s.attributes.minprice;
+        if (s.attributes.maxprice) maxprice = s.attributes.maxprice;
+
+        saved_searches.push({
+          id: Number(s.id),
+          city,
+          minprice,
+          maxprice,
+          dwelling_types,
+        });
+      });
+
+      customers.push({
+        full_name,
+        email,
+        birthday,
+        last_activity_at,
+        status: agent_customer?.status || 'lead',
+        id: Number(agent_customer?.customer.data.id),
+        saved_searches,
+      });
+    });
+
     return getResponse(
       {
         ...agent,
         agent_metatag: undefined,
+        customers,
         metatags: agent?.agent_metatag ? agent?.agent_metatag : undefined,
         brokerage,
         phone_number,
@@ -109,7 +200,6 @@ export async function GET(request: Request) {
         stripe_subscriptions,
         subscription,
         id: guid,
-        last_activity_at,
         expires_in,
         email,
         birthday,

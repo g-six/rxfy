@@ -1,42 +1,8 @@
 import { encrypt } from '@/_utilities/encryption-helper';
 import axios, { AxiosError } from 'axios';
 import updateSessionKey from '../../update-session';
-
-const gql_retrieve_clients = `query RetrieveClients($id: ID!) {
-    agent(id: $id) {
-      data {
-        attributes {
-          agent_id
-          customers {
-            data {
-              id
-              attributes {
-                full_name
-                email
-                birthday
-                phone_number
-                loves {
-                  data {
-                    id
-                    attributes {
-                      property {
-                        data {
-                          attributes {
-                            title
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`;
+import { GQ_FRAG_AGENT } from '../graphql';
+import { getResponse } from '../../response-helper';
 
 export async function POST(req: Request) {
   const data = await req.json();
@@ -51,7 +17,7 @@ export async function POST(req: Request) {
   }
 
   const { session_key, agent, ...user } = auth;
-  return getResponse({ user, agent, session_key }, 200);
+  return getResponse({ user, agent, session_key });
 }
 
 async function agentAuthLogin(email: string, password: string) {
@@ -102,8 +68,8 @@ async function agentAuthLogin(email: string, password: string) {
               : {},
             customers: customers?.data
               ? customers.data.map((c: any) => ({
-                  ...c.attributes,
-                  id: Number(c.id),
+                  ...c.attributes.customer.data.attributes,
+                  id: Number(c.attributes.customer.data.id),
                 }))
               : [],
           },
@@ -133,7 +99,8 @@ async function agentAuthLogin(email: string, password: string) {
   } catch (e) {
     const { response, code } = e as AxiosError;
     if (code == 'ERR_BAD_REQUEST') {
-      console.log({ code }, response?.data);
+      console.log({ code });
+      console.log(JSON.stringify(response?.data, null, 4));
       return;
     }
     return;
@@ -155,15 +122,6 @@ function checkForFieldErrors(data: { [key: string]: any }) {
       password: ['required'],
     };
   return errors;
-}
-
-function getResponse(data: { [key: string]: any }, status = 200 | 400 | 401 | 405) {
-  return new Response(JSON.stringify(data, null, 4), {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    status,
-  });
 }
 
 const agent_metatags_data_fragment = `
@@ -202,40 +160,7 @@ const gql_login = `query LoginAgent($email: String!, $encrypted_password: String
                 email
                 last_activity_at
                 agent {
-                  data {
-                    id
-                    attributes {
-                      agent_id
-                      agent_metatag {
-                        ${agent_metatags_data_fragment}
-                      }
-                      customers {
-                        data {
-                            id
-                            attributes {
-                                full_name
-                                email
-                                birthday
-                                phone_number
-                                loves {
-                                    data {
-                                        id
-                                        attributes {
-                                            property {
-                                                data {
-                                                    attributes {
-                                                        title
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                      }
-                    }
-                  }
+                  data {${GQ_FRAG_AGENT}}
                 }
             }
         }

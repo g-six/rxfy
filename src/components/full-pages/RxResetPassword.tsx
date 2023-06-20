@@ -72,6 +72,7 @@ export function RxResetPasswordPage(props: RxResetPasswordPageProps) {
           },
         },
       );
+
       if (api_response.data.message) {
         notify({
           category: NotificationCategory.SUCCESS,

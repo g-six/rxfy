@@ -1,5 +1,6 @@
 import { BaseUser, UserInputModel } from './base-user';
 import { ErrorModel } from './error-model';
+import { SavedSearch } from './saved-search';
 
 export interface Customer extends BaseUser {
   full_name: string;
@@ -9,6 +10,26 @@ export interface Customer extends BaseUser {
   search_url?: string;
   agents: {
     id: number;
+  }[];
+  saved_searches?: {
+    id: number;
+    attributes: SavedSearch;
+  }[];
+}
+
+export interface CustomerRecord {
+  id: number;
+  full_name: string;
+  email: string;
+  status: 'active' | 'lead' | 'closed';
+  phone_number?: string;
+  birthday?: string;
+  last_activity_at?: string;
+  saved_searches?: {
+    id: number;
+    city?: string;
+    maxprice?: number;
+    minprice?: number;
   }[];
 }
 

@@ -37,6 +37,7 @@ export enum Events {
   UpdateBrandPreferences = 'update-brand-preferences',
   DashboardMenuTab = 'dashboard-menu-tab',
   ResetForm = 'evt-reset-form',
+  SelectCustomerCard = 'evt-customer-selected',
   UploadBrokerageLogo = 'evt-upload-brokerage-logo',
   UploadOGImage = 'evt-upload-ogimage',
   UploadFavicon = 'evt-upload-favicon',
