@@ -11,7 +11,7 @@ import { MLSProperty } from '@/_typings/property';
 import { AgentData } from '@/_typings/agent';
 import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
-import { getPrivatePropertyData, getPropertyData } from '@/_utilities/data-helpers/property-page';
+import { getPropertyData } from '@/_utilities/data-helpers/property-page';
 import { fillAgentInfo, fillPropertyGrid, removeSection, replaceByCheerio, rexify } from '@/components/rexifier';
 import RxNotifications from '@/components/RxNotifications';
 import MyProfilePage from '@/rexify/my-profile';
@@ -20,6 +20,7 @@ import { getUserDataFromSessionKey } from './api/update-session';
 import { findAgentRecordByAgentId } from './api/agents/model';
 import NotFound from './not-found';
 import { buildCacheFiles } from './api/properties/model';
+import { getPrivateListing } from './api/private-listings/model';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico', 'sign-out'];
@@ -99,6 +100,9 @@ export default async function Home({ params, searchParams }: { params: Record<st
     if (params && params.slug === 'property') {
       page_url = `${page_url}/${params.slug}id`;
       console.log('fetching property page', page_url);
+    } else if (params && params.slug === 'preview') {
+      page_url = `https://${process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}/property/propertyid`;
+      console.log('fetching preview property page', page_url);
     } else {
       console.log('fetching page', page_url);
     }
@@ -262,14 +266,16 @@ export default async function Home({ params, searchParams }: { params: Record<st
       }
     }
 
-    if (
+    if (params.slug === 'preview' && searchParams.lid) {
+      property = await getPrivateListing(Number(searchParams.lid));
+    } else if (
       params &&
       (params.slug === 'property' || params.slug === 'brochure' || params['site-page'] === 'property') &&
       searchParams &&
       (searchParams.lid || searchParams.id || searchParams.mls)
     ) {
       if (searchParams.lid) {
-        property = await getPrivatePropertyData(searchParams.lid);
+        property = await getPrivateListing(Number(searchParams.lid));
       } else {
         // Publicly listed property page
         if (searchParams.id) {

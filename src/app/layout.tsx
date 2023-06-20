@@ -84,7 +84,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     webflow_domain = agent_data.webflow_domain;
   }
 
-  page_url = `https://${webflow_domain}${pathname === '/property' ? '/property/propertyid' : pathname}`;
+  page_url = `https://${webflow_domain}${['/property', '/preview'].includes(pathname) ? '/property/propertyid' : pathname}`;
 
   try {
     console.log('Load into layout:', { pathname, page_url });
@@ -96,7 +96,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   let property;
   let cache_found = false;
-  if (requestUrl.pathname === '/property' && searchParams && (searchParams.lid || searchParams.id || searchParams.mls)) {
+  if (['/property', '/preview'].includes(requestUrl.pathname) && searchParams && (searchParams.lid || searchParams.id || searchParams.mls)) {
     if (searchParams.lid) {
       property = await getPrivatePropertyData(searchParams.lid);
     } else {

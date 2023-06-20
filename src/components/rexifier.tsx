@@ -127,7 +127,7 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData, params
     });
   }
 
-  if (agent_data.metatags?.logo_for_light_bg) {
+  if (agent_data && agent_data.metatags?.logo_for_light_bg) {
     $('.navbar-wrapper-2 a[href="/"] img').remove();
     $('.navbar-wrapper-2 .logo---phone-email a[data-type="email"]').text(agent_data.email);
     $('.navbar-wrapper-2 .logo---phone-email a[data-type="email"]').attr(
@@ -843,7 +843,7 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
           {agent_data.phone}
         </a>
       );
-    } else if (placeholder === '{Agent Phone Number}') {
+    } else if (agent_data.phone && placeholder === '{Agent Phone Number}') {
       const { name: TagName } = element.parent as { name: string };
       switch (TagName) {
         case 'div':
@@ -859,7 +859,7 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
             </a>
           );
       }
-    } else if (placeholder === '{Agent Email}') {
+    } else if (agent_data.full_name && agent_data.email && placeholder === '{Agent Email}') {
       const { name: TagName } = element.parent as { name: string };
       switch (TagName) {
         case 'div':

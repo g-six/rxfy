@@ -33,8 +33,8 @@ export async function getMLSProperty(mls_id: string) {
  * Retrieves a property by agent record.id (STRAPI ID)
  * @returns property data
  */
-export async function getAgentPublicListings(id: number) {
-  const response = await axios.get(`/api/agents/inventory/${id}`, {
+export async function getAgentPublicListings() {
+  const response = await axios.get(`/api/agents/inventory`, {
     headers: {
       Authorization: `Bearer ${Cookies.get('session_key')}`,
       'Content-Type': 'application/json',
