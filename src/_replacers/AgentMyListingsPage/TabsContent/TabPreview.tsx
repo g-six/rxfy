@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { cloneElement } from 'react';
 
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { TabContentProps } from '@/_typings/agent-my-listings';
@@ -14,24 +14,33 @@ export default function TabPreview({ template, initialState, agent }: TabContent
   const property = convertPrivateListingToPropertyData(data as PrivateListingData);
 
   const matches: tMatch[] = [
+    // {
+    //   searchFn: searchByPartOfClass(['text-area']),
+    //   transformChild: child =>
+    //     React.cloneElement(child, {
+    //       className: `${child.props.className} resize-none`,
+    //       value: property?.description,
+    //       onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+    //         fireEvent({ prompt: e.currentTarget.value });
+    //       },
+    //     }),
+    // },
     {
-      searchFn: searchByPartOfClass(['text-area']),
-      transformChild: child =>
-        React.cloneElement(child, {
-          className: `${child.props.className} resize-none`,
-          value: property?.description,
-          onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-            fireEvent({ prompt: e.currentTarget.value });
-          },
-        }),
+      searchFn: searchByPartOfClass(['pl-preview-wrapper']),
+      transformChild: child => cloneElement(child, {}),
     },
   ];
 
   const Replaced = <>{transformMatchingElements(template, matches)}</>;
 
   return data ? (
-    <RxDetailedListing property={property} agent={agent} nodeClassName={WEBFLOW_NODE_SELECTOR.PROPERTY_PAGE} nodeProps={template.props} nodes={[Replaced]} />
+    <div className='flex flex-col h-full'>
+      {transformMatchingElements(template, matches)}{' '}
+      <iframe style={{ border: 'none' }} className='h-1/2 flex-grow' key={'iframe'} width={`100%`} src='https://rx.leagent.com/property?mls=R2755938'></iframe>
+    </div>
   ) : (
+    //<iframe width={`100%`} height={'100%'} src='https://rx.leagent.com/property?mls=R2755938'></iframe>
+    // <RxDetailedListing property={property} agent={agent} nodeClassName={WEBFLOW_NODE_SELECTOR.PROPERTY_PAGE} nodeProps={template.props} nodes={[Replaced]} />
     <></>
   );
 }

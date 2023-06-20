@@ -108,9 +108,9 @@
     "tslib" "^2.5.0"
 
 "@aws-sdk/client-cloudfront@^3.350.0":
-  version "3.350.0"
-  resolved "https://registry.npmjs.org/@aws-sdk/client-cloudfront/-/client-cloudfront-3.350.0.tgz"
-  integrity sha512-hp9Br3flHM72HAFqnYn9s+K3suKWrvy56CIE+gSdPFi88Bzc8JhF9fV0V1rZQszHlTfWssbwY6L05mWXMOC9HQ==
+  "integrity" "sha512-hp9Br3flHM72HAFqnYn9s+K3suKWrvy56CIE+gSdPFi88Bzc8JhF9fV0V1rZQszHlTfWssbwY6L05mWXMOC9HQ=="
+  "resolved" "https://registry.npmjs.org/@aws-sdk/client-cloudfront/-/client-cloudfront-3.350.0.tgz"
+  "version" "3.350.0"
   dependencies:
     "@aws-crypto/sha256-browser" "3.0.0"
     "@aws-crypto/sha256-js" "3.0.0"
@@ -153,9 +153,9 @@
     "tslib" "^2.5.0"
 
 "@aws-sdk/client-s3@^3.350.0":
-  version "3.350.0"
-  resolved "https://registry.npmjs.org/@aws-sdk/client-s3/-/client-s3-3.350.0.tgz"
-  integrity sha512-VNIX3V7ZAcXlzAp/PDLZYsBNWtXrtNulsCPuJe9gXY0+KCstjYT2mkXXb2+ipkthZi+YT14jhveNqTBRkJqGPg==
+  "integrity" "sha512-VNIX3V7ZAcXlzAp/PDLZYsBNWtXrtNulsCPuJe9gXY0+KCstjYT2mkXXb2+ipkthZi+YT14jhveNqTBRkJqGPg=="
+  "resolved" "https://registry.npmjs.org/@aws-sdk/client-s3/-/client-s3-3.350.0.tgz"
+  "version" "3.350.0"
   dependencies:
     "@aws-crypto/sha1-browser" "3.0.0"
     "@aws-crypto/sha256-browser" "3.0.0"
@@ -214,9 +214,9 @@
     "tslib" "^2.5.0"
 
 "@aws-sdk/client-sso-oidc@3.350.0":
-  version "3.350.0"
-  resolved "https://registry.npmjs.org/@aws-sdk/client-sso-oidc/-/client-sso-oidc-3.350.0.tgz"
-  integrity sha512-v3UrWIglg9PPzGXqhyGB/qPZ8ifiGM9r4LV8vve1TpiKsUdf1Khtx1eB8yqjNO0vIsYUF+j1C23QT1qAN2DcEA==
+  "integrity" "sha512-v3UrWIglg9PPzGXqhyGB/qPZ8ifiGM9r4LV8vve1TpiKsUdf1Khtx1eB8yqjNO0vIsYUF+j1C23QT1qAN2DcEA=="
+  "resolved" "https://registry.npmjs.org/@aws-sdk/client-sso-oidc/-/client-sso-oidc-3.350.0.tgz"
+  "version" "3.350.0"
   dependencies:
     "@aws-crypto/sha256-browser" "3.0.0"
     "@aws-crypto/sha256-js" "3.0.0"
@@ -253,9 +253,9 @@
     "tslib" "^2.5.0"
 
 "@aws-sdk/client-sso@3.350.0":
-  version "3.350.0"
-  resolved "https://registry.npmjs.org/@aws-sdk/client-sso/-/client-sso-3.350.0.tgz"
-  integrity sha512-2vpiv6SEjmQGK3ZueGzvTMG6NenjWp0CHjmda71d1Iqr+tZ2UlfC35+3ioU8JP+jiXLL+y9r+SCer3IC8N/i+Q==
+  "integrity" "sha512-2vpiv6SEjmQGK3ZueGzvTMG6NenjWp0CHjmda71d1Iqr+tZ2UlfC35+3ioU8JP+jiXLL+y9r+SCer3IC8N/i+Q=="
+  "resolved" "https://registry.npmjs.org/@aws-sdk/client-sso/-/client-sso-3.350.0.tgz"
+  "version" "3.350.0"
   dependencies:
     "@aws-crypto/sha256-browser" "3.0.0"
     "@aws-crypto/sha256-js" "3.0.0"
@@ -292,9 +292,9 @@
     "tslib" "^2.5.0"
 
 "@aws-sdk/client-sts@3.350.0":
-  version "3.350.0"
-  resolved "https://registry.npmjs.org/@aws-sdk/client-sts/-/client-sts-3.350.0.tgz"
-  integrity sha512-s8RsJ6upWQgeUt8GdV3j3ZeTS7BQXedk77RhZ7wzvVwAjO9wow4uS7Iyic4kS3Y/6d26s0MO2vP4bR6HW6U6ZQ==
+  "integrity" "sha512-s8RsJ6upWQgeUt8GdV3j3ZeTS7BQXedk77RhZ7wzvVwAjO9wow4uS7Iyic4kS3Y/6d26s0MO2vP4bR6HW6U6ZQ=="
+  "resolved" "https://registry.npmjs.org/@aws-sdk/client-sts/-/client-sts-3.350.0.tgz"
+  "version" "3.350.0"
   dependencies:
     "@aws-crypto/sha256-browser" "3.0.0"
     "@aws-crypto/sha256-js" "3.0.0"
@@ -365,9 +365,9 @@
     "tslib" "^2.5.0"
 
 "@aws-sdk/credential-provider-ini@3.350.0":
-  version "3.350.0"
-  resolved "https://registry.npmjs.org/@aws-sdk/credential-provider-ini/-/credential-provider-ini-3.350.0.tgz"
-  integrity sha512-mGGU0PpnG0VDNKSuGi083U1egjprrU9/XoRtgf+iYvAKXRR/0XA4pGW5c7zpHY7m4iLhBuRj6N4oxQsH9cMtWg==
+  "integrity" "sha512-mGGU0PpnG0VDNKSuGi083U1egjprrU9/XoRtgf+iYvAKXRR/0XA4pGW5c7zpHY7m4iLhBuRj6N4oxQsH9cMtWg=="
+  "resolved" "https://registry.npmjs.org/@aws-sdk/credential-provider-ini/-/credential-provider-ini-3.350.0.tgz"
+  "version" "3.350.0"
   dependencies:
     "@aws-sdk/credential-provider-env" "3.347.0"
     "@aws-sdk/credential-provider-imds" "3.347.0"
@@ -380,9 +380,9 @@
     "tslib" "^2.5.0"
 
 "@aws-sdk/credential-provider-node@3.350.0":
-  version "3.350.0"
-  resolved "https://registry.npmjs.org/@aws-sdk/credential-provider-node/-/credential-provider-node-3.350.0.tgz"
-  integrity sha512-xmqwCFwj/CZPx6AKHNb24Kpr0eHW9VISt9r+SfgH8PaYg5cNyX1pKmMbQCket5ov+WvHEQtOK7aBafak7dhauA==
+  "integrity" "sha512-xmqwCFwj/CZPx6AKHNb24Kpr0eHW9VISt9r+SfgH8PaYg5cNyX1pKmMbQCket5ov+WvHEQtOK7aBafak7dhauA=="
+  "resolved" "https://registry.npmjs.org/@aws-sdk/credential-provider-node/-/credential-provider-node-3.350.0.tgz"
+  "version" "3.350.0"
   dependencies:
     "@aws-sdk/credential-provider-env" "3.347.0"
     "@aws-sdk/credential-provider-imds" "3.347.0"
@@ -406,9 +406,9 @@
     "tslib" "^2.5.0"
 
 "@aws-sdk/credential-provider-sso@3.350.0":
-  version "3.350.0"
-  resolved "https://registry.npmjs.org/@aws-sdk/credential-provider-sso/-/credential-provider-sso-3.350.0.tgz"
-  integrity sha512-u/3kv+PJeVawzBtWBei+IX1/z50mwhpPe3VrKSTns4CPUw8b5sqIYWkAaw5hxm0td69+xcL98RzIJsEpJc4QSQ==
+  "integrity" "sha512-u/3kv+PJeVawzBtWBei+IX1/z50mwhpPe3VrKSTns4CPUw8b5sqIYWkAaw5hxm0td69+xcL98RzIJsEpJc4QSQ=="
+  "resolved" "https://registry.npmjs.org/@aws-sdk/credential-provider-sso/-/credential-provider-sso-3.350.0.tgz"
+  "version" "3.350.0"
   dependencies:
     "@aws-sdk/client-sso" "3.350.0"
     "@aws-sdk/property-provider" "3.347.0"
@@ -709,9 +709,9 @@
     "tslib" "^2.5.0"
 
 "@aws-sdk/node-http-handler@3.350.0":
-  version "3.350.0"
-  resolved "https://registry.npmjs.org/@aws-sdk/node-http-handler/-/node-http-handler-3.350.0.tgz"
-  integrity sha512-oD96GAlmpzYilCdC8wwyURM5lNfNHZCjm/kxBkQulHKa2kRbIrnD9GfDqdCkWA5cTpjh1NzGLT4D6e6UFDjt9w==
+  "integrity" "sha512-oD96GAlmpzYilCdC8wwyURM5lNfNHZCjm/kxBkQulHKa2kRbIrnD9GfDqdCkWA5cTpjh1NzGLT4D6e6UFDjt9w=="
+  "resolved" "https://registry.npmjs.org/@aws-sdk/node-http-handler/-/node-http-handler-3.350.0.tgz"
+  "version" "3.350.0"
   dependencies:
     "@aws-sdk/abort-controller" "3.347.0"
     "@aws-sdk/protocol-http" "3.347.0"
@@ -753,9 +753,9 @@
     "tslib" "^2.5.0"
 
 "@aws-sdk/s3-request-presigner@^3.350.0":
-  version "3.350.0"
-  resolved "https://registry.npmjs.org/@aws-sdk/s3-request-presigner/-/s3-request-presigner-3.350.0.tgz"
-  integrity sha512-jguuFmxGKOOnrek0V2WSNDyXmoWjj+sIeYA1icd3OLLD/7SDlw5eF4Hvx49LRC+JhIOQtytrf7y7ZQXvvI7LgA==
+  "integrity" "sha512-jguuFmxGKOOnrek0V2WSNDyXmoWjj+sIeYA1icd3OLLD/7SDlw5eF4Hvx49LRC+JhIOQtytrf7y7ZQXvvI7LgA=="
+  "resolved" "https://registry.npmjs.org/@aws-sdk/s3-request-presigner/-/s3-request-presigner-3.350.0.tgz"
+  "version" "3.350.0"
   dependencies:
     "@aws-sdk/middleware-endpoint" "3.347.0"
     "@aws-sdk/protocol-http" "3.347.0"
@@ -823,9 +823,9 @@
     "tslib" "^2.5.0"
 
 "@aws-sdk/token-providers@3.350.0":
-  version "3.350.0"
-  resolved "https://registry.npmjs.org/@aws-sdk/token-providers/-/token-providers-3.350.0.tgz"
-  integrity sha512-VIfVMV5An1VQQ6bOKQTHPsRFHD3/YRGOPk9lDTVJGOK0G1DIFYd/10ZaLQ86rCWLck2lGhjxsOen2N2n6MtA0A==
+  "integrity" "sha512-VIfVMV5An1VQQ6bOKQTHPsRFHD3/YRGOPk9lDTVJGOK0G1DIFYd/10ZaLQ86rCWLck2lGhjxsOen2N2n6MtA0A=="
+  "resolved" "https://registry.npmjs.org/@aws-sdk/token-providers/-/token-providers-3.350.0.tgz"
+  "version" "3.350.0"
   dependencies:
     "@aws-sdk/client-sso-oidc" "3.350.0"
     "@aws-sdk/property-provider" "3.347.0"
@@ -974,9 +974,9 @@
     "tslib" "^2.5.0"
 
 "@aws-sdk/util-stream-node@3.350.0":
-  version "3.350.0"
-  resolved "https://registry.npmjs.org/@aws-sdk/util-stream-node/-/util-stream-node-3.350.0.tgz"
-  integrity sha512-qhcmYEAVMJPjCepog3WTFBaeP3XCkLBbUrM5/+LaB/FASKk+JeV8qBQyjYUd8EVb6Gsk7+y9SE3Tj+ChyHB4WA==
+  "integrity" "sha512-qhcmYEAVMJPjCepog3WTFBaeP3XCkLBbUrM5/+LaB/FASKk+JeV8qBQyjYUd8EVb6Gsk7+y9SE3Tj+ChyHB4WA=="
+  "resolved" "https://registry.npmjs.org/@aws-sdk/util-stream-node/-/util-stream-node-3.350.0.tgz"
+  "version" "3.350.0"
   dependencies:
     "@aws-sdk/node-http-handler" "3.350.0"
     "@aws-sdk/types" "3.347.0"
@@ -2223,21 +2223,21 @@
   "version" "3.1.0"
 
 "@next/env@13.4.5":
-  version "13.4.5"
-  resolved "https://registry.npmjs.org/@next/env/-/env-13.4.5.tgz"
-  integrity sha512-SG/gKH6eij4vwQy87b/3mbpQ1X3x2vUdnpwq6/qL2IQWjtq58EY/UuNAp9CoEZoC9sI4L9AD1r+73Z9r4d3uug==
+  "integrity" "sha512-SG/gKH6eij4vwQy87b/3mbpQ1X3x2vUdnpwq6/qL2IQWjtq58EY/UuNAp9CoEZoC9sI4L9AD1r+73Z9r4d3uug=="
+  "resolved" "https://registry.npmjs.org/@next/env/-/env-13.4.5.tgz"
+  "version" "13.4.5"
 
 "@next/eslint-plugin-next@13.4.5":
-  version "13.4.5"
-  resolved "https://registry.npmjs.org/@next/eslint-plugin-next/-/eslint-plugin-next-13.4.5.tgz"
-  integrity sha512-/xD/kyJhXmBZq+0xGKOdjL22c9/4i3mBAXaU9aOGEHTXqqFeOz8scJbScWF13aMqigeoFCsDqngIB2MIatcn4g==
+  "integrity" "sha512-/xD/kyJhXmBZq+0xGKOdjL22c9/4i3mBAXaU9aOGEHTXqqFeOz8scJbScWF13aMqigeoFCsDqngIB2MIatcn4g=="
+  "resolved" "https://registry.npmjs.org/@next/eslint-plugin-next/-/eslint-plugin-next-13.4.5.tgz"
+  "version" "13.4.5"
   dependencies:
     "glob" "7.1.7"
 
 "@next/swc-darwin-arm64@13.4.5":
-  version "13.4.5"
-  resolved "https://registry.npmjs.org/@next/swc-darwin-arm64/-/swc-darwin-arm64-13.4.5.tgz"
-  integrity sha512-XvTzi2ASUN5bECFIAAcBiSoDb0xsq+KLj4F0bof4d4rdc+FgOqLvseGQaOXwVi1TIh5bHa7o4b6droSJMO5+2g==
+  "integrity" "sha512-XvTzi2ASUN5bECFIAAcBiSoDb0xsq+KLj4F0bof4d4rdc+FgOqLvseGQaOXwVi1TIh5bHa7o4b6droSJMO5+2g=="
+  "resolved" "https://registry.npmjs.org/@next/swc-darwin-arm64/-/swc-darwin-arm64-13.4.5.tgz"
+  "version" "13.4.5"
 
 "@nodelib/fs.scandir@2.1.5":
   "integrity" "sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g=="
@@ -2435,9 +2435,9 @@
     "@types/geojson" "*"
 
 "@types/node@*", "@types/node@>= 14", "@types/node@>=8.1.0", "@types/node@20.3.1":
-  version "20.3.1"
-  resolved "https://registry.npmjs.org/@types/node/-/node-20.3.1.tgz"
-  integrity sha512-EhcH/wvidPy1WeML3TtYFGR83UzjxeWRen9V402T8aUGYsCHOmfoisV3ZSg03gAFIbLq8TnWOJ0f4cALtnSEUg==
+  "integrity" "sha512-EhcH/wvidPy1WeML3TtYFGR83UzjxeWRen9V402T8aUGYsCHOmfoisV3ZSg03gAFIbLq8TnWOJ0f4cALtnSEUg=="
+  "resolved" "https://registry.npmjs.org/@types/node/-/node-20.3.1.tgz"
+  "version" "20.3.1"
 
 "@types/node@^14.14.31":
   "integrity" "sha512-OuJi8bIng4wYHHA3YpKauL58dZrPxro3d0tabPHyiNF8rKfGKuVfr83oFlPLmKri1cX+Z3cJP39GXmnqkP11Gw=="
@@ -2465,16 +2465,16 @@
     "react-popper" "^2.2.5"
 
 "@types/react-dom@18.2.5":
-  version "18.2.5"
-  resolved "https://registry.npmjs.org/@types/react-dom/-/react-dom-18.2.5.tgz"
-  integrity sha512-sRQsOS/sCLnpQhR4DSKGTtWFE3FZjpQa86KPVbhUqdYMRZ9FEFcfAytKhR/vUG2rH1oFbOOej6cuD7MFSobDRQ==
+  "integrity" "sha512-sRQsOS/sCLnpQhR4DSKGTtWFE3FZjpQa86KPVbhUqdYMRZ9FEFcfAytKhR/vUG2rH1oFbOOej6cuD7MFSobDRQ=="
+  "resolved" "https://registry.npmjs.org/@types/react-dom/-/react-dom-18.2.5.tgz"
+  "version" "18.2.5"
   dependencies:
     "@types/react" "*"
 
 "@types/react@*", "@types/react@18.2.12":
-  version "18.2.12"
-  resolved "https://registry.npmjs.org/@types/react/-/react-18.2.12.tgz"
-  integrity sha512-ndmBMLCgn38v3SntMeoJaIrO6tGHYKMEBohCUmw8HoLLQdRMOIGXfeYaBTLe2lsFaSB3MOK1VXscYFnmLtTSmw==
+  "integrity" "sha512-ndmBMLCgn38v3SntMeoJaIrO6tGHYKMEBohCUmw8HoLLQdRMOIGXfeYaBTLe2lsFaSB3MOK1VXscYFnmLtTSmw=="
+  "resolved" "https://registry.npmjs.org/@types/react/-/react-18.2.12.tgz"
+  "version" "18.2.12"
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"
@@ -4258,10 +4258,10 @@
   "resolved" "https://registry.npmjs.org/escape-string-regexp/-/escape-string-regexp-4.0.0.tgz"
   "version" "4.0.0"
 
-eslint-config-next@13.4.5:
-  version "13.4.5"
-  resolved "https://registry.npmjs.org/eslint-config-next/-/eslint-config-next-13.4.5.tgz"
-  integrity sha512-7qgJmRp9ClRzPgkzEz7ahK+Rasiv4k2aU3eqkkORzseNUGdtImZVYomcXUhUheHwkxzdN2p//nbIA7zJrCxsCg==
+"eslint-config-next@13.4.5":
+  "integrity" "sha512-7qgJmRp9ClRzPgkzEz7ahK+Rasiv4k2aU3eqkkORzseNUGdtImZVYomcXUhUheHwkxzdN2p//nbIA7zJrCxsCg=="
+  "resolved" "https://registry.npmjs.org/eslint-config-next/-/eslint-config-next-13.4.5.tgz"
+  "version" "13.4.5"
   dependencies:
     "@next/eslint-plugin-next" "13.4.5"
     "@rushstack/eslint-patch" "^1.1.3"
@@ -6122,19 +6122,19 @@ eslint-config-next@13.4.5:
   "resolved" "https://registry.npmjs.org/neo-async/-/neo-async-2.6.2.tgz"
   "version" "2.6.2"
 
-next@13.4.5:
-  version "13.4.5"
-  resolved "https://registry.npmjs.org/next/-/next-13.4.5.tgz"
-  integrity sha512-pfNsRLVM9e5Y1/z02VakJRfD6hMQkr24FaN2xc9GbcZDBxoOgiNAViSg5cXwlWCoMhtm4U315D7XYhgOr96Q3Q==
+"next@13.4.5":
+  "integrity" "sha512-pfNsRLVM9e5Y1/z02VakJRfD6hMQkr24FaN2xc9GbcZDBxoOgiNAViSg5cXwlWCoMhtm4U315D7XYhgOr96Q3Q=="
+  "resolved" "https://registry.npmjs.org/next/-/next-13.4.5.tgz"
+  "version" "13.4.5"
   dependencies:
     "@next/env" "13.4.5"
     "@swc/helpers" "0.5.1"
-    busboy "1.6.0"
-    caniuse-lite "^1.0.30001406"
-    postcss "8.4.14"
-    styled-jsx "5.1.1"
-    watchpack "2.4.0"
-    zod "3.21.4"
+    "busboy" "1.6.0"
+    "caniuse-lite" "^1.0.30001406"
+    "postcss" "8.4.14"
+    "styled-jsx" "5.1.1"
+    "watchpack" "2.4.0"
+    "zod" "3.21.4"
   optionalDependencies:
     "@next/swc-darwin-arm64" "13.4.5"
     "@next/swc-darwin-x64" "13.4.5"
@@ -6711,10 +6711,10 @@ next@13.4.5:
     "minimist" "^1.2.0"
     "strip-json-comments" "~2.0.1"
 
-react-calendar@^4.3.0:
-  version "4.3.0"
-  resolved "https://registry.npmjs.org/react-calendar/-/react-calendar-4.3.0.tgz"
-  integrity sha512-TyCv8NbXnqXADyXNtMG0szkGvJNH3NG/WMTEE2q6g3RqAsFNyHwYbQD5Kvb6jRV/CqO0WB+oMCtkxblprdeT5A==
+"react-calendar@^4.3.0":
+  "integrity" "sha512-TyCv8NbXnqXADyXNtMG0szkGvJNH3NG/WMTEE2q6g3RqAsFNyHwYbQD5Kvb6jRV/CqO0WB+oMCtkxblprdeT5A=="
+  "resolved" "https://registry.npmjs.org/react-calendar/-/react-calendar-4.3.0.tgz"
+  "version" "4.3.0"
   dependencies:
     "@types/react" "*"
     "@wojtekmaj/date-utils" "^1.1.3"
@@ -6722,10 +6722,10 @@ react-calendar@^4.3.0:
     "get-user-locale" "^2.2.1"
     "prop-types" "^15.6.0"
 
-react-datepicker@^4.13.0:
-  version "4.13.0"
-  resolved "https://registry.npmjs.org/react-datepicker/-/react-datepicker-4.13.0.tgz"
-  integrity sha512-1S8yAqzcHE+LjCjMrTXJfUkTVijTPogxUYrmQmSpmRJ23fdC2w8cg04jzaEAyesTzyUa06JzayZJKk85QHbvcw==
+"react-datepicker@^4.13.0":
+  "integrity" "sha512-1S8yAqzcHE+LjCjMrTXJfUkTVijTPogxUYrmQmSpmRJ23fdC2w8cg04jzaEAyesTzyUa06JzayZJKk85QHbvcw=="
+  "resolved" "https://registry.npmjs.org/react-datepicker/-/react-datepicker-4.13.0.tgz"
+  "version" "4.13.0"
   dependencies:
     "@popperjs/core" "^2.9.2"
     "classnames" "^2.2.6"
@@ -7549,10 +7549,10 @@ react-datepicker@^4.13.0:
   "resolved" "https://registry.npmjs.org/svg-pathdata/-/svg-pathdata-6.0.3.tgz"
   "version" "6.0.3"
 
-swiper@^9.4.0:
-  version "9.4.0"
-  resolved "https://registry.npmjs.org/swiper/-/swiper-9.4.0.tgz"
-  integrity sha512-AKame5qkFnNKCJ8Bfn3YuOi/LoUuAESVdCv/BJH5fKgdAUFRtImZXV3gdYlYovXbasJDV6hHNWdQvdzPB6aebw==
+"swiper@^9.4.0":
+  "integrity" "sha512-AKame5qkFnNKCJ8Bfn3YuOi/LoUuAESVdCv/BJH5fKgdAUFRtImZXV3gdYlYovXbasJDV6hHNWdQvdzPB6aebw=="
+  "resolved" "https://registry.npmjs.org/swiper/-/swiper-9.4.0.tgz"
+  "version" "9.4.0"
   dependencies:
     "ssr-window" "^4.0.2"
 
@@ -8016,10 +8016,10 @@ swiper@^9.4.0:
   dependencies:
     "loose-envify" "^1.0.0"
 
-watchpack@^2.4.0, watchpack@2.4.0:
-  version "2.4.0"
-  resolved "https://registry.npmjs.org/watchpack/-/watchpack-2.4.0.tgz"
-  integrity sha512-Lcvm7MGST/4fup+ifyKi2hjyIAwcdI4HRgtvTpIUxBRhB+RFtUh8XtDOxUfctVCnhVi+QQj49i91OyvzkJl6cg==
+"watchpack@^2.4.0", "watchpack@2.4.0":
+  "integrity" "sha512-Lcvm7MGST/4fup+ifyKi2hjyIAwcdI4HRgtvTpIUxBRhB+RFtUh8XtDOxUfctVCnhVi+QQj49i91OyvzkJl6cg=="
+  "resolved" "https://registry.npmjs.org/watchpack/-/watchpack-2.4.0.tgz"
+  "version" "2.4.0"
   dependencies:
     "glob-to-regexp" "^0.4.1"
     "graceful-fs" "^4.1.2"
