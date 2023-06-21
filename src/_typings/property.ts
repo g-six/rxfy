@@ -197,6 +197,8 @@ export interface PropertyDataModel extends BasePropertyDataModel {
   build_features?: PropertyAssociations;
   connected_services?: PropertyAssociations;
   facilities?: PropertyAssociations;
+  parking?: PropertyAssociations;
+  places_of_interest?: PropertyAssociations;
   hvac?: PropertyAssociations;
   items_maintained?: PropertyAssociations;
   photos?: string[]; // to remove

@@ -1,3 +1,5 @@
+import { GQ_FRAGMENT_PROPERTY_ATTRIBUTES } from '@/_typings/property';
+
 export const GQ_FRAG_AGENT_METATAG = `
     id
     attributes {
@@ -126,6 +128,20 @@ export const gql_by_agent_uniq = `query Agent($filters: AgentFiltersInput!) {
     }
 }`;
 
+export const gql_by_realtor_id = `query GetRealtor($id: ID!) {
+  realtor(id: $id) {
+    data {
+      attributes {
+        email
+        last_activity_at
+        agent {
+          data {${GQ_FRAG_AGENT}}
+        }
+      }
+    }
+  }
+}`;
+
 export const gql_agent_inventory = `query AgentInventory($agent: ID!) {
   inventory: agentInventories(filters: { agent: { id: { eq: $agent } } }) {
     records: data {
@@ -133,22 +149,9 @@ export const gql_agent_inventory = `query AgentInventory($agent: ID!) {
       attributes {
         property {
           data {
+            id
             attributes {
-              title
-              postal_zip_code
-              state_province
-              asking_price
-              property_type
-              style_type
-              beds 
-              baths
-              property_photo_album {
-                data {
-                  attributes {
-                    photos
-                  }
-                }
-              }
+              ${GQ_FRAGMENT_PROPERTY_ATTRIBUTES}
             }
           }
         }

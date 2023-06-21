@@ -36,7 +36,13 @@ export default function TabPreview({ template, initialState, agent }: TabContent
   return data ? (
     <div className='flex flex-col h-full'>
       {transformMatchingElements(template, matches)}{' '}
-      <iframe style={{ border: 'none' }} className='h-1/2 flex-grow' key={'iframe'} width={`100%`} src='https://rx.leagent.com/property?mls=R2755938'></iframe>
+      <iframe
+        style={{ border: 'none' }}
+        className='h-1/2 flex-grow'
+        key={'iframe'}
+        width={`100%`}
+        src={`/preview?lid=21&theme=default&paragon=${agent.agent_id}`}
+      ></iframe>
     </div>
   ) : (
     //<iframe width={`100%`} height={'100%'} src='https://rx.leagent.com/property?mls=R2755938'></iframe>

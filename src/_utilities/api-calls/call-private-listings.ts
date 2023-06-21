@@ -79,6 +79,31 @@ export async function getMyPrivateListings() {
   }
 }
 
+export async function getPrivateListing(id: number) {
+  try {
+    const record = await axios.get(`/api/private-listings/${id}`, {
+      headers: {
+        Authorization: `Bearer ${Cookies.get('session_key')}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return getResponse(record.data);
+  } catch (e) {
+    const { response } = e as AxiosError;
+    if (response && response.data) {
+      return getResponse(response.data, response.status);
+    }
+    return getResponse(
+      {
+        error: 'Unhandled error',
+        path: 'api-calls/call-private-listings',
+        subroutine: 'getPrivateListing',
+      },
+      400,
+    );
+  }
+}
+
 export async function uploadListingPhoto(file: File, index: number, listing: PrivateListingOutput) {
   return axios
     .post(

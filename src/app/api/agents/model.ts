@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { gql_by_agent_uniq, gql_create_agent, mutation_update_meta } from './graphql';
+import { gql_by_agent_uniq, gql_by_realtor_id, gql_create_agent, mutation_update_meta } from './graphql';
 import { WEBFLOW_THEME_DOMAINS } from '@/_typings/webflow';
 import { RealEstateBoardDataModel } from '@/_typings/real-estate-board';
 import { AgentInput } from '@/_typings/agent';
@@ -308,6 +308,33 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
 }
 export const findAgentRecordByAgentId = cache(async (agent_id: string) => {
   return await findAgentBy({ agent_id });
+});
+export const findAgentRecordByRealtorId = cache(async (realtor_id: number) => {
+  const query = {
+    query: gql_by_realtor_id,
+    variables: {
+      id: realtor_id,
+    },
+  };
+  const { data: response_data } = await axios.post(`${process.env.NEXT_APP_CMS_GRAPHQL_URL}`, query, {
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+      'Content-Type': 'application/json',
+    },
+  });
+  const { email, last_activity_at, ...relationships } = response_data?.data?.realtor.data?.attributes;
+  const agent = relationships.agent?.data?.attributes
+    ? {
+        ...relationships.agent.data.attributes,
+        id: Number(relationships.agent.data.id),
+      }
+    : {};
+  return {
+    email,
+    last_activity_at,
+    agent_id: agent?.agent_id || undefined,
+    agent: agent?.id || undefined,
+  };
 });
 
 export async function getMostRecentListing(agent_id: string, city: string, size: number = 1): Promise<unknown> {
