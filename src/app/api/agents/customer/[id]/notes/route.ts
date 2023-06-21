@@ -22,7 +22,8 @@ export async function POST(request: NextRequest) {
   }
   const agent = await checkSession(request);
 
-  const { customers } = agent as unknown as {
+  const { id: realtor, customers } = agent as unknown as {
+    id: number;
     customers: { notes: string[]; id: number }[];
   };
   const [customer] = customers.filter(c => c.id === agents_customer_id);
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
     {
       query: mutation_add_notes,
       variables: {
-        data: { agents_customer: agents_customer_id, body: notes, realtor: agent.id },
+        data: { agents_customer: agents_customer_id, body: notes, realtor },
       },
     },
     {
