@@ -60,7 +60,7 @@ export async function PUT(request: NextRequest) {
         id: Number(attributes.customer.data.id),
       };
       const saved_searches = customer.saved_searches?.data
-        ? customer.saved_searches.data.map(s => ({
+        ? customer.saved_searches.data.map((s: { attributes: { [key: string]: unknown }; id: number }) => ({
             ...s.attributes,
             id: Number(s.id),
           }))

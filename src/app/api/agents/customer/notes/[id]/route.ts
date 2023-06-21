@@ -32,14 +32,15 @@ export async function PUT(request: NextRequest) {
   }
   const agent = await checkSession(request);
 
-  const { customers } = agent as unknown as {
+  const { id: realtor, customers } = agent as unknown as {
+    id: number;
     customers: { notes: { id: number; body: string; realtor: number }[]; id: number }[];
   };
 
   // Get the notes tied to this customer to make sure that the editor is
   // the owner of the notes
   const [customer] = customers.filter(c => {
-    return c.notes.filter(n => n.id === notes_id && n.realtor === agent.id).length > 0;
+    return c.notes.filter(n => n.id === notes_id && n.realtor === realtor).length > 0;
   });
 
   if (!customer) {
