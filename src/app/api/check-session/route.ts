@@ -215,8 +215,8 @@ export async function GET(request: Request) {
       });
 
       results = {
-        ...results,
         ...agent,
+        ...results,
         agent: Number(agent.id),
         agent_metatag: undefined,
         metatags: agent?.agent_metatag ? agent?.agent_metatag : undefined,
