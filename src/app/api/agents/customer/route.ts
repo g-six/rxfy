@@ -9,7 +9,8 @@ import { sendTemplate } from '../../send-template';
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await checkSession(request);
+    const r = await checkSession(request);
+    const user = r as { [key: string]: string };
     if (!user?.id)
       return getResponse(
         {
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
         last_activity_at,
         yes_to_marketing: false,
       },
-      user.agent,
+      user.agent as unknown as number,
     );
 
     const send_to: MailChimp.MessageRecipient[] = [
@@ -38,12 +39,13 @@ export async function POST(request: NextRequest) {
       },
     ];
     const { origin } = new URL(request.url);
-    let login_url = user.domain_name ? `https://${user.domain_name}` : `${origin}/${user.agent_id}/${user.metatags.profile_slug}`;
+    const metatags = user.metatags as unknown as { [key: string]: string };
+    let login_url = user.domain_name ? `https://${user.domain_name}` : `${origin}/${user.agent_id}/${metatags.profile_slug}`;
     login_url = `${login_url}/log-in?key=${encrypt(last_activity_at)}.${encrypt(data.email)}-${customer.id}`;
     sendTemplate('invite-buyer', send_to, {
       agent_logo:
-        user.metatags.logo_for_light_bg ||
-        user.metatags.logo_for_dask_bg ||
+        metatags.logo_for_light_bg ||
+        metatags.logo_for_dark_bg ||
         'https://assets.website-files.com/643ca5bec96b4ead07ca5e3c/643f1ec844c663ef9d40a187_Leagent%20Logo.svg',
       agent_full_name: user.full_name,
       password,
