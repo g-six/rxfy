@@ -23,21 +23,48 @@ function Iterator(p: Props) {
               {p['data-full-name']}
             </div>
           );
-        if (child.props.className.indexOf('crm-address') >= 0)
+        if (child.props.className.indexOf('crm-name') >= 0)
           return (
-            <div key='crm-address' className={`rexified ${child.props.className}`}>
-              {p['data-city'] ? p['data-city'] : ''} {p['data-dwelling-type'] ? p['data-dwelling-type'] : ''}
+            <div key='crm-name' className={`rexified ${child.props.className}`}>
+              {p['data-full-name']}
             </div>
           );
+        if (child.props.className.indexOf('crm-icon') >= 0) {
+          let name = '';
+          if (p['data-full-name'])
+            name = p['data-full-name']
+              .split(' ')
+              .map(s => s[0])
+              .join('');
+          return (
+            <div key='crm-icon' className={`rexified ${child.props.className}`}>
+              {name}
+            </div>
+          );
+        }
+        if (child.props.className.indexOf('crm-address') >= 0) {
+          const [dwelling_type] = p['data-dwelling-type'] as unknown as string[];
+          return (
+            <div key='crm-address' className={`rexified ${child.props.className}`}>
+              {p['data-city'] ? p['data-city'] : ''} {dwelling_type || ''}
+            </div>
+          );
+        }
         if (child.props.className.indexOf('crm-price') >= 0)
           return (
             <div key='crm-price' className={`rexified ${child.props.className}`}>
               {p['data-minprice'] ? getShortPrice(p['data-minprice']) : ''} - {p['data-maxprice'] ? getShortPrice(p['data-maxprice']) : ''}
             </div>
           );
-        if (child.props.className.indexOf('f-team-detail') >= 0) {
+        if (child.props.className.indexOf('f-team-detail') >= 0 || child.props.className.indexOf('f-team-avatar') >= 0) {
           return (
             <div {...child.props} key={child.props.className}>
+              <Iterator {...p}>{child.props.children}</Iterator>
+            </div>
+          );
+        } else if (child.props.className.indexOf('w-dropdown-list') >= 0) {
+          return (
+            <div {...child.props} className='w-dropdown-list' key={child.props.className}>
               <Iterator {...p}>{child.props.children}</Iterator>
             </div>
           );
@@ -53,6 +80,8 @@ function Iterator(p: Props) {
 
 export default function RxCRMCustomerCard(p: Props) {
   const evt = useEvent(Events.SelectCustomerCard);
+  const addNoteEventHandler = useEvent(Events.AddCustomerNote);
+
   const { active } = evt.data as unknown as {
     active: number;
   };
@@ -62,6 +91,9 @@ export default function RxCRMCustomerCard(p: Props) {
       onClick={() => {
         evt.fireEvent({
           active: p['data-id'],
+        } as unknown as EventsData);
+        addNoteEventHandler.fireEvent({
+          relationship_id: p['data-id'],
         } as unknown as EventsData);
       }}
     >

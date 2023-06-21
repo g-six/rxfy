@@ -1,0 +1,142 @@
+'use client';
+import React from 'react';
+import useEvent, { Events } from '@/hooks/useEvent';
+import { RxButton } from '@/components/RxButton';
+import { createClient } from '@/_utilities/api-calls/call-clients';
+
+type Props = {
+  children: React.ReactElement;
+  className?: string;
+  onChange: (key: string, value: string | number) => void;
+};
+
+function Iterator(p: Props) {
+  const Wrapped = React.Children.map(p.children, child => {
+    if (child.type === 'input') {
+      if (child.props.name === 'birthday') {
+        let months = 12;
+        let days = 31;
+        let years = new Date().getFullYear() - 100;
+        return (
+          <div className={child.props.className}>
+            <select className='outline-none border-none' name='day' onChange={e => p.onChange('day', Number(e.currentTarget.value))}>
+              {Array.from({ length: days }, () => {
+                return days--;
+              })
+                .reverse()
+                .map(d => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+            </select>
+            <select className='outline-none border-none ml-2' name='month' onChange={e => p.onChange('month', Number(e.currentTarget.value))}>
+              {Array.from({ length: months }, () => {
+                return months--;
+              })
+                .reverse()
+                .map(m => (
+                  <option key={m} value={m}>
+                    {new Intl.DateTimeFormat(undefined, { month: 'short' }).format(new Date().setMonth(m - 1))}
+                  </option>
+                ))}
+            </select>
+            <select className='outline-none border-none ml-2' name='year' onChange={e => p.onChange('year', Number(e.currentTarget.value))}>
+              {Array.from({ length: 82 }, () => {
+                return years++;
+              })
+                .reverse()
+                .map(y => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+            </select>
+          </div>
+        );
+      }
+      return React.cloneElement(child, {
+        ...child.props,
+        className: [child.props.className || '', 'rexified'].join(' '),
+        onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
+          p.onChange(evt.currentTarget.name, evt.currentTarget.value);
+        },
+      });
+    }
+    if (child.props?.children) {
+      if (child.props.id === 'evt-save-client-trigger') {
+        return (
+          <RxButton className={child.props.className} type='button' id={child.props.id} rx-event={Events.SaveClient}>
+            {child.props.children}
+          </RxButton>
+        );
+      } else if (child.type !== 'div' && child.type !== 'form') {
+        return child;
+      }
+      return (
+        <div {...child.props}>
+          <Iterator {...p} {...child.props}>
+            {child.props.children}
+          </Iterator>
+        </div>
+      );
+    } else {
+      return child;
+    }
+  });
+  return <>{Wrapped}</>;
+}
+
+export default function RxCRMCustomerCreateForm(p: Props) {
+  const formHandler = useEvent(Events.CustomerDataChange);
+  const submitHandler = useEvent(Events.SaveClient);
+  const { year, month, day } = formHandler.data as unknown as {
+    [key: string]: number;
+  };
+  let birthday;
+  if (year && month && day) {
+    birthday = new Date(year, month, day);
+  }
+
+  React.useEffect(() => {
+    if (submitHandler.data?.clicked) {
+      const { first_name, last_name, phone_number, email } = formHandler.data as unknown as {
+        [key: string]: string;
+      };
+      const { year, month, day } = formHandler.data as unknown as {
+        [key: string]: number;
+      };
+      const birthday = year && month && day ? `${year}-${month < 10 ? '0' : ''}${month}-${day < 10 ? '0' : ''}${day}` : undefined;
+      if (first_name && last_name && email) {
+        const client = {
+          first_name,
+          last_name,
+          full_name: [first_name, last_name].join(' ').trim(),
+          phone_number,
+          email,
+          birthday,
+        };
+        createClient(client)
+          .then(console.log)
+          .catch(console.error)
+          .finally(() => {
+            submitHandler.fireEvent({});
+          });
+      }
+    }
+  }, [submitHandler.data?.clicked]);
+
+  return (
+    <section className={['RxCRMCustomerCreateForm', p.className || ''].join(' ').trim()}>
+      <Iterator
+        onChange={(key: string, value: string | number) => {
+          formHandler.fireEvent({
+            [key]: value,
+          });
+        }}
+      >
+        {p.children}
+      </Iterator>
+    </section>
+  );
+}

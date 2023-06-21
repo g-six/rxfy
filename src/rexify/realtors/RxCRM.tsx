@@ -1,6 +1,7 @@
 import React from 'react';
 import RxCRMLeadsWrapper from './crm/LeadsWrapper';
 import RxCRMCustomerPreview from './crm/CustomerPreview';
+import RxCRMCustomerCreateForm from './crm/CustomerCreateForm';
 
 type Props = {
   children: React.ReactElement;
@@ -36,7 +37,7 @@ function Iterator(p: ChildProps) {
       } else if (child.props?.className && child.props.className.indexOf('client-preview') >= 0) {
         return <RxCRMCustomerPreview {...child.props}>{child.props.children}</RxCRMCustomerPreview>;
       } else if (child.props?.className && child.props.className.indexOf('new-client') >= 0) {
-        return <></>;
+        return <RxCRMCustomerCreateForm {...child.props}>{child.props.children}</RxCRMCustomerCreateForm>;
       } else if (child.type !== 'div') {
         return child;
       }

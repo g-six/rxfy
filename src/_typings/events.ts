@@ -38,6 +38,7 @@ export enum Events {
   DashboardMenuTab = 'dashboard-menu-tab',
   ResetForm = 'evt-reset-form',
   SelectCustomerCard = 'evt-customer-selected',
+  CustomerDataChange = 'evt-customer-edit',
   UploadBrokerageLogo = 'evt-upload-brokerage-logo',
   UploadOGImage = 'evt-upload-ogimage',
   UploadFavicon = 'evt-upload-favicon',
@@ -45,6 +46,10 @@ export enum Events {
   UploadProfileImage = 'evt-upload-profile-image',
   UploadLogoForLightBg = 'evt-upload-logo-for-light-bg',
   UploadLogoForDarkBg = 'evt-upload-logo-for-dark-bg',
+  AddCustomerNote = 'evt-add-customer-note',
+  EditCustomerNote = 'evt-edit-customer-note',
+  SaveCustomerNote = 'evt-save-customer-note',
+  SaveClient = 'evt-save-client',
   Logout = 'evt-logout',
   Blank = 'blank',
 }

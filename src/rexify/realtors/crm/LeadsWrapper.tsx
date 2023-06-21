@@ -67,7 +67,6 @@ export default function RxCRMLeadsWrapper(p: Props) {
   const { customers } = data as unknown as {
     customers: CustomerRecord[];
   };
-  console.log(p['data-status']);
   return (
     <section className={['RxCRMLeadsWrapper', p.className || ''].join(' ').trim()}>
       <Iterator data-customers={customers?.filter(customer => customer.status === p['data-status'])}>{p.children}</Iterator>

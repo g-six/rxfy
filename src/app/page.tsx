@@ -21,6 +21,7 @@ import { findAgentRecordByAgentId } from './api/agents/model';
 import NotFound from './not-found';
 import { buildCacheFiles } from './api/properties/model';
 import { getPrivateListing } from './api/private-listings/model';
+import Cookies from 'js-cookie';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico', 'sign-out'];
@@ -55,12 +56,15 @@ export default async function Home({ params, searchParams }: { params: Record<st
   let agent_data: AgentData | undefined = undefined;
   let data, listings, property, legacy_data;
   let page_url = '';
+  let possible_agent = headers().get('x-agent-id');
+  let profile_slug = headers().get('x-profile-slug');
   if (params?.slug && params?.['profile-slug']) {
-    // Check if the slug matches a realtor
-    pathname = '';
-    const profile_slug = params?.['profile-slug'] as string;
-    const possible_agent = params.slug as string;
+    profile_slug = params?.['profile-slug'] as string;
+    possible_agent = params.slug as string;
+  }
 
+  if (possible_agent && profile_slug) {
+    // Check if the slug matches a realtor
     if (profile_slug.indexOf('la-') === 0) {
       const agent_record = await findAgentRecordByAgentId(possible_agent);
       const { metatags } = agent_record;
@@ -70,19 +74,17 @@ export default async function Home({ params, searchParams }: { params: Record<st
           ...agent_record,
         };
 
-        if (params?.['site-page']) pathname = params['site-page'] as string;
-
+        // if (params?.['site-page']) pathname = params['site-page'] as string;
         if (!agent_data || !metatags.profile_slug || metatags.profile_slug !== profile_slug) {
           return <NotFound></NotFound>;
         }
-        page_url = `https://${agent_data.webflow_domain || process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}/${pathname}`;
+        page_url = `https://${agent_data.webflow_domain || process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}${pathname}`;
       } else {
         return <NotFound></NotFound>;
       }
     }
   }
   let session_key = cookies().get('session_key')?.value || '';
-
   if (['ai', 'ai-result'].includes(`${params?.slug || ''}`)) {
     page_url = `https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}/${params.slug || ''}`;
   } else if (!agent_data) {
@@ -108,9 +110,9 @@ export default async function Home({ params, searchParams }: { params: Record<st
     }
   } else {
     if (agent_data.webflow_domain) {
-      page_url = `https://${agent_data.webflow_domain}`;
+      page_url = `https://${agent_data.webflow_domain}${pathname}`;
     } else {
-      page_url = `https://${process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}`;
+      page_url = `https://${process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}${pathname}`;
     }
 
     if (params['site-page']) page_url = `${page_url}/${params['site-page']}${params['site-page'] === 'property' ? '/propertyid' : ''}`;

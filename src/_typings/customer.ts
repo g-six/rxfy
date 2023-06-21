@@ -25,6 +25,11 @@ export interface CustomerRecord {
   phone_number?: string;
   birthday?: string;
   last_activity_at?: string;
+  notes?: {
+    id: number;
+    body: string;
+    created_at: string;
+  }[];
   saved_searches?: {
     id: number;
     city?: string;

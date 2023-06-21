@@ -29,29 +29,24 @@ export const GQ_FRAG_AGENT_METATAG = `
       ogimage_url
     }
 `;
-
-export const GQ_FRAG_AGENT = `
-        id
-        attributes {
-          agent_id
-          email
-          phone
-          first_name
-          last_name
-          full_name
-          website_theme
-          street_1
-          street_2
-          api_key
-          domain_name
-          webflow_domain
-          agent_metatag {
-            data {${GQ_FRAG_AGENT_METATAG}}
-          }
-          customers(pagination: { limit: 200 }) {
-            data {
+export const GQ_FRAG_AGENT_CUSTOMER = `data {
+              id
               attributes {
                 status
+                notes {
+                  data {
+                    id
+                    attributes {
+                      body
+                      realtor {
+                        data {
+                          id
+                        }
+                      }
+                      created_at: createdAt
+                    }
+                  }
+                }
                 customer {
                   data {
                     id
@@ -83,6 +78,27 @@ export const GQ_FRAG_AGENT = `
                 }
               }
             }
+            `;
+export const GQ_FRAG_AGENT = `
+        id
+        attributes {
+          agent_id
+          email
+          phone
+          first_name
+          last_name
+          full_name
+          website_theme
+          street_1
+          street_2
+          api_key
+          domain_name
+          webflow_domain
+          agent_metatag {
+            data {${GQ_FRAG_AGENT_METATAG}}
+          }
+          customers(pagination: { limit: 200 }) {
+            ${GQ_FRAG_AGENT_CUSTOMER}
           }
           real_estate_board {
             data {
@@ -107,6 +123,13 @@ export const mutation_update_agent = `mutation UpdateAgent($id: ID!, $data: Agen
     data {${GQ_FRAG_AGENT}}
   }
 }`;
+
+export const mutation_update_agent_customer = `mutation UpdateAgentCustomer($id: ID!, $data: AgentsCustomerInput!) {
+  updateAgentsCustomer(id: $id, data: $data) {
+    ${GQ_FRAG_AGENT_CUSTOMER}
+  }
+}`;
+
 export const mutation_create_meta = `mutation CreateMeta($data: AgentMetatagInput!) {
   createAgentMetatag(data: $data) {
     data {${GQ_FRAG_AGENT_METATAG}}

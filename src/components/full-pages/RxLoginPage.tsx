@@ -11,6 +11,8 @@ import { NotificationCategory } from '@/_typings/events';
 import { login } from '@/_utilities/api-calls/call-login';
 import { hasClassName } from '@/_utilities/html-helper';
 import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
+import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
+import { useSearchParams } from 'next/navigation';
 
 type RxLoginPageProps = {
   disabled?: boolean;
@@ -60,34 +62,38 @@ export function RxLoginPage(props: RxLoginPageProps) {
   const { data, fireEvent } = useEvent(Events.Login);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [is_loading, toggleLoading] = React.useState(false);
-
-  const checkSession = async () => {
-    if (Cookies.get('session_key')) {
-      const api_response = await axios
-        .get('/api/check-session' + hasClassName(props.className || '', 'use-agent') ? '/agent' : '', {
-          headers: {
-            Authorization: `Bearer ${Cookies.get('session_key')}`,
-          },
-        })
-        .catch(e => {
-          console.log('User not logged in');
-        });
-
-      const session = api_response as unknown as {
-        data?: {
-          session_key: string;
-        };
-      };
-
-      if (session && session.data?.session_key) {
-        Cookies.set('session_key', session.data?.session_key);
-        setTimeout(() => {
-          location.href = '/my-profile';
-        }, 1400);
-      } else {
-        clearSessionCookies();
+  const searchParams = useSearchParams();
+  const checkSession = async (session_key: string) => {
+    getUserBySessionKey(session_key, hasClassName(props.className || '', 'use-agent') ? 'realtor' : 'customer').then(session => {
+      if (session) {
+        if (session.session_key) {
+          Cookies.set('session_key', session.session_key as string);
+          setTimeout(() => {
+            const [, agent_id, profile_slug, login] = location.pathname.split('/');
+            if (login && login === 'log-in') {
+              Cookies.set('agent_id', agent_id);
+              Cookies.set('profile_slug', profile_slug);
+            }
+            location.href = '/my-profile';
+          }, 1000);
+        }
       }
-    }
+    });
+    // const api_response = await axios
+    //   .get('/api/check-session' + hasClassName(props.className || '', 'use-agent') ? '/agent' : '', {
+    //     headers: {
+    //       Authorization: `Bearer ${session_key}`,
+    //     },
+    //   })
+    //   .catch(e => {
+    //     console.log('User not logged in');
+    //   });
+
+    // const session = api_response as unknown as {
+    //   data?: {
+    //     session_key: string;
+    //   };
+    // };
   };
 
   const submitForm = async () => {
@@ -153,7 +159,13 @@ export function RxLoginPage(props: RxLoginPageProps) {
   }, [data]);
 
   React.useEffect(() => {
-    checkSession();
+    let session_key = '';
+    if (Cookies.get('session_key')) session_key = Cookies.get('session_key') as string;
+    else {
+      if (searchParams.get('key')) session_key = searchParams.get('key') as string;
+    }
+
+    if (session_key) checkSession(session_key);
   }, []);
 
   return (
