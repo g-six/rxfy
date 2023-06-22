@@ -21,7 +21,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const { NEXT_APP_GGL_API_KEY, TEST_DOMAIN } = process.env;
   const url = headers().get('x-url') as string;
 
-  let { hostname, pathname } = new URL(url);
+  let { pathname } = new URL(url);
   const requestLink = headers().get('x-url') || '';
   const requestUrl = new URL(requestLink);
   const searchParams = Object.fromEntries(requestUrl.searchParams);
@@ -33,6 +33,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let agent_id = headers().get('x-agent-id');
   let profile_slug = headers().get('x-profile-slug');
   let page_route: string[] = [];
+
   if (pathname && pathname.split('/').length >= 3 && !agent_id && !profile_slug) {
     // Check if the slug matches a realtor
     const segments = pathname.split('/');
