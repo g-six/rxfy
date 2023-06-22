@@ -7,18 +7,22 @@ import RxCRMCustomerNoteCard from './CustomerNoteCard';
 type Props = {
   className: string;
   children: React.ReactElement;
+  notes?: {
+    id: number;
+    body: string;
+    created_at: string;
+  }[];
 };
 export default function RxCustomerNotesWrapper(p: Props) {
-  const session = useEvent(Events.LoadUserSession);
-  const evt = useEvent(Events.SelectCustomerCard);
-  const { active: customer_id } = evt.data as unknown as {
-    active: number;
-  };
-  const { customers } = session.data as unknown as {
-    customers: CustomerRecord[];
-  };
-  const [customer] = customers ? customers.filter(c => c.id === customer_id) : [];
-  const { notes } = customer || {};
+  const [notes, setNotes] = React.useState<{ id: number; body: string; created_at: string }[]>();
+
+  React.useEffect(() => {
+    setNotes(p.notes);
+  }, [p.notes]);
+
+  React.useEffect(() => {
+    setNotes(p.notes);
+  }, []);
 
   const cards = (notes &&
     notes.map(n => {

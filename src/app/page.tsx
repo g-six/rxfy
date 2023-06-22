@@ -161,7 +161,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
       agent_data.webflow_domain = webflow_domain;
       loadAiResults($, agent_data.agent_id, origin);
     }
-  } else if (!(searchParams.theme && searchParams.agent) && webflow_domain === 'leagent-website.webflow.io') {
+  } else if (!(searchParams.theme && searchParams.agent) && webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN) {
     if (!session_key && params.slug && ['ai-result'].includes(params.slug as string)) {
       data = '<html><head><meta name="title" content="Not found" /></head><body>Not found</body></html>';
       notFound();
@@ -169,7 +169,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     if (session_key && params.slug !== 'ai') {
       const [session_hash, user_id] = session_key.split('-');
 
-      if (session_hash && user_id) {
+      if (session_hash && user_id && webflow_domain !== process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN) {
         try {
           const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
           agent_data = session.agent;

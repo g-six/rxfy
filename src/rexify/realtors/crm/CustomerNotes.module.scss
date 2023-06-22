@@ -1,3 +1,6 @@
+.DropDownList {
+  @apply block #{!important};
+}
 .Modal {
   @apply flex #{!important};
 }
@@ -6,4 +9,7 @@
 }
 .note-card {
   @apply cursor-pointer;
+}
+.hidden-component {
+  @apply hidden #{!important};
 }

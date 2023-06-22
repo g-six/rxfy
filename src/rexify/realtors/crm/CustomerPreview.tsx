@@ -5,6 +5,7 @@ import { CustomerRecord } from '@/_typings/customer';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import { RxButton } from '@/components/RxButton';
 import RxCustomerNotesWrapper from './CustomerNotesWrapper';
+import styles from './CustomerNotes.module.scss';
 
 type Props = {
   children: React.ReactElement;
@@ -97,7 +98,7 @@ function Iterator(p: Props) {
       } else if (child.props.className?.indexOf('all-notes') >= 0) {
         const { children: card_children, className: card_class } = child.props.children[0].props;
         return (
-          <RxCustomerNotesWrapper className={child.props.className}>
+          <RxCustomerNotesWrapper className={child.props.className} notes={p['data-customer'].notes}>
             <div className={card_class}>{card_children}</div>
           </RxCustomerNotesWrapper>
         );
@@ -120,6 +121,7 @@ function Iterator(p: Props) {
 
 export default function RxCRMCustomerPreview(p: Props) {
   const evt = useEvent(Events.SelectCustomerCard);
+  const [customer, setCustomer] = React.useState<CustomerRecord>();
 
   const { active } = evt.data as unknown as {
     active: number;
@@ -129,11 +131,29 @@ export default function RxCRMCustomerPreview(p: Props) {
   const { customers } = data as unknown as {
     customers: CustomerRecord[];
   };
-  const [customer] = active ? customers?.filter(customer => customer.id === active) : [];
+
+  React.useEffect(() => {
+    if (active && data) {
+      const [record] = active ? customers?.filter(customer => customer.id === active) : [];
+      if (record) setCustomer(record);
+    }
+  }, [data, active]);
+
+  React.useEffect(() => {
+    if (active) {
+      const [record] = active ? customers?.filter(customer => customer.id === active) : [];
+      if (record) setCustomer(record);
+    }
+  }, [active]);
+
+  React.useEffect(() => {
+    const [record] = active ? customers?.filter(customer => customer.id === active) : [];
+    if (record) setCustomer(record);
+  }, []);
 
   return (
-    <section className={['RxCRMCustomerPreview', p.className || ''].join(' ').trim()}>
-      <Iterator data-customer={customer}>{p.children}</Iterator>
+    <section className={['RxCRMCustomerPreview', p.className || '', customer !== undefined ? '' : styles['hidden-component']].join(' ').trim()}>
+      {customer !== undefined && <Iterator data-customer={customer}>{p.children}</Iterator>}
     </section>
   );
 }

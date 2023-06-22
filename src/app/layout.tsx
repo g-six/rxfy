@@ -26,10 +26,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const requestUrl = new URL(requestLink);
   const searchParams = Object.fromEntries(requestUrl.searchParams);
   let data;
-  console.log(requestLink);
   let agent_data: AgentData | undefined = undefined;
   let theme = searchParams.theme;
-  let webflow_domain = 'leagent-website.webflow.io';
+  let webflow_domain = process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN;
   let page_url = '';
   let agent_id = headers().get('x-agent-id');
   let profile_slug = headers().get('x-profile-slug');
@@ -62,8 +61,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     } else {
       return <NotFound></NotFound>;
     }
-  } else {
-    agent_data = await getAgentDataFromDomain(hostname === 'localhost' ? `${TEST_DOMAIN}` : hostname);
   }
 
   // if (!agent_data) {

@@ -48,6 +48,7 @@ export enum Events {
   UploadLogoForDarkBg = 'evt-upload-logo-for-dark-bg',
   AddCustomerNote = 'evt-add-customer-note',
   EditCustomerNote = 'evt-edit-customer-note',
+  CRMCustomerCardActions = 'evt-open-customer-status',
   SaveCustomerNote = 'evt-save-customer-note',
   SaveClient = 'evt-save-client',
   Logout = 'evt-logout',

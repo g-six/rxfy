@@ -55,3 +55,32 @@ export async function createClient(client: CustomerInputModel) {
 
   return response;
 }
+
+export async function moveClient(id: Number, status: 'active' | 'lead' | 'closed') {
+  const response = await axios.put(
+    `/api/agents/customer/${id}`,
+    {
+      status,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${Cookies.get('session_key')}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  if (response.status === 200) {
+    const customer = response.data;
+
+    if (customer.session_key) {
+      Cookies.set('session_key', customer.session_key);
+    } else {
+      console.log('Warning: no new session key has bee issued in moveClient()');
+    }
+
+    return customer;
+  }
+
+  return response;
+}
