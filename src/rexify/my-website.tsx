@@ -1,8 +1,6 @@
 'use client';
 import React from 'react';
 import { AgentData, AgentMetatagsInput, RealtorInputModel } from '@/_typings/agent';
-import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
-import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
 import useEvent, { Events, EventsData, NotificationCategory } from '@/hooks/useEvent';
 import axios, { AxiosError } from 'axios';

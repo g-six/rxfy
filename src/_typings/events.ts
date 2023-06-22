@@ -38,6 +38,7 @@ export enum Events {
   DashboardMenuTab = 'dashboard-menu-tab',
   ResetForm = 'evt-reset-form',
   SelectCustomerCard = 'evt-customer-selected',
+  SelectCustomerLovedProperty = 'evt-loved-property-selected',
   CustomerDataChange = 'evt-customer-edit',
   UploadBrokerageLogo = 'evt-upload-brokerage-logo',
   UploadOGImage = 'evt-upload-ogimage',

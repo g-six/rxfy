@@ -30,7 +30,7 @@ function isRealtorRequest(url: string) {
   if (url.indexOf('/agents/customer') > 0) return true;
   return false;
 }
-export async function GET(request: Request) {
+export async function GET(request: Request, internal?: boolean) {
   const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
 
   if (!token && isNaN(guid))
@@ -233,7 +233,7 @@ export async function GET(request: Request) {
       };
     }
 
-    return request.method !== 'GET' ? results : getResponse(results, 200);
+    return request.method !== 'GET' || internal ? results : getResponse(results, 200);
   }
   return getResponse(
     {

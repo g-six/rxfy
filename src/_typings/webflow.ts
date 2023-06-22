@@ -58,6 +58,8 @@ export enum WEBFLOW_NODE_SELECTOR {
 
   // REALTOR CRM
   CRM_AREA_WRAPPER = 'crm-area',
+  CRM_CUS_VW_SAVED_HOMES = 'SavedHomes',
+  CRM_NAV_WRAPPER = 'crm-nav',
   CRM_NOTES_WRAPPER = 'note-wrapper',
   CRM_NOTES_FORM_WRAPPER = 'new-note-wrapper',
 }

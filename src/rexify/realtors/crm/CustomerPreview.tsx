@@ -16,7 +16,11 @@ type Props = {
 function Iterator(p: Props) {
   const Wrapped = React.Children.map(p.children, child => {
     if (child.props?.children) {
-      if (child.props?.['data-field']) {
+      if (child.props?.['event-name'] === 'view-client') {
+        return React.cloneElement(child, {
+          href: `${child.props.href}?customer=${p['data-customer'].id}`,
+        });
+      } else if (child.props?.['data-field']) {
         let dwelling_type = '';
         let price_range = '';
         if (p['data-customer'] && p['data-customer'].saved_searches) {

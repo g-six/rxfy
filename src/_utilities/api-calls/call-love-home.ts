@@ -8,10 +8,10 @@ import { Events } from '@/_typings/events';
  * Retrieve customer saved homes
  * @returns
  */
-export async function getLovedHomes() {
+export async function getLovedHomes(relationship_id?: number) {
   if (!Cookies.get('session_key')) return;
   try {
-    const response = await axios.get('/api/loves', {
+    const response = await axios.get(relationship_id ? `/api/agents/customer/${relationship_id}/loves` : '/api/loves', {
       headers: {
         Authorization: `Bearer ${Cookies.get('session_key')}`,
         'Content-Type': 'application/json',
