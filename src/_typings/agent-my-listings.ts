@@ -3,6 +3,7 @@ import { ReactElement } from 'react';
 import { ValueInterface, RoomDimension } from './ui-types';
 import { AgentData } from '@/_typings/agent';
 
+export type PageTabs = 'my-listings' | 'private-listing';
 export enum createListingTabs {
   AI = 'tab-ai',
   ADDRESS = 'tab-address',
@@ -13,6 +14,7 @@ export enum createListingTabs {
   MORE = 'tab-more',
   PREVIEW = 'tab-preview',
 }
+
 export enum mapsViewsTabs {
   NEIGHBORHOOD = 'tab-neighborhood',
   STREET = 'tab-street',
@@ -20,6 +22,7 @@ export enum mapsViewsTabs {
 export interface TabContentProps {
   template: ReactElement;
   nextStepClick: () => void;
+  saveAndExit: (data: any) => void;
   attributes: {
     [key: string]: ValueInterface[];
   };

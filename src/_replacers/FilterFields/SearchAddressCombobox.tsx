@@ -9,6 +9,7 @@ import useDebounce from '@/hooks/useDebounce';
 import { queryPlace, getPlaceDetails } from '@/_utilities/api-calls/call-places';
 
 export type SearchInputProps = {
+  defaultValue: string | undefined;
   name: string;
   id: string;
   placeholder?: string;
@@ -24,7 +25,7 @@ export default function SearchAddressCombobox(p: SearchInputProps) {
   const [address, setAddressQuery] = useState('');
   const debounced = useDebounce(address ?? '', 900);
   const [suggestions, setSuggestions] = useState<SuggestionInterface[]>([]);
-  const [selectedAddressData, setSelectedAddressData] = useState<any>({ address: p.search ?? '' });
+  const [selectedAddressData, setSelectedAddressData] = useState<any>({ address: (p.search || p.defaultValue) ?? '' });
 
   useEffect(() => {
     if (debounced.length > 4) {
