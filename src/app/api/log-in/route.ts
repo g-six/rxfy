@@ -22,7 +22,7 @@ const gql = `query LogIn ($filters: CustomerFiltersInput!) {
 }`;
 
 const session_gql = `mutation UpdateCustomerSession ($id: ID!, $logged_in_at: DateTime!) {
-  session: updateCustomer(id: $id, data: { logged_in_at: $logged_in_at, last_activity_at: $logged_in_at }) {
+  session: updateCustomer(id: $id, data: { logged_in_at: $logged_in_at, last_activity_at: $logged_in_at, active_account: true }) {
     record: data {
       id
       attributes {

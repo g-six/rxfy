@@ -92,8 +92,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     webflow_domain = agent_data.webflow_domain;
   }
 
-  console.log({ webflow_domain, pathname });
-
   page_url = `https://${webflow_domain}${['/property', '/preview'].includes(pathname) ? '/property/propertyid' : pathname}`;
 
   try {

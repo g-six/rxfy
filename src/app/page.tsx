@@ -21,7 +21,6 @@ import { findAgentRecordByAgentId } from './api/agents/model';
 import NotFound from './not-found';
 import { buildCacheFiles } from './api/properties/model';
 import { getPrivateListing } from './api/private-listings/model';
-import Cookies from 'js-cookie';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico', 'sign-out'];
@@ -78,6 +77,8 @@ export default async function Home({ params, searchParams }: { params: Record<st
         if (!agent_data || !metatags.profile_slug || metatags.profile_slug !== profile_slug) {
           return <NotFound></NotFound>;
         }
+        pathname = pathname.split(`/${profile_slug}`).join('');
+        pathname = pathname.split(`/${possible_agent}`).join('');
         page_url = `https://${agent_data.webflow_domain || process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}${pathname}`;
       } else {
         return <NotFound></NotFound>;
@@ -115,7 +116,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
       page_url = `https://${process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}${pathname}`;
     }
 
-    if (params['site-page']) page_url = `${page_url}/${params['site-page']}${params['site-page'] === 'property' ? '/propertyid' : ''}`;
+    if (params['site-page'] === 'property') page_url = `${page_url}/propertyid' : ''}`;
   }
 
   try {
