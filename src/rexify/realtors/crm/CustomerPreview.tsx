@@ -120,6 +120,10 @@ function Iterator(p: Props) {
 }
 
 export default function RxCRMCustomerPreview(p: Props) {
+  const formToggle = useEvent(Events.CreateCustomerForm);
+  const { active: new_form_active } = formToggle.data as unknown as {
+    active: boolean;
+  };
   const evt = useEvent(Events.SelectCustomerCard);
   const [customer, setCustomer] = React.useState<CustomerRecord>();
 
@@ -152,7 +156,9 @@ export default function RxCRMCustomerPreview(p: Props) {
   }, []);
 
   return (
-    <section className={['RxCRMCustomerPreview', p.className || '', customer !== undefined ? '' : styles['hidden-component']].join(' ').trim()}>
+    <section
+      className={['RxCRMCustomerPreview', p.className || '', customer !== undefined && !new_form_active ? '' : styles['hidden-component']].join(' ').trim()}
+    >
       {customer !== undefined && <Iterator data-customer={customer}>{p.children}</Iterator>}
     </section>
   );

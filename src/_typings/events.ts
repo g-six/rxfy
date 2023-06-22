@@ -46,6 +46,7 @@ export enum Events {
   UploadProfileImage = 'evt-upload-profile-image',
   UploadLogoForLightBg = 'evt-upload-logo-for-light-bg',
   UploadLogoForDarkBg = 'evt-upload-logo-for-dark-bg',
+  CreateCustomerForm = 'evt-new-client',
   AddCustomerNote = 'evt-add-customer-note',
   EditCustomerNote = 'evt-edit-customer-note',
   CRMCustomerCardActions = 'evt-open-customer-status',

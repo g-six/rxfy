@@ -1,8 +1,11 @@
 'use client';
 import React from 'react';
-import useEvent, { Events } from '@/hooks/useEvent';
+import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
 import { RxButton } from '@/components/RxButton';
 import { createClient } from '@/_utilities/api-calls/call-clients';
+import styles from './CustomerNotes.module.scss';
+import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
+import Cookies from 'js-cookie';
 
 type Props = {
   children: React.ReactElement;
@@ -88,6 +91,12 @@ function Iterator(p: Props) {
 }
 
 export default function RxCRMCustomerCreateForm(p: Props) {
+  const session = useEvent(Events.LoadUserSession);
+  const notifications = useEvent(Events.SystemNotification);
+  const formToggle = useEvent(Events.CreateCustomerForm);
+  const { active } = formToggle.data as unknown as {
+    active: boolean;
+  };
   const formHandler = useEvent(Events.CustomerDataChange);
   const submitHandler = useEvent(Events.SaveClient);
   const { year, month, day } = formHandler.data as unknown as {
@@ -117,7 +126,16 @@ export default function RxCRMCustomerCreateForm(p: Props) {
           birthday,
         };
         createClient(client)
-          .then(console.log)
+          .then(() => {
+            if (Cookies.get('session_key')) {
+              getUserBySessionKey(Cookies.get('session_key') as string, 'realtor').then(session.fireEvent);
+              notifications.fireEvent({
+                timeout: 15000,
+                category: NotificationCategory.SUCCESS,
+                message: ['An account for', client.full_name, 'has been created and an email has been sent to', client.email].join(' '),
+              });
+            }
+          })
           .catch(console.error)
           .finally(() => {
             submitHandler.fireEvent({});
@@ -127,7 +145,7 @@ export default function RxCRMCustomerCreateForm(p: Props) {
   }, [submitHandler.data?.clicked]);
 
   return (
-    <section className={['RxCRMCustomerCreateForm', p.className || ''].join(' ').trim()}>
+    <section className={['RxCRMCustomerCreateForm', active ? p.className : styles['hidden-component']].join(' ').trim()}>
       <Iterator
         onChange={(key: string, value: string | number) => {
           formHandler.fireEvent({

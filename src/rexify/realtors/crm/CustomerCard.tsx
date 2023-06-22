@@ -102,6 +102,7 @@ function Iterator(p: Props & { onActionClick: (e: React.MouseEvent<HTMLButtonEle
 }
 
 export default function RxCRMCustomerCard(p: Props) {
+  const formToggle = useEvent(Events.CreateCustomerForm);
   const session = useEvent(Events.LoadUserSession);
   const evt = useEvent(Events.SelectCustomerCard);
   const addNoteEventHandler = useEvent(Events.AddCustomerNote);
@@ -132,6 +133,7 @@ export default function RxCRMCustomerCard(p: Props) {
       className={['RxCRMCustomerCard', p.className || '', active === p['data-id'] && 'active', 'pointer-events-auto'].join(' ').trim()}
       onClick={divevt => {
         if (p['data-id']) {
+          formToggle.fireEvent({});
           evt.fireEvent({
             active: p['data-id'],
           } as unknown as EventsData);
