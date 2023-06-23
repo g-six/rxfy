@@ -1,7 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { PrivateListingInput, PrivateListingOutput } from '@/_typings/private-listing';
 import Cookies from 'js-cookie';
-import { getResponse } from '@/app/api/response-helper';
 import { toKebabCase } from '../string-helper';
 
 export async function createPrivateListing(listing: PrivateListingInput) {
@@ -12,20 +11,17 @@ export async function createPrivateListing(listing: PrivateListingInput) {
         'Content-Type': 'application/json',
       },
     });
-    return getResponse(record.data);
+    return record.data;
   } catch (e) {
     const { response } = e as AxiosError;
     if (response && response.data) {
-      return getResponse(response.data, response.status);
+      return response;
     }
-    return getResponse(
-      {
-        error: 'Unhandled error',
-        path: 'api-calls/call-private-listings',
-        subroutine: 'createPrivateListing',
-      },
-      400,
-    );
+    return {
+      error: 'Unhandled error',
+      path: 'api-calls/call-private-listings',
+      subroutine: 'createPrivateListing',
+    };
   }
 }
 
@@ -41,41 +37,35 @@ export async function updatePrivateListing(id: number, updates: Record<string, u
   } catch (e) {
     const { response } = e as AxiosError;
     if (response && response.data) {
-      return getResponse(response.data, response.status);
+      return response;
     }
-    return getResponse(
-      {
-        error: 'Unhandled error',
-        path: 'api-calls/call-private-listings',
-        subroutine: 'updatePrivateListing',
-      },
-      400,
-    );
+    return {
+      error: 'Unhandled error',
+      path: 'api-calls/call-private-listings',
+      subroutine: 'updatePrivateListing',
+    };
   }
 }
 
 export async function getMyPrivateListings() {
   try {
-    const record = await axios.get('/api/private-listings', {
+    const response = await axios.get('/api/private-listings', {
       headers: {
         Authorization: `Bearer ${Cookies.get('session_key')}`,
         'Content-Type': 'application/json',
       },
     });
-    return record.data;
+    return response.data;
   } catch (e) {
     const { response } = e as AxiosError;
     if (response && response.data) {
-      return getResponse(response.data, response.status);
+      return response;
     }
-    return getResponse(
-      {
-        error: 'Unhandled error',
-        path: 'api-calls/call-private-listings',
-        subroutine: 'getMyPrivateListings',
-      },
-      400,
-    );
+    return {
+      error: 'Unhandled error',
+      path: 'api-calls/call-private-listings',
+      subroutine: 'getMyPrivateListings',
+    };
   }
 }
 
@@ -87,20 +77,17 @@ export async function getPrivateListing(id: number) {
         'Content-Type': 'application/json',
       },
     });
-    return getResponse(record.data);
+    return record.data;
   } catch (e) {
     const { response } = e as AxiosError;
     if (response && response.data) {
-      return getResponse(response.data, response.status);
+      return response;
     }
-    return getResponse(
-      {
-        error: 'Unhandled error',
-        path: 'api-calls/call-private-listings',
-        subroutine: 'getPrivateListing',
-      },
-      400,
-    );
+    return {
+      error: 'Unhandled error',
+      path: 'api-calls/call-private-listings',
+      subroutine: 'getPrivateListing',
+    };
   }
 }
 
