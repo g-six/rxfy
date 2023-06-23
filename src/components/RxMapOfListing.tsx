@@ -19,7 +19,7 @@ type Props = {
 export default function RxMapOfListing({ property, child, mapType }: Props) {
   const ref = React.useRef(null);
   const [mapZoom] = React.useState(15); //zoom level
-  const [mapCenter] = React.useState({ lng: property?.lon, lat: property?.lat });
+  const [mapCenter, recenter] = React.useState({ lng: property?.lon, lat: property?.lat });
 
   const google = typeof window !== 'undefined' && window?.google ? window['google'] : undefined;
 
@@ -108,6 +108,12 @@ export default function RxMapOfListing({ property, child, mapType }: Props) {
       initStreetView();
     }
   }, [mapType, mapCenter, ref, initNeighborhoodView, initStreetView]);
+
+  React.useEffect(() => {
+    if (property?.lat !== undefined && property.lon !== undefined) {
+      recenter({ lng: property?.lon, lat: property?.lat });
+    }
+  }, [property?.lat, property?.lon]);
 
   const style = Object.assign({}, child?.props?.style, {
     height: child?.props?.style?.height ? child.props.style.height : '300px',

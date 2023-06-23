@@ -2,6 +2,7 @@ import axios from 'axios';
 import { encrypt } from '@/_utilities/encryption-helper';
 import { getResponse } from '../response-helper';
 import { sendTemplate } from '../send-template';
+import { GQ_FRAG_AGENT_CUSTOMER } from '../agents/graphql';
 
 const gql = `query LogIn ($filters: CustomerFiltersInput!) {
   users: customers(filters: $filters) {
@@ -12,13 +13,8 @@ const gql = `query LogIn ($filters: CustomerFiltersInput!) {
         full_name
         encrypted_password
         last_activity_at
-        agents {
-          data {
-            id
-            attributes {
-              full_name
-            }
-          }
+        agents_customer {
+          ${GQ_FRAG_AGENT_CUSTOMER}
         }
       }
     }
@@ -26,7 +22,7 @@ const gql = `query LogIn ($filters: CustomerFiltersInput!) {
 }`;
 
 const session_gql = `mutation UpdateCustomerSession ($id: ID!, $logged_in_at: DateTime!) {
-  session: updateCustomer(id: $id, data: { logged_in_at: $logged_in_at, last_activity_at: $logged_in_at }) {
+  session: updateCustomer(id: $id, data: { logged_in_at: $logged_in_at, last_activity_at: $logged_in_at, active_account: true }) {
     record: data {
       id
       attributes {
@@ -34,13 +30,8 @@ const session_gql = `mutation UpdateCustomerSession ($id: ID!, $logged_in_at: Da
         full_name
         logged_in_at
         last_activity_at
-        agents {
-          data {
-            id
-            attributes {
-              full_name
-            }
-          }
+        agents_customer {
+          ${GQ_FRAG_AGENT_CUSTOMER}
         }
       }
     }

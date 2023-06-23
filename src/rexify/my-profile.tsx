@@ -1,11 +1,6 @@
 'use client';
-import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
-import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
 import RxKeyValueRow from '@/components/RxProperty/RxKeyValueRow';
 import { RxMyAccountPage } from '@/components/full-pages/RxMyAccountPage';
-import { AxiosError } from 'axios';
-import Cookies from 'js-cookie';
-import { useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import React from 'react';
 import RxLeftMenuTab from './realtors/RxLeftMenuTab';

@@ -12,13 +12,14 @@ export interface PrivateListingModel {
   price_per_sqft?: number;
   asking_price?: number;
   year_built?: number;
-  garage?: 'single' | 'double' | 'triple';
+  total_garage?: number;
   listed_at?: Date;
   land_title?: string;
   gross_taxes?: number;
   tax_year?: number;
-  lot_sqm?: number;
-  lot_sqft?: number;
+  lot_area?: number;
+  lot_area_uom?: 'sqft' | 'sqm';
+  total_additional_rooms?: number;
   floor_area?: number;
   floor_area_main?: number;
   floor_area_basement?: number;
@@ -26,7 +27,7 @@ export interface PrivateListingModel {
   floor_area_unfinished?: number;
   floor_area_total?: number;
   floor_area_below_main?: number;
-  floor_area_uom?: 'Feet' | 'Metres';
+  floor_area_uom?: 'sqft' | 'sqm';
   frontage_feet?: number;
   frontage_metres?: number;
   property_photo_album?: number;
@@ -56,6 +57,7 @@ export interface PrivateListingModel {
   depth?: number;
   strata_fee?: number;
   frontage?: number;
+  council_approval_required?: boolean;
   frontage_uom?: 'Feet' | 'Metres';
   building_unit?: string;
   total_allowed_rentals?: number;
@@ -63,6 +65,9 @@ export interface PrivateListingModel {
   total_covered_parking?: number;
   total_fireplaces?: number;
   floor_levels?: number;
+  total_pets_allowed?: number;
+  total_cats_allowed?: number;
+  total_dogs_allowed?: number;
   total_units_in_community?: number;
   photos?: string[];
 }
@@ -72,6 +77,8 @@ export interface PrivateListingInput extends PrivateListingModel {
   appliances?: number[];
   building_maintenance_items?: number[];
   by_law_restrictions?: number[];
+  building_bylaws?: string;
+  restrictions?: string;
   connected_services?: number[];
   facilities?: number[];
   hvacs?: number[];

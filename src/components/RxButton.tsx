@@ -32,7 +32,8 @@ export function RxButton(p: RxProps) {
       id={p.id}
       className={[p.className || '', 'rexified disabled:opacity-30 relative'].join(' ')}
       disabled={p.disabled || loading}
-      onClick={() => {
+      onClick={(evt: React.MouseEvent<HTMLButtonElement>) => {
+        evt.stopPropagation();
         toggleLoader(true);
         fireEvent({
           ...data,

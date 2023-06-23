@@ -579,6 +579,7 @@ export function RxMapbox(props: RxMapboxProps) {
       ></div>
       <PropertyListModal
         card={props.children}
+        agent={props.agent}
         onClose={() => {
           setSelectedCluster([]);
         }}

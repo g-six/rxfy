@@ -42,3 +42,29 @@ export async function createAgentRecord(record: {
   let agent: AgentData | undefined = xhr.data || {};
   return agent;
 }
+
+export async function addCustomerNote(agent_customer_id: number, notes: string) {
+  const xhr = await axios.post(
+    `/api/agents/customer/${agent_customer_id}/notes`,
+    { notes },
+    {
+      headers: {
+        Authorization: `Bearer ${Cookies.get('session_key')}`,
+      },
+    },
+  );
+  return xhr.data || {};
+}
+
+export async function updateCustomerNote(id: number, notes: string) {
+  const xhr = await axios.put(
+    `/api/agents/customer/notes/${id}`,
+    { notes },
+    {
+      headers: {
+        Authorization: `Bearer ${Cookies.get('session_key')}`,
+      },
+    },
+  );
+  return xhr.data || {};
+}

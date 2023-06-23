@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import useEvent, { Events } from '@/hooks/useEvent';
+import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import RxCRMCustomerCard from './CustomerCard';
 import { CustomerRecord } from '@/_typings/customer';
 
@@ -40,6 +40,7 @@ function Iterator(p: Props) {
                     data-dwelling-type={saved_search.dwelling_types || ''}
                     data-minprice={saved_search.minprice || 0}
                     data-maxprice={saved_search.maxprice || 0}
+                    notes={customer.notes}
                   >
                     {child.props.children}
                   </RxCRMCustomerCard>
@@ -64,13 +65,24 @@ function Iterator(p: Props) {
 
 export default function RxCRMLeadsWrapper(p: Props) {
   const { data } = useEvent(Events.LoadUserSession);
+  const evt = useEvent(Events.SelectCustomerCard);
   const { customers } = data as unknown as {
     customers: CustomerRecord[];
   };
-  console.log(p['data-status']);
+  const { active } = evt.data as unknown as {
+    active: number;
+  };
+  const filtered = customers?.filter(customer => customer.status === p['data-status']);
+  React.useEffect(() => {
+    if (filtered?.length && p['data-status'] === 'lead' && !active) {
+      evt.fireEvent({
+        active: filtered[0].id,
+      } as unknown as EventsData);
+    }
+  }, [filtered]);
   return (
     <section className={['RxCRMLeadsWrapper', p.className || ''].join(' ').trim()}>
-      <Iterator data-customers={customers?.filter(customer => customer.status === p['data-status'])}>{p.children}</Iterator>
+      <Iterator data-customers={filtered}>{p.children}</Iterator>
     </section>
   );
 }
