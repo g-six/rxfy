@@ -17,8 +17,8 @@ export interface PrivateListingModel {
   land_title?: string;
   gross_taxes?: number;
   tax_year?: number;
-  lot_sqm?: number;
-  lot_sqft?: number;
+  lot_area?: number;
+  lot_area_uom?: 'sqft' | 'sqm';
   floor_area?: number;
   floor_area_main?: number;
   floor_area_basement?: number;
@@ -26,7 +26,7 @@ export interface PrivateListingModel {
   floor_area_unfinished?: number;
   floor_area_total?: number;
   floor_area_below_main?: number;
-  floor_area_uom?: 'Feet' | 'Metres';
+  floor_area_uom?: 'sqft' | 'sqm';
   frontage_feet?: number;
   frontage_metres?: number;
   property_photo_album?: number;
