@@ -369,6 +369,9 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
       total_units_in_community
       strata_fee
       total_allowed_rentals
+      total_pets_allowed
+      total_cats_allowed
+      total_dogs_allowed
       building_bylaws
       by_law_restrictions {
           data {

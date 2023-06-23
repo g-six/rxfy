@@ -64,6 +64,9 @@ export interface PrivateListingModel {
   total_covered_parking?: number;
   total_fireplaces?: number;
   floor_levels?: number;
+  total_pets_allowed?: number;
+  total_cats_allowed?: number;
+  total_dogs_allowed?: number;
   total_units_in_community?: number;
   photos?: string[];
 }
