@@ -452,6 +452,7 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
           }
       }
       photos
+      restrictions
     }
   }
 `;
