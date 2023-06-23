@@ -37,7 +37,7 @@ export async function updatePrivateListing(id: number, updates: Record<string, u
         'Content-Type': 'application/json',
       },
     });
-    return getResponse(record.data);
+    return record.data;
   } catch (e) {
     const { response } = e as AxiosError;
     if (response && response.data) {
@@ -62,7 +62,7 @@ export async function getMyPrivateListings() {
         'Content-Type': 'application/json',
       },
     });
-    return getResponse(record.data);
+    return record.data;
   } catch (e) {
     const { response } = e as AxiosError;
     if (response && response.data) {

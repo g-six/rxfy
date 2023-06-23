@@ -28,9 +28,9 @@ export default function MyListingsTab({ child, isActive, setCurrentTab }: Props)
     getAgentPublicListings().then(res => {
       setMLSListings(res);
     });
-    // getMyPrivateListings().then(res => {
-    //   setPrivateListings(res.records);
-    // });
+    getMyPrivateListings().then(res => {
+      setPrivateListings(res.records);
+    });
   }, []);
 
   useEffect(() => {

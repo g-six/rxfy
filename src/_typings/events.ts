@@ -131,7 +131,7 @@ export interface PrivateListingData extends FormData {
   asking_price?: string;
   year_built?: number;
   tax_year?: string;
-  property_tax?: string;
+  gross_taxes?: string;
   property_disclosure?: string;
   // property_type?: ValueInterface;
   dwelling_type?: ValueInterface;

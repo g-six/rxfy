@@ -79,7 +79,7 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
       label: 'Property Tax Amount',
       inputProps: {
         placeholder: '$1,000',
-        name: 'property_tax',
+        name: 'gross_taxes',
         type: 'number',
         min: 0,
       },
