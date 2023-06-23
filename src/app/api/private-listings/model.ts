@@ -346,7 +346,7 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
       total_fireplaces
       complex_compound_name
       land_title
-      garage
+      total_garage
       total_covered_parking
       total_parking
       parkings {

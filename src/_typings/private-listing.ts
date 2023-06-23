@@ -12,7 +12,7 @@ export interface PrivateListingModel {
   price_per_sqft?: number;
   asking_price?: number;
   year_built?: number;
-  garage?: 'single' | 'double' | 'triple';
+  total_garage?: number;
   listed_at?: Date;
   land_title?: string;
   gross_taxes?: number;
