@@ -21,7 +21,7 @@ export default function TabStrata({ template, nextStepClick, attributes, initial
   );
 
   const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
-  const selectedChips = getValueByKey('building_amenities', data);
+  const selectedChips = getValueByKey('amenities', data);
 
   const inputs = [
     {
@@ -31,7 +31,7 @@ export default function TabStrata({ template, nextStepClick, attributes, initial
     {
       label: 'Maintenance Fee',
       inputProps: {
-        name: 'maintenance_fee',
+        name: 'strata_fee',
         type: 'number',
         min: 0,
       },
@@ -43,15 +43,16 @@ export default function TabStrata({ template, nextStepClick, attributes, initial
     {
       label: 'Age Restriction',
       inputProps: {
-        name: 'age_restriction',
+        name: 'minimum_age_restriction',
         type: 'number',
+        placeholder: 'Minimum Age',
         min: 0,
       },
     },
     {
       label: 'Dogs',
       inputProps: {
-        name: 'dogs',
+        name: 'total_dogs_allowed',
         type: 'number',
         min: 0,
       },
@@ -59,7 +60,7 @@ export default function TabStrata({ template, nextStepClick, attributes, initial
     {
       label: 'Cats',
       inputProps: {
-        name: 'cats',
+        name: 'total_cats_allowed',
         type: 'number',
         min: 0,
       },
@@ -75,14 +76,14 @@ export default function TabStrata({ template, nextStepClick, attributes, initial
     {
       label: 'Total Rentals Allowed',
       inputProps: {
-        name: 'total_rentals_allowed',
+        name: 'total_allowed_rentals',
         type: 'number',
         min: 0,
       },
     },
     {
       label: 'Complex Name',
-      inputProps: { name: 'complex_name' },
+      inputProps: { name: 'complex_compound_name' },
     },
   ];
 
@@ -104,6 +105,13 @@ export default function TabStrata({ template, nextStepClick, attributes, initial
               />
             );
           }),
+          <Checkbox
+            key={'checkbox-2'}
+            isPicked={!!data?.council_approval_required}
+            template={templates.checkbox}
+            item={{ title: 'Council Approval Required' }}
+            handleCheckList={() => fireEvent({ council_approval_required: !data?.council_approval_required })}
+          />,
           <ChipsWithLabel
             key={`chipsList-1`}
             label='Building Amenities'
@@ -111,32 +119,32 @@ export default function TabStrata({ template, nextStepClick, attributes, initial
             values={selectedChips}
             handleSelect={val => {
               const newValue = setMultiSelectValue(val, selectedChips ? selectedChips : []);
-              fireEvent({ building_amenities: newValue });
+              fireEvent({ amenities: newValue });
             }}
             chipsList={amenities}
           />,
 
-          <div key={'containerrrrr'} className='flex gap-4 col-span-2'>
-            <div className=' w-5/12 flex-shrink'>
-              <Checkbox
-                key={'checkbox-1'}
-                isPicked={!!data?.locked}
-                template={templates.checkbox}
-                item={{ title: 'Locker' }}
-                handleCheckList={() => fireEvent({ locked: !data?.locked })}
-              />
-            </div>
+          // <div key={'containerrrrr'} className='flex gap-4 col-span-2'>
+          //   {/* <div className=' w-5/12 flex-shrink'>
+          //     <Checkbox
+          //       key={'checkbox-1'}
+          //       isPicked={!!data?.locked}
+          //       template={templates.checkbox}
+          //       item={{ title: 'Locker' }}
+          //       handleCheckList={() => fireEvent({ locked: !data?.locked })}
+          //     />
+          //   </div> */}
 
-            <div className=' w-6/12 flex-shrink-0 flex-grow'>
-              <Checkbox
-                key={'checkbox-2'}
-                isPicked={!!data?.council_approval_required}
-                template={templates.checkbox}
-                item={{ title: 'Council Approval Required' }}
-                handleCheckList={() => fireEvent({ council_approval_required: !data?.council_approval_required })}
-              />
-            </div>
-          </div>,
+          //   <div className=' w-6/12 flex-shrink-0 flex-grow'>
+          //     <Checkbox
+          //       key={'checkbox-2'}
+          //       isPicked={!!data?.council_approval_required}
+          //       template={templates.checkbox}
+          //       item={{ title: 'Council Approval Required' }}
+          //       handleCheckList={() => fireEvent({ council_approval_required: !data?.council_approval_required })}
+          //     />
+          //   </div>
+          // </div>,
         ]);
       },
     },

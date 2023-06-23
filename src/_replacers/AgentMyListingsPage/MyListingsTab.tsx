@@ -4,8 +4,9 @@ import { getMyPrivateListings } from '@/_utilities/api-calls/call-private-listin
 import { getAgentPublicListings } from '@/_utilities/api-calls/call-properties';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import React, { ReactElement, cloneElement, useEffect, useState } from 'react';
-import MyListingsCard from '../MyListingsCard';
-import MyListingPrivateCard from '../MyListingPrivateCard';
+import MyListingsCard from './MyListingsCard';
+import MyListingPrivateCard from './MyListingPrivateCard';
+import useEvent, { Events } from '@/hooks/useEvent';
 
 type Props = {
   isActive: boolean;
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export default function MyListingsTab({ child, isActive, setCurrentTab }: Props) {
+  const { data, fireEvent } = useEvent(Events.AgentMyListings);
   const [MLSListings, setMLSListings] = useState<any[]>([]);
   const [privateListings, setPrivateListings] = useState<any[]>([]);
   const [templates] = useState(
@@ -26,10 +28,17 @@ export default function MyListingsTab({ child, isActive, setCurrentTab }: Props)
     getAgentPublicListings().then(res => {
       setMLSListings(res);
     });
-    getMyPrivateListings().then(res => {
-      setPrivateListings(res.records);
-    });
+    // getMyPrivateListings().then(res => {
+    //   setPrivateListings(res.records);
+    // });
   }, []);
+
+  useEffect(() => {
+    if (data?.metadata?.id) {
+      setPrivateListings(prev => [...prev.map(it => (it.id === data.metadata.id ? { ...it, ...data.metadata } : it))]);
+      fireEvent({ metadata: undefined });
+    }
+  }, [data?.metadata, fireEvent]);
   const matches: tMatch[] = [
     { searchFn: searchByClasses(['f-button-neutral-5', 'w-button']), transformChild: child => cloneElement(child, { onClick: () => {} }) },
     {

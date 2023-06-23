@@ -14,7 +14,7 @@ export default function Input({ template, inputProps, value, onChange }: Props) 
   };
 
   const isNumber = inputProps?.type === 'number';
-  value = isNumber && !value ? '' : value;
+  value = isNumber && !value ? undefined : value;
 
   return <input className={template.props.className} value={value} onChange={onChange} onBlur={handleBlur} {...(inputProps || {})} />;
 }

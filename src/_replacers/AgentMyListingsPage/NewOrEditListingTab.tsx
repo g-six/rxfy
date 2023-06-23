@@ -19,7 +19,7 @@ type Props = {
 
 export default function NewOrEditListingTab({ child, agent, isActive, changeTab }: Props) {
   const [currentTab, setCurrentTab] = useState<string>(createListingTabs.AI);
-  const { data } = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
+  const { data } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, { floor_area_uom: 'sqft', lot_uom: 'sqft' });
 
   const matches: tMatch[] = [
     {

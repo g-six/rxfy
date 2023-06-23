@@ -17,6 +17,8 @@ import TabPreview from './TabsContent/TabPreview';
 import { createPrivateListing, updatePrivateListing, uploadListingPhoto } from '@/_utilities/api-calls/call-private-listings';
 import { formatAddress } from '@/_utilities/string-helper';
 import { PrivateListingInput, PrivateListingOutput } from '@/_typings/private-listing';
+import useEvent, { Events } from '@/hooks/useEvent';
+import { convertPrivateListingToPropertyData } from '@/_helpers/mls-mapper';
 
 type Props = {
   child: ReactElement;
@@ -39,6 +41,7 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, da
     'tab-preview': TabPreview,
   };
   const [attributes, setAttributes] = useState<{ [key: string]: ValueInterface[] }>();
+  const { fireEvent } = useEvent(Events.AgentMyListings, true);
   const tabsTemplates = captureMatchingElements(
     child,
     Object.values(createListingTabs).map(tab => ({
@@ -53,7 +56,7 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, da
         val.map(({ id, name }) => ({ label: name, value: id })),
       ]);
 
-      setAttributes(Object.fromEntries(remapped));
+      setAttributes(res);
     });
   }, []);
 
@@ -62,71 +65,35 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, da
   const saveAndExit = async (data: any) => {
     const { id, title, area, baths, beds, city, lat, lon, neighbourhood, postal_zip_code, state_province, dwelling_type, amenities, asking_price } =
       data || ({} as unknown as PrivateListingInput);
+    console.log(data);
     if (id) {
-      await updatePrivateListing(id, {
-        amenities,
-        asking_price,
-      });
-      changeTab('my-listings');
-      setCurrentTab('tab-ai');
-      return;
-    }
-    if (title) {
-      createPrivateListing({
-        title: formatAddress(title.split(', ').reverse().pop() as string),
-        area,
-        baths,
-        beds,
-        city,
-        lat,
-        lon,
-        neighbourhood,
-        dwelling_type,
-        postal_zip_code,
-        state_province,
-        amenities,
-      } as unknown as PrivateListingInput).then(record => {
-        record.json().then((rec: PrivateListingOutput) => {
-          changeTab('my-listings');
-          setCurrentTab('tab-ai');
-          // Update data in events
-          // fireEvent({
-          //   ...data,
-          //   ...(rec as unknown as PrivateListingData),
-          // });
-
-          // if (data.photos && rec.id) {
-          //   let count = 0;
-          //   if (data && data.upload_queue?.count) {
-          //     count = data.upload_queue.count as number;
-          //   }
-
-          //   data?.photos?.map((photo: File, cnt: number) => {
-          //     uploadListingPhoto(photo, cnt + 1, rec).then((upload_item: { success: boolean; upload_url: string; file_path: string }) => {
-          //       axios
-          //         .put(upload_item.upload_url, photo, {
-          //           headers: {
-          //             'Content-Type': photo.type,
-          //           },
-          //         })
-          //         .then(r => {
-          //           count++;
-          //           if (data.photos && data.photos[cnt]) data.photos[cnt].url = 'https://' + new URL(upload_item.upload_url).pathname.substring(1);
-          //           fireEvent({
-          //             ...data,
-          //             upload_queue: {
-          //               ...data.upload_queue,
-          //               count,
-          //               total: data.photos?.length || 0,
-          //             },
-          //           });
-          //         });
-          //     });
-          //   });
-          // }
-        });
+      return updatePrivateListing(id, convertPrivateListingToPropertyData(data)).then(record => {
+        fireEvent({ metadata: { ...record } });
+        changeTab('my-listings');
+        setCurrentTab('tab-ai');
       });
     }
+    // if (title) {
+    //   return createPrivateListing({
+    //     title: formatAddress(title.split(', ').reverse().pop() as string),
+    //     area,
+    //     baths,
+    //     beds,
+    //     city,
+    //     lat,
+    //     lon,
+    //     neighbourhood,
+    //     dwelling_type,
+    //     postal_zip_code,
+    //     state_province,
+    //     amenities,
+    //   } as unknown as PrivateListingInput).then(record => {
+    //     record.json().then((rec: PrivateListingOutput) => {
+    //       changeTab('my-listings');
+    //       setCurrentTab('tab-ai');
+    //     });
+    //   });
+    // }
   };
   const nextStepClick = () => {
     const currentStepIndex = tabsOrder.findIndex(tab => tab === currentTab);

@@ -1,13 +1,13 @@
-import React, { cloneElement, useState } from 'react';
+import React, { cloneElement, createElement, useState } from 'react';
 
 import { TabContentProps } from '@/_typings/agent-my-listings';
 import { searchByClasses, searchByPartOfClass } from '@/_utilities/rx-element-extractor';
-import { captureMatchingElements, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { captureMatchingElements, removeKeys, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import useFormEvent, { Events, PrivateListingData, getValueByKey } from '@/hooks/useFormEvent';
 import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
 import MapsTabs from './MapsTabs';
 
-export default function TabAddress({ template, nextStepClick, initialState }: TabContentProps) {
+export default function TabAddress({ template, nextStepClick, initialState, saveAndExit }: TabContentProps) {
   const [templates] = useState(captureMatchingElements(template, [{ elementName: 'input', searchFn: searchByPartOfClass(['f-field-wrapper']) }]));
   const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
   const coords =
@@ -29,7 +29,7 @@ export default function TabAddress({ template, nextStepClick, initialState }: Ta
     {
       label: 'Unit',
       inputProps: {
-        name: 'unit',
+        name: 'building_unit',
       },
       generatedAddress: '',
     },
@@ -43,14 +43,14 @@ export default function TabAddress({ template, nextStepClick, initialState }: Ta
     {
       label: 'Provinance / State',
       inputProps: {
-        name: 'state',
+        name: 'state_province',
       },
       generatedAddress: 'state_province',
     },
     {
       label: 'Postal Code / ZIP Code',
       inputProps: {
-        name: 'zip',
+        name: 'postal_zip_code',
       },
       generatedAddress: 'postal_zip_code',
     },
@@ -58,12 +58,13 @@ export default function TabAddress({ template, nextStepClick, initialState }: Ta
       label: 'Neighbourhood',
       inputProps: {
         placeholder: 'Neighbourhood',
-        name: 'neighbourhood',
+        name: 'region',
       },
       generatedAddress: 'neighbourhood',
     },
   ];
-
+  const blockNext = () => ![data?.postal_zip_code, data?.state_province].every(Boolean);
+  console.log(blockNext());
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['virtual-tours-inputs']),
@@ -102,8 +103,30 @@ export default function TabAddress({ template, nextStepClick, initialState }: Ta
     },
     { searchFn: searchByClasses(['tabs-standard', 'w-tabs']), transformChild: child => <MapsTabs child={child} coords={coords} /> },
     {
-      searchFn: searchByPartOfClass(['f-button-neutral', 'w-button']),
-      transformChild: child => cloneElement(child, { onClick: nextStepClick }),
+      searchFn: searchByPartOfClass(['f-button-neutral']),
+      transformChild: child =>
+        createElement('button', {
+          ...removeKeys(child.props, ['href']),
+          className: `${child.props.className} disabled:bg-gray-500 disabled:cursor-not-allowed`,
+          disabled: blockNext(),
+          onClick: nextStepClick,
+        }),
+    },
+    {
+      searchFn: searchByPartOfClass(['f-button-secondary']),
+      transformChild: child =>
+        createElement(
+          'button',
+          {
+            ...removeKeys(child.props, ['href']),
+            className: `${child.props.className} ${'disabled:bg-gray-500 disabled:cursor-not-allowed'}`,
+            disabled: blockNext(),
+            onClick: () => {
+              saveAndExit(data);
+            },
+          },
+          [child.props.children],
+        ),
     },
   ];
   return <>{transformMatchingElements(template, matches)}</>;

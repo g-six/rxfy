@@ -22,7 +22,7 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
   );
 
   const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
-
+  console.log(data);
   const summaryFields = [
     {
       label: 'Property Type',
@@ -59,7 +59,7 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
       label: 'Year Built',
       inputProps: {
         placeholder: 'Year Built',
-        name: 'built_year',
+        name: 'year_built',
         type: 'number',
         min: 0,
       },
@@ -111,7 +111,7 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
     {
       label: 'Utilities',
       inputProps: {
-        name: 'utilities',
+        name: 'connected_services',
         list: connected_services,
       },
       template: templates.chipsWithLabel,
@@ -129,7 +129,8 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
             const values = field.inputProps.values ?? [];
             const strapiData = data?.strapi ? getValueByKey('strapi', data as object) : null;
             const valueStrapi = strapiData && strapiData[field.generatedPrompt] ? getValueByKey(field.generatedPrompt, strapiData) : null;
-            const valueSelect = (value && value.label) || !valueStrapi ? value : { label: valueStrapi.name, value: valueStrapi.id };
+            const valueSelect = (value && value.id) || !valueStrapi ? value : { name: valueStrapi.name, id: valueStrapi.id };
+
             return isInput ? (
               <InputWithLabel
                 key={field.inputProps.name}
@@ -137,7 +138,10 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
                 inputProps={field.inputProps ?? {}}
                 value={value}
                 label={field.label}
-                handleChange={e => fireEvent({ [field.inputProps.name]: e.currentTarget.value })}
+                handleChange={e => {
+                  const newValue = field?.inputProps.type === 'number' ? parseInt(e.currentTarget.value) : e.currentTarget.value;
+                  fireEvent({ [field.inputProps.name]: newValue });
+                }}
               />
             ) : (
               <SelectWithLabel
@@ -153,12 +157,13 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
           }),
           ...chipFields.map(field => {
             const value = getValueByKey(field.inputProps.name, data);
+
             return (
               <ChipsWithLabel
                 key={field.inputProps.name}
                 label={field.label}
                 template={field.template}
-                values={value ? value : []}
+                values={value ?? []}
                 handleSelect={val => {
                   const newValue = setMultiSelectValue(val, value ? value : []);
                   fireEvent({ [field.inputProps.name]: newValue });

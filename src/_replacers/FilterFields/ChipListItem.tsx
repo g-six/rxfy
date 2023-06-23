@@ -16,7 +16,7 @@ export default function ChipListItem({ chip, item, handleSelect, isSelected }: P
     <>
       {transformMatchingElements(
         cloneElement(chip, {
-          key: item.value,
+          key: item.id,
           onClick: () => {
             handleSelect(item);
           },
@@ -38,7 +38,7 @@ export default function ChipListItem({ chip, item, handleSelect, isSelected }: P
           },
           {
             searchFn: searchByClasses(['t-filter-label']),
-            transformChild: (child: ReactElement) => cloneElement(child, {}, [item.label]),
+            transformChild: (child: ReactElement) => cloneElement(child, {}, [item.name]),
           },
         ],
       )}

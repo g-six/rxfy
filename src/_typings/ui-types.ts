@@ -1,9 +1,10 @@
 import { FocusEventHandler } from 'react';
 
 export interface ValueInterface {
-  label: string;
-  value: string | number;
+  name: string;
+  id: number | string;
 }
+
 export interface InputPropsInterface {
   type?: string;
   min?: number;
@@ -14,7 +15,7 @@ export interface InputPropsInterface {
 }
 export interface SelectPropsInterface {
   values: ValueInterface[];
-  selectedValue: ValueInterface | null | undefined;
+  selectedValue: ValueInterface | string | null | undefined;
   handleSelect: (value: ValueInterface) => void;
   placeholder?: string;
 }

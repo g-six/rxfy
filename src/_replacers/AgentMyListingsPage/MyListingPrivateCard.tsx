@@ -1,10 +1,11 @@
-'use client';
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import RxDropMenu from '@/components/RxForms/RxDropMenu';
 import React, { ReactElement, cloneElement } from 'react';
 import MyListingsCard from './MyListingsCard';
 import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
+import { updatePrivateListing } from '@/_utilities/api-calls/call-private-listings';
+import useEvent from '@/hooks/useEvent';
 type Props = {
   template: ReactElement;
   property: any;
@@ -13,7 +14,23 @@ type Props = {
 
 export default function MyListingPrivateCard({ template, property, changeTab }: Props) {
   const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
+  const { fireEvent: fireListingUpdate } = useEvent(Events.AgentMyListings, true);
   const dropdownMatches: tMatch[] = [
+    {
+      searchFn: searchByClasses(['set-as-draft']),
+      transformChild: child => {
+        const isDraft = property?.status.toLowerCase() === 'draft';
+
+        return cloneElement(child, {
+          style: isDraft ? { display: 'none' } : {},
+          onClick: () => {
+            updatePrivateListing(property.id, { status: 'draft' }).then(() => {
+              fireListingUpdate({ metadata: { ...property, status: 'draft' } });
+            });
+          },
+        });
+      },
+    },
     {
       searchFn: searchByClasses(['edit-listing']),
       transformChild: child =>
@@ -25,6 +42,7 @@ export default function MyListingPrivateCard({ template, property, changeTab }: 
         }),
     },
   ];
+
   const privateMatches: tMatch[] = [
     {
       searchFn: searchByClasses(['my-listing-dropdown']),

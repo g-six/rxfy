@@ -80,7 +80,7 @@ export interface BasePropertyDataModel {
   state_province?: string;
   city: string;
   mls_id: string;
-  property_type: string;
+  property_type?: number;
   lon?: number;
   lat?: number;
   beds?: number;
@@ -204,6 +204,7 @@ export interface PropertyDataModel extends BasePropertyDataModel {
   photos?: string[]; // to remove
   cover_photo?: string;
   mls_data?: MLSProperty;
+  floor_area_total?: number;
 }
 
 export interface MLSProperty extends Record<string, string | number | boolean | string[]> {

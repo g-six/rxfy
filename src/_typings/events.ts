@@ -47,6 +47,7 @@ export enum Events {
   UploadLogoForDarkBg = 'evt-upload-logo-for-dark-bg',
   Logout = 'evt-logout',
   Blank = 'blank',
+  AgentMyListings = 'agent-my-listings',
 }
 
 export enum NotificationCategory {
@@ -109,36 +110,36 @@ export interface PrivateListingData extends FormData {
   photos?: ImagePreview[];
 
   // Address
-  neighbourhood?: string;
-  unit?: string;
+  region?: string;
+  building_unit?: string;
   city?: string;
-  state?: string;
-  zip?: string;
+  state_province?: string;
+  postal_zip_code?: string;
   lat?: number;
   lon?: number;
   title?: string;
 
   // Home Summary
   asking_price?: string;
-  built_year?: string;
+  year_built?: number;
   tax_year?: string;
   property_tax?: string;
   property_disclosure?: string;
-  property_type?: ValueInterface;
+  // property_type?: ValueInterface;
   dwelling_type?: ValueInterface;
   building_style?: ValueInterface;
   amenities?: ValueInterface[];
-  utilities?: ValueInterface[];
+  connected_services?: ValueInterface[];
 
   // Size
-  living_area?: number;
-  living_area_units?: ValueInterface;
-  total_size?: number;
-  total_size_units?: ValueInterface;
+  floor_area_total?: number;
+  floor_area_uom?: string;
+  lot_area?: number;
+  lot_uom?: string;
   beds?: number;
   baths?: number;
-  baths_full?: number;
-  baths_half?: number;
+  full_baths?: number;
+  half_baths?: number;
   kitchens?: number;
   additional_rooms?: number;
   garage?: number;
@@ -153,14 +154,14 @@ export interface PrivateListingData extends FormData {
 
   // Strata
   building_bylaws?: string;
-  maintenance_fee?: string;
+  strata_fee?: string;
   restrictions?: string;
-  age_restriction?: string;
-  dogs?: string;
-  cats?: string;
-  total_pets_allowed?: string;
-  total_rentals_allowed?: string;
-  complex_name?: string;
+  minimum_age_restriction?: string;
+  total_dogs_allowed?: number;
+  total_cats_allowed?: number;
+  total_pets_allowed?: number;
+  total_allowed_rentals?: string;
+  complex_compound_name?: string;
   building_amenities?: ValueInterface[];
   council_approval_required?: boolean;
   locked?: boolean;
