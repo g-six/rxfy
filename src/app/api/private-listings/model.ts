@@ -339,8 +339,8 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
       frontage_feet
       frontage_metres
       frontage_uom
-      lot_sqm
-      lot_sqft
+      lot_area
+      lot_uom
       total_kitchens
       fireplace
       total_fireplaces
