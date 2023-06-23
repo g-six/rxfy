@@ -73,6 +73,7 @@ export interface PrivateListingInput extends PrivateListingModel {
   appliances?: number[];
   building_maintenance_items?: number[];
   by_law_restrictions?: number[];
+  building_bylaws?: string;
   connected_services?: number[];
   facilities?: number[];
   hvacs?: number[];
