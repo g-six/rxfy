@@ -372,6 +372,7 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
       total_pets_allowed
       total_cats_allowed
       total_dogs_allowed
+      council_approval_required
       building_bylaws
       by_law_restrictions {
           data {

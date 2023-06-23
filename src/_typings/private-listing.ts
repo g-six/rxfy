@@ -57,6 +57,7 @@ export interface PrivateListingModel {
   depth?: number;
   strata_fee?: number;
   frontage?: number;
+  council_approval_required?: boolean;
   frontage_uom?: 'Feet' | 'Metres';
   building_unit?: string;
   total_allowed_rentals?: number;
