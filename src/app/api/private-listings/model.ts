@@ -339,16 +339,17 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
       frontage_feet
       frontage_metres
       frontage_uom
-      lot_sqm
-      lot_sqft
+      lot_area
+      lot_uom
       total_kitchens
       fireplace
       total_fireplaces
       complex_compound_name
       land_title
-      garage
+      total_garage
       total_covered_parking
       total_parking
+      total_additional_rooms
       parkings {
           data {
               id
@@ -368,6 +369,11 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
       total_units_in_community
       strata_fee
       total_allowed_rentals
+      total_pets_allowed
+      total_cats_allowed
+      total_dogs_allowed
+      council_approval_required
+      building_bylaws
       by_law_restrictions {
           data {
               id
@@ -450,6 +456,7 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
           }
       }
       photos
+      restrictions
     }
   }
 `;

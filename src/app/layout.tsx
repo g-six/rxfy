@@ -21,48 +21,57 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const { NEXT_APP_GGL_API_KEY, TEST_DOMAIN } = process.env;
   const url = headers().get('x-url') as string;
 
-  let { hostname, pathname } = new URL(url);
+  let { pathname } = new URL(url);
   const requestLink = headers().get('x-url') || '';
   const requestUrl = new URL(requestLink);
   const searchParams = Object.fromEntries(requestUrl.searchParams);
   let data;
-
   let agent_data: AgentData | undefined = undefined;
   let theme = searchParams.theme;
-  let webflow_domain = 'leagent-website.webflow.io';
+  let webflow_domain = process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN;
   let page_url = '';
+  let agent_id = headers().get('x-agent-id');
+  let profile_slug = headers().get('x-profile-slug');
+  let page_route: string[] = [];
 
-  if (pathname && pathname.split('/').length >= 3) {
+  if (pathname && pathname.split('/').length >= 3 && !agent_id && !profile_slug) {
     // Check if the slug matches a realtor
-    const [, agent_id, profile_slug, ...page_route] = pathname.split('/');
-    if (profile_slug.indexOf('la-') === 0) {
-      const agent_record = await findAgentRecordByAgentId(agent_id);
-      const metatags = {
-        ...agent_record?.agent_metatag?.data?.attributes,
-      };
-
-      if (agent_record) {
-        // If agent does not have any webflow_domain assigned yet, use the default theme
-        webflow_domain = agent_record.webflow_domain || process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN;
-        pathname = `/${page_route.join('/') || ''}`;
-        agent_data = {
-          ...agent_record,
-        };
-        if (!agent_data || !metatags.profile_slug || metatags.profile_slug !== profile_slug) return <NotFound></NotFound>;
-      } else {
-        return <NotFound></NotFound>;
-      }
-    } else {
-      // If we have a 404 - uncomment this and update...
-      // const req_page_html = await axios.get(`https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`);
-      // data = req_page_html.data;
-      data = '<html><head></head><body></body></html>';
-
-      return <NotFound>404</NotFound>;
+    const segments = pathname.split('/');
+    page_route = segments.slice(3);
+    if (segments[2].indexOf('la-') === 0) {
+      agent_id = segments[1];
+      profile_slug = segments[2];
     }
-  } else {
-    agent_data = await getAgentDataFromDomain(hostname === 'localhost' ? `${TEST_DOMAIN}` : hostname);
   }
+
+  if (profile_slug && agent_id) {
+    webflow_domain = process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN as string;
+    const agent_record = await findAgentRecordByAgentId(agent_id);
+    const metatags = {
+      ...agent_record?.agent_metatag?.data?.attributes,
+    };
+
+    if (agent_record) {
+      // If agent does not have any webflow_domain assigned yet, use the default theme
+      webflow_domain = agent_record.webflow_domain || process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN;
+      if (page_route.length) pathname = `/${page_route.join('/') || ''}`;
+      agent_data = {
+        ...agent_record,
+      };
+      if (!agent_data || !metatags.profile_slug || metatags.profile_slug !== profile_slug) return <NotFound></NotFound>;
+    } else {
+      return <NotFound></NotFound>;
+    }
+  }
+
+  // if (!agent_data) {
+  // If we have a 404 - uncomment this and update...
+  // const req_page_html = await axios.get(`https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`);
+  // data = req_page_html.data;
+  // data = '<html><head></head><body></body></html>';
+
+  // return <NotFound>404</NotFound>;
+  // }
 
   if (theme && searchParams.paragon) {
     if (['/ai', '/ai-result'].includes(pathname)) {
@@ -169,8 +178,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   console.log('Loading meta');
   // end of extracting and assigning <head> elements
   const { class: bodyClassName, ...body_props } = webflow.body.props;
-
-  if (!agent_data || agent_data.webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN || requestUrl.pathname.split('/').pop() === 'map') {
+  if (!agent_data || webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN || requestUrl.pathname.split('/').pop() === 'map') {
     return (
       <html data-wf-domain={`${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`} {...$('html').attr()}>
         <head>

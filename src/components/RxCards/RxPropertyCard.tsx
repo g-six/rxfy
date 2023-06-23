@@ -20,6 +20,7 @@ function RxComponentChomper({ config, children }: any): any {
     } else if (React.isValidElement(child)) {
       const RxElement = child as React.ReactElement;
       if (RxElement.props.className && (RxElement.props.className.indexOf('heart-full') >= 0 || RxElement.props.className.indexOf('heart-empty') >= 0)) {
+        if (config['view-only']) return <></>;
         let opacity_class = 'opacity-0 group-hover:opacity-100';
 
         let onClick = (e: React.SyntheticEvent) => {};
@@ -32,7 +33,7 @@ function RxComponentChomper({ config, children }: any): any {
               config.onLoveItem(true);
             };
           } else {
-            opacity_class = 'opacity-100 group-hover:opacity-0 group-hover:block sm:hidden';
+            opacity_class = 'opacity-0 group-hover:opacity-0 group-hover:block sm:hidden';
             onClick = (e: React.SyntheticEvent) => {
               e.stopPropagation();
               config.onLoveItem();
@@ -90,7 +91,7 @@ function RxComponentChomper({ config, children }: any): any {
         });
       } else if (child.type !== 'img') {
         //heart-full
-        if (RxElement.props.className === 'propcard-image' && config.photos) {
+        if (RxElement.props.className && RxElement.props.className.indexOf('propcard-image') === 0 && config.cover_photo) {
           return React.cloneElement(child, {
             ...RxElement.props,
             className: [RxElement.props.className, config.onClickItem ? 'cursor-pointer' : ''].join(' ').trim(),
@@ -134,6 +135,7 @@ export default function RxPropertyCard({
   agent,
   love,
   isLink = true,
+  ...props
 }: {
   love?: number;
   agent?: number;
@@ -141,6 +143,8 @@ export default function RxPropertyCard({
   children: any;
   listing: PropertyDataModel;
   isLink?: boolean;
+  'view-only'?: boolean;
+  onClick?: () => void;
 }) {
   const url = new URL(location.href);
   // e.g /agent-id/profile-slug/map
@@ -189,8 +193,11 @@ export default function RxPropertyCard({
           cover_photo: listing.cover_photo as string,
           '{PYear}': listing.year_built || ' ',
           loved: loved_items && loved_items.includes(listing.mls_id),
+          'view-only': props['view-only'],
           onClickItem: () => {
-            if (isLink) {
+            if (props.onClick) {
+              props.onClick();
+            } else if (isLink) {
               toggleLoading(true);
               axios
                 .get(`/api/properties/mls-id/${listing.mls_id}`)

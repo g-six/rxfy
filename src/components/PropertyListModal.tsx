@@ -5,11 +5,13 @@ import { classNames } from '@/_utilities/html-helper';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { RxSmallPropertyCard } from './RxCards/RxSmallPropertyCard';
 import { PropertyDataModel } from '@/_typings/property';
+import { AgentData } from '@/_typings/agent';
 
 type PropertyListProps = {
   properties: PropertyDataModel[];
   card?: React.ReactElement;
   onClose(): void;
+  agent?: AgentData;
 };
 
 export default function PropertyListModal(p: PropertyListProps) {
@@ -68,7 +70,7 @@ export default function PropertyListModal(p: PropertyListProps) {
                       listing =>
                         listing.mls_id &&
                         (p.properties.length === 1 && p.card ? (
-                          <RxPropertyCard key={listing.mls_id} listing={listing} sequence={0}>
+                          <RxPropertyCard key={listing.mls_id} listing={listing} sequence={0} agent={p.agent?.id}>
                             {React.cloneElement(<div />, {
                               ...p.card.props.children.props,
                               // Wrap grandchildren too

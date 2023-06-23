@@ -48,6 +48,9 @@ import { MyWebsite } from '@/rexify/my-website';
 import RxGuestNavButtons from './Nav/RxGuestNavButtons';
 import RxSearchPlaceForm from './RxForms/RxSearchPlaceForm';
 import RxCRM from '@/rexify/realtors/RxCRM';
+import RxCRMNotes from '@/rexify/realtors/crm/CustomerNotes';
+import RxCustomerView from '@/rexify/realtors/RxCustomerView';
+import CRMNav from '@/rexify/realtors/crm/CRMNav';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -475,8 +478,32 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
             );
         }
 
+        if (props.className && props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_NOTES_WRAPPER)) {
+          return (
+            <RxCRMNotes {...props} rx-event={Events.EditCustomerNote}>
+              {domToReact(node.children) as ReactElement}
+            </RxCRMNotes>
+          );
+        }
+        if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.CRM_NOTES_FORM_WRAPPER) >= 0) {
+          return (
+            <RxCRMNotes {...props} rx-event={Events.AddCustomerNote}>
+              {domToReact(node.children) as ReactElement}
+            </RxCRMNotes>
+          );
+        }
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.CRM_AREA_WRAPPER) >= 0) {
           return <RxCRM className={props.className}>{domToReact(node.children) as ReactElement}</RxCRM>;
+        }
+        if (props.id && props.id === WEBFLOW_NODE_SELECTOR.CRM_CUS_VW_SAVED_HOMES) {
+          return (
+            <RxCustomerView id={props.id} className={props.className}>
+              {domToReact(node.children) as ReactElement}
+            </RxCustomerView>
+          );
+        }
+        if (props.className && props.className === WEBFLOW_NODE_SELECTOR.CRM_NAV_WRAPPER) {
+          return <CRMNav className={props.className}>{domToReact(node.children) as ReactElement}</CRMNav>;
         }
 
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.SESSION_DROPDOWN) >= 0) {

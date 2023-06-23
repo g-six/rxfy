@@ -3,6 +3,18 @@ import { encrypt } from '@/_utilities/encryption-helper';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import axios, { AxiosError } from 'axios';
 import { GQ_FRAG_AGENT } from './agents/graphql';
+const line_break = '\n                        ';
+
+const GQ_FRAG_AGENTS_CUSTOMER = `data {
+            attributes {
+              agent {
+                data {
+                  id
+                }
+              }
+            }
+          }
+`;
 
 export const GQL_BROKERAGE_ATTRIBUTES = `
                 name
@@ -13,6 +25,48 @@ export const GQL_BROKERAGE_ATTRIBUTES = `
                 lat
                 lon
 `;
+
+function gqlGetUserSubfields(user_type: 'realtor' | 'customer') {
+  if (user_type === 'realtor')
+    return [
+      'stripe_customer',
+      'stripe_subscriptions',
+      `agent {
+        data {
+          ${GQ_FRAG_AGENT}
+        }
+      }
+    `,
+      `brokerage {
+      data {
+        id
+        attributes {${GQL_BROKERAGE_ATTRIBUTES}
+        }
+      }
+    }`,
+    ].join(line_break);
+  return ['birthday', 'yes_to_marketing', `agents_customer {${GQ_FRAG_AGENTS_CUSTOMER}}`].join(line_break);
+}
+
+export function gqlFindUser(user_type: 'realtor' | 'customer' = 'customer') {
+  return `query FindUser($id: ID!) {
+    user: ${user_type}(id: $id) {
+      data {
+        id
+        attributes {
+          email
+          last_activity_at
+          full_name
+          first_name
+          last_name
+          phone_number
+          ${gqlGetUserSubfields(user_type)}
+        }
+      }
+    }
+  }`;
+}
+
 function getUpdateSessionGql(user_type: 'realtor' | 'customer') {
   return `mutation UpdateSession ($id: ID!, $last_activity_at: DateTime!) {
     session: update${capitalizeFirstLetter(user_type)}(id: $id, data: { last_activity_at: $last_activity_at }) {
@@ -48,7 +102,7 @@ function getUpdateSessionGql(user_type: 'realtor' | 'customer') {
     }`;
 }
 
-const SESSION_LIFE_SECS = 60 * 90; // seconds * minutes
+const SESSION_LIFE_SECS = 60 * 60 * 24 * 30; // seconds * minutes * hours * days
 /**
  *
  * @param guid agent.id or customer.id
@@ -125,47 +179,6 @@ export default async function updateSessionKey(guid: number, email: string, user
   }
 }
 
-function gqlFindUser(user_type: 'realtor' | 'customer' = 'customer') {
-  return `query FindUser($id: ID!) {
-    user: ${user_type}(id: $id) {
-      data {
-        id
-        attributes {
-          email
-          last_activity_at
-          full_name
-          phone_number
-          ${
-            user_type === 'customer'
-              ? `birthday
-          yes_to_marketing
-          agents {
-            data {${GQ_FRAG_AGENT}
-            }
-          }`
-              : `first_name
-          last_name
-          phone_number
-          stripe_customer
-          stripe_subscriptions
-          agent {
-            data {${GQ_FRAG_AGENT}
-            }
-          }
-          brokerage {
-            data {
-              id
-              attributes {${GQL_BROKERAGE_ATTRIBUTES}
-              }
-            }
-          }`
-          }
-        }
-      }
-    }
-  }`;
-}
-
 export async function getUserDataFromSessionKey(session_hash: string, id: number, user_type: 'customer' | 'realtor' = 'customer') {
   const response = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
@@ -213,6 +226,12 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
         ...real_estate_board.attributes,
         id: real_estate_board.id ? Number(real_estate_board.id) : undefined,
       };
+
+      let agent_customer;
+      if (fields.agents_customer?.data) {
+        agent_customer = Number(fields.agents_customer.data.id);
+      }
+
       return {
         id,
         agent: agent
@@ -239,6 +258,7 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
         session_key: `${session_hash}-${id}`,
         stripe_customer,
         stripe_subscriptions,
+        agent_customer,
       };
     }
   }
