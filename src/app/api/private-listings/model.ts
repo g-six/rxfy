@@ -349,6 +349,7 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
       total_garage
       total_covered_parking
       total_parking
+      total_additional_rooms
       parkings {
           data {
               id

@@ -19,6 +19,7 @@ export interface PrivateListingModel {
   tax_year?: number;
   lot_area?: number;
   lot_area_uom?: 'sqft' | 'sqm';
+  total_additional_rooms?: number;
   floor_area?: number;
   floor_area_main?: number;
   floor_area_basement?: number;
