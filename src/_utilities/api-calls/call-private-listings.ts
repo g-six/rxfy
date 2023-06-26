@@ -2,8 +2,10 @@ import axios, { AxiosError } from 'axios';
 import { PrivateListingInput, PrivateListingOutput } from '@/_typings/private-listing';
 import Cookies from 'js-cookie';
 import { toKebabCase } from '../string-helper';
+import { PrivateListingData } from '@/_typings/events';
+import { convertPrivateListingToPropertyData } from '@/_helpers/mls-mapper';
 
-export async function createPrivateListing(listing: PrivateListingInput) {
+export async function createPrivateListing(listing: Record<string, unknown>) {
   try {
     const record = await axios.post('/api/private-listings', listing, {
       headers: {
@@ -109,4 +111,14 @@ export async function uploadListingPhoto(file: File, index: number, listing: Pri
         success: true,
       };
     });
+}
+
+export function createOrUpdate(data: PrivateListingData, callback: (data: any) => void) {
+  if (!!data.title) {
+    if (!data.id) {
+      createPrivateListing(convertPrivateListingToPropertyData(data)).then(res => callback(res));
+    } else {
+      updatePrivateListing(data.id, convertPrivateListingToPropertyData(data)).then(res => callback(res));
+    }
+  }
 }

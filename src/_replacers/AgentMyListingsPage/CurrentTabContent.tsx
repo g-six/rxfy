@@ -14,11 +14,8 @@ import TabRooms from './TabsContent/TabRooms/TabRooms';
 import TabStrata from './TabsContent/TabStrata';
 import TabMore from './TabsContent/TabMore';
 import TabPreview from './TabsContent/TabPreview';
-import { createPrivateListing, updatePrivateListing, uploadListingPhoto } from '@/_utilities/api-calls/call-private-listings';
-import { formatAddress } from '@/_utilities/string-helper';
-import { PrivateListingInput, PrivateListingOutput } from '@/_typings/private-listing';
+import { createOrUpdate } from '@/_utilities/api-calls/call-private-listings';
 import useEvent, { Events } from '@/hooks/useEvent';
-import { convertPrivateListingToPropertyData } from '@/_helpers/mls-mapper';
 
 type Props = {
   child: ReactElement;
@@ -51,54 +48,27 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, da
   );
   useEffect(() => {
     getPropertyAttributes().then((res: { [key: string]: { id: number; name: string }[] }) => {
-      const remapped = Object.entries(res).map(([key, val]: [string, { id: number; name: string }[]]) => [
-        key,
-        val.map(({ id, name }) => ({ label: name, value: id })),
-      ]);
-
       setAttributes(res);
     });
   }, []);
 
   const CurrentTabComponent = tabsComponents[currentTab as keyof typeof tabsComponents];
   const tabsOrder = Object.keys(tabsComponents);
+
   const saveAndExit = async (data: any) => {
-    const { id, title, area, baths, beds, city, lat, lon, neighbourhood, postal_zip_code, state_province, dwelling_type, amenities, asking_price } =
-      data || ({} as unknown as PrivateListingInput);
-    console.log(data);
-    if (id) {
-      return updatePrivateListing(id, convertPrivateListingToPropertyData(data)).then(record => {
-        fireEvent({ metadata: { ...record } });
-        changeTab('my-listings');
-        setCurrentTab('tab-ai');
-      });
-    }
-    // if (title) {
-    //   return createPrivateListing({
-    //     title: formatAddress(title.split(', ').reverse().pop() as string),
-    //     area,
-    //     baths,
-    //     beds,
-    //     city,
-    //     lat,
-    //     lon,
-    //     neighbourhood,
-    //     dwelling_type,
-    //     postal_zip_code,
-    //     state_province,
-    //     amenities,
-    //   } as unknown as PrivateListingInput).then(record => {
-    //     record.json().then((rec: PrivateListingOutput) => {
-    //       changeTab('my-listings');
-    //       setCurrentTab('tab-ai');
-    //     });
-    //   });
-    // }
+    return createOrUpdate(data, record => {
+      fireEvent({ metadata: { ...record } });
+      changeTab('my-listings');
+      setCurrentTab('tab-ai');
+    });
   };
+
   const nextStepClick = () => {
     const currentStepIndex = tabsOrder.findIndex(tab => tab === currentTab);
     const nextStepIndex = currentStepIndex < tabsOrder.length ? currentStepIndex + 1 : currentStepIndex;
-    setCurrentTab(tabsOrder[nextStepIndex]);
+    if (nextStepIndex !== currentStepIndex) {
+      createOrUpdate(data, () => setCurrentTab(tabsOrder[nextStepIndex]));
+    }
   };
   return (
     <div className={child.props.className}>
