@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getCustomerLoves } from './app/api/agents/customer/[id]/loves/model';
+import { LovedPropertyDataModel } from './_typings/property';
 
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
@@ -20,6 +22,7 @@ export function middleware(request: NextRequest) {
   } else {
     response.headers.set('x-url', request.url);
   }
+
   const allCookies = request.cookies.getAll();
   allCookies.forEach(({ name, value }) => {
     response.headers.set(`x-${name.split('_').join('-')}`, value);

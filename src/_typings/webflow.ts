@@ -61,6 +61,9 @@ export enum WEBFLOW_NODE_SELECTOR {
   CRM_CUS_VW_SAVED_HOMES = 'SavedHomes',
   CRM_NAV_WRAPPER = 'crm-nav',
   CRM_NOTES_WRAPPER = 'note-wrapper',
+  CRM_PROPERTY_PREVIEW = 'saved-home-detail-panel',
+  CRM_COMPARE_WRAPPER = 'customer-view-compare',
+  CRM_MAP = 'map-placeholder',
   CRM_NOTES_FORM_WRAPPER = 'new-note-wrapper',
 }
 

@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { cache } from 'react';
 import Cookies from 'js-cookie';
 import { clearSessionCookies } from './call-logout';
 import { getData, setData } from '../data-helpers/local-storage-helper';
@@ -8,7 +9,7 @@ import { Events } from '@/_typings/events';
  * Retrieve customer saved homes
  * @returns
  */
-export async function getLovedHomes(relationship_id?: number) {
+export const getLovedHomes = cache(async (relationship_id?: number) => {
   if (!Cookies.get('session_key')) return;
   try {
     const response = await axios.get(relationship_id ? `/api/agents/customer/${relationship_id}/loves` : '/api/loves', {
@@ -35,7 +36,7 @@ export async function getLovedHomes(relationship_id?: number) {
       clearSessionCookies();
     }
   }
-}
+});
 
 /**
  * Save a customer map search

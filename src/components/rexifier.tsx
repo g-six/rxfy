@@ -50,7 +50,6 @@ import RxSearchPlaceForm from './RxForms/RxSearchPlaceForm';
 import RxCRM from '@/rexify/realtors/RxCRM';
 import RxCRMNotes from '@/rexify/realtors/crm/CustomerNotes';
 import RxCustomerView from '@/rexify/realtors/RxCustomerView';
-import CRMNav from '@/rexify/realtors/crm/CRMNav';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -450,6 +449,7 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
         }
       } else if (node instanceof Element && node.attribs) {
         const { class: className, ...props } = attributesToProps(node.attribs);
+
         if (node.attribs['data-src']) {
           return <RxThemePreview className={`${props.className ? props.className + ' ' : ''} rexified`} src={node.attribs['data-src']} />;
         }
@@ -497,13 +497,10 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
         }
         if (props.id && props.id === WEBFLOW_NODE_SELECTOR.CRM_CUS_VW_SAVED_HOMES) {
           return (
-            <RxCustomerView id={props.id} className={props.className}>
+            <RxCustomerView id={props.id} className={props.className + ' rexified'}>
               {domToReact(node.children) as ReactElement}
             </RxCustomerView>
           );
-        }
-        if (props.className && props.className === WEBFLOW_NODE_SELECTOR.CRM_NAV_WRAPPER) {
-          return <CRMNav className={props.className}>{domToReact(node.children) as ReactElement}</CRMNav>;
         }
 
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.SESSION_DROPDOWN) >= 0) {

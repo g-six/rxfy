@@ -1,5 +1,6 @@
 'use client';
 import { CustomerRecord } from '@/_typings/customer';
+import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 import useEvent, { Events } from '@/hooks/useEvent';
 import { useSearchParams } from 'next/navigation';
 import React from 'react';
@@ -7,6 +8,7 @@ import React from 'react';
 type Props = {
   children: React.ReactElement;
   className: string;
+  customer?: CustomerRecord;
 };
 
 function Iterator(p: { children: React.ReactElement; customer?: CustomerRecord }) {
@@ -31,26 +33,24 @@ function Iterator(p: { children: React.ReactElement; customer?: CustomerRecord }
 }
 
 export default function CRMNav(p: Props) {
-  const session = useEvent(Events.LoadUserSession);
-  const { customers } = session.data as unknown as {
-    customers: CustomerRecord[];
-  };
+  const [hydrated, setHydrated] = React.useState(false);
   const [customer, setCustomer] = React.useState<CustomerRecord>();
 
-  const searchParams = useSearchParams();
-
   React.useEffect(() => {
-    if (customers && customers.length && !customer) {
-      const [record] = customers.filter(c => c.id === Number(searchParams.get('customer')));
-      if (record) setCustomer(record);
-    }
-  }, [customers, customer, searchParams]);
+    const local = getData('viewing_customer') as unknown as CustomerRecord;
+    setCustomer(local);
+    setHydrated(true);
+  }, []);
 
   return (
     <nav className={p.className}>
-      <Iterator {...p} customer={customer}>
-        {p.children}
-      </Iterator>
+      {hydrated ? (
+        <Iterator {...p} customer={customer}>
+          {p.children}
+        </Iterator>
+      ) : (
+        p.children
+      )}
     </nav>
   );
 }

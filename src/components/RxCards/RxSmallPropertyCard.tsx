@@ -4,27 +4,32 @@ import { formatValues } from '@/_utilities/data-helpers/property-page';
 import { classNames } from '@/_utilities/html-helper';
 import { PropertyDataModel } from '@/_typings/property';
 
-export function RxSmallPropertyCard(props: PropertyDataModel & { className?: string }) {
+export function RxSmallPropertyCard(props: PropertyDataModel & { className?: string; onClick?: (property?: PropertyDataModel) => void }) {
   const [is_loading, toggleLoading] = React.useState(false);
   const [photo] = (props.photos || []) as unknown as string[];
   return (
     <div className={classNames(props.className || '', 'property-card-small smaller relative')}>
-      <div className='propcard-image-small shrink-0 w-24 aspect-square bg-cover bg-no-repeat' style={photo ? { backgroundImage: `url(${photo})` } : {}}></div>
+      <div
+        className='propcard-image-small shrink-0 w-24 aspect-square bg-cover bg-center bg-no-repeat'
+        style={{ backgroundImage: `url(${props.cover_photo ? props.cover_photo : '/house-placeholder.png'})` }}
+      ></div>
       <div className='propcard-small-div'>
         <div className='div-block-9'>
           <div className='price-line'>
-            <div className='propcard-price-small'>{formatValues(props, 'AskingPrice')}</div>
-            <div className='pcard-small'>
+            <div className='propcard-price-small'>
+              {props.asking_price ? '$' + new Intl.NumberFormat().format(props.asking_price) : formatValues(props, 'AskingPrice')}
+            </div>
+            <div className='pcard-small lg:hidden'>
               <div className='propertycard-feature'>
-                <div className='propcard-stat'>{formatValues(props, 'L_BedroomTotal')}</div>
+                <div className='propcard-stat'>{props.beds || formatValues(props, 'L_BedroomTotal')}</div>
                 <div className='propcard-stat'>Bed</div>
               </div>
               <div className='propertycard-feature'>
-                <div className='propcard-stat'>{formatValues(props, 'L_TotalBaths')}</div>
+                <div className='propcard-stat'>{props.baths || formatValues(props, 'L_TotalBaths')}</div>
                 <div className='propcard-stat'>Bath</div>
               </div>
               <div className='propertycard-feature'>
-                <div className='propcard-stat'>{formatValues(props, 'L_FloorArea_Total')}</div>
+                <div className='propcard-stat'>{props.floor_area_total || props.floor_area_main || formatValues(props, 'L_FloorArea_Total')}</div>
                 <div className='propcard-stat'>Sqft</div>
               </div>
               <div className='propertycard-feature'>
@@ -63,8 +68,13 @@ export function RxSmallPropertyCard(props: PropertyDataModel & { className?: str
       <a
         href={`/property?mls=${props.mls_id}`}
         className='absolute top-0 left-0 w-full h-full flex items-center'
-        onClick={() => {
-          toggleLoading(true);
+        onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
+          if (props.onClick) {
+            e.preventDefault();
+            props.onClick(props);
+          } else {
+            toggleLoading(true);
+          }
         }}
       >
         {is_loading ? (
