@@ -19,7 +19,8 @@ type Props = {
 
 export default function NewOrEditListingTab({ child, agent, isActive, changeTab }: Props) {
   const [currentTab, setCurrentTab] = useState<string>(createListingTabs.AI);
-  const { data } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, { floor_area_uom: 'sqft', lot_uom: 'sqft' });
+
+  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, { floor_area_uom: 'sqft', lot_uom: 'sqft' });
 
   const matches: tMatch[] = [
     {
@@ -33,7 +34,15 @@ export default function NewOrEditListingTab({ child, agent, isActive, changeTab 
     {
       searchFn: searchByClasses(['tabs-content-2', 'w-tab-content']),
       transformChild: child => (
-        <CurrentTabContent child={child} currentTab={currentTab} setCurrentTab={setCurrentTab} data={data} agent={agent} changeTab={changeTab} />
+        <CurrentTabContent
+          child={child}
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+          data={data}
+          setData={fireEvent}
+          agent={agent}
+          changeTab={changeTab}
+        />
       ),
     },
   ];

@@ -6,6 +6,9 @@ import { PageTabs, createListingTabs } from '@/_typings/agent-my-listings';
 import { captureMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import { getPropertyAttributes } from '@/_utilities/api-calls/call-property-attributes';
+import { createOrUpdate } from '@/_utilities/api-calls/call-private-listings';
+import useEvent, { Events } from '@/hooks/useEvent';
+
 import TabAi from './TabsContent/TabAi';
 import TabAddress from './TabsContent/TabAddress';
 import TabSummary from './TabsContent/TabSummary';
@@ -14,19 +17,18 @@ import TabRooms from './TabsContent/TabRooms/TabRooms';
 import TabStrata from './TabsContent/TabStrata';
 import TabMore from './TabsContent/TabMore';
 import TabPreview from './TabsContent/TabPreview';
-import { createOrUpdate } from '@/_utilities/api-calls/call-private-listings';
-import useEvent, { Events } from '@/hooks/useEvent';
 
 type Props = {
   child: ReactElement;
   currentTab: string;
   setCurrentTab: Dispatch<SetStateAction<string>>;
   data: any | undefined;
+  setData: (data: any) => void;
   agent: AgentData;
   changeTab: (tab: PageTabs) => void;
 };
 
-export default function CurrentTabContent({ child, currentTab, setCurrentTab, data, agent, changeTab }: Props) {
+export default function CurrentTabContent({ child, currentTab, setCurrentTab, data, setData, agent, changeTab }: Props) {
   const tabsComponents = {
     'tab-ai': TabAi,
     'tab-address': TabAddress,
@@ -47,9 +49,7 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, da
     })),
   );
   useEffect(() => {
-    getPropertyAttributes().then((res: { [key: string]: { id: number; name: string }[] }) => {
-      setAttributes(res);
-    });
+    getPropertyAttributes().then((res: { [key: string]: { id: number; name: string }[] }) => setAttributes(res));
   }, []);
 
   const CurrentTabComponent = tabsComponents[currentTab as keyof typeof tabsComponents];
@@ -57,9 +57,12 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, da
 
   const saveAndExit = async (data: any) => {
     return createOrUpdate(data, record => {
-      fireEvent({ metadata: { ...record } });
-      changeTab('my-listings');
-      setCurrentTab('tab-ai');
+      if (record?.id) {
+        setData({ id: record.id });
+        fireEvent({ metadata: { ...record } });
+        changeTab('my-listings');
+        setCurrentTab('tab-ai');
+      }
     });
   };
 
@@ -67,7 +70,12 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, da
     const currentStepIndex = tabsOrder.findIndex(tab => tab === currentTab);
     const nextStepIndex = currentStepIndex < tabsOrder.length ? currentStepIndex + 1 : currentStepIndex;
     if (nextStepIndex !== currentStepIndex) {
-      createOrUpdate(data, () => setCurrentTab(tabsOrder[nextStepIndex]));
+      createOrUpdate(data, record => {
+        if (record?.id) {
+          setData({ id: record.id });
+        }
+        setCurrentTab(tabsOrder[nextStepIndex]);
+      });
     }
   };
   return (

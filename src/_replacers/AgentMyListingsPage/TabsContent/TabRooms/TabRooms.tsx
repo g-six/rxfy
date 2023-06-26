@@ -64,8 +64,8 @@ export default function TabRooms({ template, nextStepClick, initialState }: TabC
           !data?.garage_dimensions
         ) {
           const beds_dim = getInitialData('beds_dimensions', data?.beds ?? 0, data);
-          const bath_full_dim = getInitialData('baths_full_dimensions', data?.baths_full ?? 0, data);
-          const bath_half_dim = getInitialData('baths_half_dimensions', data?.baths_half ?? 0, data);
+          const bath_full_dim = getInitialData('baths_full_dimensions', data?.full_baths ?? 0, data);
+          const bath_half_dim = getInitialData('baths_half_dimensions', data?.half_baths ?? 0, data);
           const kitchens_dim = getInitialData('kitchen_dimensions', data?.kitchens ?? 0, data);
           const additional_dim = getInitialData('additional_dimensions', data?.additional_rooms ?? 0, data);
           const garage_dim = getInitialData('garage_dimensions', data?.garage ?? 0, data);
@@ -86,31 +86,38 @@ export default function TabRooms({ template, nextStepClick, initialState }: TabC
               rooms={data.beds}
               {...prepdTemplates}
               data={data?.beds_dimensions}
-              onChange={(index, param, val) => setDimension('garage_dimensions', index, param, val)}
+              onChange={(index, param, val) => {
+                setDimension('garage_dimensions', index, param, val);
+              }}
             />
           ) : (
             <></>
           ),
-          data?.baths_full ? (
+          data?.full_baths ? (
             <BathsGroup
               heading='Full Baths'
               key={1}
-              rooms={data.baths_full}
+              rooms={data.full_baths}
               {...prepdTemplates}
               data={data?.baths_full_dimensions}
-              onChange={(index, param, val) => setDimension('baths_full_dimensions', index, param, val)}
+              onChange={(index, param, val) => {
+                console.log('Full Baths', { index, param, val });
+                setDimension('baths_full_dimensions', index, param, val);
+              }}
             />
           ) : (
             <></>
           ),
-          data?.baths_half ? (
+          data?.half_baths ? (
             <BathsGroup
               heading='Half Baths'
               key={2}
-              rooms={data.baths_half}
+              rooms={data.half_baths}
               {...prepdTemplates}
               data={data?.baths_half_dimensions}
-              onChange={(index, param, val) => setDimension('baths_half_dimensions', index, param, val)}
+              onChange={(index, param, val) => {
+                setDimension('baths_half_dimensions', index, param, val);
+              }}
             />
           ) : (
             <></>
@@ -122,7 +129,9 @@ export default function TabRooms({ template, nextStepClick, initialState }: TabC
               rooms={data.kitchens}
               {...prepdTemplates}
               data={data?.kitchen_dimensions}
-              onChange={(index, param, val) => setDimension('garage_dimensions', index, param, val)}
+              onChange={(index, param, val) => {
+                setDimension('garage_dimensions', index, param, val);
+              }}
             />
           ) : (
             <></>
@@ -134,7 +143,9 @@ export default function TabRooms({ template, nextStepClick, initialState }: TabC
               rooms={data.additional_rooms}
               {...prepdTemplates}
               data={data?.additional_dimensions}
-              onChange={(index, param, val) => setDimension('garage_dimensions', index, param, val)}
+              onChange={(index, param, val) => {
+                setDimension('garage_dimensions', index, param, val);
+              }}
             />
           ) : (
             <></>
@@ -146,7 +157,9 @@ export default function TabRooms({ template, nextStepClick, initialState }: TabC
               rooms={data.garage}
               {...prepdTemplates}
               data={data?.garage_dimensions}
-              onChange={(index, param, val) => setDimension('garage_dimensions', index, param, val)}
+              onChange={(index, param, val) => {
+                setDimension('garage_dimensions', index, param, val);
+              }}
             />
           ) : (
             <></>
