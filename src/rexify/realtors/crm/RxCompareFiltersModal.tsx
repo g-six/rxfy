@@ -160,7 +160,9 @@ const transit_neighbourhood = ['Places of Interest'];
 export default function RxCompareFiltersModal(p: Props) {
   const filterEvent = useEvent(Events.AddPropertyFilter);
 
-  const [selected_filters, setFilters] = React.useState<{ [key: string]: string[] }>({});
+  const [selected_filters, setFilters] = React.useState<{ [key: string]: string[] }>({
+    'Home Attributes': ['Age', 'Date Listed', 'Gross Taxes', 'Floor Area', 'Lot Area', 'Price/Sqft.', 'Strata Fee', 'Total Parking', 'Year Built'],
+  });
   const [attributes, setAttributes] = React.useState<{ [key: string]: { label: string; value: number }[] }>();
   const [category, selectCategory] = React.useState<{ options: { value: number; label: string }[]; name: string }>();
   const handleClick = (action: string) => {

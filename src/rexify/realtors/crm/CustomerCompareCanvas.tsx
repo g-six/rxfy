@@ -2,7 +2,7 @@
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider, DropTargetMonitor } from 'react-dnd';
 import { LovedPropertyDataModel } from '@/_typings/property';
-import useEvent, { Events } from '@/hooks/useEvent';
+import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import React from 'react';
 import RxPropertyCompareCard from './RxPropertyCompareCard';
 
@@ -53,9 +53,9 @@ function Iterator(
 
 function RxCompareDropArea(p: Props) {
   const filterEvent = useEvent(Events.AddPropertyFilter);
-  const { filters } = filterEvent.data as unknown as { filters: string[] };
+  let { filters } = filterEvent.data as unknown as { filters: string[] };
   const [cards, setCards] = React.useState<Card[]>([]);
-  const [stats_to_include, setStatsToInclude] = React.useState<string[]>([]);
+  const [stats_to_include, setStatsToInclude] = React.useState<string[]>();
 
   const addPropertyToCompareEvt = useEvent(Events.AddPropertyToCompare);
   const moveProperty = (replace_idx: number, with_idx: number) => {
@@ -83,10 +83,11 @@ function RxCompareDropArea(p: Props) {
   }, [addPropertyToCompareEvt]);
 
   React.useEffect(() => {
-    if (filters) {
+    if (filters !== undefined) {
       setStatsToInclude(filters);
     }
   }, [filters]);
+
   return (
     <div className={p.className + ' rexified'}>
       <Iterator {...p} cards={cards} include-stats={stats_to_include} moveProperty={moveProperty}>

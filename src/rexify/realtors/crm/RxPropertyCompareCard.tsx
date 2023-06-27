@@ -281,7 +281,7 @@ function CompareCardItems(
             text_content = p.property.baths;
             break;
           case '{Psq}':
-            text_content = new Intl.NumberFormat().format(p.property.floor_area_total || 0) || '';
+            text_content = new Intl.NumberFormat().format(p.property.floor_area_total || p.property.floor_area_main || p.property.floor_area || 0) || '';
             break;
         }
         return React.cloneElement(child, {
