@@ -24,7 +24,7 @@ export default function RxMapOfListing({ property, child, mapType }: Props) {
   const google = typeof window !== 'undefined' && window?.google ? window['google'] : undefined;
 
   const initNeighborhoodView = React.useCallback(() => {
-    if (ref && ref.current && google) {
+    if (ref && ref.current && google && google?.maps?.localContext) {
       const localContext = new google.maps.localContext.LocalContextMapView({
         element: ref.current,
         placeTypePreferences: [

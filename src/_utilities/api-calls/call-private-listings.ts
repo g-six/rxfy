@@ -1,9 +1,11 @@
-import axios, { AxiosError } from 'axios';
-import { PrivateListingInput, PrivateListingOutput } from '@/_typings/private-listing';
 import Cookies from 'js-cookie';
+import axios, { AxiosError } from 'axios';
+import { PrivateListingData } from '@/_typings/events';
+import { PrivateListingOutput } from '@/_typings/private-listing';
+import { convertPrivateListingToPropertyData } from '@/_helpers/mls-mapper';
 import { toKebabCase } from '../string-helper';
 
-export async function createPrivateListing(listing: PrivateListingInput) {
+export async function createPrivateListing(listing: Record<string, unknown>) {
   try {
     const record = await axios.post('/api/private-listings', listing, {
       headers: {
@@ -109,4 +111,37 @@ export async function uploadListingPhoto(file: File, index: number, listing: Pri
         success: true,
       };
     });
+}
+
+export function createOrUpdate(data: PrivateListingData, callback: (data: any) => void) {
+  if (!!data.title) {
+    if (!data.id) {
+      createPrivateListing(convertPrivateListingToPropertyData(data))
+        .then(record => record.data)
+        .then((rec: PrivateListingOutput) => {
+          console.log('rec', rec);
+          if (data.photos && rec.id) {
+            let count = 0;
+            if (data && data.upload_queue?.count) {
+              count = data.upload_queue.count as number;
+            }
+            data?.photos?.map((photo: File, cnt: number) => {
+              uploadListingPhoto(photo, cnt + 1, rec).then((upload_item: { success: boolean; upload_url: string; file_path: string }) => {
+                axios.put(upload_item.upload_url, photo, { headers: { 'Content-Type': photo.type } }).then(() => {
+                  count++;
+                  if (data.photos && data.photos[cnt]) {
+                    data.photos[cnt].url = 'https://' + new URL(upload_item.upload_url).pathname.substring(1);
+                  }
+                });
+              });
+            });
+          }
+        })
+        .then(res => callback(res));
+    } else {
+      updatePrivateListing(data.id, convertPrivateListingToPropertyData(data))
+        .then(record => record.data)
+        .then(res => callback(res));
+    }
+  }
 }
