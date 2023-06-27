@@ -7,14 +7,14 @@ import './globals.scss';
 import React from 'react';
 import { WebFlow } from '@/_typings/webflow';
 import { AgentData } from '@/_typings/agent';
-import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
-import { getPrivatePropertyData, getPropertyData } from '@/_utilities/data-helpers/property-page';
+import { getPropertyData } from '@/_utilities/data-helpers/property-page';
 import { replaceMetaTags } from '@/_helpers/head-manipulations';
 import initializePlacesAutocomplete from '@/components/Scripts/places-autocomplete';
 import { appendJs, rexifyScripts, rexifyScriptsV2 } from '@/components/rexifier';
 import { findAgentRecordByAgentId } from './api/agents/model';
 import { attributesToProps } from 'html-react-parser';
 import NotFound from './not-found';
+import { getPrivateListing } from './api/private-listings/model';
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const axios = (await import('axios')).default;
@@ -33,7 +33,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let agent_id = headers().get('x-agent-id');
   let profile_slug = headers().get('x-profile-slug');
   let page_route: string[] = [];
-
   if (pathname && pathname.split('/').length >= 3 && !agent_id && !profile_slug) {
     // Check if the slug matches a realtor
     const segments = pathname.split('/');
@@ -58,20 +57,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       agent_data = {
         ...agent_record,
       };
-      if (!agent_data || !metatags.profile_slug || metatags.profile_slug !== profile_slug) return <NotFound></NotFound>;
+      if (!agent_data || !metatags.profile_slug || metatags.profile_slug !== profile_slug)
+        return <NotFound id='layout-1' className='layout-1-profile-slug'></NotFound>;
     } else {
-      return <NotFound></NotFound>;
+      return <NotFound id='layout-2' className='layout invalid-profile-slug'></NotFound>;
     }
   }
-
-  // if (!agent_data) {
-  // If we have a 404 - uncomment this and update...
-  // const req_page_html = await axios.get(`https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`);
-  // data = req_page_html.data;
-  // data = '<html><head></head><body></body></html>';
-
-  // return <NotFound>404</NotFound>;
-  // }
 
   if (theme && searchParams.paragon) {
     if (['/ai', '/ai-result'].includes(pathname)) {
@@ -105,9 +96,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   let property;
   let cache_found = false;
+
   if (['/property', '/preview'].includes(requestUrl.pathname) && searchParams && (searchParams.lid || searchParams.id || searchParams.mls)) {
     if (searchParams.lid) {
-      property = await getPrivatePropertyData(searchParams.lid);
+      // property = await getPrivatePropertyData(searchParams.lid);
+      property = await getPrivateListing(Number(searchParams.lid));
     } else {
       // Publicly listed property page
       const start = new Date().getTime();

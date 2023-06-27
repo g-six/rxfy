@@ -125,3 +125,6 @@
 [data-wf-domain='leagent-website.webflow.io'] .navigation-container .sessions-wrapper > .dropdown-list {
   @apply min-w-0;
 }
+.is-really-visible {
+  @apply flex #{!important};
+}

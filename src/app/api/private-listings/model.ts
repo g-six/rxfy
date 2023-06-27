@@ -1,5 +1,7 @@
 import { PrivateListingInput, PrivateListingOutput, PrivateListingResult } from '@/_typings/private-listing';
 import axios, { AxiosError } from 'axios';
+import { GQ_FRAG_AGENT } from '../agents/graphql';
+import { getFullAgentRecord } from '../_helpers/agent-helper';
 export async function createPrivateListing(listing: PrivateListingInput, session_hash: string, realtor_id: number) {
   try {
     const response = await axios.post(
@@ -188,9 +190,28 @@ export async function getPrivateListing(id: number) {
       };
     }
     if (response.data?.data?.listing?.record) {
+      let page_url = `/property?lid=${id}`;
+      let photos: string[] = [];
+      let listing_by = '';
       Object.keys(response.data.data.listing.record.attributes).forEach(key => {
-        if (response.data.data.listing.record.attributes[key] === null) response.data.data.listing.record.attributes[key] = undefined;
-        else if (response.data.data.listing.record.attributes[key].data) {
+        if (response.data.data.listing.record.attributes[key] === null) response.data.data.listing.record.attributes[key] = '';
+        else if (key === 'realtor') {
+          const realtor = response.data.data.listing.record.attributes[key].data;
+          const agent = getFullAgentRecord(realtor.attributes.agent?.data?.attributes);
+          listing_by = `Listing courtesy of ${agent.full_name}`;
+          page_url = `${agent.homepage || ''}${page_url}`;
+          response.data.data.listing.record.attributes[key] = {
+            ...realtor.attributes,
+            id: Number(realtor.id),
+            agent,
+          };
+        } else if (key === 'property_photo_album') {
+          if (response.data.data.listing.record.attributes[key].data) {
+            photos = response.data.data.listing.record.attributes[key].data.attributes.photos;
+          } else {
+            delete response.data.data.listing.record.attributes[key];
+          }
+        } else if (response.data.data.listing.record.attributes[key].data) {
           // This is a relationship link, let's normalize
           if (Array.isArray(response.data.data.listing.record.attributes[key].data)) {
             response.data.data.listing.record.attributes[key] = response.data.data.listing.record.attributes[key].data.map(
@@ -214,6 +235,9 @@ export async function getPrivateListing(id: number) {
       return {
         ...response.data.data.listing.record.attributes,
         id: Number(response.data.data.listing.record.id),
+        page_url,
+        photos,
+        listing_by,
       };
     } else {
       return {
@@ -475,6 +499,19 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
           }
       }
       restrictions
+      realtor {
+        data {
+          id
+          attributes {
+            email
+            agent {
+              data {
+                ${GQ_FRAG_AGENT}
+              }
+            }
+          }
+        }
+      }
     }
   }
 `;

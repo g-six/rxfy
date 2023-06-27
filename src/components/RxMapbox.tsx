@@ -40,16 +40,16 @@ function createMapPin() {
   return el;
 }
 
-function addClusterLayer(map: mapboxgl.Map) {
+export function addClusterLayer(map: mapboxgl.Map) {
   if (map.getLayer('rx-clusters')) return;
   map.addLayer(renderClusterBgLayer('rx-clusters'));
 }
 
-function addClusterHomeCountLayer(map: mapboxgl.Map) {
+export function addClusterHomeCountLayer(map: mapboxgl.Map) {
   if (map.getLayer('rx-cluster-home-count') === undefined) map.addLayer(renderClusterTextLayer('rx-cluster-home-count'));
 }
 
-function addSingleHomePins(map: mapboxgl.Map) {
+export function addSingleHomePins(map: mapboxgl.Map) {
   if (map.getLayer('rx-home-price-bg') === undefined) {
     const [outline, bg] = renderHomePinBgLayer('rx-home-price-bg');
     map.addLayer(outline);
@@ -328,14 +328,6 @@ export function RxMapbox(props: RxMapboxProps) {
     map.off('click', clickEventListener);
     map.on('click', clickEventListener);
   };
-
-  const [resizing, setResizing] = React.useState('no');
-
-  if (map) {
-    map.on('resize', () => {
-      setResizing('done');
-    });
-  }
 
   const repositionMap = React.useCallback(
     (p?: LngLatLike) => {

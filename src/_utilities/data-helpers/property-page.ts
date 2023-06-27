@@ -376,7 +376,7 @@ export async function getPrivatePropertyData(property_id: number | string) {
   let clean: Record<string, unknown> | MLSProperty = {};
   const neighbours: MLSProperty[] = [];
   const sold_history: MLSProperty[] = [];
-
+  console.log({ property_id });
   const res = await axios
     .get(url, {
       headers: {
@@ -605,10 +605,6 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
     email: [clean.LA1_Email, clean.LA2_Email, clean.LA2_Email].filter(v => !!v).join(', '),
     name: [clean.LA1_FullName, clean.LA2_FullName, clean.LA3_FullName].filter(v => !!v).join(', '),
   };
-
-  console.log('agent_info:', agent_info);
-  console.log('---');
-  console.log('');
 
   let { photos, ...denormed } = clean as unknown as PropertyDataModel & MLSPropertyExtended;
   if (denormed.property_photo_album?.data) {

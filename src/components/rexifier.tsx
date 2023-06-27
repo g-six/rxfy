@@ -8,7 +8,7 @@ import { AgentData, RealtorInputModel } from '@/_typings/agent';
 import { Events } from '@/_typings/events';
 import { GeoLocation, MapboxBoundaries } from '@/_typings/maps';
 import { MLSProperty, PropertyDataModel } from '@/_typings/property';
-import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
+import { CRM_PANE_IDS, WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 
 import { combineAndFormatValues, formatValues } from '@/_utilities/data-helpers/property-page';
 import { getCityFromGeolocation, getGeocode, getViewPortParamsFromGeolocation } from '@/_utilities/geocoding-helper';
@@ -50,7 +50,6 @@ import RxSearchPlaceForm from './RxForms/RxSearchPlaceForm';
 import RxCRM from '@/rexify/realtors/RxCRM';
 import RxCRMNotes from '@/rexify/realtors/crm/CustomerNotes';
 import RxCustomerView from '@/rexify/realtors/RxCustomerView';
-import CRMNav from '@/rexify/realtors/crm/CRMNav';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -450,6 +449,7 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
         }
       } else if (node instanceof Element && node.attribs) {
         const { class: className, ...props } = attributesToProps(node.attribs);
+
         if (node.attribs['data-src']) {
           return <RxThemePreview className={`${props.className ? props.className + ' ' : ''} rexified`} src={node.attribs['data-src']} />;
         }
@@ -495,15 +495,13 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.CRM_AREA_WRAPPER) >= 0) {
           return <RxCRM className={props.className}>{domToReact(node.children) as ReactElement}</RxCRM>;
         }
-        if (props.id && props.id === WEBFLOW_NODE_SELECTOR.CRM_CUS_VW_SAVED_HOMES) {
+        // if (props.id && CRM_PANE_IDS.includes(props.id as WEBFLOW_NODE_SELECTOR)) {
+        if (props.className && props.className === 'saved-search-wrapper') {
           return (
-            <RxCustomerView id={props.id} className={props.className}>
+            <RxCustomerView id={props.id} className={props.className + ' rexified'}>
               {domToReact(node.children) as ReactElement}
             </RxCustomerView>
           );
-        }
-        if (props.className && props.className === WEBFLOW_NODE_SELECTOR.CRM_NAV_WRAPPER) {
-          return <CRMNav className={props.className}>{domToReact(node.children) as ReactElement}</CRMNav>;
         }
 
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.SESSION_DROPDOWN) >= 0) {
@@ -714,7 +712,7 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
               </RxMySavedHomesDashBoard>
             );
           }
-          if (agent_data && node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_HOME_ALERTS) {
+          if (agent_data && node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_HOME_ALERTS && !CRM_PANE_IDS.includes(node.attribs.id as WEBFLOW_NODE_SELECTOR)) {
             return <RxMyHomeAlerts agent_data={agent_data} child={domToReact(node.children)} className={node.attribs.class} />;
           }
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.PROPERTY_CARD)) {

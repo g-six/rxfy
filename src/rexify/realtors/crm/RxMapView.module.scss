@@ -1,0 +1,9 @@
+.map-container {
+  @apply h-full w-full bg-slate-200;
+  :global(.mapboxgl-canvas-container) {
+    @apply h-full w-full;
+  }
+  :global(.mapboxgl-canvas) {
+    @apply h-full w-full;
+  }
+}
