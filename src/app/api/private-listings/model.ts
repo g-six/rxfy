@@ -277,6 +277,7 @@ export async function getPrivateListingsByRealtorId(realtor_id: number) {
     if (response.data?.data?.listings?.records) {
       return (response.data?.data?.listings?.records as PrivateListingResult[]).map((record: PrivateListingResult) => {
         record.attributes.status = record.attributes.status || 'draft';
+        let page_url = `/property?lid=${record.id}`;
 
         Object.keys(record.attributes).forEach(key => {
           const attributes = record.attributes as unknown as { [key: string]: any };
@@ -291,6 +292,18 @@ export async function getPrivateListingsByRealtorId(realtor_id: number) {
                   id: Number(id),
                 };
               });
+            } else if (key === 'realtor') {
+              const realtor = attributes[key].data;
+              if (realtor) {
+                const agent = getFullAgentRecord(realtor.attributes.agent?.data?.attributes);
+                page_url = `${agent.homepage || ''}${page_url}`;
+                delete realtor.attributes.agent;
+                attributes[key] = {
+                  ...realtor.attributes,
+                  id: Number(realtor.id),
+                };
+                attributes.agent = agent;
+              }
             } else {
               attributes[key] = {
                 ...attributes[key].data,
@@ -312,6 +325,7 @@ export async function getPrivateListingsByRealtorId(realtor_id: number) {
         });
         return {
           ...record.attributes,
+          page_url,
           id: Number(record.id),
         };
       });
