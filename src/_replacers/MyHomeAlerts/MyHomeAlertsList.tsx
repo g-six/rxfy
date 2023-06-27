@@ -8,6 +8,7 @@ import { SavedSearch } from '@/_typings/saved-search';
 import { AgentData } from '@/_typings/agent';
 import useEvent, { Events } from '@/hooks/useEvent';
 import useGetAttributes from '@/hooks/useGetAttributes';
+import { useSearchParams } from 'next/navigation';
 
 type Props = {
   child: ReactElement;
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export default function MyHomeAlertsList({ child, agent_data }: Props) {
+  const search = useSearchParams();
   const { data, fireEvent } = useEvent(Events.MyHomeAlertsModal);
   const { key, alertData, reload } = data || {};
   const { card } = captureMatchingElements(child, [{ elementName: 'card', searchFn: searchByClasses(['home-alert-div']) }]);
@@ -22,7 +24,7 @@ export default function MyHomeAlertsList({ child, agent_data }: Props) {
   const attributes = useGetAttributes();
 
   useEffect(() => {
-    getSearches().then(res => {
+    getSearches(search.get('customer') ? Number(search.get('customer')) : undefined).then(res => {
       setSavedList(res);
     });
   }, []);
@@ -32,7 +34,7 @@ export default function MyHomeAlertsList({ child, agent_data }: Props) {
       fireEvent({ key: undefined, reload: false });
     }
     if (alertData && reload) {
-      getSearches().then(res => {
+      getSearches(search.get('customer') ? Number(search.get('customer')) : undefined).then(res => {
         setSavedList(res);
       });
       fireEvent({ key: undefined, reload: false, alertData: undefined });
