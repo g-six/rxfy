@@ -59,6 +59,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   // REALTOR CRM
   CRM_AREA_WRAPPER = 'crm-area',
   CRM_CUS_VW_SAVED_HOMES = 'SavedHomes',
+  CRM_CUS_VW_HOME_ALERTS = 'HomeAlerts',
   CRM_NAV_WRAPPER = 'crm-nav',
   CRM_NOTES_WRAPPER = 'note-wrapper',
   CRM_PROPERTY_PREVIEW = 'saved-home-detail-panel',
@@ -66,6 +67,8 @@ export enum WEBFLOW_NODE_SELECTOR {
   CRM_MAP = 'map-placeholder',
   CRM_NOTES_FORM_WRAPPER = 'new-note-wrapper',
 }
+
+export const CRM_PANE_IDS = [WEBFLOW_NODE_SELECTOR.CRM_CUS_VW_SAVED_HOMES, WEBFLOW_NODE_SELECTOR.CRM_CUS_VW_HOME_ALERTS];
 
 export interface WebFlow {
   head: {

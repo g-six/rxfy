@@ -1,7 +1,6 @@
 'use client';
 import { CustomerRecord } from '@/_typings/customer';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
-import useEvent, { Events } from '@/hooks/useEvent';
 import { useSearchParams } from 'next/navigation';
 import React from 'react';
 
@@ -11,7 +10,25 @@ type Props = {
   customer?: CustomerRecord;
 };
 
-function Iterator(p: { children: React.ReactElement; customer?: CustomerRecord }) {
+function NormalizedLinkElement(p: { children: React.ReactElement; customer?: CustomerRecord; 'customer-id': number }) {
+  const Wrapped = React.Children.map(p.children, child => {
+    if (child.type === 'div') {
+      return (
+        <span className={child.props.className || ''}>
+          <NormalizedLinkElement {...p}>{child.props.children}</NormalizedLinkElement>
+        </span>
+      );
+    }
+    return child;
+  });
+  return (
+    <Iterator {...p}>
+      <>{Wrapped}</>
+    </Iterator>
+  );
+}
+
+function Iterator(p: { children: React.ReactElement; customer?: CustomerRecord; 'customer-id': number }) {
   const Wrapped = React.Children.map(p.children, child => {
     if (child.props?.['data-field']) {
       let values: { [key: string]: string } = {};
@@ -25,6 +42,12 @@ function Iterator(p: { children: React.ReactElement; customer?: CustomerRecord }
           <Iterator {...p}>{child.props.children}</Iterator>
         </div>
       );
+    } else if (child.type === 'a' && p.customer) {
+      return React.cloneElement(child, {
+        ...child.props,
+        href: `${child.props.href}?customer=${p['customer-id']}`,
+        children: <NormalizedLinkElement {...p}>{child.props.children}</NormalizedLinkElement>,
+      });
     }
     return child;
   });
@@ -33,6 +56,7 @@ function Iterator(p: { children: React.ReactElement; customer?: CustomerRecord }
 }
 
 export default function CRMNav(p: Props) {
+  const search = useSearchParams();
   const [hydrated, setHydrated] = React.useState(false);
   const [customer, setCustomer] = React.useState<CustomerRecord>();
 
@@ -45,7 +69,7 @@ export default function CRMNav(p: Props) {
   return (
     <nav className={p.className}>
       {hydrated ? (
-        <Iterator {...p} customer={customer}>
+        <Iterator {...p} customer={customer} customer-id={search.get('customer') ? Number(search.get('customer')) : 0}>
           {p.children}
         </Iterator>
       ) : (
