@@ -1,7 +1,7 @@
 import React from 'react';
 import { LovedPropertyDataModel } from '@/_typings/property';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
-import { field_aliases, money_fields, numeric_fields, relationship_based_attributes } from './RxCompareFiltersModal';
+import { field_aliases, money_fields, numeric_fields, feeters, relationship_based_attributes } from './RxCompareFiltersModal';
 import { useDrag, useDrop, ConnectDropTarget } from 'react-dnd';
 import { Card } from './CustomerCompareCanvas';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
@@ -256,6 +256,8 @@ function getStatsValue(key: string, kv: { [key: string]: unknown }): string {
     val = val ? '$' + new Intl.NumberFormat().format(Number(val)) : 'N/A';
   } else if (numeric_fields.includes(db_column)) {
     val = val ? new Intl.NumberFormat().format(Number(val)) : 'N/A';
+  } else if (feeters.includes(db_column)) {
+    val = val ? new Intl.NumberFormat().format(Number(val)) + ' Sqft' : 'N/A';
   }
   return val || ('N/A' as string);
 }
@@ -281,7 +283,7 @@ function CompareCardItems(
             text_content = p.property.baths;
             break;
           case '{Psq}':
-            text_content = new Intl.NumberFormat().format(p.property.floor_area_total || 0) || '';
+            text_content = new Intl.NumberFormat().format(p.property.floor_area_total || p.property.floor_area || 0) || '';
             break;
         }
         return React.cloneElement(child, {

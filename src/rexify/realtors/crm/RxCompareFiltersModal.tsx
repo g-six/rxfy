@@ -129,10 +129,14 @@ function Iterator(
   return <>{Wrapped}</>;
 }
 export const relationship_based_attributes: { [key: string]: string } = {
+  Appliances: 'appliances',
+  Amenities: 'amenities',
   'Construction Material': 'build_features',
   'Connected Services': 'connected_services',
+  Facilities: 'facilities',
   Flooring: 'build_features',
   'Heating & Ventilation / Air Conditioning': 'hvac',
+  Parking: 'parking',
   Windows: 'build_features',
 };
 export const field_aliases: { [key: string]: string } = {
@@ -140,16 +144,21 @@ export const field_aliases: { [key: string]: string } = {
   'Lot Area': 'lot_sqft',
   'Price/Sqft.': 'price_per_sqft',
 };
+const amenities_facilities = ['Amenities', 'Appliances', 'Facilities', 'Parking'];
 export const home_attributes = sortArrayAlphabetically(
-  ['Age', 'Foundation Specs', 'Frontage', 'Floor Area', 'Gross Taxes', 'Strata Fee', 'Total Parking', 'Year Built']
-    .concat(Object.keys(relationship_based_attributes).map(key => key))
+  ['Age', 'Foundation Specs', 'Frontage', 'Gross Taxes', 'Strata Fee', 'Total Parking', 'Year Built']
+    .concat(
+      Object.keys(relationship_based_attributes)
+        .filter(k => !amenities_facilities.includes(k))
+        .map(key => key),
+    )
     .concat(Object.keys(field_aliases).map(key => key)),
 );
 
-export const money_fields = ['price_per_sqft', 'strata_fee'];
-export const numeric_fields = ['lot_sqft'];
+export const money_fields = ['price_per_sqft', 'strata_fee', 'gross_taxes'];
+export const numeric_fields = ['floor_area', 'floor_area_total', 'floor_area_main'];
 export const feeters = ['lot_sqft', 'frontage_feet'];
-const amenities_facilities = ['Amenities', 'Appliances', 'Facilities', 'Parking'];
+export const timeframe_fields = ['listed_at'];
 
 const restrictions = ['Pets', 'Age Restrictions'];
 
