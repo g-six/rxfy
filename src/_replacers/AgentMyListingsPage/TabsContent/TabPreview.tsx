@@ -1,13 +1,10 @@
 import React, { cloneElement } from 'react';
 
-import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { TabContentProps } from '@/_typings/agent-my-listings';
 import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
-import { convertPrivateListingToPropertyData } from '@/_helpers/mls-mapper';
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 
 import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
-import { RxDetailedListing } from '@/components/full-pages/RxDetailedListing';
 
 export default function TabPreview({ template, initialState, agent }: TabContentProps) {
   const { data } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
