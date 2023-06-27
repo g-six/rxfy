@@ -69,11 +69,7 @@ function RxCompareDropArea(p: Props) {
         if (card.id === replace_idx) position = i;
       });
       setCards(prev_state => {
-        // const left_item = { ...prev_state[source_idx] };
-        // const right_item = { ...prev_state[position] };
         const move = prev_state.splice(source_idx, 1)[0];
-        // prev_state[source_idx] = right_item;
-        // prev_state[position] = left_item;
         return [...prev_state.splice(position, 0, move)];
       });
     }

@@ -36,6 +36,7 @@ export default function RxPropertyCompareCard(
   p: Props & { property: Card; 'include-stats'?: string[]; moveProperty?: (item_id: number, replace_id: number) => void },
 ) {
   const { fireEvent } = useEvent(Events.SelectCustomerLovedProperty);
+  const { data: selections, fireEvent: updateSelection } = useEvent(Events.AddPropertyToCompare);
   const ref = React.useRef<HTMLDivElement>(null);
   const [drag_props, drag] = useDrag(
     {
@@ -142,6 +143,9 @@ export default function RxPropertyCompareCard(
               onExpandInfoLinkClick={() => {
                 fireEvent(p.property as unknown as EventsData);
               }}
+              removeCard={() => {
+                console.log(p.property.id);
+              }}
             >
               {child.props.children}
             </CompareCardItems>
@@ -160,6 +164,15 @@ export default function RxPropertyCompareCard(
                 fireEvent(p.property as unknown as EventsData);
                 const btn = document.querySelector('button#w-tabs-0-data-w-tab-0') as HTMLButtonElement;
                 btn.click();
+              }}
+              removeCard={() => {
+                if (selections) {
+                  const { properties: prev } = selections as unknown as { properties: Card[] };
+                  prev.splice(prev.indexOf(p.property), 1);
+                  updateSelection({
+                    properties: [...prev],
+                  } as unknown as EventsData);
+                }
               }}
             >
               {child.props.children}
@@ -247,7 +260,9 @@ function getStatsValue(key: string, kv: { [key: string]: unknown }): string {
   return val || ('N/A' as string);
 }
 
-function CompareCardItems(p: Props & { property: LovedPropertyDataModel; 'include-stats'?: string[]; onExpandInfoLinkClick: () => void }) {
+function CompareCardItems(
+  p: Props & { property: LovedPropertyDataModel; 'include-stats'?: string[]; onExpandInfoLinkClick: () => void; removeCard: () => void },
+) {
   const Wrapper = React.Children.map(p.children, (child, child_idx) => {
     if (child.props?.className) {
       if (typeof child.props.children === 'string') {
@@ -310,6 +325,12 @@ function CompareCardItems(p: Props & { property: LovedPropertyDataModel; 'includ
           ...child.props,
           className: child.props.className + ' cursor-pointer',
           onClick: p.onExpandInfoLinkClick,
+        });
+      } else if (child.props.className === 'x') {
+        return React.cloneElement(child, {
+          ...child.props,
+          className: child.props.className + ' cursor-pointer',
+          onClick: p.removeCard,
         });
       } else if (child.props.className === 'propcompare-card-image') {
         return React.cloneElement(child, {
