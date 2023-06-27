@@ -144,7 +144,7 @@ export default function RxPropertyCard({
   listing: PropertyDataModel;
   isLink?: boolean;
   'view-only'?: boolean;
-  onClick?: () => void;
+  onClick?: () => void | undefined;
 }) {
   const url = new URL(location.href);
   // e.g /agent-id/profile-slug/map
@@ -174,7 +174,7 @@ export default function RxPropertyCard({
       data-agent={agent}
       data-mls-id={listing.mls_id}
       className={classNames(
-        'group relative',
+        props['view-only'] ? '' : 'group relative',
         sequence === 0 ? `` : 'hidden sm:block',
         Cookies.get('session_key') && listing.status?.toLowerCase() === 'sold' ? styles.ShowSold : '',
       )}

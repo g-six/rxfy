@@ -7,7 +7,6 @@ import './globals.scss';
 import React from 'react';
 import { WebFlow } from '@/_typings/webflow';
 import { AgentData } from '@/_typings/agent';
-import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getPrivatePropertyData, getPropertyData } from '@/_utilities/data-helpers/property-page';
 import { replaceMetaTags } from '@/_helpers/head-manipulations';
 import initializePlacesAutocomplete from '@/components/Scripts/places-autocomplete';

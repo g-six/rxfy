@@ -1,13 +1,12 @@
 import { getResponse } from '@/app/api/response-helper';
-import axios, { AxiosError } from 'axios';
 import { NextRequest } from 'next/server';
 import { GET as checkSession } from '@/app/api/check-session/route';
-import { GQ_FRAGMENT_PROPERTY_ATTRIBUTES, LovedPropertyDataModel, PropertyDataModel } from '@/_typings/property';
-import { getImageSized } from '@/_utilities/data-helpers/image-helper';
-import { getCustomerLoves } from './model';
+import { LovedPropertyDataModel } from '@/_typings/property';
+import { getCustomerSearches } from './model';
+import { CustomerSavedSearch } from '@/_typings/saved-search';
 
 export async function GET(request: NextRequest) {
-  const agents_customer_id = Number(request.url.split('/loves')[0].split('/').pop());
+  const agents_customer_id = Number(request.url.split('/searches')[0].split('/').pop());
   if (isNaN(agents_customer_id)) {
     return getResponse({
       error: 'Please provide a valid id for the agent customer record',
@@ -26,7 +25,7 @@ export async function GET(request: NextRequest) {
   };
   if (!session_key) {
     return getResponse({
-      error: "Please login to retrieve your customer's loved homes",
+      error: "Please login to retrieve your customer's home alerts",
     });
   }
   const [customer] = customers.filter(c => c.id === agents_customer_id);
@@ -37,10 +36,10 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const properties: LovedPropertyDataModel[] = await getCustomerLoves(agents_customer_id);
+  const records: CustomerSavedSearch[] = await getCustomerSearches(agents_customer_id);
   /////
   return getResponse({
-    properties,
+    records,
     session_key,
   });
 }

@@ -1,6 +1,6 @@
 'use client';
 import { CustomerRecord } from '@/_typings/customer';
-import { PropertyDataModel } from '@/_typings/property';
+import { LovedPropertyDataModel, PropertyDataModel } from '@/_typings/property';
 import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import RxPropertyCard from '@/components/RxCards/RxPropertyCard';
@@ -11,19 +11,21 @@ import React from 'react';
 type Props = {
   children: React.ReactElement;
   className: string;
+  properties: LovedPropertyDataModel[];
 };
 
-interface LovedProperty extends PropertyDataModel {
-  love: number;
-}
-
-function Iterator(p: { children: React.ReactElement; agent: number; properties: LovedProperty[]; onSelectProperty: (property: LovedProperty) => void }) {
+function Iterator(p: {
+  children: React.ReactElement;
+  agent: number;
+  properties: LovedPropertyDataModel[];
+  onSelectProperty: (property: LovedPropertyDataModel) => void;
+}) {
   const Wrapped = React.Children.map(p.children, child => {
     if (child.props?.className && child.props?.className.indexOf('property-card-wrapper') >= 0) {
       return (
         <>
           {p.properties ? (
-            p.properties.map((property: LovedProperty) => {
+            p.properties.map((property: LovedPropertyDataModel) => {
               const listing = {
                 ...property,
                 cover_photo: property.property_photo_album?.data?.attributes.photos.length
@@ -65,37 +67,56 @@ function Iterator(p: { children: React.ReactElement; agent: number; properties: 
 }
 
 export default function CustomerProperties(p: Props) {
+  const searchParams = useSearchParams();
   const session = useEvent(Events.LoadUserSession);
   const selectPropertyEvt = useEvent(Events.SelectCustomerLovedProperty);
-  const { agent, customers } = session.data as unknown as {
+  const addPropertyToCompareEvt = useEvent(Events.AddPropertyToCompare);
+  const lovers = useEvent(Events.LoadLovers);
+  const { agent } = session.data as unknown as {
     agent: number;
     customers: CustomerRecord[];
   };
-  const [customer, setCustomer] = React.useState<CustomerRecord>();
-  const [properties, setProperties] = React.useState<LovedProperty[]>([]);
 
-  const searchParams = useSearchParams();
+  const [properties, setProperties] = React.useState<LovedPropertyDataModel[]>([]);
 
-  const onSelectProperty = (property: LovedProperty) => {
+  const onSelectProperty = (property: LovedPropertyDataModel) => {
     selectPropertyEvt.fireEvent(property as unknown as EventsData);
+    const { properties } = addPropertyToCompareEvt.data as unknown as {
+      properties: LovedPropertyDataModel[];
+    };
+    addPropertyToCompareEvt.fireEvent({
+      properties:
+        properties && properties.filter(included => included.id === property.id).length === 0 ? properties.concat([property]) : properties || [property],
+    } as unknown as EventsData);
   };
 
   React.useEffect(() => {
-    if (customer) {
-      // Customer has been set, let's pull addtl info
-      // such as their loved homes
-      getLovedHomes(customer.id).then(data => {
-        if (data.properties) setProperties(data.properties);
+    if (p.properties && p.properties.length) {
+      setProperties(p.properties);
+    } else {
+      const customer_id = searchParams.get('customer') as unknown as number;
+      getLovedHomes(customer_id).then(data => {
+        if (data.properties) {
+          setProperties(data.properties);
+          lovers.fireEvent(data as unknown as EventsData);
+          let default_property = false;
+          data.properties.forEach((property: LovedPropertyDataModel) => {
+            if (!default_property) {
+              default_property = true;
+              onSelectProperty(
+                property.cover_photo
+                  ? property
+                  : {
+                      ...property,
+                      cover_photo: '/house-placeholder.png',
+                    },
+              );
+            }
+          });
+        }
       });
     }
-  }, [customer]);
-
-  React.useEffect(() => {
-    if (customers && customers.length && !customer) {
-      const [record] = customers.filter(c => c.id === Number(searchParams.get('customer')));
-      if (record) setCustomer(record);
-    }
-  }, [customers, customer, searchParams]);
+  }, []);
 
   return (
     <div {...p} className={p.className}>

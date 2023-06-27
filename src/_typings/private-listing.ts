@@ -69,7 +69,6 @@ export interface PrivateListingModel {
   total_cats_allowed?: number;
   total_dogs_allowed?: number;
   total_units_in_community?: number;
-  photos?: string[];
 }
 export interface PrivateListingInput extends PrivateListingModel {
   dwelling_type: number;
@@ -86,7 +85,6 @@ export interface PrivateListingInput extends PrivateListingModel {
   allowed_pets?: number[];
   places_of_interest?: number[];
   construction_information?: number[];
-  photos?: string[];
 }
 
 export interface PrivateListingOutput extends PrivateListingModel {

@@ -4,10 +4,8 @@ import { ValueInterface } from '@/_typings/ui-types';
 import { TabContentProps } from '@/_typings/agent-my-listings';
 import { captureMatchingElements, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
-
 import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
 import InputWithSelect from '@/_replacers/FilterFields/InputWithSelect';
-
 import useFormEvent, { Events, PrivateListingData, getValueByKey } from '@/hooks/useFormEvent';
 
 export default function TabSize({ template, nextStepClick, initialState }: TabContentProps) {

@@ -158,9 +158,10 @@ export async function deleteSearch(id: number) {
   }
   return;
 }
-export async function getSearches() {
+
+export async function getSearches(customer_id?: number) {
   if (Cookies.get('session_key')) {
-    const xhr = await axios.get('/api/saved-searches', {
+    const xhr = await axios.get(`/api/${customer_id ? `agents/customer/${customer_id}/searches` : 'saved-searches'}`, {
       headers: {
         Authorization: `Bearer ${Cookies.get('session_key')}`,
       },

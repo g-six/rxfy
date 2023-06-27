@@ -1,4 +1,5 @@
 import { UserInputModel } from './base-user';
+import { CustomerRecord } from './customer';
 import { GeoLocation, SearchHighlightInput } from './maps';
 
 export type ThemeName = 'hamburg' | 'lisbon' | 'malaga' | 'malta' | 'oslo';
@@ -110,4 +111,5 @@ export interface AgentData {
   webflow_domain: string;
   last_activity_at?: Date;
   encrypted_password?: string;
+  customers?: CustomerRecord[];
 }

@@ -256,6 +256,7 @@ export async function getPrivateListingsByRealtorId(realtor_id: number) {
 
         Object.keys(record.attributes).forEach(key => {
           const attributes = record.attributes as unknown as { [key: string]: any };
+
           if (attributes[key] === null) attributes[key] = undefined;
           else if (attributes[key].data) {
             // This is a relationship link, let's normalize
@@ -273,6 +274,15 @@ export async function getPrivateListingsByRealtorId(realtor_id: number) {
                 id: attributes[key].data.id ? Number(attributes[key].data.id) : undefined,
                 attributes: undefined,
               };
+            }
+          } else if (key === 'property_photo_album') {
+            if (attributes[key].data) {
+              attributes[key] = {
+                ...attributes[key].data.attributes,
+                id: Number(attributes[key].data.id),
+              };
+            } else {
+              attributes[key] = {};
             }
           }
         });
@@ -326,6 +336,7 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
       room_details
       roofing
       depth
+      description
       year_built
       floor_levels
       floor_area
@@ -455,7 +466,14 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
               }
           }
       }
-      photos
+      property_photo_album {
+          data {
+              id
+              attributes {
+                photos
+              }
+          }
+      }
       restrictions
     }
   }

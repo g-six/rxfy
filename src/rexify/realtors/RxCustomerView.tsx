@@ -1,13 +1,23 @@
 'use client';
 import React from 'react';
 import CustomerProperties from './crm/CustomerProperties';
-import { PropertyDataModel } from '@/_typings/property';
-import useEvent, { Events } from '@/hooks/useEvent';
-import { getImageSized } from '@/_utilities/data-helpers/image-helper';
-import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
-import RxPropertyMaps from '@/components/RxProperty/RxPropertyMaps';
-import RxPropertyStats from '@/components/RxProperty/RxPropertyStats';
+import { LovedPropertyDataModel } from '@/_typings/property';
+import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { AgentData } from '@/_typings/agent';
+import RxCustomerPropertyView from './crm/CustomerPropertyView';
+import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
+import CRMNav from '@/rexify/realtors/crm/CRMNav';
+import RxSavedHomesNav from './crm/RxSavedHomesNav';
+import RxMapView from './crm/RxMapView';
+import RxMapPropertyModal from './crm/CRMMapComponents/RxMapPropertyModal';
+import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
+import { useSearchParams } from 'next/navigation';
+import { setData } from '@/_utilities/data-helpers/local-storage-helper';
+import { CustomerRecord } from '@/_typings/customer';
+import { RxCustomerCompareCanvas } from './crm/CustomerCompareCanvas';
+import RxCompareFiltersModal from './crm/RxCompareFiltersModal';
+import RxCustomerSavedSearch from './crm/RxCustomerSavedSearch';
+import MyHomeAlertsList from '@/_replacers/MyHomeAlerts/MyHomeAlertsList';
 
 type Props = {
   children: React.ReactElement;
@@ -16,161 +26,49 @@ type Props = {
   className?: string;
 };
 
-function Iterator(p: Props & { property?: PropertyDataModel }) {
+function Iterator(
+  p: Props & { property?: LovedPropertyDataModel; properties?: LovedPropertyDataModel[]; 'active-tab'?: string; onClickChangeCompareStats?(): void },
+) {
   const Wrapped = React.Children.map(p.children, child => {
     if (child.props?.children || child.props?.className) {
       if (child.type === 'div') {
+        if (child.props?.id === 'customer-view-modal-compare-filters') {
+          return (
+            <RxCompareFiltersModal {...child.props} filters={p.property ? Object.keys(p.property) : []}>
+              {child.props.children}
+            </RxCompareFiltersModal>
+          );
+        }
         if (child.props.className === 'properties-column') {
-          return <CustomerProperties {...child.props}>{child.props.children}</CustomerProperties>;
-        } else if (child.props.children?.type === 'img') {
-          if (p.property?.photos?.length) {
-            switch (child.props.children.props.className) {
-              case 'view-only-main-image':
-                return React.cloneElement(child, {
-                  ...child.props,
-                  children: React.cloneElement(child.props.children, {
-                    ...child.props.children.props,
-                    src: getImageSized(p.property.photos[0], 780),
-                  }),
-                });
-              case 'property-image-2':
-                if (p.property.photos.length > 1)
-                  return React.cloneElement(child, {
-                    ...child.props,
-                    children: React.cloneElement(child.props.children, {
-                      ...child.props.children.props,
-                      src: getImageSized(p.property.photos[1], 580),
-                    }),
-                  });
-            }
-          }
-        } else if (p.property?.photos && p.property.photos.length > 2 && child.props.className === 'property-image-collection') {
+          return (
+            <CustomerProperties {...child.props} properties={p.properties} property={p.property}>
+              {child.props.children}
+            </CustomerProperties>
+          );
+        } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_COMPARE_WRAPPER)) {
+          return <RxCustomerCompareCanvas className={child.props.className}>{child.props.children}</RxCustomerCompareCanvas>;
+        } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_PROPERTY_PREVIEW)) {
+          return <RxCustomerPropertyView className={child.props.className}>{child.props.children}</RxCustomerPropertyView>;
+        } else if (child.props.className?.split(' ').includes('indiv-map-tabs')) {
+          return <RxSavedHomesNav {...child.props}>{child.props.children}</RxSavedHomesNav>;
+        } else if (child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_MAP)) {
+          return <RxMapView />;
+        } else if (p.agent && child.props.className?.split(' ').includes('map-property-modal')) {
+          return <RxMapPropertyModal {...child.props}>{child}</RxMapPropertyModal>;
+        } else if (p.agent && child.props.className?.split(' ').includes('all-home-alerts')) {
+          return <MyHomeAlertsList child={child} agent_data={p.agent} />;
+        } else if (p.agent && child.props.className === WEBFLOW_NODE_SELECTOR.CRM_NAV_WRAPPER) {
+          return <CRMNav className={child.props.className}>{child}</CRMNav>;
+        } else if (child.props?.['data-w-tab']) {
           return React.cloneElement(child, {
             ...child.props,
-            children: p.property.photos.slice(2, 6).map(src => {
-              return React.cloneElement(child.props.children[0], {
-                ...child.props.children[0].props,
-                key: src,
-                src: getImageSized(src, 400),
-              });
-            }),
+            children: <Iterator {...p}>{child.props.children}</Iterator>,
+            className:
+              child.props.className.split('w--tab-active').join('') +
+              ' rexified' +
+              ' ' +
+              (p['active-tab'] === child.props['data-w-tab'] ? 'w--tab-active' : ''),
           });
-        } else if (typeof child.props.children === 'string') {
-          switch (child.props.children) {
-            case '{Price}':
-              return React.cloneElement(child, {
-                children: p.property?.asking_price ? '$' + new Intl.NumberFormat().format(p.property.asking_price) : 'N.A.',
-              });
-            case '{Address}':
-              return React.cloneElement(child, {
-                children: p.property?.title,
-              });
-            case '{Area}':
-              return React.cloneElement(child, {
-                children: p.property?.subarea_community || p.property?.area,
-              });
-            case '{Beds}':
-              return React.cloneElement(child, {
-                children: p.property?.beds || 'N/A',
-              });
-            case '{Baths}':
-              return React.cloneElement(child, {
-                children: p.property?.baths || 'N/A',
-              });
-            case '{Description}':
-              return p.property?.description ? (
-                React.cloneElement(child, {
-                  children: p.property?.description,
-                })
-              ) : (
-                <></>
-              );
-            case '{Year Built}':
-              return React.cloneElement(child, {
-                children: p.property?.year_built || 'N/A',
-              });
-            case '{Sqft}':
-              return React.cloneElement(child, {
-                children: new Intl.NumberFormat().format(p.property?.floor_area_total || p.property?.floor_area_main || 0) || 'N/A',
-              });
-            case '{Listing By}':
-              return p.property?.listing_by ? (
-                React.cloneElement(child, {
-                  children: p.property?.listing_by,
-                })
-              ) : (
-                <></>
-              );
-            case '{MLS Number}':
-              return React.cloneElement(child, {
-                children: p.property?.mls_id || 'N/A',
-              });
-            case '{Land Title}':
-              return React.cloneElement(child, {
-                children: p.property?.land_title || 'N/A',
-              });
-            case '{Price Per Sqft}':
-              return React.cloneElement(child, {
-                children: p.property?.price_per_sqft ? `$${p.property.price_per_sqft}` : 'N/A',
-              });
-            case '{Property Tax}':
-              return React.cloneElement(child, {
-                children: (() => {
-                  let ret = 'N/A';
-                  if (p.property?.gross_taxes) {
-                    ret = '$' + new Intl.NumberFormat().format(p.property.gross_taxes) + ' ';
-                  }
-                  if (p.property?.tax_year) {
-                    ret = `${ret} (${p.property.tax_year})`;
-                  }
-                  return ret;
-                })(),
-              });
-            case '{Building Type}':
-              return React.cloneElement(child, {
-                children: p.property?.building_type || p.property?.property_type || p.property?.style_type || 'N/A',
-              });
-            case '{Lot Size}':
-              return React.cloneElement(child, {
-                children: (() => {
-                  if (p.property?.lot_sqft) {
-                    return new Intl.NumberFormat().format(p.property.lot_sqft) + 'sqft';
-                  }
-                  if (p.property?.lot_sqm) {
-                    return new Intl.NumberFormat().format(p.property.lot_sqm) + 'sqm';
-                  }
-                  return 'N/A';
-                })(),
-              });
-          }
-        } else if (child.props.className === WEBFLOW_NODE_SELECTOR.PROPERTY_MAPS) {
-          return p.property && p.property.lon && p.property.lat ? <RxPropertyMaps child={child} property={p.property} /> : <></>;
-        } else if (child.props.className?.split(' ').includes('little-profile-card')) {
-          return React.cloneElement(child, {
-            ...child.props,
-            children: React.Children.map(child.props.children, cardelement => {
-              if (cardelement.type === 'img' && p.agent?.metatags) {
-                const photo = p.agent.metatags.profile_image || p.agent.metatags?.logo_for_light_bg || p.agent.metatags?.logo_for_dark_bg || '';
-                return photo ? (
-                  React.cloneElement(cardelement, {
-                    ...cardelement.props,
-                    src: getImageSized(photo, 100),
-                  })
-                ) : (
-                  <></>
-                );
-              } else if (cardelement.type === 'div') {
-                return (
-                  <div className='flex flex-col gap-1'>
-                    <h5 className='py-0 my-0'>{p.agent?.full_name}</h5>
-                    <p className='text-sm my-0 py-0'>{p.agent?.phone}</p>
-                  </div>
-                );
-              }
-            }),
-          });
-        } else if (p.agent && child.props.className?.split(' ').includes('section-big-stats')) {
-          return <RxPropertyStats property={p.property} child={child} agent={p.agent} />;
         }
         return (
           <div {...child.props}>
@@ -183,6 +81,19 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
             <Iterator {...p}>{child.props.children}</Iterator>
           </div>
         );
+      } else if (child.props?.rx === 'filters-btn-trigger') {
+        return React.cloneElement(<button type='button' />, {
+          ...child.props,
+          children: React.cloneElement(<span />, {
+            ...child.props.children.props,
+          }),
+          onClick: (evt: React.MouseEvent<HTMLButtonElement>) => {
+            switch (evt.currentTarget.textContent?.toLowerCase()) {
+              case 'change compare stats':
+                p.onClickChangeCompareStats && p.onClickChangeCompareStats();
+            }
+          },
+        });
       }
     }
     return child;
@@ -192,22 +103,95 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
 }
 
 export default function RxCustomerView(p: Props) {
+  const [hydrated, setHydrated] = React.useState(false);
+  const searchParams = useSearchParams();
   const session = useEvent(Events.LoadUserSession);
+  const lovers = useEvent(Events.LoadLovers);
   const selectPropertyEvt = useEvent(Events.SelectCustomerLovedProperty);
-  const [property, selectProperty] = React.useState<PropertyDataModel>();
-  const agent = session.data as unknown as AgentData;
+  const [properties, setProperties] = React.useState<LovedPropertyDataModel[]>([]);
+  const [property, selectProperty] = React.useState<LovedPropertyDataModel>();
+  const [agent, setAgent] = React.useState<AgentData>(session.data as unknown as AgentData);
+  const [active_tab, setSelectedTab] = React.useState<string>('Tab 1');
+  const onSelectProperty = (property: LovedPropertyDataModel) => {
+    selectPropertyEvt.fireEvent(property as unknown as EventsData);
+  };
+
+  React.useEffect(() => {
+    const tabs = session.data as unknown as {
+      [key: string]: string;
+    };
+    if (tabs['active-crm-saved-homes-view']) setSelectedTab(tabs['active-crm-saved-homes-view']);
+  }, [session]);
 
   React.useEffect(() => {
     if (selectPropertyEvt.data) {
-      selectProperty(selectPropertyEvt.data as unknown as PropertyDataModel);
+      selectProperty(selectPropertyEvt.data as unknown as LovedPropertyDataModel);
     }
   }, [selectPropertyEvt.data]);
 
+  React.useEffect(() => {
+    const { id, customers, ...selections } = session.data as unknown as AgentData;
+    const tabs = selections as unknown as {
+      [key: string]: string;
+    };
+    if (tabs['active-crm-saved-homes-view']) setSelectedTab(tabs['active-crm-saved-homes-view']);
+    if (id) {
+      setAgent(session.data as unknown as AgentData);
+      const customer_id = searchParams.get('customer') as unknown as number;
+
+      if (customer_id) {
+        if (customers && customers.length) {
+          const [record] = customers.filter((c: CustomerRecord) => c.id === Number(searchParams.get('customer')));
+          if (record) {
+            const { email, phone_number, first_name, last_name, full_name } = record;
+            setData(
+              'viewing_customer',
+              JSON.stringify({
+                email,
+                phone_number,
+                first_name,
+                last_name,
+                full_name,
+              }),
+            );
+          }
+        }
+        getLovedHomes(customer_id).then(data => {
+          if (data.properties) {
+            setProperties(data.properties);
+            lovers.fireEvent(data as unknown as EventsData);
+            let default_property = false;
+            data.properties.forEach((property: LovedPropertyDataModel) => {
+              if (property.cover_photo && !default_property) {
+                default_property = true;
+                onSelectProperty(property);
+              }
+            });
+          }
+        });
+      }
+    }
+    setHydrated(true);
+  }, []);
+
   return (
     <div {...p}>
-      <Iterator {...p} property={property} agent={agent}>
-        {p.children}
-      </Iterator>
+      {hydrated ? (
+        <Iterator
+          {...p}
+          property={property}
+          agent={agent}
+          properties={properties}
+          active-tab={active_tab}
+          onClickChangeCompareStats={() => {
+            document.getElementById('customer-view-modal-compare-filters')?.classList.add('is-really-visible');
+          }}
+        >
+          {p.children}
+        </Iterator>
+      ) : (
+        p.children
+      )}
     </div>
   );
 }

@@ -20,6 +20,8 @@ export const GQ_FRAG_AGENT_METATAG = `
       youtube_url
       mailchimp_subscription_url
       target_city
+      lat
+      lng
       search_highlights
       brokerage_name
       brokerage_id
