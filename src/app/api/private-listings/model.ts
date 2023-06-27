@@ -326,6 +326,7 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
       room_details
       roofing
       depth
+      description
       year_built
       floor_levels
       floor_area
@@ -452,6 +453,14 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
               id
               attributes {
                   name
+              }
+          }
+      }
+      property_photo_album {
+          data {
+              id
+              attributes {
+                photos
               }
           }
       }
