@@ -4,6 +4,7 @@ import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extr
 import { getResponse } from '../response-helper';
 import { getNewSessionKey, gqlFindUser } from '../update-session';
 import { CustomerRecord } from '@/_typings/customer';
+import { getGeocode } from '@/_utilities/geocoding-helper';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -214,12 +215,25 @@ export async function GET(request: Request, internal?: boolean) {
         });
       });
 
+      let metatags = agent?.agent_metatag ? agent?.agent_metatag : undefined;
+      if (metatags && metatags.target_city && !metatags.lat && !metatags.lng) {
+        const results = await getGeocode(agent.agent_metatag.target_city);
+        if (results?.geometry.location) {
+          const { lat, lng } = results?.geometry.location;
+          metatags = {
+            ...metatags,
+            lat,
+            lng,
+          };
+        }
+      }
+
       results = {
         ...agent,
         ...results,
         agent: Number(agent.id),
         agent_metatag: undefined,
-        metatags: agent?.agent_metatag ? agent?.agent_metatag : undefined,
+        metatags,
         brokerage,
         stripe_customer,
         stripe_subscriptions,

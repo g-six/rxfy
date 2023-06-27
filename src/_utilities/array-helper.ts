@@ -1,8 +1,4 @@
-export function mergeObjects(
-  arr1: any[],
-  arr2: any[],
-  id: string
-): any[] {
+export function mergeObjects(arr1: any[], arr2: any[], id: string): any[] {
   const mergedArr: any[] = [];
   const objectIds: string[] = [];
 
@@ -19,4 +15,8 @@ export function mergeObjects(
   });
 
   return mergedArr;
+}
+
+export function sortArrayAlphabetically(array: string[]): string[] {
+  return array.sort((a, b) => a.localeCompare(b));
 }
