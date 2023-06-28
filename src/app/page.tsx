@@ -56,10 +56,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
   let data, listings, property, legacy_data;
   let possible_agent = headers().get('x-agent-id');
   let profile_slug = headers().get('x-profile-slug');
-  if (params?.slug && params?.['profile-slug']) {
-    profile_slug = params?.['profile-slug'] as string;
-    possible_agent = params.slug as string;
-  }
 
   if (possible_agent && profile_slug) {
     // Check if the slug matches a realtor
