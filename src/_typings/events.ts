@@ -44,6 +44,7 @@ export enum Events {
   LoadLovers = 'evt-load-lovers',
   LoadMap = 'evt-load-map',
   CustomerDataChange = 'evt-customer-edit',
+  QueueUpload = 'evt-queue-upload',
   UploadBrokerageLogo = 'evt-upload-brokerage-logo',
   UploadOGImage = 'evt-upload-ogimage',
   UploadFavicon = 'evt-upload-favicon',

@@ -80,7 +80,7 @@ export interface BasePropertyDataModel {
   state_province?: string;
   city: string;
   mls_id: string;
-  property_type?: number;
+  property_type?: string;
   lon?: number;
   lat?: number;
   beds?: number;

@@ -5,6 +5,7 @@ import { getResponse } from '../response-helper';
 import { getNewSessionKey, gqlFindUser } from '../update-session';
 import { CustomerRecord } from '@/_typings/customer';
 import { getGeocode } from '@/_utilities/geocoding-helper';
+import { AgentData } from '@/_typings/agent';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -31,21 +32,11 @@ function isRealtorRequest(url: string) {
   if (url.indexOf('/agents/customer') > 0) return true;
   return false;
 }
-export async function GET(request: Request, internal?: boolean) {
-  const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
 
-  if (!token && isNaN(guid))
-    return getResponse(
-      {
-        error: 'Please log in',
-      },
-      401,
-    );
+export async function getUserSessionData(authorization: string, user_type: 'realtor' | 'customer') {
+  const { token, guid } = getTokenAndGuidFromSessionKey(authorization);
+  if (!token && isNaN(guid)) return { error: 'Please log in' };
 
-  let user_type: 'realtor' | 'customer' = request.url.split('/').includes('agent') ? 'realtor' : 'customer';
-  if (isRealtorRequest(request.url)) {
-    user_type = 'realtor';
-  }
   const { email, full_name, last_activity_at, expires_in, session_key, first_name, last_name, ...session_data } = await getNewSessionKey(
     token,
     guid,
@@ -228,7 +219,7 @@ export async function GET(request: Request, internal?: boolean) {
         }
       }
 
-      results = {
+      return {
         ...agent,
         ...results,
         agent: Number(agent.id),
@@ -239,7 +230,7 @@ export async function GET(request: Request, internal?: boolean) {
         stripe_subscriptions,
         subscription,
         customers,
-      };
+      } as AgentData;
     } else {
       results = {
         ...results,
@@ -247,13 +238,19 @@ export async function GET(request: Request, internal?: boolean) {
       };
     }
 
-    return request.method !== 'GET' || internal ? results : getResponse(results, 200);
+    return results;
   }
-  return getResponse(
-    {
-      token,
-      error: 'Unable to sign in. Session token is invalid.',
-    },
-    401,
-  );
+  return { error: 'Please log in' };
+}
+export async function GET(request: Request, internal?: boolean) {
+  let user_type: 'realtor' | 'customer' = request.url.split('/').includes('agent') ? 'realtor' : 'customer';
+  if (isRealtorRequest(request.url)) {
+    user_type = 'realtor';
+  }
+
+  const results = await getUserSessionData(request.headers.get('authorization') || '', user_type);
+  const { error } = results as unknown as { error: string };
+  if (error) return getResponse(results, 401);
+
+  return request.method !== 'GET' || internal ? results : getResponse(results, 200);
 }

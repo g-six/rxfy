@@ -106,22 +106,22 @@ export default function MoreFieldsModalWrapper({ child, filters, setFilters }: P
             transformChild: (child: ReactElement) => {
               return createElement('div', { className: child.props.className }, [
                 ...currentFilters
-                  .filter(it => it.label.toLocaleLowerCase().includes(searchStr))
+                  .filter(it => it.name.toLocaleLowerCase().includes(searchStr))
                   .map((f, i) => {
-                    const isPicked = checkedList?.[category]?.some(item => item === f.value) ?? false;
+                    const isPicked = checkedList?.[category]?.some(item => item === f.id) ?? false;
                     const handleCheckClick = () => {
                       const currentCat = checkedList?.[category] ?? [];
                       setCheckedList(prev => ({
                         ...prev,
-                        [category]: isPicked ? checkedList?.[category].filter(item => item !== f.value) : [...currentCat, f.value],
+                        [category]: isPicked ? checkedList?.[category].filter(item => item !== f.id) : [...currentCat, f.id],
                       }));
                     };
                     return (
                       <Checkbox
                         handleCheckList={handleCheckClick}
-                        isPicked={checkedList?.[category]?.some(item => item === f.value) ?? false}
-                        key={`${f.label}_${f.value}_${i}`}
-                        item={{ title: f.label }}
+                        isPicked={checkedList?.[category]?.some(item => item === f.id) ?? false}
+                        key={`${f.name}_${f.id}_${i}`}
+                        item={{ title: f.name }}
                         template={templates.checkboxTemplate}
                       />
                     );

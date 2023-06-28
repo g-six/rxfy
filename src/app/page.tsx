@@ -21,6 +21,7 @@ import { findAgentRecordByAgentId } from './api/agents/model';
 import NotFound from './not-found';
 import { buildCacheFiles } from './api/properties/model';
 import { getPrivateListing } from './api/private-listings/model';
+import { getUserSessionData } from './api/check-session/route';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico', 'sign-out'];
@@ -51,16 +52,12 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const axios = (await import('axios')).default;
   const url = headers().get('x-url') as string;
   const { hostname, pathname: original_path, origin } = new URL(url);
-  let pathname = original_path;
   let agent_data: AgentData | undefined = undefined;
   let data, listings, property, legacy_data;
-  let page_url = '';
   let possible_agent = headers().get('x-agent-id');
   let profile_slug = headers().get('x-profile-slug');
-  if (params?.slug && params?.['profile-slug']) {
-    profile_slug = params?.['profile-slug'] as string;
-    possible_agent = params.slug as string;
-  }
+  let session_key = cookies().get('session_key')?.value || '';
+  let session_as = cookies().get('session_as')?.value || 'customer';
 
   if (possible_agent && profile_slug) {
     // Check if the slug matches a realtor
@@ -76,48 +73,25 @@ export default async function Home({ params, searchParams }: { params: Record<st
         if (!agent_data || !metatags.profile_slug || metatags.profile_slug !== profile_slug) {
           return <NotFound id='page-1' className='profile-not-found'></NotFound>;
         }
-        pathname = pathname.split(`/${profile_slug}`).join('');
-        pathname = pathname.split(`/${possible_agent}`).join('');
-        if (pathname === '/preview') pathname = '/property/propertyid';
-        page_url = `https://${agent_data.webflow_domain || process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}${pathname}`;
       } else {
         return <NotFound id='page-2' className='invalid-profile-slug'></NotFound>;
       }
     }
+  } else if (session_key) {
+    if (session_as === 'realtor') {
+      console.log('Load agent data based on session_key', session_key);
+      // const session_data = await getUserSessionData(`Bearer ${session_key}`, 'realtor');
+      // agent_data = session_data as AgentData;
+      const [session_hash, user_id] = session_key.split('-');
+      const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
+      agent_data = session.agent;
+    } else {
+      console.log('Load customer data based on session_key', session_key);
+    }
   }
-  let session_key = cookies().get('session_key')?.value || '';
-  if (['ai', 'ai-result'].includes(`${params?.slug || ''}`)) {
-    page_url = `https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}/${params.slug || ''}`;
-  } else if (!agent_data) {
-    agent_data = await getAgentDataFromDomain(hostname === 'localhost' ? TEST_DOMAIN : hostname);
-    page_url =
-      agent_data?.webflow_domain && !['/ai', '/ai-result'].includes(pathname)
-        ? `https://${agent_data.webflow_domain}`
-        : `https://${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`;
-    // TODO: Refactor into Theme middleware
-    if (searchParams.theme) {
-      if (searchParams.theme === 'default') page_url = 'https://leagent-webflow-rebuild.webflow.io';
-      else page_url = `https://${searchParams.theme}-leagent.webflow.io`;
-    }
-    page_url = params && params.slug && !skip_slugs.includes(params.slug as string) ? `${page_url}/${params.slug}` : page_url;
-    if (params && params.slug === 'property') {
-      page_url = `${page_url}/${params.slug}id`;
-    } else if (params && params.slug === 'preview') {
-      page_url = `https://${process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}/property/propertyid`;
-    } else {
-      console.log('fetching page', page_url);
-    }
-  } else {
-    if (agent_data.webflow_domain) {
-      page_url = `https://${agent_data.webflow_domain}${pathname}`;
-    } else {
-      page_url = `https://${process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}${pathname}`;
-    }
 
-    if (params['site-page'] === 'property') page_url = `${page_url}/propertyid`;
-  }
   try {
-    const req_page_html = await axios.get(page_url);
+    const req_page_html = await axios.get(headers().get('x-url') as string);
     data = req_page_html.data;
   } catch (e) {
     console.log('Unable to fetch page html for');
@@ -132,7 +106,8 @@ export default async function Home({ params, searchParams }: { params: Record<st
     `${data}`.split('</title>').join(`</title>
   <link rel='canonical' href='${origin}${original_path}' />`),
   );
-  let { hostname: webflow_domain, pathname: slug } = new URL(page_url);
+  let { hostname: webflow_domain, pathname: slug } = new URL(headers().get('x-url') as string);
+
   $('form').removeAttr('id');
   $('form').removeAttr('name');
   if (process.env.NEXT_PUBLIC_BUY_BUTTON)

@@ -39,7 +39,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   ID_PAGE = 'total-id-card',
   PDF_PAGE = 'pdf-wrapper',
   AGENT_ID_INPUT = 'txt-agentid',
-  AGENT_MY_LISTINGS = 'dash-area',
+  AGENT_MY_LISTINGS = 'my-listings-dashboard',
   PROPERTY_MAIN_ATTRIBUTES = 'bedbath-stat-block',
   SIMILAR_LISTINGS = 'similar-homes-grid',
   HOME_SEARCH_WRAPPER = 'section---search',
@@ -83,4 +83,9 @@ export interface WebFlow {
 
 export enum WEBFLOW_THEME_DOMAINS {
   DEFAULT = 'leagent-webflow-rebuild.webflow.io',
+}
+
+export enum WEBFLOW_DASHBOARDS {
+  REALTOR = 'leagent-website.webflow.io',
+  CUSTOMER = 'leagent-webflow-rebuild.webflow.io',
 }
