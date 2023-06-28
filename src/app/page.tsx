@@ -51,7 +51,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const axios = (await import('axios')).default;
   const url = headers().get('x-url') as string;
   const { hostname, pathname: original_path, origin } = new URL(url);
-  let pathname = original_path;
   let agent_data: AgentData | undefined = undefined;
   let data, listings, property, legacy_data;
   let possible_agent = headers().get('x-agent-id');
