@@ -4,6 +4,12 @@
   }
 }
 
+.spinner {
+  @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2;
+}
+.spinner-hidden {
+  display: none;
+}
 .loading {
   @apply bg-no-repeat;
   background-image: url(/loader.svg);

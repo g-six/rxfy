@@ -11,6 +11,8 @@ import RxBrandPreferences from './realtors/brand-preferences';
 import { RxButton } from '@/components/RxButton';
 import { buildNavigationComponent } from './realtors/RxNavIterator';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
+import RxAgentMyListings from '@/components/full-pages/RxAgentMyListings';
+import { AgentData } from '@/_typings/agent';
 
 type Props = {
   className?: string;
@@ -89,7 +91,9 @@ function buildMainComponent(children: React.ReactElement[], container_props: Pro
     .map(({ props }) => {
       return (
         <div key='dash-area' className={[props.className, 'rexified'].join(' ')}>
-          <RxPageIterator session={container_props.session}>{props.children}</RxPageIterator>
+          <RxPageIterator className={props.className.split('dash-area').join(' ').trim()} session={container_props.session}>
+            {props.children}
+          </RxPageIterator>
         </div>
       );
     });
