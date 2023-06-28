@@ -249,7 +249,8 @@ export async function GET(request: Request, internal?: boolean) {
   }
 
   const results = await getUserSessionData(request.headers.get('authorization') || '', user_type);
-  if (results?.error) return getResponse(results, 401);
+  const { error } = results as unknown as { error: string };
+  if (error) return getResponse(results, 401);
 
   return request.method !== 'GET' || internal ? results : getResponse(results, 200);
 }
