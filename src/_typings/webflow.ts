@@ -84,3 +84,8 @@ export interface WebFlow {
 export enum WEBFLOW_THEME_DOMAINS {
   DEFAULT = 'leagent-webflow-rebuild.webflow.io',
 }
+
+export enum WEBFLOW_DASHBOARDS {
+  REALTOR = 'leagent-website.webflow.io',
+  CUSTOMER = 'leagent-webflow-rebuild.webflow.io',
+}

@@ -25,23 +25,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const requestLink = headers().get('x-url') || '';
   const requestUrl = new URL(requestLink);
   const searchParams = Object.fromEntries(requestUrl.searchParams);
+
+  // These variables will determine the page to be served along with the data to be injected
+  // in the Rexification process
   let data;
   let agent_data: AgentData | undefined = undefined;
   let theme = searchParams.theme;
   let webflow_domain = process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN;
-  let page_url = '';
   let agent_id = headers().get('x-agent-id');
   let profile_slug = headers().get('x-profile-slug');
-  let page_route: string[] = [];
-  if (pathname && pathname.split('/').length >= 3 && !agent_id && !profile_slug) {
-    // Check if the slug matches a realtor
-    const segments = pathname.split('/');
-    page_route = segments.slice(3);
-    if (segments[2].indexOf('la-') === 0) {
-      agent_id = segments[1];
-      profile_slug = segments[2];
-    }
-  }
 
   if (profile_slug && agent_id) {
     webflow_domain = process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN as string;
@@ -53,7 +45,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     if (agent_record) {
       // If agent does not have any webflow_domain assigned yet, use the default theme
       webflow_domain = agent_record.webflow_domain || process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN;
-      if (page_route.length) pathname = `/${page_route.join('/') || ''}`;
       agent_data = {
         ...agent_record,
       };
@@ -65,9 +56,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   if (theme && searchParams.paragon) {
-    if (['/ai', '/ai-result'].includes(pathname)) {
-      webflow_domain = 'leagent-website.webflow.io';
-    } else if (theme === 'default') {
+    if (theme === 'default') {
       webflow_domain = `${process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}`;
     } else {
       webflow_domain = `${searchParams.theme}-leagent.webflow.io`;
@@ -84,14 +73,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     webflow_domain = agent_data.webflow_domain;
   }
 
-  page_url = `https://${webflow_domain}${['/property', '/preview'].includes(pathname) ? '/property/propertyid' : pathname}`;
-
   try {
-    console.log('Load into layout:', { pathname, page_url });
-    const req_page_html = await axios.get(page_url);
+    const req_page_html = await axios.get(requestLink);
     data = req_page_html.data;
   } catch (e) {
-    console.log('Layout.tsx ERROR.  Unable to fetch page html for', page_url);
+    console.log('Layout.tsx ERROR.  Unable to fetch page html for', requestLink);
   }
 
   let property;
