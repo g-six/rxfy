@@ -28,9 +28,9 @@ export default function TabAi({ template, nextStepClick, saveAndExit, initialSta
     data.photos.forEach(({ url }) => {
       if (url) photos.push(url);
     });
-    updatePrivateListing(data.id, {
-      photos,
-    });
+    // updatePrivateListing(data.id, {
+    //   photos,
+    // });
   }
 
   const checkPrompt = React.useCallback(

@@ -7,6 +7,7 @@ import { captureMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import { getPropertyAttributes } from '@/_utilities/api-calls/call-property-attributes';
 import { createOrUpdate } from '@/_utilities/api-calls/call-private-listings';
+import { getUploadUrl } from '@/_utilities/api-calls/call-uploader';
 import useEvent, { Events } from '@/hooks/useEvent';
 
 import TabAi from './TabsContent/TabAi';
@@ -17,6 +18,7 @@ import TabRooms from './TabsContent/TabRooms/TabRooms';
 import TabStrata from './TabsContent/TabStrata';
 import TabMore from './TabsContent/TabMore';
 import TabPreview from './TabsContent/TabPreview';
+import useFormEvent, { EventsData, PrivateListingData } from '@/hooks/useFormEvent';
 
 type Props = {
   child: ReactElement;
@@ -39,8 +41,11 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, da
     'tab-more': TabMore,
     'tab-preview': TabPreview,
   };
+  const formEvt = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
   const [attributes, setAttributes] = useState<{ [key: string]: ValueInterface[] }>();
   const { fireEvent } = useEvent(Events.AgentMyListings, true);
+  const uploadEvt = useEvent(Events.QueueUpload);
+  const [uploading, toggleUploading] = useState<boolean>(false);
   const tabsTemplates = captureMatchingElements(
     child,
     Object.values(createListingTabs).map(tab => ({
@@ -48,6 +53,35 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, da
       searchFn: searchByPartOfClass([`${tab}-content`]),
     })),
   );
+
+  useEffect(() => {
+    // Monitor shifting tab focus and upload photos in queue
+    if (formEvt?.data?.photos && !uploading) {
+      toggleUploading(true);
+      Promise.all(
+        formEvt.data.photos.map(async (file, idx) => {
+          if (file.name && file.preview && data?.id) {
+            const { upload_url } = await getUploadUrl(`${agent.agent_id}/private-listings/${data.id}/${idx}-${file.name}`, file);
+
+            uploadEvt.fireEvent({
+              file,
+              upload_url,
+            } as unknown as EventsData);
+
+            return { position: idx + 1, upload_url };
+          }
+          return { position: idx + 1 };
+        }),
+      )
+        .then((uploads: { position: number; upload_url?: string }[]) => {
+          console.log({ uploads });
+        })
+        .finally(() => {
+          toggleUploading(false);
+        });
+    }
+  }, [currentTab]);
+
   useEffect(() => {
     getPropertyAttributes().then((res: { [key: string]: { id: number; name: string }[] }) => setAttributes(res));
   }, []);
