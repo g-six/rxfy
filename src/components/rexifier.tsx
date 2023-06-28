@@ -50,6 +50,7 @@ import RxSearchPlaceForm from './RxForms/RxSearchPlaceForm';
 import RxCRM from '@/rexify/realtors/RxCRM';
 import RxCRMNotes from '@/rexify/realtors/crm/CustomerNotes';
 import RxCustomerView from '@/rexify/realtors/RxCustomerView';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 
 async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
   const result = await getGeocode(target_city);
@@ -130,6 +131,7 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData, params
   }
 
   if (agent_data && agent_data.metatags?.logo_for_light_bg) {
+    const navbar_logo = agent_data.metatags?.logo_for_light_bg || agent_data.metatags?.logo_for_dark_bg;
     $('.navbar-wrapper-2 a[href="/"] img').remove();
     $('.navbar-wrapper-2 .logo---phone-email a[data-type="email"]').text(agent_data.email);
     $('.navbar-wrapper-2 .logo---phone-email a[data-type="email"]').attr(
@@ -142,9 +144,15 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData, params
     $('.navbar-wrapper-2 .logo---phone-email a[data-type="phone"]').text(agent_data.phone);
     $('.navbar-wrapper-2 > a[href="#"]').attr('href', '/');
     $('.navbar-wrapper-2 > a h3').remove();
-    replaceByCheerio($, '.navbar-wrapper-2 > a,[class^="navbar-dashboard-wrapper"] > a', {
-      content: `<img class="justify-self-start h-10" src="${agent_data.metatags.logo_for_light_bg}" />`,
-    });
+
+    if (navbar_logo) {
+      replaceByCheerio($, '.navbar-wrapper-2 > a,[class^="navbar-dashboard-wrapper"] > a', {
+        content: `<span class="justify-self-start h-10 w-10 bg-center bg-cover bg-no-repeat" style="background-image: url(${getImageSized(
+          navbar_logo,
+          48,
+        )}); width: 80px; height: 48px; display: block; background-size: contain; background-position: left center; background-repeat: no-repeat" />`,
+      });
+    }
   }
 
   // This should be last because of the logo button on the nav logic
@@ -422,7 +430,6 @@ export function rexifyScripts(html_code: string) {
  */
 export function rexify(html_code: string, agent_data?: AgentData, property: Record<string, unknown> = {}, params: Record<string, unknown> = {}) {
   // Parse and replace
-  let home_alert_index = 1;
   const options: HTMLReactParserOptions = {
     replace: node => {
       // Take out script / replace DOM placeholders with our Rexify
@@ -728,7 +735,7 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
           }
         }
         //AGENT SIDE  START
-        if (agent_data && node.attribs.class === WEBFLOW_NODE_SELECTOR.AGENT_MY_LISTINGS) {
+        if (agent_data && node.attribs.class?.split(' ').indexOf(WEBFLOW_NODE_SELECTOR.AGENT_MY_LISTINGS) >= 0) {
           return <RxAgentMyListings nodeProps={props} agent_data={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
         }
         //AGENT SIDE  END

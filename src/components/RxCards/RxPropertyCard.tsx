@@ -9,7 +9,6 @@ import useLove from '@/hooks/useLove';
 import styles from './RxPropertyCard.module.scss';
 import Cookies from 'js-cookie';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
-// import { getMLSProperty } from '@/_utilities/api-calls/call-properties';
 import { formatAddress } from '@/_utilities/string-helper';
 import axios from 'axios';
 
@@ -224,7 +223,7 @@ export default function RxPropertyCard({
       >
         {children}
       </RxComponentChomper>
-      <div role='status' className={`${isLink && is_loading ? '' : 'hidden '}absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2`}>
+      <div role='status' className={`${isLink && is_loading ? styles.visible : ''} ${styles.spinner}`}>
         <svg
           aria-hidden='true'
           className='inline w-12 h-12 mr-2 text-gray-200 animate-spin fill-slate-800/50'

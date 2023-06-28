@@ -21,6 +21,7 @@ import { findAgentRecordByAgentId } from './api/agents/model';
 import NotFound from './not-found';
 import { buildCacheFiles } from './api/properties/model';
 import { getPrivateListing } from './api/private-listings/model';
+import { getUserSessionData } from './api/check-session/route';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico', 'sign-out'];
@@ -55,6 +56,8 @@ export default async function Home({ params, searchParams }: { params: Record<st
   let data, listings, property, legacy_data;
   let possible_agent = headers().get('x-agent-id');
   let profile_slug = headers().get('x-profile-slug');
+  let session_key = cookies().get('session_key')?.value || '';
+  let session_as = cookies().get('session_as')?.value || 'customer';
 
   if (possible_agent && profile_slug) {
     // Check if the slug matches a realtor
@@ -74,8 +77,18 @@ export default async function Home({ params, searchParams }: { params: Record<st
         return <NotFound id='page-2' className='invalid-profile-slug'></NotFound>;
       }
     }
+  } else if (session_key) {
+    if (session_as === 'realtor') {
+      console.log('Load agent data based on session_key', session_key);
+      // const session_data = await getUserSessionData(`Bearer ${session_key}`, 'realtor');
+      // agent_data = session_data as AgentData;
+      const [session_hash, user_id] = session_key.split('-');
+      const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
+      agent_data = session.agent;
+    } else {
+      console.log('Load customer data based on session_key', session_key);
+    }
   }
-  let session_key = cookies().get('session_key')?.value || '';
 
   try {
     const req_page_html = await axios.get(headers().get('x-url') as string);
