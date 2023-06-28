@@ -28,8 +28,8 @@ export function getValueByKey(key: string, data: any) {
 }
 
 export function setMultiSelectValue(val: ValueInterface, currentVal: ValueInterface[]) {
-  const isIn = currentVal?.some((item: ValueInterface) => item.value === val.value);
-  const newArr = isIn ? currentVal?.filter((item: ValueInterface) => item.value !== val.value) : [...(currentVal ?? []), val];
+  const isIn = currentVal?.some((item: ValueInterface) => item.id === val.id);
+  const newArr = isIn ? currentVal?.filter((item: ValueInterface) => item.id !== val.id) : [...(currentVal ?? []), val];
   return [...newArr];
 }
 

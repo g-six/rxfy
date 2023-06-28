@@ -17,9 +17,9 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
   );
 
   const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
-  const baths_half = data?.baths_half ?? 0;
+  const half_baths = data?.half_baths ?? 0;
   const baths = data?.baths ?? 0;
-  const baths_full = parseInt(baths.toString()) - parseInt(baths_half.toString());
+  const full_baths = parseInt(baths.toString()) - parseInt(half_baths.toString());
 
   const sizesElements = [
     {
@@ -28,9 +28,10 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
         template: templates.mixedSelectInput,
         label: 'Living Area',
         inputElementProps: {
-          value: data?.living_area ?? '',
-          handleChange: (e: React.ChangeEvent<HTMLInputElement>) => fireEvent({ living_area: parseInt(e.currentTarget.value) }),
+          value: data?.floor_area_total ?? '',
+          handleChange: (e: React.ChangeEvent<HTMLInputElement>) => fireEvent({ floor_area_total: parseInt(e.currentTarget.value) }),
           inputProps: {
+            name: 'floor_area_total',
             placeholder: 'Living Area',
             type: 'number',
             min: 0,
@@ -38,12 +39,12 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
         },
         selectProps: {
           values: [
-            { value: 'sqft', label: 'Sqft' },
-            { value: 'sqm', label: 'SqM' },
-          ],
+            { id: 'sqft', name: 'Sqft' },
+            { id: 'sqm', name: 'SqM' },
+          ] satisfies ValueInterface[],
           placeholder: 'units',
-          selectedValue: data?.living_area_units,
-          handleSelect: (val: ValueInterface) => fireEvent({ living_area_units: val }),
+          selectedValue: data?.floor_area_uom,
+          handleSelect: (val: ValueInterface) => fireEvent({ floor_area_uom: val.id as string }),
         },
       },
     },
@@ -53,8 +54,10 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
         template: templates.mixedSelectInput,
         label: 'Total Lot Size',
         inputElementProps: {
-          value: data?.total_size ?? '',
-          handleChange: (e: React.ChangeEvent<HTMLInputElement>) => fireEvent({ total_size: parseInt(e.currentTarget.value) }),
+          value: data?.lot_area ?? '',
+          handleChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+            fireEvent({ lot_area: parseInt(e.currentTarget.value) });
+          },
           inputProps: {
             placeholder: 'Total Lot Size',
             type: 'number',
@@ -63,12 +66,14 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
         },
         selectProps: {
           values: [
-            { value: 'sqft', label: 'Sqft' },
-            { value: 'sqm', label: 'SqM' },
-          ],
+            { id: 'sqft', name: 'Sqft' },
+            { id: 'sqm', name: 'SqM' },
+          ] satisfies ValueInterface[],
           placeholder: 'units',
-          selectedValue: data?.total_size_units,
-          handleSelect: (val: ValueInterface) => fireEvent({ total_size_units: val }),
+          selectedValue: data?.lot_uom,
+          handleSelect: (val: ValueInterface) => {
+            fireEvent({ lot_uom: val.id as string });
+          },
         },
       },
     },
@@ -98,11 +103,11 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
       label: '# of Full Baths',
       inputProps: {
         placeholder: '# of Full Baths',
-        name: 'baths_full',
+        name: 'full_baths',
         type: 'number',
         min: 0,
         disabled: true,
-        value: baths_full > 0 ? baths_full : 0,
+        value: full_baths > 0 ? full_baths : 0,
       },
       generatedPrompt: '',
     },
@@ -110,7 +115,7 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
       label: '# of Half Baths',
       inputProps: {
         placeholder: '# of Half Baths',
-        name: 'baths_half',
+        name: 'half_baths',
         type: 'number',
         min: 0,
       },
@@ -157,9 +162,9 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
             const value = getValueByKey(field.inputProps.name, data);
             const valueAlternative = data?.generatedPrompt ? getValueByKey(field.generatedPrompt, data.generatedPrompt as object) : null;
             if (valueAlternative && (value === undefined || value === null)) {
-              fireEvent({ [field.inputProps.name]: valueAlternative, baths_full: baths_full });
-            } else if (data && data.baths_full !== baths_full) {
-              fireEvent({ baths_full: baths_full });
+              fireEvent({ [field.inputProps.name]: valueAlternative, full_baths: full_baths });
+            } else if (data && data.full_baths !== full_baths) {
+              fireEvent({ full_baths: full_baths });
             }
             return (
               <InputWithLabel
@@ -171,7 +176,7 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
                 handleChange={e =>
                   fireEvent({
                     [field.inputProps.name]: parseInt(e.currentTarget.value),
-                    baths_full: baths_full,
+                    full_baths: full_baths,
                   })
                 }
               />

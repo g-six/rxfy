@@ -12,7 +12,7 @@ interface SelectProps {
   toggleClassNames: string[];
   placeholder?: string;
   // optional:
-  selectedValue?: ValueInterface | null;
+  selectedValue?: ValueInterface | string | number | null;
   values: ValueInterface[];
   handleSelect: (value: ValueInterface) => void;
   toggleStyle?: object;
@@ -20,7 +20,7 @@ interface SelectProps {
   wrapperStyle?: object;
 }
 
-export default function RxSelect(props: SelectProps) {
+export default function RxSelect({ selectedValue, ...props }: SelectProps) {
   const setRefsToggle = useRef(new Map()).current;
   const setRefsMenu = useRef(new Map()).current;
 
@@ -38,7 +38,13 @@ export default function RxSelect(props: SelectProps) {
     {
       searchFn: searchByPartOfClass(['paragraph-small']),
       transformChild: child => {
-        const selectedLabel = props?.selectedValue?.label || props?.placeholder || child.props.children;
+        const selectedLabel =
+          selectedValue instanceof Object
+            ? selectedValue.name
+            : typeof selectedValue === 'string' || typeof selectedValue === 'number'
+            ? props.values.find(value => value.id === selectedValue)?.name
+            : props?.placeholder || child.props.children;
+
         return cloneElement(child, {}, selectedLabel);
       },
     },
@@ -73,15 +79,15 @@ export default function RxSelect(props: SelectProps) {
           },
           [
             <div key={0} className='dropdown-wrap overflow-y-auto max-h-56'>
-              {props.values.map(({ value, label }, i) => (
+              {props.values.map(({ id, name }, i) => (
                 <a
                   className='dropdown-link w-dropdown-link w-full cursor-pointer'
-                  key={`${value}_${i}`}
+                  key={`${id}_${i}`}
                   onClick={() => {
-                    handleCloseClick({ value, label });
+                    handleCloseClick({ id, name });
                   }}
                 >
-                  {label}
+                  {name}
                 </a>
               ))}
             </div>,

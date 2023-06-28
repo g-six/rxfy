@@ -204,6 +204,9 @@ export const mapFeatures = (property: PropertyDataModel) => {
 };
 
 function getIcon(input: string) {
+  if (!input || !input.replace) {
+    return {};
+  }
   switch (toKebabCase(input)) {
     case 'central-air-conditioning':
     case 'air-conditioning':
@@ -241,7 +244,6 @@ function getIcon(input: string) {
       return {
         'Garbage Disposal': 'disposal',
       };
-
     default:
       return {};
   }

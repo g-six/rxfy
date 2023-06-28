@@ -12,7 +12,7 @@ export default function BathsGroup({ heading, rooms, headingTemplate, checkboxTe
     <>
       {cloneElement(headingTemplate, {}, [heading ?? ''])}
       {Array.from({ length: rooms }, (_, index) => index).map(idx => (
-        <div key={`bedroom_${idx}`} className={`${rowClassName} flex gap-5`}>
+        <div key={`${heading}_${idx}`} className={`${rowClassName} flex gap-5`}>
           {inputsRowTemaplate.map(input => {
             const key = input.inputProps.name;
             const val = data && data[idx] ? getValueByKey(key, data[idx]) : undefined;

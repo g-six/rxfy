@@ -73,15 +73,15 @@ export default async function Home({ params, searchParams }: { params: Record<st
           ...agent_record,
         };
 
-        // if (params?.['site-page']) pathname = params['site-page'] as string;
         if (!agent_data || !metatags.profile_slug || metatags.profile_slug !== profile_slug) {
-          return <NotFound></NotFound>;
+          return <NotFound id='page-1' className='profile-not-found'></NotFound>;
         }
         pathname = pathname.split(`/${profile_slug}`).join('');
         pathname = pathname.split(`/${possible_agent}`).join('');
+        if (pathname === '/preview') pathname = '/property/propertyid';
         page_url = `https://${agent_data.webflow_domain || process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}${pathname}`;
       } else {
-        return <NotFound></NotFound>;
+        return <NotFound id='page-2' className='invalid-profile-slug'></NotFound>;
       }
     }
   }
@@ -102,10 +102,8 @@ export default async function Home({ params, searchParams }: { params: Record<st
     page_url = params && params.slug && !skip_slugs.includes(params.slug as string) ? `${page_url}/${params.slug}` : page_url;
     if (params && params.slug === 'property') {
       page_url = `${page_url}/${params.slug}id`;
-      console.log('fetching property page', page_url);
     } else if (params && params.slug === 'preview') {
       page_url = `https://${process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}/property/propertyid`;
-      console.log('fetching preview property page', page_url);
     } else {
       console.log('fetching page', page_url);
     }
@@ -116,15 +114,13 @@ export default async function Home({ params, searchParams }: { params: Record<st
       page_url = `https://${process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}${pathname}`;
     }
 
-    if (params['site-page'] === 'property') page_url = `${page_url}/propertyid' : ''}`;
+    if (params['site-page'] === 'property') page_url = `${page_url}/propertyid`;
   }
-
   try {
-    console.log('Fetch data for:', { agent_id: agent_data?.agent_id, page_url });
     const req_page_html = await axios.get(page_url);
     data = req_page_html.data;
   } catch (e) {
-    console.log('Unable to fetch page html for', page_url);
+    console.log('Unable to fetch page html for');
   }
 
   if (typeof data !== 'string') {
@@ -270,6 +266,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     }
 
     if (params.slug === 'preview' && searchParams.lid) {
+      // property = await getPrivateListing(Number(searchParams.lid));
       property = await getPrivateListing(Number(searchParams.lid));
     } else if (
       params &&
@@ -324,6 +321,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   } else {
     console.log(hostname, 'is being treated as webflow site:', process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN);
   }
+
   const webflow: WebFlow = {
     head: {
       props: {

@@ -16,8 +16,8 @@ export default function ChipsList({ template, chipsList, values, handleSelect }:
   return (
     <div className={template.props.className}>
       {chipsList.map(item => {
-        const isSelected = values.some(typeVal => typeVal.value === item.value);
-        return <ChipListItem key={item.value} chip={chip} isSelected={isSelected} item={item} handleSelect={handleSelect} />;
+        const isSelected = values.some(typeVal => typeVal.id === item.id);
+        return <ChipListItem key={item.id} chip={chip} isSelected={isSelected} item={item} handleSelect={handleSelect} />;
       })}
     </div>
   );
