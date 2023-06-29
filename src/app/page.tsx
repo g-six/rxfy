@@ -1,3 +1,4 @@
+import './globals.scss';
 import parse from 'html-react-parser';
 import { AxiosError } from 'axios';
 import Image from 'next/image';
@@ -21,7 +22,6 @@ import { findAgentRecordByAgentId } from './api/agents/model';
 import NotFound from './not-found';
 import { buildCacheFiles } from './api/properties/model';
 import { getPrivateListing } from './api/private-listings/model';
-import { getUserSessionData } from './api/check-session/route';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico', 'sign-out'];
