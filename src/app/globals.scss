@@ -131,3 +131,6 @@
 .stat-description {
   white-space: pre-line;
 }
+.hidden-block {
+  @apply hidden #{!important};
+}

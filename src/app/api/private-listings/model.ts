@@ -322,7 +322,49 @@ export async function getPrivateListing(id: number) {
     };
   }
 }
-export async function getPrivateListingsByRealtorId(realtor_id: number) {
+export async function deletePrivateListing(id: number) {
+  try {
+    const response = await axios.post(
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+      {
+        query: gql_delete,
+        variables: {
+          id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+    if (response.data?.errors) {
+      return {
+        error: 'GraphQL Error',
+        code: 400,
+        errors: response.data?.errors.map((error: { message: string; extensions: unknown }) => {
+          console.log(JSON.stringify(error.extensions, null, 4));
+          return error.message;
+        }),
+      };
+    }
+
+    return {
+      ...response.data.data.listing.record.attributes,
+      id,
+    };
+  } catch (e) {
+    const axerr = e as AxiosError;
+    console.log(axerr);
+    console.log(JSON.stringify(axerr.response?.data || {}, null, 4));
+    return {
+      error: 'Caught error in private-listings/model.deletePrivateListing',
+      id,
+    };
+  }
+}
+export async function getPrivateListingsByRealtorId(realtor_id: number, size = 25, from = 0) {
   try {
     const response = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
@@ -330,6 +372,8 @@ export async function getPrivateListingsByRealtorId(realtor_id: number) {
         query: gql_retrieve,
         variables: {
           realtor_id,
+          from,
+          size,
         },
       },
       {
@@ -426,6 +470,7 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
     id
     attributes {
       title
+      status
       building_unit
       city
       neighbourhood
@@ -614,9 +659,14 @@ const gql_get = `query GetPrivateListing($id: ID!) {
       record: ${GQ_DATA_FRAG_PRIVATE_LISTING}
   }
 }`;
+const gql_delete = `mutation DeletePrivateListing($id: ID!) {
+  listing: deletePrivateListing(id: $id) {
+      record: ${GQ_DATA_FRAG_PRIVATE_LISTING}
+  }
+}`;
 
-const gql_retrieve = `query GetMyPrivateListings($realtor_id: ID!) {
-    listings: privateListings(filters: { realtor: { id: { eq: $realtor_id } } }) {
+const gql_retrieve = `query GetMyPrivateListings($realtor_id: ID!, $size: Int!, $from: Int!) {
+    listings: privateListings(filters: { realtor: { id: { eq: $realtor_id } } }, pagination: { limit: $size, start: $from }, sort: "updatedAt:desc") {
         records: ${GQ_DATA_FRAG_PRIVATE_LISTING}
     }
 }`;

@@ -6,6 +6,10 @@ import { PrivateListingInput } from '@/_typings/private-listing';
 
 export async function GET(req: NextRequest) {
   const { token, guid } = getTokenAndGuidFromSessionKey(req.headers.get('authorization') || '');
+  const { searchParams } = new URL(req.url);
+
+  const from = Number(searchParams.get('from') || '0');
+  const size = Number(searchParams.get('limit') || '25');
 
   if (!token && isNaN(guid))
     return getResponse(
@@ -16,7 +20,7 @@ export async function GET(req: NextRequest) {
     );
   // We'll handle photos after creation of the listing
   try {
-    const records = await getPrivateListingsByRealtorId(Number(guid));
+    const records = await getPrivateListingsByRealtorId(Number(guid), size, from);
 
     return getResponse({ records });
   } catch (e) {

@@ -27,6 +27,28 @@ export async function createPrivateListing(listing: PrivateListingInput) {
   }
 }
 
+export async function deletePrivateListing(id: number) {
+  try {
+    const record = await axios.delete(`/api/private-listings/${id}`, {
+      headers: {
+        Authorization: `Bearer ${Cookies.get('session_key')}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return record.data;
+  } catch (e) {
+    const { response } = e as AxiosError;
+    if (response && response.data) {
+      return response;
+    }
+    return {
+      error: 'Unhandled error',
+      path: 'api-calls/call-private-listings',
+      subroutine: 'createPrivateListing',
+    };
+  }
+}
+
 export async function updatePrivateListing(id: number, updates: Record<string, unknown>) {
   try {
     const record = await axios.put(`/api/private-listings/${id}`, updates, {

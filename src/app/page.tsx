@@ -186,6 +186,16 @@ export default async function Home({ params, searchParams }: { params: Record<st
     }
   }
 
+  replaceByCheerio($, '.w--active', {
+    removeClassName: 'w--active',
+  });
+  replaceByCheerio($, '.w--tab-active', {
+    removeClassName: 'w--tab-active',
+  });
+  replaceByCheerio($, '.modal-base.existing', {
+    className: 'hidden-block',
+  });
+
   replaceByCheerio($, '.w-nav-menu .nav-dropdown-2', {
     className: 'nav-menu-list-wrapper',
   });

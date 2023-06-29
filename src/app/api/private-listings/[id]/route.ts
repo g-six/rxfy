@@ -1,9 +1,49 @@
 import { NextRequest } from 'next/server';
-import { getPrivateListing, updatePrivateListing, updatePrivateListingAlbum } from '@/app/api/private-listings/model';
+import { deletePrivateListing, getPrivateListing, updatePrivateListing, updatePrivateListingAlbum } from '@/app/api/private-listings/model';
 import { getResponse } from '@/app/api/response-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { PrivateListingInput } from '@/_typings/private-listing';
+import { getNewSessionKey } from '../../update-session';
 
+export async function DELETE(req: NextRequest) {
+  const { token, guid } = getTokenAndGuidFromSessionKey(req.headers.get('authorization') || '');
+
+  if (!token && isNaN(guid))
+    return getResponse(
+      {
+        error: 'Please log in',
+      },
+      401,
+    );
+  try {
+    // deletePrivateListing
+    const id = Number(new URL(req.url).pathname.split('/').pop());
+    const record = await getPrivateListing(id);
+    if (record.realtor.id === guid) {
+      const { session_key } = await getNewSessionKey(token, guid, 'realtor');
+      if (session_key) {
+        await deletePrivateListing(id);
+        return getResponse({
+          record,
+          session_key,
+        });
+      } else {
+        return getResponse(
+          {
+            error: 'Delete is not allowed',
+          },
+          401,
+        );
+      }
+    } else {
+      console.log(record.realtor);
+    }
+    return getResponse(record);
+  } catch (e) {
+    console.log('Error in private-listings.POST');
+    console.error(e);
+  }
+}
 export async function PUT(req: NextRequest) {
   const { token, guid } = getTokenAndGuidFromSessionKey(req.headers.get('authorization') || '');
 
