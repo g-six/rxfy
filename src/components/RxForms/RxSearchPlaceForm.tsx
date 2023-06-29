@@ -6,7 +6,6 @@ type Props = {
 };
 function Iterator(p: Props & { id?: string; 'data-session': unknown; onClick: React.MouseEventHandler }) {
   const collection = React.Children.map(p.children, child => {
-    console.log(child.type);
     if (!child.props) {
       return child;
     } else if (typeof child.props.children === 'string') {
