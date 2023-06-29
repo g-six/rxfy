@@ -11,6 +11,7 @@ import SearchAddressCombobox from '@/_replacers/FilterFields/SearchAddressCombob
 import RxDragNDrop from '@/components/RxDragNDrop';
 import RxDropzone from '@/components/RxDropzone';
 import useDebounce from '@/hooks/useDebounce';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 
 export default function TabAi({ template, nextStepClick, saveAndExit, data, fireEvent }: TabContentProps) {
   // const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
@@ -18,12 +19,16 @@ export default function TabAi({ template, nextStepClick, saveAndExit, data, fire
 
   // Upload photos one data has been created - this is just a quick and dirty solution
   // Rosty / Sasha please refactor this as you see fit.
-  if (data?.id && data?.upload_queue && data?.photos && data.photos.filter(({ url }: { url: any }) => url).length === data?.upload_queue.total) {
-    // Photo upload completed, update listing
-    let photos: string[] = [];
-    data.photos.forEach(({ url }: { url: any }) => {
-      if (url) photos.push(url);
-    });
+  if (data?.id) {
+    document.querySelector('.tab-ai-content .get-started')?.classList.add('hidden-block');
+    document.querySelector('.tab-ai-content .existing')?.classList.remove('hidden-block');
+    if (data?.upload_queue && data?.photos && data.photos.filter(({ url }: { url: any }) => url).length === data?.upload_queue.total) {
+      // Photo upload completed, update listing
+      let photos: string[] = [];
+      data.photos.forEach(({ url }: { url: any }) => {
+        if (url) photos.push(url);
+      });
+    }
   }
 
   const checkPrompt = React.useCallback(
@@ -91,7 +96,11 @@ export default function TabAi({ template, nextStepClick, saveAndExit, data, fire
     {
       searchFn: searchByPartOfClass(['image-bank']),
       transformChild: child => {
-        const photos = data?.photos ? data.photos : [];
+        const photos = data?.photos
+          ? data.photos.map((image: unknown) => {
+              return typeof image === 'string' ? { preview: getImageSized(image, 80) } : image;
+            })
+          : [];
         return photos?.length > 0 ? <RxDragNDrop files={photos} template={child} reorderFiles={reorderFiles} deleteFile={deleteFile} /> : <></>;
       },
     },
