@@ -25,13 +25,14 @@ export function middleware(request: NextRequest) {
   } else if (segments[0] === 'map') {
     response.headers.set('x-viewer', 'customer');
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/map`;
-  } else if (segments.length > 2 && segments[1].indexOf('la-') === 0) {
+  } else if (segments.length >= 2 && segments[1].indexOf('la-') === 0) {
     response.headers.set('x-agent-id', segments[0]);
     response.headers.set('x-profile-slug', segments[1]);
     response.headers.set('x-viewer', 'customer');
 
     if (segments[2] === 'map') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/map`;
     else if (segments[2] === 'property') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/property/propertyid`;
+    else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}`;
   } else if (pathname === '/') {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}`;
   } else {
