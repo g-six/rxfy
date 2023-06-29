@@ -37,13 +37,11 @@ export default function MyListingsTab({ child, isActive, setCurrentTab, createAn
 
   useEffect(() => {
     if (data?.metadata?.id) {
-      console.log('fired');
       setPrivateListings(prev => [...prev.map(it => (it.id === data.metadata.id ? { ...it, ...data.metadata } : it))]);
       fireEvent({ metadata: undefined });
     }
   }, [data?.metadata, fireEvent]);
 
-  console.log(privateListings);
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['f-button-neutral-5', 'w-button']),
@@ -71,7 +69,19 @@ export default function MyListingsTab({ child, isActive, setCurrentTab, createAn
           child,
           {},
           isActive
-            ? privateListings.map((it, i) => <MyListingPrivateCard key={i} template={templates.privateCard} property={it} changeTab={setCurrentTab} />)
+            ? privateListings.map((it, i) => (
+                <MyListingPrivateCard
+                  key={i}
+                  template={templates.privateCard}
+                  property={it}
+                  changeTab={setCurrentTab}
+                  onDelete={() => {
+                    getMyPrivateListings().then(res => {
+                      setPrivateListings(res.records);
+                    });
+                  }}
+                />
+              ))
             : [],
         ),
     },

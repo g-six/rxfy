@@ -4,16 +4,17 @@ import RxDropMenu from '@/components/RxForms/RxDropMenu';
 import React, { ReactElement, cloneElement } from 'react';
 import MyListingsCard from './MyListingsCard';
 import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
-import { updatePrivateListing } from '@/_utilities/api-calls/call-private-listings';
+import { deletePrivateListing, updatePrivateListing } from '@/_utilities/api-calls/call-private-listings';
 import useEvent from '@/hooks/useEvent';
 import { convertToRooms } from '@/_helpers/mls-mapper';
 type Props = {
   template: ReactElement;
   property: any;
   changeTab: () => void;
+  onDelete: () => void;
 };
 
-export default function MyListingPrivateCard({ template, property, changeTab }: Props) {
+export default function MyListingPrivateCard({ template, property, changeTab, onDelete }: Props) {
   const { fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, {}, true);
   const { fireEvent: fireListingUpdate } = useEvent(Events.AgentMyListings, true);
   const dropdownMatches: tMatch[] = [
@@ -59,8 +60,7 @@ export default function MyListingPrivateCard({ template, property, changeTab }: 
       transformChild: child =>
         cloneElement(child, {
           onClick: () => {
-            changeTab();
-            // fireEvent({ ...property, ...convertToRooms(property?.room_details), ...convertToRooms(property?.bathroom_details), noMerge: true });
+            deletePrivateListing(property.id).then(onDelete);
           },
         }),
     },
