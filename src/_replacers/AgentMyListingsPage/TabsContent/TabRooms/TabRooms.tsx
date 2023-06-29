@@ -150,7 +150,6 @@ export default function TabRooms({ template, nextStepClick, data, fireEvent }: T
         cloneElement(child, {
           onClick: () => {
             nextStepClick();
-            // console.log(convertToDetails(data, ['beds_dimensions', 'kitchen_dimensions', 'additional_dimensions', 'garage_dimensions']));
           },
         }),
     },
