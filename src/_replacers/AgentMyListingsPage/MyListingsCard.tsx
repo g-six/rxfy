@@ -33,7 +33,7 @@ export default function MyListingsCard({ template, property }: Props) {
     },
     {
       searchFn: searchByClasses(['property-price']),
-      transformChild: child => cloneElement(child, {}, [property.asking_price ? `$${parseInt(property.asking_price).toLocaleString()}` : 'Price Uknown']),
+      transformChild: child => cloneElement(child, {}, [property.asking_price ? `$${parseInt(property.asking_price).toLocaleString()}` : 'Price not set']),
     },
     {
       searchFn: searchByClasses(['area-block']),
