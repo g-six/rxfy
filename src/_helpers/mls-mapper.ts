@@ -26,6 +26,7 @@ export function convertPropertyDataToPrivateListing(prop: PropertyDataModel, pho
     asking_price: prop.asking_price.toString(),
     floor_area_total: prop?.floor_area_total,
     year_built: prop?.year_built,
+    status: prop?.status,
     // property_type: { id: , name: prop.property_type },
     state_province: prop.state_province,
     city: prop.city,
@@ -48,10 +49,10 @@ export function convertPrivateListingToPropertyData(prop: PrivateListingData): a
     //TAB AI
     // mls_id: prop?.id?.toString() ?? '',
     title: prop?.title ?? '',
-    description: prop?.prompt,
-    photos: cdnPhotos ? cdnPhotos : [],
+    // photos: cdnPhotos ? cdnPhotos : [],
     //TAB ADDRESS
-    state_province: prop.state_province,
+
+    state_province: prop?.state_province,
     city: prop?.city ?? '',
     building_unit: prop?.building_unit,
     region: prop?.region ?? '',
@@ -61,12 +62,12 @@ export function convertPrivateListingToPropertyData(prop: PrivateListingData): a
     // area: prop?.living_area?.toString() ?? '', ----- WHAT INPUT IS RESPONSIBLE FOR IT
     //TAB SUMMARY
     dwelling_type: prop?.dwelling_type?.id,
-    asking_price: prop?.asking_price ? parseInt(prop.asking_price) : 0,
+    asking_price: prop?.asking_price ? parseInt(prop.asking_price) : undefined,
     //building_style: prop?.building_style?.id, ---- MISSING IN PRIVATE LISTINGS MODEL
     year_built: prop?.year_built,
     property_disclosure: prop?.property_disclosure,
-    gross_taxes: prop?.gross_taxes ? parseFloat(prop.gross_taxes) : 0,
-    tax_year: prop?.tax_year ? parseInt(prop.tax_year) : 0,
+    gross_taxes: prop?.gross_taxes ? parseFloat(prop.gross_taxes) : undefined,
+    tax_year: prop?.tax_year ? parseInt(prop.tax_year) : undefined,
     amenities: prop?.amenities?.map(it => it.id),
     connected_services: prop?.connected_services?.map(it => it.id),
     //TAB SIZE
@@ -78,7 +79,14 @@ export function convertPrivateListingToPropertyData(prop: PrivateListingData): a
     baths: prop.baths,
     full_baths: prop?.full_baths ?? prop?.baths,
     half_baths: prop?.half_baths,
+    total_kitchens: prop?.total_kitchens,
+    total_additional_rooms: prop?.total_additional_rooms,
+    total_garage: prop?.total_garage,
     ///  TAB SIZE MISSING A LOT OF STUFF ON PRIVATE LISTINGS : MISMATCHES WITH TYPES ETC...
+
+    // TAB ROOMS
+    room_details: JSON.stringify(convertToDetails(prop, ['beds_dimensions', 'kitchen_dimensions', 'additional_dimensions', 'garage_dimensions']), null, 4),
+    bathroom_details: JSON.stringify(convertToDetails(prop, ['baths_full_dimensions', 'baths_half_dimensions']), null, 4),
 
     // TAB STRATA
     building_bylaws: prop?.building_bylaws,
@@ -91,5 +99,34 @@ export function convertPrivateListingToPropertyData(prop: PrivateListingData): a
     total_allowed_rentals: prop?.total_allowed_rentals,
     complex_compound_name: prop?.complex_compound_name,
     council_approval_required: prop?.council_approval_required,
+
+    //TAB PREVIEW
+    status: prop?.status,
+    description: prop?.description,
   };
 }
+
+export const convertToDetails = (data: any, keys: string[]) => {
+  let room_details: any[] = [];
+  for (let i = 0; i < keys?.length; i++) {
+    const currItem: any = data[keys[i]];
+
+    if (currItem && currItem?.length > 0) {
+      currItem.forEach((item: any) => {
+        room_details.push({ ...item, type: keys[i] });
+      });
+    }
+  }
+  return room_details;
+};
+export const convertToRooms = (details: any) => {
+  const dataToUpdate: any = {};
+  if (details && details?.length > 0) {
+    details.forEach((item: any) => {
+      if (item.type) {
+        dataToUpdate[item.type] = [...(dataToUpdate[item.type] ?? []), { ...item }];
+      }
+    });
+  }
+  return dataToUpdate;
+};

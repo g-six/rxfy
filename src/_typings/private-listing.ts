@@ -1,14 +1,14 @@
 export interface PrivateListingModel {
-  title: string;
-  lat: number;
-  lon: number;
-  area: string;
-  city: string;
-  beds: number;
-  baths: number;
-  postal_zip_code: string;
-  state_province: string;
-  status: 'active' | 'draft' | 'sold' | 'terminated';
+  title?: string;
+  lat?: number;
+  lon?: number;
+  area?: string;
+  city?: string;
+  beds?: number;
+  baths?: number;
+  postal_zip_code?: string;
+  state_province?: string;
+  status?: 'active' | 'draft' | 'sold' | 'terminated';
   price_per_sqft?: number;
   asking_price?: number;
   year_built?: number;
@@ -69,9 +69,10 @@ export interface PrivateListingModel {
   total_cats_allowed?: number;
   total_dogs_allowed?: number;
   total_units_in_community?: number;
+  photos?: string[];
 }
 export interface PrivateListingInput extends PrivateListingModel {
-  dwelling_type: number;
+  dwelling_type?: number;
   amenities?: number[];
   appliances?: number[];
   building_maintenance_items?: number[];

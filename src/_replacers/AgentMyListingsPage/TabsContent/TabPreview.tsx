@@ -1,23 +1,96 @@
 import axios from 'axios';
-import React, { cloneElement } from 'react';
+import React, { ReactElement, cloneElement, createElement } from 'react';
 
 import { TabContentProps } from '@/_typings/agent-my-listings';
-import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
+import { searchByClasses, searchByPartOfClass, searchByProp } from '@/_utilities/rx-element-extractor';
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
-
-import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
 import { AgentMetatags } from '@/_typings/agent';
 import { domToReact, htmlToDOM } from 'html-react-parser';
 import Image from 'next/image';
 
-export default function TabPreview({ template, initialState, agent }: TabContentProps) {
-  const { data } = useFormEvent<PrivateListingData & { page_url: string }>(Events.PrivateListingForm, initialState);
+export default function TabPreview({ template, data, fireEvent, agent, nextStepClick }: TabContentProps) {
   const [lid, setLid] = React.useState<number | undefined>(data?.id);
   const [image, setImage] = React.useState<React.ReactElement>();
+  const [newDescr, setNewDescr] = React.useState<string>(data?.description);
   const matches: tMatch[] = [
+    {
+      searchFn: searchByClasses(['publish']),
+      transformChild: child => {
+        const isActive = data?.status?.toLowerCase() === 'active';
+        return createElement(
+          'button',
+          {
+            className: child.props.className,
+            onClick: () => {
+              fireEvent({ status: isActive ? 'draft' : 'active' });
+
+              nextStepClick(
+                () => {
+                  setImage(undefined);
+                  loadPreview();
+                },
+                { status: isActive ? 'draft' : 'active' },
+              );
+            },
+          },
+          [isActive ? 'Set as Draft' : 'Publish'],
+        );
+      },
+    },
+    {
+      searchFn: searchByClasses(['badge-small-dot']),
+      transformChild: child => {
+        const cloned = cloneElement(
+          child,
+          {},
+          transformMatchingElements(<>{child.props.children}</>, [
+            { searchFn: searchByPartOfClass(['text-block']), transformChild: child => cloneElement(child, {}, [data?.status ?? 'Unpublished']) },
+          ]) as ReactElement[],
+        );
+
+        return cloned;
+      },
+    },
     {
       searchFn: searchByPartOfClass(['pl-preview-wrapper']),
       transformChild: child => cloneElement(child, {}),
+    },
+    {
+      searchFn: searchByPartOfClass(['description-input']),
+      transformChild: child =>
+        cloneElement(child, {
+          value: newDescr,
+          onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+            setNewDescr(e.currentTarget.value);
+          },
+        }),
+    },
+    {
+      searchFn: searchByPartOfClass(['reset']),
+      transformChild: child =>
+        cloneElement(child, {
+          onClick: (e: React.SyntheticEvent<HTMLButtonElement>) => {
+            e.preventDefault();
+            setNewDescr(data?.description ?? '');
+          },
+        }),
+    },
+    {
+      searchFn: searchByPartOfClass(['save']),
+      transformChild: child =>
+        cloneElement(child, {
+          onClick: (e: React.SyntheticEvent<HTMLButtonElement>) => {
+            e.preventDefault();
+            fireEvent({ description: newDescr });
+            nextStepClick(
+              () => {
+                setImage(undefined);
+                loadPreview();
+              },
+              { description: newDescr },
+            );
+          },
+        }),
     },
   ];
 

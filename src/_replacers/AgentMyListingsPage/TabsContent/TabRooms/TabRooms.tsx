@@ -1,5 +1,4 @@
-import React, { cloneElement, useState } from 'react';
-
+import React, { cloneElement, useEffect, useState } from 'react';
 import { captureMatchingElements, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import { TabContentProps } from '@/_typings/agent-my-listings';
@@ -9,32 +8,46 @@ import RoomsGroup from './RoomsGroup';
 import BathsGroup from './BathroomsGroup';
 
 import useFormEvent, { Events, PrivateListingData, getValueByKey } from '@/hooks/useFormEvent';
+import { convertToDetails } from '@/_helpers/mls-mapper';
 
 function getInitialData(key: string, count: number, data: any) {
   return data && data[key]
-    ? data[key]
+    ? [...data[key]]
     : Array.from({ length: count }, (_, index) => index).reduce((a: RoomDimension[]) => {
         a.push({});
         return a;
       }, []);
 }
 
-export default function TabRooms({ template, nextStepClick, initialState }: TabContentProps) {
-  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
+export default function TabRooms({ template, nextStepClick, data, fireEvent }: TabContentProps) {
+  const setDimension = (type: string, index: number, param: string, val: string | boolean) => {
+    let newData = getValueByKey(type, data);
 
-  const setDimension = React.useCallback(
-    (type: string, index: number, param: string, val: string | boolean) => {
-      let newData = getValueByKey(type, data);
-      if (newData && newData[index]) {
-        newData[index] = Object.assign({}, newData[index], { [param]: val });
-      } else {
-        newData = [{ [param]: val }];
-      }
-      fireEvent({ [type]: newData });
-    },
-    [data, fireEvent],
-  );
+    if (newData && newData[index]) {
+      newData[index] = Object.assign({}, newData[index], { [param]: val });
+    } else {
+      newData = [{ [param]: val }];
+    }
 
+    fireEvent({ [type]: [...newData] });
+  };
+
+  useEffect(() => {
+    const { beds_dimensions, baths_full_dimensions, baths_half_dimensions, kitchen_dimensions, additional_dimensions, garage_dimensions } = data || {};
+    const fireEventParams = {
+      ...(data?.beds && !beds_dimensions && { beds_dimensions: getInitialData('beds_dimensions', data.beds, data) }),
+      ...(data?.full_baths && !baths_full_dimensions && { baths_full_dimensions: getInitialData('baths_full_dimensions', data.full_baths, data) }),
+      ...(data?.half_baths && !baths_half_dimensions && { baths_half_dimensions: getInitialData('baths_half_dimensions', data.half_baths, data) }),
+      ...(data?.total_kitchens && !kitchen_dimensions && { kitchen_dimensions: getInitialData('kitchen_dimensions', data.total_kitchens, data) }),
+      ...(data?.total_additional_rooms &&
+        !additional_dimensions && { additional_dimensions: getInitialData('additional_dimensions', data.total_additional_rooms, data) }),
+      ...(data?.total_garage && !garage_dimensions && { garage_dimensions: getInitialData('garage_dimensions', data.total_garage, data) }),
+    };
+    Object.keys(fireEventParams)?.length > 0 &&
+      fireEvent({
+        ...fireEventParams,
+      });
+  }, []);
   const [templates] = useState(
     captureMatchingElements(template, [
       { elementName: 'heading', searchFn: searchByPartOfClass(['f-sub-heading-small']) },
@@ -55,31 +68,8 @@ export default function TabRooms({ template, nextStepClick, initialState }: TabC
     {
       searchFn: searchByPartOfClass(['f-account-form-block']),
       transformChild: child => {
-        if (
-          !data?.beds_dimensions ||
-          !data?.baths_full_dimensions ||
-          !data?.baths_half_dimensions ||
-          !data?.kitchen_dimensions ||
-          !data?.additional_dimensions ||
-          !data?.garage_dimensions
-        ) {
-          const beds_dim = getInitialData('beds_dimensions', data?.beds ?? 0, data);
-          const bath_full_dim = getInitialData('baths_full_dimensions', data?.full_baths ?? 0, data);
-          const bath_half_dim = getInitialData('baths_half_dimensions', data?.half_baths ?? 0, data);
-          const kitchens_dim = getInitialData('kitchen_dimensions', data?.kitchens ?? 0, data);
-          const additional_dim = getInitialData('additional_dimensions', data?.additional_rooms ?? 0, data);
-          const garage_dim = getInitialData('garage_dimensions', data?.garage ?? 0, data);
-          fireEvent({
-            beds_dimensions: beds_dim,
-            baths_full_dimensions: bath_full_dim,
-            baths_half_dimensions: bath_half_dim,
-            kitchen_dimensions: kitchens_dim,
-            additional_dimensions: additional_dim,
-            garage_dimensions: garage_dim,
-          });
-        }
         return cloneElement(child, {}, [
-          data?.beds ? (
+          !!data?.beds && (
             <RoomsGroup
               heading='Bedrooms'
               key={0}
@@ -87,13 +77,11 @@ export default function TabRooms({ template, nextStepClick, initialState }: TabC
               {...prepdTemplates}
               data={data?.beds_dimensions}
               onChange={(index, param, val) => {
-                setDimension('garage_dimensions', index, param, val);
+                setDimension('beds_dimensions', index, param, val);
               }}
             />
-          ) : (
-            <></>
           ),
-          data?.full_baths ? (
+          !!data?.full_baths && (
             <BathsGroup
               heading='Full Baths'
               key={1}
@@ -101,14 +89,11 @@ export default function TabRooms({ template, nextStepClick, initialState }: TabC
               {...prepdTemplates}
               data={data?.baths_full_dimensions}
               onChange={(index, param, val) => {
-                console.log('Full Baths', { index, param, val });
                 setDimension('baths_full_dimensions', index, param, val);
               }}
             />
-          ) : (
-            <></>
           ),
-          data?.half_baths ? (
+          !!data?.half_baths && (
             <BathsGroup
               heading='Half Baths'
               key={2}
@@ -119,57 +104,55 @@ export default function TabRooms({ template, nextStepClick, initialState }: TabC
                 setDimension('baths_half_dimensions', index, param, val);
               }}
             />
-          ) : (
-            <></>
           ),
-          data?.kitchens ? (
+          !!data?.total_kitchens && (
             <RoomsGroup
               heading='Kitchens'
               key={3}
-              rooms={data.kitchens}
+              rooms={data.total_kitchens}
               {...prepdTemplates}
               data={data?.kitchen_dimensions}
               onChange={(index, param, val) => {
-                setDimension('garage_dimensions', index, param, val);
+                setDimension('kitchen_dimensions', index, param, val);
               }}
             />
-          ) : (
-            <></>
           ),
-          data?.additional_rooms ? (
+          !!data?.total_additional_rooms && (
             <RoomsGroup
               heading='Additional Rooms'
               key={4}
-              rooms={data.additional_rooms}
+              rooms={data.total_additional_rooms}
               {...prepdTemplates}
               data={data?.additional_dimensions}
               onChange={(index, param, val) => {
-                setDimension('garage_dimensions', index, param, val);
+                setDimension('additional_dimensions', index, param, val);
               }}
             />
-          ) : (
-            <></>
           ),
-          data?.garage ? (
+          !!data?.total_garage && (
             <RoomsGroup
               heading='Garage'
               key={5}
-              rooms={data.garage}
+              rooms={data.total_garage}
               {...prepdTemplates}
               data={data?.garage_dimensions}
               onChange={(index, param, val) => {
                 setDimension('garage_dimensions', index, param, val);
               }}
             />
-          ) : (
-            <></>
           ),
         ]);
       },
     },
     {
       searchFn: searchByPartOfClass(['f-button-neutral', 'w-button']),
-      transformChild: child => cloneElement(child, { onClick: nextStepClick }),
+      transformChild: child =>
+        cloneElement(child, {
+          onClick: () => {
+            nextStepClick();
+            // console.log(convertToDetails(data, ['beds_dimensions', 'kitchen_dimensions', 'additional_dimensions', 'garage_dimensions']));
+          },
+        }),
     },
   ];
   return <>{transformMatchingElements(template, matches)}</>;

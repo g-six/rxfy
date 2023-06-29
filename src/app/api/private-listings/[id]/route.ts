@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getPrivateListing, updatePrivateListing } from '@/app/api/private-listings/model';
+import { getPrivateListing, updatePrivateListing, updatePrivateListingAlbum } from '@/app/api/private-listings/model';
 import { getResponse } from '@/app/api/response-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { PrivateListingInput } from '@/_typings/private-listing';
@@ -16,7 +16,17 @@ export async function PUT(req: NextRequest) {
     );
   try {
     const updates: PrivateListingInput = await req.json();
-    const record = await updatePrivateListing(Number(new URL(req.url).pathname.split('/').pop()), updates, token, Number(guid));
+    let { photos, property_photo_album, ...listing } = updates;
+    if (photos && photos.length) {
+      const updated_album = await updatePrivateListingAlbum(photos, property_photo_album);
+      if (updated_album?.id) {
+        listing = {
+          ...listing,
+          property_photo_album: updated_album.id,
+        } as unknown as PrivateListingInput;
+      }
+    }
+    const record = await updatePrivateListing(Number(new URL(req.url).pathname.split('/').pop()), listing, token, Number(guid));
     if (record.error) {
       const { error, errors, code } = record;
       return getResponse(

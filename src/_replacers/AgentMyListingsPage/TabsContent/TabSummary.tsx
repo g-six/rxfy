@@ -1,16 +1,13 @@
 import React, { cloneElement, useState } from 'react';
-
 import { TabContentProps } from '@/_typings/agent-my-listings';
 import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import { captureMatchingElements, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
-
 import ChipsWithLabel from '@/_replacers/FilterFields/ChipsWithLabel';
 import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
 import SelectWithLabel from '@/_replacers/FilterFields/SelectWithLabel';
+import { getValueByKey, setMultiSelectValue } from '@/hooks/useFormEvent';
 
-import useFormEvent, { Events, PrivateListingData, getValueByKey, setMultiSelectValue } from '@/hooks/useFormEvent';
-
-export default function TabSummary({ template, nextStepClick, attributes, initialState }: TabContentProps) {
+export default function TabSummary({ template, nextStepClick, attributes, data, fireEvent }: TabContentProps) {
   const { building_styles, connected_services, amenities, types } = attributes || {};
 
   const [templates] = useState(
@@ -21,8 +18,6 @@ export default function TabSummary({ template, nextStepClick, attributes, initia
     ]),
   );
 
-  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
-  console.log(data);
   const summaryFields = [
     {
       label: 'Property Type',

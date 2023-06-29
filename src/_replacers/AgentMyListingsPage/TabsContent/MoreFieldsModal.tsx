@@ -17,7 +17,7 @@ export default function MoreFieldsModalWrapper({ child, filters, setFilters }: P
   const [category, setCategory] = useState<string>(categories[0].value);
   const [checkedList, setCheckedList] = useState<{ [key: string]: (string | number)[] }>({});
   const [searchStr, setSearchStr] = useState<string>('');
-  console.log(checkedList);
+
   const templatesToFind = [
     {
       elementName: 'tabTemplate',

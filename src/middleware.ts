@@ -50,7 +50,5 @@ export function middleware(request: NextRequest) {
     response.headers.set(`x-${name.split('_').join('-')}`, value);
   });
 
-  console.log('Middleware set page url to', page_url);
-
   return response;
 }

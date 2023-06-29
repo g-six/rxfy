@@ -7,9 +7,9 @@ import useFormEvent, { Events, PrivateListingData, getValueByKey } from '@/hooks
 import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
 import MapsTabs from './MapsTabs';
 
-export default function TabAddress({ template, nextStepClick, initialState, saveAndExit }: TabContentProps) {
+export default function TabAddress({ template, nextStepClick, data, fireEvent, saveAndExit }: TabContentProps) {
   const [templates] = useState(captureMatchingElements(template, [{ elementName: 'input', searchFn: searchByPartOfClass(['f-field-wrapper']) }]));
-  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
+  // const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
   const coords =
     (data?.lon &&
       data?.lat && {
@@ -64,7 +64,7 @@ export default function TabAddress({ template, nextStepClick, initialState, save
     },
   ];
   const blockNext = () => ![data?.postal_zip_code, data?.state_province].every(Boolean);
-  console.log(blockNext());
+
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['virtual-tours-inputs']),

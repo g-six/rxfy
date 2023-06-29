@@ -6,6 +6,7 @@ import MyListingsCard from './MyListingsCard';
 import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
 import { updatePrivateListing } from '@/_utilities/api-calls/call-private-listings';
 import useEvent from '@/hooks/useEvent';
+import { convertToRooms } from '@/_helpers/mls-mapper';
 type Props = {
   template: ReactElement;
   property: any;
@@ -13,7 +14,7 @@ type Props = {
 };
 
 export default function MyListingPrivateCard({ template, property, changeTab }: Props) {
-  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
+  const { fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, {}, true);
   const { fireEvent: fireListingUpdate } = useEvent(Events.AgentMyListings, true);
   const dropdownMatches: tMatch[] = [
     {
@@ -21,23 +22,45 @@ export default function MyListingPrivateCard({ template, property, changeTab }: 
       transformChild: child => {
         const isDraft = property?.status.toLowerCase() === 'draft';
 
-        return cloneElement(child, {
-          style: isDraft ? { display: 'none' } : {},
-          onClick: () => {
-            updatePrivateListing(property.id, { status: 'draft' }).then(() => {
-              fireListingUpdate({ metadata: { ...property, status: 'draft' } });
-            });
+        return cloneElement(
+          child,
+          {
+            // style: isDraft ? { display: 'none' } : {},
+            onClick: () => {
+              updatePrivateListing(property.id, { status: !isDraft ? 'draft' : 'active' }).then(res => {
+                fireListingUpdate({ metadata: { ...property, ...res } });
+              });
+            },
           },
-        });
+          [isDraft ? `Publish` : `Save as Draft`],
+        );
       },
+    },
+    {
+      searchFn: searchByClasses(['view-listing']),
+      transformChild: child =>
+        cloneElement(child, {
+          href: property.page_url,
+          target: '_blank',
+        }),
     },
     {
       searchFn: searchByClasses(['edit-listing']),
       transformChild: child =>
         cloneElement(child, {
           onClick: () => {
-            fireEvent({ ...property });
             changeTab();
+            fireEvent({ ...property, ...convertToRooms(property?.room_details), ...convertToRooms(property?.bathroom_details), noMerge: true });
+          },
+        }),
+    },
+    {
+      searchFn: searchByClasses(['delete-listing']),
+      transformChild: child =>
+        cloneElement(child, {
+          onClick: () => {
+            changeTab();
+            // fireEvent({ ...property, ...convertToRooms(property?.room_details), ...convertToRooms(property?.bathroom_details), noMerge: true });
           },
         }),
     },
@@ -52,9 +75,11 @@ export default function MyListingPrivateCard({ template, property, changeTab }: 
             wrapperNode={child}
             menuClassNames={['dropdown-list']}
             toggleClassNames={['dropdown-toggle', 'w-dropdown-toggle']}
+            wrapperStyle={{ zIndex: 'unset' }}
+            // toggleStyle={{ zIndex: 'unset' }}
             menuRenderer={(child: ReactElement) => {
               return (
-                <nav className={`${child.props.className} w--open w-max min-w-max`} style={{ display: 'block' }}>
+                <nav className={`${child.props.className} w--open w-max min-w-max`} style={{ display: 'block', zIndex: 'unset' }}>
                   {transformMatchingElements(child.props.children, dropdownMatches)}
                 </nav>
               ) as ReactElement;

@@ -4,11 +4,13 @@ import { ValueInterface } from '@/_typings/ui-types';
 import { TabContentProps } from '@/_typings/agent-my-listings';
 import { captureMatchingElements, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
+
 import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
 import InputWithSelect from '@/_replacers/FilterFields/InputWithSelect';
-import useFormEvent, { Events, PrivateListingData, getValueByKey } from '@/hooks/useFormEvent';
 
-export default function TabSize({ template, nextStepClick, initialState }: TabContentProps) {
+import { getValueByKey } from '@/hooks/useFormEvent';
+
+export default function TabSize({ template, nextStepClick, data, fireEvent }: TabContentProps) {
   const [templates] = useState(
     captureMatchingElements(template, [
       { elementName: 'mixedSelectInput', searchFn: searchByPartOfClass(['mixed-select-input']) },
@@ -16,7 +18,6 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
     ]),
   );
 
-  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
   const half_baths = data?.half_baths ?? 0;
   const baths = data?.baths ?? 0;
   const full_baths = parseInt(baths.toString()) - parseInt(half_baths.toString());
@@ -125,7 +126,7 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
       label: '# of Kitchens',
       inputProps: {
         placeholder: '# of Kitchens',
-        name: 'kitchens',
+        name: 'total_kitchens',
         type: 'number',
         min: 0,
       },
@@ -135,7 +136,7 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
       label: '# of Additional Rooms',
       inputProps: {
         placeholder: '# of Additional Rooms',
-        name: 'additional_rooms',
+        name: 'total_additional_rooms',
         type: 'number',
         min: 0,
       },
@@ -145,7 +146,7 @@ export default function TabSize({ template, nextStepClick, initialState }: TabCo
       label: '# of Garage',
       inputProps: {
         placeholder: '# of Garage',
-        name: 'garage',
+        name: 'total_garage',
         type: 'number',
         min: 0,
       },

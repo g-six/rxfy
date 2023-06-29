@@ -23,7 +23,7 @@ export interface SelectPropsInterface {
 export interface RoomDimension {
   name?: string;
   level?: string;
-  dimension1?: string;
-  dimension2?: string;
+  width?: string;
+  length?: string;
   ensuite?: boolean;
 }

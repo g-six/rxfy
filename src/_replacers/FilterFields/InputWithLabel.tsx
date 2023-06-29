@@ -21,7 +21,6 @@ export default function InputWithLabel({ template, label, inputProps, value, han
       transformChild: child => {
         return (
           <Input
-            key={1}
             template={child}
             value={value}
             onChange={handleChange}

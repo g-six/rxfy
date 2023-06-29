@@ -8,9 +8,9 @@ import Checkbox from '@/_replacers/FilterFields/CheckBox';
 import ChipsWithLabel from '@/_replacers/FilterFields/ChipsWithLabel';
 import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
 
-import useFormEvent, { Events, getValueByKey, PrivateListingData, setMultiSelectValue } from '@/hooks/useFormEvent';
+import { getValueByKey, setMultiSelectValue } from '@/hooks/useFormEvent';
 
-export default function TabStrata({ template, nextStepClick, attributes, initialState }: TabContentProps) {
+export default function TabStrata({ template, nextStepClick, attributes, data, fireEvent }: TabContentProps) {
   const { amenities } = attributes;
   const [templates] = useState(
     captureMatchingElements(template, [
@@ -20,7 +20,6 @@ export default function TabStrata({ template, nextStepClick, attributes, initial
     ]),
   );
 
-  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
   const selectedChips = getValueByKey('amenities', data);
 
   const inputs = [
@@ -101,7 +100,11 @@ export default function TabStrata({ template, nextStepClick, attributes, initial
                 label={field.label}
                 template={templates.input}
                 value={val}
-                handleChange={e => fireEvent({ [field.inputProps.name]: e.currentTarget.value })}
+                handleChange={e => {
+                  const newValue = field?.inputProps.type === 'number' ? parseInt(e.currentTarget.value) : e.currentTarget.value;
+
+                  fireEvent({ [field.inputProps.name]: newValue });
+                }}
               />
             );
           }),

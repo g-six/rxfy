@@ -12,12 +12,14 @@ type Props = {
   isActive: boolean;
   child: ReactElement;
   setCurrentTab: () => void;
+  createAndChangeTab: () => void;
 };
 
-export default function MyListingsTab({ child, isActive, setCurrentTab }: Props) {
+export default function MyListingsTab({ child, isActive, setCurrentTab, createAndChangeTab }: Props) {
   const { data, fireEvent } = useEvent(Events.AgentMyListings);
   const [MLSListings, setMLSListings] = useState<any[]>([]);
   const [privateListings, setPrivateListings] = useState<any[]>([]);
+
   const [templates] = useState(
     captureMatchingElements(child, [
       { elementName: 'privateCard', searchFn: searchByClasses(['private-listing-card']) },
@@ -35,12 +37,23 @@ export default function MyListingsTab({ child, isActive, setCurrentTab }: Props)
 
   useEffect(() => {
     if (data?.metadata?.id) {
+      console.log('fired');
       setPrivateListings(prev => [...prev.map(it => (it.id === data.metadata.id ? { ...it, ...data.metadata } : it))]);
       fireEvent({ metadata: undefined });
     }
   }, [data?.metadata, fireEvent]);
+
+  console.log(privateListings);
   const matches: tMatch[] = [
-    { searchFn: searchByClasses(['f-button-neutral-5', 'w-button']), transformChild: child => cloneElement(child, { onClick: () => {} }) },
+    {
+      searchFn: searchByClasses(['f-button-neutral-5', 'w-button']),
+      transformChild: child =>
+        cloneElement(child, {
+          onClick: () => {
+            createAndChangeTab();
+          },
+        }),
+    },
     {
       searchFn: searchByClasses(['my-listings-tab-content']),
       transformChild: child =>
@@ -57,7 +70,9 @@ export default function MyListingsTab({ child, isActive, setCurrentTab }: Props)
         cloneElement(
           child,
           {},
-          privateListings.map((it, i) => <MyListingPrivateCard key={i} template={templates.privateCard} property={it} changeTab={setCurrentTab} />),
+          isActive
+            ? privateListings.map((it, i) => <MyListingPrivateCard key={i} template={templates.privateCard} property={it} changeTab={setCurrentTab} />)
+            : [],
         ),
     },
   ];

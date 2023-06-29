@@ -18,7 +18,7 @@ export default function BathsGroup({ heading, rooms, headingTemplate, checkboxTe
             const val = data && data[idx] ? getValueByKey(key, data[idx]) : undefined;
             return (
               <InputWithLabel
-                key={`${input.label}_${idx}`}
+                key={`${input.label}_${idx}_${heading}`}
                 label={input.label}
                 value={val}
                 handleChange={e => onChange(idx, key, e.currentTarget.value)}

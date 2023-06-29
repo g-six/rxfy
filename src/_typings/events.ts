@@ -121,7 +121,7 @@ export interface PrivateListingData extends FormData {
   };
   strapi?: object;
   photos?: ImagePreview[];
-
+  status?: string;
   // Address
   region?: string;
   building_unit?: string;
@@ -153,9 +153,11 @@ export interface PrivateListingData extends FormData {
   baths?: number;
   full_baths?: number;
   half_baths?: number;
-  kitchens?: number;
+  total_kitchens?: number;
   additional_rooms?: number;
+  total_additional_rooms?: number;
   garage?: number;
+  total_garage?: number;
 
   // Rooms
   beds_dimensions?: RoomDimension[];
@@ -178,6 +180,9 @@ export interface PrivateListingData extends FormData {
   building_amenities?: ValueInterface[];
   council_approval_required?: boolean;
   locked?: boolean;
+
+  //Preview
+  description?: string;
 
   // Not to be saved in Strapi
   upload_queue?: {

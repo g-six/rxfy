@@ -1,8 +1,9 @@
 import React from 'react';
-
+import cloneDeep from 'lodash.clonedeep';
 import { deepEqual } from '@/_helpers/functions';
 import { ValueInterface } from '@/_typings/ui-types';
 import { Events, PrivateListingData, FormData } from '@/_typings/events';
+import { removeKeys } from '@/_helpers/dom-manipulators';
 
 export interface ImagePreview extends File {
   preview: string;
@@ -17,7 +18,7 @@ function throwIfNotFormData(value: any): asserts value is FormData {
 }
 
 export function getValueByKey(key: string, data: any) {
-  const obj = data as Object;
+  const obj = { ...cloneDeep(data) } as Object;
   const keyIndex =
     obj && Object.keys(obj).length
       ? Object.keys(obj).reduce((foundIndex, k, i) => {
@@ -36,6 +37,7 @@ export function setMultiSelectValue(val: ValueInterface, currentVal: ValueInterf
 export default function useFormEvent<EventsFormData>(
   eventName: Events,
   initialState?: EventsFormData | {} | undefined,
+  onlyFire?: Boolean,
 ): { data?: EventsFormData; fireEvent: (data: EventsFormData) => void } {
   const [data, setData] = React.useState(initialState as EventsFormData);
 
@@ -51,32 +53,34 @@ export default function useFormEvent<EventsFormData>(
 
   const onEvent = React.useCallback(
     (e: CustomEvent) => {
-      const newData = Object.assign({}, data, e.detail);
+      if (!onlyFire) {
+        const newData = Object.assign({}, data, e.detail);
 
-      // we want to have diff of the objects (base and full)
-      // to have data of the form only (objForm)
-      const objBase = e.detail as FormData;
-      const objFull = newData as EventsFormData;
-      const objForm = Object.keys(objFull as object).reduce((obj, key) => {
-        if (!Object.keys(objBase).includes(key)) {
-          const o = objFull as unknown as object;
-          const keyIndex = Object.keys(o).reduce((foundIndex, k, i) => {
-            return k === key ? i + 1 : foundIndex;
-          }, 0);
-          const value = keyIndex ? Object.values(o)[keyIndex - 1] : '';
-          obj = Object.assign({}, { [key]: value });
+        // we want to have diff of the objects (base and full)
+        // to have data of the form only (objForm)
+        const objBase = e.detail as FormData;
+        const objFull = newData as EventsFormData;
+        const objForm = Object.keys(objFull as object).reduce((obj, key) => {
+          if (!Object.keys(objBase).includes(key)) {
+            const o = objFull as unknown as object;
+            const keyIndex = Object.keys(o).reduce((foundIndex, k, i) => {
+              return k === key ? i + 1 : foundIndex;
+            }, 0);
+            const value = keyIndex ? Object.values(o)[keyIndex - 1] : '';
+            obj = Object.assign({}, { [key]: value });
+          }
+          return obj;
+        }, {});
+
+        // if this hook listens a new subscriber, we broadcast the current state of the form
+        if (newData.subscribe && Object.keys(objForm).length) {
+          fireEvent(Object.assign({}, objForm, { subscribe: false }) as EventsFormData);
+        } else if (!deepEqual(data, newData)) {
+          setData(prev => ({ ...(e?.detail?.noMerge ? {} : prev), ...(removeKeys(e.detail, ['noMerge']) as EventsFormData), subscribe: false }));
         }
-        return obj;
-      }, {});
-
-      // if this hook listens a new subscriber, we broadcast the current state of the form
-      if (newData.subscribe && Object.keys(objForm).length) {
-        fireEvent(Object.assign({}, objForm, { subscribe: false }) as EventsFormData);
-      } else if (!deepEqual(newData, data)) {
-        setData(prev => ({ ...prev, ...e.detail, subscribe: false }));
       }
     },
-    [data, fireEvent],
+    [data, fireEvent, onlyFire],
   );
 
   React.useEffect(() => {
@@ -87,12 +91,13 @@ export default function useFormEvent<EventsFormData>(
   React.useEffect(() => {
     // we fire an event here only one time
     // to communicate that there is another listener to this form state
+
     setTimeout(() => {
       fireEvent({ subscribe: true } as EventsFormData);
     }, 500);
   }, [fireEvent]);
 
-  return { data, fireEvent };
+  return !onlyFire ? { data, fireEvent } : { fireEvent };
 }
 
 export { Events } from '@/_typings/events';

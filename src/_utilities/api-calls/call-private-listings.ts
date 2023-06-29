@@ -1,9 +1,9 @@
+import { PrivateListingData } from '@/hooks/useFormEvent';
 import axios, { AxiosError } from 'axios';
 import { PrivateListingInput, PrivateListingOutput } from '@/_typings/private-listing';
 import Cookies from 'js-cookie';
 import { toKebabCase } from '../string-helper';
 import { convertPrivateListingToPropertyData } from '@/_helpers/mls-mapper';
-import { PrivateListingData } from '@/hooks/useFormEvent';
 
 export async function createPrivateListing(listing: PrivateListingInput) {
   try {
@@ -97,7 +97,7 @@ export async function uploadListingPhoto(file: File, index: number, listing: Pri
   return axios
     .post(
       '/api/private-listings/upload',
-      { name: `${listing.id}-${toKebabCase(listing.title)}/${index.toString().padStart(3, '0')}-${file.name}`, type: file.type },
+      { name: `${listing.id}-${toKebabCase(listing?.title ?? '')}/${index.toString().padStart(3, '0')}-${file.name}`, type: file.type },
       {
         headers: {
           Authorization: `Bearer ${Cookies.get('session_key')}`,
@@ -114,34 +114,31 @@ export async function uploadListingPhoto(file: File, index: number, listing: Pri
 }
 
 export function createOrUpdate(data: PrivateListingData, callback: (data: any) => void) {
-  if (!!data.title) {
-    if (!data.id) {
-      createPrivateListing(convertPrivateListingToPropertyData(data))
-        .then(record => record.data)
-        .then((rec: PrivateListingOutput) => {
-          console.log('rec', rec);
-          if (data.photos && rec.id) {
-            let count = 0;
-            if (data && data.upload_queue?.count) {
-              count = data.upload_queue.count as number;
-            }
-            data?.photos?.map((photo: File, cnt: number) => {
-              uploadListingPhoto(photo, cnt + 1, rec).then((upload_item: { success: boolean; upload_url: string; file_path: string }) => {
-                axios.put(upload_item.upload_url, photo, { headers: { 'Content-Type': photo.type } }).then(() => {
-                  count++;
-                  if (data.photos && data.photos[cnt]) {
-                    data.photos[cnt].url = 'https://' + new URL(upload_item.upload_url).pathname.substring(1);
-                  }
-                });
+  if (!data.id) {
+    createPrivateListing(convertPrivateListingToPropertyData(data))
+      .then(record => record.data)
+      .then((rec: PrivateListingOutput) => {
+        if (data.photos && rec.id) {
+          let count = 0;
+          if (data && data.upload_queue?.count) {
+            count = data.upload_queue.count as number;
+          }
+          data?.photos?.map((photo: File, cnt: number) => {
+            uploadListingPhoto(photo, cnt + 1, rec).then((upload_item: { success: boolean; upload_url: string; file_path: string }) => {
+              axios.put(upload_item.upload_url, photo, { headers: { 'Content-Type': photo.type } }).then(() => {
+                count++;
+                if (data.photos && data.photos[cnt]) {
+                  data.photos[cnt].url = 'https://' + new URL(upload_item.upload_url).pathname.substring(1);
+                }
               });
             });
-          }
-        })
-        .then(res => callback(res));
-    } else {
-      updatePrivateListing(data.id, convertPrivateListingToPropertyData(data))
-        .then(record => record.data)
-        .then(res => callback(res));
-    }
+          });
+        }
+      })
+      .then(res => callback(res));
+  } else {
+    updatePrivateListing(data.id, convertPrivateListingToPropertyData(data))
+      .then(record => record)
+      .then(res => callback(res));
   }
 }

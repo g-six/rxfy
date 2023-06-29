@@ -16,12 +16,16 @@ export default function MyListingsCard({ template, property }: Props) {
     active: 'status-active bg-green-400',
     terminated: 'status-sold bg-red-400',
   };
-  const bg: string = property_bg[property?.status.toLowerCase() ?? 'draft'];
+  const bg: string = property_bg[property?.status?.toLowerCase() ?? 'draft'];
 
   const matches: tMatch[] = [
     {
+      searchFn: searchByClasses(['view-listing-button']),
+      transformChild: child => cloneElement(child, { href: `/MBAPPE/la-pacific/property?mls=R2729988` }),
+    },
+    {
       searchFn: searchByClasses(['propcard-image']),
-      transformChild: child => cloneElement(child, { style: { background: 'url(),   #00000010' } }),
+      transformChild: child => cloneElement(child, { style: { backgroundImage: `url(${property.cover_photo})`, backgroundPosition: 'center' } }),
     },
     {
       searchFn: searchByClasses(['propcard-address']),
