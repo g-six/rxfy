@@ -123,9 +123,51 @@ export const prepareStats = (
   const record = property as unknown as { [key: string]: string | number };
 
   const aggregatedArray = Object.entries(stats).map(([key, label]) => {
+    let value = record[key] as string | number | undefined; // Type assertion for property[key]
+
+    if (typeof record[key] === 'object' && ['bathroom_details', 'room_details'].includes(key)) {
+      let new_value = '';
+      Object.keys(record[key]).forEach(k => {
+        const kv = record[key] as unknown as {
+          [field: string]: unknown;
+        };
+        if (Array.isArray(kv[k])) {
+          new_value = `${new_value} ${(kv[k] as { [deepk: string]: string }[])
+            .map(obj_value => {
+              return Object.keys(obj_value)
+                .map((objk: string) => {
+                  if (obj_value[objk]) {
+                    if (key === 'bathroom_details') {
+                      if (objk === 'ensuite') {
+                        return [obj_value['level'] ? obj_value['level'] + ' lvl' : '', obj_value[objk].toLowerCase() === 'yes' ? ' ensuite' : '', ' bathroom']
+                          .join('')
+                          .trim();
+                      }
+                      return;
+                    }
+                    if (objk === 'width') {
+                      return;
+                    } else if (objk === 'length') {
+                      return `${obj_value['width']} x ${obj_value[objk]}`;
+                    }
+
+                    return obj_value[objk];
+                  }
+                })
+                .filter(v => v)
+                .join(' • ');
+            })
+            .join('\n')}`;
+        }
+      });
+      if (new_value.trim()) {
+        value = new_value;
+      }
+    }
+
     return {
       label: label,
-      value: record[key] as string | number | undefined, // Type assertion for property[key]
+      value,
     };
   });
   return aggregatedArray.filter(item => item?.value);

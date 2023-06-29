@@ -1,4 +1,4 @@
-import { MLSProperty, PropertyDataModel } from '@/_typings/property';
+import { BathroomDetails, MLSProperty, PropertyDataModel, RoomDetails } from '@/_typings/property';
 import { PrivateListingData } from '@/_typings/events';
 import { ImagePreview } from '@/hooks/useFormEvent';
 
@@ -117,7 +117,7 @@ export const convertToDetails = (data: any, keys: string[]) => {
       });
     }
   }
-  return room_details;
+  return { room_details };
 };
 export const convertToRooms = (details: any) => {
   const dataToUpdate: any = {};
@@ -130,3 +130,101 @@ export const convertToRooms = (details: any) => {
   }
   return dataToUpdate;
 };
+
+const MAX_NUM_OF_ROOMS = 50;
+export function roomsToRoomDetails(mls_data: MLSProperty) {
+  const rooms: RoomDetails[] = [];
+  for (let num = 1; num <= MAX_NUM_OF_ROOMS; num++) {
+    if (mls_data[`L_Room${num}_Type`]) {
+      rooms.push({
+        type: (mls_data[`L_Room${num}_Type`] as string) || '',
+        length: (mls_data[`L_Room${num}_Dimension1`] as string) || '',
+        width: (mls_data[`L_Room${num}_Dimension2`] as string) || '',
+        level: (mls_data[`L_Room${num}_Level`] as string) || '',
+      });
+    }
+  }
+  if (mls_data.L_MainLevelBedrooms) {
+    for (let num = 1; num <= Number(mls_data.L_MainLevelBedrooms); num++) {
+      rooms.push({
+        type: 'Bedroom',
+        length: '',
+        width: '',
+        level: 'Main',
+      });
+    }
+  }
+  if (mls_data.L_MainLevelKitchens) {
+    for (let num = 1; num <= Number(mls_data.L_MainLevelKitchens); num++) {
+      rooms.push({
+        type: 'Kitchen',
+        length: '',
+        width: '',
+        level: 'Main',
+      });
+    }
+  }
+  if (mls_data.L_MainLevelKitchens) {
+    for (let num = 1; num <= Number(mls_data.L_MainLevelKitchens); num++) {
+      rooms.push({
+        type: 'Kitchen',
+        length: '',
+        width: '',
+        level: 'Main',
+      });
+    }
+  }
+  ['Second', 'Third', 'Fourth'].forEach(lvl => {
+    if (mls_data[`L_BedroomsCount${lvl}Level`]) {
+      for (let num = 1; num <= Number(mls_data[`L_BedroomsCount${lvl}Level`]); num++) {
+        rooms.push({
+          type: 'Bedroom',
+          length: '',
+          width: '',
+          level: `${lvl} Level`,
+        });
+      }
+    }
+    if (mls_data[`L_Kitchens${lvl}Level`]) {
+      for (let num = 1; num <= Number(mls_data[`L_Kitchens${lvl}Level`]); num++) {
+        rooms.push({
+          type: 'Kitchen',
+          length: '',
+          width: '',
+          level: `${lvl} Level`,
+        });
+      }
+    }
+  });
+
+  return { rooms };
+}
+export function bathroomsToBathroomDetails(mls_data: MLSProperty) {
+  const baths: BathroomDetails[] = [];
+  for (let num = 1; num <= MAX_NUM_OF_ROOMS; num++) {
+    if (mls_data[`L_Bath${num}_Pcs`]) {
+      const ensuite = (mls_data[`L_Bath${num}_Ensuite`] as string) || 'No';
+      baths.push({
+        ensuite,
+        pieces: (mls_data[ensuite === 'No' ? `L_Bath${num}_Pcs` : 'L_BathEnsuite_Pcs'] as number) || (mls_data[`L_Bath${num}_Pcs`] as number) || 1,
+        level: (mls_data[`L_Room${num}_Level`] as string) || '',
+      });
+    }
+  }
+  if (mls_data.L_MainLevelBathrooms) {
+    for (let num = 1; num <= Number(mls_data.L_MainLevelBathrooms); num++) {
+      baths.push({
+        level: 'Main',
+      });
+    }
+  }
+  if (mls_data.L_BathroomsCountLowerLevel) {
+    for (let num = 1; num <= Number(mls_data.L_BathroomsCountLowerLevel); num++) {
+      baths.push({
+        level: 'Lower Level',
+      });
+    }
+  }
+
+  return { baths };
+}

@@ -345,6 +345,7 @@ export async function getPrivateListingsByRealtorId(realtor_id: number) {
         record.attributes.status = record.attributes.status || 'draft';
         let page_url = `/property?lid=${record.id}`;
         let cover_photo = '/house-placeholder.png';
+        let photos: string[] = [];
         Object.keys(record.attributes).forEach(key => {
           const attributes = record.attributes as unknown as { [key: string]: any };
 
@@ -360,7 +361,8 @@ export async function getPrivateListingsByRealtorId(realtor_id: number) {
               });
             } else if (key === 'property_photo_album') {
               if (attributes[key].data) {
-                let [first] = attributes[key].data.attributes.photos || [];
+                photos = attributes[key].data.attributes.photos || [];
+                let [first] = photos;
                 if (first) {
                   cover_photo = getImageSized(first, 256);
                 }
@@ -396,6 +398,7 @@ export async function getPrivateListingsByRealtorId(realtor_id: number) {
           ...record.attributes,
           page_url,
           cover_photo,
+          photos,
           id: Number(record.id),
         };
       });
