@@ -39,6 +39,7 @@ import RxMySavedHomesDashBoard from './full-pages/RxMySavedHomesDashBoard';
 import RxIdPage from './full-pages/RxIdPage';
 import RxMyHomeAlerts from './full-pages/RxMyHomeAlerts';
 import RxAgentMyListings from './full-pages/RxAgentMyListings';
+import RxTools from './full-pages/RxTools';
 import { RxTextInput } from './RxTextInput';
 import RxContactFormButton from './RxForms/RxContactFormButton';
 import RxSessionDropdown from './Nav/RxSessionDropdown';
@@ -728,6 +729,10 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
           }
         }
         //AGENT SIDE  START
+        if (agent_data && node?.attribs?.class?.split(' ').includes(WEBFLOW_NODE_SELECTOR.AGENT_TOOLS)) {
+          console.log('WEBFLOW_NODE_SELECTOR.AGENT_TOOLS', WEBFLOW_NODE_SELECTOR.AGENT_TOOLS);
+          return <RxTools nodeProps={props} nodeClassName={node.attribs.class} agent={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
+        }
         if (agent_data && node.attribs.class === WEBFLOW_NODE_SELECTOR.AGENT_MY_LISTINGS) {
           return <RxAgentMyListings nodeProps={props} agent_data={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
         }
