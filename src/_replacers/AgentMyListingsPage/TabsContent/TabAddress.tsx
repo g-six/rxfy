@@ -6,6 +6,7 @@ import { captureMatchingElements, removeKeys, tMatch, transformMatchingElements 
 import useFormEvent, { Events, PrivateListingData, getValueByKey } from '@/hooks/useFormEvent';
 import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
 import MapsTabs from './MapsTabs';
+import SearchAddressCombobox from '@/_replacers/FilterFields/SearchAddressCombobox';
 
 export default function TabAddress({ template, nextStepClick, data, fireEvent, saveAndExit }: TabContentProps) {
   const [templates] = useState(captureMatchingElements(template, [{ elementName: 'input', searchFn: searchByPartOfClass(['f-field-wrapper']) }]));
@@ -111,6 +112,20 @@ export default function TabAddress({ template, nextStepClick, data, fireEvent, s
           disabled: blockNext(),
           onClick: nextStepClick,
         }),
+    },
+    {
+      searchFn: searchByPartOfClass(['address-input']),
+      transformChild: child => (
+        <SearchAddressCombobox
+          defaultValue={data?.title}
+          className={child.props.className}
+          placeholder={child.props.placeholder}
+          name='address'
+          id='address-input'
+          onPlaceSelected={place => fireEvent({ ...place, generatedAddress: place, title: place.address })}
+          search={data?.generatedAddress?.address}
+        />
+      ),
     },
     {
       searchFn: searchByPartOfClass(['f-button-secondary']),
