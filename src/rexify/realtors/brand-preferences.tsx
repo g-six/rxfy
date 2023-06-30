@@ -1,10 +1,9 @@
 import React from 'react';
 import { AgentData } from '@/_typings/agent';
 import RxFileUploader from '@/components/RxForms/RxFileUploader';
-import { getUploadUrl, invalidateAgentFile } from '@/_utilities/api-calls/call-uploader';
-import { Events, EventsData } from '@/hooks/useFormEvent';
+import { invalidateAgentFile } from '@/_utilities/api-calls/call-uploader';
+import { Events } from '@/hooks/useFormEvent';
 import useEvent from '@/hooks/useEvent';
-import { RxButton } from '@/components/RxButton';
 import axios, { AxiosResponse } from 'axios';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
 import Cookies from 'js-cookie';
