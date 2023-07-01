@@ -12,10 +12,9 @@ type Props = {
   isActive: boolean;
   child: ReactElement;
   setCurrentTab: () => void;
-  createAndChangeTab: () => void;
 };
 
-export default function MyListingsTab({ child, isActive, setCurrentTab, createAndChangeTab }: Props) {
+export default function MyListingsTab({ child, isActive, setCurrentTab }: Props) {
   const { data, fireEvent } = useEvent(Events.AgentMyListings);
   const [MLSListings, setMLSListings] = useState<any[]>([]);
   const [privateListings, setPrivateListings] = useState<any[]>([]);
@@ -48,7 +47,7 @@ export default function MyListingsTab({ child, isActive, setCurrentTab, createAn
       transformChild: child =>
         cloneElement(child, {
           onClick: () => {
-            createAndChangeTab();
+            setCurrentTab();
           },
         }),
     },

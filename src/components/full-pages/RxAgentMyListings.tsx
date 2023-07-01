@@ -23,21 +23,15 @@ type Props = {
 
 export default function RxAgentMyListings({ nodeProps, agent_data, nodes }: Props) {
   const [currentTab, setCurrentTab] = useState<PageTabs>('my-listings');
-  const { fireEvent } = useFormEvent(Events.PrivateListingForm, {}, true);
 
   const changeTab = (tab: PageTabs) => {
     setCurrentTab(tab);
   };
-  const prepareForm = () => {
-    createPrivateListing({}).then(res => {
-      fireEvent({ noMerge: true, ...res, ...{ floor_area_uom: 'sqft', lot_uom: 'sqft' } });
-      setCurrentTab('private-listing');
-    });
-  };
+
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['dash-tabs']),
-      transformChild: child => <SidebarTabs template={child} currentTab={currentTab} setCurrentTab={setCurrentTab} prepareForm={prepareForm} />,
+      transformChild: child => <SidebarTabs template={child} currentTab={currentTab} setCurrentTab={setCurrentTab} />,
     },
 
     {
@@ -51,9 +45,6 @@ export default function RxAgentMyListings({ nodeProps, agent_data, nodes }: Prop
             child={child}
             setCurrentTab={() => {
               setCurrentTab('private-listing');
-            }}
-            createAndChangeTab={() => {
-              prepareForm();
             }}
           />
         );

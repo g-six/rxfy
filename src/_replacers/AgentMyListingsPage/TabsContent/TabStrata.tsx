@@ -8,7 +8,7 @@ import Checkbox from '@/_replacers/FilterFields/CheckBox';
 import ChipsWithLabel from '@/_replacers/FilterFields/ChipsWithLabel';
 import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
 
-import { getValueByKey, setMultiSelectValue } from '@/hooks/useFormEvent';
+import { PrivateListingData, getValueByKey, setMultiSelectValue } from '@/hooks/useFormEvent';
 
 export default function TabStrata({ template, nextStepClick, attributes, data, fireEvent }: TabContentProps) {
   const { amenities } = attributes;
@@ -126,34 +126,38 @@ export default function TabStrata({ template, nextStepClick, attributes, data, f
             }}
             chipsList={amenities}
           />,
-
-          // <div key={'containerrrrr'} className='flex gap-4 col-span-2'>
-          //   {/* <div className=' w-5/12 flex-shrink'>
-          //     <Checkbox
-          //       key={'checkbox-1'}
-          //       isPicked={!!data?.locked}
-          //       template={templates.checkbox}
-          //       item={{ title: 'Locker' }}
-          //       handleCheckList={() => fireEvent({ locked: !data?.locked })}
-          //     />
-          //   </div> */}
-
-          //   <div className=' w-6/12 flex-shrink-0 flex-grow'>
-          //     <Checkbox
-          //       key={'checkbox-2'}
-          //       isPicked={!!data?.council_approval_required}
-          //       template={templates.checkbox}
-          //       item={{ title: 'Council Approval Required' }}
-          //       handleCheckList={() => fireEvent({ council_approval_required: !data?.council_approval_required })}
-          //     />
-          //   </div>
-          // </div>,
         ]);
       },
     },
     {
       searchFn: searchByPartOfClass(['f-button-neutral', 'w-button']),
-      transformChild: child => cloneElement(child, { onClick: nextStepClick }),
+      transformChild: child =>
+        cloneElement(child, {
+          onClick: () => {
+            const {
+              building_bylaws,
+              strata_fee,
+              restrictions,
+              total_dogs_allowed,
+              total_cats_allowed,
+              total_pets_allowed,
+              total_allowed_rentals,
+              complex_compound_name,
+            } = data;
+            const { amenities } = data as unknown as { amenities: { id: number }[]; connected_services: { id: number }[] };
+            nextStepClick(undefined, {
+              amenities: amenities.map(({ id }) => id),
+              building_bylaws,
+              strata_fee,
+              restrictions,
+              total_dogs_allowed,
+              total_cats_allowed,
+              total_pets_allowed,
+              total_allowed_rentals,
+              complex_compound_name,
+            } as unknown as PrivateListingData);
+          },
+        }),
     },
   ];
   return <>{transformMatchingElements(template, matches)}</>;

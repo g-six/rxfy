@@ -181,6 +181,9 @@ export interface PrivateListingData extends FormData {
   council_approval_required?: boolean;
   locked?: boolean;
 
+  listed_at?: number;
+  area?: string;
+
   //Preview
   description?: string;
 

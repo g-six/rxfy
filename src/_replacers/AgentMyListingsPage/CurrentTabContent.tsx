@@ -71,7 +71,7 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, ag
         .then((uploads: ImagePreview[]) => {
           if (uploads.length) {
             const photos: string[] = uploads.map(p => p.preview).filter(p => p);
-            if (data?.id && photos.length) updatePrivateListing(data.id, { photos });
+            // if (data?.id && photos.length) updateXPrivateListing(data.id, { photos });
             // formEvt.fireEvent({
             //   ...formEvt.data,
             //   photos: photos.length ? uploads.filter(p => p && p.preview) : undefined,
@@ -102,21 +102,41 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, ag
     });
   };
 
-  const nextStepClick = (callback?: () => void, dataToAdd?: PrivateListingData) => {
+  const nextStepClick = (callback?: (id?: number) => void, dataToAdd?: PrivateListingData) => {
     const currentStepIndex = tabsOrder.findIndex(tab => tab === currentTab);
     const nextStepIndex = currentStepIndex < tabsOrder.length - 1 ? currentStepIndex + 1 : currentStepIndex;
+    // Previous implementation to be removed unless there is a special reason behind it.
+    // Problem with this is that all fields are submitted even if there aren't any modifications.
+    // createOrUpdate({ ...data, ...(dataToAdd || {}) } as unknown as PrivateListingData, record => {
+    //   if (record?.id) {
+    //     // setData({ id: record.id });
+    //   }
 
-    createOrUpdate({ ...data, ...(dataToAdd || {}) } as unknown as PrivateListingData, record => {
-      if (record?.id) {
-        // setData({ id: record.id });
-      }
+    //   if (nextStepIndex !== currentStepIndex) {
+    //     setCurrentTab(tabsOrder[nextStepIndex]);
+    //   }
+    //   callback && callback();
+    // });
 
-      if (nextStepIndex !== currentStepIndex) {
-        setCurrentTab(tabsOrder[nextStepIndex]);
-      }
-      callback && callback();
-    });
+    // Fix to the above - we only submit dataToAdd
+    if (dataToAdd && Object.keys(dataToAdd).length)
+      createOrUpdate({ ...dataToAdd, id: data?.id } as unknown as PrivateListingData, record => {
+        if (record?.id) {
+          console.log('Firing event from CurrentTabContent');
+          fireEvent(record);
+          // setData({ id: record.id });
+        }
+
+        if (nextStepIndex !== currentStepIndex) {
+          setCurrentTab(tabsOrder[nextStepIndex]);
+        }
+        callback && callback(record?.id);
+      });
+    else if (nextStepIndex !== currentStepIndex) {
+      setCurrentTab(tabsOrder[nextStepIndex]);
+    }
   };
+
   return (
     <div className={child.props.className}>
       {tabsTemplates[currentTab] && attributes ? (

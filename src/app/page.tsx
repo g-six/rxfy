@@ -186,10 +186,10 @@ export default async function Home({ params, searchParams }: { params: Record<st
     }
   }
 
-  replaceByCheerio($, '.w--active', {
+  replaceByCheerio($, '.tab-pane-private-listings.w--active', {
     removeClassName: 'w--active',
   });
-  replaceByCheerio($, '.w--tab-active', {
+  replaceByCheerio($, '.tab-pane-private-listings.w--tab-active', {
     removeClassName: 'w--tab-active',
   });
   replaceByCheerio($, '.modal-base.existing', {

@@ -159,7 +159,8 @@ export function createOrUpdate(data: PrivateListingData, callback: (data: any) =
       })
       .then(res => callback(res));
   } else {
-    updatePrivateListing(data.id, convertPrivateListingToPropertyData(data))
+    const { id, ...updates } = convertPrivateListingToPropertyData(data);
+    updatePrivateListing(id, updates)
       .then(record => record)
       .then(res => callback(res));
   }

@@ -1,5 +1,6 @@
 export interface PrivateListingModel {
   title?: string;
+  description?: string;
   lat?: number;
   lon?: number;
   area?: string;

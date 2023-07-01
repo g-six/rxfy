@@ -6,26 +6,22 @@ import { updatePrivateListing } from '@/_utilities/api-calls/call-private-listin
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import useEvent from '@/hooks/useEvent';
 import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
-import React, { Dispatch, ReactElement, SetStateAction, createElement } from 'react';
+import { Dispatch, ReactElement, SetStateAction, createElement } from 'react';
 
 type Props = {
   template: ReactElement;
   currentTab: PageTabs;
   setCurrentTab: Dispatch<SetStateAction<PageTabs>>;
-  prepareForm: () => void;
 };
 
-export default function SidebarTabs({ template, currentTab, setCurrentTab, prepareForm }: Props) {
-  const { data }: { data?: PrivateListingData } = useFormEvent(Events.PrivateListingForm);
-
+export default function SidebarTabs({ template, currentTab, setCurrentTab }: Props) {
+  const { data, fireEvent }: { data?: PrivateListingData; fireEvent: (data: PrivateListingData) => void } = useFormEvent(Events.PrivateListingForm);
   const { fireEvent: fireListingUpdate } = useEvent(Events.AgentMyListings, true);
   const updateDataAndBack = () => {
-    data &&
-      updatePrivateListing(data.id as unknown as number, convertPrivateListingToPropertyData(data)).then(res => {
-        fireListingUpdate({ metadata: res satisfies PrivateListingData });
-        setCurrentTab('my-listings');
-      });
+    setCurrentTab('my-listings');
+    return;
   };
+
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['my-listings']),
@@ -35,7 +31,12 @@ export default function SidebarTabs({ template, currentTab, setCurrentTab, prepa
           {
             className: `${removeClasses(child.props.className, ['w--current'])} ${currentTab === 'my-listings' ? 'w--current' : ''}`,
             onClick: () => {
-              updateDataAndBack();
+              if (data?.id) updateDataAndBack();
+              else {
+                document.querySelector('.my-listings-tab-content')?.classList.add('w--tab-active');
+                document.querySelector('.tab-pane-private-listings')?.classList.remove('w--tab-active');
+                setCurrentTab('my-listings');
+              }
             },
           },
           [child.props.children],
@@ -51,8 +52,19 @@ export default function SidebarTabs({ template, currentTab, setCurrentTab, prepa
             ...removeKeys(child.props, ['id']),
             className: `${removeClasses(child.props.className, ['w--current'])} ${currentTab === 'private-listing' ? 'w--current' : ''}`,
             onClick: () => {
-              setCurrentTab('my-listings');
-              prepareForm();
+              if (data) {
+                let new_data = {};
+                Object.keys(data).forEach(k => {
+                  new_data = {
+                    ...new_data,
+                    [k]: null,
+                  };
+                });
+                fireEvent(new_data);
+              }
+              // setCurrentTab('private-listing');
+              document.querySelector('.my-listings-tab-content')?.classList.remove('w--tab-active');
+              document.querySelector('.tab-pane-private-listings')?.classList.add('w--tab-active');
             },
           },
           [child.props.children],

@@ -7,47 +7,9 @@ import { RoomDimension } from '@/_typings/ui-types';
 import RoomsGroup from './RoomsGroup';
 import BathsGroup from './BathroomsGroup';
 
-import useFormEvent, { Events, PrivateListingData, getValueByKey } from '@/hooks/useFormEvent';
-import { convertToDetails } from '@/_helpers/mls-mapper';
+import { PrivateListingData } from '@/hooks/useFormEvent';
 
-function getInitialData(key: string, count: number, data: any) {
-  return data && data[key]
-    ? [...data[key]]
-    : Array.from({ length: count }, (_, index) => index).reduce((a: RoomDimension[]) => {
-        a.push({});
-        return a;
-      }, []);
-}
-
-export default function TabRooms({ template, nextStepClick, data, fireEvent }: TabContentProps) {
-  const setDimension = (type: string, index: number, param: string, val: string | boolean) => {
-    let newData = getValueByKey(type, data);
-
-    if (newData && newData[index]) {
-      newData[index] = Object.assign({}, newData[index], { [param]: val });
-    } else {
-      newData = [{ [param]: val }];
-    }
-
-    fireEvent({ [type]: [...newData] });
-  };
-
-  useEffect(() => {
-    const { beds_dimensions, baths_full_dimensions, baths_half_dimensions, kitchen_dimensions, additional_dimensions, garage_dimensions } = data || {};
-    const fireEventParams = {
-      ...(data?.beds && !beds_dimensions && { beds_dimensions: getInitialData('beds_dimensions', data.beds, data) }),
-      ...(data?.full_baths && !baths_full_dimensions && { baths_full_dimensions: getInitialData('baths_full_dimensions', data.full_baths, data) }),
-      ...(data?.half_baths && !baths_half_dimensions && { baths_half_dimensions: getInitialData('baths_half_dimensions', data.half_baths, data) }),
-      ...(data?.total_kitchens && !kitchen_dimensions && { kitchen_dimensions: getInitialData('kitchen_dimensions', data.total_kitchens, data) }),
-      ...(data?.total_additional_rooms &&
-        !additional_dimensions && { additional_dimensions: getInitialData('additional_dimensions', data.total_additional_rooms, data) }),
-      ...(data?.total_garage && !garage_dimensions && { garage_dimensions: getInitialData('garage_dimensions', data.total_garage, data) }),
-    };
-    Object.keys(fireEventParams)?.length > 0 &&
-      fireEvent({
-        ...fireEventParams,
-      });
-  }, []);
+export default function TabRooms({ template, nextStepClick, data }: TabContentProps) {
   const [templates] = useState(
     captureMatchingElements(template, [
       { elementName: 'heading', searchFn: searchByPartOfClass(['f-sub-heading-small']) },
@@ -57,6 +19,13 @@ export default function TabRooms({ template, nextStepClick, data, fireEvent }: T
     ]),
   );
 
+  const [room_details, setRoomDetails] = useState<{
+    [key: string]: RoomDimension[];
+  }>();
+  const [bathroom_details, setBathDetails] = useState<{
+    [key: string]: RoomDimension[];
+  }>();
+
   const prepdTemplates = {
     headingTemplate: templates.heading,
     inputTemplate: templates.input,
@@ -64,80 +33,205 @@ export default function TabRooms({ template, nextStepClick, data, fireEvent }: T
     checkboxTemplate: templates.checkbox,
   };
 
+  const rebuild = () => {
+    const sub = ['half_baths', 'baths', 'rooms', 'others', 'garage', 'kitchens'];
+    let new_room_copy = {
+      ...room_details,
+    };
+    let new_bath_copy = {
+      ...bathroom_details,
+    };
+    ['half_baths', 'full_baths', 'beds', 'total_additional_rooms', 'total_garage', 'total_kitchens'].forEach((r: string, idx) => {
+      let obj: RoomDimension[] = [];
+      if (data?.[r]) {
+        if (['half_baths', 'full_baths'].includes(r)) {
+          obj = data?.bathroom_details?.[sub[idx]] || bathroom_details?.[sub[idx]] || [];
+        } else {
+          obj = data?.room_details?.[sub[idx]] || room_details?.[sub[idx]] || [];
+        }
+      } else {
+        obj = [];
+      }
+
+      if (obj.length < data[r]) {
+        obj = obj.concat(
+          Array.from({ length: data[r] - obj.length }, (v, i) => ({
+            name: '',
+            level: '',
+            width: '',
+            length: '',
+            ensuite: false,
+          })),
+        );
+      } else if (obj.length > data[r]) {
+        obj = obj.slice(0, data[r]);
+      }
+
+      console.log(r, sub[idx], obj);
+
+      if (['half_baths', 'full_baths'].includes(r)) {
+        new_bath_copy = {
+          ...new_bath_copy,
+          [sub[idx]]: obj,
+        };
+      } else {
+        new_room_copy = {
+          ...new_room_copy,
+          [sub[idx]]: obj,
+        };
+      }
+    });
+    setBathDetails(new_bath_copy);
+    setRoomDetails(new_room_copy);
+  };
+
+  useEffect(() => {
+    rebuild();
+  }, [data]);
+
+  useEffect(() => {
+    rebuild();
+  }, []);
+
+  // console.log(
+  //   JSON.stringify(
+  //     {
+  //       bathroom_details,
+  //       room_details,
+  //     },
+  //     null,
+  //     4,
+  //   ),
+  // );
+
   const matches: tMatch[] = [
     {
       searchFn: searchByPartOfClass(['f-account-form-block']),
       transformChild: child => {
         return cloneElement(child, {}, [
-          !!data?.beds && (
+          room_details?.rooms && (
             <RoomsGroup
               heading='Bedrooms'
               key={0}
               rooms={data.beds}
               {...prepdTemplates}
-              data={data?.beds_dimensions}
+              data={room_details.rooms}
               onChange={(index, param, val) => {
-                setDimension('beds_dimensions', index, param, val);
+                if (room_details?.['rooms']) {
+                  const obj = room_details['rooms'] as unknown as {
+                    [key: string]: string | boolean;
+                  }[];
+                  obj[index][param] = val;
+                  setRoomDetails({
+                    ...room_details,
+                    rooms: obj,
+                  });
+                }
               }}
             />
           ),
-          !!data?.full_baths && (
+          bathroom_details?.baths && (
             <BathsGroup
               heading='Full Baths'
               key={1}
               rooms={data.full_baths}
               {...prepdTemplates}
-              data={data?.baths_full_dimensions}
+              data={bathroom_details?.baths || []}
               onChange={(index, param, val) => {
-                setDimension('baths_full_dimensions', index, param, val);
+                if (bathroom_details?.['baths']) {
+                  const obj = bathroom_details['baths'] as unknown as {
+                    [key: string]: string | boolean;
+                  }[];
+                  obj[index][param] = val;
+                  setBathDetails({
+                    ...bathroom_details,
+                    baths: obj,
+                  });
+                }
               }}
             />
           ),
-          !!data?.half_baths && (
+          bathroom_details?.half_baths && (
             <BathsGroup
               heading='Half Baths'
               key={2}
               rooms={data.half_baths}
               {...prepdTemplates}
-              data={data?.baths_half_dimensions}
+              data={bathroom_details?.half_baths || []}
               onChange={(index, param, val) => {
-                setDimension('baths_half_dimensions', index, param, val);
+                if (bathroom_details?.['half_baths']) {
+                  const obj = bathroom_details['half_baths'] as unknown as {
+                    [key: string]: string | boolean;
+                  }[];
+                  obj[index][param] = val;
+                  setBathDetails({
+                    ...bathroom_details,
+                    half_baths: obj,
+                  });
+                }
               }}
             />
           ),
-          !!data?.total_kitchens && (
+          room_details?.kitchens && (
             <RoomsGroup
               heading='Kitchens'
               key={3}
               rooms={data.total_kitchens}
               {...prepdTemplates}
-              data={data?.kitchen_dimensions}
+              data={room_details?.kitchens || []}
               onChange={(index, param, val) => {
-                setDimension('kitchen_dimensions', index, param, val);
+                if (room_details?.['kitchens']) {
+                  const obj = room_details['kitchens'] as unknown as {
+                    [key: string]: string | boolean;
+                  }[];
+                  obj[index][param] = val;
+                  setRoomDetails({
+                    ...room_details,
+                    kitchens: obj,
+                  });
+                }
               }}
             />
           ),
-          !!data?.total_additional_rooms && (
+          room_details?.others && (
             <RoomsGroup
               heading='Additional Rooms'
               key={4}
               rooms={data.total_additional_rooms}
               {...prepdTemplates}
-              data={data?.additional_dimensions}
+              data={room_details?.others}
               onChange={(index, param, val) => {
-                setDimension('additional_dimensions', index, param, val);
+                if (room_details?.['others']) {
+                  const obj = room_details['others'] as unknown as {
+                    [key: string]: string | boolean;
+                  }[];
+                  obj[index][param] = val;
+                  setRoomDetails({
+                    ...room_details,
+                    others: obj,
+                  });
+                }
               }}
             />
           ),
-          !!data?.total_garage && (
+          room_details?.garage && (
             <RoomsGroup
               heading='Garage'
               key={5}
               rooms={data.total_garage}
               {...prepdTemplates}
-              data={data?.garage_dimensions}
+              data={room_details?.garage}
               onChange={(index, param, val) => {
-                setDimension('garage_dimensions', index, param, val);
+                if (room_details?.['garage']) {
+                  const obj = room_details['garage'] as unknown as {
+                    [key: string]: string | boolean;
+                  }[];
+                  obj[index][param] = val;
+                  setRoomDetails({
+                    ...room_details,
+                    garage: obj,
+                  });
+                }
               }}
             />
           ),
@@ -149,7 +243,10 @@ export default function TabRooms({ template, nextStepClick, data, fireEvent }: T
       transformChild: child =>
         cloneElement(child, {
           onClick: () => {
-            nextStepClick();
+            nextStepClick(undefined, {
+              room_details,
+              bathroom_details,
+            } as unknown as PrivateListingData);
           },
         }),
     },

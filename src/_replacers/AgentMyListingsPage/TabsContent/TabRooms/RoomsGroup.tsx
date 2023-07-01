@@ -6,7 +6,7 @@ import { getValueByKey } from '@/hooks/useFormEvent';
 
 export default function RoomsGroup({ heading = 'Rooms', rooms, headingTemplate, inputTemplate, rowClassName = '', data, onChange }: RoomsGroupProps) {
   const inputsRowTemaplate = regularRow;
-
+  console.log({ data });
   return (
     <>
       {cloneElement(headingTemplate, {}, [heading])}
@@ -15,7 +15,6 @@ export default function RoomsGroup({ heading = 'Rooms', rooms, headingTemplate, 
           {inputsRowTemaplate.map(input => {
             const key = input.inputProps.name;
             const val = data && data[idx] ? getValueByKey(key, data[idx]) : undefined;
-
             return (
               <InputWithLabel
                 key={`${input.label.split(' ').join('-')}_${idx}_${heading.split(' ').join('-')}`}

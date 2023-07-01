@@ -26,7 +26,6 @@ export default function MyListingPrivateCard({ template, property, changeTab, on
         return cloneElement(
           child,
           {
-            // style: isDraft ? { display: 'none' } : {},
             onClick: () => {
               updatePrivateListing(property.id, { status: !isDraft ? 'draft' : 'active' }).then(res => {
                 fireListingUpdate({ metadata: { ...property, ...res } });
@@ -51,7 +50,8 @@ export default function MyListingPrivateCard({ template, property, changeTab, on
         cloneElement(child, {
           onClick: () => {
             changeTab();
-            fireEvent({ ...property, ...convertToRooms(property?.room_details), ...convertToRooms(property?.bathroom_details), noMerge: true });
+            // fireEvent({ ...property, ...convertToRooms(property?.room_details), ...convertToRooms(property?.bathroom_details), noMerge: true });
+            fireEvent({ ...property, noMerge: true });
           },
         }),
     },

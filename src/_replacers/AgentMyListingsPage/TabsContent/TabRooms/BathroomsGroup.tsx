@@ -7,7 +7,7 @@ import { getValueByKey } from '@/hooks/useFormEvent';
 
 export default function BathsGroup({ heading, rooms, headingTemplate, checkboxTemplate, inputTemplate, rowClassName = '', data, onChange }: RoomsGroupProps) {
   const inputsRowTemaplate = regularRow;
-  const [isPicked, setPicked] = useState(false);
+  const [checked, toggleCheckboxes] = useState<{ [key: string]: boolean }>({});
   return (
     <>
       {cloneElement(headingTemplate, {}, [heading ?? ''])}
@@ -20,7 +20,7 @@ export default function BathsGroup({ heading, rooms, headingTemplate, checkboxTe
               <InputWithLabel
                 key={`${input.label}_${idx}_${heading}`}
                 label={input.label}
-                value={val}
+                value={val || ''}
                 handleChange={e => onChange(idx, key, e.currentTarget.value)}
                 inputProps={input.inputProps}
                 template={inputTemplate}
@@ -28,7 +28,18 @@ export default function BathsGroup({ heading, rooms, headingTemplate, checkboxTe
             );
           })}
           {checkboxTemplate ? (
-            <Checkbox isPicked={isPicked} template={checkboxTemplate} item={{ title: 'Ensuite' }} handleCheckList={() => onChange(idx, 'ensuite', !isPicked)} />
+            <Checkbox
+              isPicked={checked[`ensuite_${idx}`]}
+              template={checkboxTemplate}
+              item={{ title: 'Ensuite' }}
+              handleCheckList={() => {
+                toggleCheckboxes({
+                  ...checked,
+                  [`ensuite_${idx}`]: !checked[`ensuite_${idx}`],
+                });
+                onChange(idx, 'ensuite', !checked[`ensuite_${idx}`]);
+              }}
+            />
           ) : (
             ''
           )}

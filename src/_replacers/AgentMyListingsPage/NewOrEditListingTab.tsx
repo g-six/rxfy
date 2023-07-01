@@ -13,7 +13,7 @@ type Props = {
   child: ReactElement;
   agent: AgentData;
   isActive: boolean;
-  changeTab: (tab: PageTabs) => void;
+  changeTab(tab: PageTabs): void;
 };
 
 export default function NewOrEditListingTab({ child, agent, isActive, changeTab }: Props) {

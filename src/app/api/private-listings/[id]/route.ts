@@ -4,6 +4,8 @@ import { getResponse } from '@/app/api/response-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { PrivateListingInput } from '@/_typings/private-listing';
 import { getNewSessionKey } from '../../update-session';
+import axios from 'axios';
+import { deleteObject } from '../../_helpers/s3-helper';
 
 export async function DELETE(req: NextRequest) {
   const { token, guid } = getTokenAndGuidFromSessionKey(req.headers.get('authorization') || '');
@@ -46,7 +48,7 @@ export async function DELETE(req: NextRequest) {
 }
 export async function PUT(req: NextRequest) {
   const { token, guid } = getTokenAndGuidFromSessionKey(req.headers.get('authorization') || '');
-
+  const id = Number(new URL(req.url).pathname.split('/').pop());
   if (!token && isNaN(guid))
     return getResponse(
       {
@@ -54,9 +56,28 @@ export async function PUT(req: NextRequest) {
       },
       401,
     );
+  // Then check ownership
+  const original = await getPrivateListing(id);
+  if (original.realtor?.id !== guid)
+    return getResponse(
+      {
+        error: 'You must be the owner of this private listing to be able to update it',
+      },
+      401,
+    );
   try {
     const updates: PrivateListingInput = await req.json();
     let { photos, property_photo_album, ...listing } = updates;
+    if (original.photos?.length) {
+      // Let's remove any photos that have been deleted
+      const to_delete = original.photos.filter((url: string) => !photos || !photos.includes(url));
+      const deletion = await Promise.all(
+        to_delete.map(async (url: string) => {
+          const delete_url = url.split(`${process.env.NEXT_APP_S3_PAGES_BUCKET}`)[1].substring(1);
+          return await deleteObject(delete_url);
+        }),
+      );
+    }
     if (photos && photos.length) {
       const updated_album = await updatePrivateListingAlbum(photos, property_photo_album);
       if (updated_album?.id) {
@@ -66,7 +87,7 @@ export async function PUT(req: NextRequest) {
         } as unknown as PrivateListingInput;
       }
     }
-    const record = await updatePrivateListing(Number(new URL(req.url).pathname.split('/').pop()), listing, token, Number(guid));
+    const record = await updatePrivateListing(id, listing, token, Number(guid));
     if (record.error) {
       const { error, errors, code } = record;
       return getResponse(
@@ -79,7 +100,7 @@ export async function PUT(req: NextRequest) {
     }
     return getResponse(record);
   } catch (e) {
-    console.log('Error in private-listings.POST');
+    console.log('Error in private-listings.PUT');
     console.error(e);
   }
 }

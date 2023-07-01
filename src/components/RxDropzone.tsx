@@ -37,6 +37,7 @@ export default function RxDropzone({ className, onFileUpload, inputId, noClick =
     onDrop,
     accept: {
       'image/png': ['.png'],
+      'image/webp': ['.webp'],
       'image/jpeg': ['.jpg', '.jpeg'],
       'image/gif': ['.gif'],
       'image/svg+xml': ['.svg'],

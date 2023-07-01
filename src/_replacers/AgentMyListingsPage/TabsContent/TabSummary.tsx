@@ -5,7 +5,7 @@ import { captureMatchingElements, tMatch, transformMatchingElements } from '@/_h
 import ChipsWithLabel from '@/_replacers/FilterFields/ChipsWithLabel';
 import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
 import SelectWithLabel from '@/_replacers/FilterFields/SelectWithLabel';
-import { getValueByKey, setMultiSelectValue } from '@/hooks/useFormEvent';
+import { PrivateListingData, getValueByKey, setMultiSelectValue } from '@/hooks/useFormEvent';
 
 export default function TabSummary({ template, nextStepClick, attributes, data, fireEvent }: TabContentProps) {
   const { building_styles, connected_services, amenities, types } = attributes || {};
@@ -62,7 +62,7 @@ export default function TabSummary({ template, nextStepClick, attributes, data, 
       generatedPrompt: '',
     },
     {
-      label: '??? Property Disclosure',
+      label: 'Property Disclosure',
       inputProps: {
         placeholder: 'Property Disclosure',
         name: 'property_disclosure',
@@ -172,7 +172,27 @@ export default function TabSummary({ template, nextStepClick, attributes, data, 
     },
     {
       searchFn: searchByPartOfClass(['f-button-neutral', 'w-button']),
-      transformChild: child => cloneElement(child, { onClick: nextStepClick }),
+      transformChild: child =>
+        cloneElement(child, {
+          onClick: () => {
+            const { dwelling_type: dwelling_obj, building_style: building_obj, asking_price, year_built, property_disclosure, gross_taxes, tax_year } = data;
+            let dwelling_type, building_style;
+            if (dwelling_obj) dwelling_type = dwelling_obj.id;
+            if (building_obj) building_style = building_obj.id;
+            const { amenities, connected_services } = data as unknown as { amenities: { id: number }[]; connected_services: { id: number }[] };
+            nextStepClick(undefined, {
+              dwelling_type,
+              asking_price,
+              building_style,
+              year_built,
+              property_disclosure,
+              gross_taxes,
+              tax_year,
+              amenities: amenities.map(({ id }) => id),
+              connected_services: connected_services.map(({ id }) => id),
+            } as unknown as PrivateListingData);
+          },
+        }),
     },
   ];
   // return template;

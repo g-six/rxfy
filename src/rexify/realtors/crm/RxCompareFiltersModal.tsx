@@ -16,28 +16,45 @@ function Iterator(
     onClick: (evt: React.MouseEvent<HTMLButtonElement>) => void;
     onClose: (evt: React.MouseEvent<HTMLButtonElement>) => void;
     toggleFilter: (category: string, filter?: string) => void;
+    onInputFilter: (evt: React.KeyboardEvent<HTMLInputElement>) => void;
+    keyword?: string;
   },
 ) {
   const Wrapped = React.Children.map(p.children, (child, idx) => {
-    if (child.type === 'div' || child.type === 'form') {
+    if (child.props.placeholder === 'Search') {
+      return React.cloneElement(child, {
+        ...child.props,
+        onChange: p.onInputFilter,
+      });
+    } else if (child.type === 'div' || child.type === 'form') {
       if (typeof child.props.children !== 'string') {
         if (child.props.className.indexOf('checkbox-wrap') >= 0) {
           if (idx > 0) return null;
           else {
+            if (p.keyword?.length && p['child-category']?.label && p['child-category'].label.toLowerCase().indexOf(p.keyword.toLowerCase()) === -1) {
+              return <></>;
+            }
             return (
               <>
                 {p.category &&
-                  p.category.options.map(c => {
-                    return React.cloneElement(child, {
-                      ...child.props,
-                      key: `${c.label}-${c.value}`,
-                      children: (
-                        <Iterator {...p} child-category={c}>
-                          {child.props.children}
-                        </Iterator>
-                      ),
-                    });
-                  })}
+                  p.category.options
+                    .filter(({ label }) => {
+                      if (p.keyword?.length && label.toLowerCase().indexOf(p.keyword.toLowerCase()) === -1) {
+                        return false;
+                      }
+                      return true;
+                    })
+                    .map(c => {
+                      return React.cloneElement(child, {
+                        ...child.props,
+                        key: `${c.label}-${c.value}`,
+                        children: (
+                          <Iterator {...p} child-category={c}>
+                            {child.props.children}
+                          </Iterator>
+                        ),
+                      });
+                    })}
               </>
             );
           }
@@ -59,6 +76,7 @@ function Iterator(
       if (child.props.className?.indexOf('filter-update-button') >= 0) {
         return React.cloneElement(<button type='button' />, {
           ...child.props,
+          href: undefined,
           onClick: p.onClose,
           children: React.Children.map(child.props.children, btn => {
             if (btn.type === 'div') {
@@ -75,7 +93,13 @@ function Iterator(
           ? p.filters.map(cat =>
               React.cloneElement(<button type='button' data-key={cat} />, {
                 ...child.props,
-                className: child.props.className + ' capitalize',
+                className:
+                  child.props.className
+                    .split(' ')
+                    .filter((c: string) => c !== 'w--current')
+                    .join(' ') +
+                  ' capitalize' +
+                  (p.category && p.category?.name === cat ? ' w--current' : ''),
                 key: `btn-${cat}`,
                 children: cat.split('_').join(' '),
                 onClick: p.onClick,
@@ -140,38 +164,50 @@ export const relationship_based_attributes: { [key: string]: string } = {
   Windows: 'build_features',
 };
 export const field_aliases: { [key: string]: string } = {
+  'Age Restrictions': 'min_age_restriction',
   'Date Listed': 'listed_at',
+  'Pet Policy': 'pets',
   'Lot Area': 'lot_sqft',
   'Price/Sqft.': 'price_per_sqft',
+  'Total # of fireplaces': 'total_fireplaces',
+  'Total Units in Community': 'total_units_in_community',
 };
-const amenities_facilities = ['Amenities', 'Appliances', 'Facilities', 'Parking'];
+const amenities_facilities = ['Amenities', 'Appliances', 'Facilities', 'Parking', 'Total Parking'];
+
 export const home_attributes = sortArrayAlphabetically(
-  ['Age', 'Foundation Specs', 'Frontage', 'Gross Taxes', 'Strata Fee', 'Total Parking', 'Year Built']
+  ['Age', 'Foundation Specs', 'Frontage', 'Floor Levels', 'Gross Taxes', 'Strata Fee', 'Year Built']
     .concat(
       Object.keys(relationship_based_attributes)
         .filter(k => !amenities_facilities.includes(k))
         .map(key => key),
     )
-    .concat(Object.keys(field_aliases).map(key => key)),
+    .concat(
+      Object.keys(field_aliases)
+        .filter(key => !['Pet Policy', 'Total Units in Community'].includes(key))
+        .map(key => key),
+    ),
 );
 
-export const money_fields = ['price_per_sqft', 'strata_fee', 'gross_taxes'];
-export const numeric_fields = ['floor_area', 'floor_area_total', 'floor_area_main'];
-export const feeters = ['lot_sqft', 'frontage_feet'];
-export const timeframe_fields = ['listed_at'];
-
-const restrictions = ['Pets', 'Age Restrictions'];
+const restrictions = ['Pet Policy', 'Age Restrictions'];
 
 const services = ['Connected Services', 'Maintenance Services', 'Security'];
 
-const transit_neighbourhood = ['Places of Interest'];
+const transit_neighbourhood = ['Places of Interest', 'Total Units in Community'];
 
-export default function RxCompareFiltersModal(p: Props) {
+export default function RxCompareFiltersModal(
+  p: Props & {
+    selected_filters?: { [key: string]: string[] };
+    updateFilters?: (filters: { [key: string]: unknown }) => void;
+    exclude?: string[];
+  },
+) {
   const filterEvent = useEvent(Events.AddPropertyFilter);
-
-  const [selected_filters, setFilters] = React.useState<{ [key: string]: string[] }>({
-    'Home Attributes': ['Age', 'Date Listed', 'Gross Taxes', 'Floor Area', 'Lot Area', 'Price/Sqft.', 'Strata Fee', 'Total Parking', 'Year Built'],
-  });
+  const [filter_keyword, setKeyword] = React.useState('');
+  const [selected_filters, setFilters] = React.useState<{ [key: string]: string[] }>(
+    p.selected_filters || {
+      'Home Attributes': ['Age', 'Date Listed', 'Gross Taxes', 'Floor Area', 'Lot Area', 'Price/Sqft.', 'Strata Fee', 'Total Parking', 'Year Built'],
+    },
+  );
   const [attributes, setAttributes] = React.useState<{ [key: string]: { label: string; value: number }[] }>();
   const [category, selectCategory] = React.useState<{ options: { value: number; label: string }[]; name: string }>();
   const handleClick = (action: string) => {
@@ -199,41 +235,62 @@ export default function RxCompareFiltersModal(p: Props) {
 
   React.useEffect(() => {
     setAttributes({
-      'Home Attributes': home_attributes.map((attr, idx) => ({
-        value: idx + 1,
-        label: attr,
-      })),
-      'Facilities & Amenenities': amenities_facilities.map((attr, idx) => ({
-        value: idx + 1,
-        label: attr,
-      })),
-      Restrictions: restrictions.map((attr, idx) => ({
-        value: idx + 1,
-        label: attr,
-      })),
-      Services: services.map((attr, idx) => ({
-        value: idx + 1,
-        label: attr,
-      })),
-      Neighbourhood: transit_neighbourhood.map((attr, idx) => ({
-        value: idx + 1,
-        label: attr,
-      })),
+      'Home Attributes': home_attributes
+        .filter(attr => !p.exclude || !p.exclude.includes(attr))
+        .map((attr, idx) => ({
+          value: idx + 1,
+          label: attr,
+        })),
+      'Facilities & Amenenities': amenities_facilities
+        .filter(attr => !p.exclude || !p.exclude.includes(attr))
+        .map((attr, idx) => ({
+          value: idx + 1,
+          label: attr,
+        })),
+      Restrictions: restrictions
+        .filter(attr => !p.exclude || !p.exclude.includes(attr))
+        .map((attr, idx) => ({
+          value: idx + 1,
+          label: attr,
+        })),
+      Services: services
+        .filter(attr => !p.exclude || !p.exclude.includes(attr))
+        .map((attr, idx) => ({
+          value: idx + 1,
+          label: attr,
+        })),
+      Neighbourhood: transit_neighbourhood
+        .filter(attr => !p.exclude || !p.exclude.includes(attr))
+        .map((attr, idx) => ({
+          value: idx + 1,
+          label: attr,
+        })),
     });
+    if (p.selected_filters) setFilters(p.selected_filters);
   }, []);
+
+  const onInputFilter = (evt: React.KeyboardEvent<HTMLInputElement>) => {
+    setKeyword(evt.currentTarget.value);
+  };
 
   return (
     <div id={p?.id || 'compare-filters-modal'} className={[p.className || ''].join(' ')}>
       <Iterator
         filters={(attributes && Object.keys(attributes as unknown as { [key: string]: unknown })) || []}
+        onInputFilter={onInputFilter}
         onClick={(evt: React.MouseEvent<HTMLButtonElement>) => {
           handleClick(evt.currentTarget.dataset.key || '');
         }}
         onClose={(evt: React.MouseEvent<HTMLButtonElement>) => {
+          evt.preventDefault();
           document.getElementById('customer-view-modal-compare-filters')?.classList.remove('is-really-visible');
+          document.getElementById('modal-compare-filters')?.classList.remove('is-really-visible');
+          document.getElementById('modal-compare-filters')?.classList.add('hidden-block');
+          p.updateFilters && p.updateFilters(selected_filters);
         }}
         category={category}
         selected-filters={selected_filters}
+        keyword={filter_keyword}
         toggleFilter={(c: string, label?: string) => {
           if (label) {
             if (!selected_filters[c]) {
@@ -252,7 +309,6 @@ export default function RxCompareFiltersModal(p: Props) {
                 selected_filters[c].splice(existing_idx, 1);
                 setFilters({
                   ...selected_filters,
-                  [c]: selected_filters[c],
                 });
               }
             }

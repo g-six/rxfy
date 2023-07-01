@@ -8,7 +8,7 @@ import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import InputWithLabel from '@/_replacers/FilterFields/InputWithLabel';
 import InputWithSelect from '@/_replacers/FilterFields/InputWithSelect';
 
-import { getValueByKey } from '@/hooks/useFormEvent';
+import { PrivateListingData, getValueByKey } from '@/hooks/useFormEvent';
 
 export default function TabSize({ template, nextStepClick, data, fireEvent }: TabContentProps) {
   const [templates] = useState(
@@ -188,7 +188,37 @@ export default function TabSize({ template, nextStepClick, data, fireEvent }: Ta
     },
     {
       searchFn: searchByPartOfClass(['f-button-neutral', 'w-button']),
-      transformChild: child => cloneElement(child, { onClick: nextStepClick }),
+      transformChild: child =>
+        cloneElement(child, {
+          onClick: () => {
+            const {
+              floor_area_total,
+              floor_area_uom,
+              lot_area,
+              lot_uom,
+              beds,
+              baths,
+              full_baths,
+              half_baths,
+              total_kitchens,
+              total_additional_rooms,
+              total_garage,
+            } = data;
+            nextStepClick(undefined, {
+              floor_area_total,
+              floor_area_uom,
+              lot_area,
+              lot_uom,
+              beds,
+              baths,
+              full_baths,
+              half_baths,
+              total_kitchens,
+              total_additional_rooms,
+              total_garage,
+            } as unknown as PrivateListingData);
+          },
+        }),
     },
   ];
   return <>{transformMatchingElements(template, matches)}</>;

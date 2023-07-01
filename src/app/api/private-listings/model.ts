@@ -55,7 +55,7 @@ export async function createPrivateListing(listing: PrivateListingInput, session
               attributes: undefined,
             };
           }
-        } else {
+        } else if (response.data.data.listing.record.attributes[key].data === null) {
           delete response.data.data.listing.record.attributes[key];
         }
       });
@@ -405,7 +405,7 @@ export async function getPrivateListingsByRealtorId(realtor_id: number, size = 2
               });
             } else if (key === 'property_photo_album') {
               if (attributes[key].data) {
-                photos = attributes[key].data.attributes.photos || [];
+                photos = attributes[key].data.attributes.photos?.filter((url: string) => url) || [];
                 let [first] = photos;
                 if (first) {
                   cover_photo = getImageSized(first, 256);
@@ -506,6 +506,7 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
       frontage_feet
       frontage_metres
       frontage_uom
+      listed_at
       lot_area
       lot_uom
       total_kitchens

@@ -110,7 +110,10 @@ export default function TabAddress({ template, nextStepClick, data, fireEvent, s
           ...removeKeys(child.props, ['href']),
           className: `${child.props.className} disabled:bg-gray-500 disabled:cursor-not-allowed`,
           disabled: blockNext(),
-          onClick: nextStepClick,
+          onClick: () => {
+            const { lat, lon, title, city, state_province, postal_zip_code, neighbourhood } = data;
+            nextStepClick(undefined, { lat, lon, title, city, state_province, postal_zip_code, neighbourhood } as unknown as PrivateListingData);
+          },
         }),
     },
     {
