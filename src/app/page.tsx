@@ -26,15 +26,15 @@ import { getPrivateListing } from './api/private-listings/model';
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico', 'sign-out'];
 
-function loadAiResults($: CheerioAPI, user_id: string, origin?: string) {
+function loadAiResults($: CheerioAPI, user_id: string, slug?: string, origin?: string) {
   ['oslo', 'hamburg', 'malta'].forEach(theme => {
     $(`.theme-area.home-${theme}`).replaceWith(
       `<iframe data-src="https://leagent.com?paragon=${user_id}&theme=${theme}" className="${styles.homePagePreview} theme-area home-${theme}" />`,
     );
   });
-  console.log('Load property sample', `${origin}/property?paragon=${user_id}&theme=default&mls=R2782417`);
+
   $(`[data-w-tab="Tab 2"] .f-section-large-11`).html(
-    `<iframe src="https://leagent.com/property?paragon=${user_id}&theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
+    `<iframe src="https://leagent.com/${user_id}/${slug}/property?theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
   );
 
   $('.building-and-sold-info').remove();
@@ -131,7 +131,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     if (agent_data) {
       if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
       agent_data.webflow_domain = webflow_domain;
-      loadAiResults($, agent_data.agent_id, origin);
+      loadAiResults($, agent_data.agent_id, agent_data.metatags.profile_slug, origin);
     }
   } else if (!(searchParams.theme && searchParams.agent) && webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN) {
     if (!session_key && params.slug && ['ai-result'].includes(params.slug as string)) {
@@ -159,7 +159,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
             }
             if (agent_data) {
               agent_data.metatags = session.agent.agent_metatag;
-              loadAiResults($, session.agent.agent_id, origin);
+              loadAiResults($, session.agent.agent_id, agent_data.metatags.profile_slug, origin);
             }
           }
         } catch (e) {

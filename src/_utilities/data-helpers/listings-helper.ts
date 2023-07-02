@@ -261,7 +261,7 @@ export function getSegregatedListings(hits: Hit[]) {
       const k = key.substring(0, 5) === 'data.' ? key.substring(5) : key;
       data = {
         ...data,
-        [k]: Array.isArray(fields[key]) && !keep_as_array.includes(k) ? Array(fields[key]).join(',') : fields[key],
+        [k]: Array.isArray(fields[key]) && !keep_as_array?.includes(k) ? Array(fields[key]).join(',') : fields[key],
       };
     });
     if ((data as MLSProperty).Status.includes('Active')) {
