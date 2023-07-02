@@ -76,13 +76,13 @@ export const toDataURL = (url: string) =>
       console.log('Caught error in _helpers/functions.toDataURL:', err);
     });
 
-export const downloadFromUrl = (url: string) => {
+export const downloadFromUrl = (url: string, name: string = 'image', ext: string = 'png') => {
   let xhr = new XMLHttpRequest();
   xhr.responseType = 'blob';
   xhr.onload = function () {
     let a = document.createElement('a');
     a.href = window.URL.createObjectURL(xhr.response);
-    a.download = 'image_name.png';
+    a.download = name + '.' + ext;
     a.style.display = 'none';
     document.body.appendChild(a);
     a.click();

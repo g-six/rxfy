@@ -38,7 +38,7 @@ export default function RxFacebookCover({ nodes, agent }: ReplacerPageProps) {
       html2canvas(ref.current as HTMLElement, { allowTaint: true, useCORS: true }).then((canvas: HTMLCanvasElement) => {
         canvas.getContext('2d');
         const canvasImage = canvas.toDataURL('image/png');
-        downloadFromUrl(canvasImage);
+        downloadFromUrl(canvasImage, 'fb_cover');
       });
     }
   }, [ref, agent]);
