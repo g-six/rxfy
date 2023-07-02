@@ -83,6 +83,11 @@ export interface WebFlow {
 
 export enum WEBFLOW_THEME_DOMAINS {
   DEFAULT = 'leagent-webflow-rebuild.webflow.io',
+  OSLO = 'oslo-leagent.webflow.io',
+  MALTA = 'malta-leagent.webflow.io',
+  MALAGA = 'malaga-leagent.webflow.io',
+  LISBON = 'lisbon-leagent.webflow.io',
+  HAMBURG = 'hamburg-leagent.webflow.io',
 }
 
 export enum WEBFLOW_DASHBOARDS {
