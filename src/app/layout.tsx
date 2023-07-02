@@ -117,10 +117,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   if (typeof data !== 'string') {
     data = '<html><head></head><body></body></html>';
   }
-
+  const header_list = headers();
   const $: CheerioAPI = load(
     `${data}`.split('</title>').join(`</title>
-  <link rel='canonical' href='${requestUrl.origin}${requestUrl.pathname}' />`),
+  <link rel='canonical' href='${header_list.get('referer')}' />`),
   );
 
   const webflow: WebFlow = {

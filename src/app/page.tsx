@@ -37,6 +37,13 @@ function loadAiResults($: CheerioAPI, user_id: string, slug?: string, origin?: s
     `<iframe src="https://leagent.com/${user_id}/${slug}/property?theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
   );
 
+  replaceByCheerio($, '[data-w-tab="Tab 7"].w-tab-pane', {
+    className: 'w-full h-full',
+  });
+  $(`[data-w-tab="Tab 7"].w-tab-pane`).html(
+    `<iframe src="https://leagent.com/${user_id}/${slug}/map?theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
+  );
+
   $('.building-and-sold-info').remove();
   $('[class^="similar-homes"]').remove();
   replaceByCheerio($, '[data-w-tab="Tab 2"] .f-section-large-11', {
@@ -104,7 +111,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
   const $: CheerioAPI = load(
     `${data}`.split('</title>').join(`</title>
-  <link rel='canonical' href='${origin}${original_path}' />`),
+  <link rel='canonical' href='${headers().get('referer')}' />`),
   );
   let { hostname: webflow_domain, pathname: slug } = new URL(headers().get('x-url') as string);
 
