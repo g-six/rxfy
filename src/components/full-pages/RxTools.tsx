@@ -15,56 +15,31 @@ export default function RxTools({ nodeProps, agent, nodes, nodeClassName }: Repl
     {
       searchFn: searchByClasses(['smart-business-card-tab']),
       transformChild: (child: ReactElement) => {
-        const el = [cloneElement(child.props.children) as ReactElement];
-        return (
-          <RxSmartBusinessCard nodeClassName={child.props.className} nodeProps={child.props} agent={agent}>
-            {el}
-          </RxSmartBusinessCard>
-        );
+        return <RxSmartBusinessCard nodes={[child]} nodeClassName={child.props.className} nodeProps={child.props} agent={agent} />;
       },
     },
     {
       searchFn: searchByClasses(['email-signature-tab']),
       transformChild: (child: ReactElement) => {
-        const el = [cloneElement(child.props.children) as ReactElement];
-        return (
-          <RxEmailSignature nodeClassName={child.props.className} nodeProps={child.props} agent={agent}>
-            {el}
-          </RxEmailSignature>
-        );
+        return <RxEmailSignature nodes={[child]} nodeClassName={child.props.className} nodeProps={child.props} agent={agent} />;
       },
     },
     {
       searchFn: searchByClasses(['facebook-cover-tab']),
       transformChild: (child: ReactElement) => {
-        const el = [cloneElement(child.props.children) as ReactElement];
-        return (
-          <RxFacebookCover nodeClassName={child.props.className} nodeProps={child.props} agent={agent}>
-            {el}
-          </RxFacebookCover>
-        );
+        return <RxFacebookCover nodes={[child]} nodeClassName={child.props.className} nodeProps={child.props} agent={agent} />;
       },
     },
     {
       searchFn: searchByClasses(['paper-business-card-tab']),
       transformChild: (child: ReactElement) => {
-        const el = [cloneElement(child.props.children) as ReactElement];
-        return (
-          <RxPaperBusinessCard nodeClassName={child.props.className} nodeProps={child.props} agent={agent}>
-            {el}
-          </RxPaperBusinessCard>
-        );
+        return <RxPaperBusinessCard nodes={[child]} nodeClassName={child.props.className} nodeProps={child.props} agent={agent} />;
       },
     },
     {
       searchFn: searchByClasses(['property-brochure-tab']),
       transformChild: (child: ReactElement) => {
-        const el = [cloneElement(child.props.children) as ReactElement];
-        return (
-          <RxPropertyBrochures nodeClassName={child.props.className} nodeProps={child.props} agent={agent}>
-            {el}
-          </RxPropertyBrochures>
-        );
+        return <RxPropertyBrochures nodes={[child]} nodeClassName={child.props.className} nodeProps={child.props} agent={agent} />;
       },
     },
   ];
