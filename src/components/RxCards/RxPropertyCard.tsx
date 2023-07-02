@@ -194,10 +194,10 @@ export default function RxPropertyCard({
           loved: loved_items && loved_items.includes(listing.mls_id),
           'view-only': props['view-only'],
           onClickItem: () => {
+            toggleLoading(true);
             if (props.onClick) {
               props.onClick();
             } else if (isLink) {
-              toggleLoading(true);
               axios
                 .get(`/api/properties/mls-id/${listing.mls_id}`)
                 .then(r => {
@@ -223,7 +223,7 @@ export default function RxPropertyCard({
       >
         {children}
       </RxComponentChomper>
-      <div role='status' className={`${isLink && is_loading ? styles.visible : ''} ${styles.spinner}`}>
+      <div role='status' className={`${isLink && is_loading ? styles.spinner : styles['spinner-hidden']}`}>
         <svg
           aria-hidden='true'
           className='inline w-12 h-12 mr-2 text-gray-200 animate-spin fill-slate-800/50'
