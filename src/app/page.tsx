@@ -255,7 +255,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
       property = await getPrivateListing(Number(searchParams.lid));
     } else if (
       params &&
-      (params.slug === 'property' || params.slug === 'brochure' || params['site-page'] === 'property') &&
+      (params.slug === 'property' || params.slug === 'brochure' || params['site-page'] === 'property' || params['site-page'] === 'brochure') &&
       searchParams &&
       (searchParams.lid || searchParams.id || searchParams.mls)
     ) {
