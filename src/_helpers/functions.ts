@@ -76,6 +76,22 @@ export const toDataURL = (url: string) =>
       console.log('Caught error in _helpers/functions.toDataURL:', err);
     });
 
+export const downloadFromUrl = (url: string) => {
+  let xhr = new XMLHttpRequest();
+  xhr.responseType = 'blob';
+  xhr.onload = function () {
+    let a = document.createElement('a');
+    a.href = window.URL.createObjectURL(xhr.response);
+    a.download = 'image_name.png';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+  xhr.open('GET', url);
+  xhr.send();
+};
+
 const urlToFile = (image: string) => {
   return fetch(image)
     .then(response => response.blob())
