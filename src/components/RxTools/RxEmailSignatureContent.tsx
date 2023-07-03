@@ -21,7 +21,7 @@ export default function RxEmailSignatureContent({ nodes, agent }: ReplacerPagePr
       transformChild: (child: React.ReactElement) => {
         return React.cloneElement(child, {
           ...child.props,
-          children: agent.metatags.personal_title,
+          children: agent.metatags.title,
         });
       },
     },
