@@ -8,9 +8,7 @@ import { cookies, headers } from 'next/headers';
 import { Inter } from 'next/font/google';
 
 import { WEBFLOW_NODE_SELECTOR, WebFlow } from '@/_typings/webflow';
-import { MLSProperty } from '@/_typings/property';
 import { AgentData } from '@/_typings/agent';
-import { getAgentDataFromDomain } from '@/_utilities/data-helpers/agent-helper';
 import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
 import { getPropertyData } from '@/_utilities/data-helpers/property-page';
 import { fillAgentInfo, fillPropertyGrid, removeSection, replaceByCheerio, rexify } from '@/components/rexifier';
@@ -20,7 +18,7 @@ import styles from './page.module.scss';
 import { getUserDataFromSessionKey } from './api/update-session';
 import { findAgentRecordByAgentId } from './api/agents/model';
 import NotFound from './not-found';
-import { buildCacheFiles } from './api/properties/model';
+import { buildCacheFiles, getPropertiesFromAgentInventory } from './api/properties/model';
 import { getPrivateListing } from './api/private-listings/model';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -55,11 +53,11 @@ function loadAiResults($: CheerioAPI, user_id: string, slug?: string, origin?: s
 }
 
 export default async function Home({ params, searchParams }: { params: Record<string, unknown>; searchParams: Record<string, string> }) {
-  const { TEST_WF_DOMAIN, TEST_DOMAIN } = process.env as unknown as { [key: string]: string };
+  const { TEST_WF_DOMAIN } = process.env as unknown as { [key: string]: string };
   const axios = (await import('axios')).default;
   const url = headers().get('x-url') as string;
-  const { hostname, pathname: original_path, origin } = new URL(url);
-  let agent_data: AgentData | undefined = undefined;
+  const { hostname, origin } = new URL(url);
+  let agent_data: AgentData = {} as unknown as AgentData;
   let data, listings, property, legacy_data;
   let possible_agent = headers().get('x-agent-id');
   let profile_slug = headers().get('x-profile-slug');
@@ -68,7 +66,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
   if (possible_agent && profile_slug) {
     // Check if the slug matches a realtor
-    if (profile_slug.indexOf('la-') === 0) {
+    if (profile_slug === 'leagent' || profile_slug.indexOf('la-') === 0) {
       const agent_record = await findAgentRecordByAgentId(possible_agent);
       const { metatags } = agent_record;
 
@@ -136,7 +134,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     agent_data = await findAgentRecordByAgentId(searchParams.paragon);
 
     if (agent_data) {
-      if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
+      if (searchParams.theme === 'default') webflow_domain = `${process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}`;
       agent_data.webflow_domain = webflow_domain;
       loadAiResults($, agent_data.agent_id, agent_data.metatags.profile_slug, origin);
     }
@@ -156,7 +154,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
           if (session.agent) {
             if (session.agent?.featured_listings?.length) {
               try {
-                await axios.get(`https://beta.leagent.com/api/properties/mls-id/${session.agent.featured_listings[0]}`);
+                await axios.get(`https://leagent.com/api/properties/mls-id/${session.agent.featured_listings[0]}`);
                 const feature_listing = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${session.agent.featured_listings[0]}/recent.json`);
                 property = feature_listing.data;
                 property.listing_by = `Listing courtesy of ${session.agent.full_name}`;
@@ -229,7 +227,8 @@ export default async function Home({ params, searchParams }: { params: Record<st
       await fillAgentInfo($, agent_data, params);
 
       if (!slug || slug === '/') {
-        listings = await getAgentListings(agent_data.agent_id);
+        listings = await getPropertiesFromAgentInventory(agent_data.agent_id);
+        // listings = await getAgentListings(agent_data.agent_id);
         // Recent listings
         if (listings?.active?.length) {
           fillPropertyGrid($, listings.active, '.recent-listings-grid');
@@ -246,7 +245,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
           removeSection($, '.sold-listings-grid');
         }
       }
-      console.log('agent_data and agent_data.agent_id present');
     } else {
       console.log('\n\nHome.agent_data not available');
     }
@@ -259,7 +257,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
     }
 
     if (params.slug === 'preview' && searchParams.lid) {
-      // property = await getPrivateListing(Number(searchParams.lid));
       property = await getPrivateListing(Number(searchParams.lid));
     } else if (
       params &&
@@ -293,20 +290,11 @@ export default async function Home({ params, searchParams }: { params: Record<st
             // No cache, do the long query
             console.log('building cache');
             buildCacheFiles(searchParams.mls);
-            console.log('Property page', cache_json);
             console.log('No cache, do the long query');
             property = await getPropertyData(searchParams.mls, true);
             legacy_data = property;
           }
         }
-        const { LA1_FullName, LA2_FullName, LA3_FullName, SO1_FullName, SO2_FullName, SO3_FullName, LO1_Name, LO2_Name, LO3_Name } =
-          legacy_data as unknown as MLSProperty;
-
-        const listing_by =
-          LA1_FullName || LA2_FullName || LA3_FullName || SO1_FullName || SO2_FullName || SO3_FullName || LO1_Name || LO2_Name || LO3_Name || '';
-        replaceByCheerio($, '.listing-by', {
-          content: listing_by ? `Listing courtesy of ${listing_by}` : '',
-        });
       }
     }
 

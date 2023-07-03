@@ -28,11 +28,28 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // These variables will determine the page to be served along with the data to be injected
   // in the Rexification process
   let data;
-  let agent_data: AgentData | undefined = undefined;
+  let agent_data = {
+    id: 11431,
+    email: 'team@leagent.com',
+    phone: '(604) 330-0992',
+    first_name: '',
+    last_name: '',
+    full_name: 'Leagent',
+    agent_id: 'LEAGENT',
+    metatags: {
+      profile_slug: 'leagent',
+      street_1: '6060 Silver Dr',
+      street_2: 'Burnaby, BC V5H 2Y3',
+      logo_for_light_bg: '',
+      title: 'Leagent - REALTOR® AI-Powered Marketing Platform',
+      description:
+        'Leagent is your online office – where you collaborate on the home purchase with your clients, do market analysis, and have your marketing assets made in 10 minutes',
+    },
+  } as unknown as AgentData;
   let theme = searchParams.theme;
   let webflow_domain = process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN;
-  let agent_id = headers().get('x-agent-id');
-  let profile_slug = headers().get('x-profile-slug');
+  let agent_id = headers().get('x-agent-id') || 'LEAGENT';
+  let profile_slug = headers().get('x-profile-slug') || 'leagent';
 
   if (profile_slug && agent_id) {
     webflow_domain = process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN as string;
@@ -156,22 +173,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       }
       metas.push(<link {...attributesToProps(meta.attribs)} key={page_key} />);
     });
-  console.log('Loading meta');
   // end of extracting and assigning <head> elements
+
+  console.log('Loading html contents for', requestUrl.pathname);
   const { class: bodyClassName, ...body_props } = webflow.body.props;
-  if (!agent_data || webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN || requestUrl.pathname.split('/').pop() === 'map') {
+  if (webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN || requestUrl.pathname.split('/').pop() === 'map') {
     return (
       <html data-wf-domain={`${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`} {...$('html').attr()}>
         <head>
-          <title>{$('head title').text()}</title>
+          <title>TEST</title>
           {metas}
         </head>
-        {/* <head
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{
-            __html: webflow.head.code.split('<script').join('\n\n<!-- <script').split('/script>').join('/script> -->\n\n'),
-          }}
-        /> */}
 
         <body {...body_props} className={bodyClassName} suppressHydrationWarning>
           {children}

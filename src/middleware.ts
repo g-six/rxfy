@@ -12,7 +12,8 @@ export function middleware(request: NextRequest) {
   const [, ...segments] = pathname.split('/');
   let page_url = `https://`;
   response.headers.set('x-viewer', 'realtor');
-
+  response.headers.set('x-agent-id', 'LEAGENT');
+  response.headers.set('x-profile-slug', 'leagent');
   if (searchParams.get('paragon') && !segments.includes('ai-result')) {
     response.headers.set('x-viewer', 'customer');
     switch (searchParams.get('theme')) {
@@ -66,6 +67,9 @@ export function middleware(request: NextRequest) {
   allCookies.forEach(({ name, value }) => {
     response.headers.set(`x-${name.split('_').join('-')}`, value);
   });
-
+  // Do not remove this, need this to be logged in Vercel for various reasons
+  if (page_url.indexOf('/_next/') === -1) {
+    console.log('middleware', { page_url });
+  }
   return response;
 }

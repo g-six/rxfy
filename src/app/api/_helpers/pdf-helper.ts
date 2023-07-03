@@ -116,15 +116,14 @@ export async function getPdf(page_url: string, data: unknown) {
     ...values,
     map:
       values.lon && values.lat
-        ? `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/${values.lon},${values.lat},13,0,60/580x200@2x?access_token=${process.env.NEXT_APP_MAPBOX_TOKEN}`
+        ? `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/url-https%3A%2F%2Fpages.leagent.com%2Ficons%2Fmap-pin.png%3Fv%3D1(${values.lon},${values.lat})/${values.lon},${values.lat},13,0,60/580x200?access_token=${process.env.NEXT_APP_MAPBOX_TOKEN}`
         : '',
   };
+  const map_div = `<div style="background-color: transparent !important; background-image: url('${
+    values.map
+  }'); background-position: center; background-size: cover;" class="${$('[data-field="map"]').attr('class')}"></div>`;
+  $('[data-field="map"]').replaceWith(map_div);
 
-  $('[data-field="map"]').replaceWith(
-    `<div style="background-image: url(${values.map}); background-position: center; background-size: cover;" class="${$('[data-field="map"]').attr(
-      'class',
-    )}"></div>`,
-  );
   const { photos } = values as unknown as { photos: string[] };
   photos &&
     photos.length > 1 &&
@@ -160,7 +159,11 @@ export async function getPdf(page_url: string, data: unknown) {
     agent: AgentData;
   };
   if (agent.agent_id && agent.metatags.profile_slug) {
-    const qr = await QR.toDataURL(`https://leagent.com/${agent.agent_id}/${agent.metatags.profile_slug}`);
+    const qr = await QR.toDataURL(`https://leagent.com/${agent.agent_id}/${agent.metatags.profile_slug}`, {
+      color: {
+        light: '#0000', // Transparent background
+      },
+    });
     $('[data-image="qr"]').replaceWith(`<img src="${qr}" width="100" height="100" />`);
   }
 
@@ -176,9 +179,9 @@ export async function getPdf(page_url: string, data: unknown) {
         if (el.getAttribute('data-field')) {
           const field = el.getAttribute('data-field');
           if (field && d[field]) {
-            if (field === 'map') {
-              el.setAttribute('style', `background: url(${d[field]}) no-repeat cover center;`);
-            } else el.innerHTML = d[field];
+            if (field !== 'map') {
+              el.innerHTML = d[field];
+            }
           } else {
             console.log(field, 'field not available');
           }

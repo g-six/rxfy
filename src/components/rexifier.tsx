@@ -142,6 +142,8 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData, params
     );
     $('.navbar-wrapper-2 .logo---phone-email a[data-type="phone"]').attr('href', `tel:${agent_data.phone}`);
     $('.navbar-wrapper-2 .logo---phone-email a[data-type="phone"]').text(agent_data.phone);
+    const logo = `<img src="${getImageSized(agent_data.metatags.logo_for_light_bg, 40)}" class="rounded-md h-10" />`;
+    $('.navbar-wrapper-2 .logo-type').replaceWith(logo);
     $('.navbar-wrapper-2 > a[href="#"]').attr('href', '/');
     $('.navbar-wrapper-2 > a h3').remove();
 
@@ -167,60 +169,67 @@ export function replaceRealtorAiResultPage($: CheerioAPI) {
   });
 }
 
-export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapper_selector = '.similar-homes-grid', card_selector = '.property-card') {
+export function fillPropertyGrid($: CheerioAPI, properties: PropertyDataModel[], wrapper_selector = '.similar-homes-grid', card_selector = '.property-card') {
   if (properties.length === 0) {
     $(wrapper_selector).remove();
     $('.similar-homes').remove();
+  } else {
+    for (let i = 3 - properties.length; i > 0; i--) {
+      $(`${wrapper_selector} ${card_selector}:nth-child(${i + 1})`).remove();
+    }
   }
-  properties.forEach((p: MLSProperty, i) => {
+  properties.forEach((p: PropertyDataModel, i) => {
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1})`, {
       className: 'group static-card cursor-pointer',
     });
     replaceByCheerio($, `${wrapper_selector} .static-card:nth-child(${i + 1}) .propcard-details`, {
-      prepend: `<a class="absolute bottom-0 left-0 h-3/4 w-full" href="/property?mls=${p.MLS_ID}"></a>`,
+      prepend: `<a class="absolute bottom-0 left-0 h-3/4 w-full" href="property?mls=${p.mls_id}"></a>`,
     });
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .heart-on-small-card`, {
       className: 'group-hover:block',
     });
 
     // Photo
+    let selector = `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) > .propcard-image`;
     if (p.photos) {
-      replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) > .propcard-image`, {
-        backgroundImage: (p.photos as string[])[0],
+      replaceByCheerio($, selector, {
+        backgroundImage: p.cover_photo,
       });
     }
+    // Area
+    selector = `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .area-text`;
+    replaceByCheerio($, selector, {
+      content: p.area || p.city,
+    });
+
     // Heart-Full
-    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .heart-empty`, {
+    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) > .propcard-details .heart-empty`, {
       className: 'hidden',
     });
     // Heart-Full
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .heart-full`, {
       className: 'hidden',
     });
-    // Area
-    replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .area-text`, {
-      content: p.Area,
-    });
 
     // Price
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .propcard-price`, {
-      content: `$${new Intl.NumberFormat().format(p.AskingPrice)}`,
+      content: `$${new Intl.NumberFormat().format(p.asking_price)}`,
     });
 
     // Address
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .propcard-address`, {
-      content: `${formatValues(p, 'Address')}`,
+      content: `${formatValues(p, 'title')}`,
     });
 
     // Beds
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .bedroom-stat`, {
-      content: `${formatValues(p, 'L_BedroomTotal') || '1'}`,
+      content: `${p.beds || 1}`,
     });
 
     // Baths
-    if (p.L_TotalBaths) {
+    if (p.baths) {
       replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .bath-stat`, {
-        content: `${formatValues(p, 'L_TotalBaths')}`,
+        content: `${p.baths}`,
       });
     } else {
       removeSection($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .bath-stat`, '.propertycard-feature');
@@ -228,12 +237,12 @@ export function fillPropertyGrid($: CheerioAPI, properties: MLSProperty[], wrapp
 
     // Sqft
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .sqft-stat`, {
-      content: new Intl.NumberFormat().format(p.L_FloorArea_Total || p.L_FloorArea_GrantTotal),
+      content: new Intl.NumberFormat().format(p.floor_area_total || p.floor_area_main || 0),
     });
 
     // Year
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .year-stat`, {
-      content: `${formatValues(p, 'L_YearBuilt')}`,
+      content: `${formatValues(p, 'year_built')}`,
     });
 
     // Sold
@@ -277,7 +286,6 @@ export function replaceByCheerio($: CheerioAPI, target: string, replacement: Rep
       $(target).removeAttr('srcset');
     } else if (replacement.className) {
       $(target).attr('class', `${$(target).attr('class')} ${replacement.className}`);
-    } else if (replacement.content) {
     } else if (replacement.removeClassName) {
       $(target).attr('class', `${$(target).attr('class')}`.split(replacement.removeClassName).join(' ').trim());
     } else if (replacement.content) {
@@ -432,7 +440,7 @@ export function rexifyScripts(html_code: string) {
  * @param agent_data
  * @returns
  */
-export function rexify(html_code: string, agent_data?: AgentData, property: Record<string, unknown> = {}, params: Record<string, unknown> = {}) {
+export function rexify(html_code: string, agent_data: AgentData, property: Record<string, unknown> = {}, params: Record<string, unknown> = {}) {
   // Parse and replace
   const options: HTMLReactParserOptions = {
     replace: node => {
@@ -550,7 +558,6 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
 
         // Property Detailed Page
         if (
-          agent_data &&
           (params?.slug === 'property' || params?.['site-page'] === 'property') &&
           node.attribs.class &&
           node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_PAGE) >= 0
@@ -640,7 +647,7 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
               <section className={node.attribs.class + ' rexified'}>
                 {Children.map(domToReact(node.children) as ReactElement, child => {
                   if (child.props?.className === 'w-form') {
-                    return <RxSearchPlaceForm className={child.props.className}>{child}</RxSearchPlaceForm>;
+                    return <RxSearchPlaceForm className={child.props.className}>{child.props.children}</RxSearchPlaceForm>;
                   }
                   if (child.props?.className === 'address-chips') {
                     return (
@@ -654,7 +661,7 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
                       </div>
                     );
                   }
-                  return child;
+                  return <>{child.props.children}</>;
                 })}
               </section>
             );
@@ -839,22 +846,20 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
       }
     }
     if (placeholder === '{Agent Name}') {
-      if (agent_data.full_name) {
-        return (
-          <>
-            {domToReact(
-              htmlToDOM(
-                `<${tagName || 'span'}
+      return (
+        <>
+          {domToReact(
+            htmlToDOM(
+              `<${tagName || 'span'}
             class="${className}"
             data-rx-src="components/rexifier"
           >
-            ${agent_data.full_name}
+            ${agent_data?.full_name || 'Leagent'}
           </${tagName || 'span'}>`,
-              ),
-            )}
-          </>
-        );
-      }
+            ),
+          )}
+        </>
+      );
     }
     if (['{Address}', '{Agent Address}'].includes(placeholder)) {
       if (agent_data.street_1) {

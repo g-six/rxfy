@@ -1,4 +1,4 @@
-import { BathroomDetails, MLSProperty, RoomDetails } from '@/_typings/property';
+import { BathroomDetails, GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty, PropertyDataModel, RoomDetails } from '@/_typings/property';
 import { RealEstateBoardDataModel } from '@/_typings/real-estate-board';
 import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
 import { createAgentRecordIfNoneFound } from '@/app/api/agents/model';
@@ -7,6 +7,8 @@ import axios, { AxiosError } from 'axios';
 import { createCacheItem, invalidateCache } from '../_helpers/cache-helper';
 import { getRealEstateBoard } from '../real-estate-boards/model';
 import { bathroomsToBathroomDetails, roomsToRoomDetails } from '@/_helpers/mls-mapper';
+import { GQ_FRAG_AGENT } from '../agents/graphql';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 
 export async function createAgentsFromProperty(p: MLSProperty, real_estate_board: RealEstateBoardDataModel) {
   const agents: number[] = [];
@@ -169,3 +171,125 @@ export async function buildCacheFiles(mls_id: string) {
     };
   }
 }
+
+export async function getPropertiesFromAgentInventory(agent_id: string) {
+  try {
+    const response = await axios.post(
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+      {
+        query: gql_inventory_by_agent_id,
+        variables: {
+          agent_id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+    const data_records = response?.data?.data?.agentInventories?.data;
+    if (data_records && Array.isArray(data_records) && data_records.length) {
+      let records: {
+        [status: string]: PropertyDataModel[];
+      } = {};
+      data_records
+        .map(d => {
+          const {
+            agent: {
+              data: { id: agent_record_id, attributes: agent_attributes },
+            },
+            property: {
+              data: { id: property_id, attributes },
+            },
+          } = d.attributes;
+          const { mls_data, ...property } = attributes as PropertyDataModel;
+          Object.keys(property).forEach(k => {
+            const attrib = property as unknown as { [a: string]: unknown };
+            if (attrib[k] === null) delete attrib[k];
+          });
+          let cover_photo = property.property_photo_album?.data?.attributes?.photos?.[0];
+          cover_photo = cover_photo ? getImageSized(cover_photo, 480) : '/house-placeholder.png';
+          return {
+            ...property,
+            amenities: (property.amenities?.data || []).map(item => ({
+              ...item.attributes,
+              id: Number(item.id),
+            })),
+            appliances: (property.appliances?.data || []).map(item => ({
+              ...item.attributes,
+              id: Number(item.id),
+            })),
+            build_features: (property.build_features?.data || []).map(item => ({
+              ...item.attributes,
+              id: Number(item.id),
+            })),
+            connected_services: (property.connected_services?.data || []).map(item => ({
+              ...item.attributes,
+              id: Number(item.id),
+            })),
+            facilities: (property.facilities?.data || []).map(item => ({
+              ...item.attributes,
+              id: Number(item.id),
+            })),
+            hvac: (property.hvac?.data || []).map(p => ({
+              ...p.attributes,
+              id: Number(p.id),
+            })),
+            parking: (property.parking?.data || []).map(p => ({
+              ...p.attributes,
+              id: Number(p.id),
+            })),
+            photos: property.property_photo_album?.data?.attributes?.photos || [],
+            places_of_interest: (property.places_of_interest?.data || []).map(p => ({
+              ...p.attributes,
+              id: Number(p.id),
+            })),
+            property_photo_album: Number(property.property_photo_album?.data?.id || 0) || undefined,
+            real_estate_board: property.real_estate_board?.data?.attributes ? property.real_estate_board?.data?.attributes : undefined,
+            id: Number(property_id),
+            listing_by: `Listing courtesy of ${agent_attributes.full_name}`,
+            cover_photo,
+          } as unknown as PropertyDataModel;
+        })
+        .forEach((p: PropertyDataModel) => {
+          const status = p.status?.toLowerCase() || 'terminated';
+          records = {
+            ...records,
+            [status]: [...(records[status] || []), p],
+          };
+        });
+
+      invalidateCache([`/${agent_id}/listings.json`]);
+      createCacheItem(JSON.stringify(records, null, 4), `${agent_id}/listings.json`, 'text/json');
+      return records;
+    }
+    return response?.data?.data?.agentInventories?.data || {};
+  } catch (e) {
+    const axerr = e as AxiosError;
+    console.log('Error caught: properties.model.getPropertiesFromAgentInventory');
+    console.log(axerr.response?.data);
+  }
+}
+
+const gql_inventory_by_agent_id = `query GetAgentInventory($agent_id: String!) {
+	agentInventories(filters: { agent: { agent_id: { eqi: $agent_id } } }, pagination: { pageSize: 100 }) {
+    data {
+      id
+      attributes {
+        agent {
+          data {
+            ${GQ_FRAG_AGENT}
+          }
+        }
+        property {
+          data {
+            id
+            attributes {${GQ_FRAGMENT_PROPERTY_ATTRIBUTES}}
+          }
+        }
+      }
+    }
+  }
+}`;

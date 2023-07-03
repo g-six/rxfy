@@ -1,4 +1,4 @@
-import { Hit } from '@/_typings/pipeline';
+import { Hit, LegacySearchPayload } from '@/_typings/pipeline';
 import { BathroomDetails, MLSProperty, PropertyDataModel, RoomDetails } from '@/_typings/property';
 import {
   combineComplexCompoundName,
@@ -264,7 +264,7 @@ export function getSegregatedListings(hits: Hit[]) {
         [k]: Array.isArray(fields[key]) && !keep_as_array?.includes(k) ? Array(fields[key]).join(',') : fields[key],
       };
     });
-    if ((data as MLSProperty).Status.includes('Active')) {
+    if ((data as MLSProperty).Status?.includes('Active')) {
       active.push(data as MLSProperty);
     } else {
       sold.push(data as MLSProperty);
@@ -282,6 +282,18 @@ export async function getAgentListings(agent_id: string): Promise<{
     // Query cached listings first to save on latency in searching
     let url: string = `https://pages.leagent.com/listings/${agent_id}.json`;
     let res = await axios.get(url);
+
+    const legacy_params: LegacySearchPayload = {
+      from: 0,
+      size: 3,
+      query: {
+        bool: {
+          should: [{ match: { 'data.LA1_LoginName': agent_id } }, { match: { 'data.LA2_LoginName': agent_id } }, { match: { 'data.LA3_LoginName': agent_id } }],
+          minimum_should_match: 1,
+        },
+      },
+    };
+
     if (!res.data) {
       console.log('Cache file not found', url);
       const regen_xhr = await axios.get(`https://live-integrations.leagent.com/opensearch/agent-listings/${agent_id}?regen=1`);
@@ -302,6 +314,7 @@ export async function getAgentListings(agent_id: string): Promise<{
       }
     } else {
       console.log('Cache file for featured listings grid found', url);
+      console.log('legacy_params', res.data);
     }
 
     const { hits: results } = res.data;
