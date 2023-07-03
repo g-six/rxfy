@@ -740,7 +740,7 @@ export function rexify(html_code: string, agent_data?: AgentData, property: Reco
           }
         }
         //AGENT SIDE  START
-        console.log('node.attribs.class', node.attribs.class);
+
         if (agent_data && node.attribs.class?.split(' ').indexOf(WEBFLOW_NODE_SELECTOR.AGENT_TOOLS) >= 0) {
           return <RxTools nodeProps={props} nodeClassName={node.attribs.class} agent={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
         }
