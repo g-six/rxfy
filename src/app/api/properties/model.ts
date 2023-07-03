@@ -91,7 +91,7 @@ export async function buildCacheFiles(mls_id: string) {
         LO2_Name,
         LO3_Name,
       } = mls_data as MLSProperty;
-      console.log(property);
+
       const listing_by_name =
         LA1_FullName || LA2_FullName || LA3_FullName || SO1_FullName || SO2_FullName || SO3_FullName || LO1_Name || LO2_Name || LO3_Name || '';
       let listing_by;
@@ -139,7 +139,10 @@ export async function buildCacheFiles(mls_id: string) {
       invalidateCache([`/${file}/recent.json`, `/${file}/legacy.json`]);
       createCacheItem(recent_json, `${file}/recent.json`, 'text/json');
       createCacheItem(JSON.stringify(mls_data, null, 4), `${file}/legacy.json`, 'text/json');
-      return clean;
+      return {
+        ...clean,
+        code: 200,
+      };
     }
   } catch (e) {
     const axerr = e as AxiosError;
