@@ -5,7 +5,7 @@ import html2canvas from 'html2canvas';
 import { ReplacerPageProps } from '@/_typings/forms';
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
-import rendererPdf from '@/_helpers/pdf-renderer';
+import { rendererCardPdf } from '@/_helpers/pdf-renderer';
 
 import RxPaperBusinessCardFront from '@/components/RxTools/RxPaperBusinessCardFront';
 import RxPaperBusinessCardBack from '@/components/RxTools/RxPaperBusinessCardBack';
@@ -52,10 +52,10 @@ export default function RxPaperBusinessCard({ nodes, agent }: ReplacerPageProps)
         .map(el => {
           //el.style.width = pdfSize.width + 'px';
           //el.style.height = pdfSize.height + 'px';
-          return html2canvas(el, { allowTaint: true });
+          return html2canvas(el, { allowTaint: true, useCORS: true });
         });
       Promise.all(promises).then(pagesAsCanvas => {
-        rendererPdf({ images: pagesAsCanvas, name: 'BusinessCard', inWindow: true });
+        rendererCardPdf({ images: pagesAsCanvas, name: 'BusinessCard', inWindow: true });
       });
     }
   }, [refFront, refBack]);
