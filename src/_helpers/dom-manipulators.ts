@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import React, { Children, cloneElement, ReactElement, ReactNode } from 'react';
 
 interface Props {
@@ -149,7 +150,7 @@ export function replaceTextWithBraces(node: React.ReactNode, replacement: string
 }
 
 export function removeKeys<T extends object, K extends keyof T>(obj: T, keysToRemove: K[]): Omit<T, K> {
-  const newObj = { ...obj } as any;
+  const newObj = { ...cloneDeep(obj) } as any;
 
   keysToRemove.forEach(key => {
     delete newObj[key];

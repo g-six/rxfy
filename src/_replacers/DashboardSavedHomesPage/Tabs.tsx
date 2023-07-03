@@ -33,14 +33,14 @@ export default function Tabs({ child, currentTab, setCurrentTab, tabs = savedHom
       ?.filter((cls: string) => cls !== 'w--current')
       .join(' ');
   };
-  useEffect(() => {
-    const children = child?.props?.children;
-    if (Array.isArray(children)) {
-      children.forEach(child => {
-        hasCurrentClass(child?.props?.className) && makeCurrent(child)();
-      });
-    }
-  }, []);
+  // useEffect(() => {
+  //   const children = child?.props?.children;
+  //   if (Array.isArray(children)) {
+  //     children.forEach(child => {
+  //       hasCurrentClass(child?.props?.className) && makeCurrent(child)();
+  //     });
+  //   }
+  // }, []);
 
   const matches = [
     ...tabsArray.map(tab => ({

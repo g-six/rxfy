@@ -261,7 +261,7 @@ export function getSegregatedListings(hits: Hit[]) {
       const k = key.substring(0, 5) === 'data.' ? key.substring(5) : key;
       data = {
         ...data,
-        [k]: Array.isArray(fields[key]) && !keep_as_array.includes(k) ? Array(fields[key]).join(',') : fields[key],
+        [k]: Array.isArray(fields[key]) && !keep_as_array?.includes(k) ? Array(fields[key]).join(',') : fields[key],
       };
     });
     if ((data as MLSProperty).Status.includes('Active')) {
@@ -327,4 +327,34 @@ export async function getAgentListings(agent_id: string): Promise<{
   }
 
   return {};
+}
+
+export const LISTING_PROPER_LABELS: { [key: string]: string } = {
+  hvac: 'Heating & Ventilation / Air Conditioning',
+  listed_at: 'Date Listed',
+  lot_sqft: 'Lot Area',
+  min_age_restriction: 'Age Restrictions',
+  pets: 'Pet Policy',
+  price_per_sqft: 'Price/Sqft.',
+  total_fireplaces: 'Total # of fireplaces',
+  total_units_in_community: 'Total Units in Community',
+};
+
+export const LISTING_FIELD_GROUPS: { [key: string]: string } = {
+  age: 'Home Attributes',
+  price_per_sqft: 'Home Attributes',
+};
+
+export const LISTING_NUMERIC_FIELDS = ['floor_area', 'floor_area_total', 'floor_area_main', 'floor_levels', 'age'];
+export const LISTING_FEETERS_FIELDS = ['lot_sqft', 'frontage_feet', 'frontage'];
+export const LISTING_MONEY_FIELDS = ['asking_price', 'price_per_sqft', 'strata_fee', 'gross_taxes'];
+export const LISTING_DATE_FIELDS = ['listed_at'];
+export const LISTING_JSON_FIELDS = ['room_details', 'bathroom_details'];
+
+export function isNumericValue(key: string) {
+  return LISTING_NUMERIC_FIELDS.concat(LISTING_FEETERS_FIELDS).concat(LISTING_MONEY_FIELDS).includes(key);
+}
+
+export function isDateValue(key: string) {
+  return LISTING_DATE_FIELDS.includes(key);
 }

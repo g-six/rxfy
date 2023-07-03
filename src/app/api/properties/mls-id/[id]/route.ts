@@ -19,8 +19,6 @@ const gql_find_home = `query FindHomeByMLSID($mls_id: String!) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   let mls_id = url.pathname.split('/').pop() || '';
-  console.log('');
-  console.log('[GET] /api/properties/mls-id/[id]/route.ts');
   try {
     buildCacheFiles(mls_id);
     const json_file = `https://pages.leagent.com/listings/${mls_id}/recent.json`;

@@ -1,5 +1,5 @@
 'use client';
-import React, { ReactElement, createElement, useState } from 'react';
+import React, { ReactElement, createElement, useEffect, useState } from 'react';
 import { AgentData } from '@/_typings/agent';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import { removeKeys, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
@@ -9,6 +9,9 @@ import NewOrEditListingTab from '@/_replacers/AgentMyListingsPage/NewOrEditListi
 import { removeClasses } from '@/_helpers/functions';
 import MyListingsTab from '@/_replacers/AgentMyListingsPage/MyListingsTab';
 import { PageTabs } from '@/_typings/agent-my-listings';
+import { createPrivateListing } from '@/_utilities/api-calls/call-private-listings';
+import useFormEvent, { Events } from '@/hooks/useFormEvent';
+import SidebarTabs from '@/_replacers/AgentMyListingsPage/SidebarTabs';
 
 type Props = {
   nodeProps: {
@@ -20,39 +23,15 @@ type Props = {
 
 export default function RxAgentMyListings({ nodeProps, agent_data, nodes }: Props) {
   const [currentTab, setCurrentTab] = useState<PageTabs>('my-listings');
+
   const changeTab = (tab: PageTabs) => {
     setCurrentTab(tab);
   };
+
   const matches: tMatch[] = [
     {
-      searchFn: searchByClasses(['my-listings']),
-      transformChild: child => {
-        return createElement(
-          'a',
-          {
-            className: `${removeClasses(child.props.className, ['w--current'])} ${currentTab === 'my-listings' ? 'w--current' : ''}`,
-            onClick: () => {
-              setCurrentTab('my-listings');
-            },
-          },
-          [child.props.children],
-        );
-      },
-    },
-    {
-      searchFn: searchByClasses(['new-listing']),
-      transformChild: child =>
-        createElement(
-          child.type,
-          {
-            ...removeKeys(child.props, ['id']),
-            className: `${removeClasses(child.props.className, ['w--current'])} ${currentTab === 'private-listing' ? 'w--current' : ''}`,
-            onClick: () => {
-              setCurrentTab('private-listing');
-            },
-          },
-          [child.props.children],
-        ),
+      searchFn: searchByClasses(['dash-tabs']),
+      transformChild: child => <SidebarTabs template={child} currentTab={currentTab} setCurrentTab={setCurrentTab} />,
     },
 
     {
@@ -76,5 +55,6 @@ export default function RxAgentMyListings({ nodeProps, agent_data, nodes }: Prop
       transformChild: child => <NewOrEditListingTab child={child} agent={agent_data} isActive={currentTab === 'private-listing'} changeTab={changeTab} />,
     },
   ];
+
   return <div className={nodeProps?.className}>{transformMatchingElements(nodes, matches)}</div>;
 }

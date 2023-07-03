@@ -1,7 +1,9 @@
+import { EventsData } from '@/hooks/useEvent';
 import { ReactElement } from 'react';
 
 import { ValueInterface, RoomDimension } from './ui-types';
 import { AgentData } from '@/_typings/agent';
+import { PrivateListingData } from './events';
 
 export type PageTabs = 'my-listings' | 'private-listing';
 export enum createListingTabs {
@@ -21,12 +23,13 @@ export enum mapsViewsTabs {
 }
 export interface TabContentProps {
   template: ReactElement;
-  nextStepClick: () => void;
+  nextStepClick: (callback?: () => void, dataToAdd?: PrivateListingData) => void;
   saveAndExit: (data: any) => void;
   attributes: {
     [key: string]: ValueInterface[];
   };
-  initialState: any | undefined;
+  data: any | undefined;
+  fireEvent: (data: PrivateListingData) => void;
   agent: AgentData;
 }
 export interface RoomsGroupProps {
@@ -55,17 +58,17 @@ export const regularRow = [
     },
   },
   {
-    label: 'Dimensions 1',
+    label: 'Width',
     inputProps: {
-      placeholder: 'Dimensions 1',
-      name: 'dimension1',
+      placeholder: 'Width',
+      name: 'width',
     },
   },
   {
-    label: 'Dimensions 2',
+    label: 'Length',
     inputProps: {
-      placeholder: 'Dimensions 2',
-      name: 'dimension2',
+      placeholder: 'Length',
+      name: 'length',
     },
   },
 ];

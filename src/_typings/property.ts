@@ -10,6 +10,7 @@ export const PROPERTY_ASSOCIATION_KEYS: string[] = [
   'heating',
   'hvac',
   'items_maintained',
+  'property_photo_album',
   'types',
 ];
 type PropertyAssociations = {
@@ -515,6 +516,7 @@ export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
                       }
                       property_photo_album {
                         data {
+                          id
                           attributes {
                             photos
                           }

@@ -128,3 +128,9 @@
 .is-really-visible {
   @apply flex #{!important};
 }
+.stat-description {
+  white-space: pre-line;
+}
+.hidden-block {
+  @apply hidden #{!important};
+}

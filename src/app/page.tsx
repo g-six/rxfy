@@ -1,3 +1,4 @@
+import './globals.scss';
 import parse from 'html-react-parser';
 import { AxiosError } from 'axios';
 import Image from 'next/image';
@@ -21,20 +22,19 @@ import { findAgentRecordByAgentId } from './api/agents/model';
 import NotFound from './not-found';
 import { buildCacheFiles } from './api/properties/model';
 import { getPrivateListing } from './api/private-listings/model';
-import { getUserSessionData } from './api/check-session/route';
 
 const inter = Inter({ subsets: ['latin'] });
 const skip_slugs = ['favicon.ico', 'sign-out'];
 
-function loadAiResults($: CheerioAPI, user_id: string, origin?: string) {
+function loadAiResults($: CheerioAPI, user_id: string, slug?: string, origin?: string) {
   ['oslo', 'hamburg', 'malta'].forEach(theme => {
     $(`.theme-area.home-${theme}`).replaceWith(
       `<iframe data-src="https://leagent.com?paragon=${user_id}&theme=${theme}" className="${styles.homePagePreview} theme-area home-${theme}" />`,
     );
   });
-  console.log('Load property sample', `${origin}/property?paragon=${user_id}&theme=default&mls=R2782417`);
+
   $(`[data-w-tab="Tab 2"] .f-section-large-11`).html(
-    `<iframe src="https://leagent.com/property?paragon=${user_id}&theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
+    `<iframe src="https://leagent.com/${user_id}/${slug}/property?theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
   );
 
   $('.building-and-sold-info').remove();
@@ -131,7 +131,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     if (agent_data) {
       if (searchParams.theme === 'default') webflow_domain = 'leagent-webflow-rebuild.webflow.io';
       agent_data.webflow_domain = webflow_domain;
-      loadAiResults($, agent_data.agent_id, origin);
+      loadAiResults($, agent_data.agent_id, agent_data.metatags.profile_slug, origin);
     }
   } else if (!(searchParams.theme && searchParams.agent) && webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN) {
     if (!session_key && params.slug && ['ai-result'].includes(params.slug as string)) {
@@ -159,7 +159,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
             }
             if (agent_data) {
               agent_data.metatags = session.agent.agent_metatag;
-              loadAiResults($, session.agent.agent_id, origin);
+              loadAiResults($, session.agent.agent_id, agent_data.metatags.profile_slug, origin);
             }
           }
         } catch (e) {
@@ -185,6 +185,16 @@ export default async function Home({ params, searchParams }: { params: Record<st
         break;
     }
   }
+
+  replaceByCheerio($, '.tab-pane-private-listings.w--active', {
+    removeClassName: 'w--active',
+  });
+  replaceByCheerio($, '.tab-pane-private-listings.w--tab-active', {
+    removeClassName: 'w--tab-active',
+  });
+  replaceByCheerio($, '.modal-base.existing', {
+    className: 'hidden-block',
+  });
 
   replaceByCheerio($, '.w-nav-menu .nav-dropdown-2', {
     className: 'nav-menu-list-wrapper',
@@ -245,7 +255,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
       property = await getPrivateListing(Number(searchParams.lid));
     } else if (
       params &&
-      (params.slug === 'property' || params.slug === 'brochure' || params['site-page'] === 'property') &&
+      (params.slug === 'property' || params.slug === 'brochure' || params['site-page'] === 'property' || params['site-page'] === 'brochure') &&
       searchParams &&
       (searchParams.lid || searchParams.id || searchParams.mls)
     ) {
