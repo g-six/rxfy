@@ -1,4 +1,4 @@
-import { MLSProperty } from '@/_typings/property';
+import { BathroomDetails, MLSProperty, RoomDetails } from '@/_typings/property';
 import { RealEstateBoardDataModel } from '@/_typings/real-estate-board';
 import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
 import { createAgentRecordIfNoneFound } from '@/app/api/agents/model';
@@ -6,6 +6,7 @@ import { getFormattedPlaceDetails, googlePlaceQuery } from '../_helpers/geo-help
 import axios, { AxiosError } from 'axios';
 import { createCacheItem, invalidateCache } from '../_helpers/cache-helper';
 import { getRealEstateBoard } from '../real-estate-boards/model';
+import { bathroomsToBathroomDetails, roomsToRoomDetails } from '@/_helpers/mls-mapper';
 
 export async function createAgentsFromProperty(p: MLSProperty, real_estate_board: RealEstateBoardDataModel) {
   const agents: number[] = [];
@@ -78,8 +79,27 @@ export async function buildCacheFiles(mls_id: string) {
 
     if (legacy) {
       const { mls_data, ...property } = legacy;
-      const { ListingID: listing_id } = mls_data as MLSProperty;
+      const {
+        ListingID: listing_id,
+        LA1_FullName,
+        LA2_FullName,
+        LA3_FullName,
+        SO1_FullName,
+        SO2_FullName,
+        SO3_FullName,
+        LO1_Name,
+        LO2_Name,
+        LO3_Name,
+      } = mls_data as MLSProperty;
+      const listing_by_name =
+        LA1_FullName || LA2_FullName || LA3_FullName || SO1_FullName || SO2_FullName || SO3_FullName || LO1_Name || LO2_Name || LO3_Name || '';
+      let listing_by;
+      if (listing_by_name) {
+        listing_by = `Listing courtesy of ${listing_by_name}`;
+      }
       const real_estate_board = await getRealEstateBoard(mls_data as unknown as { [key: string]: string });
+      const room_details: { rooms: RoomDetails[] } = roomsToRoomDetails(mls_data as MLSProperty);
+      const bathroom_details: { baths: BathroomDetails[] } = bathroomsToBathroomDetails(mls_data as MLSProperty);
       let details: { [key: string]: unknown } = {
         listing_id,
         real_estate_board,
@@ -106,16 +126,23 @@ export async function buildCacheFiles(mls_id: string) {
         {
           ...property,
           ...details,
+          room_details,
+          bathroom_details,
+          listing_by,
         },
         null,
         4,
       );
+
       invalidateCache([`/${file}/recent.json`, `/${file}/legacy.json`]);
       createCacheItem(recent_json, `${file}/recent.json`, 'text/json');
       createCacheItem(JSON.stringify(mls_data, null, 4), `${file}/legacy.json`, 'text/json');
       return {
         ...property,
         ...details,
+        room_details,
+        bathroom_details,
+        listing_by,
       };
     }
   } catch (e) {

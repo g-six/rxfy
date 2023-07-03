@@ -1,5 +1,5 @@
 'use client';
-import React, { ReactElement, useRef, useState, useCallback } from 'react';
+import React, { ReactElement, useRef, useState, useCallback, cloneElement } from 'react';
 
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
@@ -26,7 +26,13 @@ export default function RxDropMenu(props: DropMenuProps) {
   useOutsideClick(null, handleClose, setRefsToggle);
   useOutsideClick(null, handleClose, setRefsMenu);
 
+  const wrapperClassName = props.wrapperNode.props.className;
+  const style = Object.assign({}, props.wrapperNode.props.style, props.wrapperStyle);
   const matches = [
+    {
+      searchFn: searchByClasses(['my-listing-dropdown']),
+      transformChild: (child: ReactElement) => cloneElement(child, { style }),
+    },
     {
       searchFn: searchByClasses(props.toggleClassNames),
       transformChild: (child: React.ReactElement) =>
@@ -48,9 +54,6 @@ export default function RxDropMenu(props: DropMenuProps) {
       },
     },
   ];
-
-  const wrapperClassName = props.wrapperNode.props.className;
-  const style = Object.assign({}, props.wrapperNode.props.style, props.wrapperStyle);
 
   return (
     <div className={wrapperClassName} style={style}>

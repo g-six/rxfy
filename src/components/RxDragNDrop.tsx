@@ -28,7 +28,6 @@ export default function RxDragNDrop({ files, template, deleteFile, reorderFiles 
   const handleDragStart = (event: any) => {
     setActiveId(event.active.id);
   };
-
   const handleDragOver = (event: any) => {
     const { active, over } = event;
     if (active.las !== over.id) {
@@ -99,8 +98,8 @@ const SortableItem = ({ id, template, item, deleteFile }: SortableItemProps) => 
           className: `${temaplates.preview.props.className} `,
           style: {
             cursor: `${isDragging ? 'grabbing' : 'grab'}`,
-            background: `url(${item.preview})`,
-            backgroundSize: '100%',
+            backgroundImage: item.preview ? `url(${item.preview})` : 'none',
+            backgroundSize: 'cover',
             backgroundPosition: '0% 50%',
             backgroundRepeat: 'no-repeat',
             opacity: '1',

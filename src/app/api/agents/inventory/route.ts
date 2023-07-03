@@ -4,9 +4,9 @@ import { PropertyDataModel } from '@/_typings/property';
 import { NextRequest } from 'next/server';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getResponse } from '../../response-helper';
-import { getNewSessionKey } from '../../update-session';
 import { findAgentRecordByRealtorId } from '../model';
 import { encrypt } from '@/_utilities/encryption-helper';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 
 export async function GET(request: NextRequest) {
   const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
@@ -95,38 +95,50 @@ export async function GET(request: NextRequest) {
             real_estate_board,
             property_photo_album,
           ].forEach((relationship, idx) => {
-            if (relationship?.data && Array.isArray(relationship.data)) {
-              relationship.data.forEach(r => {
-                if (r.id) {
-                  const rid = Number(r.id);
-                  if (!isNaN(rid)) {
-                    relationships = {
-                      ...relationships,
-                      [index[idx]]: relationships[index[idx]]
-                        ? [
-                            ...relationships[index[idx]],
-                            {
-                              ...r.attributes,
-                              id: rid,
-                            },
-                          ]
-                        : [
-                            {
-                              ...r.attributes,
-                              id: rid,
-                            },
-                          ],
-                    };
+            if (relationship?.data) {
+              if (Array.isArray(relationship.data)) {
+                relationship.data.forEach(r => {
+                  if (r.id) {
+                    const rid = Number(r.id);
+                    if (!isNaN(rid)) {
+                      relationships = {
+                        ...relationships,
+                        [index[idx]]: relationships[index[idx]]
+                          ? [
+                              ...relationships[index[idx]],
+                              {
+                                ...r.attributes,
+                                id: rid,
+                              },
+                            ]
+                          : [
+                              {
+                                ...r.attributes,
+                                id: rid,
+                              },
+                            ],
+                      };
+                    }
                   }
-                }
-                //   if (r.id)
-              });
+                });
+              }
             }
           });
           amenities?.data?.forEach(r => r.id);
+          let album = 0;
+          let cover_photo = '';
+          if (property_photo_album?.data?.id) {
+            album = Number(property_photo_album.data.id);
+            cover_photo = property_photo_album?.data?.attributes?.photos?.[0];
+            cover_photo = cover_photo ? getImageSized(cover_photo, 256) : '/house-placeholder.png';
+          }
+
           properties.push({
             ...property,
             ...relationships,
+            property_photo_album: album,
+            photos: property_photo_album?.data?.attributes?.photos || [],
+            cover_photo,
             id: Number(record.data.id),
           });
         }

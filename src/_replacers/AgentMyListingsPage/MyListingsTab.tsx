@@ -18,6 +18,7 @@ export default function MyListingsTab({ child, isActive, setCurrentTab }: Props)
   const { data, fireEvent } = useEvent(Events.AgentMyListings);
   const [MLSListings, setMLSListings] = useState<any[]>([]);
   const [privateListings, setPrivateListings] = useState<any[]>([]);
+
   const [templates] = useState(
     captureMatchingElements(child, [
       { elementName: 'privateCard', searchFn: searchByClasses(['private-listing-card']) },
@@ -39,8 +40,17 @@ export default function MyListingsTab({ child, isActive, setCurrentTab }: Props)
       fireEvent({ metadata: undefined });
     }
   }, [data?.metadata, fireEvent]);
+
   const matches: tMatch[] = [
-    { searchFn: searchByClasses(['f-button-neutral-5', 'w-button']), transformChild: child => cloneElement(child, { onClick: () => {} }) },
+    {
+      searchFn: searchByClasses(['f-button-neutral-5', 'w-button']),
+      transformChild: child =>
+        cloneElement(child, {
+          onClick: () => {
+            setCurrentTab();
+          },
+        }),
+    },
     {
       searchFn: searchByClasses(['my-listings-tab-content']),
       transformChild: child =>
@@ -57,7 +67,21 @@ export default function MyListingsTab({ child, isActive, setCurrentTab }: Props)
         cloneElement(
           child,
           {},
-          privateListings.map((it, i) => <MyListingPrivateCard key={i} template={templates.privateCard} property={it} changeTab={setCurrentTab} />),
+          isActive
+            ? privateListings.map((it, i) => (
+                <MyListingPrivateCard
+                  key={i}
+                  template={templates.privateCard}
+                  property={it}
+                  changeTab={setCurrentTab}
+                  onDelete={() => {
+                    getMyPrivateListings().then(res => {
+                      setPrivateListings(res.records);
+                    });
+                  }}
+                />
+              ))
+            : [],
         ),
     },
   ];

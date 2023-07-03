@@ -18,7 +18,7 @@ export default function Checkbox({ item, template, isPicked, handleCheckList }: 
   };
   const matches: tMatch[] = [
     {
-      searchFn: searchByClasses(['w-checkbox-input']),
+      searchFn: searchByClasses(['checkbox']),
       transformChild: (child: ReactElement) => {
         const filtered = child.props.className
           .split(' ')

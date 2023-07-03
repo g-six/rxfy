@@ -1,10 +1,11 @@
 import React from 'react';
 import { LovedPropertyDataModel } from '@/_typings/property';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
-import { field_aliases, money_fields, numeric_fields, feeters, relationship_based_attributes } from './RxCompareFiltersModal';
+import { field_aliases, relationship_based_attributes } from './RxCompareFiltersModal';
 import { useDrag, useDrop, ConnectDropTarget } from 'react-dnd';
 import { Card } from './CustomerCompareCanvas';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
+import { LISTING_DATE_FIELDS, LISTING_FEETERS_FIELDS, LISTING_NUMERIC_FIELDS } from '@/_utilities/data-helpers/listings-helper';
 
 type Props = { children: React.ReactElement | React.ReactElement[]; className: string };
 
@@ -252,11 +253,11 @@ function getStatsValue(key: string, kv: { [key: string]: unknown }): string {
     return '';
   }
 
-  if (money_fields.includes(db_column)) {
+  if (LISTING_DATE_FIELDS.includes(db_column)) {
     val = val ? '$' + new Intl.NumberFormat().format(Number(val)) : 'N/A';
-  } else if (numeric_fields.includes(db_column)) {
+  } else if (LISTING_NUMERIC_FIELDS.includes(db_column)) {
     val = val ? new Intl.NumberFormat().format(Number(val)) : 'N/A';
-  } else if (feeters.includes(db_column)) {
+  } else if (LISTING_FEETERS_FIELDS.includes(db_column)) {
     val = val ? new Intl.NumberFormat().format(Number(val)) + ' Sqft' : 'N/A';
   }
   return val || ('N/A' as string);

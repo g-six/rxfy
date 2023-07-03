@@ -1,6 +1,7 @@
-import { MLSProperty, PropertyDataModel } from '@/_typings/property';
+import { BathroomDetails, MLSProperty, PropertyDataModel, RoomDetails } from '@/_typings/property';
 import { PrivateListingData } from '@/_typings/events';
 import { ImagePreview } from '@/hooks/useFormEvent';
+import { LISTING_DATE_FIELDS, isNumericValue } from '@/_utilities/data-helpers/listings-helper';
 
 export const mapStrAddress = (fields: MLSProperty) => {
   const prefix = '';
@@ -26,6 +27,7 @@ export function convertPropertyDataToPrivateListing(prop: PropertyDataModel, pho
     asking_price: prop.asking_price.toString(),
     floor_area_total: prop?.floor_area_total,
     year_built: prop?.year_built,
+    status: prop?.status,
     // property_type: { id: , name: prop.property_type },
     state_province: prop.state_province,
     city: prop.city,
@@ -40,56 +42,149 @@ export function convertPropertyDataToPrivateListing(prop: PropertyDataModel, pho
     baths: prop.baths,
   };
 }
-
 export function convertPrivateListingToPropertyData(prop: PrivateListingData): any {
   const photos = prop?.photos ? prop?.photos : [];
   const cdnPhotos = photos.map(photo => photo.preview);
-  return {
-    //TAB AI
-    // mls_id: prop?.id?.toString() ?? '',
-    title: prop?.title ?? '',
-    description: prop?.prompt,
-    photos: cdnPhotos ? cdnPhotos : [],
-    //TAB ADDRESS
-    state_province: prop.state_province,
-    city: prop?.city ?? '',
-    building_unit: prop?.building_unit,
-    region: prop?.region ?? '',
-    postal_zip_code: prop.postal_zip_code,
-    lat: prop.lat,
-    lon: prop.lon,
-    // area: prop?.living_area?.toString() ?? '', ----- WHAT INPUT IS RESPONSIBLE FOR IT
-    //TAB SUMMARY
-    dwelling_type: prop?.dwelling_type?.id,
-    asking_price: prop?.asking_price ? parseInt(prop.asking_price) : 0,
-    //building_style: prop?.building_style?.id, ---- MISSING IN PRIVATE LISTINGS MODEL
-    year_built: prop?.year_built,
-    property_disclosure: prop?.property_disclosure,
-    gross_taxes: prop?.gross_taxes ? parseFloat(prop.gross_taxes) : 0,
-    tax_year: prop?.tax_year ? parseInt(prop.tax_year) : 0,
-    amenities: prop?.amenities?.map(it => it.id),
-    connected_services: prop?.connected_services?.map(it => it.id),
-    //TAB SIZE
-    floor_area_total: prop?.floor_area_total,
-    floor_area_uom: prop?.floor_area_uom,
-    lot_area: prop?.lot_area,
-    lot_uom: prop?.lot_uom,
-    beds: prop.beds,
-    baths: prop.baths,
-    full_baths: prop?.full_baths ?? prop?.baths,
-    half_baths: prop?.half_baths,
-    ///  TAB SIZE MISSING A LOT OF STUFF ON PRIVATE LISTINGS : MISMATCHES WITH TYPES ETC...
-
-    // TAB STRATA
-    building_bylaws: prop?.building_bylaws,
-    strata_fee: prop?.strata_fee,
-    restrictions: prop?.restrictions,
-    minimum_age_restriction: prop?.minimum_age_restriction,
-    total_dogs_allowed: prop?.total_dogs_allowed,
-    total_cats_allowed: prop?.total_cats_allowed,
-    total_pets_allowed: (prop?.total_dogs_allowed ?? 0) + (prop?.total_cats_allowed ?? 0),
-    total_allowed_rentals: prop?.total_allowed_rentals,
-    complex_compound_name: prop?.complex_compound_name,
-    council_approval_required: prop?.council_approval_required,
+  let updates = prop as unknown as {
+    [key: string]: unknown;
   };
+  Object.keys(updates).forEach(field_name => {
+    if (isNumericValue(field_name)) {
+      updates[field_name] = Number(updates[field_name]);
+    } else if (LISTING_DATE_FIELDS.includes(field_name)) {
+      updates[field_name] = new Date(updates[field_name] as number).toISOString().substring(0, 10); // YYYY-MM-DD
+    } else if (Array.isArray(updates[field_name])) {
+      const relationships = updates[field_name] as unknown as {
+        id: number;
+      }[];
+      const ids = updates[field_name] as unknown as number[];
+      if (typeof ids[0] === 'object') {
+        updates[field_name] = relationships.map(({ id }) => id);
+      }
+    }
+  });
+  return updates;
+}
+
+export const convertToDetails = (data: any, keys: string[]) => {
+  let room_details: any[] = [];
+  for (let i = 0; i < keys?.length; i++) {
+    const currItem: any = data[keys[i]];
+
+    if (currItem && currItem?.length > 0) {
+      currItem.forEach((item: any) => {
+        room_details.push({ ...item, type: keys[i] });
+      });
+    }
+  }
+  return { room_details };
+};
+export const convertToRooms = (details: any) => {
+  const dataToUpdate: any = {};
+  if (details && details?.length > 0) {
+    details.forEach((item: any) => {
+      if (item.type) {
+        dataToUpdate[item.type] = [...(dataToUpdate[item.type] ?? []), { ...item }];
+      }
+    });
+  }
+  return dataToUpdate;
+};
+
+const MAX_NUM_OF_ROOMS = 50;
+export function roomsToRoomDetails(mls_data: MLSProperty) {
+  const rooms: RoomDetails[] = [];
+  for (let num = 1; num <= MAX_NUM_OF_ROOMS; num++) {
+    if (mls_data[`L_Room${num}_Type`]) {
+      rooms.push({
+        type: (mls_data[`L_Room${num}_Type`] as string) || '',
+        length: (mls_data[`L_Room${num}_Dimension1`] as string) || '',
+        width: (mls_data[`L_Room${num}_Dimension2`] as string) || '',
+        level: (mls_data[`L_Room${num}_Level`] as string) || '',
+      });
+    }
+  }
+  if (mls_data.L_MainLevelBedrooms) {
+    for (let num = 1; num <= Number(mls_data.L_MainLevelBedrooms); num++) {
+      rooms.push({
+        type: 'Bedroom',
+        length: '',
+        width: '',
+        level: 'Main',
+      });
+    }
+  }
+  if (mls_data.L_MainLevelKitchens) {
+    for (let num = 1; num <= Number(mls_data.L_MainLevelKitchens); num++) {
+      rooms.push({
+        type: 'Kitchen',
+        length: '',
+        width: '',
+        level: 'Main',
+      });
+    }
+  }
+  if (mls_data.L_MainLevelKitchens) {
+    for (let num = 1; num <= Number(mls_data.L_MainLevelKitchens); num++) {
+      rooms.push({
+        type: 'Kitchen',
+        length: '',
+        width: '',
+        level: 'Main',
+      });
+    }
+  }
+  ['Second', 'Third', 'Fourth'].forEach(lvl => {
+    if (mls_data[`L_BedroomsCount${lvl}Level`]) {
+      for (let num = 1; num <= Number(mls_data[`L_BedroomsCount${lvl}Level`]); num++) {
+        rooms.push({
+          type: 'Bedroom',
+          length: '',
+          width: '',
+          level: `${lvl} Level`,
+        });
+      }
+    }
+    if (mls_data[`L_Kitchens${lvl}Level`]) {
+      for (let num = 1; num <= Number(mls_data[`L_Kitchens${lvl}Level`]); num++) {
+        rooms.push({
+          type: 'Kitchen',
+          length: '',
+          width: '',
+          level: `${lvl} Level`,
+        });
+      }
+    }
+  });
+
+  return { rooms };
+}
+export function bathroomsToBathroomDetails(mls_data: MLSProperty) {
+  const baths: BathroomDetails[] = [];
+  for (let num = 1; num <= MAX_NUM_OF_ROOMS; num++) {
+    if (mls_data[`L_Bath${num}_Pcs`]) {
+      const ensuite = (mls_data[`L_Bath${num}_Ensuite`] as string) || 'No';
+      baths.push({
+        ensuite,
+        pieces: (mls_data[ensuite === 'No' ? `L_Bath${num}_Pcs` : 'L_BathEnsuite_Pcs'] as number) || (mls_data[`L_Bath${num}_Pcs`] as number) || 1,
+        level: (mls_data[`L_Room${num}_Level`] as string) || '',
+      });
+    }
+  }
+  if (mls_data.L_MainLevelBathrooms) {
+    for (let num = 1; num <= Number(mls_data.L_MainLevelBathrooms); num++) {
+      baths.push({
+        level: 'Main',
+      });
+    }
+  }
+  if (mls_data.L_BathroomsCountLowerLevel) {
+    for (let num = 1; num <= Number(mls_data.L_BathroomsCountLowerLevel); num++) {
+      baths.push({
+        level: 'Lower Level',
+      });
+    }
+  }
+
+  return { baths };
 }

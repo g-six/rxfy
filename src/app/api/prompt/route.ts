@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
       return getResponse({
         ...json,
         dwelling_type: dwelling_type.id,
+        description: payload.description,
         strapi: {
           dwelling_type,
         },

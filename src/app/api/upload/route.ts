@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
     return getResponse({
       upload_url,
       file_path: Key,
+      url: `https://${process.env.NEXT_APP_S3_PAGES_BUCKET}/${Key}`,
     });
   }
 }
