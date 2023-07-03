@@ -16,7 +16,7 @@ export default function RxPaperBusinessCard({ nodes, agent }: ReplacerPageProps)
 
   const matches: tMatch[] = [
     {
-      searchFn: searchByClasses(['card-front-b']),
+      searchFn: searchByClasses(['card-b']),
       transformChild: (child: React.ReactElement) => {
         return (
           <div ref={refFront}>
@@ -26,7 +26,7 @@ export default function RxPaperBusinessCard({ nodes, agent }: ReplacerPageProps)
       },
     },
     {
-      searchFn: searchByClasses(['card-back-a']),
+      searchFn: searchByClasses(['card-a']),
       transformChild: (child: React.ReactElement) => {
         return (
           <div ref={refBack}>
