@@ -4,6 +4,7 @@ import React, { ReactElement } from 'react';
 import { AgentData } from '@/_typings/agent';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { replaceAllTextWithBraces, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { getAgentPhoto } from '@/_utilities/data-helpers/agent-helper';
 
 type Props = {
   child: ReactElement;
@@ -15,10 +16,7 @@ export default function RxPropertyAgent(props: Props) {
     {
       searchFn: searchByClasses(['agentface-wrapper']),
       transformChild: (child: ReactElement) => {
-        let photo = props?.agent?.metatags?.logo_for_light_bg;
-        photo = photo ? photo : props?.agent?.metatags?.logo_for_dark_bg;
-        photo = photo ? photo : props?.agent?.metatags?.profile_image;
-        photo = photo ? photo : '';
+        const photo = props?.agent ? getAgentPhoto(props.agent) : '';
         const style = Object.assign({}, child.props.style, {
           backgroundImage: `url(${photo})`,
           backgroundPosition: 'center center',
