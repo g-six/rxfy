@@ -78,7 +78,7 @@ export async function buildCacheFiles(mls_id: string) {
     );
 
     if (legacy) {
-      const { mls_data, ...property } = legacy;
+      const { mls_data, property_type, ...property } = legacy;
       const {
         ListingID: listing_id,
         LA1_FullName,
@@ -91,12 +91,16 @@ export async function buildCacheFiles(mls_id: string) {
         LO2_Name,
         LO3_Name,
       } = mls_data as MLSProperty;
+      console.log(property);
       const listing_by_name =
         LA1_FullName || LA2_FullName || LA3_FullName || SO1_FullName || SO2_FullName || SO3_FullName || LO1_Name || LO2_Name || LO3_Name || '';
       let listing_by;
       if (listing_by_name) {
         listing_by = `Listing courtesy of ${listing_by_name}`;
       }
+      const dwelling_type = {
+        name: property_type,
+      };
       const real_estate_board = await getRealEstateBoard(mls_data as unknown as { [key: string]: string });
       const room_details: { rooms: RoomDetails[] } = roomsToRoomDetails(mls_data as MLSProperty);
       const bathroom_details: { baths: BathroomDetails[] } = bathroomsToBathroomDetails(mls_data as MLSProperty);
@@ -122,28 +126,20 @@ export async function buildCacheFiles(mls_id: string) {
         },
       });
       const file = `listings/${mls_id}`;
-      const recent_json = JSON.stringify(
-        {
-          ...property,
-          ...details,
-          room_details,
-          bathroom_details,
-          listing_by,
-        },
-        null,
-        4,
-      );
-
-      invalidateCache([`/${file}/recent.json`, `/${file}/legacy.json`]);
-      createCacheItem(recent_json, `${file}/recent.json`, 'text/json');
-      createCacheItem(JSON.stringify(mls_data, null, 4), `${file}/legacy.json`, 'text/json');
-      return {
+      const clean = {
         ...property,
         ...details,
         room_details,
         bathroom_details,
         listing_by,
+        dwelling_type,
       };
+      const recent_json = JSON.stringify(clean, null, 4);
+
+      invalidateCache([`/${file}/recent.json`, `/${file}/legacy.json`]);
+      createCacheItem(recent_json, `${file}/recent.json`, 'text/json');
+      createCacheItem(JSON.stringify(mls_data, null, 4), `${file}/legacy.json`, 'text/json');
+      return clean;
     }
   } catch (e) {
     const axerr = e as AxiosError;

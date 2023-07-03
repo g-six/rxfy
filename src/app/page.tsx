@@ -41,7 +41,7 @@ function loadAiResults($: CheerioAPI, user_id: string, slug?: string, origin?: s
     className: 'w-full h-full',
   });
   $(`[data-w-tab="Tab 7"].w-tab-pane`).html(
-    `<iframe src="https://leagent.com/${user_id}/${slug}/map?theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
+    `<iframe src="https://leagent.com/${user_id}/${slug}/map?nelat=49.34023817805203&nelng=-122.79116520440928&swlat=49.111312957626524&swlng=-123.30807516134138&lat=49.22590814575915&lng=-123.0496201828758&city=Vancouver&zoom=11" className="${styles.homePagePreview}" />`,
   );
 
   $('.building-and-sold-info').remove();
@@ -246,6 +246,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
           removeSection($, '.sold-listings-grid');
         }
       }
+      console.log('agent_data and agent_data.agent_id present');
     } else {
       console.log('\n\nHome.agent_data not available');
     }

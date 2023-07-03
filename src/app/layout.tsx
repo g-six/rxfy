@@ -146,13 +146,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     metas.push(<meta {...attributesToProps(meta.attribs)} key={meta.attribs.property || meta.attribs.name} />);
   });
 
-  head_links.toArray().map(meta => {
-    let page_key = new URL(meta.attribs.href).pathname;
-    if (new URL(meta.attribs.href).pathname.length < 2) {
-      page_key = new URL(meta.attribs.href).hostname;
-    }
-    metas.push(<link {...attributesToProps(meta.attribs)} key={page_key} />);
-  });
+  head_links
+    .toArray()
+    .filter(meta => meta.attribs.rel !== 'canonical')
+    .map(meta => {
+      let page_key = new URL(meta.attribs.href).pathname;
+      if (new URL(meta.attribs.href).pathname.length < 2) {
+        page_key = new URL(meta.attribs.href).hostname;
+      }
+      metas.push(<link {...attributesToProps(meta.attribs)} key={page_key} />);
+    });
   console.log('Loading meta');
   // end of extracting and assigning <head> elements
   const { class: bodyClassName, ...body_props } = webflow.body.props;
