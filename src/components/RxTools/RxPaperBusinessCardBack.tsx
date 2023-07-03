@@ -15,7 +15,7 @@ export default function RxPaperBusinessCardFrontBack({ nodes, agent }: ReplacerP
     {
       searchFn: searchByClasses(['agent-title-front']),
       transformChild: (child: React.ReactElement) => {
-        return React.cloneElement(child, { children: agent.metatags.title });
+        return React.cloneElement(child, { children: agent?.metatags?.title || '' });
       },
     },
     {
