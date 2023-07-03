@@ -137,7 +137,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const header_list = headers();
   const $: CheerioAPI = load(
     `${data}`.split('</title>').join(`</title>
-  <link rel='canonical' href='${header_list.get('referer')}' />`),
+  <link rel='canonical' href='${header_list.get('referer') || header_list.get('x-canonical')}' />`),
   );
 
   const webflow: WebFlow = {
@@ -181,7 +181,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     return (
       <html data-wf-domain={`${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`} {...$('html').attr()}>
         <head>
-          <title>TEST</title>
+          <title>{agent_data?.metatags?.title || agent_data?.full_name} Leagent</title>
           {metas}
         </head>
 

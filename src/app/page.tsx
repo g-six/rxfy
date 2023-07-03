@@ -107,9 +107,10 @@ export default async function Home({ params, searchParams }: { params: Record<st
     notFound();
   }
 
+  const header_list = headers();
   const $: CheerioAPI = load(
     `${data}`.split('</title>').join(`</title>
-  <link rel='canonical' href='${headers().get('referer')}' />`),
+    <link rel='canonical' href='${header_list.get('referer') || header_list.get('x-canonical')}' />`),
   );
   let { hostname: webflow_domain, pathname: slug } = new URL(headers().get('x-url') as string);
 
