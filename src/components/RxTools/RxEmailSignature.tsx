@@ -36,16 +36,16 @@ export default function RxEmailSignature({ nodes, agent }: ReplacerPageProps) {
   const onCopy = React.useCallback(() => {
     if (ref?.current) {
       try {
-        const content = ref.current.innerHTML;
-        const blobInput = new Blob([content], { type: 'text/html' });
-        const clipboardItemInput = new ClipboardItem({ 'text/html': blobInput });
-        navigator.clipboard.write([clipboardItemInput]).then(() => {
-          notify({
-            timeout: 5000,
-            category: NotificationCategory.SUCCESS,
-            message: 'Your signature is copied!',
-          });
+        const range = document.createRange();
+        range.selectNode(ref.current);
+        window?.getSelection()?.addRange(range);
+        document.execCommand('copy');
+        notify({
+          timeout: 5000,
+          category: NotificationCategory.SUCCESS,
+          message: 'Your signature is copied!',
         });
+        window?.getSelection()?.removeAllRanges();
       } catch (e) {
         notify({
           timeout: 5000,
