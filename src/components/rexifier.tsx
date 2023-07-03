@@ -178,13 +178,15 @@ export function fillPropertyGrid($: CheerioAPI, properties: PropertyDataModel[],
       $(`${wrapper_selector} ${card_selector}:nth-child(${i + 1})`).remove();
     }
   }
-  console.log('canon', $('[rel="canonical"]').attr('src'));
+  let { pathname } = new URL($('[rel="canonical"]').attr('href') as string);
+  if (pathname.split('/').pop() !== 'property') pathname = `${pathname}/property`;
+
   properties.forEach((p: PropertyDataModel, i) => {
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1})`, {
       className: 'group static-card cursor-pointer',
     });
     replaceByCheerio($, `${wrapper_selector} .static-card:nth-child(${i + 1}) .propcard-details`, {
-      prepend: `<a class="absolute bottom-0 left-0 h-3/4 w-full" href="/property?mls=${p.mls_id}"></a>`,
+      prepend: `<a class="absolute bottom-0 left-0 h-3/4 w-full" href="${pathname}?mls=${p.mls_id}"></a>`,
     });
     replaceByCheerio($, `${wrapper_selector} ${card_selector}:nth-child(${i + 1}) .heart-on-small-card`, {
       className: 'group-hover:block',
