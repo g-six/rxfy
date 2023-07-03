@@ -1,9 +1,10 @@
-import { AgentData } from '@/_typings/agent';
+import QR from 'qrcode';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { LISTING_FEETERS_FIELDS, LISTING_MONEY_FIELDS, LISTING_NUMERIC_FIELDS } from '@/_utilities/data-helpers/listings-helper';
 import axios from 'axios';
 import { CheerioAPI, load } from 'cheerio';
 import puppeteer, { PaperFormat } from 'puppeteer';
+import { AgentData } from '@/_typings/agent';
 
 export async function getPdf(page_url: string, data: unknown) {
   const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
@@ -110,6 +111,7 @@ export async function getPdf(page_url: string, data: unknown) {
       }
     }
   });
+
   values = {
     ...values,
     map:
@@ -153,6 +155,14 @@ export async function getPdf(page_url: string, data: unknown) {
   $('[data-image="agent.metatags.logo_for_light_bg"]').replaceWith(
     `<img class="${$('[data-image="agent.metatags.logo_for_light_bg"]').attr('class')}" src="${logo_replacement}"></div>`,
   );
+
+  const { agent } = values as unknown as {
+    agent: AgentData;
+  };
+  if (agent.agent_id && agent.metatags.profile_slug) {
+    const qr = await QR.toDataURL(`https://leagent.com/${agent.agent_id}/${agent.metatags.profile_slug}`);
+    $('[data-image="qr"]').replaceWith(`<img src="${qr}" width="100" height="100" />`);
+  }
 
   await page.setContent($.html());
   //   await page.goto(page_url, { waitUntil: 'networkidle0' });
