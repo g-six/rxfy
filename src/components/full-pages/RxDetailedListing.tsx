@@ -17,15 +17,12 @@ import RxSimilarListings from '@/components/RxProperty/RxSimilarListings';
 import { AgentData } from '@/_typings/agent';
 import PhotosCarousel from '../RxPropertyCarousel/PhotosCarousel';
 import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
-import { Events } from '@/_typings/events';
 import RxSecondPhotosGrid from '../RxProperty/RxSecondPhotosGrid';
 
 export function RxDetailedListing(props: ReplacerPageProps) {
   const photos = props?.property?.photos ? props?.property?.photos : [];
   const cdnPhotos = photos.map(link => getImageSized(link));
-  const showGallery = (key: number) => {
-    fireCustomEvent({ show: true, key }, Events.PropertyGalleryModal);
-  };
+
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses([WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_IMAGES]),
@@ -57,7 +54,7 @@ export function RxDetailedListing(props: ReplacerPageProps) {
               Sqft: props.property?.floor_area,
               Area: props.property?.area,
               Description: props.property?.description,
-              'Listing By': props.property?.listing_by,
+              'Listing By': props.property?.listing_by || '',
             }) as ReactElement)
           : child;
       },
