@@ -24,7 +24,7 @@ export default function RxEmailSignature({ nodes, agent }: ReplacerPageProps) {
       },
     },
     {
-      searchFn: searchByClasses(['download-fb-cover']),
+      searchFn: searchByClasses(['order-button']),
       transformChild: (child: React.ReactElement) => {
         return React.cloneElement(child, {
           onClick: onCopy,
