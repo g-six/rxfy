@@ -358,7 +358,7 @@ export const LISTING_FIELD_GROUPS: { [key: string]: string } = {
   price_per_sqft: 'Home Attributes',
 };
 
-export const LISTING_NUMERIC_FIELDS = ['floor_area', 'floor_area_total', 'floor_area_main', 'age'];
+export const LISTING_NUMERIC_FIELDS = ['floor_area', 'floor_area_total', 'floor_area_main', 'age', 'min_age_restriction'];
 export const LISTING_FEETERS_FIELDS = ['lot_sqft', 'frontage_feet', 'frontage'];
 export const LISTING_MONEY_FIELDS = ['asking_price', 'price_per_sqft', 'strata_fee', 'gross_taxes'];
 export const LISTING_DATE_FIELDS = ['listed_at'];

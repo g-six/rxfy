@@ -87,7 +87,10 @@ export default async function Home({ params, searchParams }: { params: Record<st
       // agent_data = session_data as AgentData;
       const [session_hash, user_id] = session_key.split('-');
       const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
-      agent_data = session.agent;
+      agent_data = {
+        ...session.agent,
+        metatags: session.agent.agent_metatag,
+      };
     } else {
       console.log('Load customer data based on session_key', session_key);
     }

@@ -49,45 +49,6 @@ export async function DELETE(req: NextRequest) {
     const { session_key: new_session_key } = session as unknown as { session_key: string };
     if (new_session_key) session_key = new_session_key;
 
-    const { data: retrieve_response } = await axios.post(
-      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-      {
-        query: gql_retrieve,
-        variables: {
-          id,
-        },
-      },
-      {
-        headers,
-      },
-    );
-
-    if (!retrieve_response.data.smartCard.record)
-      return getResponse(
-        {
-          error: 'Smart card not found',
-        },
-        404,
-      );
-
-    return getResponse({
-      ...data,
-      record: {
-        ...retrieve_response.data.smartCard.record.attributes,
-        realtor: Number(retrieve_response.data.smartCard.record.attributes.realtor.record.id),
-        id: Number(retrieve_response.data.smartCard.record.id),
-      },
-      session_key,
-    });
-
-    if (session.id !== data.record?.realtor)
-      return getResponse(
-        {
-          error: 'Only owners are allowed to delete smart cards',
-        },
-        401,
-      );
-
     const { data: delete_response } = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
       {
@@ -100,11 +61,55 @@ export async function DELETE(req: NextRequest) {
         headers,
       },
     );
-    data = {
+    // data = {
+    //   ...data,
+    //   record: delete_response.data.deleteSmartCard.record,
+    //   session_key,
+    // };
+    console.log(delete_response);
+    if (!delete_response.data.deleteSmartCard?.record)
+      return getResponse(
+        {
+          error: 'Smart card not found',
+        },
+        404,
+      );
+
+    return getResponse({
       ...data,
-      record: delete_response.data.deleteSmartCard.record,
+      record: {
+        ...delete_response.data.deleteSmartCard?.record.attributes,
+        realtor: Number(delete_response.data.deleteSmartCard?.record.attributes.realtor?.record.id),
+        id: Number(delete_response.data.deleteSmartCard?.record.id),
+      },
       session_key,
-    };
+    });
+
+    if (session.id !== data.record?.realtor)
+      return getResponse(
+        {
+          error: 'Only owners are allowed to delete smart cards',
+        },
+        401,
+      );
+
+    // const { data: delete_response } = await axios.post(
+    //   `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+    //   {
+    //     query: gql_delete,
+    //     variables: {
+    //       id,
+    //     },
+    //   },
+    //   {
+    //     headers,
+    //   },
+    // );
+    // data = {
+    //   ...data,
+    //   record: delete_response.data.deleteSmartCard.record,
+    //   session_key,
+    // };
   } catch (e) {
     error = 'Caught exception on DELETE method in \n  smart-cards/[id]/route.ts';
     console.log(error);

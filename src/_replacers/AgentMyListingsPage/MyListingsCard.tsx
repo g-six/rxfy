@@ -13,7 +13,7 @@ export default function MyListingsCard({ template, property }: Props) {
   const property_bg: { [key: string]: string } = {
     sold: 'status-sold bg-red-400',
     draft: 'status-draft bg-yellow-400',
-    active: 'status-active bg-green-400',
+    active: 'status-active',
     terminated: 'status-sold bg-red-400',
   };
   const bg: string = property_bg[property?.status?.toLowerCase() ?? 'draft'];

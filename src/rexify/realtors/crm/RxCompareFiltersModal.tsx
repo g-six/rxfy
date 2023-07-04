@@ -1,6 +1,7 @@
 import React from 'react';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { sortArrayAlphabetically } from '@/_utilities/array-helper';
+import styles from './RxCompareFiltersModal.module.scss';
 type Props = {
   children: React.ReactElement;
   className?: string;
@@ -285,6 +286,7 @@ export default function RxCompareFiltersModal(
           evt.preventDefault();
           document.getElementById('customer-view-modal-compare-filters')?.classList.remove('is-really-visible');
           document.getElementById('modal-compare-filters')?.classList.remove('is-really-visible');
+          document.getElementById('modal-compare-filters')?.classList.remove(styles['show-modal']);
           document.getElementById('modal-compare-filters')?.classList.add('hidden-block');
           p.updateFilters && p.updateFilters(selected_filters);
         }}

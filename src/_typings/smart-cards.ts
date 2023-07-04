@@ -4,9 +4,13 @@ export interface SmartCardBaseModel {
 }
 export interface SmartCardOutput extends SmartCardBaseModel {
   logo_url?: string;
-  realtor: number;
+  realtor?: number;
 }
 
 export interface SmartCardInput extends SmartCardBaseModel {
   logo: File;
+}
+
+export interface SmartCardResponse extends SmartCardOutput {
+  id: number;
 }

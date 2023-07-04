@@ -47,3 +47,11 @@ export function getVCFBlob(agent: AgentData): Blob {
     { type: 'text/vcard;charset=utf-8' },
   );
 }
+
+export function getAgentPhoto(agent: AgentData) {
+  let photo = agent?.metatags?.headshot;
+  photo = photo ? photo : agent?.metatags?.profile_image;
+  photo = photo ? photo : agent?.metatags?.logo_for_light_bg;
+  photo = photo ? photo : agent?.metatags?.logo_for_dark_bg;
+  return photo ? photo : '';
+}

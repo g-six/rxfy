@@ -12,6 +12,7 @@ export interface InputPropsInterface {
   placeholder?: string;
   name?: string;
   onBlur?: FocusEventHandler<HTMLInputElement>;
+  disabled?: boolean;
 }
 export interface SelectPropsInterface {
   values: ValueInterface[];

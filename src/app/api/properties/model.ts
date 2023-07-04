@@ -95,7 +95,6 @@ export async function buildCacheFiles(mls_id: string) {
 
       invalidateCache([`/${file}/recent.json`, `/${file}/legacy.json`]);
       createCacheItem(recent_json, `${file}/recent.json`, 'text/json');
-      createCacheItem(JSON.stringify(mls_data, null, 4), `${file}/legacy.json`, 'text/json');
       return {
         ...clean,
         code: 200,

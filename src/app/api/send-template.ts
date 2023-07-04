@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   const authorization = await request.headers.get('authorization');
 }
 
-export async function sendTemplate(template_name: string, send_to: MailChimp.MessageRecipient[], payload: { [key: string]: string }, attachments = []) {
+export async function sendTemplate(template_name: string, send_to: MailChimp.MessageRecipient[], payload: { [key: string]: string }, attachments: any[] = []) {
   const mailchimp = MailChimp(process.env.NEXT_APP_MANDRILL_API_KEY as string);
   const from_name = payload.from_name || 'Team Leagent';
   const reply_to = payload.reply_to || 'accounts@no-reply.leagent.com';
