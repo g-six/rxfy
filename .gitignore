@@ -36,3 +36,7 @@ yarn-error.log*
 next-env.d.ts
 cypress/videos
 cypress/screenshots
+
+
+# code generated files
+*.pdf

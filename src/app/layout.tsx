@@ -28,11 +28,28 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // These variables will determine the page to be served along with the data to be injected
   // in the Rexification process
   let data;
-  let agent_data: AgentData | undefined = undefined;
+  let agent_data = {
+    id: 11431,
+    email: 'team@leagent.com',
+    phone: '(604) 330-0992',
+    first_name: '',
+    last_name: '',
+    full_name: 'Leagent',
+    agent_id: 'LEAGENT',
+    metatags: {
+      profile_slug: 'leagent',
+      street_1: '6060 Silver Dr',
+      street_2: 'Burnaby, BC V5H 2Y3',
+      logo_for_light_bg: '',
+      title: 'Leagent - REALTOR® AI-Powered Marketing Platform',
+      description:
+        'Leagent is your online office – where you collaborate on the home purchase with your clients, do market analysis, and have your marketing assets made in 10 minutes',
+    },
+  } as unknown as AgentData;
   let theme = searchParams.theme;
   let webflow_domain = process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN;
-  let agent_id = headers().get('x-agent-id');
-  let profile_slug = headers().get('x-profile-slug');
+  let agent_id = headers().get('x-agent-id') || 'LEAGENT';
+  let profile_slug = headers().get('x-profile-slug') || 'leagent';
 
   if (profile_slug && agent_id) {
     webflow_domain = process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN as string;
@@ -117,10 +134,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   if (typeof data !== 'string') {
     data = '<html><head></head><body></body></html>';
   }
-
+  const header_list = headers();
   const $: CheerioAPI = load(
     `${data}`.split('</title>').join(`</title>
-  <link rel='canonical' href='${requestUrl.origin}${requestUrl.pathname}' />`),
+  <link rel='canonical' href='${header_list.get('referer') || header_list.get('x-canonical')}' />`),
   );
 
   const webflow: WebFlow = {
@@ -146,29 +163,27 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     metas.push(<meta {...attributesToProps(meta.attribs)} key={meta.attribs.property || meta.attribs.name} />);
   });
 
-  head_links.toArray().map(meta => {
-    let page_key = new URL(meta.attribs.href).pathname;
-    if (new URL(meta.attribs.href).pathname.length < 2) {
-      page_key = new URL(meta.attribs.href).hostname;
-    }
-    metas.push(<link {...attributesToProps(meta.attribs)} key={page_key} />);
-  });
-  console.log('Loading meta');
+  head_links
+    .toArray()
+    .filter(meta => meta.attribs.rel !== 'canonical')
+    .map(meta => {
+      let page_key = new URL(meta.attribs.href).pathname;
+      if (new URL(meta.attribs.href).pathname.length < 2) {
+        page_key = new URL(meta.attribs.href).hostname;
+      }
+      metas.push(<link {...attributesToProps(meta.attribs)} key={page_key} />);
+    });
   // end of extracting and assigning <head> elements
+
+  console.log('Loading html contents for', requestUrl.pathname);
   const { class: bodyClassName, ...body_props } = webflow.body.props;
-  if (!agent_data || webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN || requestUrl.pathname.split('/').pop() === 'map') {
+  if (webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN || requestUrl.pathname.split('/').pop() === 'map') {
     return (
       <html data-wf-domain={`${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`} {...$('html').attr()}>
         <head>
-          <title>{$('head title').text()}</title>
+          <title>{agent_data?.metatags?.title || agent_data?.full_name} Leagent</title>
           {metas}
         </head>
-        {/* <head
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{
-            __html: webflow.head.code.split('<script').join('\n\n<!-- <script').split('/script>').join('/script> -->\n\n'),
-          }}
-        /> */}
 
         <body {...body_props} className={bodyClassName} suppressHydrationWarning>
           {children}
@@ -188,6 +203,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </html>
     );
   }
+
   return (
     webflow && (
       <html {...$('html').attr()}>
@@ -211,20 +227,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             ) : (
               <></>
             )}
+            <Script
+              src={`https://maps.googleapis.com/maps/api/js?key=${NEXT_APP_GGL_API_KEY}&libraries=places,localContext&v=beta&callback=initializePlacesAutocomplete`}
+            />
             <script
               type='text/javascript'
               dangerouslySetInnerHTML={{
                 __html: initializePlacesAutocomplete({
                   apiKey: NEXT_APP_GGL_API_KEY || '',
                 }),
-              }}
-            ></script>
-            <script
-              type='text/javascript'
-              dangerouslySetInnerHTML={{
-                __html: appendJs(
-                  `https://maps.googleapis.com/maps/api/js?key=${NEXT_APP_GGL_API_KEY}&libraries=places,localContext&v=beta&callback=initializePlacesAutocomplete`,
-                ),
               }}
             ></script>
 

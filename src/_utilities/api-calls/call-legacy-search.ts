@@ -163,6 +163,7 @@ export const STRAPI_FIELDS: {
   L_Frontage_Metres: 'frontage_metres',
   L_Frontage_Meters: 'frontage_metres',
   L_Frontage_Feet: 'frontage_feet',
+  L_MeasurmentType: 'floor_area_uom',
   L_FloorArea_GrantTotal: 'floor_area',
   L_FloorArea_Basement: 'floor_area_basement',
   field_3018: 'floor_area_basement',

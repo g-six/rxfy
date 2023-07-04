@@ -425,22 +425,7 @@ export async function createAgentRecord(agent: {
   }
 }
 
-export async function createAgentRecordIfNoneFound(
-  { agent_id, email, phone, full_name }: AgentInput,
-  real_estate_board?: RealEstateBoardDataModel,
-  listing?: {
-    description: string;
-    lat: number;
-    lng: number;
-    target_area: string;
-    target_city: string;
-    asking_price: number;
-    property_type: string;
-    beds: number;
-    baths: number;
-    listing_date: string;
-  },
-) {
+export async function createAgentRecordIfNoneFound({ agent_id, email, phone, full_name }: AgentInput, real_estate_board?: RealEstateBoardDataModel) {
   if (!email) return;
   if (!agent_id) return;
 
@@ -475,6 +460,7 @@ export async function createAgentRecordIfNoneFound(
       console.log(`Agent found, let's use ${first_name} ${last_name}`);
       console.log(JSON.stringify(agent, null, 4));
     }
+
     return agent;
   } catch (e) {
     console.log('Caught error in createAgentRecordIfNoneFound');
