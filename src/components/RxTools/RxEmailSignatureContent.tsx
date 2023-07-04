@@ -48,11 +48,11 @@ export default function RxEmailSignatureContent({ nodes, agent }: ReplacerPagePr
       searchFn: searchByClasses(['agent-url']),
       transformChild: (child: React.ReactElement) => {
         let website_display = agent.domain_name;
-        if (!website_display) website_display = `${location.hostname}/${agent.agent_id}/${agent.metatags.profile_slug}`;
+        if (!website_display) website_display = `${agent.agent_id}/${agent.metatags.profile_slug}`;
         return React.cloneElement(<a />, {
           ...child.props,
-          children: website_display,
-          href: `https://${website_display}`,
+          children: `${location.hostname}/${website_display}`,
+          href: `${location.origin}/${website_display}`,
           target: '_blank',
           rel: 'noopener noreferrer',
         });
