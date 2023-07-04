@@ -7,6 +7,7 @@ import { PrivateListingOutput } from '@/_typings/private-listing';
 import { LISTING_DATE_FIELDS, LISTING_FIELD_GROUPS, LISTING_PROPER_LABELS, isDateValue, isNumericValue } from '@/_utilities/data-helpers/listings-helper';
 import { RxTextInput } from '@/components/RxForms/RxInputs/RxTextInput';
 import { RxDateInputGroup } from '@/components/RxForms/RxInputs/RxDateInputGroup';
+import styles from '@/rexify/realtors/crm/RxCompareFiltersModal.module.scss';
 
 type Props = { children: React.ReactElement };
 
@@ -23,15 +24,15 @@ function Iterator(
 ) {
   const Wrapped = React.Children.map(p.children, (child, idx) => {
     if (child.type === 'a') {
-      return React.cloneElement(<button type='button' key={idx} />, {
+      return React.cloneElement(child, {
         ...child.props,
-        className: child.props.className + ' rexified w-full',
+        className: child.props.className + ' rexified w-full no-tailwind',
         href: undefined,
         onClick: (evt: React.MouseEvent<HTMLButtonElement>) => {
           evt.preventDefault();
           switch (evt.currentTarget.textContent?.toLowerCase()) {
             case 'find more fields':
-              document.getElementById('modal-compare-filters')?.classList.add('is-really-visible');
+              document.getElementById('modal-compare-filters')?.classList.add(styles['show-modal']);
               document.getElementById('modal-compare-filters')?.classList.remove('hidden-block');
               break;
             case 'next step':
@@ -130,9 +131,10 @@ function Iterator(
           Object.keys(LISTING_FIELD_GROUPS).forEach((key: string, index: number) => {
             selected_filters = {
               ...selected_filters,
-              [LISTING_FIELD_GROUPS[key]]: has_values.includes(key)
-                ? [...selected_filters[LISTING_FIELD_GROUPS[key]], LISTING_PROPER_LABELS[key]]
-                : selected_filters[LISTING_FIELD_GROUPS[key]] || [],
+              [LISTING_FIELD_GROUPS[key]]:
+                has_values.includes(key) && Array.isArray(selected_filters[LISTING_FIELD_GROUPS[key]])
+                  ? [...selected_filters[LISTING_FIELD_GROUPS[key]], LISTING_PROPER_LABELS[key]]
+                  : selected_filters[LISTING_FIELD_GROUPS[key]] || [],
             };
           });
         }
@@ -227,43 +229,45 @@ export default function TabMore({ data, template, nextStepClick }: TabContentPro
   }, []);
 
   return (
-    <Iterator
-      updateFilters={updateFilters}
-      filters={enabled_fields}
-      selected={selected_fields}
-      attributes={attributes}
-      toggleFilter={(value: number | string, field?: string, category?: string) => {
-        if (category && attributes && attributes[category]) {
-          // Relationship type
-          if (selected_fields && selected_fields[category]) {
-            const values = selected_fields[category] as number[];
-            const found_index = values.indexOf(value as number);
-            if (found_index >= 0) {
-              values.splice(found_index, 1);
+    <div className={styles.TabMore}>
+      <Iterator
+        updateFilters={updateFilters}
+        filters={enabled_fields}
+        selected={selected_fields}
+        attributes={attributes}
+        toggleFilter={(value: number | string, field?: string, category?: string) => {
+          if (category && attributes && attributes[category]) {
+            // Relationship type
+            if (selected_fields && selected_fields[category]) {
+              const values = selected_fields[category] as number[];
+              const found_index = values.indexOf(value as number);
+              if (found_index >= 0) {
+                values.splice(found_index, 1);
+              } else {
+                values.push(value as number);
+              }
+              toggleField({
+                ...selected_fields,
+                [category]: values,
+              });
             } else {
-              values.push(value as number);
+              toggleField({
+                ...selected_fields,
+                [category]: [value as number],
+              });
             }
-            toggleField({
-              ...selected_fields,
-              [category]: values,
-            });
-          } else {
-            toggleField({
-              ...selected_fields,
-              [category]: [value as number],
-            });
+          } else if (field) {
+            const v = isNumericValue(field) ? Number(value) : value;
+            if (!selected_fields) toggleField({ [field]: v });
+            else toggleField({ ...selected_fields, [field]: v });
           }
-        } else if (field) {
-          const v = isNumericValue(field) ? Number(value) : value;
-          if (!selected_fields) toggleField({ [field]: v });
-          else toggleField({ ...selected_fields, [field]: v });
-        }
-      }}
-      onSave={() => {
-        nextStepClick(undefined, selected_fields);
-      }}
-    >
-      {template}
-    </Iterator>
+        }}
+        onSave={() => {
+          nextStepClick(undefined, selected_fields);
+        }}
+      >
+        {template}
+      </Iterator>
+    </div>
   );
 }

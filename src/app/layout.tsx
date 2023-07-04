@@ -9,7 +9,7 @@ import { AgentData } from '@/_typings/agent';
 import { getPropertyData } from '@/_utilities/data-helpers/property-page';
 import { replaceMetaTags } from '@/_helpers/head-manipulations';
 import initializePlacesAutocomplete from '@/components/Scripts/places-autocomplete';
-import { appendJs, rexifyScripts, rexifyScriptsV2 } from '@/components/rexifier';
+import { rexifyScripts, rexifyScriptsV2 } from '@/components/rexifier';
 import { findAgentRecordByAgentId } from './api/agents/model';
 import { attributesToProps } from 'html-react-parser';
 import NotFound from './not-found';
