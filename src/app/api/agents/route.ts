@@ -68,8 +68,12 @@ export async function POST(req: Request) {
     if (user?.phone) phone = user.phone;
     if (user?.full_name) full_name = user.full_name;
 
-    if (agent_id && email && phone && full_name) {
+    if (agent_id && phone && full_name) {
       if (listing && real_estate_board) {
+        results = {
+          ...results,
+          error: 'Unable to create agent record',
+        };
         const agent = await createAgentRecordIfNoneFound(
           {
             agent_id,
