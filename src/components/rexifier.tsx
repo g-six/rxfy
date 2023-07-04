@@ -51,19 +51,41 @@ import RxCRM from '@/rexify/realtors/RxCRM';
 import RxCRMNotes from '@/rexify/realtors/crm/CustomerNotes';
 import RxCustomerView from '@/rexify/realtors/RxCustomerView';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { updateAgentMetatags } from '@/app/api/agents/model';
 
-async function replaceTargetCityComponents($: CheerioAPI, target_city: string) {
-  const result = await getGeocode(target_city);
-  if (result && 'place_id' in result) {
-    // Result is of a valid Google Geolocation (if it has a place_id)
-    const city = getCityFromGeolocation(result);
-    const mapbox_boundaries = getViewPortParamsFromGeolocation(result);
-    const pin_location = result.geometry.location;
-    replaceByCheerio($, '.address-chip:first-child', {
-      city,
-      mapbox_boundaries,
-      pin_location,
-    });
+async function replaceTargetCityComponents($: CheerioAPI, agent: AgentData) {
+  if (agent.metatags.target_city && !agent.metatags.geocoding) {
+    const result = await getGeocode(agent.metatags.target_city);
+    if (result && 'place_id' in result) {
+      // Result is of a valid Google Geolocation (if it has a place_id)
+      const city = getCityFromGeolocation(result);
+      const mapbox_boundaries = getViewPortParamsFromGeolocation(result);
+      const pin_location = result.geometry.location;
+      updateAgentMetatags(agent.metatags.id, {
+        geocoding: {
+          ...pin_location,
+          ...mapbox_boundaries,
+          city,
+        },
+      });
+      replaceByCheerio($, '.address-chip:first-child', {
+        city,
+        mapbox_boundaries,
+        pin_location,
+      });
+    } else if (agent.metatags.geocoding) {
+      const { lat, lng, swlat, swlng, nelat, nelng, city } = agent.metatags.geocoding;
+      replaceByCheerio($, '.address-chip:first-child', {
+        city,
+        mapbox_boundaries: {
+          swlat,
+          swlng,
+          nelat,
+          nelng,
+        },
+        pin_location: { lat, lng },
+      });
+    }
   }
 }
 
@@ -83,7 +105,7 @@ function replaceSearchHighlights(
 
 export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData, params: { [key: string]: unknown }) {
   if (agent_data.metatags.target_city) {
-    await replaceTargetCityComponents($, agent_data.metatags.target_city);
+    await replaceTargetCityComponents($, agent_data);
   }
 
   if (agent_data.metatags.search_highlights && Array.isArray(agent_data.metatags.search_highlights)) {

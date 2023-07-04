@@ -23,11 +23,11 @@ function PageIterator(props: Props) {
           {
             ...child.props,
             className: `${childClassName}`,
-            style: {
-              backgroundImage: `url(${
-                props.agent.metatags?.profile_image || 'https://t5d9a2n4.stackpathcdn.com/wp-content/uploads/2022/05/omara-subzwari.jpg'
-              })`,
-            },
+            style: props.agent.metatags?.profile_image
+              ? {
+                  backgroundImage: `url(${props.agent.metatags?.profile_image})`,
+                }
+              : {},
             // Wrap grandchildren too
             children: <PageIterator {...props}>{child.props.children}</PageIterator>,
           },

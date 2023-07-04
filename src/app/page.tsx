@@ -9,7 +9,6 @@ import { Inter } from 'next/font/google';
 
 import { WEBFLOW_NODE_SELECTOR, WebFlow } from '@/_typings/webflow';
 import { AgentData } from '@/_typings/agent';
-import { getAgentListings } from '@/_utilities/data-helpers/listings-helper';
 import { getPropertyData } from '@/_utilities/data-helpers/property-page';
 import { fillAgentInfo, fillPropertyGrid, removeSection, replaceByCheerio, rexify } from '@/components/rexifier';
 import RxNotifications from '@/components/RxNotifications';
@@ -22,7 +21,6 @@ import { buildCacheFiles, getPropertiesFromAgentInventory } from './api/properti
 import { getPrivateListing } from './api/private-listings/model';
 
 const inter = Inter({ subsets: ['latin'] });
-const skip_slugs = ['favicon.ico', 'sign-out'];
 
 function loadAiResults($: CheerioAPI, user_id: string, slug?: string, origin?: string) {
   ['oslo', 'hamburg', 'malta'].forEach(theme => {
@@ -330,66 +328,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
         </main>
       ) : (
         <main className={styles.main}>
-          <div className={styles.description}>
-            <p>
-              Get started by editing&nbsp;
-              <code className={styles.code}>src/app/page.tsx</code>
-            </p>
-            <div>
-              <a
-                href='https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app'
-                target='_blank'
-                rel='noopener noreferrer'
-              >
-                By 50CodesOfGrey
-              </a>
-            </div>
-          </div>
-
-          <div className={styles.center}>
-            <Image className={styles.logo} src='/next.svg' alt='Next.js Logo' width={180} height={37} priority />
-            <div className={styles.thirteen}>
-              <Image src='/thirteen.svg' alt='13' width={40} height={31} priority />
-            </div>
-          </div>
-
-          <div className={styles.grid}>
-            <a
-              href='https://beta.nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app'
-              className={styles.card}
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              <h2 className={inter.className}>
-                Docs <span>-&gt;</span>
-              </h2>
-              <p className={inter.className}>Find in-depth information about Next.js features and API.</p>
-            </a>
-
-            <a
-              href='https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app'
-              className={styles.card}
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              <h2 className={inter.className}>
-                Templates <span>-&gt;</span>
-              </h2>
-              <p className={inter.className}>Explore the Next.js 13 playground.</p>
-            </a>
-
-            <a
-              href='https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app'
-              className={styles.card}
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              <h2 className={inter.className}>
-                Deploy <span>-&gt;</span>
-              </h2>
-              <p className={inter.className}>Instantly deploy your Next.js site to a shareable URL with Vercel.</p>
-            </a>
-          </div>
+          <div className={styles.grid}>Site maintenance. Come back later.</div>
         </main>
       )}
     </>

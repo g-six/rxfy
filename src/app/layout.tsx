@@ -203,6 +203,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </html>
     );
   }
+  console.log('Done');
   return (
     webflow && (
       <html {...$('html').attr()}>
@@ -232,14 +233,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 __html: initializePlacesAutocomplete({
                   apiKey: NEXT_APP_GGL_API_KEY || '',
                 }),
-              }}
-            ></script>
-            <script
-              type='text/javascript'
-              dangerouslySetInnerHTML={{
-                __html: appendJs(
-                  `https://maps.googleapis.com/maps/api/js?key=${NEXT_APP_GGL_API_KEY}&libraries=places,localContext&v=beta&callback=initializePlacesAutocomplete`,
-                ),
               }}
             ></script>
 
