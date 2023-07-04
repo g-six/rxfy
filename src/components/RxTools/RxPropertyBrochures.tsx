@@ -9,8 +9,9 @@ export default function RxPropertyBrochures({ nodes, agent }: ReplacerPageProps)
     {
       searchFn: searchByClasses(['go-to-map']),
       transformChild: (child: React.ReactElement) => {
+        const isHttps = window?.location?.protocol.indexOf('https') >= 0;
         return React.cloneElement(child, {
-          href: (agent.webflow_domain ? agent.webflow_domain : '') + '/map',
+          href: `${isHttps ? 'https' : 'http'}://${agent.webflow_domain ? agent.webflow_domain : ''}/map`,
         });
       },
     },
