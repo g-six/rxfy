@@ -47,10 +47,12 @@ export default function RxEmailSignatureContent({ nodes, agent }: ReplacerPagePr
     {
       searchFn: searchByClasses(['agent-url']),
       transformChild: (child: React.ReactElement) => {
-        return React.cloneElement(child, {
+        let website_display = agent.domain_name;
+        if (!website_display) website_display = `${location.hostname}/${agent.agent_id}/${agent.metatags.profile_slug}`;
+        return React.cloneElement(<a />, {
           ...child.props,
-          children: agent.domain_name ? agent.domain_name : agent.webflow_domain,
-          href: agent.domain_name ? agent.domain_name : agent.webflow_domain,
+          children: website_display,
+          href: `https://${website_display}`,
           target: '_blank',
           rel: 'noopener noreferrer',
         });
