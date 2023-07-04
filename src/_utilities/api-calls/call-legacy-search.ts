@@ -1,7 +1,6 @@
 import { LegacySearchPayload } from '@/_typings/pipeline';
 import { PropertyDataModel } from '@/_typings/property';
 import { AxiosStatic } from 'axios';
-import { queryPlace } from './call-places';
 
 export async function retrieveFromLegacyPipeline(
   params: LegacySearchPayload = {
@@ -82,7 +81,7 @@ export async function retrieveFromLegacyPipeline(
             };
           }
         }
-      }
+      } else delete hit[key];
     });
 
     return property as unknown as PropertyDataModel;
