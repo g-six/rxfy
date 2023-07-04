@@ -9,7 +9,7 @@ import { AgentData } from '@/_typings/agent';
 import { getPropertyData } from '@/_utilities/data-helpers/property-page';
 import { replaceMetaTags } from '@/_helpers/head-manipulations';
 import initializePlacesAutocomplete from '@/components/Scripts/places-autocomplete';
-import { appendJs, rexifyScripts, rexifyScriptsV2 } from '@/components/rexifier';
+import { rexifyScripts, rexifyScriptsV2 } from '@/components/rexifier';
 import { findAgentRecordByAgentId } from './api/agents/model';
 import { attributesToProps } from 'html-react-parser';
 import NotFound from './not-found';
@@ -183,6 +183,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <head>
           <title>{agent_data?.metatags?.title || agent_data?.full_name} Leagent</title>
           {metas}
+          <link rel='stylesheet' type='text/css' href='/css/preflight.css' />
         </head>
 
         <body {...body_props} className={bodyClassName} suppressHydrationWarning>

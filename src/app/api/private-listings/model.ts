@@ -152,7 +152,7 @@ export async function updatePrivateListing(id: number, listing: PrivateListingIn
       };
     } else {
       return {
-        error: 'Fail to save record in private-listings/model.createPrivateListing',
+        error: 'Fail to save record in private-listings/model.updatePrivateListing',
         code: 406,
         listing,
         realtor_id,
@@ -163,7 +163,7 @@ export async function updatePrivateListing(id: number, listing: PrivateListingIn
     console.log(axerr);
     console.log(JSON.stringify(axerr.response?.data || {}, null, 4));
     return {
-      error: 'Caught error in private-listings/model.createPrivateListing',
+      error: 'Caught error in private-listings/model.updatePrivateListing',
       listing,
       realtor_id,
     };
