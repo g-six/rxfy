@@ -82,7 +82,6 @@ export async function POST(req: Request) {
             full_name,
           },
           real_estate_board,
-          listing,
         );
         return getResponse(agent, 200);
       } else if (stripe?.customer_id) {
@@ -104,23 +103,10 @@ export async function POST(req: Request) {
             },
           },
         };
-        const legacy_listings = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
+        const legacy_listings = await retrieveFromLegacyPipeline(legacy_params, undefined, 2);
         listing = legacy_listings.length && legacy_listings[0];
-        if (listing) {
-          const {
-            description,
-            lat,
-            lng,
-            area: target_area,
-            city: target_city,
-            asking_price,
-            property_type,
-            beds,
-            baths,
-            listed_at: listing_date,
-            ...mls_data
-          } = listing;
-          real_estate_board = await getRealEstateBoard(mls_data as unknown as Record<string, string>);
+        if (listing.mls_data) {
+          real_estate_board = await getRealEstateBoard(listing.mls_data as unknown as Record<string, string>);
 
           const agent = await createAgentRecordIfNoneFound(
             {
@@ -130,19 +116,8 @@ export async function POST(req: Request) {
               full_name,
             },
             real_estate_board,
-            {
-              description,
-              lat: Number(lat),
-              lng: Number(lng),
-              target_area,
-              target_city,
-              asking_price,
-              property_type,
-              beds,
-              baths,
-              listing_date,
-            },
           );
+
           return getResponse(agent, 200);
         }
       }
