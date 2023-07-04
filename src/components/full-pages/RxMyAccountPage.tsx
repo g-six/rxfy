@@ -27,7 +27,7 @@ type RxMyAccountPageProps = {
   session?: { [key: string]: string | number };
   'user-type': string;
   domain?: string;
-  onChange: (p: { [key: string]: { [key: string]: string } }) => void;
+  onChange?: (p: { [key: string]: { [key: string]: string } }) => void;
 };
 
 export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit?: React.FormEventHandler }) {
