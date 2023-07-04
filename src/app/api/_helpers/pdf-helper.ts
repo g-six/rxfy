@@ -175,8 +175,15 @@ export async function getPdf(page_url: string, data: unknown) {
       ? `<img class="${$('[data-image="agent.metatags.logo_for_light_bg"]').attr('class')}" src="${logo_replacement}"></div>`
       : `<span>${values['agent.full_name']}</span>`,
   );
-  if (agent.agent_id && agent.metatags.profile_slug) {
-    const qr = await QR.toDataURL(`https://leagent.com/${agent.agent_id}/${agent.metatags.profile_slug}`, {
+  let qr_url = '';
+  if (agent.domain_name) {
+    qr_url = `https://${agent.domain_name}/id`;
+  } else if (agent.agent_id && agent.metatags.profile_slug) {
+    qr_url = `https://leagent.com/${agent.agent_id}/${agent.metatags.profile_slug}/id`;
+  }
+
+  if (qr_url) {
+    const qr = await QR.toDataURL(qr_url, {
       color: {
         light: '#0000', // Transparent background
       },
@@ -250,7 +257,6 @@ export async function getPdf(page_url: string, data: unknown) {
   }
 
   await page.setContent($.html());
-  //   await page.goto(page_url, { waitUntil: 'networkidle0' });
   await page.waitForFunction('document.fonts.ready');
   await new Promise(resolve => setTimeout(resolve, 1500));
   await page.emulateMediaType('screen');
@@ -284,22 +290,6 @@ export async function getPdf(page_url: string, data: unknown) {
           } else el.remove();
         }
       });
-      // document.cloneNode()
-      // document.querySelector('[data-repeater="room]').forEach(el => {
-      //   if (el.getAttribute('data-stats')) {
-      //     const field = el.getAttribute('data-stats');
-      //     if (field) {
-      //       let v = d[field];
-      //       if (field === 'frontage' && !v) {
-      //         if (d.frontage_feet) v = new Intl.NumberFormat().format(Number(d.frontage_feet)) + 'sqft';
-      //         if (d.frontage_metres) v = new Intl.NumberFormat().format(Number(d.frontage_metres)) + 'sqm';
-      //       }
-      //       if (v) {
-      //         (el.querySelector('.field-value') as Element).innerHTML = v;
-      //       } else el.remove();
-      //     } else el.remove();
-      //   }
-      // });
       document.querySelectorAll('a[href]').forEach(el => {
         const href = el.getAttribute('href') as string;
         if (href.indexOf('webflow') >= 0) {
@@ -310,11 +300,6 @@ export async function getPdf(page_url: string, data: unknown) {
     [values],
   );
 
-  // console.log(property);
-  // dom.forEach(el => {
-  // });
-
-  // await page.evaluateHandle('document.fonts.ready');
   const format: PaperFormat = 'LETTER';
   const pdf = await page.pdf({
     margin: { top: '8px', right: '8px', bottom: '8px', left: '8px' },
@@ -326,7 +311,4 @@ export async function getPdf(page_url: string, data: unknown) {
 
   createTempDocument(pdf, `${agent.agent_id}-${agent.metatags.profile_slug}-${slugifyAddress(values.title)}.pdf`, 'application/pdf');
   return pdf;
-  // return {
-  //   href: `https://${process.env.NEXT_APP_S3_DOCUMENTS_BUCKET}/tmp/${agent.agent_id}-${agent.metatags.profile_slug}-${slugifyAddress(values.title)}.pdf`,
-  // };
 }
