@@ -40,6 +40,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   PDF_PAGE = 'pdf-wrapper',
   AGENT_ID_INPUT = 'txt-agentid',
   AGENT_MY_LISTINGS = 'my-listings-dashboard',
+  AGENT_TOOLS = 'agent-tools',
   PROPERTY_MAIN_ATTRIBUTES = 'bedbath-stat-block',
   SIMILAR_LISTINGS = 'similar-homes-grid',
   HOME_SEARCH_WRAPPER = 'section---search',
