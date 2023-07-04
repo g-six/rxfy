@@ -41,6 +41,15 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
                       src: getImageSized(p.property.photos[1], 580),
                     }),
                   });
+              case 'property-image-3':
+                if (p.property.photos.length > 2)
+                  return React.cloneElement(child, {
+                    ...child.props,
+                    children: React.cloneElement(child.props.children, {
+                      ...child.props.children.props,
+                      src: getImageSized(p.property.photos[1], 580),
+                    }),
+                  });
             }
           }
         } else if (p.property?.photos && p.property.photos.length > 2 && child.props.className === 'property-image-collection') {
