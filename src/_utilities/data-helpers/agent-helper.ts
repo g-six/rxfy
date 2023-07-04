@@ -49,8 +49,9 @@ export function getVCFBlob(agent: AgentData): Blob {
 }
 
 export function getAgentPhoto(agent: AgentData) {
-  let photo = agent?.metatags?.logo_for_light_bg;
+  let photo = agent?.metatags?.profile_image;
+  photo = photo ? photo : agent?.metatags?.headshot;
+  photo = photo ? photo : agent?.metatags?.logo_for_light_bg;
   photo = photo ? photo : agent?.metatags?.logo_for_dark_bg;
-  photo = photo ? photo : agent?.metatags?.profile_image;
   return photo ? photo : '';
 }
