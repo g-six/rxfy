@@ -91,12 +91,14 @@ export default function RxPropertyActions(props: PropertyActionsProps) {
     {
       searchFn: searchByClasses(['p-action-pdf']),
       transformChild: (child: React.ReactElement) =>
-        React.cloneElement(child, {
+        React.cloneElement(<button />, {
           ...child.props,
-          //href: props?.property?.MLS_ID ? `${linkToLegacyApp(props.agent)}/property/${props.property.MLS_ID}/pdf` : '#',
-          href: props?.property?.mls_id ? `/brochure?mls=${props.property.mls_id}` : '#',
-          target: '_blank',
-          rel: 'noopener noreferrer',
+          onClick: () =>
+            window.open(
+              `/api/pdf/mls/${props.property && props.property.mls_id}?agent=${props.agent.agent_id}&slug=${props.agent.metatags.profile_slug}/brochure?mls=${
+                props.property && props.property.mls_id
+              }`,
+            ),
         }),
     },
     {

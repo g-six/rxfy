@@ -52,3 +52,32 @@ export function createCacheItem(Body: any, Key: string, ContentType: string = 't
 
   return `${process.env.NEXT_APP_S3_PAGES_BUCKET}/${Key}`;
 }
+export function createTempDocument(Body: any, file_name: string, ContentType: string) {
+  const Key = `tmp/${file_name}`;
+  const command = new PutObjectCommand({
+    Bucket: `${process.env.NEXT_APP_S3_DOCUMENTS_BUCKET}`,
+    Body,
+    Key,
+    ContentType,
+  });
+
+  const config: S3ClientConfig = {
+    region: 'us-west-2',
+    credentials: {
+      accessKeyId: process.env.NEXT_APP_UPLOADER_KEY_ID as string,
+      secretAccessKey: process.env.NEXT_APP_UPLOAD_SECRET_KEY as string,
+    },
+  };
+
+  const client = new S3Client(config);
+
+  client
+    .send(command)
+    .then(console.log)
+    .catch(console.error)
+    .finally(() => {
+      console.log('S3 upload complete', Key);
+    });
+
+  return `${process.env.NEXT_APP_S3_DOCUMENTS_BUCKET}/${Key}`;
+}

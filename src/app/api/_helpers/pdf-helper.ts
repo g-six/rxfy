@@ -5,6 +5,9 @@ import axios from 'axios';
 import { CheerioAPI, load } from 'cheerio';
 import puppeteer, { PaperFormat } from 'puppeteer';
 import { AgentData } from '@/_typings/agent';
+import { createTempDocument } from './cache-helper';
+import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
+import { RoomDetails } from '@/_typings/property';
 
 export async function getPdf(page_url: string, data: unknown) {
   const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
@@ -12,7 +15,7 @@ export async function getPdf(page_url: string, data: unknown) {
   const { data: html_data } = await axios.get(page_url);
   const $: CheerioAPI = load(html_data);
   let values = data as { [key: string]: string };
-
+  console.log(values);
   Object.keys(values).forEach(key => {
     if (LISTING_MONEY_FIELDS.includes(key))
       values = {
@@ -37,6 +40,19 @@ export async function getPdf(page_url: string, data: unknown) {
         ...values,
         [key]: values[key],
       };
+    } else if (key === 'build_features') {
+      const features = values[key] as unknown as {
+        name: string;
+      }[];
+      features.forEach(item => {
+        if (item.name.toLowerCase().split(' ').includes('frame')) {
+          const frame = item.name.split(' - ').pop() || '';
+          values = {
+            ...values,
+            frame,
+          };
+        }
+      });
     } else if (key === 'dwelling_type') {
       const { name } = values[key] as unknown as {
         name: string;
@@ -71,7 +87,7 @@ export async function getPdf(page_url: string, data: unknown) {
       }
     } else if (LISTING_NUMERIC_FIELDS.includes(key)) {
       values[key] = new Intl.NumberFormat().format(Number(values[key]));
-      if (key.indexOf('floor_area') === 0 && values.floor_area_uom === 'Feet') {
+      if (key === 'floor_area' && values.floor_area_uom === 'Feet') {
         values[key] = values[key] + ' Sqft';
       } else {
         values[key] = values[key] + ' Sqm';
@@ -148,16 +164,17 @@ export async function getPdf(page_url: string, data: unknown) {
     ).attr('class')}"></div>`,
   );
 
-  const logo_replacement = values['agent.metatags.headshot']
-    ? getImageSized(values['agent.metatags.logo_for_light_bg'], 200)
-    : getImageSized(values.photos[0], 200);
-  $('[data-image="agent.metatags.logo_for_light_bg"]').replaceWith(
-    `<img class="${$('[data-image="agent.metatags.logo_for_light_bg"]').attr('class')}" src="${logo_replacement}"></div>`,
-  );
-
   const { agent } = values as unknown as {
     agent: AgentData;
   };
+
+  let logo_replacement = values['agent.metatags.logo_for_light_bg'] ? getImageSized(values['agent.metatags.logo_for_light_bg'], 200) : '';
+  if (!logo_replacement) logo_replacement = values['agent.metatags.logo_for_dark_bg'] ? getImageSized(values['agent.metatags.logo_for_dark_bg'], 200) : '';
+  $('[data-image="agent.metatags.logo_for_light_bg"]').replaceWith(
+    logo_replacement
+      ? `<img class="${$('[data-image="agent.metatags.logo_for_light_bg"]').attr('class')}" src="${logo_replacement}"></div>`
+      : `<span>${values['agent.full_name']}</span>`,
+  );
   if (agent.agent_id && agent.metatags.profile_slug) {
     const qr = await QR.toDataURL(`https://leagent.com/${agent.agent_id}/${agent.metatags.profile_slug}`, {
       color: {
@@ -165,6 +182,71 @@ export async function getPdf(page_url: string, data: unknown) {
       },
     });
     $('[data-image="qr"]').replaceWith(`<img src="${qr}" width="100" height="100" />`);
+  }
+
+  const { rooms } = values.room_details as unknown as {
+    rooms: RoomDetails[];
+  };
+  const { amenities, connected_services, facilities, parking } = values as unknown as {
+    [key: string]: {
+      name: string;
+    }[];
+  };
+
+  let placeholder = $('[data-group="amenities"] .field-value:first').clone();
+  $('[data-group="amenities"] .field-value:first').remove();
+  if (amenities?.length) {
+    amenities.forEach(({ name }) => {
+      placeholder.replaceWith(`<span class="${placeholder.attr('class')} text-xs">${name}</span>`);
+      $('[data-group="amenities"]').append(placeholder);
+    });
+  }
+  if (facilities?.length) {
+    facilities.forEach(({ name }) => {
+      placeholder.replaceWith(`<span class="${placeholder.attr('class')} text-xs">${name}</span>`);
+      $('[data-group="amenities"]').append(placeholder);
+    });
+  }
+  if (parking?.length) {
+    parking.forEach(({ name }) => {
+      if (name !== 'Other') placeholder.replaceWith(`<span class="${placeholder.attr('class')} text-xs">${name}</span>`);
+      $('[data-group="amenities"]').append(placeholder);
+    });
+  }
+  $('[data-group="amenities"] .field-value:first').remove();
+
+  placeholder = $('[data-group="services"] .field-value:first').clone();
+  $('[data-group="services"] .field-value:first').remove();
+  if (connected_services?.length) {
+    connected_services.forEach(({ name }) => {
+      placeholder.replaceWith(`<span class="${placeholder.attr('class')} text-xs">${name}</span>`);
+      $('[data-group="services"]').append(placeholder);
+    });
+  }
+  $('[data-group="services"] .field-value:first').remove();
+
+  if (rooms && rooms.length) {
+    let cnt = 6;
+    rooms.forEach((room: RoomDetails) => {
+      if (cnt > 0 && room.type.toLowerCase().indexOf('bed') >= 0) {
+        cnt--;
+        placeholder = $('[data-repeater="room"]:first').clone();
+        $(placeholder)
+          .find('[data-row-col="level"]')
+          .replaceWith(`<span class="${$('[data-repeater="room"]:first [data-row-col="level"]').attr('class')} text-xs">${room.level}</span>`);
+        $(placeholder)
+          .find('[data-row-col="type"]')
+          .replaceWith(`<span class="${$('[data-repeater="room"]:first [data-row-col="type"]').attr('class')} text-xs">${room.type}</span>`);
+        $(placeholder)
+          .find('[data-row-col="dimensions"]')
+          .replaceWith(
+            `<span class="${$('[data-repeater="room"]:first [data-row-col="dimensions"]').attr('class')} text-xs">${room.width} x ${room.length}</span>`,
+          );
+        $('.rooms-info-rows').append(placeholder);
+      } else {
+      }
+    });
+    $('[data-repeater="room"]:first').remove();
   }
 
   await page.setContent($.html());
@@ -202,6 +284,22 @@ export async function getPdf(page_url: string, data: unknown) {
           } else el.remove();
         }
       });
+      // document.cloneNode()
+      // document.querySelector('[data-repeater="room]').forEach(el => {
+      //   if (el.getAttribute('data-stats')) {
+      //     const field = el.getAttribute('data-stats');
+      //     if (field) {
+      //       let v = d[field];
+      //       if (field === 'frontage' && !v) {
+      //         if (d.frontage_feet) v = new Intl.NumberFormat().format(Number(d.frontage_feet)) + 'sqft';
+      //         if (d.frontage_metres) v = new Intl.NumberFormat().format(Number(d.frontage_metres)) + 'sqm';
+      //       }
+      //       if (v) {
+      //         (el.querySelector('.field-value') as Element).innerHTML = v;
+      //       } else el.remove();
+      //     } else el.remove();
+      //   }
+      // });
       document.querySelectorAll('a[href]').forEach(el => {
         const href = el.getAttribute('href') as string;
         if (href.indexOf('webflow') >= 0) {
@@ -219,7 +317,6 @@ export async function getPdf(page_url: string, data: unknown) {
   // await page.evaluateHandle('document.fonts.ready');
   const format: PaperFormat = 'LETTER';
   const pdf = await page.pdf({
-    path: 'result.pdf',
     margin: { top: '8px', right: '8px', bottom: '8px', left: '8px' },
     printBackground: true,
     format,
@@ -227,5 +324,9 @@ export async function getPdf(page_url: string, data: unknown) {
 
   await browser.close();
 
+  createTempDocument(pdf, `${agent.agent_id}-${agent.metatags.profile_slug}-${slugifyAddress(values.title)}.pdf`, 'application/pdf');
   return pdf;
+  // return {
+  //   href: `https://${process.env.NEXT_APP_S3_DOCUMENTS_BUCKET}/tmp/${agent.agent_id}-${agent.metatags.profile_slug}-${slugifyAddress(values.title)}.pdf`,
+  // };
 }

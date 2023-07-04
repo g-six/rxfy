@@ -172,6 +172,97 @@ export async function buildCacheFiles(mls_id: string) {
   }
 }
 
+export async function getPropertyByMlsId(mls_id: string) {
+  try {
+    const response = await axios.post(
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+      {
+        query: gql_mls,
+        variables: {
+          mls_id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+    const data_records = response?.data?.data?.properties?.data;
+    if (data_records && Array.isArray(data_records) && data_records.length) {
+      const invalidations: string[] = [];
+      const records: PropertyDataModel[] = [];
+      data_records
+        .map(({ id: property_id, attributes }) => {
+          const { mls_data, property_type, ...property } = attributes as PropertyDataModel;
+          Object.keys(property).forEach(k => {
+            const attrib = property as unknown as { [a: string]: unknown };
+            if (attrib[k] === null) delete attrib[k];
+          });
+          let cover_photo = property.property_photo_album?.data?.attributes?.photos?.[0];
+          cover_photo = cover_photo ? getImageSized(cover_photo, 480) : '/house-placeholder.png';
+          return {
+            ...property,
+            amenities: (property.amenities?.data || []).map(item => ({
+              ...item.attributes,
+              id: Number(item.id),
+            })),
+            appliances: (property.appliances?.data || []).map(item => ({
+              ...item.attributes,
+              id: Number(item.id),
+            })),
+            build_features: (property.build_features?.data || []).map(item => ({
+              ...item.attributes,
+              id: Number(item.id),
+            })),
+            connected_services: (property.connected_services?.data || []).map(item => ({
+              ...item.attributes,
+              id: Number(item.id),
+            })),
+            facilities: (property.facilities?.data || []).map(item => ({
+              ...item.attributes,
+              id: Number(item.id),
+            })),
+            hvac: (property.hvac?.data || []).map(p => ({
+              ...p.attributes,
+              id: Number(p.id),
+            })),
+            parking: (property.parking?.data || []).map(p => ({
+              ...p.attributes,
+              id: Number(p.id),
+            })),
+            photos: property.property_photo_album?.data?.attributes?.photos || [],
+            places_of_interest: (property.places_of_interest?.data || []).map(p => ({
+              ...p.attributes,
+              id: Number(p.id),
+            })),
+            property_photo_album: Number(property.property_photo_album?.data?.id || 0) || undefined,
+            real_estate_board: property.real_estate_board?.data?.attributes ? property.real_estate_board?.data?.attributes : undefined,
+            id: Number(property_id),
+            cover_photo,
+            dwelling_type: {
+              name: property_type,
+            },
+          } as unknown as PropertyDataModel;
+        })
+        .forEach((p: PropertyDataModel) => {
+          records.push(p);
+          createCacheItem(JSON.stringify(p, null, 4), `listings/${p.mls_id}/recent.json`, 'text/json');
+          createCacheItem(JSON.stringify(p.mls_data, null, 4), `listings/${p.mls_id}/legacy.json`, 'text/json');
+          invalidations.push(`/listings/${p.mls_id}/recent.json`);
+          invalidations.push(`/listings/${p.mls_id}/legacy.json`);
+        });
+      invalidateCache(invalidations);
+      return records[0];
+    }
+    return [];
+  } catch (e) {
+    const axerr = e as AxiosError;
+    console.log('Error caught: properties.model.getPropertiesFromAgentInventory');
+    console.log(axerr.response?.data);
+  }
+}
 export async function getPropertiesFromAgentInventory(agent_id: string) {
   try {
     const response = await axios.post(
@@ -198,7 +289,7 @@ export async function getPropertiesFromAgentInventory(agent_id: string) {
         .map(d => {
           const {
             agent: {
-              data: { id: agent_record_id, attributes: agent_attributes },
+              data: { attributes: agent_attributes },
             },
             property: {
               data: { id: property_id, attributes },
@@ -290,6 +381,15 @@ const gql_inventory_by_agent_id = `query GetAgentInventory($agent_id: String!) {
           }
         }
       }
+    }
+  }
+}`;
+
+const gql_mls = `query GetPublicProperty($mls_id: String!) {
+	properties(filters: { mls_id: { eqi: $mls_id } }) {
+    data {
+      id
+      attributes {${GQ_FRAGMENT_PROPERTY_ATTRIBUTES}}
     }
   }
 }`;
