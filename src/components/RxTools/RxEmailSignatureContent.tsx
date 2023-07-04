@@ -37,7 +37,7 @@ export default function RxEmailSignatureContent({ nodes, agent }: ReplacerPagePr
     {
       searchFn: searchByClasses(['agent-email']),
       transformChild: (child: React.ReactElement) => {
-        return React.cloneElement(child, {
+        return React.cloneElement(<a />, {
           ...child.props,
           children: agent.email,
           href: `mailto:${agent.email}`,
@@ -65,7 +65,7 @@ export default function RxEmailSignatureContent({ nodes, agent }: ReplacerPagePr
         return !href ? (
           <></>
         ) : (
-          React.cloneElement(child, {
+          React.cloneElement(<a />, {
             ...child.props,
             href: href,
             target: '_blank',
@@ -81,7 +81,7 @@ export default function RxEmailSignatureContent({ nodes, agent }: ReplacerPagePr
         return !href ? (
           <></>
         ) : (
-          React.cloneElement(child, {
+          React.cloneElement(<a />, {
             ...child.props,
             href: href,
             target: '_blank',
@@ -97,7 +97,7 @@ export default function RxEmailSignatureContent({ nodes, agent }: ReplacerPagePr
         return !href ? (
           <></>
         ) : (
-          React.cloneElement(child, {
+          React.cloneElement(<a />, {
             ...child.props,
             href: href,
             target: '_blank',
@@ -113,7 +113,7 @@ export default function RxEmailSignatureContent({ nodes, agent }: ReplacerPagePr
         return !href ? (
           <></>
         ) : (
-          React.cloneElement(child, {
+          React.cloneElement(<a />, {
             ...child.props,
             href: href,
             target: '_blank',
