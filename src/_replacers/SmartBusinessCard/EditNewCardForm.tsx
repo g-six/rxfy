@@ -2,23 +2,26 @@ import React, { cloneElement, createElement, ReactElement, useEffect, useState }
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import Input from '../FilterFields/Input';
-import RxFileUploader from '@/components/RxForms/RxFileUploader';
 import RxDropzone from '@/components/RxDropzone';
 import { ImagePreview } from '@/hooks/useFormEvent';
 import { createSmartCard, deleteSmartCard } from '@/_utilities/api-calls/call-smart-cards';
 import { SmartCardInput, SmartCardResponse } from '@/_typings/smart-cards';
+import { AgentData } from '@/_typings/agent';
+import QR from 'qrcode';
 type Props = {
   template: ReactElement;
   showDetails: boolean;
   details: SmartCardResponse | undefined;
   updateCardsList: (actionName: string, data: any) => void;
+  agent: AgentData;
 };
 interface SmartCardForm extends SmartCardResponse {
   logo?: ImagePreview;
 }
-export default function EditNewCardForm({ template, showDetails, details, updateCardsList }: Props) {
+export default function EditNewCardForm({ template, showDetails, details, updateCardsList, agent }: Props) {
   const opacityDelay = 300; // milliseconds (1 second)
   const widthDelay = 300; // milliseconds (0.5 seconds)
+  const [qr, setQR] = useState<string | undefined>();
   const animationStyles = showDetails
     ? {
         width: '100%',
@@ -36,7 +39,29 @@ export default function EditNewCardForm({ template, showDetails, details, update
     setForm(details);
   }, [details]);
   const logoPreview = (form?.logo ? form?.logo?.preview : form?.logo_url) ?? null;
+  useEffect(() => {
+    async function getQRCode() {
+      let qr_url = '';
+      if (agent.domain_name) {
+        qr_url = `https://${agent.domain_name}/id`;
+      } else if (agent.agent_id && agent.agent_metatag.profile_slug) {
+        qr_url = `https://leagent.com/${agent.agent_id}/${agent.agent_metatag.profile_slug}/id`;
+      }
 
+      if (qr_url) {
+        const qr = await QR.toDataURL(qr_url, {
+          color: {
+            light: '#fff', // Transparent background
+          },
+        });
+        setQR(qr);
+      }
+    }
+    if (agent) {
+      console.log(agent);
+      getQRCode();
+    }
+  }, [agent]);
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['edit-new-card']),
@@ -84,24 +109,29 @@ export default function EditNewCardForm({ template, showDetails, details, update
     },
     {
       searchFn: searchByClasses(['upload-button']),
-      transformChild: child => (
-        <RxDropzone
-          className={'upload-button'}
-          onFileUpload={(newFiles: ImagePreview[]) => {
-            setForm((prev: any) => ({ ...prev, logo: newFiles[0] }));
-          }}
-          inputId='agent_logo'
-        >
-          {child.props.children}
-        </RxDropzone>
-      ),
+      transformChild: child =>
+        details?.id ? (
+          <></>
+        ) : (
+          <RxDropzone
+            className={'upload-button'}
+            onFileUpload={(newFiles: ImagePreview[]) => {
+              setForm((prev: any) => ({ ...prev, logo: newFiles[0] }));
+            }}
+            inputId='agent_logo'
+          >
+            {child.props.children}
+          </RxDropzone>
+        ),
     },
     {
       searchFn: searchByClasses(['smart-card-logo-front']),
       transformChild: child => cloneElement(child, {}, logoPreview ? [<img key={0} src={logoPreview} alt='Smart Card Agent Front Logo' />] : []),
     },
-    { searchFn: searchByClasses(['text-3']), transformChild: child => cloneElement(child, {}, form?.name ? [form.name] : child.props.children) },
-    { searchFn: searchByClasses(['text-4']), transformChild: child => cloneElement(child, {}, form?.title ? [form.title] : child.props.children) },
+    { searchFn: searchByClasses(['text-3']), transformChild: child => cloneElement(child, {}, form?.name ? [form.name] : []) },
+    { searchFn: searchByClasses(['text-4']), transformChild: child => cloneElement(child, {}, form?.title ? [form.title] : []) },
+    { searchFn: searchByClasses(['smart-card-agent-phone']), transformChild: child => cloneElement(child, {}, agent?.phone ?? '') },
+    { searchFn: searchByClasses(['smart-card-agent-qr']), transformChild: child => (qr ? cloneElement(child, { src: qr }) : <></>) },
     {
       searchFn: searchByClasses(['smart-card-logo-back']),
       transformChild: child => cloneElement(child, {}, logoPreview ? [<img key={0} src={logoPreview} alt='Smart Card Agent Back Logo' />] : []),

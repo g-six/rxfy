@@ -8,7 +8,7 @@ import { getSmartCards } from '@/_utilities/api-calls/call-smart-cards';
 import SmartCard from '@/_replacers/SmartBusinessCard/SmartCard';
 import { SmartCardResponse } from '@/_typings/smart-cards';
 
-export default function RxSmartBusinessCard({ nodes }: ReplacerPageProps) {
+export default function RxSmartBusinessCard({ nodes, agent }: ReplacerPageProps) {
   const [cards, setCards] = useState<SmartCardResponse[]>([]);
   const [showDetails, setShowDetails] = useState<boolean>(false);
   const captured = captureMatchingElements(removeMatchingElements(nodes, [{ searchFn: searchByClasses(['smart-cards']) }]), [
@@ -38,7 +38,7 @@ export default function RxSmartBusinessCard({ nodes }: ReplacerPageProps) {
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['edit-new-card']),
-      transformChild: child => <EditNewCardForm template={child} showDetails={showDetails} details={details} updateCardsList={updateCardsList} />,
+      transformChild: child => <EditNewCardForm template={child} showDetails={showDetails} details={details} updateCardsList={updateCardsList} agent={agent} />,
     },
     {
       searchFn: searchByClasses(['order-button']),
