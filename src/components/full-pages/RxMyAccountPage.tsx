@@ -27,6 +27,7 @@ type RxMyAccountPageProps = {
   session?: { [key: string]: string | number };
   'user-type': string;
   domain?: string;
+  onChange: (p: { [key: string]: { [key: string]: string } }) => void;
 };
 
 export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit?: React.FormEventHandler }) {
@@ -104,6 +105,33 @@ export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit?: React.
         }
         if (child_node.props.className.split(' ').includes('txt-agentid')) {
           return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='agent_id' defaultValue={props.session?.agent_id} />;
+        }
+        if (props.session && child_node.props['data-field']) {
+          let field_name = child_node.props['data-field'];
+          const defaults = props.session as unknown as {
+            [key: string]: string;
+          };
+          let default_value = '';
+          if (defaults[field_name]) {
+            default_value = defaults[field_name];
+          } else {
+            const metatags = props.session.metatags as unknown as {
+              [k: string]: string;
+            };
+            default_value = metatags[child_node.props['data-field']] || '';
+            return (
+              <RxTextInput
+                {...child_node.props}
+                rx-event={Events.SaveAccountChanges}
+                defaultValue={default_value}
+                onChange={(val: string) => {
+                  props.onChange({ metatags: { [field_name]: val } });
+                }}
+              />
+            );
+          }
+
+          return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name={field_name} defaultValue={default_value} />;
         }
         if (child_node.props.className.split(' ').includes('txt-phone')) {
           return (
@@ -192,8 +220,8 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
     getUserBySessionKey(session_key).then(setFormData);
   }
 
-  const submitForm = () => {
-    const updates = getCleanObject(data);
+  const submitForm = (d = data) => {
+    const updates = getCleanObject(d);
 
     if (updates && Cookies.get('session_key') && Cookies.get('session_as')) {
       updateAccount(`${Cookies.get('session_key')}`, updates, Cookies.get('session_as') === 'realtor')
@@ -231,9 +259,47 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
   }, [reset]);
 
   React.useEffect(() => {
-    if (is_processing) {
+    if (is_processing && Object.keys(form_data).length > 0) {
       processing(false);
-      submitForm();
+      setFormData({});
+      const { birthday: ts } = data as { birthday: number };
+      let birthday;
+      if (ts) {
+        birthday = new Date(ts).toISOString().substring(0, 10);
+        birthday = [birthday.split('-')[2], birthday.split('-')[1], birthday.split('-')[0]].join('/');
+      }
+      let { metatags } = data as unknown as {
+        metatags: { [key: string]: string | number };
+      };
+
+      const form = form_data as unknown as {
+        metatags: { [key: string]: string | number };
+      };
+
+      if (form.metatags && Object.keys(form.metatags).length && props.session) {
+        const { id: metatag_id } = props.session.metatags as unknown as {
+          id: number;
+        };
+        metatags = {
+          ...metatags,
+          ...form.metatags,
+          id: metatag_id,
+        };
+        setFormData({});
+      }
+
+      fireEvent({
+        ...data,
+        metatags,
+        birthday,
+        clicked: undefined,
+      } as unknown as EventsData);
+      submitForm({
+        ...data,
+        metatags,
+        birthday,
+        clicked: undefined,
+      } as unknown as EventsData);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [is_processing]);
@@ -256,17 +322,10 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
   React.useEffect(() => {
     if (data?.clicked === `${Events.SaveAccountChanges}-trigger`) {
       processing(true);
-      const { birthday: ts } = data as { birthday: number };
-      let birthday;
-      if (ts) {
-        birthday = new Date(ts).toISOString().substring(0, 10);
-        birthday = [birthday.split('-')[2], birthday.split('-')[1], birthday.split('-')[0]].join('/');
-      }
-      fireEvent({
+      setFormData({
+        ...form_data,
         ...data,
-        birthday,
-        clicked: undefined,
-      } as unknown as EventsData);
+      });
     }
   }, [data]);
 
@@ -281,12 +340,27 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
       <RxPageIterator
         {...props}
         data={form_data}
+        onChange={(updates: { [key: string]: { [key: string]: string } }) => {
+          Object.keys(updates).forEach(k => {
+            if (typeof updates[k] === 'object') {
+              const parsed = form_data as unknown as { [key: string]: unknown };
+              setFormData({
+                ...form_data,
+                [k]: {
+                  ...(parsed[k] || {}),
+                  ...updates[k],
+                },
+              } as unknown as EventsData);
+            } else {
+              setFormData({
+                ...form_data,
+                ...updates,
+              });
+            }
+          });
+        }}
         onSubmit={e => {
           e.preventDefault();
-          fireEvent({
-            ...data,
-            clicked: `${Events.SaveAccountChanges}-trigger`,
-          });
         }}
       />
     </div>

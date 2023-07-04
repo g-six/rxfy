@@ -3,6 +3,7 @@ import { getResponse } from '../response-helper';
 
 import { GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty } from '@/_typings/property';
 import { NextRequest } from 'next/server';
+import { createCacheItem } from '../_helpers/cache-helper';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -57,6 +58,11 @@ export async function GET(request: NextRequest) {
       400,
     );
   }
+}
+
+export async function POST(request: NextRequest) {
+  const hit = await request.json();
+  createCacheItem(JSON.stringify(hit, null, 4), `${hit.MLS_ID}/legacy.json`, 'text/json');
 }
 
 async function getNeighboursAndHistory(

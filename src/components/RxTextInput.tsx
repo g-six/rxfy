@@ -12,6 +12,7 @@ type RxProps = {
   children?: React.ReactElement;
   data?: Record<string, string>;
   placeholder?: string;
+  onChange?: (val: string) => void;
   ['rx-event']: Events;
 };
 export function RxTextInput(p: RxProps) {
@@ -45,10 +46,15 @@ export function RxTextInput(p: RxProps) {
         }
       }}
       onChange={e => {
-        evt.fireEvent({
-          ...evt.data,
-          [p.name]: e.currentTarget.value,
-        });
+        if (p.onChange) {
+          p.onChange(e.currentTarget.value);
+        } else {
+          // Default evt handler
+          evt.fireEvent({
+            ...evt.data,
+            [p.name]: e.currentTarget.value,
+          });
+        }
       }}
     />
   );
