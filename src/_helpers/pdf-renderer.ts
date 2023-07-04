@@ -5,8 +5,9 @@ type PdfInput = {
   name?: string;
   images?: HTMLCanvasElement[];
   orientation?: 'p' | 'l';
-  callback?: () => {};
+  callback?: (data?: string) => void;
   inWindow?: boolean;
+  noDownload?: boolean;
   pdf?: jsPDF;
   size?: 'a4' | 'us' | undefined;
 };
@@ -89,6 +90,11 @@ function returnPDF(data: PdfInput) {
     if (data.inWindow) {
       const blobPDF = new Blob([data.pdf.output('blob')], { type: 'application/pdf' });
       window.location.href = URL.createObjectURL(blobPDF);
+    } else if (data.noDownload) {
+      const pdfBase64 = data.pdf.output('datauristring', { filename: `${data.name}.pdf` });
+      if (data.callback) {
+        data.callback(pdfBase64);
+      }
     } else {
       data.pdf.save(`${data.name}.pdf`);
     }
