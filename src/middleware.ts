@@ -12,6 +12,9 @@ export function middleware(request: NextRequest) {
   const [, ...segments] = pathname.split('/');
   let page_url = `https://`;
   response.headers.set('x-viewer', 'realtor');
+  response.headers.set('x-agent-id', 'LEAGENT');
+  response.headers.set('x-profile-slug', 'leagent');
+  response.headers.set('x-canonical', `${origin}${pathname}`);
 
   if (searchParams.get('paragon') && !segments.includes('ai-result')) {
     response.headers.set('x-viewer', 'customer');
@@ -47,6 +50,7 @@ export function middleware(request: NextRequest) {
     response.headers.set('x-viewer', 'customer');
 
     if (segments[2] === 'map') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/map`;
+    else if (segments[2] === 'id') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/id`;
     else if (segments[2] === 'property') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/property/propertyid`;
     else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}`;
   } else if (pathname === '/') {
@@ -66,6 +70,9 @@ export function middleware(request: NextRequest) {
   allCookies.forEach(({ name, value }) => {
     response.headers.set(`x-${name.split('_').join('-')}`, value);
   });
-
+  // Do not remove this, need this to be logged in Vercel for various reasons
+  if (page_url.indexOf('/_next/') === -1) {
+    console.log('middleware', { page_url });
+  }
   return response;
 }

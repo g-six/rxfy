@@ -30,6 +30,8 @@ export interface AgentMetatagsInput {
   youtube_url?: string;
   mailchimp_subscription_url?: string;
   target_city?: string;
+  lat?: number;
+  lng?: number;
   listings_title?: string;
   search_highlights?: SearchHighlightInput[];
   brokerage_name?: string;
@@ -37,6 +39,9 @@ export interface AgentMetatagsInput {
   profile_slug?: string;
   head_code?: string;
   footer_code?: string;
+  geocoding?: {
+    [key: string]: unknown;
+  };
 }
 export interface AgentMetatags extends AgentMetatagsInput {
   id: number;
