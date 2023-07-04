@@ -3,7 +3,7 @@ import React, { ReactElement } from 'react';
 import { ReplacerPageProps } from '@/_typings/forms';
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
-import { getAgentPhoto } from '@/_utilities/data-helpers/agent-helper';
+import { getAgentHomePageUrl, getAgentPhoto } from '@/_utilities/data-helpers/agent-helper';
 
 export default function RxFacebookCoverContent({ nodes, agent }: ReplacerPageProps) {
   const matches: tMatch[] = [
@@ -35,7 +35,7 @@ export default function RxFacebookCoverContent({ nodes, agent }: ReplacerPagePro
       searchFn: searchByClasses(['agent-url']),
       transformChild: (child: React.ReactElement) => {
         return React.cloneElement(child, {
-          children: agent.domain_name ? agent.domain_name : agent.webflow_domain,
+          children: getAgentHomePageUrl(agent),
         });
       },
     },
