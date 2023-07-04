@@ -124,9 +124,13 @@ export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit?: React.
                 {...child_node.props}
                 rx-event={Events.SaveAccountChanges}
                 defaultValue={default_value}
-                onChange={(val: string) => {
-                  props.onChange({ metatags: { [field_name]: val } });
-                }}
+                onChange={
+                  props.onChange
+                    ? (val: string) => {
+                        props.onChange && props.onChange({ metatags: { [field_name]: val } });
+                      }
+                    : undefined
+                }
               />
             );
           }
