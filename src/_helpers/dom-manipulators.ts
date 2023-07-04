@@ -179,3 +179,21 @@ export function replaceAllTextWithBraces(element: React.ReactNode, replacements:
     return element;
   }
 }
+
+export function removeMatchingElements(nodes: ReactNode, matches: { searchFn: (node: ReactElement) => boolean }[]): ReactNode {
+  return React.Children.map(nodes, node => {
+    if (React.isValidElement(node)) {
+      const match = matches.find(m => m.searchFn(node));
+      if (match) {
+        // Don't return the transformed child, effectively removing it
+        return null;
+      } else {
+        return React.cloneElement(node as ReactElement<any>, {
+          children: removeMatchingElements(node.props.children, matches),
+        });
+      }
+    } else {
+      return node;
+    }
+  });
+}

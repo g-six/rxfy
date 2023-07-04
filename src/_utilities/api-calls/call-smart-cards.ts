@@ -9,7 +9,11 @@ const HEADERS = {
   },
 };
 
-export async function getSmartCards() {}
+export async function getSmartCards() {
+  const results = await axios.get('/api/smart-cards', HEADERS);
+
+  return results.data;
+}
 
 export async function createSmartCard(input: SmartCardInput) {
   let logo_url;
