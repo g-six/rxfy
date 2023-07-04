@@ -1,7 +1,6 @@
 @import 'https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css';
 @tailwind base;
 @tailwind components;
-@tailwind utilities;
 
 @font-face {
   font-family: 'SF Pro';
@@ -134,3 +133,5 @@
 .hidden-block {
   @apply hidden #{!important};
 }
+
+@tailwind utilities;
