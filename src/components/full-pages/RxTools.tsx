@@ -1,4 +1,4 @@
-import React, { cloneElement, ReactElement } from 'react';
+import React, { ReactElement } from 'react';
 
 import { ReplacerPageProps } from '@/_typings/forms';
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
@@ -10,7 +10,7 @@ import RxFacebookCover from '@/components/RxTools/RxFacebookCover';
 import RxPaperBusinessCard from '@/components/RxTools/RxPaperBusinessCard';
 import RxPropertyBrochures from '@/components/RxTools/RxPropertyBrochures';
 
-export default function RxTools({ nodeProps, agent, nodes, nodeClassName }: ReplacerPageProps) {
+export default function RxTools({ agent, nodes }: ReplacerPageProps) {
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['smart-business-card-tab']),

@@ -50,8 +50,6 @@ export default function RxPaperBusinessCard({ nodes, agent }: ReplacerPageProps)
       const promises = Array.from([refFront.current, refBack.current])
         .map(el => el as HTMLElement)
         .map(el => {
-          //el.style.width = pdfSize.width + 'px';
-          //el.style.height = pdfSize.height + 'px';
           return html2canvas(el, { allowTaint: true, useCORS: true });
         });
       Promise.all(promises).then(pagesAsCanvas => {
