@@ -183,6 +183,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <head>
           <title>{agent_data?.metatags?.title || agent_data?.full_name} Leagent</title>
           {metas}
+          <link rel='stylesheet' type='text/css' href='/css/preflight.css' />
         </head>
 
         <body {...body_props} className={bodyClassName} suppressHydrationWarning>
