@@ -12,8 +12,8 @@ export function middleware(request: NextRequest) {
   const [, ...segments] = pathname.split('/');
   let page_url = `https://`;
   response.headers.set('x-viewer', 'realtor');
-  response.headers.set('x-agent-id', 'LEAGENT');
-  response.headers.set('x-profile-slug', 'leagent');
+  // response.headers.set('x-agent-id', 'LEAGENT');
+  // response.headers.set('x-profile-slug', 'leagent');
   response.headers.set('x-canonical', `${origin}${pathname}`);
 
   if (searchParams.get('paragon') && !segments.includes('ai-result')) {
