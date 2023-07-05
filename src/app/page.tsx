@@ -1,7 +1,6 @@
 import './globals.scss';
 import parse from 'html-react-parser';
 import { AxiosError } from 'axios';
-import Image from 'next/image';
 import { CheerioAPI, load } from 'cheerio';
 import { notFound } from 'next/navigation';
 import { cookies, headers } from 'next/headers';
