@@ -115,17 +115,6 @@ export default function TabStrata({ template, nextStepClick, attributes, data, f
             item={{ title: 'Council Approval Required' }}
             handleCheckList={() => fireEvent({ council_approval_required: !data?.council_approval_required })}
           />,
-          <ChipsWithLabel
-            key={`chipsList-1`}
-            label='Building Amenities'
-            template={templates.chipsWithLabel}
-            values={selectedChips}
-            handleSelect={val => {
-              const newValue = setMultiSelectValue(val, selectedChips ? selectedChips : []);
-              fireEvent({ amenities: newValue });
-            }}
-            chipsList={amenities}
-          />,
         ]);
       },
     },
