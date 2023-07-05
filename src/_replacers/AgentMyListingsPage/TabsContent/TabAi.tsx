@@ -1,3 +1,4 @@
+import axios from 'axios';
 import React, { useEffect, createElement, cloneElement } from 'react';
 
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
@@ -14,7 +15,8 @@ import useDebounce from '@/hooks/useDebounce';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { createPrivateListing, updatePrivateListing, uploadListingPhoto } from '@/_utilities/api-calls/call-private-listings';
 import { PrivateListingInput, PrivateListingOutput } from '@/_typings/private-listing';
-import axios from 'axios';
+
+import styles from '@/components/RxButton.module.scss';
 
 export default function TabAi({ template, nextStepClick, saveAndExit, data, fireEvent }: TabContentProps) {
   // const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
@@ -24,6 +26,7 @@ export default function TabAi({ template, nextStepClick, saveAndExit, data, fire
   const [photos_rearranged, markPhotosRearranged] = React.useState(false);
   const [photos_marked_for_deletion, markForDeletion] = React.useState([]);
   const [photos, setPhotos] = React.useState<ImagePreview[]>([]);
+  const [is_uploading, toggleUploading] = React.useState<boolean>(false);
 
   if (data?.id) {
     if (data?.upload_queue && data?.photos && data.photos.filter(({ url }: { url: any }) => url).length === data?.upload_queue.total) {
@@ -103,36 +106,41 @@ export default function TabAi({ template, nextStepClick, saveAndExit, data, fire
 
   const savePhotos = async (rec: PrivateListingOutput) => {
     if (photos && rec.id) {
-      fireEvent({ id: rec.id });
-      // Upload
-      await Promise.all(
-        photos.map(async (photo: File, cnt: number) => {
-          if (photo.name) {
-            const upload_item = await uploadListingPhoto(photo, cnt + 1, rec);
-            await axios.put(upload_item.upload_url, photo, { headers: { 'Content-Type': photo.type } });
-            // photos[cnt].url = 'https://' + new URL(upload_item.upload_url).pathname.substring(1);
-            // photos[cnt].preview = getImageSized('https://' + new URL(upload_item.upload_url).pathname.substring(1), 80);
-            photos[cnt] = {
-              url: 'https://' + new URL(upload_item.upload_url).pathname.substring(1),
-              preview: getImageSized('https://' + new URL(upload_item.upload_url).pathname.substring(1), 80),
-              lastModified: cnt,
-            } as unknown as ImagePreview;
-          }
-        }),
-      );
+      if (!is_uploading) {
+        toggleUploading(true);
+        fireEvent({ id: rec.id });
+        // Upload
+        await Promise.all(
+          photos.map(async (photo: File, cnt: number) => {
+            if (photo.name) {
+              const upload_item = await uploadListingPhoto(photo, cnt + 1, rec);
+              await axios.put(upload_item.upload_url, photo, { headers: { 'Content-Type': photo.type } });
+              // photos[cnt].url = 'https://' + new URL(upload_item.upload_url).pathname.substring(1);
+              // photos[cnt].preview = getImageSized('https://' + new URL(upload_item.upload_url).pathname.substring(1), 80);
+              photos[cnt] = {
+                url: 'https://' + new URL(upload_item.upload_url).pathname.substring(1),
+                preview: getImageSized('https://' + new URL(upload_item.upload_url).pathname.substring(1), 80),
+                lastModified: cnt,
+              } as unknown as ImagePreview;
+            }
+          }),
+        );
 
-      // Extract URL
-      const urls = photos
-        .map((pht: string | ImagePreview) => {
-          if (typeof pht !== 'string') {
-            return pht.url as string;
-          }
-          return pht;
-        })
-        .filter((pht: string) => pht);
+        // Extract URL
+        const urls = photos
+          .map((pht: string | ImagePreview) => {
+            if (typeof pht !== 'string') {
+              return pht.url as string;
+            }
+            return pht;
+          })
+          .filter((pht: string) => pht);
 
-      // Pass extrated url to update state of photo url array
-      setAlbumContents(urls);
+        // Pass extrated url to update state of photo url array
+        setAlbumContents(urls);
+
+        toggleUploading(false);
+      }
     } else {
       nextStepClick(undefined, {});
     }
@@ -230,7 +238,7 @@ export default function TabAi({ template, nextStepClick, saveAndExit, data, fire
         createElement(
           'button',
           {
-            className: `${child.props.className} ${'disabled:bg-gray-500 disabled:cursor-not-allowed'}`,
+            className: `${child.props.className} disabled:bg-gray-500 disabled:cursor-not-allowed relative`,
             disabled: blockNext(),
             onClick: () => {
               const { id, title, description, baths, beds, dwelling_type, property_photo_album, lat, lon, area, city, state_province, postal_zip_code } = data;
@@ -257,16 +265,10 @@ export default function TabAi({ template, nextStepClick, saveAndExit, data, fire
                   photos: new_files,
                   property_photo_album,
                 } as unknown as PrivateListingOutput);
-                // fn = updatePrivateListing(id, {
-                //   photos: new_files.length ? new_files : undefined,
-                //   // If album id is present, an update album operation is triggered.
-                //   // Otherwise, create a new album with the array of photo urls.
-                //   property_photo_album: property_photo_album?.id || undefined,
-                // } as Record<string, unknown>);
               } else createPrivateListing({ ...(input as PrivateListingInput), dwelling_type }).then(savePhotos);
             },
           },
-          [child.props.children],
+          [is_uploading ? <span className={styles.loader} /> : <></>, child.props.children],
         ),
     },
     {
