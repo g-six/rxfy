@@ -141,7 +141,10 @@ export default function RxCustomerView(p: Props) {
 
       if (customer_id) {
         if (customers && customers.length) {
-          const [record] = customers.filter((c: CustomerRecord) => c.id === Number(searchParams.get('customer')));
+          const [record] = customers.filter((c: CustomerRecord) => {
+            console.log(c.id, Number(searchParams.get('customer')));
+            return c.id === Number(searchParams.get('customer'));
+          });
           if (record) {
             const { email, phone_number, first_name, last_name, full_name } = record;
             setData(

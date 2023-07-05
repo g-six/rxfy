@@ -6,6 +6,7 @@ import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import { RxButton } from '@/components/RxButton';
 import RxCustomerNotesWrapper from './CustomerNotesWrapper';
 import styles from './CustomerNotes.module.scss';
+import { setData } from '@/_utilities/data-helpers/local-storage-helper';
 
 type Props = {
   children: React.ReactElement;
@@ -19,6 +20,9 @@ function Iterator(p: Props) {
       if (child.props?.['event-name'] === 'view-client') {
         return React.cloneElement(child, {
           href: `${child.props.href}?customer=${p['data-customer'].id}`,
+          onClick: () => {
+            setData('viewing_customer', JSON.stringify(p['data-customer'] || {}));
+          },
         });
       } else if (child.props?.['data-field']) {
         let dwelling_type = '';
