@@ -44,7 +44,6 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, ag
   const [attributes, setAttributes] = useState<{ [key: string]: ValueInterface[] }>();
   const { fireEvent: fireTabEvent } = useEvent(Events.AgentMyListings, true);
   const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, { floor_area_uom: 'sqft', lot_uom: 'sqft' });
-  const uploadEvt = useEvent(Events.QueueUpload);
   const [uploading, toggleUploading] = useState<boolean>(false);
   const tabsTemplates = captureMatchingElements(
     child,

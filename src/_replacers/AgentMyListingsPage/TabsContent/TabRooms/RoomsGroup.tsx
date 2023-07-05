@@ -6,7 +6,7 @@ import { getValueByKey } from '@/hooks/useFormEvent';
 
 export default function RoomsGroup({ heading = 'Rooms', rooms, headingTemplate, inputTemplate, rowClassName = '', data, onChange }: RoomsGroupProps) {
   const inputsRowTemaplate = regularRow;
-  console.log({ data });
+
   return (
     <>
       {cloneElement(headingTemplate, {}, [heading])}

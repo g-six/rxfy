@@ -67,8 +67,6 @@ export default function TabRooms({ template, nextStepClick, data }: TabContentPr
         obj = obj.slice(0, data[r]);
       }
 
-      console.log(r, sub[idx], obj);
-
       if (['half_baths', 'full_baths'].includes(r)) {
         new_bath_copy = {
           ...new_bath_copy,
@@ -92,17 +90,6 @@ export default function TabRooms({ template, nextStepClick, data }: TabContentPr
   useEffect(() => {
     rebuild();
   }, []);
-
-  // console.log(
-  //   JSON.stringify(
-  //     {
-  //       bathroom_details,
-  //       room_details,
-  //     },
-  //     null,
-  //     4,
-  //   ),
-  // );
 
   const matches: tMatch[] = [
     {

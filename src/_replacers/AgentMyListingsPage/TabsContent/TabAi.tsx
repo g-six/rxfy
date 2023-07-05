@@ -23,7 +23,6 @@ export default function TabAi({ template, nextStepClick, saveAndExit, data, fire
   const [new_album_contents, setAlbumContents] = React.useState<string[]>();
   const [text_for_ai, setDescriptionForAi] = React.useState<string>('');
   const debouncedPrompt = useDebounce(text_for_ai, 900);
-  const [photos_rearranged, markPhotosRearranged] = React.useState(false);
   const [photos_marked_for_deletion, markForDeletion] = React.useState([]);
   const [photos, setPhotos] = React.useState<ImagePreview[]>([]);
   const [is_uploading, toggleUploading] = React.useState<boolean>(false);
@@ -76,7 +75,6 @@ export default function TabAi({ template, nextStepClick, saveAndExit, data, fire
   useEffect(() => {
     if (new_album_contents) {
       setAlbumContents(undefined);
-      markPhotosRearranged(false);
       updatePrivateListing(data.id, {
         photos: new_album_contents,
         property_photo_album: data?.property_photo_album?.id || undefined,
@@ -101,7 +99,6 @@ export default function TabAi({ template, nextStepClick, saveAndExit, data, fire
   const blockNext = () => ![data?.title, data?.beds].every(Boolean);
   const reorderFiles = (newOrder: ImagePreview[]) => {
     fireEvent({ photos: [...newOrder] });
-    markPhotosRearranged(true);
   };
 
   const savePhotos = async (rec: PrivateListingOutput) => {
