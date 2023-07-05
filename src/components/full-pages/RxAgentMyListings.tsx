@@ -56,5 +56,5 @@ export default function RxAgentMyListings({ nodeProps, agent_data, nodes }: Prop
     },
   ];
 
-  return <div className={nodeProps?.className}>{transformMatchingElements(nodes, matches)}</div>;
+  return <div className={nodeProps?.className + ' RxAgentMyListings'}>{transformMatchingElements(nodes, matches)}</div>;
 }

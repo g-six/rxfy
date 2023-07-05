@@ -134,7 +134,7 @@ export default function TabSummary({ template, nextStepClick, attributes, data, 
                 value={value}
                 label={field.label}
                 handleChange={e => {
-                  const newValue = field?.inputProps.type === 'number' ? parseInt(e.currentTarget.value) : e.currentTarget.value;
+                  const newValue = field?.inputProps.type === 'number' ? Number(e.currentTarget.value) : e.currentTarget.value;
                   fireEvent({ [field.inputProps.name]: newValue });
                 }}
               />
