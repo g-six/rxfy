@@ -277,7 +277,7 @@ export default function TabAi({ template, nextStepClick, saveAndExit, data, fire
         createElement(
           'button',
           {
-            className: `${child.props.className} ${'disabled:bg-gray-500 disabled:cursor-not-allowed'}`,
+            className: `${child.props.className} disabled:bg-gray-500 disabled:cursor-not-allowed`,
             disabled: blockNext(),
             onClick: () => saveAndExit(data),
           },
