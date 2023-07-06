@@ -308,6 +308,6 @@ export async function getPdf(page_url: string, data: unknown) {
 
   await browser.close();
   const response = NextResponse.next();
-  response.headers.set('Content-Type', 'application/json');
+  response.headers.set('Content-Type', 'application/pdf');
   return pdf;
 }
