@@ -18,6 +18,7 @@ import { PrivateListingInput, PrivateListingOutput } from '@/_typings/private-li
 
 import styles from '@/components/RxButton.module.scss';
 
+let btn_key = 1;
 export default function TabAi({ template, nextStepClick, saveAndExit, data, fireEvent }: TabContentProps) {
   // const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
   const [new_album_contents, setAlbumContents] = React.useState<string[]>();
@@ -232,41 +233,44 @@ export default function TabAi({ template, nextStepClick, saveAndExit, data, fire
     {
       searchFn: searchByPartOfClass(['f-button-neutral']),
       transformChild: child =>
-        createElement(
-          'button',
-          {
-            className: `${child.props.className} disabled:bg-gray-500 disabled:cursor-not-allowed relative`,
-            disabled: blockNext(),
-            onClick: () => {
-              const { id, title, description, baths, beds, dwelling_type, property_photo_album, lat, lon, area, city, state_province, postal_zip_code } = data;
-              const input: unknown = {
-                title,
-                description,
-                baths,
-                beds,
-                lat,
-                lon,
-                area,
-                city,
-                state_province,
-                postal_zip_code,
-              };
+        cloneElement(<button type='button' />, {
+          className: `${child.props.className} disabled:bg-gray-500 disabled:cursor-not-allowed relative`,
+          disabled: blockNext(),
+          key: `${child.props.className}-${btn_key++}`,
+          onClick: () => {
+            const { id, title, description, baths, beds, dwelling_type, property_photo_album, lat, lon, area, city, state_province, postal_zip_code } = data;
+            const input: unknown = {
+              title,
+              description,
+              baths,
+              beds,
+              lat,
+              lon,
+              area,
+              city,
+              state_province,
+              postal_zip_code,
+            };
 
-              // If photos were re-arranged or added, and we are editing an existing record (id is present)
-              // update the private listing's photo album
-              if (id && photos) {
-                const new_files = photos.filter(({ url }: ImagePreview) => url).map(({ url }: ImagePreview) => url);
-                savePhotos({
-                  id,
-                  title,
-                  photos: new_files,
-                  property_photo_album,
-                } as unknown as PrivateListingOutput);
-              } else createPrivateListing({ ...(input as PrivateListingInput), dwelling_type }).then(savePhotos);
-            },
+            // If photos were re-arranged or added, and we are editing an existing record (id is present)
+            // update the private listing's photo album
+            if (id && photos) {
+              const new_files = photos.filter(({ url }: ImagePreview) => url).map(({ url }: ImagePreview) => url);
+              savePhotos({
+                id,
+                title,
+                photos: new_files,
+                property_photo_album,
+              } as unknown as PrivateListingOutput);
+            } else createPrivateListing({ ...(input as PrivateListingInput), dwelling_type }).then(savePhotos);
           },
-          [is_uploading ? <span className={styles.loader} /> : <></>, child.props.children],
-        ),
+          children: (
+            <>
+              {is_uploading ? <span className={styles.loader} key={child.props.className} /> : ''}
+              {child.props.children}
+            </>
+          ),
+        }),
     },
     {
       searchFn: searchByPartOfClass(['f-button-secondary']),
