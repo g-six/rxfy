@@ -5,9 +5,8 @@ import axios from 'axios';
 import { CheerioAPI, load } from 'cheerio';
 import puppeteer, { PaperFormat } from 'puppeteer';
 import { AgentData } from '@/_typings/agent';
-import { createTempDocument } from './cache-helper';
-import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
 import { RoomDetails } from '@/_typings/property';
+import { NextResponse } from 'next/server';
 
 export async function getPdf(page_url: string, data: unknown) {
   const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
@@ -308,7 +307,7 @@ export async function getPdf(page_url: string, data: unknown) {
   });
 
   await browser.close();
-
-  createTempDocument(pdf, `${agent.agent_id}-${agent.metatags.profile_slug}-${slugifyAddress(values.title)}.pdf`, 'application/pdf');
+  const response = NextResponse.next();
+  response.headers.set('Content-Type', 'application/json');
   return pdf;
 }
