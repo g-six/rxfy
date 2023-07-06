@@ -5,7 +5,7 @@ import { PageTabs, createListingTabs } from '@/_typings/agent-my-listings';
 import { captureMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import { getPropertyAttributes } from '@/_utilities/api-calls/call-property-attributes';
-import { createOrUpdate, updatePrivateListing, uploadListingPhoto } from '@/_utilities/api-calls/call-private-listings';
+import { createOrUpdate, uploadListingPhoto } from '@/_utilities/api-calls/call-private-listings';
 import useEvent, { Events } from '@/hooks/useEvent';
 import TabAi from './TabsContent/TabAi';
 import TabAddress from './TabsContent/TabAddress';
@@ -15,7 +15,7 @@ import TabRooms from './TabsContent/TabRooms/TabRooms';
 import TabStrata from './TabsContent/TabStrata';
 import TabMore from './TabsContent/TabMore';
 import TabPreview from './TabsContent/TabPreview';
-import useFormEvent, { EventsData, ImagePreview, PrivateListingData } from '@/hooks/useFormEvent';
+import useFormEvent, { ImagePreview, PrivateListingData } from '@/hooks/useFormEvent';
 import { PrivateListingOutput } from '@/_typings/private-listing';
 import axios from 'axios';
 
@@ -23,8 +23,6 @@ type Props = {
   child: ReactElement;
   currentTab: string;
   setCurrentTab: Dispatch<SetStateAction<string>>;
-  // data: any | undefined;
-  // setData: (data: any) => void;
   agent: AgentData;
   changeTab: (tab: PageTabs) => void;
 };
