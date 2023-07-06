@@ -116,6 +116,31 @@ export async function unloveByMLSId(mls_id: string) {
  * @param number love.id
  * @returns
  */
+export async function unloveHomeForCustomer(id: number, customer_id: number) {
+  try {
+    const response = await axios.delete(`/api/agents/customer/${customer_id}/loves/${id}`, {
+      headers: {
+        Authorization: `Bearer ${Cookies.get('session_key')}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.status === 200) {
+      const { session_key, ...record } = response.data;
+      Cookies.set('session_key', session_key);
+      return record;
+    }
+    return response;
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+/**
+ * Save a customer map search
+ * @param number love.id
+ * @returns
+ */
 export async function unloveHome(id: number) {
   try {
     const response = await axios.delete(`/api/loves/${id}`, {

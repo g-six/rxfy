@@ -3,7 +3,7 @@ import React, { ReactElement } from 'react';
 import { ReplacerPageProps } from '@/_typings/forms';
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
-import { getAgentPhoto } from '@/_utilities/data-helpers/agent-helper';
+import { getAgentHomePageUrl, getAgentPhoto } from '@/_utilities/data-helpers/agent-helper';
 
 export default function RxEmailSignatureContent({ nodes, agent }: ReplacerPageProps) {
   const matches: tMatch[] = [
@@ -51,8 +51,8 @@ export default function RxEmailSignatureContent({ nodes, agent }: ReplacerPagePr
         if (!website_display) website_display = `${agent.agent_id}/${agent.metatags.profile_slug}`;
         return React.cloneElement(<a />, {
           ...child.props,
-          children: `${location.hostname}/${website_display}`,
-          href: `${location.origin}/${website_display}`,
+          children: 'leagent.com' + new URL(getAgentHomePageUrl(agent)).pathname,
+          href: getAgentHomePageUrl(agent),
           target: '_blank',
           rel: 'noopener noreferrer',
         });

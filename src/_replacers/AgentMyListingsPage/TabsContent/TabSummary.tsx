@@ -34,8 +34,7 @@ export default function TabSummary({ template, nextStepClick, attributes, data, 
       inputProps: {
         placeholder: 'Asking Price',
         name: 'asking_price',
-        type: 'number',
-        min: 0,
+        type: 'text',
       },
       template: templates.input,
       generatedPrompt: '',
@@ -75,8 +74,7 @@ export default function TabSummary({ template, nextStepClick, attributes, data, 
       inputProps: {
         placeholder: '$1,000',
         name: 'gross_taxes',
-        type: 'number',
-        min: 0,
+        type: 'text',
       },
       template: templates.input,
       generatedPrompt: '',
@@ -134,7 +132,7 @@ export default function TabSummary({ template, nextStepClick, attributes, data, 
                 value={value}
                 label={field.label}
                 handleChange={e => {
-                  const newValue = field?.inputProps.type === 'number' ? parseInt(e.currentTarget.value) : e.currentTarget.value;
+                  const newValue = field?.inputProps.type === 'number' ? Number(e.currentTarget.value) : e.currentTarget.value;
                   fireEvent({ [field.inputProps.name]: newValue });
                 }}
               />

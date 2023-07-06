@@ -9,6 +9,7 @@ import RxPropertyMaps from '@/components/RxProperty/RxPropertyMaps';
 import RxPropertyStats from '@/components/RxProperty/RxPropertyStats';
 import { AgentData } from '@/_typings/agent';
 import styles from './CustomerPropertyView.module.scss';
+import RxActionBar from './CRMPropertyPageComponents/RxActionBar';
 
 type Props = {
   children: React.ReactElement;
@@ -49,7 +50,7 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
                     ...child.props,
                     children: React.cloneElement(child.props.children, {
                       ...child.props.children.props,
-                      src: getImageSized(p.property.photos[1], 580),
+                      src: getImageSized(p.property.photos[2], 580),
                       srcset: undefined,
                     }),
                   });
@@ -156,6 +157,12 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
           }
         } else if (child.props.className === WEBFLOW_NODE_SELECTOR.PROPERTY_MAPS) {
           return p.property && p.property.lon && p.property.lat ? <RxPropertyMaps child={child} property={p.property} /> : <></>;
+        } else if (child.props.className?.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS) >= 0) {
+          return (
+            <RxActionBar {...p} {...child.props}>
+              {child}
+            </RxActionBar>
+          );
         } else if (child.props.className?.split(' ').includes('little-profile-card')) {
           return React.cloneElement(child, {
             ...child.props,

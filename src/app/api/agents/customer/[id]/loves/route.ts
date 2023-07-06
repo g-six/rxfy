@@ -1,9 +1,7 @@
 import { getResponse } from '@/app/api/response-helper';
-import axios, { AxiosError } from 'axios';
 import { NextRequest } from 'next/server';
 import { GET as checkSession } from '@/app/api/check-session/route';
-import { GQ_FRAGMENT_PROPERTY_ATTRIBUTES, LovedPropertyDataModel, PropertyDataModel } from '@/_typings/property';
-import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { LovedPropertyDataModel } from '@/_typings/property';
 import { getCustomerLoves } from './model';
 
 export async function GET(request: NextRequest) {

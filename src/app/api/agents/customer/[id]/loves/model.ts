@@ -33,6 +33,23 @@ export const query_get_customer_loves = `query CustomerLoves ($id: ID!) {
   }
 }`;
 
+const gql_unlove = `mutation LoveUnloveHomes ($id: ID!) {
+  love: deleteLove (id: $id) {
+    record: data {
+      id
+      attributes {
+        property {
+          data {
+            attributes {
+              mls_id
+            }
+          }
+        }
+      }
+    }
+  }
+}`;
+
 export async function getCustomerLoves(id: number) {
   let properties: LovedPropertyDataModel[] = [];
   try {

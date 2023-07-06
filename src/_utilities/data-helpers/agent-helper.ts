@@ -1,5 +1,6 @@
 import { AgentData } from '@/_typings/agent';
 import { AxiosStatic } from 'axios';
+import { objectToQueryString } from '../url-helper';
 
 export async function getAgentDataFromDomain(domain: string): Promise<AgentData> {
   if (`${process.env.NEXT_APP_LEAGENT_DOMAINS}`.split(',').includes(domain)) {
@@ -54,4 +55,15 @@ export function getAgentPhoto(agent: AgentData) {
   photo = photo ? photo : agent?.metatags?.logo_for_light_bg;
   photo = photo ? photo : agent?.metatags?.logo_for_dark_bg;
   return photo ? photo : '';
+}
+export function getAgentHomePageUrl(agent: AgentData) {
+  const { domain_name } = agent;
+  return domain_name ? `https://${domain_name}` : `https://leagent.com/${agent.agent_id}/${agent.metatags.profile_slug}`;
+}
+export function getAgentMapDefaultUrl(agent: AgentData) {
+  let url = getAgentHomePageUrl(agent) + '/map';
+  if (agent.metatags.geocoding) {
+    url = `${url}?${objectToQueryString(agent.metatags.geocoding as { [key: string]: string })}`;
+  }
+  return url;
 }

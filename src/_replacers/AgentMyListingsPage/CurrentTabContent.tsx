@@ -5,7 +5,7 @@ import { PageTabs, createListingTabs } from '@/_typings/agent-my-listings';
 import { captureMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import { getPropertyAttributes } from '@/_utilities/api-calls/call-property-attributes';
-import { createOrUpdate, updatePrivateListing, uploadListingPhoto } from '@/_utilities/api-calls/call-private-listings';
+import { createOrUpdate, uploadListingPhoto } from '@/_utilities/api-calls/call-private-listings';
 import useEvent, { Events } from '@/hooks/useEvent';
 import TabAi from './TabsContent/TabAi';
 import TabAddress from './TabsContent/TabAddress';
@@ -15,7 +15,7 @@ import TabRooms from './TabsContent/TabRooms/TabRooms';
 import TabStrata from './TabsContent/TabStrata';
 import TabMore from './TabsContent/TabMore';
 import TabPreview from './TabsContent/TabPreview';
-import useFormEvent, { EventsData, ImagePreview, PrivateListingData } from '@/hooks/useFormEvent';
+import useFormEvent, { ImagePreview, PrivateListingData } from '@/hooks/useFormEvent';
 import { PrivateListingOutput } from '@/_typings/private-listing';
 import axios from 'axios';
 
@@ -23,8 +23,6 @@ type Props = {
   child: ReactElement;
   currentTab: string;
   setCurrentTab: Dispatch<SetStateAction<string>>;
-  // data: any | undefined;
-  // setData: (data: any) => void;
   agent: AgentData;
   changeTab: (tab: PageTabs) => void;
 };
@@ -44,7 +42,6 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, ag
   const [attributes, setAttributes] = useState<{ [key: string]: ValueInterface[] }>();
   const { fireEvent: fireTabEvent } = useEvent(Events.AgentMyListings, true);
   const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, { floor_area_uom: 'sqft', lot_uom: 'sqft' });
-  const uploadEvt = useEvent(Events.QueueUpload);
   const [uploading, toggleUploading] = useState<boolean>(false);
   const tabsTemplates = captureMatchingElements(
     child,
@@ -105,20 +102,7 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, ag
   const nextStepClick = (callback?: (id?: number) => void, dataToAdd?: PrivateListingData) => {
     const currentStepIndex = tabsOrder.findIndex(tab => tab === currentTab);
     const nextStepIndex = currentStepIndex < tabsOrder.length - 1 ? currentStepIndex + 1 : currentStepIndex;
-    // Previous implementation to be removed unless there is a special reason behind it.
-    // Problem with this is that all fields are submitted even if there aren't any modifications.
-    // createOrUpdate({ ...data, ...(dataToAdd || {}) } as unknown as PrivateListingData, record => {
-    //   if (record?.id) {
-    //     // setData({ id: record.id });
-    //   }
 
-    //   if (nextStepIndex !== currentStepIndex) {
-    //     setCurrentTab(tabsOrder[nextStepIndex]);
-    //   }
-    //   callback && callback();
-    // });
-
-    // Fix to the above - we only submit dataToAdd
     if (dataToAdd && Object.keys(dataToAdd).length)
       createOrUpdate({ ...dataToAdd, id: data?.id } as unknown as PrivateListingData, record => {
         if (record?.id) {

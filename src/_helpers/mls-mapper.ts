@@ -50,7 +50,8 @@ export function convertPrivateListingToPropertyData(prop: PrivateListingData): a
   };
   Object.keys(updates).forEach(field_name => {
     if (isNumericValue(field_name)) {
-      updates[field_name] = Number(updates[field_name]);
+      const cleaned = `${updates[field_name]}`.replace(/[^0-9.]/g, '').split('.')[0];
+      updates[field_name] = Number(cleaned);
     } else if (LISTING_DATE_FIELDS.includes(field_name)) {
       updates[field_name] = new Date(updates[field_name] as number).toISOString().substring(0, 10); // YYYY-MM-DD
     } else if (Array.isArray(updates[field_name])) {

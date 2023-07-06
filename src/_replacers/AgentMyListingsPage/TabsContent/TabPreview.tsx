@@ -9,7 +9,7 @@ import { domToReact, htmlToDOM } from 'html-react-parser';
 import Image from 'next/image';
 
 export default function TabPreview({ template, data, fireEvent, agent, nextStepClick }: TabContentProps) {
-  const [lid, setLid] = React.useState<number | undefined>(data?.id);
+  const [version, setVersion] = React.useState<number | undefined>(Date.now());
   const [image, setImage] = React.useState<React.ReactElement>();
   const [newDescr, setNewDescr] = React.useState<string>(data?.description);
   const matches: tMatch[] = [
@@ -27,7 +27,7 @@ export default function TabPreview({ template, data, fireEvent, agent, nextStepC
               nextStepClick(
                 () => {
                   setImage(undefined);
-                  loadPreview();
+                  setVersion(Date.now());
                 },
                 { status: isActive ? 'draft' : 'active' },
               );
@@ -85,7 +85,7 @@ export default function TabPreview({ template, data, fireEvent, agent, nextStepC
             nextStepClick(
               () => {
                 setImage(undefined);
-                loadPreview();
+                setVersion(Date.now());
               },
               { description: newDescr },
             );
@@ -105,14 +105,14 @@ export default function TabPreview({ template, data, fireEvent, agent, nextStepC
       }
       if (origin && agent.metatags && data?.id) {
         setImage(<Image src='/loading.gif' width='32' height='32' className='m-8' alt='property preview page is loading' />);
-        axios
-          .get([origin, 'api/private-listings', data.id, 'screengrab'].join('/') + `?agent=${agent.agent_id}&slug=${agent.metatags.profile_slug}`)
-          .then(r => {
-            if (r.data) {
-              setLid(undefined);
-              setImage(domToReact(htmlToDOM(r.data)) as React.ReactElement);
-            }
-          });
+        // axios
+        //   .get([origin, 'api/private-listings', data.id, 'screengrab'].join('/') + `?agent=${agent.agent_id}&slug=${agent.metatags.profile_slug}`)
+        //   .then(r => {
+        //     if (r.data) {
+        //       setLid(undefined);
+        //       setImage(domToReact(htmlToDOM(r.data)) as React.ReactElement);
+        //     }
+        //   });
       }
     }
   };
@@ -127,8 +127,11 @@ export default function TabPreview({ template, data, fireEvent, agent, nextStepC
   return data?.id ? (
     <div className='flex flex-col h-full'>
       {transformMatchingElements(template, matches)}{' '}
-      <div className='rounded-xl overflow-hidden m-4 shadow items-center flex justify-center'>
-        {image || <Image src='/loading.gif' width='32' height='32' className='m-8' alt='property preview page is loading' />}
+      <div className='rounded-xl m-4 shadow items-center flex justify-center'>
+        <iframe
+          src={`https://leagent.com/${agent.agent_id}/${agent.metatags.profile_slug}/property?lid=${data.id}&v=${version}&view=1`}
+          className='h-screen w-full border-0 outline-none'
+        />
       </div>
     </div>
   ) : (

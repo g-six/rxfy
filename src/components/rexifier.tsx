@@ -776,7 +776,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         if (agent_data && node.attribs.class?.split(' ').indexOf(WEBFLOW_NODE_SELECTOR.AGENT_TOOLS) >= 0) {
           return <RxTools nodeProps={props} nodeClassName={node.attribs.class} agent={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
         }
-        if (agent_data && node.attribs.class?.split(' ').indexOf(WEBFLOW_NODE_SELECTOR.AGENT_MY_LISTINGS + 'dd') >= 0) {
+        if (agent_data && node.attribs.class?.split(' ').indexOf(WEBFLOW_NODE_SELECTOR.AGENT_MY_LISTINGS) >= 0) {
           return <RxAgentMyListings nodeProps={props} agent_data={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
         }
         //AGENT SIDE  END

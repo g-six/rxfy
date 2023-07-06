@@ -72,7 +72,6 @@ export default function EditNewCardForm({ template, showDetails, details, update
       }
     }
     if (agent) {
-      console.log(agent);
       getQRCode();
     }
   }, [agent]);

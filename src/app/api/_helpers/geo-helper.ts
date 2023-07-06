@@ -47,7 +47,7 @@ export async function getFormattedPlaceDetails(place_id: string) {
     if (formatted_address) {
       const components = formatted_address.split(', ');
       const address_city_state = address_components as { types: string[]; short_name: string }[];
-      let area, city, state_province, postal_zip_code, neighbourhood;
+      let area, city, state_province, postal_zip_code, neighbourhood, country;
 
       address_city_state.forEach(({ types, short_name }) => {
         if (types.includes('locality') && types.includes('political')) {
@@ -65,6 +65,9 @@ export async function getFormattedPlaceDetails(place_id: string) {
         if (types.includes('neighborhood')) {
           neighbourhood = short_name;
         }
+        if (types.includes('country')) {
+          country = short_name;
+        }
       });
 
       components.pop();
@@ -79,6 +82,7 @@ export async function getFormattedPlaceDetails(place_id: string) {
         swlng: geometry?.viewport.southwest.lng,
         area,
         city,
+        country,
         postal_zip_code,
         state_province,
         neighbourhood,
