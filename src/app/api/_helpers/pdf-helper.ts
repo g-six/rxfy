@@ -8,8 +8,8 @@ import { AgentData } from '@/_typings/agent';
 import { RoomDetails } from '@/_typings/property';
 
 export async function getPdf(page_url: string, data: unknown) {
-  // const browser = await launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-  // const page = await browser.newPage();
+  const browser = await launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+  const page = await browser.newPage();
   const { data: html_data } = await axios.get(page_url);
   const $: CheerioAPI = load(html_data);
   let values = data as { [key: string]: string };
@@ -263,13 +263,27 @@ export async function getPdf(page_url: string, data: unknown) {
         }
       } else {
         console.log(field, 'field not available');
+        $(el).remove();
       }
     }
   });
+  $('[data-stats]').each((idx, el) => {
+    const field = el.attribs['data-stats'];
+    if (field) {
+      let v = values[field];
+      if (field === 'frontage' && !v) {
+        if (values.frontage_feet) v = new Intl.NumberFormat().format(Number(values.frontage_feet)) + 'sqft';
+        if (values.frontage_metres) v = new Intl.NumberFormat().format(Number(values.frontage_metres)) + 'sqm';
+      }
+      if (v) {
+        $(el).find('.field-value').html(v);
+      } else $(el).remove();
+    }
+  });
 
-  // await page.setContent($.html());
-  // await page.waitForFunction('document.fonts.ready');
-  // await page.emulateMediaType('screen');
+  await page.setContent($.html());
+  await page.waitForFunction('document.fonts.ready');
+  await page.emulateMediaType('screen');
 
   // await page.evaluate(
   //   ([d]) => {
@@ -310,15 +324,15 @@ export async function getPdf(page_url: string, data: unknown) {
   //   [values],
   // );
 
-  // const format: PaperFormat = 'LETTER';
-  // const pdf = await page.pdf({
-  //   margin: { top: '8px', right: '8px', bottom: '8px', left: '8px' },
-  //   printBackground: true,
-  //   format,
-  // });
+  const format: PaperFormat = 'LETTER';
+  const pdf = await page.pdf({
+    margin: { top: '8px', right: '8px', bottom: '8px', left: '8px' },
+    printBackground: true,
+    format,
+  });
 
-  // await browser.close();
+  await browser.close();
 
-  return $.html();
-  // return <div>{}</div>;
+  // return $.html();
+  return pdf;
 }

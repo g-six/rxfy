@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
       agent,
     } as unknown;
     const page_url = ['https://', process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN, 'brochure'].join('/');
+
     const response = await getPdf(page_url, full_data as unknown);
 
     return getResponse({ body: response }, 200, 'application/pdf');
