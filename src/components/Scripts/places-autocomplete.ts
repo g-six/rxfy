@@ -13,8 +13,10 @@ export default function initializePlacesAutocomplete(props: Record<string, strin
     function replaceDivWithTextInput(){
         let div = document.querySelector(".section---search .input-text");
         let textInput = document.createElement("input");
-        textInput.setAttribute("class", "input-text");
-        textInput.setAttribute("type", "text");
+        if (textInput) {
+            textInput.setAttribute("class", "input-text");
+            textInput.setAttribute("type", "text");
+        }
         div.parentNode.replaceChild(textInput, div);
         return textInput
     }

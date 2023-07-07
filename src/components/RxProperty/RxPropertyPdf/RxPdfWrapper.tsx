@@ -213,9 +213,9 @@ export default function RxPdfWrapper({ nodes, agent, property, nodeClassName }: 
       const image = property.photos && Array.isArray(property.photos) && property.photos.length ? property.photos[0] : '';
       const imageFromCdn = image ? getImageSized(image, pdfSize.width) : '';
 
-      let photo = agent.metatags.logo_for_light_bg;
-      photo = photo ? photo : agent.metatags.logo_for_dark_bg;
-      photo = photo ? photo : agent.metatags.profile_image;
+      let photo = agent.metatags?.profile_image;
+      photo = photo ? photo : agent.metatags?.logo_for_dark_bg;
+      photo = photo ? photo : agent.metatags?.logo_for_light_bg;
       photo = photo ? photo : '';
 
       const google = `https://maps.googleapis.com/maps/api/staticmap?center=${property.lat},${property.lon}&zoom=13&size=883x259&scale=2&markers=${property.lat},${property.lon}&maptype=roadmap&key=${process.env.NEXT_PUBLIC_GGL_KEY}`;

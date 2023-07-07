@@ -3,12 +3,15 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { LISTING_FEETERS_FIELDS, LISTING_MONEY_FIELDS, LISTING_NUMERIC_FIELDS } from '@/_utilities/data-helpers/listings-helper';
 import axios from 'axios';
 import { CheerioAPI, load } from 'cheerio';
-import { PaperFormat, launch } from 'puppeteer';
+import puppeteer from 'puppeteer';
 import { AgentData } from '@/_typings/agent';
 import { RoomDetails } from '@/_typings/property';
 
 export async function getPdf(page_url: string, data: unknown) {
-  const browser = await launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+  const browserWSEndpoint = `wss://chrome.browserless.io?token=${process.env.NEXT_APP_BROWSERLESS_TOKEN}`;
+  console.log({ browserWSEndpoint });
+  const browser = await puppeteer.connect({ browserWSEndpoint });
+  //({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const page = await browser.newPage();
   const { data: html_data } = await axios.get(page_url);
   const $: CheerioAPI = load(html_data);

@@ -126,11 +126,11 @@ export async function GET(request: NextRequest) {
           });
           amenities?.data?.forEach(r => r.id);
           let album = 0;
-          let cover_photo = '';
+          let cover_photo = '/house-placeholder.png';
           if (property_photo_album?.data?.id) {
             album = Number(property_photo_album.data.id);
             cover_photo = property_photo_album?.data?.attributes?.photos?.[0];
-            cover_photo = cover_photo ? getImageSized(cover_photo, 256) : '/house-placeholder.png';
+            if (cover_photo) cover_photo = getImageSized(cover_photo, 256);
           }
 
           properties.push({

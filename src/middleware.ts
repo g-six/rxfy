@@ -55,6 +55,10 @@ export function middleware(request: NextRequest) {
     else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}`;
   } else if (pathname === '/') {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}`;
+  } else if (pathname === '/pdf') {
+    page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}${pathname}`;
+    response.headers.set('Content-Type', 'application/pdf');
+    // response.headers.set('Content-Disposition', `attachment; filename="file.pdf"`);
   } else {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}${pathname}`;
   }
