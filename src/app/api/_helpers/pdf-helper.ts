@@ -3,18 +3,17 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { LISTING_FEETERS_FIELDS, LISTING_MONEY_FIELDS, LISTING_NUMERIC_FIELDS } from '@/_utilities/data-helpers/listings-helper';
 import axios from 'axios';
 import { CheerioAPI, load } from 'cheerio';
-import puppeteer, { PaperFormat } from 'puppeteer';
+import { PaperFormat, launch } from 'puppeteer';
 import { AgentData } from '@/_typings/agent';
 import { RoomDetails } from '@/_typings/property';
-import { NextResponse } from 'next/server';
 
 export async function getPdf(page_url: string, data: unknown) {
-  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-  const page = await browser.newPage();
+  // const browser = await launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+  // const page = await browser.newPage();
   const { data: html_data } = await axios.get(page_url);
   const $: CheerioAPI = load(html_data);
   let values = data as { [key: string]: string };
-  console.log(values);
+
   Object.keys(values).forEach(key => {
     if (LISTING_MONEY_FIELDS.includes(key))
       values = {
@@ -255,59 +254,58 @@ export async function getPdf(page_url: string, data: unknown) {
     $('[data-repeater="room"]:first').remove();
   }
 
-  await page.setContent($.html());
-  await page.waitForFunction('document.fonts.ready');
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  await page.emulateMediaType('screen');
+  // await page.setContent($.html());
+  // await page.waitForFunction('document.fonts.ready');
+  // await page.emulateMediaType('screen');
 
-  await page.evaluate(
-    ([d]) => {
-      document.querySelectorAll('[data-field]').forEach(el => {
-        if (el.getAttribute('data-field')) {
-          const field = el.getAttribute('data-field');
-          if (field && d[field]) {
-            if (field !== 'map') {
-              el.innerHTML = d[field];
-            }
-          } else {
-            console.log(field, 'field not available');
-          }
-        }
-      });
-      document.querySelectorAll('[data-stats]').forEach(el => {
-        if (el.getAttribute('data-stats')) {
-          const field = el.getAttribute('data-stats');
-          if (field) {
-            let v = d[field];
-            if (field === 'frontage' && !v) {
-              if (d.frontage_feet) v = new Intl.NumberFormat().format(Number(d.frontage_feet)) + 'sqft';
-              if (d.frontage_metres) v = new Intl.NumberFormat().format(Number(d.frontage_metres)) + 'sqm';
-            }
-            if (v) {
-              (el.querySelector('.field-value') as Element).innerHTML = v;
-            } else el.remove();
-          } else el.remove();
-        }
-      });
-      document.querySelectorAll('a[href]').forEach(el => {
-        const href = el.getAttribute('href') as string;
-        if (href.indexOf('webflow') >= 0) {
-          el.remove();
-        }
-      });
-    },
-    [values],
-  );
+  // await page.evaluate(
+  //   ([d]) => {
+  //     document.querySelectorAll('[data-field]').forEach(el => {
+  //       if (el.getAttribute('data-field')) {
+  //         const field = el.getAttribute('data-field');
+  //         if (field && d[field]) {
+  //           if (field !== 'map') {
+  //             el.innerHTML = d[field];
+  //           }
+  //         } else {
+  //           console.log(field, 'field not available');
+  //         }
+  //       }
+  //     });
+  //     document.querySelectorAll('[data-stats]').forEach(el => {
+  //       if (el.getAttribute('data-stats')) {
+  //         const field = el.getAttribute('data-stats');
+  //         if (field) {
+  //           let v = d[field];
+  //           if (field === 'frontage' && !v) {
+  //             if (d.frontage_feet) v = new Intl.NumberFormat().format(Number(d.frontage_feet)) + 'sqft';
+  //             if (d.frontage_metres) v = new Intl.NumberFormat().format(Number(d.frontage_metres)) + 'sqm';
+  //           }
+  //           if (v) {
+  //             (el.querySelector('.field-value') as Element).innerHTML = v;
+  //           } else el.remove();
+  //         } else el.remove();
+  //       }
+  //     });
+  //     document.querySelectorAll('a[href]').forEach(el => {
+  //       const href = el.getAttribute('href') as string;
+  //       if (href.indexOf('webflow') >= 0) {
+  //         el.remove();
+  //       }
+  //     });
+  //   },
+  //   [values],
+  // );
 
-  const format: PaperFormat = 'LETTER';
-  const pdf = await page.pdf({
-    margin: { top: '8px', right: '8px', bottom: '8px', left: '8px' },
-    printBackground: true,
-    format,
-  });
+  // const format: PaperFormat = 'LETTER';
+  // const pdf = await page.pdf({
+  //   margin: { top: '8px', right: '8px', bottom: '8px', left: '8px' },
+  //   printBackground: true,
+  //   format,
+  // });
 
-  await browser.close();
-  const response = NextResponse.next();
-  response.headers.set('Content-Type', 'application/pdf');
-  return pdf;
+  // await browser.close();
+
+  return $.html();
+  // return <div>{}</div>;
 }
