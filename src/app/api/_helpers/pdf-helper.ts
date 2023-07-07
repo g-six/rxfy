@@ -3,7 +3,7 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { LISTING_FEETERS_FIELDS, LISTING_MONEY_FIELDS, LISTING_NUMERIC_FIELDS } from '@/_utilities/data-helpers/listings-helper';
 import axios from 'axios';
 import { CheerioAPI, load } from 'cheerio';
-import puppeteer from 'puppeteer';
+import puppeteer, { PaperFormat } from 'puppeteer';
 import { AgentData } from '@/_typings/agent';
 import { RoomDetails } from '@/_typings/property';
 
