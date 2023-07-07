@@ -9,12 +9,12 @@ import { RoomDetails } from '@/_typings/property';
 
 export async function getPdf(page_url: string, data: unknown) {
   const browserWSEndpoint = `wss://chrome.browserless.io?token=${process.env.NEXT_APP_BROWSERLESS_TOKEN}`;
-  console.log({ browserWSEndpoint });
   const browser = await puppeteer.connect({ browserWSEndpoint });
   //({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const page = await browser.newPage();
   const { data: html_data } = await axios.get(page_url);
   const $: CheerioAPI = load(html_data);
+  $('script').remove();
   let values = data as { [key: string]: string };
 
   Object.keys(values).forEach(key => {
