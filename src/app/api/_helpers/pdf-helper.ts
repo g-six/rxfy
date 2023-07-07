@@ -254,6 +254,19 @@ export async function getPdf(page_url: string, data: unknown) {
     $('[data-repeater="room"]:first').remove();
   }
 
+  $('[data-field]').each((idx, el) => {
+    if (el.attribs['data-field']) {
+      const field = el.attribs['data-field'];
+      if (field && values[field]) {
+        if (field !== 'map') {
+          $(el).text(values[field]);
+        }
+      } else {
+        console.log(field, 'field not available');
+      }
+    }
+  });
+
   // await page.setContent($.html());
   // await page.waitForFunction('document.fonts.ready');
   // await page.emulateMediaType('screen');
