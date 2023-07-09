@@ -438,10 +438,11 @@ export async function getPrivateListingsByRealtorId(realtor_id: number, size = 2
             }
           }
         });
+
         return {
           ...record.attributes,
           page_url,
-          cover_photo,
+          cover_photo: cover_photo || '/house-placeholder.png',
           photos,
           id: Number(record.id),
         };

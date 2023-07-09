@@ -31,7 +31,10 @@ function loadAiResults($: CheerioAPI, user_id: string, slug?: string, origin?: s
   $(`[data-w-tab="Tab 2"] .f-section-large-11`).html(
     `<iframe src="https://leagent.com/${user_id}/${slug}/property?theme=default&mls=R2782417" className="${styles.homePagePreview}" />`,
   );
-
+  // PDF
+  $(`.theme-area.pdf-brochure-preview`).replaceWith(
+    `<iframe data-src="https://leagent.com/api/pdf/mls/R2517461?agent=${user_id}&slug=${slug}" className="theme-area pdf-brochure-preview" />`,
+  );
   replaceByCheerio($, '[data-w-tab="Tab 7"].w-tab-pane', {
     className: 'w-full h-full',
   });
@@ -303,6 +306,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   } else {
     console.log(hostname, 'is being treated as webflow site:', process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN);
   }
+  $('.w-webflow-badge').remove();
 
   const webflow: WebFlow = {
     head: {

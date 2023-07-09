@@ -4,7 +4,6 @@ import { getResponse } from '@/app/api/response-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { PrivateListingInput } from '@/_typings/private-listing';
 import { getNewSessionKey } from '../../update-session';
-import axios from 'axios';
 import { deleteObject } from '../../_helpers/s3-helper';
 
 export async function DELETE(req: NextRequest) {
@@ -78,7 +77,7 @@ export async function PUT(req: NextRequest) {
         }),
       );
     }
-    if (photos && photos.length) {
+    if (photos && property_photo_album) {
       const updated_album = await updatePrivateListingAlbum(photos, property_photo_album);
       if (updated_album?.id) {
         listing = {

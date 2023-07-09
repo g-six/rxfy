@@ -133,5 +133,7 @@
 .hidden-block {
   @apply hidden #{!important};
 }
-
+body > a.w-webflow-badge {
+  @apply hidden #{!important};
+}
 @tailwind utilities;

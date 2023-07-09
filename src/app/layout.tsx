@@ -240,7 +240,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               }}
             ></script>
 
-            {webflow.body.code && rexifyScripts(webflow.body.code)}
+            {webflow.body.code && pathname.indexOf('pdf') === -1 && rexifyScripts(webflow.body.code)}
           </body>
         ) : (
           <body>{children}</body>

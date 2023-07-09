@@ -1,12 +1,13 @@
+/* eslint-disable jsx-a11y/alt-text */
+/* eslint-disable @next/next/no-img-element */
 'use client';
 import React from 'react';
-import { AgentData, AgentMetatagsInput, RealtorInputModel } from '@/_typings/agent';
+import { AgentData, AgentMetatagsInput, RealtorInputModel, ThemeName } from '@/_typings/agent';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
 import useEvent, { Events, EventsData, NotificationCategory } from '@/hooks/useEvent';
 import axios, { AxiosError } from 'axios';
 import Cookies from 'js-cookie';
 import styles from './my-website.module.scss';
-import { formatAddress } from '@/_utilities/string-helper';
 import RxFileUploader from '@/components/RxForms/RxFileUploader';
 import { getUploadUrl, invalidateAgentFile } from '@/_utilities/api-calls/call-uploader';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
@@ -18,12 +19,8 @@ type Props = {
   children: React.ReactElement;
 };
 
-function isMetatagForm(className: string) {
-  return className.split(' ').filter(c => ['cta-tracking-save', 'cta-save-seo'].includes(c)).length > 0;
-}
-
 export function MyWebsite(p: Props) {
-  const { fireEvent: loadUserDataIntoEventState } = useEvent(Events.LoadUserSession);
+  const { data, fireEvent: loadUserDataIntoEventState } = useEvent(Events.LoadUserSession);
   const { data: acted } = useEvent(Events.SaveUserSession);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const websiteHandler = useEvent(Events.UpdateWebsite);
@@ -39,7 +36,7 @@ export function MyWebsite(p: Props) {
   };
 
   const [updates, setUpdates] = React.useState<RealtorInputModel | undefined>();
-  const [agent, setAgent] = React.useState<AgentData | undefined>();
+  const [agent, setAgent] = React.useState<AgentData | undefined>(data as unknown as AgentData);
 
   React.useEffect(() => {
     if (updates && Cookies.get('session_key')) {
@@ -52,7 +49,6 @@ export function MyWebsite(p: Props) {
             };
           }) => {
             loadUserDataIntoEventState(d as unknown as EventsData);
-            console.log('Successfully updated', d.agent?.agent_id);
           },
         )
         .catch(console.error);
@@ -67,8 +63,7 @@ export function MyWebsite(p: Props) {
   }, [acted]);
 
   React.useEffect(() => {
-    if (websiteHandler.data?.clicked && agent) {
-      console.log(ogimage);
+    if (websiteHandler.data?.clicked && data) {
       if (ogimage.upload_url && ogimage.file) {
         axios.put(ogimage.upload_url as string, ogimage.file, {
           headers: {
@@ -87,12 +82,13 @@ export function MyWebsite(p: Props) {
       websiteHandler.fireEvent({
         clicked: undefined,
       });
+
       updateAccount(
         Cookies.get('session_key') as string,
         {
           metatags: {
             ...metatags,
-            id: agent.metatags.id,
+            id: data.metatags.id,
           },
         },
         true,
@@ -108,38 +104,25 @@ export function MyWebsite(p: Props) {
     }
   }, [websiteHandler.data]);
 
-  // Let's load up the session
-
-  // React.useEffect(() => {
-  //   if (Cookies.get('session_key')) {
-  //     getUserBySessionKey(Cookies.get('session_key') as string, 'realtor')
-  //       .then(data => {
-  //         loadUserDataIntoEventState(data);
-  //         setAgent(data as unknown as AgentData);
-  //       })
-  //       .catch(e => {
-  //         const axerr = e as AxiosError;
-  //         if (axerr.response?.status === 401) {
-  //           clearSessionCookies();
-  //           setTimeout(() => {
-  //             location.href = '/log-in';
-  //           }, 500);
-  //         }
-  //       });
-  //   }
-  // }, []);
+  React.useEffect(() => {
+    if (data && Object.keys(data).length) {
+      setAgent(data as unknown as AgentData);
+    }
+  }, [data]);
 
   return (
     <>
-      {agent
-        ? React.Children.map(p.children, child => {
-            return (
-              <Iterator {...child.props} element-type={child.type} agent={agent}>
-                {child}
-              </Iterator>
-            );
-          })
-        : p.children}
+      {agent?.agent_id ? (
+        React.Children.map(p.children, child => {
+          return (
+            <Iterator {...child.props} element-type={child.type} agent={agent}>
+              {child}
+            </Iterator>
+          );
+        })
+      ) : (
+        <></>
+      )}
     </>
   );
 }
@@ -174,7 +157,7 @@ function Iterator(p: {
   };
   const [updates, setUpdates] = React.useState(p.agent);
 
-  let theme_name = '';
+  let theme_name = 'oslo';
   let theme_domain = p.agent.webflow_domain;
 
   if (!updates) return <Iterator {...p}>{p.children}</Iterator>;
@@ -369,10 +352,8 @@ function Iterator(p: {
         },
       );
     }
-    if (typeof p.children === 'string' && `${p.children}`.indexOf('Your theme:') === 0 && updates) {
-      if (updates.webflow_domain) {
-        return <>Your theme: {formatAddress(theme_name)}</>;
-      }
+    if (typeof p.children === 'string' && `${p.children}`.indexOf('Your theme:') === 0) {
+      return <>Your theme: {p.agent.website_theme || updates?.website_theme || 'Oslo'}</>;
     }
   }
   if ((p.type === 'text' && p.id) || p.placeholder) {
@@ -383,8 +364,15 @@ function Iterator(p: {
         children: undefined,
       };
     }
+
     const field_name = getAgentFieldName(p);
-    const field_value = getAgentFieldValue(updates, field_name);
+    const field_value = getAgentFieldValue(
+      {
+        ...p.agent,
+        ...updates,
+      },
+      field_name,
+    );
 
     if (field_name)
       return (

@@ -600,7 +600,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
 
         // my-website
-        if (params?.slug === 'my-website') {
+        if (node.attribs?.['data-dash'] === 'website') {
           return <MyWebsite>{domToReact(node.children) as ReactElement}</MyWebsite>;
         }
 
