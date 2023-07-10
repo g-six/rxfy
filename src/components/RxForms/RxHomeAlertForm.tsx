@@ -4,6 +4,8 @@ import { getDwellingTypes } from '@/_utilities/api-calls/call-property-attribute
 import styles from './RxForm.module.scss';
 import { classNames } from '@/_utilities/html-helper';
 import { RxDateInputGroup } from './RxInputs/RxDateInputGroup';
+import useEvent, { Events } from '@/hooks/useEvent';
+import { CustomerSavedSearch, SavedSearch } from '@/_typings/saved-search';
 
 type Props = {
   children: React.ReactElement;
@@ -54,8 +56,16 @@ function Iterator(
     data: {
       baths?: number;
       beds?: number;
-      minsize?: number;
-      maxsize?: number;
+      price?: {
+        min?: number;
+        max?: number;
+      };
+      size?: {
+        min?: number;
+        max?: number;
+      };
+      listed_at?: number;
+      year_built?: number;
       dwelling_types: { id: number; name: string; selected?: boolean }[];
     };
     record?: {
@@ -71,6 +81,8 @@ function Iterator(
       setMaxSize: (s: string) => void;
       setDwellingFilter: React.Dispatch<React.SetStateAction<string>>;
       toggleSelectedTypes: (id: number) => void;
+      updateListedAt: (ts: number) => void;
+      updateYear: (year: string) => void;
     };
   },
 ) {
@@ -146,6 +158,15 @@ function Iterator(
           ),
         });
       }
+      if (child.props.className?.includes('date-newer-than')) {
+        return React.cloneElement(child, {
+          ...child.props,
+          defaultValue: p.data.year_built || '',
+          onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
+            p.actions.updateYear(evt.currentTarget.value);
+          },
+        });
+      }
 
       return React.cloneElement(child, {
         ...child.props,
@@ -158,14 +179,6 @@ function Iterator(
     }
 
     if (child.type === 'input') {
-      if (child.props.className.includes('minprice')) {
-        return React.cloneElement(child, {
-          ...child.props,
-          onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
-            p.actions.setMinPrice(evt.currentTarget.value.replace(/\D/g, ''));
-          },
-        });
-      }
       if (child.props['data-toggle'] === 'datepicker' && !child.props.placeholder?.includes('Year')) {
         return (
           <RxDateInputGroup
@@ -173,32 +186,51 @@ function Iterator(
             field_name='date'
             icon={false}
             classOverride={child.props.className + ' w-full'}
-            onChange={(value: number | string) => {
-              console.log(value);
-              //   p.toggleFilter(value, selected_filter);
+            onChange={(ts: number) => {
+              p.actions.updateListedAt(ts);
             }}
           />
         );
       }
-      if (child.props.className.includes('maxprice')) {
+      if (child.props.className.includes('minprice')) {
+        let val = p.data.price?.min || '';
+        if (val) val = new Intl.NumberFormat().format(Number(val));
         return React.cloneElement(child, {
           ...child.props,
+          defaultValue: val,
+          onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
+            p.actions.setMinPrice(evt.currentTarget.value.replace(/\D/g, ''));
+          },
+        });
+      }
+      if (child.props.className.includes('maxprice')) {
+        let val = p.data.price?.max || '';
+        if (val) val = new Intl.NumberFormat().format(Number(val));
+        return React.cloneElement(child, {
+          ...child.props,
+          defaultValue: val,
           onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
             p.actions.setMaxPrice(evt.currentTarget.value.replace(/\D/g, ''));
           },
         });
       }
       if (child.props.className.includes('sqft-min')) {
+        let val = p.data.size?.min || '';
+        if (val) val = new Intl.NumberFormat().format(Number(val));
         return React.cloneElement(child, {
           ...child.props,
+          defaultValue: val || '',
           onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
             p.actions.setMinSize(evt.currentTarget.value.replace(/\D/g, ''));
           },
         });
       }
       if (child.props.className.includes('sqft-max')) {
+        let val = p.data.size?.max || '';
+        if (val) val = new Intl.NumberFormat().format(Number(val));
         return React.cloneElement(child, {
           ...child.props,
+          defaultValue: val,
           onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
             p.actions.setMaxSize(evt.currentTarget.value.replace(/\D/g, ''));
           },
@@ -225,7 +257,16 @@ export default function RxHomeAlertForm(p: Props) {
   const [beds, setBeds] = React.useState<number>(0);
   const [price, setPricing] = React.useState<{ min?: number; max?: number }>({});
   const [size, setSizing] = React.useState<{ min?: number; max?: number }>({});
+  const [listed_at, setListedAt] = React.useState<number>();
+  const [year_built, setYearBuilt] = React.useState<number>();
   const [dwelling_filter, setDwellingFilter] = React.useState<string>('');
+  const {
+    data: { alertData },
+  } = useEvent(Events.MyHomeAlertsModal) as unknown as {
+    data: {
+      alertData: SavedSearch;
+    };
+  };
 
   const toggleSelectedTypes = (ptype_id: number) => {
     const updated_dwellings = dwelling_types.map(t => {
@@ -239,6 +280,12 @@ export default function RxHomeAlertForm(p: Props) {
     });
 
     setDwellingTypes(updated_dwellings);
+  };
+  const updateListedAt = (val: number) => {
+    setListedAt(val);
+  };
+  const updateYear = (val: string) => {
+    setYearBuilt(Number(val));
   };
   const setMinSize = (val: string) => {
     setSizing({
@@ -274,6 +321,33 @@ export default function RxHomeAlertForm(p: Props) {
     if (u < 0) u = 0;
     setBaths(u);
   };
+
+  React.useEffect(() => {
+    if (alertData) {
+      if (alertData.baths) setBaths(alertData.baths);
+      if (alertData.beds) setBeds(alertData.beds);
+      if (alertData.maxprice) setMaxPrice(alertData.maxprice as unknown as string);
+      if (alertData.minprice) setMinPrice(alertData.minprice as unknown as string);
+      if (alertData.minsqft) setMinSize(alertData.minsqft as unknown as string);
+      if (alertData.maxsqft) setMaxSize(alertData.maxsqft as unknown as string);
+      if (alertData.build_year) setYearBuilt(alertData.build_year as unknown as number);
+      if (alertData.dwelling_types?.length) {
+        const u = dwelling_types.map(t => {
+          if (alertData.dwelling_types?.includes(t.name)) {
+            return {
+              ...t,
+              selected: true,
+            };
+          }
+          return t;
+        });
+        setDwellingTypes(u);
+      }
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [alertData]);
+
   React.useEffect(() => {
     getDwellingTypes().then(res => {
       const { types } = res as unknown as {
@@ -301,6 +375,10 @@ export default function RxHomeAlertForm(p: Props) {
           dwelling_types: dwelling_types.filter(t => dwelling_filter.length && t.name.toLowerCase().includes(dwelling_filter.toLowerCase())),
           beds,
           baths,
+          listed_at,
+          price,
+          size,
+          year_built,
         }}
         actions={{
           adjustBaths,
@@ -311,6 +389,8 @@ export default function RxHomeAlertForm(p: Props) {
           setMaxSize,
           setDwellingFilter,
           toggleSelectedTypes,
+          updateListedAt,
+          updateYear,
         }}
       >
         {p.children}

@@ -73,7 +73,8 @@ export default function MyHomeAlertModalWrapper({ child, agent_data }: Props) {
     },
     {
       searchFn: searchByClasses(['prop-type-section-label']),
-      transformChild: (child: ReactElement) => cloneElement(child, {}, [message ? `${message} Some Title` : `New Home Alert`]),
+      transformChild: (child: ReactElement) =>
+        cloneElement(child, {}, [message ? `${message} ${formState.beds ? `${formState.beds}-br` : ''} ${formState.city} Home Alert` : `New Home Alert`]),
     },
     {
       searchFn: searchByClasses(['close-link-right']),
