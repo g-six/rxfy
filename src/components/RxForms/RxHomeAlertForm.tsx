@@ -17,6 +17,14 @@ function convertDivsToSpans(el: React.ReactElement) {
   return el;
 }
 
+function IsActiveComponent(p: { className?: string; id?: string; children: React.ReactElement }) {
+  const Wrapped = React.Children.map(p.children, child => {
+    return convertDivsToSpans(child);
+  });
+
+  return <>{Wrapped}</>;
+}
+
 function Chip(p: {
   toggle: (record_id: number) => void;
   'record-id': number;
@@ -64,6 +72,7 @@ function Iterator(
         min?: number;
         max?: number;
       };
+      is_active?: boolean;
       listed_at?: number;
       year_built?: number;
       dwelling_types: { id: number; name: string; selected?: boolean }[];
@@ -80,31 +89,75 @@ function Iterator(
       setMinSize: (s: string) => void;
       setMaxSize: (s: string) => void;
       setDwellingFilter: React.Dispatch<React.SetStateAction<string>>;
-      toggleSelectedTypes: (id: number) => void;
+      toggleActive: (s: boolean) => void;
+      toggleSelectedDwellingChip: (classes: DOMTokenList, ptype: string) => void;
       updateListedAt: (ts: number) => void;
       updateYear: (year: string) => void;
+      onReset: () => void;
+      onSubmit: () => void;
     };
   },
 ) {
   const Wrapped = React.Children.map(p.children, child => {
+    if (child.props?.className?.includes('marketing-consent')) {
+      return <IsActiveComponent className={...child.props}>{child.props.children}</IsActiveComponent>;
+    }
+    if (child.type === 'a' && child.props.className?.includes('ha-reset')) {
+      return (
+        <button
+          type='button'
+          className={child.props.className}
+          onClick={() => {
+            p.actions.onReset();
+          }}
+        >
+          {child.props.children}
+        </button>
+      );
+    }
+    if (child.type === 'a' && child.props.className?.includes('ha-setup')) {
+      return (
+        <button
+          type='button'
+          className={child.props.className}
+          onClick={() => {
+            p.actions.onSubmit();
+          }}
+        >
+          {child.props.children}
+        </button>
+      );
+    }
+
     if (['div', 'form'].includes(child.type as string)) {
       if (child.props.className?.indexOf('div-property-types') >= 0) {
         let chip: React.ReactElement = <></>;
-        React.Children.map(child.props.children, (c, idx) => {
-          if (idx === 0) chip = c;
-        });
-
         return (
           <div className={child.props.className}>
-            {p.data.dwelling_types.map(t => {
-              return (
-                <Chip {...chip.props} checked={t.selected} record-id={t.id} key={t.id} name={t.name} toggle={p.actions.toggleSelectedTypes}>
-                  {chip.props.children}
-                </Chip>
-              );
+            {React.Children.map(child.props.children, (c, idx) => {
+              return React.cloneElement(c, {
+                ...c.props,
+                onClick: (evt: React.SyntheticEvent<HTMLInputElement>) => {
+                  const el = evt.currentTarget.querySelector('.w-checkbox-input');
+                  if (el) {
+                    p.actions.toggleSelectedDwellingChip(el.classList, evt.currentTarget.className.split('ptype-')[1]);
+                  }
+                },
+              });
             })}
           </div>
         );
+
+        // return (
+        //     {p.data.dwelling_types.map(t => {
+        //       return (
+        //         <Chip {...chip.props} checked={t.selected} record-id={t.id} key={t.id} name={t.name} toggle={p.actions.toggleSelectedTypes}>
+        //           {chip.props.children}
+        //         </Chip>
+        //       );
+        //     })}
+
+        // );
       }
 
       if (child.props.className?.includes('-less') || child.props.className?.includes('-more')) {
@@ -206,6 +259,7 @@ function Iterator(
       if (child.props.className.includes('maxprice')) {
         let val = p.data.price?.max || '';
         if (val) val = new Intl.NumberFormat().format(Number(val));
+
         return React.cloneElement(child, {
           ...child.props,
           defaultValue: val,
@@ -257,9 +311,11 @@ export default function RxHomeAlertForm(p: Props) {
   const [beds, setBeds] = React.useState<number>(0);
   const [price, setPricing] = React.useState<{ min?: number; max?: number }>({});
   const [size, setSizing] = React.useState<{ min?: number; max?: number }>({});
+  const [is_active, setActive] = React.useState<boolean>();
   const [listed_at, setListedAt] = React.useState<number>();
   const [year_built, setYearBuilt] = React.useState<number>();
   const [dwelling_filter, setDwellingFilter] = React.useState<string>('');
+  const [reset_form, setResetForm] = React.useState<boolean>();
   const {
     data: { alertData },
   } = useEvent(Events.MyHomeAlertsModal) as unknown as {
@@ -321,15 +377,44 @@ export default function RxHomeAlertForm(p: Props) {
     if (u < 0) u = 0;
     setBaths(u);
   };
+  const toggleActive = (val: boolean) => {
+    setActive(val);
+  };
 
-  React.useEffect(() => {
+  const toggleSelectedDwellingChip = (classes: DOMTokenList, ptype: string) => {
+    const u = dwelling_types.map(t => {
+      const collection = shouldSelectPType(ptype, classes);
+      if (collection) {
+        return {
+          ...t,
+          selected: collection.includes(t.name),
+        };
+      } else {
+        return t;
+      }
+    });
+    setDwellingTypes(u);
+  };
+
+  const resetForm = () => {
     if (alertData) {
       if (alertData.baths) setBaths(alertData.baths);
       if (alertData.beds) setBeds(alertData.beds);
-      if (alertData.maxprice) setMaxPrice(alertData.maxprice as unknown as string);
-      if (alertData.minprice) setMinPrice(alertData.minprice as unknown as string);
-      if (alertData.minsqft) setMinSize(alertData.minsqft as unknown as string);
-      if (alertData.maxsqft) setMaxSize(alertData.maxsqft as unknown as string);
+      let pricing = {
+        min: alertData.minprice,
+        max: alertData.maxprice,
+      };
+      if (pricing.min || pricing.max) {
+        setPricing(pricing);
+      }
+
+      let sizing = {
+        min: alertData.minsqft,
+        max: alertData.maxsqft,
+      };
+      if (sizing.min || sizing.max) {
+        setSizing(sizing);
+      }
       if (alertData.build_year) setYearBuilt(alertData.build_year as unknown as number);
       if (alertData.dwelling_types?.length) {
         const u = dwelling_types.map(t => {
@@ -344,6 +429,14 @@ export default function RxHomeAlertForm(p: Props) {
         setDwellingTypes(u);
       }
     }
+  };
+
+  React.useEffect(() => {
+    resetForm();
+  }, [reset_form]);
+
+  React.useEffect(() => {
+    resetForm();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [alertData]);
@@ -372,10 +465,11 @@ export default function RxHomeAlertForm(p: Props) {
       <Iterator
         {...p}
         data={{
-          dwelling_types: dwelling_types.filter(t => dwelling_filter.length && t.name.toLowerCase().includes(dwelling_filter.toLowerCase())),
+          dwelling_types,
           beds,
           baths,
           listed_at,
+          is_active,
           price,
           size,
           year_built,
@@ -388,13 +482,44 @@ export default function RxHomeAlertForm(p: Props) {
           setMinSize,
           setMaxSize,
           setDwellingFilter,
-          toggleSelectedTypes,
+          toggleActive,
+          toggleSelectedDwellingChip,
           updateListedAt,
           updateYear,
+          onReset() {
+            console.log('reset');
+          },
+          onSubmit() {
+            console.log('submit');
+          },
         }}
       >
         {p.children}
       </Iterator>
     </div>
   );
+}
+
+function shouldSelectPType(ptype: string, classes: DOMTokenList) {
+  if (ptype) {
+    switch (ptype) {
+      case 'aptcondo':
+        return !classes.contains('w--redirected-checked') ? ['Apartment/Condo'] : [];
+      case 'tnhouse':
+        return !classes.contains('w--redirected-checked') ? ['Townhouse'] : [];
+      case 'house':
+        return !classes.contains('w--redirected-checked')
+          ? ['Residential Detached', 'House/Single Family', 'House with Acreage', 'Single Family Detached']
+          : [];
+      case 'duplex':
+        return !classes.contains('w--redirected-checked') ? ['1/2 Duplex', 'Duplex'] : [];
+      case 'manufactured':
+        return !classes.contains('w--redirected-checked') ? ['Manufactured', 'Manufactured with Land'] : [];
+      case 'nonstrata':
+        return !classes.contains('w--redirected-checked') ? ['Row House (Non-Strata)'] : [];
+      case 'others':
+        return !classes.contains('w--redirected-checked') ? ['Others'] : [];
+    }
+  }
+  return;
 }

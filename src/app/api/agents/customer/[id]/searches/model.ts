@@ -1,4 +1,3 @@
-import { LovedPropertyDataModel } from '@/_typings/property';
 import { CustomerSavedSearch } from '@/_typings/saved-search';
 import axios, { AxiosError } from 'axios';
 
@@ -20,6 +19,7 @@ const GQ_FRAG_SAVED_SEARCH = `
                       zoom
                       type
                       sorting
+                      is_active
                       dwelling_types {
                         data {
                             id

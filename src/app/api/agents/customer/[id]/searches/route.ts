@@ -1,7 +1,6 @@
 import { getResponse } from '@/app/api/response-helper';
 import { NextRequest } from 'next/server';
 import { GET as checkSession } from '@/app/api/check-session/route';
-import { LovedPropertyDataModel } from '@/_typings/property';
 import { getCustomerSearches } from './model';
 import { CustomerSavedSearch } from '@/_typings/saved-search';
 

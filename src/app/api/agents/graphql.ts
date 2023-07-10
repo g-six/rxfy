@@ -65,6 +65,7 @@ export const GQ_FRAG_AGENT_CUSTOMER = `data {
                             city
                             minprice
                             maxprice
+                            is_active
                             dwelling_types {
                               data {
                                 attributes {
