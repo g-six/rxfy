@@ -144,7 +144,6 @@ export default function RxMapView() {
 
   React.useEffect(() => {
     if (map && pins) {
-      // console.log({ pins });
       const geojson_options: GeoJSONSourceRaw = {
         type: 'geojson',
         data: {
