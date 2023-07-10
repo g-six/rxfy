@@ -1,4 +1,5 @@
 import React from 'react';
+import SearchAddressCombobox from '@/_replacers/FilterFields/SearchAddressCombobox';
 import { getDwellingTypes } from '@/_utilities/api-calls/call-property-attributes';
 
 import styles from './RxForm.module.scss';
@@ -62,6 +63,7 @@ function Chip(p: {
 function Iterator(
   p: Props & {
     data: {
+      city?: string;
       baths?: number;
       beds?: number;
       price?: {
@@ -88,7 +90,8 @@ function Iterator(
       setMaxPrice: (s: string) => void;
       setMinSize: (s: string) => void;
       setMaxSize: (s: string) => void;
-      setDwellingFilter: React.Dispatch<React.SetStateAction<string>>;
+      setCityFilter: React.Dispatch<React.SetStateAction<string>>;
+      setGeo: (g: { [key: string]: number }) => void;
       toggleActive: (s: boolean) => void;
       toggleSelectedDwellingChip: (classes: DOMTokenList, ptype: string) => void;
       updateListedAt: (ts: number) => void;
@@ -147,17 +150,6 @@ function Iterator(
             })}
           </div>
         );
-
-        // return (
-        //     {p.data.dwelling_types.map(t => {
-        //       return (
-        //         <Chip {...chip.props} checked={t.selected} record-id={t.id} key={t.id} name={t.name} toggle={p.actions.toggleSelectedTypes}>
-        //           {chip.props.children}
-        //         </Chip>
-        //       );
-        //     })}
-
-        // );
       }
 
       if (child.props.className?.includes('-less') || child.props.className?.includes('-more')) {
@@ -198,14 +190,25 @@ function Iterator(
           children: (
             <>
               {child.props.children}
-              <input
-                type='text'
-                name='search'
-                id='search'
-                className={styles['search-input']}
-                onChange={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                  p.actions.setDwellingFilter(evt.currentTarget.value);
+              <SearchAddressCombobox
+                defaultValue={p.data.city}
+                className='w-full py-0 px-1 border-0 outline-0'
+                placeholder={child.props.placeholder}
+                name='address'
+                id='address-input'
+                onPlaceSelected={g => {
+                  const { city, lat, lng, nelat, nelng, swlat, swlng } = g;
+                  p.actions.setGeo({
+                    lat,
+                    lng,
+                    nelat,
+                    nelng,
+                    swlat,
+                    swlng,
+                  });
+                  p.actions.setCityFilter(city);
                 }}
+                search={''}
               />
             </>
           ),
@@ -314,7 +317,8 @@ export default function RxHomeAlertForm(p: Props) {
   const [is_active, setActive] = React.useState<boolean>();
   const [listed_at, setListedAt] = React.useState<number>();
   const [year_built, setYearBuilt] = React.useState<number>();
-  const [dwelling_filter, setDwellingFilter] = React.useState<string>('');
+  const [city_filter, setCityFilter] = React.useState<string>('');
+  const [geo_location, setGeoLocation] = React.useState<{ [key: string]: number }>();
   const [reset_form, setResetForm] = React.useState<boolean>();
   const {
     data: { alertData },
@@ -324,19 +328,6 @@ export default function RxHomeAlertForm(p: Props) {
     };
   };
 
-  const toggleSelectedTypes = (ptype_id: number) => {
-    const updated_dwellings = dwelling_types.map(t => {
-      if (ptype_id === t.id) {
-        return {
-          ...t,
-          selected: !t.selected,
-        };
-      }
-      return t;
-    });
-
-    setDwellingTypes(updated_dwellings);
-  };
   const updateListedAt = (val: number) => {
     setListedAt(val);
   };
@@ -398,6 +389,21 @@ export default function RxHomeAlertForm(p: Props) {
 
   const resetForm = () => {
     if (alertData) {
+      if (alertData.city) setCityFilter(alertData.city);
+      //   if (alertData.lat && alertData.lng) {
+      //     const { lat, lng, nelat, nelng, swlat, swlng, zoom } = alertData as unknown as {
+      //       [key: string]: number;
+      //     };
+      //     setGeoLocation({
+      //       lat,
+      //       lng,
+      //       nelat,
+      //       nelng,
+      //       swlat,
+      //       swlng,
+      //       zoom,
+      //     });
+      //   }
       if (alertData.baths) setBaths(alertData.baths);
       if (alertData.beds) setBeds(alertData.beds);
       let pricing = {
@@ -452,7 +458,6 @@ export default function RxHomeAlertForm(p: Props) {
       setDwellingTypes(types);
     });
   }, []);
-
   return (
     <div
       {...p}
@@ -465,6 +470,7 @@ export default function RxHomeAlertForm(p: Props) {
       <Iterator
         {...p}
         data={{
+          city: city_filter,
           dwelling_types,
           beds,
           baths,
@@ -481,7 +487,7 @@ export default function RxHomeAlertForm(p: Props) {
           setMaxPrice,
           setMinSize,
           setMaxSize,
-          setDwellingFilter,
+          setCityFilter,
           toggleActive,
           toggleSelectedDwellingChip,
           updateListedAt,
@@ -490,7 +496,13 @@ export default function RxHomeAlertForm(p: Props) {
             console.log('reset');
           },
           onSubmit() {
-            console.log('submit');
+            console.log('submit', {
+              geo_location,
+            });
+          },
+          setGeo(geo) {
+            console.log(geo);
+            setGeoLocation(geo);
           },
         }}
       >
