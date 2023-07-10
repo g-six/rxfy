@@ -83,12 +83,15 @@ export function MyWebsite(p: Props) {
         clicked: undefined,
       });
 
+      const {
+        metatags: { id: metatag_id },
+      } = data as unknown as AgentData;
       updateAccount(
         Cookies.get('session_key') as string,
         {
           metatags: {
             ...metatags,
-            id: data.metatags.id,
+            id: metatag_id,
           },
         },
         true,
