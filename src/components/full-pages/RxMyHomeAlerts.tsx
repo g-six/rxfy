@@ -6,6 +6,7 @@ import MyHomeAlertModalWrapper from '@/_replacers/MyHomeAlerts/MyHomeAlertModalW
 import MyHomeAlertsList from '@/_replacers/MyHomeAlerts/MyHomeAlertsList';
 import { AgentData } from '@/_typings/agent';
 import { Events } from '@/_typings/events';
+import { classNames } from '@/_utilities/html-helper';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import React, { ReactElement, ReactNode, cloneElement } from 'react';
 
@@ -46,5 +47,5 @@ export default function RxMyHomeAlerts({ child, agent_data, className }: Props) 
       },
     },
   ];
-  return <div className={className}>{transformMatchingElements(child, matches)}</div>;
+  return <>{transformMatchingElements(child, matches)}</>;
 }

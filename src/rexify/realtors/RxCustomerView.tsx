@@ -18,6 +18,7 @@ import { RxCustomerCompareCanvas } from './crm/CustomerCompareCanvas';
 import RxCompareFiltersModal from './crm/RxCompareFiltersModal';
 import RxCustomerSavedSearch from './crm/RxCustomerSavedSearch';
 import MyHomeAlertsList from '@/_replacers/MyHomeAlerts/MyHomeAlertsList';
+import RxMyHomeAlerts from '@/components/full-pages/RxMyHomeAlerts';
 
 type Props = {
   children: React.ReactElement;
@@ -55,8 +56,8 @@ function Iterator(
           return <RxMapView />;
         } else if (p.agent && child.props.className?.split(' ').includes('map-property-modal')) {
           return <RxMapPropertyModal {...child.props}>{child}</RxMapPropertyModal>;
-        } else if (p.agent && child.props.className?.split(' ').includes('all-home-alerts')) {
-          return <MyHomeAlertsList child={child} agent_data={p.agent} />;
+        } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.MY_HOME_ALERTS)) {
+          return <RxMyHomeAlerts {...child.props} child={child} agent_data={p.agent} />;
         } else if (p.agent && child.props.className === WEBFLOW_NODE_SELECTOR.CRM_NAV_WRAPPER) {
           return <CRMNav className={child.props.className}>{child}</CRMNav>;
         } else if (child.props?.['data-w-tab']) {

@@ -8,6 +8,7 @@ import SubmitGrid from './SubmitGrid';
 import { SavedSearchInput } from '@/_typings/saved-search';
 import { saveSearch, updateSearch } from '@/_utilities/api-calls/call-saved-search';
 import { AgentData } from '@/_typings/agent';
+import RxHomeAlertForm from '@/components/RxForms/RxHomeAlertForm';
 
 type Props = {
   child: ReactElement;
@@ -67,7 +68,8 @@ export default function MyHomeAlertModalWrapper({ child, agent_data }: Props) {
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['new-home-alert-wrapper']),
-      transformChild: (child: ReactElement) => cloneElement(child, { onClick: closeModal, style: { display: showModal ? 'flex' : 'none' } }),
+      transformChild: (child: ReactElement) =>
+        cloneElement(child, { onClick: closeModal, style: { display: showModal ? 'flex' : 'none' }, 'data-rexifier': 'MyHomeAlertModalWrapper' }),
     },
     {
       searchFn: searchByClasses(['prop-type-section-label']),
@@ -79,19 +81,20 @@ export default function MyHomeAlertModalWrapper({ child, agent_data }: Props) {
     },
     {
       searchFn: searchByClasses(['property-type-modal']),
-      transformChild: (child: ReactElement) =>
-        cloneElement(child, {
-          onClick: (e: React.SyntheticEvent) => {
-            e.stopPropagation();
-          },
-        }),
+      transformChild: (child: ReactElement) => <RxHomeAlertForm className={child.props.className}>{child.props.children}</RxHomeAlertForm>,
+      // cloneElement(child, {
+      //   onClick: (e: React.SyntheticEvent) => {
+      //     e.stopPropagation();
+      //   },
+      //   children: ,
+      // }),
     },
-    {
-      searchFn: searchById('email-form'),
-      transformChild: (child: ReactElement) => (
-        <MyHomeAlertForm child={child} formState={formState} handleChange={handleFormChange} handleFormCityChange={handleFormCityChange} />
-      ),
-    },
+    // {
+    //   searchFn: searchById('email-form'),
+    //   transformChild: (child: ReactElement) => (
+    //     <MyHomeAlertForm child={child} formState={formState} handleChange={handleFormChange} handleFormCityChange={handleFormCityChange} />
+    //   ),
+    // },
     {
       searchFn: searchByClasses(['modal-wrapper-right']),
       transformChild: (child: ReactElement) => <SubmitGrid child={child} resetClick={resetClick} saveClick={saveClick} />,
