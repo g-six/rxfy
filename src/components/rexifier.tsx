@@ -756,9 +756,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
               </RxMySavedHomesDashBoard>
             );
           }
-          if (agent_data && node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_HOME_ALERTS && !CRM_PANE_IDS.includes(node.attribs.id as WEBFLOW_NODE_SELECTOR)) {
-            return <RxMyHomeAlerts agent_data={agent_data} child={domToReact(node.children)} className={node.attribs.class} />;
-          }
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.PROPERTY_CARD)) {
             return;
             // return <RxMyHomeAlerts agent_data={agent_data} child={domToReact(node.children)} className={node.attribs.class} />;
