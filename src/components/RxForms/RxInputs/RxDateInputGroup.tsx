@@ -1,7 +1,19 @@
 import React from 'react';
 import { CalendarIcon } from '@heroicons/react/24/solid';
 
-export function RxDateInputGroup({ field_name, default_value, onChange }: { field_name: string; default_value?: Date; onChange: (val: number) => void }) {
+export function RxDateInputGroup({
+  classOverride,
+  field_name,
+  default_value,
+  onChange,
+  icon,
+}: {
+  classOverride?: string;
+  field_name: string;
+  default_value?: Date;
+  onChange: (val: number) => void;
+  icon?: boolean;
+}) {
   const [date_value, setDateValue] = React.useState<Date>(default_value ? (default_value as Date) : new Date());
 
   React.useEffect(() => {
@@ -9,10 +21,10 @@ export function RxDateInputGroup({ field_name, default_value, onChange }: { fiel
   }, [date_value]);
 
   return (
-    <div>
-      <div className='relative rounded-md border-slate-200 border h-12 shadow-sm flex gap-1'>
+    <div className={classOverride + ' py-0'}>
+      <div className={classOverride ? 'w-full h-full flex items-center' : 'relative rounded-md border-slate-200 border h-12 shadow-sm flex gap-1'}>
         <div className='pointer-events-none inset-y-0 flex items-center left-3 absolute'>
-          <CalendarIcon className='h-6 w-6 text-gray-400' aria-hidden='true' />
+          {icon !== false && <CalendarIcon className='h-6 w-6 text-gray-400' aria-hidden='true' />}
         </div>
         <div className='inset-y-0 flex items-center justify-end'>
           <label htmlFor='day' className='sr-only'>
