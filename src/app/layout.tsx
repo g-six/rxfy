@@ -105,11 +105,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       property = await getPrivateListing(Number(searchParams.lid));
     } else {
       // Publicly listed property page
-      const start = new Date().getTime();
-      console.log('');
-      console.log('');
-      console.log('---');
-      console.log('Started', start);
       if (searchParams.mls) {
         try {
           const cached_property = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/recent.json`);
@@ -121,13 +116,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         }
       }
       if (!property) property = await getPropertyData(searchParams.id || searchParams.mls, !!searchParams.mls);
-      const end = new Date().getTime();
-      console.log('Ended', end);
-      console.log('Total', end - start);
-      console.log('---');
-      console.log('');
-      console.log('');
-      console.log('');
     }
   }
 
@@ -175,7 +163,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     });
   // end of extracting and assigning <head> elements
 
-  console.log('Loading html contents for', requestUrl.pathname);
   const { class: bodyClassName, ...body_props } = webflow.body.props;
   if (webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN || requestUrl.pathname.split('/').pop() === 'map') {
     let title = agent_data?.metatags?.title || agent_data?.full_name;
