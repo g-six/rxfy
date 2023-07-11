@@ -115,7 +115,9 @@ function Iterator(
                   if (cc.type === 'div') {
                     return React.cloneElement(cc, {
                       ...cc.props,
-                      className: cc.props.className + ' ' + shouldBeToggled(c.props.className.split('ptype-')[1], p.data?.dwelling_types || []),
+                      className: p.data.dwelling_types
+                        ? cc.props.className + ' ' + shouldBeToggled(c.props.className.split('ptype-')[1], p.data.dwelling_types)
+                        : cc.props.className,
                     });
                   }
                   return cc;
@@ -540,7 +542,6 @@ function shouldSelectPType(ptype: string, classes: DOMTokenList) {
 function shouldBeToggled(class_name: string, dwelling_types: { [key: string]: string | number | boolean }[]) {
   const names = dwelling_types.filter(t => t.selected).map(t => t.name as string);
   const [yes] = names.map(name => {
-    console.log({ name, class_name });
     switch (class_name) {
       case 'aptcondo':
         return ['Apartment/Condo'].includes(name) && 'w--redirected-checked';
