@@ -1,6 +1,6 @@
 import React, { ReactElement, cloneElement } from 'react';
 import { Events } from '@/_typings/events';
-import { MLSProperty, PropertyDataModel } from '@/_typings/property';
+import { PropertyDataModel } from '@/_typings/property';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import { classNames } from '@/_utilities/html-helper';

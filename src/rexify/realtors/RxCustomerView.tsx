@@ -17,7 +17,6 @@ import { CustomerRecord } from '@/_typings/customer';
 import { RxCustomerCompareCanvas } from './crm/CustomerCompareCanvas';
 import RxCompareFiltersModal from './crm/RxCompareFiltersModal';
 import RxCustomerSavedSearch from './crm/RxCustomerSavedSearch';
-import MyHomeAlertsList from '@/_replacers/MyHomeAlerts/MyHomeAlertsList';
 import RxMyHomeAlerts from '@/components/full-pages/RxMyHomeAlerts';
 
 type Props = {
