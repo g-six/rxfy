@@ -201,7 +201,8 @@ export async function getUserSessionData(authorization: string, user_type: 'real
           last_activity_at,
           status: agent_customer?.status || 'lead',
           notes,
-          id: Number(agent_customer_id),
+          id: Number(agent_customer?.customer.data.id),
+          agent_customer_id: Number(agent_customer_id),
           saved_searches,
         });
       });

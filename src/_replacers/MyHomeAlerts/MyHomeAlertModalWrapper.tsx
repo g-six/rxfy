@@ -9,6 +9,8 @@ import { SavedSearchInput } from '@/_typings/saved-search';
 import { saveSearch, updateSearch } from '@/_utilities/api-calls/call-saved-search';
 import { AgentData } from '@/_typings/agent';
 import RxHomeAlertForm from '@/components/RxForms/RxHomeAlertForm';
+import { useSearchParams } from 'next/navigation';
+import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 
 type Props = {
   child: ReactElement;
@@ -16,6 +18,7 @@ type Props = {
 };
 
 export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
+  const params = useSearchParams();
   const { data, fireEvent } = useEvent(Events.MyHomeAlertsModal);
   const { show, message, alertData } = data || {};
   const showModal = show && message && ['New', 'Edit'].includes(message);
@@ -74,7 +77,7 @@ export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
     {
       searchFn: searchByClasses(['prop-type-section-label']),
       transformChild: (child: ReactElement) =>
-        cloneElement(child, {}, [message ? `${message} ${formState.beds ? `${formState.beds}-br` : ''} ${formState.city} Home Alert` : `New Home Alert`]),
+        cloneElement(child, {}, [message ? `${message} ${formState.beds ? `${formState.beds}-br` : ''} ${formState.city || ''} Home Alert` : `New Home Alert`]),
     },
     {
       searchFn: searchByClasses(['close-link-right']),
@@ -83,8 +86,12 @@ export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
     {
       searchFn: searchByClasses(['property-type-modal']),
       transformChild: (child: ReactElement) => {
+        const { id: customer } = getData('viewing_customer') as unknown as {
+          id: number;
+        };
+        console.log({ customer });
         return (
-          <RxHomeAlertForm agent={p['agent-data']} className={child.props.className}>
+          <RxHomeAlertForm agent={p['agent-data']} customer={customer} className={child.props.className}>
             {child.props.children}
           </RxHomeAlertForm>
         );

@@ -19,7 +19,7 @@ function Iterator(p: Props) {
     if (child.props?.children) {
       if (child.props?.['event-name'] === 'view-client') {
         return React.cloneElement(child, {
-          href: `${child.props.href}?customer=${p['data-customer'].id}`,
+          href: `${child.props.href}?customer=${p['data-customer'].agent_customer_id}`,
           onClick: () => {
             setData('viewing_customer', JSON.stringify(p['data-customer'] || {}));
           },

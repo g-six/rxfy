@@ -11,8 +11,8 @@ import { getSelectedPropertyTypeId } from '../data-helpers/dwelling-type-helper'
  * @param opts { search_url?, search_params? }
  * @returns
  */
-export async function saveSearch(agent: { id: number; logo?: string }, opts: { search_url?: string; search_params?: SavedSearchInput }) {
-  let { search_params } = opts || {};
+export async function saveSearch(agent: { id: number; logo?: string }, opts: { search_url?: string; search_params?: SavedSearchInput; customer?: number }) {
+  let { search_params, customer } = opts || {};
   if (!search_params || Object.keys(search_params).length === 0) {
     if (opts.search_url) {
       search_params = queryStringToObject(opts.search_url);
@@ -54,6 +54,7 @@ export async function saveSearch(agent: { id: number; logo?: string }, opts: { s
         dwelling_type: undefined,
         types: undefined,
       },
+      customer,
       agent: agent.id,
       logo: agent.logo,
     },

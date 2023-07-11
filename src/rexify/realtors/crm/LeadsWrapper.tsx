@@ -30,6 +30,7 @@ function Iterator(p: Props) {
                     ...customer.saved_searches[0],
                   };
                 }
+                console.log(customer);
                 return (
                   <RxCRMCustomerCard
                     key={customer.id}

@@ -7,7 +7,7 @@ import MyHomeAlertsList from '@/_replacers/MyHomeAlerts/MyHomeAlertsList';
 import { AgentData } from '@/_typings/agent';
 import { Events } from '@/_typings/events';
 import { classNames } from '@/_utilities/html-helper';
-import { searchByClasses } from '@/_utilities/rx-element-extractor';
+import { searchByClasses, searchById } from '@/_utilities/rx-element-extractor';
 import React, { ReactElement, ReactNode, cloneElement } from 'react';
 
 type Props = {
@@ -19,10 +19,11 @@ type Props = {
 export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
   const matches: tMatch[] = [
     {
-      searchFn: searchByClasses(['new-home-alert-button']),
+      searchFn: searchById('btn-new-home-alert'),
       transformChild: (child: ReactElement) => {
         return cloneElement(child, {
           onClick: () => {
+            console.log('clo');
             fireCustomEvent({ show: true, message: 'New' }, Events.MyHomeAlertsModal);
           },
         });

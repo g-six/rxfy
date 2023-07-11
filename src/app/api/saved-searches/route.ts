@@ -3,6 +3,7 @@ import axios, { AxiosError } from 'axios';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getResponse } from '../response-helper';
 import { getNewSessionKey } from '../update-session';
+import { createSavedSearch } from './model';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -64,33 +65,22 @@ export async function POST(request: Request) {
     );
 
   let session_key = `${token}-${guid}`;
+
   try {
-    const { search_params } = await request.json();
-    const { data: search_response } = await axios.post(
-      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-      {
-        query: gql_create_saved_search,
-        variables: {
-          data: {
-            customer: guid,
-            ...search_params,
-          },
+    const { search_params, customer, agent } = await request.json();
+
+    if (!agent) {
+      return getResponse(
+        {
+          error: 'Unable to create home alert',
+          customer,
+          agent,
         },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-          'Content-Type': 'application/json',
-        },
-      },
-    );
-    let saved_search;
-    if (search_response.data?.createSavedSearch?.data?.id) {
-      const { id, attributes } = search_response.data?.createSavedSearch?.data;
-      saved_search = {
-        ...attributes,
-        id,
-      };
+        400,
+      );
+    }
+    const record = await createSavedSearch(agent, search_params, customer);
+    if (record?.id) {
       const user = await getNewSessionKey(token, guid);
       if (user?.session_key) {
         session_key = user.session_key;
@@ -102,30 +92,23 @@ export async function POST(request: Request) {
           401,
         );
       }
-    } else if (search_response.errors) {
-      console.log(search_response.errors);
+    } else {
+      return getResponse(
+        {
+          error: 'Unknown error. Unable to create home alert',
+        },
+        400,
+      );
     }
 
-    return new Response(
-      JSON.stringify(
-        {
-          saved_search,
-          session_key,
-        },
-        null,
-        4,
-      ),
-      {
-        headers: {
-          'content-type': 'application/json',
-        },
-        status: 200,
-      },
-    );
+    return getResponse({
+      record,
+      session_key,
+    });
   } catch (e) {
     const error = e as AxiosError;
     console.log('Error in saving saved-searches.POST API');
-    console.log(error.response?.data);
+    console.log(error.response?.data || e);
   }
 }
 

@@ -13,6 +13,7 @@ type Props = {
   children: React.ReactElement;
   className: string;
   agent: AgentData;
+  customer?: number;
 };
 
 function convertDivsToSpans(el: React.ReactElement) {
@@ -516,7 +517,7 @@ export default function RxHomeAlertForm(p: Props) {
               dwelling_type_ids: dwelling_types.filter(t => t.selected).map(t => t.id),
             };
 
-            alertData.id
+            alertData?.id
               ? updateSearch(alertData.id, p.agent, { search_params }).then(results => {
                   notify({
                     timeout: 5000,
@@ -525,7 +526,7 @@ export default function RxHomeAlertForm(p: Props) {
                   });
                   closeModal();
                 })
-              : saveSearch(p.agent, { search_params }).then(results => {
+              : saveSearch(p.agent, { customer: p.customer, search_params }).then(results => {
                   notify({
                     timeout: 5000,
                     category: NotificationCategory.SUCCESS,

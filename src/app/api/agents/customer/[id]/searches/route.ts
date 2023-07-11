@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     session_key,
   } = agent as unknown as {
     id: number;
-    customers: { notes: string[]; id: number }[];
+    customers: { notes: string[]; agent_customer_id: number }[];
     session_key: string;
   };
   if (!session_key) {
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       error: "Please login to retrieve your customer's home alerts",
     });
   }
-  const [customer] = customers.filter(c => c.id === agents_customer_id);
+  const [customer] = customers.filter(c => c.agent_customer_id === agents_customer_id);
 
   if (!customer) {
     return getResponse({
