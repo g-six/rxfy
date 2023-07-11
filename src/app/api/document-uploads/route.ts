@@ -4,6 +4,7 @@ import { getNewSessionKey } from '../update-session';
 import { PutObjectCommand, S3Client, S3ClientConfig } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import axios from 'axios';
+import { cookies } from 'next/headers';
 
 const gql_upload = `mutation UploadDocument ($data: DocumentUploadInput!) {
     createDocumentUpload(data: $data) {
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
 
   if (!isNaN(document_folder_id) && upload?.name && upload?.size && upload?.type) {
     if (upload?.name && upload?.size && upload?.type) {
-      const user = await getNewSessionKey(token, guid);
+      const user = await getNewSessionKey(token, guid, cookies().get('session_as')?.value === 'realtor' ? 'realtor' : 'customer');
       try {
         if (user) {
           session_key = user.session_key;

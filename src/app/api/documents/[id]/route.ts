@@ -2,6 +2,7 @@ import axios from 'axios';
 import { getNewSessionKey } from '@/app/api/update-session';
 import { getResponse } from '@/app/api/response-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
+import { cookies } from 'next/headers';
 
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
@@ -93,7 +94,7 @@ export async function DELETE(request: Request) {
   const document_folder_id = Number(paths.pop());
 
   if (!isNaN(document_folder_id)) {
-    const user = await getNewSessionKey(token, guid);
+    const user = await getNewSessionKey(token, guid, cookies().get('session_as')?.value === 'realtor' ? 'realtor' : 'customer');
     try {
       if (user) {
         const { data: doc_response } = await axios.post(

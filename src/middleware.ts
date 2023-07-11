@@ -13,8 +13,6 @@ export function middleware(request: NextRequest) {
   const [, ...segments] = pathname.split('/');
   let page_url = `https://`;
   response.headers.set('x-viewer', 'realtor');
-  // response.headers.set('x-agent-id', 'LEAGENT');
-  // response.headers.set('x-profile-slug', 'leagent');
   response.headers.set('x-canonical', `${origin}${pathname}`);
 
   if (searchParams.get('paragon') && !segments.includes('ai-result')) {
@@ -59,7 +57,6 @@ export function middleware(request: NextRequest) {
   } else if (pathname === '/pdf') {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}${pathname}`;
     response.headers.set('Content-Type', 'application/pdf');
-    // response.headers.set('Content-Disposition', `attachment; filename="file.pdf"`);
   } else {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}${pathname}`;
   }

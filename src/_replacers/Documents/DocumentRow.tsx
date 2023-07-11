@@ -20,7 +20,12 @@ export default function DocumentRow({ template, docData, deleteRow }: Props) {
       searchFn: searchByClasses(['one-doc-description']),
       transformChild: (child: ReactElement) => {
         return cloneElement(
-          replaceAllTextWithBraces(child, { 'doc name': file_name ?? 'Document Name', 'doc upload date': updatedAt ?? 'unknown' }) as ReactElement,
+          replaceAllTextWithBraces(child, {
+            'doc name': file_name ?? 'Document Name',
+            'doc upload date': updatedAt
+              ? 'Uploaded on ' + new Intl.DateTimeFormat('en-CA', { dateStyle: 'full', timeStyle: 'medium' }).format(new Date(updatedAt))
+              : '',
+          }) as ReactElement,
           {
             className: classNames(child.props.className, styles.docRow),
             style: {},

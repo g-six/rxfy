@@ -7,9 +7,9 @@ import Cookies from 'js-cookie';
  * @param string document name
  * @returns document data object and session_key string
  */
-export async function saveDocument(agent: { id: number; logo?: string }, name?: string) {
+export async function createFolder(agent: { id: number; logo?: string }, name?: string, agent_customer?: string) {
   const response = await axios.post(
-    `/api/documents`,
+    `/api/${agent_customer ? `agents/customer/${agent_customer}/` : ''}documents`,
     {
       name,
       agent,
@@ -24,7 +24,7 @@ export async function saveDocument(agent: { id: number; logo?: string }, name?: 
 
   if (response.status === 200) {
     const { session_key, ...record } = response.data;
-    Cookies.set('session_key', session_key);
+    if (session_key) Cookies.set('session_key', session_key);
     return record;
   }
 
@@ -38,11 +38,16 @@ export async function saveDocument(agent: { id: number; logo?: string }, name?: 
  * @returns document data object and session_key string
  */
 export async function saveDocumentUpload(document_id: number, file: { file: File; name: string; size: number; type: string }) {
+  const { name, size, type } = file;
   const response = await axios.post(
     `/api/document-uploads`,
     {
       document: document_id,
-      upload: file,
+      upload: {
+        name,
+        size,
+        type,
+      },
     },
     {
       headers: {
@@ -145,8 +150,8 @@ export async function removeDocumentUpload(id: number) {
  * Retrieves all documents
  * @returns documents data object array and session_key string
  */
-export async function retrieveDocuments() {
-  const response = await axios.get(`/api/documents`, {
+export async function retrieveDocuments(agent_customer_id?: number) {
+  const response = await axios.get(`/api/${agent_customer_id ? `agents/customer/${agent_customer_id}/` : ''}documents`, {
     headers: {
       Authorization: `Bearer ${Cookies.get('session_key')}`,
       'Content-Type': 'application/json',

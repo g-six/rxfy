@@ -44,7 +44,7 @@ export function replaceMetaTags(headCode: string, agent: AgentData, property?: o
     const replacers = [
       {
         regex: /<title>[^<]*<\/title>/gi,
-        data: `<title>${title}</title>`,
+        data: `<title>${title || 'Leagent'}</title>`,
       },
     ];
     if (description) {

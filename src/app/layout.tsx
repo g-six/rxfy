@@ -17,7 +17,7 @@ import { getPrivateListing } from './api/private-listings/model';
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const axios = (await import('axios')).default;
-  const { NEXT_APP_GGL_API_KEY, TEST_DOMAIN } = process.env;
+  const { NEXT_APP_GGL_API_KEY } = process.env;
   const url = headers().get('x-url') as string;
 
   let { pathname } = new URL(url);
@@ -48,8 +48,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   } as unknown as AgentData;
   let theme = searchParams.theme;
   let webflow_domain = process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN;
-  let agent_id = headers().get('x-agent-id') || 'LEAGENT';
-  let profile_slug = headers().get('x-profile-slug') || 'leagent';
+  let agent_id = headers().get('x-agent-id'); // || 'LEAGENT';
+  let profile_slug = headers().get('x-profile-slug'); // || 'leagent';
 
   if (profile_slug && agent_id) {
     webflow_domain = process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN as string;
@@ -178,10 +178,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   console.log('Loading html contents for', requestUrl.pathname);
   const { class: bodyClassName, ...body_props } = webflow.body.props;
   if (webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN || requestUrl.pathname.split('/').pop() === 'map') {
+    let title = agent_data?.metatags?.title || agent_data?.full_name;
     return (
       <html data-wf-domain={`${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`} {...$('html').attr()}>
         <head>
-          <title>{agent_data?.metatags?.title || agent_data?.full_name} Leagent</title>
+          <title>${typeof title === 'string' ? title + ' ' : ''}Leagent</title>
           {metas}
         </head>
 
@@ -204,6 +205,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     );
   }
 
+  console.log('Loading alternate html for', webflow_domain, requestUrl.pathname);
   return (
     webflow && (
       <html {...$('html').attr()}>

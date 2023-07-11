@@ -542,7 +542,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
         if (props.id && CRM_PANE_IDS.includes(props.id as WEBFLOW_NODE_SELECTOR)) {
           return (
-            <RxCustomerView id={props.id} className={props.className + ' rexified'}>
+            <RxCustomerView id={props.id} className={props.className + ' RxCustomerView rexified'}>
               {domToReact(node.children) as ReactElement}
             </RxCustomerView>
           );

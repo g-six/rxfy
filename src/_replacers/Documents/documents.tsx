@@ -10,6 +10,7 @@ import { Events, NotificationMessages } from '@/_typings/events';
 import { AgentData } from '@/_typings/agent';
 import { DocumentsFolderInterface } from '@/_typings/document';
 import useEvent from '@/hooks/useEvent';
+import { useSearchParams } from 'next/navigation';
 interface Props {
   nodeProps: any;
   nodes?: ReactElement[];
@@ -17,22 +18,26 @@ interface Props {
 }
 
 export default function DocumentsReplacer({ nodes, nodeProps, agent_data }: Props) {
+  const params = useSearchParams();
   const [documents, setDocuments] = useState<DocumentsFolderInterface[]>([]);
   const templatesToFind = [{ searchFn: searchByClasses(['document-div']), elementName: 'docFolder' }];
   const templates = captureMatchingElements(nodes, templatesToFind);
   const { data: notification } = useEvent(Events.SystemNotification);
 
+  let agent_customer_id = params.get('customer') ? Number(params.get('customer')) : 0;
+
   useEffect(() => {
     if (notification?.message === NotificationMessages.DOC_UPLOAD_COMPLETE) {
-      retrieveDocuments().then(documents => {
+      retrieveDocuments(agent_customer_id).then(documents => {
         setDocuments(documents);
       });
     }
   }, [notification]);
 
   useEffect(() => {
-    retrieveDocuments().then(documents => {
-      setDocuments(documents);
+    if (isNaN(agent_customer_id)) agent_customer_id = 0;
+    retrieveDocuments(agent_customer_id).then(documents => {
+      setDocuments(documents || []);
     });
   }, []);
   const matches = [
@@ -50,7 +55,7 @@ export default function DocumentsReplacer({ nodes, nodeProps, agent_data }: Prop
     {
       searchFn: searchByClasses(['new-doc-div']),
       transformChild: (child: ReactElement) => {
-        return <DocumentsCreateFolder child={child} agent_data={agent_data} setDocuments={setDocuments} />;
+        return <DocumentsCreateFolder child={child} agent_data={agent_data} setDocuments={setDocuments} agent-customer={agent_customer_id} />;
       },
     },
     {
