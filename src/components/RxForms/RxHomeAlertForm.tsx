@@ -5,15 +5,17 @@ import { getDwellingTypes } from '@/_utilities/api-calls/call-property-attribute
 import { classNames } from '@/_utilities/html-helper';
 import { RxDateInputGroup } from './RxInputs/RxDateInputGroup';
 import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
-import { CustomerSavedSearch, SavedSearch } from '@/_typings/saved-search';
+import { SavedSearch } from '@/_typings/saved-search';
 import { saveSearch, updateSearch } from '@/_utilities/api-calls/call-saved-search';
 import { AgentData } from '@/_typings/agent';
+import { useSearchParams } from 'next/navigation';
 
 type Props = {
   children: React.ReactElement;
   className: string;
   agent: AgentData;
   customer?: number;
+  onSave?: (results: Record<string, unknown>) => void;
 };
 
 function convertDivsToSpans(el: React.ReactElement) {
@@ -27,40 +29,6 @@ function IsActiveComponent(p: { className?: string; id?: string; children: React
   });
 
   return <>{Wrapped}</>;
-}
-
-function Chip(p: {
-  toggle: (record_id: number) => void;
-  'record-id': number;
-  name: string;
-  checked?: boolean;
-  children: React.ReactElement;
-  className?: string;
-}) {
-  const Wrapped = React.Children.map(p.children, child => {
-    if (child.type === 'span') {
-      return (
-        <span {...child.props} record-id={p['record-id']}>
-          {p.name}
-        </span>
-      );
-    }
-    if (child.type === 'div' && p.checked) {
-      return React.cloneElement(child, { ...child.props, className: child.props.className + ' w--redirected-checked' });
-    }
-    return child;
-  });
-  return (
-    <div
-      role='button'
-      onClick={() => {
-        p.toggle(p['record-id']);
-      }}
-      className={p.className}
-    >
-      {Wrapped}
-    </div>
-  );
 }
 
 function Iterator(
@@ -306,6 +274,7 @@ function Iterator(
 }
 
 export default function RxHomeAlertForm(p: Props) {
+  const params = useSearchParams();
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const closeModal = () => {
     fireEvent({ show: false, message: '', alertData: undefined });
@@ -397,20 +366,6 @@ export default function RxHomeAlertForm(p: Props) {
   const resetForm = () => {
     if (alertData) {
       if (alertData.city) setCityFilter(alertData.city);
-      //   if (alertData.lat && alertData.lng) {
-      //     const { lat, lng, nelat, nelng, swlat, swlng, zoom } = alertData as unknown as {
-      //       [key: string]: number;
-      //     };
-      //     setGeoLocation({
-      //       lat,
-      //       lng,
-      //       nelat,
-      //       nelng,
-      //       swlat,
-      //       swlng,
-      //       zoom,
-      //     });
-      //   }
       if (alertData.is_active) setActive(alertData.is_active);
       if (alertData.baths) setBaths(alertData.baths);
       if (alertData.beds) setBeds(alertData.beds);
@@ -526,12 +481,13 @@ export default function RxHomeAlertForm(p: Props) {
                   });
                   closeModal();
                 })
-              : saveSearch(p.agent, { customer: p.customer, search_params }).then(results => {
+              : saveSearch(p.agent, { customer: p.customer, search_params, agent_customer_id: Number(params.get('customer')) || undefined }).then(results => {
                   notify({
                     timeout: 5000,
                     category: NotificationCategory.SUCCESS,
-                    message: 'Changes have been saved.',
+                    message: 'New home alert has been saved.',
                   });
+                  p.onSave && p.onSave(results);
                   closeModal();
                 });
           },

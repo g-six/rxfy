@@ -18,7 +18,6 @@ type Props = {
 };
 
 export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
-  const params = useSearchParams();
   const { data, fireEvent } = useEvent(Events.MyHomeAlertsModal);
   const { show, message, alertData } = data || {};
   const showModal = show && message && ['New', 'Edit'].includes(message);

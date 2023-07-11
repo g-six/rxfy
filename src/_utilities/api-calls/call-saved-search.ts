@@ -11,8 +11,11 @@ import { getSelectedPropertyTypeId } from '../data-helpers/dwelling-type-helper'
  * @param opts { search_url?, search_params? }
  * @returns
  */
-export async function saveSearch(agent: { id: number; logo?: string }, opts: { search_url?: string; search_params?: SavedSearchInput; customer?: number }) {
-  let { search_params, customer } = opts || {};
+export async function saveSearch(
+  agent: { id: number; logo?: string },
+  opts: { agent_customer_id?: number; search_url?: string; search_params?: SavedSearchInput; customer?: number },
+) {
+  let { search_params, customer, agent_customer_id } = opts || {};
   if (!search_params || Object.keys(search_params).length === 0) {
     if (opts.search_url) {
       search_params = queryStringToObject(opts.search_url);
@@ -45,7 +48,7 @@ export async function saveSearch(agent: { id: number; logo?: string }, opts: { s
   });
 
   const response = await axios.post(
-    '/api/saved-searches',
+    `/api/${agent_customer_id ? `agents/customer/${agent_customer_id}/searches` : 'saved-searches'}`,
     {
       search_params: {
         ...search_params,

@@ -22,11 +22,12 @@ export async function createSavedSearch(agent: number, search_params: SavedSearc
       headers,
     },
   );
+
   if (search_response.data?.createSavedSearch?.data?.id) {
     const { id, attributes } = search_response.data?.createSavedSearch?.data;
     return {
       ...attributes,
-      id,
+      id: Number(id),
     };
   } else if (search_response.errors) {
     console.log(search_response.errors);

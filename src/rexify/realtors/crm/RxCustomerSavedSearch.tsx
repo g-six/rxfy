@@ -20,7 +20,6 @@ function Iterator(p: Props) {
 
 export default function RxCustomerSavedSearch(p: Props) {
   const search = useSearchParams();
-  const [saved_search, setSavedSearch] = React.useState();
 
   React.useEffect(() => {
     if (search.get('customer')) {
