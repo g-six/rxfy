@@ -22,9 +22,15 @@ export async function saveSearch(
     }
   }
 
-  let { dwelling_types, dwelling_types_ids, types } = search_params || {};
-  let dwelling_type_ids: number[] = dwelling_types_ids || [];
+  let { dwelling_types, dwelling_type_ids, types } = search_params || {
+    dwelling_type_ids: [],
+  };
+
   dwelling_types?.forEach(code_csv => {
+    if (!dwelling_type_ids) {
+      dwelling_type_ids = [];
+    }
+
     if (code_csv === DwellingType.APARTMENT_CONDO) dwelling_type_ids = dwelling_type_ids.concat([1]);
     if (code_csv === DwellingType.TOWNHOUSE) dwelling_type_ids = dwelling_type_ids.concat([2]);
     if (code_csv === DwellingType.HOUSE) {
@@ -44,6 +50,9 @@ export async function saveSearch(
     }
   });
   types?.split('/').forEach((ptype: string) => {
+    if (!dwelling_type_ids) {
+      dwelling_type_ids = [];
+    }
     dwelling_type_ids = dwelling_type_ids.concat(getSelectedPropertyTypeId(ptype));
   });
 
@@ -95,7 +104,8 @@ export async function updateSearch(id: number, agent: { id: number; logo?: strin
   }
 
   let { dwelling_types, types } = search_params || {};
-  let dwelling_type_ids: number[] = search_params?.dwelling_types_ids || [];
+  let dwelling_type_ids: number[] = search_params?.dwelling_type_ids || [];
+
   dwelling_types?.forEach(code_csv => {
     if (code_csv === DwellingType.APARTMENT_CONDO) dwelling_type_ids = dwelling_type_ids.concat([1]);
     if (code_csv === DwellingType.TOWNHOUSE) dwelling_type_ids = dwelling_type_ids.concat([2]);
