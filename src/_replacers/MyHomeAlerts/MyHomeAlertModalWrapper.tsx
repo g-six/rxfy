@@ -89,7 +89,6 @@ export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
         const { id: customer } = getData('viewing_customer') as unknown as {
           id: number;
         };
-        console.log({ customer });
         return (
           <RxHomeAlertForm agent={p['agent-data']} customer={customer} className={child.props.className}>
             {child.props.children}
@@ -97,12 +96,6 @@ export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
         );
       },
     },
-    // {
-    //   searchFn: searchById('email-form'),
-    //   transformChild: (child: ReactElement) => (
-    //     <MyHomeAlertForm child={child} formState={formState} handleChange={handleFormChange} handleFormCityChange={handleFormCityChange} />
-    //   ),
-    // },
     {
       searchFn: searchByClasses(['modal-wrapper-right']),
       transformChild: (child: ReactElement) => <SubmitGrid child={child} resetClick={resetClick} saveClick={saveClick} />,

@@ -27,7 +27,6 @@ export default function RxSavedCard({ child, listing, love, agentId, addBtnClick
       setLovedItems(getData(Events.LovedItem) as unknown as string[]);
     }
   }, [evt.data]);
-
   const textReplaced: ReactElement = replaceAllTextWithBraces(child, {
     'PropCard Address': listing.title,
     'PropertyCard Address': listing.title,
