@@ -9,7 +9,7 @@ import React, { ChangeEvent, Dispatch, ReactElement, SetStateAction, cloneElemen
 type Props = {
   child: ReactElement;
   agent_data: AgentData;
-  'agent-customer'?: string;
+  'agent-customer'?: number;
   setDocuments: Dispatch<SetStateAction<any[]>>;
 };
 

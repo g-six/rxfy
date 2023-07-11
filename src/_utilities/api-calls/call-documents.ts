@@ -7,7 +7,7 @@ import Cookies from 'js-cookie';
  * @param string document name
  * @returns document data object and session_key string
  */
-export async function createFolder(agent: { id: number; logo?: string }, name?: string, agent_customer?: string) {
+export async function createFolder(agent: { id: number; logo?: string }, name?: string, agent_customer?: number) {
   const response = await axios.post(
     `/api/${agent_customer ? `agents/customer/${agent_customer}/` : ''}documents`,
     {
