@@ -2,8 +2,9 @@
 import { AgentData } from '@/_typings/agent';
 import { CustomerDataModel } from '@/_typings/customer';
 import { updateClient } from '@/_utilities/api-calls/call-clients';
-import { getData } from '@/_utilities/data-helpers/local-storage-helper';
+import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 import { RxDateInputGroup } from '@/components/RxForms/RxInputs/RxDateInputGroup';
+import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
 import { useSearchParams } from 'next/navigation';
 import React from 'react';
 
@@ -136,13 +137,24 @@ function Iterator(p: Props & { disabled?: boolean; customer: { [key: string]: st
 
 export default function RxCustomerAccountView(p: Props) {
   const params = useSearchParams();
-  const agent_customer_id = Number(params.get('customer'));
+  const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [customer, setCustomer] = React.useState<{ [key: string]: string | number }>();
   const [updates, setUpdates] = React.useState<{ [key: string]: string | number }>();
 
   const onSubmit = () => {
     if (customer?.id && updates) {
-      updateClient(Number(customer.id), updates).then(console.log).catch(console.error);
+      updateClient(Number(params.get('customer')), updates)
+        .then(response => {
+          notify({
+            timeout: 5000,
+            category: NotificationCategory.SUCCESS,
+            message: 'Customer profile has been updated!',
+          });
+          setUpdates({});
+          setData('viewing_customer', JSON.stringify(response));
+          setCustomer(response);
+        })
+        .catch(console.error);
     }
   };
   const onReset = () => {

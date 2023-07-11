@@ -17,7 +17,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const { customers } = r as {
     customers: { agent_customer_id: number; id: number }[];
   };
-  const [customer] = customers.filter(c => c.agent_customer_id === Number(params.id));
+  const [customer] = customers.filter(c => Number(c.agent_customer_id) === Number(params.id));
   const payload = await req.json();
 
   if (customer && Object.keys(payload).length) {
@@ -27,6 +27,5 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   return getResponse({
     params,
     payload,
-    customer,
   });
 }
