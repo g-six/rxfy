@@ -89,12 +89,6 @@ export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
           </RxHomeAlertForm>
         );
       },
-      // cloneElement(child, {
-      //   onClick: (e: React.SyntheticEvent) => {
-      //     e.stopPropagation();
-      //   },
-      //   children: ,
-      // }),
     },
     // {
     //   searchFn: searchById('email-form'),

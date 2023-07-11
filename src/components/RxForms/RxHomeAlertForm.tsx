@@ -410,6 +410,7 @@ export default function RxHomeAlertForm(p: Props) {
       //       zoom,
       //     });
       //   }
+      if (alertData.is_active) setActive(alertData.is_active);
       if (alertData.baths) setBaths(alertData.baths);
       if (alertData.beds) setBeds(alertData.beds);
       let pricing = {

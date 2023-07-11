@@ -16,9 +16,10 @@ export default function FiltersItem({ item, template, isPicked, handleCheckList 
   const handleCheckClick = () => {
     handleCheckList();
   };
+  console.log(template);
   const matches: tMatch[] = [
     {
-      searchFn: searchByClasses(['checkbox']),
+      searchFn: searchByClasses(['w-checkbox']),
       transformChild: (child: ReactElement) => {
         return cloneElement(child, {
           onClick: handleCheckClick,
