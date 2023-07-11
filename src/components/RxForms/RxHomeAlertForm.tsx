@@ -111,9 +111,19 @@ function Iterator(
             {React.Children.map(child.props.children, (c, idx) => {
               return React.cloneElement(c, {
                 ...c.props,
+                children: React.Children.map(c.props.children, cc => {
+                  if (cc.type === 'div') {
+                    return React.cloneElement(cc, {
+                      ...cc.props,
+                      className: cc.props.className + ' ' + shouldBeToggled(c.props.className.split('ptype-')[1], p.data?.dwelling_types || []),
+                    });
+                  }
+                  return cc;
+                }),
                 onClick: (evt: React.SyntheticEvent<HTMLInputElement>) => {
                   const el = evt.currentTarget.querySelector('.w-checkbox-input');
                   if (el) {
+                    //w--redirected-checked
                     p.actions.toggleSelectedDwellingChip(el.classList, evt.currentTarget.className.split('ptype-')[1]);
                   }
                 },
@@ -287,6 +297,7 @@ export default function RxHomeAlertForm(p: Props) {
       selected?: boolean;
     }[]
   >([]);
+
   const [baths, setBaths] = React.useState<number>(0);
   const [beds, setBeds] = React.useState<number>(0);
   const [price, setPricing] = React.useState<{ min?: number; max?: number }>({});
@@ -524,4 +535,28 @@ function shouldSelectPType(ptype: string, classes: DOMTokenList) {
     }
   }
   return;
+}
+
+function shouldBeToggled(class_name: string, dwelling_types: { [key: string]: string | number | boolean }[]) {
+  const names = dwelling_types.filter(t => t.selected).map(t => t.name as string);
+  const [yes] = names.map(name => {
+    console.log({ name, class_name });
+    switch (class_name) {
+      case 'aptcondo':
+        return ['Apartment/Condo'].includes(name) && 'w--redirected-checked';
+      case 'tnhouse':
+        return ['Townhouse'].includes(name) && 'w--redirected-checked';
+      case 'house':
+        return ['Residential Detached', 'House/Single Family', 'House with Acreage', 'Single Family Detached'].includes(name) && 'w--redirected-checked';
+      case 'duplex':
+        return name.includes('Duplex') && 'w--redirected-checked';
+      case 'manufactured':
+        return name.includes('Manufactured') && 'w--redirected-checked';
+      case 'nonstrata':
+        return name.includes('Non-Strata') && 'w--redirected-checked';
+      case 'others':
+        return name.includes('Others') && 'w--redirected-checked';
+    }
+  });
+  return yes;
 }

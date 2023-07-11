@@ -1,15 +1,13 @@
 'use client';
 import { removeKeys, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
-import { searchByClasses, searchById } from '@/_utilities/rx-element-extractor';
+import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import useEvent, { Events } from '@/hooks/useEvent';
 import React, { ReactElement, cloneElement, useEffect, useState } from 'react';
-import MyHomeAlertForm from './MyHomeAlertForm';
 import SubmitGrid from './SubmitGrid';
 import { SavedSearchInput } from '@/_typings/saved-search';
 import { saveSearch, updateSearch } from '@/_utilities/api-calls/call-saved-search';
 import { AgentData } from '@/_typings/agent';
 import RxHomeAlertForm from '@/components/RxForms/RxHomeAlertForm';
-import { useSearchParams } from 'next/navigation';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 
 type Props = {
@@ -48,6 +46,7 @@ export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
   useEffect(() => {
     setFormState({ ...alertData });
   }, [show]);
+
   const handleFormChange = (key: string, val: any) => {
     setFormState((prev: any) => ({ ...prev, [key]: val }));
   };
