@@ -18,6 +18,7 @@ import { RxCustomerCompareCanvas } from './crm/CustomerCompareCanvas';
 import RxCompareFiltersModal from './crm/RxCompareFiltersModal';
 import RxMyHomeAlerts from '@/components/full-pages/RxMyHomeAlerts';
 import DocumentsReplacer from '@/_replacers/Documents/documents';
+import RxCustomerAccountView from './crm/RxCustomerAccountView';
 
 type Props = {
   children: React.ReactElement;
@@ -59,6 +60,12 @@ function Iterator(
           return <RxMyHomeAlerts {...child.props} agent-data={p.agent} child={child} agent_data={p.agent} />;
         } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.DOCUMENTS)) {
           return <DocumentsReplacer nodeProps={child.props} agent_data={p.agent} nodes={child.props.children} />;
+        } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_ACCOUNT_FORM)) {
+          return (
+            <RxCustomerAccountView agent-data={p.agent} {...child.props}>
+              {child.props.children}
+            </RxCustomerAccountView>
+          );
         } else if (p.agent && child.props.className === WEBFLOW_NODE_SELECTOR.CRM_NAV_WRAPPER) {
           return <CRMNav className={child.props.className}>{child}</CRMNav>;
         } else if (child.props?.['data-w-tab']) {

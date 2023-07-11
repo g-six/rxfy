@@ -56,7 +56,7 @@ export async function createClient(client: CustomerInputModel) {
   return response;
 }
 
-export async function moveClient(id: Number, status: 'active' | 'lead' | 'closed') {
+export async function moveClient(id: number, status: 'active' | 'lead' | 'closed') {
   const response = await axios.put(
     `/api/agents/customer/${id}`,
     {
@@ -83,4 +83,29 @@ export async function moveClient(id: Number, status: 'active' | 'lead' | 'closed
   }
 
   return response;
+}
+
+export async function updateClient(id: number, updates: { [key: string]: number | string }) {
+  const { birthday: ymd_birthday, ...o } = updates;
+  let birthday;
+  if (ymd_birthday) {
+    const [year, month, day] = `${ymd_birthday}`.split('-').map(Number);
+    birthday = new Date(year, month - 1, day).toISOString().substring(0, 10);
+  }
+
+  const response = await axios.put(
+    `/api/agents/customer/${id}/account`,
+    {
+      ...o,
+      birthday,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${Cookies.get('session_key')}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  return response.data;
 }

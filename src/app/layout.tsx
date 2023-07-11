@@ -181,10 +181,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     let title = agent_data?.metatags?.title || agent_data?.full_name;
     return (
       <html data-wf-domain={`${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`} {...$('html').attr()}>
-        <head>
-          <title>${typeof title === 'string' ? title + ' ' : ''}Leagent</title>
-          {metas}
-        </head>
+        <head>{metas}</head>
 
         <body {...body_props} className={bodyClassName} suppressHydrationWarning>
           {children}

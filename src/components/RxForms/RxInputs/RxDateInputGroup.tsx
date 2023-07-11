@@ -14,7 +14,7 @@ export function RxDateInputGroup({
   onChange: (val: number) => void;
   icon?: boolean;
 }) {
-  const [date_value, setDateValue] = React.useState<Date>(default_value ? (default_value as Date) : new Date());
+  const [date_value, setDateValue] = React.useState<Date>(default_value || new Date());
 
   React.useEffect(() => {
     if (date_value) onChange(date_value.getTime());
@@ -39,7 +39,7 @@ export function RxDateInputGroup({
               new_value.setDate(Number(evt.currentTarget.value));
               setDateValue(new_value);
             }}
-            defaultValue={date_value.getDate()}
+            value={date_value.getDate()}
           >
             {Array.from({ length: new Date(date_value.getFullYear(), date_value.getMonth() + 1, 0).getDate() }, (undefined, y) => {
               return y + 1;
