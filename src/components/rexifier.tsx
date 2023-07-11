@@ -540,8 +540,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.CRM_AREA_WRAPPER) >= 0) {
           return <RxCRM className={props.className}>{domToReact(node.children) as ReactElement}</RxCRM>;
         }
-        // if (props.id && CRM_PANE_IDS.includes(props.id as WEBFLOW_NODE_SELECTOR)) {
-        if (props.className && props.className === 'saved-search-wrapper') {
+        if (props.id && CRM_PANE_IDS.includes(props.id as WEBFLOW_NODE_SELECTOR)) {
           return (
             <RxCustomerView id={props.id} className={props.className + ' rexified'}>
               {domToReact(node.children) as ReactElement}
@@ -554,11 +553,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             // We do not show the session dropdown on ai-results pages
             return <></>;
           }
-          return (
-            <RxSessionDropdown agent={agent_data} className={props.className}>
-              {domToReact(node.children) as ReactElement}
-            </RxSessionDropdown>
-          );
+          return <RxSessionDropdown className={props.className}>{domToReact(node.children) as ReactElement}</RxSessionDropdown>;
         }
         if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.GUEST_DROPDOWN) >= 0) {
           // We hide the guest login / sign up buttons if an agent is already signed in using agent_data

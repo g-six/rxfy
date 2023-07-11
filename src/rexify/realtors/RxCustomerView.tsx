@@ -57,7 +57,7 @@ function Iterator(
         } else if (p.agent && child.props.className?.split(' ').includes('map-property-modal')) {
           return <RxMapPropertyModal {...child.props}>{child}</RxMapPropertyModal>;
         } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.MY_HOME_ALERTS)) {
-          return <RxMyHomeAlerts {...child.props} child={child} agent_data={p.agent} />;
+          return <RxMyHomeAlerts {...child.props} agent-data={p.agent} child={child} agent_data={p.agent} />;
         } else if (p.agent && child.props.className === WEBFLOW_NODE_SELECTOR.CRM_NAV_WRAPPER) {
           return <CRMNav className={child.props.className}>{child}</CRMNav>;
         } else if (child.props?.['data-w-tab']) {
@@ -118,6 +118,7 @@ export default function RxCustomerView(p: Props) {
   };
 
   React.useEffect(() => {
+    setAgent(session.data as unknown as AgentData);
     const tabs = session.data as unknown as {
       [key: string]: string;
     };
@@ -137,13 +138,11 @@ export default function RxCustomerView(p: Props) {
     };
     if (tabs['active-crm-saved-homes-view']) setSelectedTab(tabs['active-crm-saved-homes-view']);
     if (id) {
-      setAgent(session.data as unknown as AgentData);
       const customer_id = searchParams.get('customer') as unknown as number;
 
       if (customer_id) {
         if (customers && customers.length) {
           const [record] = customers.filter((c: CustomerRecord) => {
-            console.log(c.id, Number(searchParams.get('customer')));
             return c.id === Number(searchParams.get('customer'));
           });
           if (record) {

@@ -28,6 +28,7 @@ export interface SavedSearchBaseModel {
 export interface SavedSearchInput extends SavedSearchBaseModel {
   id?: number;
   dwelling_types?: string[];
+  dwelling_types_ids?: number[];
 }
 
 export interface CustomerSavedSearch extends SavedSearchInput {

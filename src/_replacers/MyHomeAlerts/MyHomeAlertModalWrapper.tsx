@@ -12,10 +12,10 @@ import RxHomeAlertForm from '@/components/RxForms/RxHomeAlertForm';
 
 type Props = {
   child: ReactElement;
-  agent_data: AgentData;
+  'agent-data': AgentData;
 };
 
-export default function MyHomeAlertModalWrapper({ child, agent_data }: Props) {
+export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
   const { data, fireEvent } = useEvent(Events.MyHomeAlertsModal);
   const { show, message, alertData } = data || {};
   const showModal = show && message && ['New', 'Edit'].includes(message);
@@ -58,10 +58,10 @@ export default function MyHomeAlertModalWrapper({ child, agent_data }: Props) {
 
   const saveClick = async () => {
     if (formState?.id) {
-      await updateSearch(formState.id, agent_data, { search_params: removeKeys(formState, ['id']) });
+      await updateSearch(formState.id, p['agent-data'], { search_params: removeKeys(formState, ['id']) });
     }
     if (!formState.id) {
-      await saveSearch(agent_data, { search_params: formState });
+      await saveSearch(p['agent-data'], { search_params: formState });
     }
     fireEvent({ show: false, message: '', reload: true, alertData: formState });
   };
@@ -82,7 +82,13 @@ export default function MyHomeAlertModalWrapper({ child, agent_data }: Props) {
     },
     {
       searchFn: searchByClasses(['property-type-modal']),
-      transformChild: (child: ReactElement) => <RxHomeAlertForm className={child.props.className}>{child.props.children}</RxHomeAlertForm>,
+      transformChild: (child: ReactElement) => {
+        return (
+          <RxHomeAlertForm agent={p['agent-data']} className={child.props.className}>
+            {child.props.children}
+          </RxHomeAlertForm>
+        );
+      },
       // cloneElement(child, {
       //   onClick: (e: React.SyntheticEvent) => {
       //     e.stopPropagation();

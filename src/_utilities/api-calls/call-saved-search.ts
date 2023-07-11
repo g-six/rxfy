@@ -19,8 +19,8 @@ export async function saveSearch(agent: { id: number; logo?: string }, opts: { s
     }
   }
 
-  let { dwelling_types, types } = search_params || {};
-  let dwelling_type_ids: number[] = [];
+  let { dwelling_types, dwelling_types_ids, types } = search_params || {};
+  let dwelling_type_ids: number[] = dwelling_types_ids || [];
   dwelling_types?.forEach(code_csv => {
     if (code_csv === DwellingType.APARTMENT_CONDO) dwelling_type_ids = dwelling_type_ids.concat([1]);
     if (code_csv === DwellingType.TOWNHOUSE) dwelling_type_ids = dwelling_type_ids.concat([2]);
@@ -50,6 +50,7 @@ export async function saveSearch(agent: { id: number; logo?: string }, opts: { s
       search_params: {
         ...search_params,
         dwelling_types: dwelling_type_ids,
+        dwelling_type_ids: undefined,
         dwelling_type: undefined,
         types: undefined,
       },
@@ -90,7 +91,7 @@ export async function updateSearch(id: number, agent: { id: number; logo?: strin
   }
 
   let { dwelling_types, types } = search_params || {};
-  let dwelling_type_ids: number[] = [];
+  let dwelling_type_ids: number[] = search_params?.dwelling_types_ids || [];
   dwelling_types?.forEach(code_csv => {
     if (code_csv === DwellingType.APARTMENT_CONDO) dwelling_type_ids = dwelling_type_ids.concat([1]);
     if (code_csv === DwellingType.TOWNHOUSE) dwelling_type_ids = dwelling_type_ids.concat([2]);
@@ -121,6 +122,7 @@ export async function updateSearch(id: number, agent: { id: number; logo?: strin
         ...search_params,
         dwelling_types: dwelling_type_ids,
         dwelling_type: undefined,
+        dwelling_type_ids: undefined,
         types: undefined,
       },
       agent: agent.id,

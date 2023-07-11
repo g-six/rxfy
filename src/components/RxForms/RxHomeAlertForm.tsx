@@ -2,15 +2,17 @@ import React from 'react';
 import SearchAddressCombobox from '@/_replacers/FilterFields/SearchAddressCombobox';
 import { getDwellingTypes } from '@/_utilities/api-calls/call-property-attributes';
 
-import styles from './RxForm.module.scss';
 import { classNames } from '@/_utilities/html-helper';
 import { RxDateInputGroup } from './RxInputs/RxDateInputGroup';
-import useEvent, { Events } from '@/hooks/useEvent';
+import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
 import { CustomerSavedSearch, SavedSearch } from '@/_typings/saved-search';
+import { saveSearch, updateSearch } from '@/_utilities/api-calls/call-saved-search';
+import { AgentData } from '@/_typings/agent';
 
 type Props = {
   children: React.ReactElement;
   className: string;
+  agent: AgentData;
 };
 
 function convertDivsToSpans(el: React.ReactElement) {
@@ -303,6 +305,11 @@ function Iterator(
 }
 
 export default function RxHomeAlertForm(p: Props) {
+  const { fireEvent: notify } = useEvent(Events.SystemNotification);
+  const closeModal = () => {
+    fireEvent({ show: false, message: '', alertData: undefined });
+  };
+  const { fireEvent } = useEvent(Events.MyHomeAlertsModal);
   const [dwelling_types, setDwellingTypes] = React.useState<
     {
       name: string;
@@ -327,7 +334,6 @@ export default function RxHomeAlertForm(p: Props) {
       alertData: SavedSearch;
     };
   };
-
   const updateListedAt = (val: number) => {
     setListedAt(val);
   };
@@ -496,12 +502,38 @@ export default function RxHomeAlertForm(p: Props) {
             console.log('reset');
           },
           onSubmit() {
-            console.log('submit', {
-              geo_location,
-            });
+            const search_params = {
+              ...geo_location,
+              city: city_filter,
+              beds,
+              baths,
+              maxprice: price?.max,
+              minprice: price?.min,
+              minsqft: size?.min,
+              maxsqft: size?.max,
+              is_active,
+              dwelling_type_ids: dwelling_types.filter(t => t.selected).map(t => t.id),
+            };
+
+            alertData.id
+              ? updateSearch(alertData.id, p.agent, { search_params }).then(results => {
+                  notify({
+                    timeout: 5000,
+                    category: NotificationCategory.SUCCESS,
+                    message: 'Changes have been saved.',
+                  });
+                  closeModal();
+                })
+              : saveSearch(p.agent, { search_params }).then(results => {
+                  notify({
+                    timeout: 5000,
+                    category: NotificationCategory.SUCCESS,
+                    message: 'Changes have been saved.',
+                  });
+                  closeModal();
+                });
           },
           setGeo(geo) {
-            console.log(geo);
             setGeoLocation(geo);
           },
         }}

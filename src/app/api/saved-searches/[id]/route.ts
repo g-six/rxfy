@@ -74,7 +74,7 @@ export async function DELETE(request: Request) {
 export async function PUT(request: Request) {
   let session_key = '';
   let error;
-  let data = {};
+  let record = {};
   const { search_params } = await request.json();
   try {
     const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
@@ -96,9 +96,11 @@ export async function PUT(request: Request) {
         },
       );
 
-      data = {
-        ...data,
-        record: update_response.data.updateSavedSearch.data,
+      const { id: record_id, attributes } = update_response.data.updateSavedSearch.data;
+      record = {
+        ...record,
+        ...attributes,
+        id: Number(record_id),
       };
     } catch (e) {
       error = 'Caught exception on PUT method in \n  saved-searches/[id]/route.ts';
@@ -111,5 +113,5 @@ export async function PUT(request: Request) {
     console.log(error);
   }
 
-  return getResponse({ error, session_key, data }, error ? 400 : 200);
+  return getResponse({ error, session_key, record }, error ? 400 : 200);
 }

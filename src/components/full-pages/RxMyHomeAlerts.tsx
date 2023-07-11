@@ -12,11 +12,11 @@ import React, { ReactElement, ReactNode, cloneElement } from 'react';
 
 type Props = {
   child: ReactNode;
-  agent_data: AgentData;
+  'agent-data': AgentData;
   className: string;
 };
 
-export default function RxMyHomeAlerts({ child, agent_data, className }: Props) {
+export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['new-home-alert-button']),
@@ -31,19 +31,19 @@ export default function RxMyHomeAlerts({ child, agent_data, className }: Props) 
     {
       searchFn: searchByClasses(['all-home-alerts']),
       transformChild: (child: ReactElement) => {
-        return <MyHomeAlertsList child={child} agent_data={agent_data} />;
+        return <MyHomeAlertsList child={child} agent_data={p['agent-data']} />;
       },
     },
     {
       searchFn: searchByClasses(['new-home-alert-wrapper']),
       transformChild: (child: ReactElement) => {
-        return <MyHomeAlertModalWrapper agent_data={agent_data} child={child} />;
+        return <MyHomeAlertModalWrapper agent-data={p['agent-data']} child={child} />;
       },
     },
     {
       searchFn: searchByClasses(['ha-delete-modal-wrapper']),
       transformChild: (child: ReactElement) => {
-        return <MyHomeAlertDeleteModalWrapper agent_data={agent_data} child={child} />;
+        return <MyHomeAlertDeleteModalWrapper agent_data={p['agent-data']} child={child} />;
       },
     },
   ];
