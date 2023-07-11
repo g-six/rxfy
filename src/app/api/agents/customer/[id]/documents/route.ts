@@ -107,7 +107,12 @@ export async function POST(request: NextRequest, { params }: { params: { [key: s
   const doc_response = await createDocumentFolder(name, Number(customer.id), agent_record_id);
 
   return getResponse({
-    name: doc_response.name,
-    id: doc_response.id,
+    document: {
+      name: doc_response.name,
+      id: doc_response.id,
+      document_uploads: {
+        data: [],
+      },
+    },
   });
 }
