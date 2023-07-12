@@ -45,3 +45,7 @@ export async function deleteSmartCard(id: number) {
 
   return results.data;
 }
+
+export async function emailSmartCard(...params: any[]) {
+  console.log({ params });
+}

@@ -8,24 +8,6 @@ const headers = {
   'Content-Type': 'application/json',
 };
 
-const gql_retrieve = `query RetrieveSmartCard($id: ID!) {
-    smartCard(id: $id) {
-        record: data {
-            id
-            attributes {
-                name
-                title
-                logo_url
-                realtor {
-                    record: data {
-                        id
-                    }
-                }
-            }
-        }
-    }
-}`;
-
 const gql_delete = `mutation DeleteSmartCard($id: ID!) {
     deleteSmartCard(id: $id) {
         record: data {
@@ -61,11 +43,6 @@ export async function DELETE(req: NextRequest) {
         headers,
       },
     );
-    // data = {
-    //   ...data,
-    //   record: delete_response.data.deleteSmartCard.record,
-    //   session_key,
-    // };
     console.log(delete_response);
     if (!delete_response.data.deleteSmartCard?.record)
       return getResponse(
@@ -84,32 +61,6 @@ export async function DELETE(req: NextRequest) {
       },
       session_key,
     });
-
-    if (session.id !== data.record?.realtor)
-      return getResponse(
-        {
-          error: 'Only owners are allowed to delete smart cards',
-        },
-        401,
-      );
-
-    // const { data: delete_response } = await axios.post(
-    //   `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-    //   {
-    //     query: gql_delete,
-    //     variables: {
-    //       id,
-    //     },
-    //   },
-    //   {
-    //     headers,
-    //   },
-    // );
-    // data = {
-    //   ...data,
-    //   record: delete_response.data.deleteSmartCard.record,
-    //   session_key,
-    // };
   } catch (e) {
     error = 'Caught exception on DELETE method in \n  smart-cards/[id]/route.ts';
     console.log(error);
