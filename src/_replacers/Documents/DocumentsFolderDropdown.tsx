@@ -6,14 +6,21 @@ import { searchByClasses } from '@/_utilities/rx-element-extractor';
 type Props = {
   child: ReactElement;
   deleteFolder: () => void;
+  sendReminder: () => void;
 };
 
-export default function DocumentsFolderDropdown({ child, deleteFolder }: Props) {
+export default function DocumentsFolderDropdown({ child, deleteFolder, sendReminder }: Props) {
   const matches = [
     {
       searchFn: searchByClasses(['doc-delete']),
       transformChild: (child: ReactElement) => {
         return cloneElement(child, { onClick: deleteFolder });
+      },
+    },
+    {
+      searchFn: searchByClasses(['send-reminder']),
+      transformChild: (child: ReactElement) => {
+        return cloneElement(child, { onClick: sendReminder });
       },
     },
   ];

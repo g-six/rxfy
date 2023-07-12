@@ -1,3 +1,4 @@
+import { AgentData } from '@/_typings/agent';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
@@ -174,4 +175,26 @@ export async function retrieveDocuments(agent_customer_id?: number) {
   }
 
   return response;
+}
+
+export async function sendDocumentReminder(name: string, customer: Record<string, string>, agent: AgentData) {
+  const { agent_customer_id } = customer;
+  const response = await axios.post(
+    '/api/documents/email-reminder',
+    {
+      name,
+      customer: {
+        ...customer,
+        agent_customer_id: Number(agent_customer_id),
+      },
+      agent,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${Cookies.get('session_key')}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+  return response.data;
 }

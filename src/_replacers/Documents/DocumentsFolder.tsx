@@ -7,9 +7,10 @@ import { DocumentInterface, DocumentsFolderInterface } from '@/_typings/document
 
 import DocumentsFolderDropdown from './DocumentsFolderDropdown';
 import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
-import { removeDocument, removeDocumentUpload } from '@/_utilities/api-calls/call-documents';
+import { removeDocument, removeDocumentUpload, sendDocumentReminder } from '@/_utilities/api-calls/call-documents';
 import RxFileUploader from '@/components/RxForms/RxFileUploader';
 import RxDropMenu from '@/components/RxForms/RxDropMenu';
+import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 
 type Props = {
   template: ReactElement;
@@ -18,7 +19,7 @@ type Props = {
   setDocuments: Dispatch<SetStateAction<DocumentsFolderInterface[]>>;
 };
 
-export default function DocumentsFolder({ template, docFolderData, setDocuments }: Props) {
+export default function DocumentsFolder({ template, docFolderData, setDocuments, agent_data }: Props) {
   const templates = captureMatchingElements(template, [{ searchFn: searchByClasses(['one-doc-description']), elementName: 'docRow' }]);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
 
@@ -50,6 +51,19 @@ export default function DocumentsFolder({ template, docFolderData, setDocuments 
       }
     });
   };
+
+  const sendReminder = () => {
+    let customer = {};
+    if (getData('viewing_customer')) customer = getData('viewing_customer') as unknown as {};
+    sendDocumentReminder(docFolderData.name, customer, agent_data).then(({ document_name, full_name }: { [key: string]: string }) => {
+      notify({
+        timeout: 5000,
+        category: NotificationCategory.SUCCESS,
+        message: `We've sent ${full_name} a reminder to provide ${document_name}`,
+      });
+    });
+  };
+
   const matches = [
     {
       //changing text in braces inside document folder ONLY
@@ -68,7 +82,9 @@ export default function DocumentsFolder({ template, docFolderData, setDocuments 
             menuClassNames={['doc-folder-dropdown', 'w-dropdown-list']}
             toggleClassNames={['doc-3dots-dropdown', 'w-dropdown-toggle']}
             menuRenderer={(child: ReactElement) => {
-              return (<DocumentsFolderDropdown deleteFolder={deleteFolder} key={`${docFolderData.id}_dd`} child={child} />) as ReactElement;
+              return (
+                <DocumentsFolderDropdown sendReminder={sendReminder} deleteFolder={deleteFolder} key={`${docFolderData.id}_dd`} child={child} />
+              ) as ReactElement;
             }}
           />
         );
