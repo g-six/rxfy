@@ -50,57 +50,6 @@ export const removeClasses = (classNames: string, removeCls: string[]) =>
     .filter(cls => !removeCls.includes(cls))
     .join(' ');
 
-export const toDataURL = (url: string) =>
-  fetch(url)
-    .then(response => response.blob())
-    .then(
-      blob =>
-        new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const arr = reader.result ? (reader.result as string) : '';
-            const data = arr.split(',');
-            const resp = {
-              base64: reader.result,
-              content: data[1],
-              format: data[0].replace('data:image/', '').replace(';base64', ''),
-              dataType: data[0].replace('data:', '').replace(';base64', ''),
-            };
-            resolve(resp);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        }),
-    )
-    .catch(err => {
-      console.log('Caught error in _helpers/functions.toDataURL:', err);
-    });
-
-export const downloadFromUrl = (url: string, name: string = 'image', ext: string = 'png') => {
-  let xhr = new XMLHttpRequest();
-  xhr.responseType = 'blob';
-  xhr.onload = function () {
-    let a = document.createElement('a');
-    a.href = window.URL.createObjectURL(xhr.response);
-    a.download = name + '.' + ext;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  };
-  xhr.open('GET', url);
-  xhr.send();
-};
-
-const urlToFile = (image: string) => {
-  return fetch(image)
-    .then(response => response.blob())
-    .then(blob => {
-      const file = new File([blob], 'image.jpg', { type: blob.type });
-      return { ...file, url: image, preview: image };
-    });
-};
-
 export function splitObject(obj: Record<string, string>) {
   const keys = Object.keys(obj);
   const half = Math.ceil(keys.length / 2);

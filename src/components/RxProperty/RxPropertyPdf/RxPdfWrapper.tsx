@@ -9,7 +9,8 @@ import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { formatValues, construction_stats, amenities_stats } from '@/_utilities/data-helpers/property-page';
 import { replaceAllTextWithBraces, transformMatchingElements } from '@/_helpers/dom-manipulators';
-import { splitObject, toDataURL } from '@/_helpers/functions';
+import { splitObject } from '@/_helpers/functions';
+import { toDataURL } from '@/_helpers/image-manipulations';
 
 import RxPdfMainInfo from '@/components/RxProperty/RxPropertyPdf/RxPdfMainInfo';
 import RxPdfMainStats from '@/components/RxProperty/RxPropertyPdf/RxPdfMainStats';

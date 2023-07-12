@@ -60,7 +60,7 @@ function runRenderPdf(data: PdfInput, widthMM: number, heightMM: number) {
   if (data.element) {
     pdf.html(data.element, {
       autoPaging: false,
-      callback: () => returnPDF({ pdf, name: data.name, inWindow: data.inWindow, callback: data.callback }),
+      callback: () => returnPDF({ pdf, ...data }),
     });
     return true;
   } else if (Array.isArray(data.images) && data.images.length) {
@@ -79,7 +79,7 @@ function runRenderPdf(data: PdfInput, widthMM: number, heightMM: number) {
         pdf.setPage(pageNumber + 1);
       }
     });
-    returnPDF({ pdf, name: data.name, inWindow: data.inWindow, callback: data.callback });
+    returnPDF({ pdf, ...data });
     return true;
   }
   return false;
@@ -90,11 +90,9 @@ function returnPDF(data: PdfInput) {
     if (data.inWindow) {
       const blobPDF = new Blob([data.pdf.output('blob')], { type: 'application/pdf' });
       window.location.href = URL.createObjectURL(blobPDF);
-    } else if (data.noDownload) {
+    } else if (data.noDownload && data.callback) {
       const pdfBase64 = data.pdf.output('datauristring', { filename: `${data.name}.pdf` });
-      if (data.callback) {
-        data.callback(pdfBase64);
-      }
+      data.callback(pdfBase64);
     } else {
       data.pdf.save(`${data.name}.pdf`);
     }

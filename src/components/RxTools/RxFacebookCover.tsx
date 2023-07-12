@@ -5,7 +5,7 @@ import html2canvas from 'html2canvas';
 import { ReplacerPageProps } from '@/_typings/forms';
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
-import { downloadFromUrl } from '@/_helpers/functions';
+import { downloadFromUrl } from '@/_helpers/image-manipulations';
 
 import RxFacebookCoverContent from '@/components/RxTools/RxFacebookCoverContent';
 
