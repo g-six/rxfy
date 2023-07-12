@@ -61,7 +61,7 @@ export const gqf_saved_search_attributes = `
                   }
                 }
                 add_date
-                build_year
+                year_built
                 tags
                 last_email_at
                 is_active

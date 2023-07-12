@@ -33,6 +33,7 @@ function IsActiveComponent(p: { className?: string; id?: string; children: React
 
 function Iterator(
   p: Props & {
+    'data-selected-dwelling-types': string;
     data: {
       city?: string;
       baths?: number;
@@ -64,7 +65,7 @@ function Iterator(
       setCityFilter: React.Dispatch<React.SetStateAction<string>>;
       setGeo: (g: { [key: string]: number }) => void;
       toggleActive: (s: boolean) => void;
-      toggleSelectedDwellingChip: (classes: DOMTokenList, ptype: string) => void;
+      toggleSelectedDwellingChip: (ptype: string) => { [key: string]: string | number | boolean }[];
       updateListedAt: (ts: number) => void;
       updateYear: (year: string) => void;
       onReset: () => void;
@@ -105,7 +106,6 @@ function Iterator(
 
     if (['div', 'form'].includes(child.type as string)) {
       if (child.props.className?.indexOf('div-property-types') >= 0) {
-        let chip: React.ReactElement = <></>;
         return (
           <div className={child.props.className}>
             {React.Children.map(child.props.children, (c, idx) => {
@@ -113,22 +113,21 @@ function Iterator(
                 ...c.props,
                 children: React.Children.map(c.props.children, cc => {
                   if (cc.type === 'div') {
-                    return React.cloneElement(cc, {
+                    return React.cloneElement(<span />, {
                       ...cc.props,
-                      className: p.data.dwelling_types
-                        ? cc.props.className + ' ' + shouldBeToggled(c.props.className.split('ptype-')[1], p.data.dwelling_types)
-                        : cc.props.className,
+                      className: classNames(
+                        cc.props.className,
+                        shouldPreselectType(p['data-selected-dwelling-types'], c.props.className) ? 'w--redirected-checked' : '',
+                      ),
+                      onClick: (evt: React.SyntheticEvent<HTMLInputElement>) => {
+                        if (evt.currentTarget.parentElement?.textContent) {
+                          p.actions.toggleSelectedDwellingChip(evt.currentTarget.parentElement?.textContent);
+                        }
+                      },
                     });
                   }
                   return cc;
                 }),
-                onClick: (evt: React.SyntheticEvent<HTMLInputElement>) => {
-                  const el = evt.currentTarget.querySelector('.w-checkbox-input');
-                  if (el) {
-                    //w--redirected-checked
-                    p.actions.toggleSelectedDwellingChip(el.classList, evt.currentTarget.className.split('ptype-')[1]);
-                  }
-                },
               });
             })}
           </div>
@@ -197,15 +196,6 @@ function Iterator(
           ),
         });
       }
-      if (child.props.className?.includes('date-newer-than')) {
-        return React.cloneElement(child, {
-          ...child.props,
-          defaultValue: p.data.year_built || '',
-          onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
-            p.actions.updateYear(evt.currentTarget.value);
-          },
-        });
-      }
 
       return React.cloneElement(child, {
         ...child.props,
@@ -218,6 +208,15 @@ function Iterator(
     }
 
     if (child.type === 'input') {
+      if (child.props.className?.includes('date-newer-than')) {
+        return React.cloneElement(child, {
+          ...child.props,
+          defaultValue: p.data.year_built || '',
+          onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
+            p.actions.updateYear(evt.currentTarget.value);
+          },
+        });
+      }
       if (child.props['data-toggle'] === 'datepicker' && !child.props.placeholder?.includes('Year')) {
         return (
           <RxDateInputGroup
@@ -282,6 +281,7 @@ function Iterator(
     }
     return child;
   });
+
   return <>{Wrapped}</>;
 }
 
@@ -321,6 +321,7 @@ export default function RxHomeAlertForm(p: Props) {
     setListedAt(val);
   };
   const updateYear = (val: string) => {
+    console.log('updateYear', val);
     setYearBuilt(Number(val));
   };
   const setMinSize = (val: string) => {
@@ -361,19 +362,52 @@ export default function RxHomeAlertForm(p: Props) {
     setActive(val);
   };
 
-  const toggleSelectedDwellingChip = (classes: DOMTokenList, ptype: string) => {
+  const toggleSelectedDwellingChip = (dwelling_name: string): { [key: string]: string | boolean | number }[] => {
     const u = dwelling_types.map(t => {
-      const collection = shouldSelectPType(ptype, classes);
-      if (collection) {
+      if (dwelling_name.indexOf('Duplex') >= 0 && t.name.indexOf('Duplex') >= 0) {
         return {
           ...t,
-          selected: collection.includes(t.name),
+          selected: !t.selected,
         };
-      } else {
-        return t;
+      } else if (dwelling_name.indexOf('Apartment') >= 0 && t.name.indexOf('Apartment') >= 0) {
+        return {
+          ...t,
+          selected: !t.selected,
+        };
+      } else if (dwelling_name.indexOf('Townhouse') >= 0 && t.name.indexOf('Townhouse') >= 0) {
+        return {
+          ...t,
+          selected: !t.selected,
+        };
+      } else if (dwelling_name.indexOf('Other') >= 0 && t.name.indexOf('Other') >= 0) {
+        return {
+          ...t,
+          selected: !t.selected,
+        };
+      } else if (dwelling_name.indexOf('Non-Strata') >= 0 && t.name.indexOf('Non-Strata') >= 0) {
+        return {
+          ...t,
+          selected: !t.selected,
+        };
+      } else if (dwelling_name.indexOf('Manufactured') >= 0 && t.name.indexOf('Manufactured') >= 0) {
+        return {
+          ...t,
+          selected: !t.selected,
+        };
+      } else if (
+        dwelling_name.indexOf('House') >= 0 &&
+        ['Residential Detached', 'House/Single Family', 'House with Acreage', 'Single Family Detached'].includes(t.name)
+      ) {
+        return {
+          ...t,
+          selected: !t.selected,
+        };
       }
+
+      return t;
     });
     setDwellingTypes(u);
+    return u.filter(t => t.selected);
   };
 
   const resetForm = () => {
@@ -397,16 +431,13 @@ export default function RxHomeAlertForm(p: Props) {
       if (sizing.min || sizing.max) {
         setSizing(sizing);
       }
-      if (alertData.build_year) setYearBuilt(alertData.build_year as unknown as number);
+      if (alertData.year_built) setYearBuilt(alertData.year_built as unknown as number);
       if (alertData.dwelling_types?.length) {
         const u = dwelling_types.map(t => {
-          if (alertData.dwelling_types?.includes(t.name)) {
-            return {
-              ...t,
-              selected: true,
-            };
-          }
-          return t;
+          return {
+            ...t,
+            selected: alertData.dwelling_types?.includes(t.name),
+          };
         });
         setDwellingTypes(u);
       }
@@ -423,6 +454,8 @@ export default function RxHomeAlertForm(p: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [alertData]);
 
+  React.useEffect(() => {}, [dwelling_types]);
+
   React.useEffect(() => {
     getDwellingTypes().then(res => {
       const { types } = res as unknown as {
@@ -431,9 +464,15 @@ export default function RxHomeAlertForm(p: Props) {
           id: number;
         }[];
       };
-      setDwellingTypes(types);
+      setDwellingTypes(
+        types.map(t => ({
+          ...t,
+          selected: false,
+        })),
+      );
     });
   }, []);
+
   return (
     <div
       {...p}
@@ -445,6 +484,10 @@ export default function RxHomeAlertForm(p: Props) {
     >
       <Iterator
         {...p}
+        data-selected-dwelling-types={dwelling_types
+          .filter(t => t.selected)
+          .map(t => getShortType(t.name))
+          .join(' ')}
         data={{
           city: city_filter,
           dwelling_types,
@@ -482,8 +525,11 @@ export default function RxHomeAlertForm(p: Props) {
               minsqft: size?.min,
               maxsqft: size?.max,
               is_active,
+              year_built,
               dwelling_type_ids: dwelling_types.filter(t => t.selected).map(t => t.id),
             };
+
+            console.log({ year_built });
 
             alertData?.id
               ? updateSearch(alertData.id, p.agent, { search_params }).then(results => {
@@ -515,49 +561,29 @@ export default function RxHomeAlertForm(p: Props) {
   );
 }
 
-function shouldSelectPType(ptype: string, classes: DOMTokenList) {
-  if (ptype) {
-    switch (ptype) {
-      case 'aptcondo':
-        return !classes.contains('w--redirected-checked') ? ['Apartment/Condo'] : [];
-      case 'tnhouse':
-        return !classes.contains('w--redirected-checked') ? ['Townhouse'] : [];
-      case 'house':
-        return !classes.contains('w--redirected-checked')
-          ? ['Residential Detached', 'House/Single Family', 'House with Acreage', 'Single Family Detached']
-          : [];
-      case 'duplex':
-        return !classes.contains('w--redirected-checked') ? ['1/2 Duplex', 'Duplex'] : [];
-      case 'manufactured':
-        return !classes.contains('w--redirected-checked') ? ['Manufactured', 'Manufactured with Land'] : [];
-      case 'nonstrata':
-        return !classes.contains('w--redirected-checked') ? ['Row House (Non-Strata)'] : [];
-      case 'others':
-        return !classes.contains('w--redirected-checked') ? ['Others'] : [];
-    }
-  }
-  return;
+function shouldPreselectType(dwelling_types: string, class_name: string) {
+  const [ptype] = class_name.split(' ').filter(s => s.indexOf('ptype-') >= 0);
+  return dwelling_types.split(' ').includes(ptype);
 }
 
-function shouldBeToggled(class_name: string, dwelling_types: { [key: string]: string | number | boolean }[]) {
-  const names = dwelling_types.filter(t => t.selected).map(t => t.name as string);
-  const [yes] = names.map(name => {
-    switch (class_name) {
-      case 'aptcondo':
-        return ['Apartment/Condo'].includes(name) && 'w--redirected-checked';
-      case 'tnhouse':
-        return ['Townhouse'].includes(name) && 'w--redirected-checked';
-      case 'house':
-        return ['Residential Detached', 'House/Single Family', 'House with Acreage', 'Single Family Detached'].includes(name) && 'w--redirected-checked';
-      case 'duplex':
-        return name.includes('Duplex') && 'w--redirected-checked';
-      case 'manufactured':
-        return name.includes('Manufactured') && 'w--redirected-checked';
-      case 'nonstrata':
-        return name.includes('Non-Strata') && 'w--redirected-checked';
-      case 'others':
-        return name.includes('Others') && 'w--redirected-checked';
-    }
-  });
-  return yes;
+function getShortType(name: string) {
+  switch (name) {
+    case 'Apartment/Condo':
+      return 'ptype-aptcondo';
+
+    case 'Townhouse':
+      return 'ptype-tnhouse';
+
+    case 'Others':
+      return 'ptype-others';
+
+    case 'House/Single Family':
+    case 'House with Acreage':
+    case 'Single Family Detached':
+    case 'Residential Detached':
+      return 'ptype-house';
+  }
+  if (name.indexOf('Duplex') >= 0) return 'ptype-duplex';
+  if (name.indexOf('Manufactured') >= 0) return 'ptype-manufactured';
+  if (name.indexOf('Non-Strata') >= 0) return 'ptype-nonstrata';
 }

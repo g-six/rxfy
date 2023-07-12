@@ -19,7 +19,7 @@ export interface SavedSearchBaseModel {
   sorting?: string;
   types?: string;
   add_date?: number;
-  build_year?: number;
+  year_built?: number;
   tags?: string;
   area?: string;
   city?: string;
