@@ -59,11 +59,11 @@ export default function RxNotifications() {
             <div className='p-4'>
               <div className='flex items-start'>
                 <div className='flex-shrink-0'>
-                  {success && <CheckCircleIcon className='h-6 w-6 text-green-400' aria-hidden='true' />}
+                  {success && <CheckCircleIcon className='h-6 w-6 text-green-500' aria-hidden='true' />}
                   {error && <ExclamationTriangleIcon className='h-6 w-6 text-red-600' aria-hidden='true' />}
                 </div>
                 <div className='ml-3 w-0 flex-1 pt-0.5'>
-                  <p className={`text-sm font-medium text-gray-900 ${error ? 'text-red-700 italic' : 'non-italic'}`}>{success || (error && 'Oops!')}</p>
+                  <p className={`mb-0 font-medium text-gray-900 ${error ? 'text-red-700 italic' : 'non-italic'}`}>{success || (error && 'Oops!')}</p>
                   {error && (
                     <div className='mt-1 text-sm text-gray-500'>
                       {error.split('\n').map(m => (
@@ -85,7 +85,7 @@ export default function RxNotifications() {
                     }}
                   >
                     <span className='sr-only'>Close</span>
-                    <XMarkIcon className='h-5 w-5' aria-hidden='true' />
+                    <XMarkIcon className='h-6 w-6' aria-hidden='true' />
                   </button>
                 </div>
               </div>

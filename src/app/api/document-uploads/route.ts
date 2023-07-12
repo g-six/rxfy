@@ -52,7 +52,7 @@ export async function POST(request: Request) {
           session_key = user.session_key;
 
           const command = new PutObjectCommand({
-            Bucket: process.env.NEXT_APP_S3_UPLOADS_BUCKET as string,
+            Bucket: process.env.NEXT_APP_S3_DOCUMENTS_BUCKET as string,
             Key: upload.name,
             ContentType: upload.type,
           });

@@ -173,6 +173,10 @@ export default function RxCustomerAccountView(p: Props) {
   };
 
   React.useEffect(() => {
+    notify({
+      category: NotificationCategory.SUCCESS,
+      message: 'Customer profile has been updated!',
+    });
     setCustomer(getData('viewing_customer') as unknown as {});
   }, []);
 
