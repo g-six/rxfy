@@ -16,6 +16,7 @@ import Input from '../FilterFields/Input';
 import RxDropzone from '@/components/RxDropzone';
 import EditNewCardFormFront from '@/_replacers/SmartBusinessCard/EditNewCardFromFront';
 import EditNewCardFormBack from '@/_replacers/SmartBusinessCard/EditNewCardFromBack';
+import { invertImage } from '@/_helpers/image-manipulations';
 
 type Props = {
   template: ReactElement;
@@ -83,30 +84,23 @@ export default function EditNewCardForm({ template, showDetails, details, update
         if (refFront?.current && refBack?.current) {
           const promises = Array.from([refFront.current, refBack.current])
             .map(el => el as HTMLElement)
-            .map(el => html2canvas(el, { allowTaint: true, useCORS: true }));
-          Promise.all(promises).then(pagesAsCanvas => {
-            const promiseFront = new Promise(resolve => {
-              rendererCardPdf({
-                images: [pagesAsCanvas[0]],
-                orientation: 'l',
-                name: 'SmartCardFront',
-                inWindow: false,
-                callback: (pdfBase64: string | undefined) => resolve(pdfBase64),
+            .map(el => {
+              const cloneEl = el.cloneNode(true) as HTMLElement;
+              cloneEl.style.backgroundColor = 'transparent';
+              cloneEl.style.borderRadius = '0';
+              return html2canvas(cloneEl, { allowTaint: true, useCORS: true });
+            });
+          Promise.all(promises).then(canvases => {
+            const anotherPromises = canvases.map(canvas => {
+              return new Promise(resolve => {
+                canvas.getContext('2d');
+                const canvasImage = canvas.toDataURL('image/png');
+                invertImage(canvasImage, base64 => resolve(base64));
               });
             });
-            const promiseBack = new Promise(resolve => {
-              rendererCardPdf({
-                images: [pagesAsCanvas[1]],
-                name: 'SmartCardBack',
-                orientation: 'p',
-                inWindow: false,
-                callback: (pdfBase64: string | undefined) => resolve(pdfBase64),
-              });
-            });
-            Promise.all([promiseFront, promiseBack]).then(files => {
-              console.log('pdfBase64', files);
+            Promise.all(anotherPromises).then(files => {
               const attachments = files.map((base64, i) => {
-                return { type: 'application/pdf', name: `card_pdf_${i + 1}.pdf`, content: base64 };
+                return { type: 'image/png', name: `card_image_${i + 1}.png`, content: base64 };
               });
               const send_to: MailChimp.MessageRecipient[] = [{ email: 'team@leagent.com', name: 'Leaget Team' }];
               sendTemplate(
