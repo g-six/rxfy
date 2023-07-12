@@ -38,7 +38,7 @@ export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
     swlat: 0,
     swlng: 0,
     city: '',
-    build_year: 0,
+    year_built: 0,
     add_date: 0,
     dwelling_types: [],
   };

@@ -7,7 +7,7 @@ import { Card } from './CustomerCompareCanvas';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { LISTING_DATE_FIELDS, LISTING_FEETERS_FIELDS, LISTING_NUMERIC_FIELDS } from '@/_utilities/data-helpers/listings-helper';
 
-type Props = { children: React.ReactElement | React.ReactElement[]; className: string };
+type Props = { children: React.ReactElement | React.ReactElement[]; className: string; removeCard: () => void };
 
 function StatsIterator(p: { className?: string; children: React.ReactElement; label: string; value: string }) {
   const Wrapper = React.Children.map(p.children, child => {
@@ -34,7 +34,11 @@ function StatsIterator(p: { className?: string; children: React.ReactElement; la
 }
 
 export default function RxPropertyCompareCard(
-  p: Props & { property: Card; 'include-stats'?: string[]; moveProperty?: (item_id: number, replace_id: number) => void },
+  p: Props & {
+    property: Card;
+    'include-stats'?: string[];
+    moveProperty?: (item_id: number, replace_id: number) => void;
+  },
 ) {
   const { fireEvent } = useEvent(Events.SelectCustomerLovedProperty);
   const { data: selections, fireEvent: updateSelection } = useEvent(Events.AddPropertyToCompare);
@@ -167,12 +171,13 @@ export default function RxPropertyCompareCard(
                 btn.click();
               }}
               removeCard={() => {
+                p.removeCard();
                 if (selections) {
-                  const { properties: prev } = selections as unknown as { properties: Card[] };
-                  prev.splice(prev.indexOf(p.property), 1);
-                  updateSelection({
-                    properties: [...prev],
-                  } as unknown as EventsData);
+                  // const { properties: prev } = selections as unknown as { properties: Card[] };
+                  // prev.splice(prev.indexOf(p.property), 1);
+                  // updateSelection({
+                  //   properties: [...prev],
+                  // } as unknown as EventsData);
                 }
               }}
             >

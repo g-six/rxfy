@@ -31,7 +31,7 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
                   children: React.cloneElement(child.props.children, {
                     ...child.props.children.props,
                     src: getImageSized(p.property.photos[0], 780),
-                    srcset: undefined,
+                    srcSet: undefined,
                   }),
                 });
               case 'property-image-2':
@@ -42,7 +42,7 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
                       ...child.props.children.props,
                       src: getImageSized(p.property.photos[1], 580),
                     }),
-                    srcset: undefined,
+                    srcSet: undefined,
                   });
               case 'property-image-3':
                 if (p.property.photos.length > 2)
@@ -51,7 +51,7 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
                     children: React.cloneElement(child.props.children, {
                       ...child.props.children.props,
                       src: getImageSized(p.property.photos[2], 580),
-                      srcset: undefined,
+                      srcSet: undefined,
                     }),
                   });
             }

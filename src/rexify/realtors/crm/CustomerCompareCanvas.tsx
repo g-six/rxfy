@@ -15,6 +15,7 @@ function Iterator(
     cards: Card[];
     'include-stats'?: string[];
     moveProperty?: (item_idx: number, replace_idx: number) => void;
+    removeCard: (property_id: number) => void;
   },
 ) {
   const Wrapper = React.Children.map(p.children, (child, idx: number) => {
@@ -31,6 +32,9 @@ function Iterator(
                     include-stats={p['include-stats']}
                     key={`compare-item-property-${property.id}`}
                     moveProperty={p.moveProperty}
+                    removeCard={() => {
+                      if (property.id) p.removeCard(property.id);
+                    }}
                   >
                     {child}
                   </RxPropertyCompareCard>
@@ -75,6 +79,12 @@ function RxCompareDropArea(p: Props) {
     }
   };
 
+  const removeProperty = (property_id: number) => {
+    addPropertyToCompareEvt.fireEvent({
+      properties: cards.filter(c => c.id !== property_id),
+    } as unknown as EventsData);
+  };
+
   React.useEffect(() => {
     const { properties } = addPropertyToCompareEvt.data as unknown as {
       properties: LovedPropertyDataModel[];
@@ -90,7 +100,7 @@ function RxCompareDropArea(p: Props) {
 
   return (
     <div className={p.className + ' rexified'}>
-      <Iterator {...p} cards={cards} include-stats={stats_to_include} moveProperty={moveProperty}>
+      <Iterator {...p} cards={cards} include-stats={stats_to_include} moveProperty={moveProperty} removeCard={removeProperty}>
         {p.children}
       </Iterator>
     </div>

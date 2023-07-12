@@ -22,7 +22,7 @@ type Props = {
 };
 
 export default function MyHomeAlertForm({ child, formState, handleChange, handleFormCityChange }: Props) {
-  const { dwelling_types, beds, baths, minprice, maxprice, minsqft, maxsqft, tags, lat, lng, nelat, nelng, swlat, swlng, city, build_year, add_date } =
+  const { dwelling_types, beds, baths, minprice, maxprice, minsqft, maxsqft, tags, lat, lng, nelat, nelng, swlat, swlng, city, year_built, add_date } =
     formState;
   const handleNumberState = (key: string) => {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,12 +149,12 @@ export default function MyHomeAlertForm({ child, formState, handleChange, handle
     {
       searchFn: searchByClasses(['newer-than-filter']),
       transformChild: (child: ReactElement) => {
-        const handleOnChange = handleNumberState('build_year');
+        const handleOnChange = handleNumberState('year_built');
         return (
           <InputWithLabel
             template={child}
             inputProps={{ type: 'number', min: 0, max: 10000, placeholder: 'Type Year' }}
-            value={build_year ?? 0}
+            value={year_built ?? 0}
             handleChange={handleOnChange}
           />
         );

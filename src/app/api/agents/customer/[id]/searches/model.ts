@@ -29,7 +29,7 @@ const GQ_FRAG_SAVED_SEARCH = `
                         }
                       }
                       add_date
-                      build_year
+                      year_built
                       tags
                       area
                       city

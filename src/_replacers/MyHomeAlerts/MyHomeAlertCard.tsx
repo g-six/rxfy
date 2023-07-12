@@ -32,7 +32,7 @@ export default function MyHomeAlertCard({ child, data, agent_data }: Props) {
     'min-sqft': data?.minsqft ?? 'N/A',
     'max-sqft': data?.maxsqft ?? 'N/A',
     'listed-since': data.add_date ? format(new Date(data.add_date * 1000), 'd/M/y') : 'Not Selected',
-    'prop-newer-than': data.build_year ?? 'Not Selected',
+    'prop-newer-than': data.year_built ?? 'Not Selected',
     keywords: data.tags ?? 'Not Provided',
     proptype: dwelling_types.length ? dwelling_types.join(', ') : 'Not Selected',
   };
