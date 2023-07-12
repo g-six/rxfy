@@ -21,6 +21,7 @@ type Props = {
 export default function DocumentsFolder({ template, docFolderData, setDocuments }: Props) {
   const templates = captureMatchingElements(template, [{ searchFn: searchByClasses(['one-doc-description']), elementName: 'docRow' }]);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
+
   const deleteFolder = () => {
     removeDocument(parseInt(docFolderData.id)).then(res => {
       setDocuments(prev => [...prev.filter(docFolder => docFolder.id !== res.record.id)]);
@@ -31,6 +32,7 @@ export default function DocumentsFolder({ template, docFolderData, setDocuments 
       });
     });
   };
+
   const deleteDocumentUpload = (id: string) => {
     removeDocumentUpload(parseInt(id)).then(res => {
       if (res?.record?.id) {

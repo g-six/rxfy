@@ -127,7 +127,7 @@ export async function DELETE(request: Request) {
           const { id: upload_id, attributes } = doc_response.data?.record?.data;
           record = {
             ...attributes,
-            id: upload_id,
+            id: Number(upload_id),
           };
         }
         return new Response(

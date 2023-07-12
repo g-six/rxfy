@@ -113,7 +113,10 @@ export async function removeDocument(id: number) {
     } else {
       console.log('Warning: no new session key has bee issued in removeDocument()');
     }
-    return record;
+    return {
+      ...record,
+      id: Number(record.id),
+    };
   }
 
   return response;
