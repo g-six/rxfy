@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { sortArrayAlphabetically } from '@/_utilities/array-helper';

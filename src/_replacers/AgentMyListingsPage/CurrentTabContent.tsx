@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { Dispatch, ReactElement, SetStateAction, useEffect, useState } from 'react';
 import { AgentData } from '@/_typings/agent';
 import { ValueInterface } from '@/_typings/ui-types';

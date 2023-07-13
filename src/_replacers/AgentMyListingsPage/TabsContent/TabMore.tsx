@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react';
 import { TabContentProps } from '@/_typings/agent-my-listings';
 import RxCompareFiltersModal, { field_aliases, relationship_based_attributes } from '@/rexify/realtors/crm/RxCompareFiltersModal';

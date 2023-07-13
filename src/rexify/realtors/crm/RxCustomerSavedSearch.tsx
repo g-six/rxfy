@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { getSearches } from '@/_utilities/api-calls/call-saved-search';
 import { useSearchParams } from 'next/navigation';
 import React from 'react';

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 import { classNames } from '@/_utilities/html-helper';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';

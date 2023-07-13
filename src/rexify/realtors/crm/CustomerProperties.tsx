@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 import { CustomerRecord } from '@/_typings/customer';
 import { LovedPropertyDataModel, PropertyDataModel } from '@/_typings/property';
