@@ -559,7 +559,7 @@ export default function RxHomeAlertForm(p: Props) {
                     category: NotificationCategory.SUCCESS,
                     message: 'New home alert has been saved.',
                   });
-                  p.reload(results);
+                  location.reload();
                   closeModal();
                 });
           },
