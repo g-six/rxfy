@@ -104,36 +104,47 @@ function Iterator(
       );
     }
 
-    if (['div', 'form'].includes(child.type as string)) {
-      if (child.props.className?.indexOf('div-property-types') >= 0) {
-        return (
-          <div className={child.props.className}>
-            {React.Children.map(child.props.children, (c, idx) => {
-              return React.cloneElement(c, {
-                ...c.props,
-                children: React.Children.map(c.props.children, cc => {
-                  if (cc.type === 'div') {
-                    return React.cloneElement(<span />, {
-                      ...cc.props,
-                      className: classNames(
-                        cc.props.className,
-                        shouldPreselectType(p['data-selected-dwelling-types'], c.props.className) ? 'w--redirected-checked' : '',
-                      ),
-                      onClick: (evt: React.SyntheticEvent<HTMLInputElement>) => {
-                        if (evt.currentTarget.parentElement?.textContent) {
-                          p.actions.toggleSelectedDwellingChip(evt.currentTarget.parentElement?.textContent);
-                        }
-                      },
-                    });
-                  }
-                  return cc;
-                }),
-              });
-            })}
-          </div>
-        );
-      }
+    if (child.type === 'label') {
+      if (child.props.className.includes(' ptype-')) {
+        const [ptype] = child.props.className
+          .split(' ')
+          .map((subclass: string) => (subclass.indexOf('ptype') === 0 ? `ptype-${subclass.split('ptype-')[1]}` : ''))
+          .filter((subclass: string) => subclass);
+        return React.cloneElement(<button type='button' />, {
+          ...child.props,
+          onClick: (evt: React.SyntheticEvent) => {
+            evt.stopPropagation();
+            const span = evt.currentTarget.querySelector('[data-value]') as HTMLSpanElement;
+            const dwelling_types_csv = span.dataset.value || '';
 
+            if (dwelling_types_csv) p.actions.toggleSelectedDwellingChip(dwelling_types_csv);
+          },
+          children: React.Children.map(child.props.children, cc => {
+            if (cc.type === 'div') {
+              const selected = p.data.dwelling_types.filter(t => {
+                return t.selected && getShortType(t.name) === ptype;
+              }).length;
+
+              return convertDivsToSpans(
+                React.cloneElement(cc, {
+                  ...cc.props,
+                  className: selected ? cc.props.className + ' w--redirected-checked ' : cc.props.className,
+                }),
+              );
+            }
+            if (cc.props['data-value'])
+              return (
+                <span className={cc.props.className} data-value={cc.props['data-value']}>
+                  {cc.props.children}
+                </span>
+              );
+            return cc;
+          }),
+        });
+      }
+    }
+
+    if (['div', 'form'].includes(child.type as string)) {
       if (child.props.className?.includes('-less') || child.props.className?.includes('-more')) {
         return React.cloneElement(<button type='button' />, {
           ...child.props,
@@ -321,7 +332,6 @@ export default function RxHomeAlertForm(p: Props) {
     setListedAt(val);
   };
   const updateYear = (val: string) => {
-    console.log('updateYear', val);
     setYearBuilt(Number(val));
   };
   const setMinSize = (val: string) => {
@@ -395,7 +405,7 @@ export default function RxHomeAlertForm(p: Props) {
           selected: !t.selected,
         };
       } else if (
-        dwelling_name.indexOf('House') >= 0 &&
+        dwelling_name.indexOf('House') === 0 &&
         ['Residential Detached', 'House/Single Family', 'House with Acreage', 'Single Family Detached'].includes(t.name)
       ) {
         return {
@@ -406,6 +416,7 @@ export default function RxHomeAlertForm(p: Props) {
 
       return t;
     });
+
     setDwellingTypes(u);
     return u.filter(t => t.selected);
   };
@@ -473,6 +484,11 @@ export default function RxHomeAlertForm(p: Props) {
     });
   }, []);
 
+  const dwelling_type_csv = dwelling_types
+    .filter(t => t.selected)
+    .map(t => getShortType(t.name))
+    .join(' ');
+
   return (
     <div
       {...p}
@@ -484,10 +500,7 @@ export default function RxHomeAlertForm(p: Props) {
     >
       <Iterator
         {...p}
-        data-selected-dwelling-types={dwelling_types
-          .filter(t => t.selected)
-          .map(t => getShortType(t.name))
-          .join(' ')}
+        data-selected-dwelling-types={dwelling_type_csv}
         data={{
           city: city_filter,
           dwelling_types,
@@ -529,8 +542,6 @@ export default function RxHomeAlertForm(p: Props) {
               dwelling_type_ids: dwelling_types.filter(t => t.selected).map(t => t.id),
             };
 
-            console.log({ year_built });
-
             alertData?.id
               ? updateSearch(alertData.id, p.agent, { search_params }).then(results => {
                   notify({
@@ -546,7 +557,7 @@ export default function RxHomeAlertForm(p: Props) {
                     category: NotificationCategory.SUCCESS,
                     message: 'New home alert has been saved.',
                   });
-                  p.onSave && p.onSave(results);
+                  p.onSave ? p.onSave(results) : location.reload();
                   closeModal();
                 });
           },
@@ -561,11 +572,6 @@ export default function RxHomeAlertForm(p: Props) {
   );
 }
 
-function shouldPreselectType(dwelling_types: string, class_name: string) {
-  const [ptype] = class_name.split(' ').filter(s => s.indexOf('ptype-') >= 0);
-  return dwelling_types.split(' ').includes(ptype);
-}
-
 function getShortType(name: string) {
   switch (name) {
     case 'Apartment/Condo':
@@ -575,6 +581,7 @@ function getShortType(name: string) {
       return 'ptype-tnhouse';
 
     case 'Others':
+    case 'Other':
       return 'ptype-others';
 
     case 'House/Single Family':

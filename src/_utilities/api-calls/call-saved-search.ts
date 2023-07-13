@@ -125,6 +125,7 @@ export async function updateSearch(id: number, agent: { id: number; logo?: strin
       dwelling_type_ids = dwelling_type_ids.concat([10]);
     }
   });
+
   types?.split('/').forEach((ptype: string) => {
     dwelling_type_ids = dwelling_type_ids.concat(getSelectedPropertyTypeId(ptype));
   });
