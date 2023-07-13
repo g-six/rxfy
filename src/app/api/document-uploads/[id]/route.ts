@@ -48,7 +48,7 @@ export async function GET(request: Request) {
 
 /**
  * Deletes an upload from a document folder
- * DELETE /api/documents/<document_uploads.id>
+ * DELETE /api/document-uploads/<document_uploads.id>
  *      headers { Authorization: Bearer <Cookies.get('session_key')> }
  * @param request
  * @returns
@@ -74,22 +74,7 @@ export async function DELETE(request: Request) {
         const { data: doc_response } = await axios.post(
           `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
           {
-            query: `mutation DeleteDocumentUpload ($id: ID!) {
-                record: deleteDocumentUpload(id: $id) {
-                  data {
-                    id
-                    attributes {
-                      file_name
-                      url
-                      document {
-                        data {
-                          id
-                        }
-                      }
-                    }
-                  }
-                }
-            }`,
+            query: gql_delete_doc_upload,
             variables: {
               id: Number(document_upload_id),
             },
@@ -169,3 +154,20 @@ export async function DELETE(request: Request) {
     },
   );
 }
+
+export const gql_delete_doc_upload = `mutation DeleteDocumentUpload ($id: ID!) {
+  record: deleteDocumentUpload(id: $id) {
+    data {
+      id
+      attributes {
+        file_name
+        url
+        document {
+          data {
+            id
+          }
+        }
+      }
+    }
+  }
+}`;

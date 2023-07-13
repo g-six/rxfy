@@ -129,13 +129,17 @@ export async function removeDocument(id: number) {
  * @param url string
  * @returns document data object and session_key string
  */
-export async function removeDocumentUpload(id: number) {
-  const response = await axios.delete(`/api/document-uploads/${id}`, {
-    headers: {
-      Authorization: `Bearer ${Cookies.get('session_key')}`,
-      'Content-Type': 'application/json',
+export async function removeDocumentUpload(id: number, customer?: number) {
+  const session_as = Cookies.get('session_as') || 'customer';
+  const response = await axios.delete(
+    session_as === 'realtor' && customer ? `/api/agents/customer/${customer}/documents/uploads/${id}` : `/api/document-uploads/${id}`,
+    {
+      headers: {
+        Authorization: `Bearer ${Cookies.get('session_key')}`,
+        'Content-Type': 'application/json',
+      },
     },
-  });
+  );
 
   if (response.status === 200) {
     const { session_key, ...record } = response.data;

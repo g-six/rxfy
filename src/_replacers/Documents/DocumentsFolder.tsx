@@ -11,6 +11,7 @@ import { removeDocument, removeDocumentUpload, sendDocumentReminder } from '@/_u
 import RxFileUploader from '@/components/RxForms/RxFileUploader';
 import RxDropMenu from '@/components/RxForms/RxDropMenu';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
+import { useSearchParams } from 'next/navigation';
 
 type Props = {
   template: ReactElement;
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export default function DocumentsFolder({ template, docFolderData, setDocuments, agent_data }: Props) {
+  const params = useSearchParams();
   const templates = captureMatchingElements(template, [{ searchFn: searchByClasses(['one-doc-description']), elementName: 'docRow' }]);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
 
@@ -35,7 +37,9 @@ export default function DocumentsFolder({ template, docFolderData, setDocuments,
   };
 
   const deleteDocumentUpload = (id: string) => {
-    removeDocumentUpload(parseInt(id)).then(res => {
+    let customer;
+    if (params.get('customer')) customer = Number(params.get('customer'));
+    removeDocumentUpload(parseInt(id), customer).then(res => {
       if (res?.record?.id) {
         setDocuments(prev => [
           ...prev.map((docFolder: DocumentsFolderInterface) => {
