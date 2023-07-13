@@ -37,7 +37,7 @@ export async function GET(request: Request) {
 
   if (uri_encoded_key) {
     const command = new GetObjectCommand({
-      Bucket: process.env.NEXT_APP_S3_UPLOADS_BUCKET as string,
+      Bucket: process.env.NEXT_APP_S3_DOCUMENTS_BUCKET as string,
       Key: decodeURIComponent(uri_encoded_key),
     });
     const url = await getSignedUrl(client, command, { expiresIn: 3600 });
