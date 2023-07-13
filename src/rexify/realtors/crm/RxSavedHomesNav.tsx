@@ -1,13 +1,24 @@
 'use client';
+import { classNames } from '@/_utilities/html-helper';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import React from 'react';
 
-function Iterator(p: { children?: React.ReactElement; id?: string; className?: string; onNavClick: (evt: React.MouseEvent<HTMLButtonElement>) => void }) {
+function Iterator(p: {
+  children?: React.ReactElement;
+  id?: string;
+  className?: string;
+  'active-tab': string;
+  onNavClick: (evt: React.MouseEvent<HTMLButtonElement>) => void;
+}) {
   const Wrapped = React.Children.map(p.children, child => {
     if (child?.type === 'a' && typeof child.props?.children !== 'string') {
       return React.cloneElement(<button type='button' />, {
         ...child.props,
-        className: 'flex items-center min-w-max ' + child.props.className,
+        className: classNames(
+          'flex items-center min-w-max RxSavedHomesNav',
+          p['active-tab'] === child.props['data-w-tab'] ? child.props.className : child.props.className.split('w--current').join(''),
+          p['active-tab'] === child.props['data-w-tab'] && 'w--current',
+        ),
         children: <span>{child.props.children.props.children}</span>,
         onClick: p.onNavClick,
       });
@@ -17,7 +28,7 @@ function Iterator(p: { children?: React.ReactElement; id?: string; className?: s
   return <>{Wrapped}</>;
 }
 
-export default function RxSavedHomesNav(p: { className: string; children: React.ReactElement }) {
+export default function RxSavedHomesNav(p: { className: string; children: React.ReactElement; 'active-tab': string }) {
   const session = useEvent(Events.LoadUserSession);
   React.useEffect(() => {
     session.fireEvent({
@@ -29,6 +40,7 @@ export default function RxSavedHomesNav(p: { className: string; children: React.
   return (
     <nav {...p}>
       <Iterator
+        active-tab={p['active-tab']}
         onNavClick={(evt: React.MouseEvent<HTMLButtonElement>) => {
           switch (evt.currentTarget.textContent) {
             case 'Map View':

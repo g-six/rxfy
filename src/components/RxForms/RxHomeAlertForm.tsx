@@ -9,6 +9,7 @@ import { SavedSearch } from '@/_typings/saved-search';
 import { saveSearch, updateSearch } from '@/_utilities/api-calls/call-saved-search';
 import { AgentData } from '@/_typings/agent';
 import { useSearchParams } from 'next/navigation';
+import { convertDivsToSpans } from '@/_replacers/DivToSpan';
 
 type Props = {
   children: React.ReactElement;
@@ -17,11 +18,6 @@ type Props = {
   customer?: number;
   reload: (results: SavedSearch) => void;
 };
-
-function convertDivsToSpans(el: React.ReactElement) {
-  if (el.type === 'div') return <span {...el.props}>{el.props.children}</span>;
-  return el;
-}
 
 function IsActiveComponent(p: { className?: string; id?: string; children: React.ReactElement }) {
   const Wrapped = React.Children.map(p.children, child => {

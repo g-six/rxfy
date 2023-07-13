@@ -61,7 +61,11 @@ function Iterator(
             </RxCustomerPropertyView>
           );
         } else if (child.props.className?.split(' ').includes('indiv-map-tabs')) {
-          return <RxSavedHomesNav {...child.props}>{child.props.children}</RxSavedHomesNav>;
+          return (
+            <RxSavedHomesNav {...child.props} active-tab={p['active-tab']}>
+              {child.props.children}
+            </RxSavedHomesNav>
+          );
         } else if (child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_MAP)) {
           return <RxMapView />;
         } else if (p.agent && child.props.className?.split(' ').includes('map-property-modal')) {

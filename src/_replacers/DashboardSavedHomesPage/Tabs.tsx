@@ -24,23 +24,13 @@ export default function Tabs({ child, currentTab, setCurrentTab, tabs = savedHom
     const className = child?.props?.className;
     return className?.split(' ')?.find((cls: string) => tabsArray.includes(cls));
   };
-  const hasCurrentClass = (className: string) => {
-    return className?.split(' ')?.some((cls: string) => cls === 'w--current') ?? false;
-  };
+
   const removeCurrent = (className: string) => {
     return className
       ?.split(' ')
       ?.filter((cls: string) => cls !== 'w--current')
       .join(' ');
   };
-  // useEffect(() => {
-  //   const children = child?.props?.children;
-  //   if (Array.isArray(children)) {
-  //     children.forEach(child => {
-  //       hasCurrentClass(child?.props?.className) && makeCurrent(child)();
-  //     });
-  //   }
-  // }, []);
 
   const matches = [
     ...tabsArray.map(tab => ({
@@ -54,17 +44,6 @@ export default function Tabs({ child, currentTab, setCurrentTab, tabs = savedHom
       },
     })),
   ];
-
-  // const matches = Object.values(tabs).map(tab => ({
-  //   searchFn: searchByClasses([tab]),
-  //   transformChild: (child: ReactElement) => {
-  //     const isCurrent = getTabVal(child) === currentTab;
-  //     return cloneElement(child, {
-  //       className: `${removeCurrent(child.props.className)} ${isCurrent ? `w--current` : ''}`,
-  //       onClick: makeCurrent(child),
-  //     });
-  //   },
-  // }));
 
   return <>{transformMatchingElements(child, matches)}</>;
 }

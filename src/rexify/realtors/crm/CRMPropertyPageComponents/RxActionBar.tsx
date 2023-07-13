@@ -1,7 +1,9 @@
-import { PropertyDataModel } from '@/_typings/property';
+import { convertDivsToSpans } from '@/_replacers/DivToSpan';
+import { LovedPropertyDataModel, PropertyDataModel } from '@/_typings/property';
 import { unloveHome, unloveHomeForCustomer } from '@/_utilities/api-calls/call-love-home';
 import { classNames } from '@/_utilities/html-helper';
 import { formatAddress } from '@/_utilities/string-helper';
+import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { useSearchParams } from 'next/navigation';
 import React from 'react';
 
@@ -45,9 +47,12 @@ function Iterator(p: Props) {
         {
           ...child.props,
           className: child.props.className,
-          onClick: () => {
+          children: React.Children.map(child.props.children, convertDivsToSpans),
+          onClick: (evt: React.SyntheticEvent<HTMLButtonElement>) => {
             if (child.props.className.indexOf('action-heart') >= 0) {
               p.unlove();
+            } else if (evt.currentTarget.textContent === 'Compare') {
+              console.log('c');
             }
           },
         },
@@ -56,17 +61,33 @@ function Iterator(p: Props) {
 
     return child;
   });
-
+  /**
+ * const { properties } = addPropertyToCompareEvt.data as unknown as {
+      properties: LovedPropertyDataModel[];
+    };
+    addPropertyToCompareEvt.fireEvent({
+      properties:
+        properties && properties.filter(included => included.id === property.id).length === 0 ? properties.concat([property]) : properties || [property],
+    } as unknown as EventsData);
+ */
   return <>{Wrapped}</>;
 }
 
 export default function RxActionBar(p: Props) {
+  const { data, fireEvent } = useEvent(Events.AddPropertyToCompare);
   const searchParams = useSearchParams();
   const unlove = () => {
     let customer_id = 0;
     if (searchParams.get('customer')) customer_id = Number(searchParams.get('customer'));
     if (customer_id) {
-      unloveHomeForCustomer(p.property.love, customer_id).then(p.reload).catch(console.error);
+      // unloveHomeForCustomer(p.property.love, customer_id).then(p.reload).catch(console.error);
+      const { properties } = data as unknown as {
+        properties: LovedPropertyDataModel[];
+      };
+      fireEvent({
+        properties:
+          properties && properties.filter(included => included.love !== p.property.love) ? properties.concat([p.property]) : properties || [p.property],
+      } as unknown as EventsData);
     }
   };
   return p.property ? (
