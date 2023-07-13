@@ -16,6 +16,7 @@ type Props = {
   id?: string;
   agent?: AgentData;
   className?: string;
+  reload: (r: unknown) => void;
 };
 
 function Iterator(p: Props & { property?: PropertyDataModel }) {
@@ -215,9 +216,10 @@ export default function RxCustomerPropertyView(p: Props) {
     }
   }, [selectPropertyEvt.data]);
 
+  const { reload, ...props } = p;
   return (
-    <div {...p} className={`${p.className} ${property?.id ? styles['opened-property-view'] : styles['closed-property-view']}`}>
-      <Iterator {...p} property={property} agent={agent}>
+    <div {...props} className={`${p.className} ${property?.id ? styles['opened-property-view'] : styles['closed-property-view']}`}>
+      <Iterator {...props} property={property} agent={agent} reload={reload}>
         {p.children}
       </Iterator>
     </div>

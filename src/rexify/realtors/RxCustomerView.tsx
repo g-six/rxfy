@@ -55,7 +55,11 @@ function Iterator(
         } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_COMPARE_WRAPPER)) {
           return <RxCustomerCompareCanvas className={child.props.className}>{child.props.children}</RxCustomerCompareCanvas>;
         } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_PROPERTY_PREVIEW)) {
-          return <RxCustomerPropertyView className={child.props.className}>{child.props.children}</RxCustomerPropertyView>;
+          return (
+            <RxCustomerPropertyView reload={p.loadData} className={child.props.className}>
+              {child.props.children}
+            </RxCustomerPropertyView>
+          );
         } else if (child.props.className?.split(' ').includes('indiv-map-tabs')) {
           return <RxSavedHomesNav {...child.props}>{child.props.children}</RxSavedHomesNav>;
         } else if (child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_MAP)) {
@@ -131,7 +135,7 @@ export default function RxCustomerView(p: Props) {
     selectPropertyEvt.fireEvent(property as unknown as EventsData);
   };
 
-  const loadData = () => {
+  const loadData = (r?: unknown) => {
     const { id, customers, ...selections } = session.data as unknown as AgentData;
     const tabs = selections as unknown as {
       [key: string]: string;

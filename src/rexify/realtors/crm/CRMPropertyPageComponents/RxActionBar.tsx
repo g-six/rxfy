@@ -10,6 +10,7 @@ interface Props {
   className: string;
   property: PropertyDataModel & { love: number };
   unlove: () => void;
+  reload: (r: unknown) => void;
 }
 
 function replacePlaceholders(placeholder: string, property: PropertyDataModel) {
@@ -64,7 +65,9 @@ export default function RxActionBar(p: Props) {
   const unlove = () => {
     let customer_id = 0;
     if (searchParams.get('customer')) customer_id = Number(searchParams.get('customer'));
-    if (customer_id) unloveHomeForCustomer(p.property.love, customer_id).then(console.log).catch(console.error);
+    if (customer_id) {
+      unloveHomeForCustomer(p.property.love, customer_id).then(p.reload).catch(console.error);
+    }
   };
   return p.property ? (
     <Iterator {...p} unlove={unlove}>
