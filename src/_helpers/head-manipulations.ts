@@ -41,12 +41,7 @@ export function replaceMetaTags(headCode: string, agent: AgentData, property?: o
       image = image ? image : agent.metatags.profile_image;
     }
 
-    const replacers = [
-      {
-        regex: /<title>[^<]*<\/title>/gi,
-        data: `<title>${title || 'Leagent'}</title>`,
-      },
-    ];
+    const replacers = [];
     if (description) {
       replacers.push({
         regex: /<meta name="description" content="(.*)">/,

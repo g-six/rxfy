@@ -145,7 +145,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // element in the <head> section and rexify them below
   const head_links = $('head link');
   const head_meta = $('head meta');
-  const metas: React.ReactElement[] = [<link key='preflight-css' rel='stylesheet' type='text/css' href='/css/preflight.css' />];
+  const metas: React.ReactElement[] = [
+    <title>{$('title').text() || 'Leagent'}</title>,
+    <link key='preflight-css' rel='stylesheet' type='text/css' href='/css/preflight.css' />,
+  ];
 
   head_meta.toArray().map(meta => {
     metas.push(<meta {...attributesToProps(meta.attribs)} key={meta.attribs.property || meta.attribs.name} />);
