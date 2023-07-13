@@ -146,7 +146,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const head_links = $('head link');
   const head_meta = $('head meta');
   const metas: React.ReactElement[] = [
-    <title>{$('title').text() || 'Leagent'}</title>,
+    <title key='title'>{$('title').text() || 'Leagent'}</title>,
     <link key='preflight-css' rel='stylesheet' type='text/css' href='/css/preflight.css' />,
   ];
 
