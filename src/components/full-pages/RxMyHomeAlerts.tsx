@@ -6,8 +6,10 @@ import MyHomeAlertModalWrapper from '@/_replacers/MyHomeAlerts/MyHomeAlertModalW
 import MyHomeAlertsList from '@/_replacers/MyHomeAlerts/MyHomeAlertsList';
 import { AgentData } from '@/_typings/agent';
 import { Events } from '@/_typings/events';
-import { classNames } from '@/_utilities/html-helper';
+import { SavedSearch } from '@/_typings/saved-search';
 import { searchByClasses, searchById } from '@/_utilities/rx-element-extractor';
+import useEvent from '@/hooks/useEvent';
+
 import React, { ReactElement, ReactNode, cloneElement } from 'react';
 
 type Props = {
@@ -17,6 +19,33 @@ type Props = {
 };
 
 export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
+  const { fireEvent } = useEvent(Events.MyHomeAlertsModal);
+  const [agent_data, setAgentData] = React.useState<AgentData>();
+  const onSave = (updated: SavedSearch) => {
+    if (agent_data) {
+      const { customers } = agent_data;
+      if (customers)
+        customers.forEach(customer => {
+          customer.saved_searches?.forEach((saved, idx) => {
+            if (saved.id === updated.id && customer.saved_searches) {
+              const { dwelling_types, ...updates } = updated;
+              customer.saved_searches[idx] = {
+                ...customer.saved_searches[idx],
+                ...updates,
+              };
+            }
+          });
+        });
+      setAgentData({
+        ...agent_data,
+        customers,
+      });
+      fireEvent({
+        reload: true,
+        alertData: updated,
+      });
+    }
+  };
   const matches: tMatch[] = [
     {
       searchFn: searchById('btn-new-home-alert'),
@@ -32,13 +61,13 @@ export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
     {
       searchFn: searchByClasses(['all-home-alerts']),
       transformChild: (child: ReactElement) => {
-        return <MyHomeAlertsList child={child} agent_data={p['agent-data']} />;
+        return <MyHomeAlertsList child={child} agent_data={agent_data as unknown as AgentData} />;
       },
     },
     {
       searchFn: searchByClasses(['new-home-alert-wrapper']),
       transformChild: (child: ReactElement) => {
-        return <MyHomeAlertModalWrapper agent-data={p['agent-data']} child={child} />;
+        return <MyHomeAlertModalWrapper agent-data={p['agent-data']} child={child} onSave={onSave} />;
       },
     },
     {
@@ -48,5 +77,10 @@ export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
       },
     },
   ];
+
+  React.useEffect(() => {
+    setAgentData(p['agent-data']);
+  }, []);
+
   return <>{transformMatchingElements(child, matches)}</>;
 }

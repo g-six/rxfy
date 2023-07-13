@@ -152,7 +152,7 @@ export async function updateSearch(id: number, agent: { id: number; logo?: strin
   );
 
   if (response.status === 200) {
-    const { session_key, ...record } = response.data;
+    const { session_key, record } = response.data;
     if (session_key) {
       Cookies.set('session_key', session_key);
     }

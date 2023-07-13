@@ -28,7 +28,13 @@ type Props = {
 };
 
 function Iterator(
-  p: Props & { property?: LovedPropertyDataModel; properties?: LovedPropertyDataModel[]; 'active-tab'?: string; onClickChangeCompareStats?(): void },
+  p: Props & {
+    property?: LovedPropertyDataModel;
+    properties?: LovedPropertyDataModel[];
+    'active-tab'?: string;
+    onClickChangeCompareStats?(): void;
+    loadData: () => void;
+  },
 ) {
   const Wrapped = React.Children.map(p.children, child => {
     if (child.props?.children || child.props?.className) {
@@ -125,21 +131,7 @@ export default function RxCustomerView(p: Props) {
     selectPropertyEvt.fireEvent(property as unknown as EventsData);
   };
 
-  React.useEffect(() => {
-    setAgent(session.data as unknown as AgentData);
-    const tabs = session.data as unknown as {
-      [key: string]: string;
-    };
-    if (tabs['active-crm-saved-homes-view']) setSelectedTab(tabs['active-crm-saved-homes-view']);
-  }, [session]);
-
-  React.useEffect(() => {
-    if (selectPropertyEvt.data) {
-      selectProperty(selectPropertyEvt.data as unknown as LovedPropertyDataModel);
-    }
-  }, [selectPropertyEvt.data]);
-
-  React.useEffect(() => {
+  const loadData = () => {
     const { id, customers, ...selections } = session.data as unknown as AgentData;
     const tabs = selections as unknown as {
       [key: string]: string;
@@ -182,6 +174,24 @@ export default function RxCustomerView(p: Props) {
         });
       }
     }
+  };
+
+  React.useEffect(() => {
+    setAgent(session.data as unknown as AgentData);
+    const tabs = session.data as unknown as {
+      [key: string]: string;
+    };
+    if (tabs['active-crm-saved-homes-view']) setSelectedTab(tabs['active-crm-saved-homes-view']);
+  }, [session]);
+
+  React.useEffect(() => {
+    if (selectPropertyEvt.data) {
+      selectProperty(selectPropertyEvt.data as unknown as LovedPropertyDataModel);
+    }
+  }, [selectPropertyEvt.data]);
+
+  React.useEffect(() => {
+    loadData();
     setHydrated(true);
   }, []);
 
@@ -190,6 +200,7 @@ export default function RxCustomerView(p: Props) {
       {hydrated ? (
         <Iterator
           {...p}
+          loadData={loadData}
           property={property}
           agent={agent}
           properties={properties}

@@ -26,6 +26,7 @@ export default function MyHomeAlertsList({ child, agent_data }: Props) {
       setSavedList(res);
     });
   }, []);
+
   useEffect(() => {
     if (key && reload) {
       setSavedList([...savedList.filter(card => card.id !== key)]);

@@ -15,7 +15,7 @@ type Props = {
   className: string;
   agent: AgentData;
   customer?: number;
-  onSave?: (results: Record<string, unknown>) => void;
+  reload: (results: SavedSearch) => void;
 };
 
 function convertDivsToSpans(el: React.ReactElement) {
@@ -489,9 +489,10 @@ export default function RxHomeAlertForm(p: Props) {
     .map(t => getShortType(t.name))
     .join(' ');
 
+  const { reload, ...props } = p;
   return (
     <div
-      {...p}
+      {...props}
       id='RxHomeAlertForm'
       onClick={(evt: React.SyntheticEvent) => {
         /// Fix to modal pre-maturely closing itself.
@@ -549,6 +550,7 @@ export default function RxHomeAlertForm(p: Props) {
                     category: NotificationCategory.SUCCESS,
                     message: 'Changes have been saved.',
                   });
+                  p.reload(results);
                   closeModal();
                 })
               : saveSearch(p.agent, { customer: p.customer, search_params, agent_customer_id: Number(params.get('customer')) || undefined }).then(results => {
@@ -557,7 +559,7 @@ export default function RxHomeAlertForm(p: Props) {
                     category: NotificationCategory.SUCCESS,
                     message: 'New home alert has been saved.',
                   });
-                  p.onSave ? p.onSave(results) : location.reload();
+                  p.reload(results);
                   closeModal();
                 });
           },

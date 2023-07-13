@@ -4,7 +4,7 @@ import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import useEvent, { Events } from '@/hooks/useEvent';
 import React, { ReactElement, cloneElement, useEffect, useState } from 'react';
 import SubmitGrid from './SubmitGrid';
-import { SavedSearchInput } from '@/_typings/saved-search';
+import { SavedSearchInput, SavedSearch } from '@/_typings/saved-search';
 import { saveSearch, updateSearch } from '@/_utilities/api-calls/call-saved-search';
 import { AgentData } from '@/_typings/agent';
 import RxHomeAlertForm from '@/components/RxForms/RxHomeAlertForm';
@@ -13,6 +13,7 @@ import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 type Props = {
   child: ReactElement;
   'agent-data': AgentData;
+  onSave: (record: SavedSearch) => void;
 };
 
 export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
@@ -47,12 +48,6 @@ export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
     setFormState({ ...alertData });
   }, [show]);
 
-  const handleFormChange = (key: string, val: any) => {
-    setFormState((prev: any) => ({ ...prev, [key]: val }));
-  };
-  const handleFormCityChange = (val: any) => {
-    setFormState((prev: any) => ({ ...prev, ...val }));
-  };
   const resetClick = () => {
     setFormState({ ...alertData });
   };
@@ -88,7 +83,7 @@ export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
           id: number;
         };
         return (
-          <RxHomeAlertForm agent={p['agent-data']} customer={customer} className={child.props.className}>
+          <RxHomeAlertForm agent={p['agent-data']} customer={customer} className={child.props.className} reload={p.onSave}>
             {child.props.children}
           </RxHomeAlertForm>
         );

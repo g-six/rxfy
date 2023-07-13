@@ -97,16 +97,21 @@ export async function PUT(request: Request) {
       );
 
       const { id: record_id, attributes } = update_response.data.updateSavedSearch.data;
+
+      const dwelling_types = attributes.dwelling_types.data.map(({ attributes: { name } }: { attributes: { name: string } }) => name);
       record = {
         ...record,
         ...attributes,
+        dwelling_types,
         id: Number(record_id),
       };
+
+      return getResponse({ record });
     } catch (e) {
       error = 'Caught exception on PUT method in \n  saved-searches/[id]/route.ts';
       console.log(error);
       const axios_error = e as AxiosError;
-      console.log(axios_error.response?.data);
+      console.log(axios_error);
     }
   } catch (e) {
     error = 'Caught Bearer exception on PUT method in \n  saved-searches/[id]/route.ts';
