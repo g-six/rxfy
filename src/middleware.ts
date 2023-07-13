@@ -51,18 +51,23 @@ export function middleware(request: NextRequest) {
     if (segments[2] === 'map') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/map`;
     else if (segments[2] === 'id') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/id`;
     else if (segments[2] === 'property') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/property/propertyid`;
+    else if (segments[2] === 'update-password') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/update-password`;
     else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}`;
   } else if (pathname === '/') {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}`;
   } else if (pathname === '/pdf') {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}${pathname}`;
     response.headers.set('Content-Type', 'application/pdf');
-  } else {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}${pathname}`;
+  } else {
+    if (request.cookies.get('session_as')?.value === 'realtor') page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}${pathname}`;
+    else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}${pathname}`;
   }
 
-  response.cookies.set('session_as', page_url.indexOf(WEBFLOW_DASHBOARDS.CUSTOMER) >= 0 ? 'customer' : 'realtor');
-  response.headers.set('x-url', page_url);
+  if (!page_url.includes('/_next') && !page_url.includes('.ico')) {
+    if (!request.cookies.get('session_as')) response.cookies.set('session_as', page_url.indexOf(WEBFLOW_DASHBOARDS.CUSTOMER) >= 0 ? 'customer' : 'realtor');
+    response.headers.set('x-url', page_url);
+  }
 
   if (searchParams.get('key') && !request.cookies.get('session_key')) {
     response.cookies.set('session_key', searchParams.get('key') as string);

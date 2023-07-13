@@ -85,8 +85,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
   } else if (session_key) {
     if (session_as === 'realtor') {
       console.log('Load agent data based on session_key', session_key);
-      // const session_data = await getUserSessionData(`Bearer ${session_key}`, 'realtor');
-      // agent_data = session_data as AgentData;
       const [session_hash, user_id] = session_key.split('-');
       const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
       agent_data = {

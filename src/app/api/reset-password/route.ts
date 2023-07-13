@@ -30,7 +30,7 @@ const mutation_gql = `mutation ResetPassword ($id: ID!, $timestamp: DateTime!) {
 
 export async function PUT(request: Request) {
   try {
-    const { email } = await request.json();
+    const { email, pathway } = await request.json();
     const url = new URL(request.url);
 
     if (email) {
@@ -80,7 +80,9 @@ export async function PUT(request: Request) {
             name: customer.data.attributes.full_name,
           },
         ];
-        const client_url = `${url.origin}/update-password?key=${encrypt(customer.data.attributes.last_activity_at)}.${encrypt(email)}-${customer.data.id}`;
+        const client_url = `${url.origin}${pathway ? `/${pathway}` : ''}/update-password?key=${encrypt(customer.data.attributes.last_activity_at)}.${encrypt(
+          email,
+        )}-${customer.data.id}`;
         await sendTemplate('forgot-password', send_to, {
           subject: 'Leagent Password Recovery',
           client_url,

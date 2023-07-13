@@ -248,8 +248,8 @@ export async function GET(request: Request, internal?: boolean) {
   if (isRealtorRequest(request.url)) {
     user_type = 'realtor';
   }
-
   const results = await getUserSessionData(request.headers.get('authorization') || '', user_type);
+
   const { error } = results as unknown as { error: string };
   if (error) return getResponse(results, 401);
 

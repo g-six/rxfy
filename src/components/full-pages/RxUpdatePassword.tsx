@@ -81,7 +81,7 @@ export function RxUpdatePasswordPage(props: RxUpdatePasswordPageProps) {
           message: 'Your password has been updated and you have been automagically logged in. You will be redirected to your account page in a few second(s)',
           timeout: 4000,
           onClose: () => {
-            location.href = '/my-profile';
+            location.href = 'my-profile';
           },
         });
       }
