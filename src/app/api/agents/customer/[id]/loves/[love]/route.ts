@@ -1,6 +1,7 @@
 import { getResponse } from '@/app/api/response-helper';
 import { NextRequest } from 'next/server';
 import { GET as checkSession } from '@/app/api/check-session/route';
+import { getCustomerLoves, removeCustomerLove } from '../model';
 
 export async function DELETE(request: NextRequest) {
   const customer_id = Number(request.url.split('/loves/')[0].split('/').pop());
@@ -28,25 +29,26 @@ export async function DELETE(request: NextRequest) {
   };
 
   const [customer] = customers.filter(customer => {
-    const { id, saved_searches } = customer as unknown as {
-      saved_searches: { id: number }[];
-      id: number;
+    const { agent_customer_id } = customer as unknown as {
+      agent_customer_id: number;
     };
-    saved_searches.filter((saved_search: { id: number }) => {
-      console.log({ saved_id: saved_search.id, customer_id, id, love_id });
-      return saved_search.id === love_id;
-    });
-    return customer_id === id;
-    return (
-      customer_id === id &&
-      saved_searches.filter((saved_search: { id: number }) => {
-        console.log({ id: saved_search.id, customer_id, love_id });
-        return saved_search.id === love_id;
-      }).length > 0
-    );
+    return customer_id === agent_customer_id;
   });
 
+  let love;
+  if (customer) {
+    const loves = await getCustomerLoves(customer_id);
+    love = loves.filter(l => {
+      return l.love === love_id;
+    })[0];
+    if (love) {
+      const deleted = await removeCustomerLove(love_id);
+      return getResponse({ session_key, deleted });
+    }
+  }
+
   return getResponse({
+    love,
     love_id,
     realtor,
     customer,

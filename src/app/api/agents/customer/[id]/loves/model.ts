@@ -1,5 +1,6 @@
 import { GQ_FRAGMENT_PROPERTY_ATTRIBUTES, LovedPropertyDataModel } from '@/_typings/property';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { gqlRequest } from '@/app/api/request-helper';
 import axios, { AxiosError } from 'axios';
 
 export const query_get_customer_loves = `query CustomerLoves ($id: ID!) {
@@ -110,4 +111,11 @@ export async function getCustomerLoves(id: number) {
   }
 
   return properties;
+}
+
+export async function removeCustomerLove(id: number) {
+  const {
+    data: { data: deleted },
+  } = await gqlRequest(gql_unlove, { id });
+  return deleted;
 }
