@@ -134,7 +134,6 @@ export default function TabAi({ template, nextStepClick, saveAndExit, data, fire
             return pht;
           })
           .filter((pht: string) => pht);
-
         // Pass extrated url to update state of photo url array
         setAlbumContents(urls);
 

@@ -77,7 +77,7 @@ export async function PUT(req: NextRequest) {
         }),
       );
     }
-    if (photos && property_photo_album) {
+    if (photos) {
       const updated_album = await updatePrivateListingAlbum(photos, property_photo_album);
       if (updated_album?.id) {
         listing = {
