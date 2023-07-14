@@ -67,7 +67,7 @@ export default function MyListingsTab({ child, isActive, setCurrentTab }: Props)
         cloneElement(
           child,
           {},
-          isActive
+          isActive && privateListings?.map
             ? privateListings.map((it, i) => (
                 <MyListingPrivateCard
                   key={i}

@@ -25,7 +25,7 @@ export function getFullAgentRecord(recordset: {
             [k]: !isNaN(Number(kv[k])) ? Number(kv[k]) : kv[k],
           };
         } else if (k === 'search_highlights' && kv[k]) {
-          const { labels: search_highlights } = kv[k] as unknown as {
+          let { labels: search_highlights } = kv[k] as unknown as {
             labels: {
               ne: {
                 lat: number;
@@ -42,29 +42,66 @@ export function getFullAgentRecord(recordset: {
               zoom: number;
             }[];
           };
-          search_highlights.forEach(r => {
-            agent = {
-              ...agent,
-              search_highlights: {
-                ...(agent.search_highlights as { [key: string]: unknown }),
-                [r.title]: {
-                  ...r,
+
+          if (search_highlights) {
+            search_highlights.forEach(r => {
+              agent = {
+                ...agent,
+                search_highlights: {
+                  ...(agent.search_highlights as { [key: string]: unknown }),
+                  [r.title]: {
+                    ...r,
+                  },
                 },
-              },
-            };
-            if (agent && !agent.map_config) {
+              };
+              if (agent && !agent.map_config) {
+                const map_config = {
+                  beds: 3,
+                  baths: 2,
+                  maxprice: 1000000,
+                  city: r.title,
+                  lat: r.lat,
+                  lng: r.lng,
+                  zoom: r.zoom,
+                  nelat: r.ne.lat,
+                  nelng: r.ne.lng,
+                  swlat: r.sw.lat,
+                  swlng: r.sw.lng,
+                };
+                agent = {
+                  ...agent,
+                  map_config: {
+                    ...map_config,
+                    query: objectToQueryString(map_config),
+                  },
+                };
+              }
+            });
+          } else {
+            const search_highlights = kv[k] as unknown as {
+              lat: number;
+              lng: number;
+              nelat: number;
+              nelng: number;
+              swlat: number;
+              swlng: number;
+              name: string;
+              address: string;
+              area?: string;
+              city: string;
+              postal_zip_code: string;
+              state_province: string;
+              country: string;
+              place_id: string;
+              neighbourhood?: string;
+            }[];
+
+            if (agent && !agent.map_config && search_highlights.length) {
               const map_config = {
                 beds: 3,
                 baths: 2,
                 maxprice: 1000000,
-                city: r.title,
-                lat: r.lat,
-                lng: r.lng,
-                zoom: r.zoom,
-                nelat: r.ne.lat,
-                nelng: r.ne.lng,
-                swlat: r.sw.lat,
-                swlng: r.sw.lng,
+                ...search_highlights[0],
               };
               agent = {
                 ...agent,
@@ -74,7 +111,12 @@ export function getFullAgentRecord(recordset: {
                 },
               };
             }
-          });
+
+            agent = {
+              ...agent,
+              search_highlights,
+            };
+          }
         }
       }
     });
