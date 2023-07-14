@@ -36,6 +36,9 @@ export function middleware(request: NextRequest) {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/brochure`;
   } else if (segments[0].indexOf('ai') === 0) {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/${segments.join('/')}`;
+  } else if (['my-documents'].includes(segments[0])) {
+    response.headers.set('x-viewer', 'customer');
+    page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/${segments.join('/')}`;
   } else if (segments[0].indexOf('my-') === 0) {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/${segments.join('/')}`;
   } else if (segments[0].indexOf('dash-my') === 0) {
