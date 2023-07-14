@@ -30,7 +30,7 @@ function Iterator(
                     className={child.props.className}
                     property={property}
                     include-stats={p['include-stats']}
-                    key={`compare-item-property-${property.id}`}
+                    key={`compare-item-property-${property.id}-${property_idx}`}
                     moveProperty={p.moveProperty}
                     removeCard={() => {
                       if (property.id) p.removeCard(property.id);

@@ -13,6 +13,8 @@ interface Props {
   property: PropertyDataModel & { love: number };
   unlove: () => void;
   reload: (r: unknown) => void;
+  agent?: string;
+  slug?: string;
 }
 
 function replacePlaceholders(placeholder: string, property: PropertyDataModel) {
@@ -46,6 +48,7 @@ function Iterator(p: Props) {
         </button>,
         {
           ...child.props,
+          href: undefined,
           className: child.props.className,
           children: React.Children.map(child.props.children, convertDivsToSpans),
           onClick: (evt: React.SyntheticEvent<HTMLButtonElement>) => {
@@ -53,6 +56,8 @@ function Iterator(p: Props) {
               p.unlove();
             } else if (evt.currentTarget.textContent === 'Compare') {
               console.log('c');
+            } else if (child.props.className.includes('pdf')) {
+              window.open(`/api/pdf/mls/${p.property && p.property.mls_id}?agent=${p.agent}&slug=${p.slug}/brochure?mls=${p.property && p.property.mls_id}`);
             }
           },
         },
@@ -80,7 +85,7 @@ export default function RxActionBar(p: Props) {
     let customer_id = 0;
     if (searchParams.get('customer')) customer_id = Number(searchParams.get('customer'));
     if (customer_id) {
-      // unloveHomeForCustomer(p.property.love, customer_id).then(p.reload).catch(console.error);
+      unloveHomeForCustomer(p.property.love, customer_id).then(p.reload).catch(console.error);
       const { properties } = data as unknown as {
         properties: LovedPropertyDataModel[];
       };
