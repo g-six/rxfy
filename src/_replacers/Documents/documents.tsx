@@ -48,7 +48,7 @@ function ConfirmDeleteIterator({ children, onCancel, onConfirm }: { children: Re
   return <>{Wrapped}</>;
 }
 
-export default function DocumentsReplacer({ nodes, nodeProps, agent_data }: Props & { confirm: boolean }) {
+export default function DocumentsReplacer({ nodes, nodeProps, agent_data }: Props & { confirm?: boolean }) {
   const params = useSearchParams();
   const [documents, setDocuments] = useState<DocumentsFolderInterface[]>([]);
   const templatesToFind = [{ searchFn: searchByClasses(['document-div']), elementName: 'docFolder' }];

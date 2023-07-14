@@ -23,8 +23,9 @@ export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
   const [agent_data, setAgentData] = React.useState<AgentData>();
   const onSave = (updated: SavedSearch) => {
     if (agent_data) {
+      console.log({ agent_data });
       const { customers } = agent_data;
-      if (customers)
+      if (customers) {
         customers.forEach(customer => {
           customer.saved_searches?.forEach((saved, idx) => {
             if (saved.id === updated.id && customer.saved_searches) {
@@ -36,16 +37,17 @@ export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
             }
           });
         });
-      setAgentData({
-        ...agent_data,
-        customers,
-      });
+        setAgentData({
+          ...agent_data,
+          customers,
+        });
+      }
       fireEvent({
         reload: true,
-        alertData: updated,
       });
     }
   };
+
   const matches: tMatch[] = [
     {
       searchFn: searchById('btn-new-home-alert'),
@@ -78,6 +80,9 @@ export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
     },
   ];
 
+  React.useEffect(() => {
+    console.log(p['agent-data'], agent_data);
+  }, [agent_data]);
   React.useEffect(() => {
     setAgentData(p['agent-data']);
   }, []);

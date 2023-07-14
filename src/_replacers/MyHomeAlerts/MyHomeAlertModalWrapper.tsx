@@ -55,12 +55,10 @@ export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
   const saveClick = async () => {
     if (formState?.id) {
       await updateSearch(formState.id, p['agent-data'], { search_params: removeKeys(formState, ['id']) });
-    }
-    if (!formState.id) {
+    } else {
       await saveSearch(p['agent-data'], { search_params: formState });
     }
-    // fireEvent({ show: false, message: '', reload: true, alertData: formState });
-    location.reload();
+    fireEvent({ show: false, message: '', reload: true });
   };
   const matches: tMatch[] = [
     {
