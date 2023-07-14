@@ -75,7 +75,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
               {React.Children.map(child.props.children, child => {
                 if (child.props.children === '{Agent Name}') {
                   return (
-                    <span className='propcard-stat map'>{props.agent_data?.first_name || props.agent_data?.full_name.split(' ').slice(0, 2).join(' ')}</span>
+                    <span className='propcard-stat map'>{props.agent_data?.first_name || props.agent_data?.full_name?.split(' ').slice(0, 2).join(' ')}</span>
                   );
                 }
                 return child;

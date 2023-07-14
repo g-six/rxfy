@@ -17,6 +17,7 @@ import RxLiveToggle from '../RxLiveUrlBased/RxLiveToggle';
 type Props = {
   children: React.ReactElement[];
   className?: string;
+  'data-agent-id'?: string;
 };
 export default function RxSearchFilters(p: Props) {
   const rx_map_state = useMapState();
@@ -393,6 +394,13 @@ export default function RxSearchFilters(p: Props) {
       },
     },
   ];
+
+  if (!p['data-agent-id']) {
+    // Not viewing map through agent
+    if (p.className?.includes('listings-by-agent')) {
+      return <></>;
+    }
+  }
 
   return (
     <fieldset {...p} className={`${p.className || ''} rexified`.trim()}>
