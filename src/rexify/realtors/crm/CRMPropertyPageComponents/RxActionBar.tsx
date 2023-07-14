@@ -55,7 +55,6 @@ function Iterator(p: Props) {
             if (child.props.className.indexOf('action-heart') >= 0) {
               p.unlove();
             } else if (evt.currentTarget.textContent === 'Compare') {
-              console.log('c');
             } else if (child.props.className.includes('pdf')) {
               window.open(`/api/pdf/mls/${p.property && p.property.mls_id}?agent=${p.agent}&slug=${p.slug}/brochure?mls=${p.property && p.property.mls_id}`);
             }
@@ -66,15 +65,7 @@ function Iterator(p: Props) {
 
     return child;
   });
-  /**
- * const { properties } = addPropertyToCompareEvt.data as unknown as {
-      properties: LovedPropertyDataModel[];
-    };
-    addPropertyToCompareEvt.fireEvent({
-      properties:
-        properties && properties.filter(included => included.id === property.id).length === 0 ? properties.concat([property]) : properties || [property],
-    } as unknown as EventsData);
- */
+
   return <>{Wrapped}</>;
 }
 
@@ -95,7 +86,6 @@ export default function RxActionBar(p: Props) {
     } as unknown as EventsData);
   };
 
-  console.log(confirmed_action);
   if (confirmed_action === 'unlove') {
     let customer_id = 0;
     if (searchParams.get('customer')) customer_id = Number(searchParams.get('customer'));
