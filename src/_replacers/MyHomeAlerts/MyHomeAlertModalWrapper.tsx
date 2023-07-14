@@ -59,7 +59,8 @@ export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
     if (!formState.id) {
       await saveSearch(p['agent-data'], { search_params: formState });
     }
-    fireEvent({ show: false, message: '', reload: true, alertData: formState });
+    // fireEvent({ show: false, message: '', reload: true, alertData: formState });
+    location.reload();
   };
   const matches: tMatch[] = [
     {

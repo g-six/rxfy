@@ -6,7 +6,7 @@ import { AgentData } from '@/_typings/agent';
 import { DocumentInterface, DocumentsFolderInterface } from '@/_typings/document';
 
 import DocumentsFolderDropdown from './DocumentsFolderDropdown';
-import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
+import useEvent, { Events, EventsData, NotificationCategory } from '@/hooks/useEvent';
 import { removeDocument, removeDocumentUpload, sendDocumentReminder } from '@/_utilities/api-calls/call-documents';
 import RxFileUploader from '@/components/RxForms/RxFileUploader';
 import RxDropMenu from '@/components/RxForms/RxDropMenu';
@@ -24,6 +24,11 @@ export default function DocumentsFolder({ template, docFolderData, setDocuments,
   const params = useSearchParams();
   const templates = captureMatchingElements(template, [{ searchFn: searchByClasses(['one-doc-description']), elementName: 'docRow' }]);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
+  const { data: confirmation, fireEvent: confirmDelete } = useEvent(Events.GenericEvent);
+  const { id: doc_to_delete, confirmed_action } = confirmation as unknown as {
+    confirmed_action: string;
+    id: number;
+  };
 
   const deleteFolder = () => {
     removeDocument(parseInt(docFolderData.id)).then(res => {
@@ -37,9 +42,17 @@ export default function DocumentsFolder({ template, docFolderData, setDocuments,
   };
 
   const deleteDocumentUpload = (id: string) => {
+    confirmDelete({
+      confirm: true,
+      id: Number(id),
+    } as unknown as EventsData);
+  };
+
+  if (confirmed_action === 'delete') {
     let customer;
     if (params.get('customer')) customer = Number(params.get('customer'));
-    removeDocumentUpload(parseInt(id), customer).then(res => {
+
+    removeDocumentUpload(doc_to_delete, customer).then(res => {
       if (res?.record?.id) {
         setDocuments(prev => [
           ...prev.map((docFolder: DocumentsFolderInterface) => {
@@ -54,7 +67,9 @@ export default function DocumentsFolder({ template, docFolderData, setDocuments,
         });
       }
     });
-  };
+
+    confirmDelete({});
+  }
 
   const sendReminder = () => {
     let customer = {};

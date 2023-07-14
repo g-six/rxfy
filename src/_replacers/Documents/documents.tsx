@@ -6,7 +6,7 @@ import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import { retrieveDocuments } from '@/_utilities/api-calls/call-documents';
 import DocumentsFolder from './DocumentsFolder';
 import DocumentsCreateFolder from './DocumentsCreateFolder';
-import { Events, NotificationMessages } from '@/_typings/events';
+import { Events, EventsData, NotificationMessages } from '@/_typings/events';
 import { AgentData } from '@/_typings/agent';
 import { DocumentsFolderInterface } from '@/_typings/document';
 import useEvent from '@/hooks/useEvent';
@@ -17,12 +17,51 @@ interface Props {
   agent_data: AgentData;
 }
 
-export default function DocumentsReplacer({ nodes, nodeProps, agent_data }: Props) {
+function ConfirmDeleteIterator({ children, onCancel, onConfirm }: { children: React.ReactElement; onConfirm: () => void; onCancel: () => void }) {
+  const Wrapped = React.Children.map(children, c => {
+    if (c.type === 'div') {
+      return (
+        <div className={c.props.className}>
+          <ConfirmDeleteIterator onCancel={onCancel} onConfirm={onConfirm}>
+            {c.props.children}
+          </ConfirmDeleteIterator>
+        </div>
+      );
+    }
+    if (c.type === 'a') {
+      if (`${c.props.children}` === 'Cancel') {
+        return React.cloneElement(c, {
+          ...c.props,
+          onClick: onCancel,
+        });
+      }
+      if (`${c.props.children}` === 'Delete') {
+        return React.cloneElement(c, {
+          ...c.props,
+          onClick: onConfirm,
+        });
+      }
+    }
+    return c;
+  });
+
+  return <>{Wrapped}</>;
+}
+
+export default function DocumentsReplacer({ nodes, nodeProps, agent_data }: Props & { confirm: boolean }) {
   const params = useSearchParams();
   const [documents, setDocuments] = useState<DocumentsFolderInterface[]>([]);
   const templatesToFind = [{ searchFn: searchByClasses(['document-div']), elementName: 'docFolder' }];
   const templates = captureMatchingElements(nodes, templatesToFind);
   const { data: notification } = useEvent(Events.SystemNotification);
+  const generic_event = useEvent(Events.GenericEvent);
+  const {
+    data: { confirm },
+  } = generic_event as unknown as {
+    data: {
+      confirm?: boolean;
+    };
+  };
 
   let agent_customer_id = params.get('customer') ? Number(params.get('customer')) : 0;
 
@@ -65,6 +104,30 @@ export default function DocumentsReplacer({ nodes, nodeProps, agent_data }: Prop
           onClick: () => {
             document.dispatchEvent(new CustomEvent(Events.CreateDocFolderShow, { detail: { show: true } }));
           },
+        });
+      },
+    },
+    {
+      searchFn: searchByClasses(['confirm-delete']),
+      transformChild: (child: ReactElement) => {
+        return cloneElement(child, {
+          ...child.props,
+          className: confirm ? 'flex items-center align-center justify-center' : child.props.className,
+          children: (
+            <ConfirmDeleteIterator
+              onCancel={() => {
+                generic_event.fireEvent({});
+              }}
+              onConfirm={() => {
+                generic_event.fireEvent({
+                  confirm: true,
+                  confirmed_action: 'delete',
+                } as unknown as EventsData);
+              }}
+            >
+              {child.props.children}
+            </ConfirmDeleteIterator>
+          ),
         });
       },
     },
