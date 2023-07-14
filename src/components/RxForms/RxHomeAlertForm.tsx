@@ -32,6 +32,7 @@ function Iterator(
     'data-selected-dwelling-types': string;
     data: {
       city?: string;
+      tags?: string;
       baths?: number;
       beds?: number;
       price?: {
@@ -59,6 +60,7 @@ function Iterator(
       setMinSize: (s: string) => void;
       setMaxSize: (s: string) => void;
       setCityFilter: React.Dispatch<React.SetStateAction<string>>;
+      setTags: React.Dispatch<React.SetStateAction<string | undefined>>;
       setGeo: (g: { [key: string]: number }) => void;
       toggleActive: (s: boolean) => void;
       toggleSelectedDwellingChip: (ptype: string) => { [key: string]: string | number | boolean }[];
@@ -172,7 +174,6 @@ function Iterator(
           children: values[child.props['data-value']],
         });
       }
-
       if (child.props.className === 'proptype-search') {
         return React.cloneElement(child, {
           ...child.props,
@@ -211,6 +212,16 @@ function Iterator(
             {child.props.children}
           </Iterator>
         ),
+      });
+    }
+
+    if (child.type === 'textarea' && child.props?.placeholder?.includes('keyword')) {
+      return React.cloneElement(child, {
+        ...child.props,
+        defaultValue: p.data.tags || '',
+        onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
+          p.actions.setTags(evt.currentTarget.value);
+        },
       });
     }
 
@@ -310,6 +321,7 @@ export default function RxHomeAlertForm(p: Props) {
   const [baths, setBaths] = React.useState<number>(0);
   const [beds, setBeds] = React.useState<number>(0);
   const [price, setPricing] = React.useState<{ min?: number; max?: number }>({});
+  const [tags, setTags] = React.useState<string>();
   const [size, setSizing] = React.useState<{ min?: number; max?: number }>({});
   const [is_active, setActive] = React.useState<boolean>();
   const [listed_at, setListedAt] = React.useState<number>();
@@ -508,6 +520,7 @@ export default function RxHomeAlertForm(p: Props) {
           price,
           size,
           year_built,
+          tags,
         }}
         actions={{
           adjustBaths,
@@ -521,6 +534,7 @@ export default function RxHomeAlertForm(p: Props) {
           toggleSelectedDwellingChip,
           updateListedAt,
           updateYear,
+          setTags,
           onReset() {
             console.log('reset');
           },
@@ -536,6 +550,7 @@ export default function RxHomeAlertForm(p: Props) {
               maxsqft: size?.max,
               is_active,
               year_built,
+              tags,
               dwelling_type_ids: dwelling_types.filter(t => t.selected).map(t => t.id),
             };
 
