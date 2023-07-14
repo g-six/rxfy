@@ -31,12 +31,16 @@ export default function MyHomeAlertsList({ child, agent_data }: Props) {
     if (key && reload) {
       setSavedList([...savedList.filter(card => card.id !== key)]);
       fireEvent({ key: undefined, reload: false });
-    }
-    if (alertData && reload) {
+    } else if (alertData && reload) {
       getSearches(search.get('customer') ? Number(search.get('customer')) : undefined).then(res => {
         setSavedList(res);
       });
       fireEvent({ key: undefined, reload: false, alertData: undefined });
+    } else if (reload) {
+      getSearches(search.get('customer') ? Number(search.get('customer')) : undefined).then(res => {
+        setSavedList(res);
+      });
+      fireEvent({ key: undefined, reload: false });
     }
   }, [key, reload, alertData]);
 

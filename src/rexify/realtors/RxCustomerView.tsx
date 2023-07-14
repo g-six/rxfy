@@ -33,7 +33,7 @@ function Iterator(
     properties?: LovedPropertyDataModel[];
     'active-tab'?: string;
     onClickChangeCompareStats?(): void;
-    loadData: () => void;
+    reload: () => void;
   },
 ) {
   const Wrapped = React.Children.map(p.children, child => {
@@ -56,7 +56,7 @@ function Iterator(
           return <RxCustomerCompareCanvas className={child.props.className}>{child.props.children}</RxCustomerCompareCanvas>;
         } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_PROPERTY_PREVIEW)) {
           return (
-            <RxCustomerPropertyView reload={p.loadData} className={child.props.className}>
+            <RxCustomerPropertyView reload={p.reload} className={child.props.className}>
               {child.props.children}
             </RxCustomerPropertyView>
           );
@@ -71,7 +71,7 @@ function Iterator(
         } else if (p.agent && child.props.className?.split(' ').includes('map-property-modal')) {
           return <RxMapPropertyModal {...child.props}>{child}</RxMapPropertyModal>;
         } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.MY_HOME_ALERTS)) {
-          return <RxMyHomeAlerts {...child.props} agent-data={p.agent} child={child} agent_data={p.agent} />;
+          return <RxMyHomeAlerts {...child.props} agent-data={p.agent} child={child} />;
         } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.DOCUMENTS)) {
           return <DocumentsReplacer nodeProps={child.props} agent_data={p.agent} nodes={child.props.children} />;
         } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_ACCOUNT_FORM)) {
@@ -208,7 +208,7 @@ export default function RxCustomerView(p: Props) {
       {hydrated ? (
         <Iterator
           {...p}
-          loadData={loadData}
+          reload={loadData}
           property={property}
           agent={agent}
           properties={properties}

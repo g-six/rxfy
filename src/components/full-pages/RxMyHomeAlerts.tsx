@@ -21,32 +21,6 @@ type Props = {
 export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
   const { fireEvent } = useEvent(Events.MyHomeAlertsModal);
   const [agent_data, setAgentData] = React.useState<AgentData>();
-  const onSave = (updated: SavedSearch) => {
-    if (agent_data) {
-      console.log({ agent_data });
-      const { customers } = agent_data;
-      if (customers) {
-        customers.forEach(customer => {
-          customer.saved_searches?.forEach((saved, idx) => {
-            if (saved.id === updated.id && customer.saved_searches) {
-              const { dwelling_types, ...updates } = updated;
-              customer.saved_searches[idx] = {
-                ...customer.saved_searches[idx],
-                ...updates,
-              };
-            }
-          });
-        });
-        setAgentData({
-          ...agent_data,
-          customers,
-        });
-      }
-      fireEvent({
-        reload: true,
-      });
-    }
-  };
 
   const matches: tMatch[] = [
     {
@@ -69,7 +43,15 @@ export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
     {
       searchFn: searchByClasses(['new-home-alert-wrapper']),
       transformChild: (child: ReactElement) => {
-        return <MyHomeAlertModalWrapper agent-data={p['agent-data']} child={child} onSave={onSave} />;
+        return (
+          <MyHomeAlertModalWrapper
+            agent-data={p['agent-data']}
+            child={child}
+            onSave={() => {
+              fireEvent({ reload: true });
+            }}
+          />
+        );
       },
     },
     {
@@ -80,9 +62,6 @@ export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
     },
   ];
 
-  React.useEffect(() => {
-    console.log(p['agent-data'], agent_data);
-  }, [agent_data]);
   React.useEffect(() => {
     setAgentData(p['agent-data']);
   }, []);
