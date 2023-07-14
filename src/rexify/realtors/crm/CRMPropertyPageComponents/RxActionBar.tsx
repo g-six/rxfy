@@ -3,7 +3,7 @@ import { LovedPropertyDataModel, PropertyDataModel } from '@/_typings/property';
 import { unloveHome, unloveHomeForCustomer } from '@/_utilities/api-calls/call-love-home';
 import { classNames } from '@/_utilities/html-helper';
 import { formatAddress } from '@/_utilities/string-helper';
-import useEvent, { Events, EventsData } from '@/hooks/useEvent';
+import useEvent, { Events, EventsData, NotificationCategory } from '@/hooks/useEvent';
 import { useSearchParams } from 'next/navigation';
 import React from 'react';
 
@@ -81,11 +81,28 @@ function Iterator(p: Props) {
 export default function RxActionBar(p: Props) {
   const { data, fireEvent } = useEvent(Events.AddPropertyToCompare);
   const searchParams = useSearchParams();
+  const { fireEvent: notify } = useEvent(Events.SystemNotification);
+  const { data: confirmation, fireEvent: confirmUnlove } = useEvent(Events.GenericEvent);
+  const { id: to_unlove, confirmed_action } = confirmation as unknown as {
+    confirmed_action: string;
+    id: number;
+  };
+
   const unlove = () => {
+    confirmUnlove({
+      confirm_unlove: true,
+      id: Number,
+    } as unknown as EventsData);
+  };
+
+  console.log(confirmed_action);
+  if (confirmed_action === 'unlove') {
     let customer_id = 0;
     if (searchParams.get('customer')) customer_id = Number(searchParams.get('customer'));
-    if (customer_id) {
-      unloveHomeForCustomer(p.property.love, customer_id).then(p.reload).catch(console.error);
+
+    if (customer_id && to_unlove) {
+      confirmUnlove({});
+      unloveHomeForCustomer(to_unlove, customer_id).then(p.reload).catch(console.error);
       const { properties } = data as unknown as {
         properties: LovedPropertyDataModel[];
       };
@@ -93,8 +110,15 @@ export default function RxActionBar(p: Props) {
         properties:
           properties && properties.filter(included => included.love !== p.property.love) ? properties.concat([p.property]) : properties || [p.property],
       } as unknown as EventsData);
+      notify({
+        timeout: 5000,
+        category: NotificationCategory.SUCCESS,
+        message: 'Property was successfully removed.',
+      });
+      setTimeout(() => location.reload(), 5500);
     }
-  };
+  }
+
   return p.property ? (
     <Iterator {...p} unlove={unlove}>
       {p.children}

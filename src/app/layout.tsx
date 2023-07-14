@@ -146,7 +146,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const head_links = $('head link');
   const head_meta = $('head meta');
   const metas: React.ReactElement[] = [
-    <title key='title'>{$('title').text() || 'Leagent'}</title>,
+    <title key='title'>{agent_data?.metatags?.title || $('title').text() || 'Leagent'}</title>,
     <link key='preflight-css' rel='stylesheet' type='text/css' href='/css/preflight.css' />,
   ];
 
@@ -169,6 +169,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const { class: bodyClassName, ...body_props } = webflow.body.props;
   if (webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN || requestUrl.pathname.split('/').pop() === 'map') {
     let title = agent_data?.metatags?.title || agent_data?.full_name;
+
     return (
       <html data-wf-domain={`${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`} {...$('html').attr()}>
         <head>{metas}</head>

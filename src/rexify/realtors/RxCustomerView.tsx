@@ -27,18 +27,62 @@ type Props = {
   className?: string;
 };
 
+function ConfirmDeleteIterator({ children, onCancel, onConfirm }: { children: React.ReactElement; onConfirm: () => void; onCancel: () => void }) {
+  const Wrapped = React.Children.map(children, c => {
+    if (c.type === 'div') {
+      return (
+        <div className={c.props.className}>
+          <ConfirmDeleteIterator onCancel={onCancel} onConfirm={onConfirm}>
+            {c.props.children}
+          </ConfirmDeleteIterator>
+        </div>
+      );
+    }
+    if (c.type === 'a') {
+      if (`${c.props.children}` === 'Cancel') {
+        return React.cloneElement(c, {
+          ...c.props,
+          onClick: onCancel,
+        });
+      }
+      if (`${c.props.children}` === 'Remove Saved Home') {
+        return React.cloneElement(c, {
+          ...c.props,
+          onClick: onConfirm,
+        });
+      }
+    }
+    return c;
+  });
+
+  return <>{Wrapped}</>;
+}
+
 function Iterator(
   p: Props & {
     property?: LovedPropertyDataModel;
     properties?: LovedPropertyDataModel[];
     'active-tab'?: string;
     onClickChangeCompareStats?(): void;
+    onCancel(): void;
+    onConfirm(): void;
     reload: () => void;
+    confirm?: boolean;
   },
 ) {
   const Wrapped = React.Children.map(p.children, child => {
     if (child.props?.children || child.props?.className) {
-      if (child.type === 'div') {
+      if (child.props?.className?.includes('confirm-delete')) {
+        return React.cloneElement(child, {
+          ...child.props,
+          className: p.confirm ? 'flex items-center align-center justify-center absolute w-full h-full' : child.props.className,
+          children: (
+            <ConfirmDeleteIterator onCancel={p.onCancel} onConfirm={p.onConfirm}>
+              {child.props.children}
+            </ConfirmDeleteIterator>
+          ),
+        });
+      } else if (child.type === 'div') {
         if (child.props?.id === 'customer-view-modal-compare-filters') {
           return (
             <RxCompareFiltersModal {...child.props} filters={p.property ? Object.keys(p.property) : []}>
@@ -130,6 +174,12 @@ export default function RxCustomerView(p: Props) {
   const searchParams = useSearchParams();
   const session = useEvent(Events.LoadUserSession);
   const lovers = useEvent(Events.LoadLovers);
+  const { data: confirmation, fireEvent: confirmUnlove } = useEvent(Events.GenericEvent);
+  const { confirm_unlove } = confirmation as unknown as {
+    confirm_unlove?: boolean;
+    id?: number;
+  };
+
   const selectPropertyEvt = useEvent(Events.SelectCustomerLovedProperty);
   const [properties, setProperties] = React.useState<LovedPropertyDataModel[]>([]);
   const [property, selectProperty] = React.useState<LovedPropertyDataModel>();
@@ -208,6 +258,18 @@ export default function RxCustomerView(p: Props) {
       {hydrated ? (
         <Iterator
           {...p}
+          confirm={confirm_unlove}
+          onCancel={() => {
+            confirmUnlove({});
+          }}
+          onConfirm={() => {
+            if (property?.love) {
+              confirmUnlove({
+                id: property.love,
+                confirmed_action: 'unlove',
+              } as unknown as EventsData);
+            }
+          }}
           reload={loadData}
           property={property}
           agent={agent}
