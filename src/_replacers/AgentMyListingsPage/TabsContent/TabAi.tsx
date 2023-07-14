@@ -52,7 +52,7 @@ export default function TabAi({ template, nextStepClick, saveAndExit, data, fire
         ? data.photos
             .filter((pht: string | ImagePreview) => pht)
             .map((image: unknown, idx: number) => {
-              if (typeof image === 'string') return { url: image, preview: getImageSized(image, 80), lastModified: idx };
+              if (typeof image === 'string') return { url: image, preview: getImageSized(image, 140), lastModified: idx };
               else {
                 const img = image as ImagePreview;
                 if (!img.lastModified)
@@ -113,12 +113,10 @@ export default function TabAi({ template, nextStepClick, saveAndExit, data, fire
           photos.map(async (photo: File, cnt: number) => {
             if (photo.name) {
               const upload_item = await uploadListingPhoto(photo, cnt + 1, rec);
-              await axios.put(upload_item.upload_url, photo, { headers: { 'Content-Type': photo.type } });
-              // photos[cnt].url = 'https://' + new URL(upload_item.upload_url).pathname.substring(1);
-              // photos[cnt].preview = getImageSized('https://' + new URL(upload_item.upload_url).pathname.substring(1), 80);
+              const upl = await axios.put(upload_item.upload_url, photo, { headers: { 'Content-Type': photo.type } });
               photos[cnt] = {
                 url: 'https://' + new URL(upload_item.upload_url).pathname.substring(1),
-                preview: getImageSized('https://' + new URL(upload_item.upload_url).pathname.substring(1), 80),
+                preview: getImageSized('https://' + new URL(upload_item.upload_url).pathname.substring(1), 140),
                 lastModified: cnt,
               } as unknown as ImagePreview;
             }
