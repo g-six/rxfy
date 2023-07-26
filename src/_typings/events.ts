@@ -9,6 +9,7 @@ export enum Events {
   ResetPassword = 'event-reset-password',
   UpdatePassword = 'event-update-password',
   SignUp = 'event-signup',
+  MapSearch = 'evt-map-search',
   SaveAccountChanges = 'event-save-acct-changes',
   SystemNotification = 'system-notification',
   MapHomeAlertToast = 'event-map-home-alert',

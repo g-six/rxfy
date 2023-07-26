@@ -32,7 +32,7 @@ type RxMapboxProps = {
   setListings(listings: PropertyDataModel[]): void;
 };
 
-function createMapPin() {
+export function createMapPin() {
   const el = document.createElement('div');
   el.className = 'marker';
   el.innerHTML = `<img src="/icons/map/map-pin.svg" width="24" height="24" class="opacity-60" />`;

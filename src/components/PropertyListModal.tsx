@@ -6,6 +6,7 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { RxSmallPropertyCard } from './RxCards/RxSmallPropertyCard';
 import { PropertyDataModel } from '@/_typings/property';
 import { AgentData } from '@/_typings/agent';
+import styles from './PropertyListModal.module.scss';
 
 type PropertyListProps = {
   properties: PropertyDataModel[];
@@ -43,11 +44,7 @@ export default function PropertyListModal(p: PropertyListProps) {
               leaveFrom='opacity-100 translate-y-0 sm:scale-100'
               leaveTo='opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'
             >
-              <Dialog.Panel
-                className={`flex flex-col gap-4 relative transform rounded-2xl bg-white text-left shadow-xl transition-all sm:w-full sm:max-w-xl lg:max-w-2xl px-0${
-                  p.properties.length > 1 ? ' py-1' : ''
-                }`}
-              >
+              <Dialog.Panel className='flex flex-col gap-4 relative transform rounded-2xl bg-white text-left shadow-xl transition-all sm:w-full sm:max-w-xl lg:max-w-2xl px-0'>
                 <button
                   type='button'
                   className={`text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-0 bg-black absolute -top-2 -right-2 z-20 rounded-full w-6 h-6 flex flex-col items-center justify-center ${
@@ -64,7 +61,7 @@ export default function PropertyListModal(p: PropertyListProps) {
                   className={classNames(
                     'relative overflow-y-auto rounded-2xl',
                     p['view-only'] ? 'lg:w-80' : '',
-                    p.properties.length > 1 ? 'px-1' : 'w-72 sm:w-72',
+                    p.properties.length > 1 ? 'px-0' : 'w-72 sm:w-72',
                     p.properties.length > 4 && 'h-[23.25rem]',
                   )}
                 >
@@ -95,7 +92,7 @@ export default function PropertyListModal(p: PropertyListProps) {
                           </RxPropertyCard>
                         ) : (
                           <RxSmallPropertyCard
-                            className={['w-full shadow-none m-0 hover:bg-indigo-100 flex p-1 rounded-2xl', p['view-only'] ? 'gap-1 overflow-hidden' : ''].join(
+                            className={[styles['cluster-item'], 'w-full m-0 hover:bg-indigo-100 flex p-1', p['view-only'] ? 'gap-1 overflow-hidden' : ''].join(
                               ' ',
                             )}
                             onClick={

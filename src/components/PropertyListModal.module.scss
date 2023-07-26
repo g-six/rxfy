@@ -1,0 +1,6 @@
+.cluster-item {
+  @apply shadow-none rounded-none #{!important};
+  :global(.propcard-image-small) {
+    @apply rounded-lg #{!important};
+  }
+}

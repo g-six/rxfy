@@ -45,6 +45,8 @@ export function middleware(request: NextRequest) {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/${segments.join('/')}`;
   } else if (segments[0] === 'map') {
     response.headers.set('x-viewer', 'customer');
+    response.headers.set('x-search-params', searchParams.toString());
+
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/map`;
   } else if (segments.length >= 2 && segments[1].indexOf('la-') === 0) {
     response.headers.set('x-agent-id', segments[0]);

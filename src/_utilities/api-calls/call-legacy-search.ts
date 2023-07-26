@@ -1,27 +1,8 @@
 import { LegacySearchPayload } from '@/_typings/pipeline';
 import { PropertyDataModel } from '@/_typings/property';
-import { AxiosStatic } from 'axios';
-
+import axios, { AxiosStatic } from 'axios';
 export async function retrieveFromLegacyPipeline(
-  params: LegacySearchPayload = {
-    from: 0,
-    size: 3,
-    sort: { 'data.ListingDate': 'desc' },
-    query: {
-      bool: {
-        filter: [
-          {
-            match: {
-              'data.Status': 'Active',
-            },
-          },
-        ],
-        must_not,
-        should: [],
-      },
-    },
-    _source: true,
-  },
+  params: LegacySearchPayload = DEF_LEGACY_PAYLOAD,
   config = {
     url: process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
     headers: {
@@ -88,6 +69,11 @@ export async function retrieveFromLegacyPipeline(
   });
 }
 
+export async function retrievePublicListingsFromPipeline(params: LegacySearchPayload = DEF_LEGACY_PAYLOAD) {
+  const { data } = await axios.post('/api/pipeline', params);
+  return data;
+}
+
 export const must_not: {
   match?: { [key: string]: string };
   range?: {
@@ -114,6 +100,26 @@ export const must_not: {
     },
   },
 ];
+
+export const DEF_LEGACY_PAYLOAD: LegacySearchPayload = {
+  from: 0,
+  size: 3,
+  sort: { 'data.ListingDate': 'desc' },
+  query: {
+    bool: {
+      filter: [
+        {
+          match: {
+            'data.Status': 'Active',
+          },
+        },
+      ],
+      must_not,
+      should: [],
+    },
+  },
+  _source: true,
+};
 
 /// From integrations API
 export const STRAPI_FIELDS: {

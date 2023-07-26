@@ -794,9 +794,9 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
          * This is where the magic happens
          */
         if (agent_data && node.attribs.class === 'map-div') {
-          // return <>{domToReact(node.children) as ReactElement[]}</>;
-
           // Mapbox Voodoo here
+          return <>{domToReact(node.children) as ReactElement[]}</>;
+
           // Check for improvement
           return (
             <div className={node.attribs.class} id='MapDiv'>

@@ -1,4 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+'use client';
 import React from 'react';
 import mapboxgl, { GeoJSONSource, GeoJSONSourceRaw, MapboxGeoJSONFeature } from 'mapbox-gl';
 import { Feature } from 'geojson';
@@ -13,13 +14,13 @@ import { useSearchParams } from 'next/navigation';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
 
-export default function RxMapView() {
+export default function RxMapView({ lat, lng }: { lat?: number; lng?: number }) {
   const searchParams = useSearchParams();
   const session = useEvent(Events.LoadUserSession);
   const lovers = useEvent(Events.LoadLovers);
   const mapDiv = React.useRef<HTMLDivElement>(null);
   const [map, setMap] = React.useState<mapboxgl.Map | null>(null);
-  const [lat_lng, setLngLat] = React.useState<mapboxgl.LngLatLike>([-123.1207, 49.2827]);
+  const [lat_lng, setLngLat] = React.useState<mapboxgl.LngLatLike>([lng || -123.1207, lat || 49.2827]);
   const [pins, setPins] = React.useState<Feature[]>();
   const [properties, setProperties] = React.useState<LovedPropertyDataModel[]>();
 
