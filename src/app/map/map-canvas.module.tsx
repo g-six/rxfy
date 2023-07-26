@@ -126,12 +126,20 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
 
   const populateMap = () => {
     if (filters && is_loading) {
+      let should: {
+        match?: {
+          [k: string]: string;
+        };
+      }[] = [];
       const user_defined_filters: {
         range?: {
           [k: string]: {
             gte?: number;
             lte?: number;
           };
+        };
+        term?: {
+          [k: string]: string;
         };
         match?: {
           [k: string]: string;
@@ -181,6 +189,13 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
           },
         });
       }
+      if (filters.types) {
+        should = `${filters.types}`.split(',').map(t => ({
+          match: {
+            'data.Type': t === 'House' ? 'House/Single Family' : t,
+          },
+        }));
+      }
       const legacy_params: LegacySearchPayload = {
         from: 0,
         size: 1000,
@@ -215,7 +230,8 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
                 },
               } as unknown as Record<string, string>,
             ].concat(user_defined_filters as any[]) as any[],
-            should: [],
+            should,
+            ...(should.length ? { minimum_should_match: 1 } : {}),
           },
         },
       };
@@ -302,7 +318,7 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
   }, [filters]);
 
   React.useEffect(() => {
-    if (listings.length) {
+    if (listings) {
       const points = listings.map(p => ({
         type: 'Feature' as unknown as Feature,
         properties: {
@@ -321,36 +337,34 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
         id: p.mls_id,
       }));
 
-      if (points.length) {
-        setLoading(false);
-        fireEvent({
-          ...data,
-          points,
-        } as unknown as EventsData);
-        const geojson_options: GeoJSONSourceRaw = {
-          type: 'geojson',
-          data: {
-            features: points as unknown as Feature[],
+      setLoading(false);
+      fireEvent({
+        ...data,
+        points,
+      } as unknown as EventsData);
+      const geojson_options: GeoJSONSourceRaw = {
+        type: 'geojson',
+        data: {
+          features: points as unknown as Feature[],
+          type: 'FeatureCollection',
+        },
+        cluster: true,
+        clusterMaxZoom: 19,
+        clusterRadius: 50,
+      };
+      if (map) {
+        if (map.getSource('map-source') === undefined) {
+          map.addSource('map-source', geojson_options);
+        } else {
+          (map.getSource('map-source') as GeoJSONSource).setData({
             type: 'FeatureCollection',
-          },
-          cluster: true,
-          clusterMaxZoom: 19,
-          clusterRadius: 50,
-        };
-        if (map) {
-          if (map.getSource('map-source') === undefined) {
-            map.addSource('map-source', geojson_options);
-          } else {
-            (map.getSource('map-source') as GeoJSONSource).setData({
-              type: 'FeatureCollection',
-              features: points as unknown as Feature[],
-            });
-          }
-          addClusterLayer(map);
-          addClusterHomeCountLayer(map);
-          addSingleHomePins(map);
-          registerMapClickHandler(listings);
+            features: points as unknown as Feature[],
+          });
         }
+        addClusterLayer(map);
+        addClusterHomeCountLayer(map);
+        addSingleHomePins(map);
+        registerMapClickHandler(listings);
       }
     }
   }, [listings]);

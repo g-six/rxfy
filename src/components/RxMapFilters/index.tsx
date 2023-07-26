@@ -12,6 +12,7 @@ import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import { classNames } from '@/_utilities/html-helper';
 
 import styles from './RxMapFilters.module.scss';
+import OtherMapFilters from '@/app/map/other-filters.module';
 
 function Iterator({
   children,
@@ -69,6 +70,9 @@ function Iterator({
             </Iterator>
           </div>
         );
+      }
+      if (className?.includes('property-type-modal')) {
+        return <OtherMapFilters className={className}>{subchildren}</OtherMapFilters>;
       }
       if (className?.includes('max-price-dropdown')) {
         return (
