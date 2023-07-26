@@ -17,6 +17,9 @@ import HomeAlert2 from './home-alert-2.module';
 import HomeAlert3 from './home-alert-3.module';
 import MapSearchInput from './search-input.module';
 import MapCanvas from './map-canvas.module';
+import HomeList from './home-list.module';
+
+import list_styles from './home-list.module.scss';
 
 async function Iterator({ agent, children }: { children: React.ReactElement; agent?: AgentData }) {
   const Wrapped = React.Children.map(children, c => {
@@ -80,6 +83,14 @@ async function Iterator({ agent, children }: { children: React.ReactElement; age
           );
         } else if (className.includes('listings-by-agent-field') && !agent) {
           return <></>;
+        } else if (className.includes('all-properties')) {
+          return <HomeList className={className}>{props.children}</HomeList>;
+        } else if (className.includes('left-bar')) {
+          return (
+            <div className={[className, list_styles['left-bar']].join(' ')}>
+              <Iterator>{props.children}</Iterator>
+            </div>
+          );
         } else if (className.includes('ha-icon')) {
           return <HomeAlertButton className={className}>{convertDivsToSpans(props.children)}</HomeAlertButton>;
         } else if (className.includes('ha-step-1')) {

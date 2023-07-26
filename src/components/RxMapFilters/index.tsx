@@ -8,6 +8,10 @@ import React from 'react';
 import { Events, EventsData } from '@/hooks/useFormEvent';
 import { FilterUpdateButton } from '../RxCards/RxPropertyCardList';
 import useEvent from '@/hooks/useEvent';
+import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
+import { classNames } from '@/_utilities/html-helper';
+
+import styles from './RxMapFilters.module.scss';
 
 function Iterator({
   children,
@@ -21,6 +25,8 @@ function Iterator({
   'is-searching'?: boolean;
   filters: MapFilters;
   onChange: (className: string) => void;
+  onOptionSelect: (evt: React.SyntheticEvent) => void;
+  'data-value'?: string;
 }) {
   const Wrapped = React.Children.map(children, c => {
     if (['div', 'nav'].includes(`${c.type}`)) {
@@ -29,7 +35,7 @@ function Iterator({
       //<-- Buttons -->
       if (className?.includes('-less')) {
         return (
-          <button type='button' className={className + ' rexified bg-transparent'} onClick={() => props.onChange(className, -1)}>
+          <button type='button' className={className + ' rexified bg-transparent'} onClick={() => props.onChange(className)}>
             {convertDivsToSpans(subchildren)}
           </button>
         );
@@ -49,6 +55,39 @@ function Iterator({
       if (className?.includes('baths-min')) {
         return React.cloneElement(c, c.props, [props.filters.baths]);
       }
+      if (className?.includes('maxprice') && props.filters.maxprice) {
+        return React.cloneElement(c, c.props, [getShortPrice(props.filters.maxprice, '')]);
+      }
+      if (className?.includes('minprice') && props.filters.minprice) {
+        return React.cloneElement(c, c.props, [getShortPrice(props.filters.minprice, '')]);
+      }
+      if (className?.includes('min-price-dropdown')) {
+        return (
+          <div {...c.props} className={className + ' rexified'}>
+            <Iterator {...c.props} onOptionSelect={props.onOptionSelect} data-value='minprice'>
+              {c.props.children}
+            </Iterator>
+          </div>
+        );
+      }
+      if (className?.includes('max-price-dropdown')) {
+        return (
+          <div {...c.props} className={className + ' rexified'}>
+            <Iterator {...c.props} onOptionSelect={props.onOptionSelect} data-value='maxprice'>
+              {c.props.children}
+            </Iterator>
+          </div>
+        );
+      }
+      if (className?.includes('dropdown-wrap')) {
+        return (
+          <div {...c.props} className={className + ' rexified'}>
+            <Iterator {...c.props} onOptionSelect={props.onOptionSelect} data-value={props['data-value']}>
+              {c.props.children}
+            </Iterator>
+          </div>
+        );
+      }
       if (className?.includes('w-dropdown-list') && props['is-searching']) {
         return React.cloneElement(c, {
           className: className.split(' w--open').join(''),
@@ -57,13 +96,27 @@ function Iterator({
 
       return (
         <div {...subprops} className={className || '' + ' rexified RxMapFilters iterator'}>
-          <Iterator {...props}>{subchildren}</Iterator>
+          <Iterator {...props} onOptionSelect={props.onOptionSelect}>
+            {subchildren}
+          </Iterator>
         </div>
       );
     }
     if (c.type === 'a') {
       if (c.props?.className?.includes('do-search')) {
         return <FilterUpdateButton className={c.props.className + ' rexified bg-transparent'}>{convertDivsToSpans(c.props.children)}</FilterUpdateButton>;
+      }
+      if (c.props?.className?.includes('dropdown-link')) {
+        return (
+          <button
+            type='button'
+            className={classNames(c.props.className, 'rexified', styles.option)}
+            onClick={props.onOptionSelect}
+            data-value={props['data-value']}
+          >
+            {c.props.children}
+          </button>
+        );
       }
     }
     return c;
@@ -151,6 +204,7 @@ export default function RxMapFilters({ children, ...values }: { [key: string]: s
       fireEvent({
         ...data,
         filters: updated_filters,
+        reload: true,
       } as unknown as EventsData);
     }
   };
@@ -200,6 +254,38 @@ export default function RxMapFilters({ children, ...values }: { [key: string]: s
 
         setFilters(updated_filters);
         updateLegacyFilters(updated_filters);
+        const qs = objectToQueryString(updated_filters as unknown as { [k: string]: string });
+        router.push(location.pathname + '?' + qs);
+      }}
+      onOptionSelect={(evt: React.SyntheticEvent) => {
+        const text = evt.currentTarget.textContent?.toLowerCase() || '';
+        const [k] = text.split('$').join('').split('k') || [];
+        const [m] = text.split('$').join('').split('m') || [];
+        let v = 0;
+        if (m && text.includes('m')) {
+          const [whole, decimal] = m.split('.').map(Number);
+          v = whole * 1000000 + (decimal ? decimal * 100000 : 0);
+        } else if (k && text.includes('k')) {
+          v = Number(k) * 1000;
+        }
+        const filter_name = evt.currentTarget.getAttribute('data-value');
+        if (filter_name) {
+          const f = filters as unknown as {
+            [k: string]: any;
+          };
+          if (f[filter_name] && f[filter_name] === v) return;
+
+          const updated_filters = {
+            ...filters,
+            [filter_name]: isNaN(Number(v)) ? undefined : v,
+          };
+          setFilters(updated_filters);
+          const qs = objectToQueryString({
+            ...updated_filters,
+            reload: undefined,
+          } as unknown as { [k: string]: string | number });
+          router.push(location.pathname + '?' + qs);
+        }
       }}
     >
       {children}

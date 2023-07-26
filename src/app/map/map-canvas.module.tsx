@@ -6,7 +6,7 @@ import { Feature } from 'geojson';
 
 import { PropertyDataModel } from '@/_typings/property';
 import { addClusterHomeCountLayer, addClusterLayer, addSingleHomePins, createMapPin } from '@/components/RxMapbox';
-import useEvent, { Events } from '@/hooks/useEvent';
+import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { LegacySearchPayload } from '@/_typings/pipeline';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { objectToQueryString, queryStringToObject } from '@/_utilities/url-helper';
@@ -48,7 +48,7 @@ function Iterator({ children }: { children: React.ReactElement }) {
 export default function MapCanvas(p: { className: string; children: React.ReactElement }) {
   const router = useRouter();
   const search = useSearchParams();
-  const { data } = useEvent(Events.MapSearch);
+  const { data, fireEvent } = useEvent(Events.MapSearch);
   const mapNode = React.useRef(null);
   const [map, setMap] = React.useState<mapboxgl.Map>();
   const [is_loading, setLoading] = React.useState<boolean>(false);
@@ -57,6 +57,10 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
   }>();
   const [listings, setListings] = React.useState<PropertyDataModel[]>([]);
   const [selected_cluster, setSelectedCluster] = React.useState<PropertyDataModel[]>([]);
+
+  const { filters: map_filters } = data as unknown as {
+    filters: LegacySearchPayload;
+  };
 
   const clickEventListener = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
     const features = e.target.queryRenderedFeatures(e.point, {
@@ -122,9 +126,65 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
 
   const populateMap = () => {
     if (filters && is_loading) {
+      const user_defined_filters: {
+        range?: {
+          [k: string]: {
+            gte?: number;
+            lte?: number;
+          };
+        };
+        match?: {
+          [k: string]: string;
+        };
+      }[] = [];
+      if (filters.baths) {
+        user_defined_filters.push({
+          range: {
+            'data.L_TotalBaths': {
+              gte: Number(filters.baths),
+            },
+          },
+        });
+      }
+      if (filters.beds) {
+        user_defined_filters.push({
+          range: {
+            'data.L_BedroomTotal': {
+              gte: Number(filters.beds),
+            },
+          },
+        });
+      }
+      if (filters.minprice && filters.maxprice) {
+        user_defined_filters.push({
+          range: {
+            'data.AskingPrice': {
+              gte: Number(filters.minprice),
+              lte: Number(filters.maxprice),
+            },
+          },
+        });
+      } else if (filters.minprice) {
+        user_defined_filters.push({
+          range: {
+            'data.AskingPrice': {
+              gte: Number(filters.minprice),
+            },
+          },
+        });
+      } else if (filters.maxprice) {
+        user_defined_filters.push({
+          range: {
+            'data.AskingPrice': {
+              lte: Number(filters.maxprice),
+            },
+          },
+        });
+      }
       const legacy_params: LegacySearchPayload = {
         from: 0,
-        size: 250,
+        size: 1000,
+        sort: { 'data.UpdateDate': 'desc' },
         query: {
           bool: {
             filter: [
@@ -151,10 +211,10 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
               },
               {
                 match: {
-                  'data.Status': 'Active',
+                  'data.Status': 'Active' as string,
                 },
-              },
-            ],
+              } as unknown as Record<string, string>,
+            ].concat(user_defined_filters as any[]) as any[],
             should: [],
           },
         },
@@ -168,11 +228,15 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
   const repositionMap = React.useCallback(
     () => {
       if (map) {
-        map.getStyle().layers.forEach(layer => {
-          if (layer.id.indexOf('rx-') === 0) {
-            map.removeLayer(layer.id);
-          }
-        });
+        // Not sure why we need this, perhaps performance issue in the past?
+        // Commenting this out for now and if maps performance is an issue,
+        // try uncommenting this
+
+        // map.getStyle().layers.forEach(layer => {
+        //   if (layer.id.indexOf('rx-') === 0) {
+        //     map.removeLayer(layer.id);
+        //   }
+        // });
         if (marker) marker.remove();
         marker = new mapboxgl.Marker(createMapPin()).setLngLat(map.getCenter()).addTo(map);
 
@@ -221,8 +285,17 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
 
   React.useEffect(() => {
     if (filters?.lat && filters?.lng) {
+      const { reload } = data as unknown as {
+        reload: boolean;
+      };
       if (!map) {
         initializeMap();
+        setLoading(true);
+      } else if (reload) {
+        fireEvent({
+          ...data,
+          reload: false,
+        });
         setLoading(true);
       }
     }
@@ -249,6 +322,11 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
       }));
 
       if (points.length) {
+        setLoading(false);
+        fireEvent({
+          ...data,
+          points,
+        } as unknown as EventsData);
         const geojson_options: GeoJSONSourceRaw = {
           type: 'geojson',
           data: {

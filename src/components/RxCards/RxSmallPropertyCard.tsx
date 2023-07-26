@@ -10,9 +10,11 @@ export function RxSmallPropertyCard(props: PropertyDataModel & { className?: str
   return (
     <div className={classNames(props.className || '', 'property-card-small smaller relative')}>
       <div
-        className='propcard-image-small shrink-0 w-24 aspect-square bg-cover bg-center bg-no-repeat'
-        style={{ backgroundImage: `url(${props.cover_photo ? props.cover_photo : '/house-placeholder.png'})` }}
-      ></div>
+        className='propcard-image-small overflow-hidden shrink-0 w-24 aspect-square bg-cover bg-center bg-no-repeat'
+        style={{ backgroundImage: `url(/house-placeholder.png)` }}
+      >
+        {props.cover_photo && <div className='w-full h-full bg-cover bg-center bg-no-repeat' style={{ backgroundImage: `url(${props.cover_photo})` }} />}
+      </div>
       <div className='propcard-small-div'>
         <div className='div-block-9'>
           <div className='price-line'>

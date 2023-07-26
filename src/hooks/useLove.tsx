@@ -13,14 +13,12 @@ export default function useLove() {
     remove?: boolean;
   }>();
 
-  const onEvent = React.useCallback(
-    (e: CustomEvent) =>
-      setLovedData({
-        ...(e.detail as { item: LovedItem; remove?: boolean }),
-        items: data?.items || [],
-      }),
-    [],
-  );
+  const onEvent = React.useCallback((e: CustomEvent) => {
+    setLovedData({
+      ...(e.detail as { item: LovedItem; remove?: boolean }),
+      items: data?.items || [],
+    });
+  }, []);
 
   React.useEffect(() => {
     if (data && data.item) {
