@@ -128,6 +128,11 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
           [k: string]: string;
         };
       }[] = [];
+      fireEvent({
+        ...data,
+        points: undefined,
+        reload: false,
+      } as unknown as EventsData);
       const user_defined_filters: {
         range?: {
           [k: string]: {
@@ -262,6 +267,10 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
       };
       retrievePublicListingsFromPipeline(legacy_params).then(({ records }: { records: PropertyDataModel[] }) => {
         setListings(records);
+        fireEvent({
+          ...data,
+          reload: false,
+        } as EventsData);
       });
     }
   };
@@ -294,13 +303,13 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
               ...data,
               keyword,
             } as unknown as EventsData);
-            router.push(
-              'map?' +
-                objectToQueryString({
-                  ...queryStringToObject(search.toString()),
-                  city: keyword,
-                }),
-            );
+            // router.push(
+            //   'map?' +
+            //     objectToQueryString({
+            //       ...queryStringToObject(search.toString()),
+            //       city: keyword,
+            //     }),
+            // );
           });
           const updated_filters = {
             // ...queryStringToObject(search.toString()),
@@ -316,8 +325,9 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
           setFilters(updated_filters);
           fireEvent({
             ...data,
+            points: undefined,
             reload: true,
-          });
+          } as EventsData);
         }
       }
     },
@@ -340,7 +350,6 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
         marker = new mapboxgl.Marker(createMapPin()).setLngLat(map.getCenter()).addTo(map);
 
         const { lat, lng } = map.getCenter();
-
         repositionMap(`${lat},${lng}`);
       };
       map.off('dragend', populate);
@@ -405,7 +414,6 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
       fireEvent({
         ...data,
         points,
-        reload: false,
       } as unknown as EventsData);
       const geojson_options: GeoJSONSourceRaw = {
         type: 'geojson',

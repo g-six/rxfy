@@ -67,34 +67,36 @@ export default function RxMapOfListing({ property, child, mapType }: Props) {
     if (ref && ref.current) {
       // in documentation you wil find:
       // const sv = new google.maps.StreetViewService(), which is the following here:
-      const google = window['google'];
-      const sv = new google.maps.StreetViewService();
-      // data.ref is a element of DOM in which StreetView should be displayed
-      const panorama = new google.maps.StreetViewPanorama(ref.current, {
-        linksControl: false,
-        panControl: false,
-        enableCloseButton: false,
-      });
-      // Look for a nearby Street View panorama by given defCenter = { lat, lng }
-      // getPanorama will return the nearest pano when the given
-      // radius is 50 meters or less, center is the object defCenter = { lat, lng }
-      const opts = { location: mapCenter as google.maps.LatLngLiteral, radius: 50, source: google.maps.StreetViewSource.OUTDOOR };
-      sv.getPanorama(opts, data => {
-        // please do not be confused with data object above
-        panorama.setPano(data?.location?.pano as string);
-        panorama.setPov({ heading: 320, pitch: 0 });
-        panorama.setVisible(true);
-        // now we calculate heading (ange of rotation) after map is inited (approx 500ms)
-        // so we take current position of the viewer (center of panorama on street view map) and defCenter
-        // having those two, one can calculate spherical angle of rotation by calling .spherical.computeHeading
-        setTimeout(() => {
-          const coords = mapCenter as google.maps.LatLngLiteral;
-          const propertyLocation = new window.google.maps.LatLng(coords.lat, coords.lng);
-          const panoCoors = panorama?.getLocation()?.latLng as google.maps.LatLng;
-          const heading = window.google.maps.geometry.spherical.computeHeading(panoCoors, propertyLocation);
-          panorama.setPov({ heading: heading, pitch: 0 });
-        }, 500);
-      });
+      // const google = window['google'];
+      if (google?.maps) {
+        const sv = new google.maps.StreetViewService();
+        // data.ref is a element of DOM in which StreetView should be displayed
+        const panorama = new google.maps.StreetViewPanorama(ref.current, {
+          linksControl: false,
+          panControl: false,
+          enableCloseButton: false,
+        });
+        // Look for a nearby Street View panorama by given defCenter = { lat, lng }
+        // getPanorama will return the nearest pano when the given
+        // radius is 50 meters or less, center is the object defCenter = { lat, lng }
+        const opts = { location: mapCenter as google.maps.LatLngLiteral, radius: 50, source: google.maps.StreetViewSource.OUTDOOR };
+        sv.getPanorama(opts, data => {
+          // please do not be confused with data object above
+          panorama.setPano(data?.location?.pano as string);
+          panorama.setPov({ heading: 320, pitch: 0 });
+          panorama.setVisible(true);
+          // now we calculate heading (ange of rotation) after map is inited (approx 500ms)
+          // so we take current position of the viewer (center of panorama on street view map) and defCenter
+          // having those two, one can calculate spherical angle of rotation by calling .spherical.computeHeading
+          setTimeout(() => {
+            const coords = mapCenter as google.maps.LatLngLiteral;
+            const propertyLocation = new window.google.maps.LatLng(coords.lat, coords.lng);
+            const panoCoors = panorama?.getLocation()?.latLng as google.maps.LatLng;
+            const heading = window.google.maps.geometry.spherical.computeHeading(panoCoors, propertyLocation);
+            panorama.setPov({ heading: heading, pitch: 0 });
+          }, 500);
+        });
+      }
     }
   }, [mapCenter, ref]);
 

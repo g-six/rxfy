@@ -231,9 +231,6 @@ export const DEFAULT_MAP_FILTERS: MapFilters = {
 export default function RxMapFilters({ children, ...values }: { [key: string]: string } & { children: React.ReactElement }) {
   const router = useRouter();
   const { data, fireEvent } = useEvent(Events.MapSearch);
-  const { loading } = data as unknown as {
-    loading: boolean;
-  };
   const q = useSearchParams();
   let init = DEFAULT_MAP_FILTERS;
   if (q.toString()) {
@@ -241,78 +238,28 @@ export default function RxMapFilters({ children, ...values }: { [key: string]: s
   }
 
   const [filters, setFilters] = React.useState<MapFilters>(init);
-  const [legacy_filters, setLegacyFilters] = React.useState<LegacySearchPayload>({
-    ...DEF_LEGACY_PAYLOAD,
-  });
-
-  const updateLegacyFilters = (f: MapFilters) => {
-    if (f) {
-      const filter = [
-        {
-          match: { 'data.Status': 'Active' },
-        },
-        {
-          range: {
-            'data.L_TotalBaths': {
-              lte: f.baths,
-            },
-          },
-        },
-        {
-          range: {
-            'data.L_BedroomTotal': {
-              lte: f.beds,
-            },
-          },
-        },
-      ];
-      const updated_filters = {
-        ...legacy_filters,
-        query: {
-          ...legacy_filters.query,
-          bool: {
-            ...legacy_filters.query.bool,
-            filter,
-          },
-        },
-        size: 1000,
-      };
-
-      fireEvent({
-        ...data,
-        filters: updated_filters,
-        reload: true,
-      } as unknown as EventsData);
-    }
-  };
 
   React.useEffect(() => {
     document.querySelectorAll('.combobox-list').forEach(el => el.classList.remove('w--open'));
   }, [filters]);
-
-  // React.useEffect(() => {
-  //   if (q.toString()) {
-  //     const init = queryStringToObject(q.toString()) as unknown as MapFilters;
-  //     setFilters(init);
-  //   } else {
-  //     const qs = objectToQueryString(filters);
-  //     router.push(location.pathname + '?' + qs);
-  //   }
-  // }, []);
 
   return (
     <Iterator
       {...values}
       filters={filters}
       onReset={() => {
-        const { minprice, maxprice } = DEFAULT_MAP_FILTERS;
+        const { minprice, maxprice, beds, baths } = DEFAULT_MAP_FILTERS;
         const updated_filters = {
-          ...filters,
+          ...init,
           minprice,
           maxprice,
+          beds,
+          baths,
         };
         setFilters(updated_filters);
-        const qs = objectToQueryString(updated_filters as unknown as { [k: string]: string });
+        const updated_query = updated_filters as unknown as { [k: string]: string };
+        delete updated_query.sort;
+        const qs = objectToQueryString(updated_query);
         router.push('map?' + qs);
         document.querySelectorAll('.w--open').forEach(el => el.classList.remove('w--open'));
         document.querySelectorAll('[aria-expanded]').forEach(el => el.setAttribute('aria-expanded', 'false'));

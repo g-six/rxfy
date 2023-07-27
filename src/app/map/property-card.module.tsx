@@ -79,14 +79,15 @@ export default function PropertyCard({ className, children }: { className: strin
   const router = useRouter();
   const { data } = useEvent(Events.MapSearch);
   const [cards, setCards] = React.useState<React.ReactElement[]>([]);
-
   React.useEffect(() => {
-    const { points } = data as unknown as {
+    const { points, reload } = data as unknown as {
       points: {
         properties: PropertyDataModel;
       }[];
+      reload: boolean;
     };
-    if (points) {
+    console.log({ points, reload });
+    if (points && reload === false) {
       setCards(
         points
           .filter(p => p.properties.cover_photo)
