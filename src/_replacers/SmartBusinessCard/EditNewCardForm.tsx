@@ -10,7 +10,6 @@ import { SmartCardInput, SmartCardResponse } from '@/_typings/smart-cards';
 import { createSmartCard, deleteSmartCard } from '@/_utilities/api-calls/call-smart-cards';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
-import { rendererCardPdf } from '@/_helpers/pdf-renderer';
 
 import Input from '../FilterFields/Input';
 import RxDropzone from '@/components/RxDropzone';
@@ -85,10 +84,9 @@ export default function EditNewCardForm({ template, showDetails, details, update
           const promises = Array.from([refFront.current, refBack.current])
             .map(el => el as HTMLElement)
             .map(el => {
-              const cloneEl = el.cloneNode(true) as HTMLElement;
-              cloneEl.style.backgroundColor = 'transparent';
-              cloneEl.style.borderRadius = '0';
-              return html2canvas(cloneEl, { allowTaint: true, useCORS: true });
+              el.style.backgroundColor = 'transparent';
+              el.style.borderRadius = '0';
+              return html2canvas(el, { allowTaint: true, useCORS: true });
             });
           Promise.all(promises).then(canvases => {
             const anotherPromises = canvases.map(canvas => {
@@ -113,7 +111,7 @@ export default function EditNewCardForm({ template, showDetails, details, update
                   customer_phone: agent?.phone as string,
                 },
                 attachments,
-              ).then(() => {
+              ).finally(() => {
                 updateCardsList('new', {
                   id: Number(res.record.id),
                   name: res.record.attributes.name,
