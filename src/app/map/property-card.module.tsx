@@ -86,7 +86,7 @@ export default function PropertyCard({ className, children }: { className: strin
       }[];
       reload: boolean;
     };
-    console.log({ points, reload });
+
     if (points && reload === false) {
       setCards(
         points

@@ -24,7 +24,6 @@ import list_styles from './home-list.module.scss';
 async function Iterator({ agent, children, city }: { children: React.ReactElement; agent?: AgentData; city?: string }) {
   const Wrapped = React.Children.map(children, c => {
     if (c.props && typeof c.props.children === 'string') {
-      console.log(c.props.children);
       if (c.props.children.includes('{Agent Name}')) {
         if (agent) {
           const logo = agent.metatags.logo_for_light_bg || agent.metatags.logo_for_dark_bg;
