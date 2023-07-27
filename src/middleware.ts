@@ -56,13 +56,16 @@ export function middleware(request: NextRequest) {
     response.headers.set('x-profile-slug', segments[1]);
     response.headers.set('x-viewer', 'customer');
 
-    if (segments[2] === 'map') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/map`;
+    // if (['map', 'id', 'property', 'update-password', 'my-account', 'log-in', 'my-profile', 'client-dashboard'].includes(segments[2])) {
+    if (['my-profile'].includes(segments[2])) {
+      page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/${segments[2]}`;
+    } else if (segments[2] === 'map') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/map`;
     else if (segments[2] === 'id') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/id`;
     else if (segments[2] === 'property') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/property/propertyid`;
     else if (segments[2] === 'update-password') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/update-password`;
     else if (segments[2] === 'log-in') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/log-in`;
     else if (segments[2] === 'my-account') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/my-account`;
-    else if (segments[2] === 'my-profile') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/my-profile`;
+    else if (segments[2] === 'client-dashboard') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/client-dashboard`;
     else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}`;
   } else if (pathname === '/') {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}`;

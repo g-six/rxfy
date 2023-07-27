@@ -18,7 +18,11 @@ export function RxUserSessionLink(props: RxUserSessionLinkProps) {
 
   const logout = () => {
     clearSessionCookies();
-    router.push('/');
+    let homepage = '/';
+    if (params['profile-slug'] && params.slug) {
+      homepage = `/${params.slug}/${params['profile-slug']}`;
+    }
+    router.push(homepage);
   };
 
   React.useEffect(() => {
