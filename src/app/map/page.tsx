@@ -20,6 +20,7 @@ import HomeList from './home-list.module';
 
 import list_styles from './home-list.module.scss';
 import AgentListingsToggle from './agent-listing-toggle.module';
+import HeartToggle from './heart-toggle.module';
 
 async function Iterator({ agent, children, city }: { children: React.ReactElement; agent?: AgentData; city?: string }) {
   const Wrapped = React.Children.map(children, c => {
@@ -125,6 +126,9 @@ async function Iterator({ agent, children, city }: { children: React.ReactElemen
         </div>
       );
     } else if (c.type === 'a') {
+      if (c.props?.className.includes('heart-button')) {
+        return <HeartToggle className={c.props.className}>{c.props.children}</HeartToggle>;
+      }
       return React.cloneElement(
         c,
         c.props,

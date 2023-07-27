@@ -273,6 +273,7 @@ export default function MapCanvas(p: { 'agent-id': string; className: string; ch
           },
         },
       };
+
       retrievePublicListingsFromPipeline(legacy_params).then(({ records }: { records: PropertyDataModel[] }) => {
         setListings(records);
         fireEvent({

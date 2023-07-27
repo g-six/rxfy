@@ -48,6 +48,9 @@ export function middleware(request: NextRequest) {
     response.headers.set('x-search-params', searchParams.toString());
 
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/map`;
+  } else if (pathname && pathname === '/client-dashboard') {
+    response.headers.set('x-viewer', 'customer');
+    page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}${pathname}`;
   } else if (segments.length >= 2 && segments[1].indexOf('la-') === 0) {
     response.headers.set('x-agent-id', segments[0]);
     response.headers.set('x-profile-slug', segments[1]);
@@ -57,6 +60,9 @@ export function middleware(request: NextRequest) {
     else if (segments[2] === 'id') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/id`;
     else if (segments[2] === 'property') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/property/propertyid`;
     else if (segments[2] === 'update-password') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/update-password`;
+    else if (segments[2] === 'log-in') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/log-in`;
+    else if (segments[2] === 'my-account') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/my-account`;
+    else if (segments[2] === 'my-profile') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/my-profile`;
     else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}`;
   } else if (pathname === '/') {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}`;

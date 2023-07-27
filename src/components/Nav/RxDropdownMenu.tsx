@@ -9,6 +9,7 @@ import React from 'react';
 import styles from './RxDropdownMenu.module.scss';
 import Cookies from 'js-cookie';
 import { RxUserSessionLink } from './RxUserSessionLink';
+import { useParams } from 'next/navigation';
 
 type DropdownProps = {
   ['agent-data']: AgentData;
@@ -27,6 +28,7 @@ type ToggleButtonProps = {
 };
 
 function RxNavPopup(p: PopupProps) {
+  const params = useParams();
   const { data } = useEvent(Events.ToggleUserMenu);
   const matches = [
     {
@@ -43,11 +45,17 @@ function RxNavPopup(p: PopupProps) {
     },
     {
       searchFn: searchByClasses(['out-session']),
-      transformChild: (child: React.ReactElement) =>
-        React.cloneElement(child, {
+      transformChild: (child: React.ReactElement) => {
+        let { href } = child.props;
+        if (params.slug && params['profile-slug']) {
+          href = `/${params.slug}/${params['profile-slug']}${href}`;
+        }
+        return React.cloneElement(child, {
           ...child.props,
+          href,
           className: [child.props.className, Cookies.get('session_key') ? 'hidden' : 'nice'].join(' '),
-        }),
+        });
+      },
     },
   ];
   return (
