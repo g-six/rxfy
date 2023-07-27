@@ -798,22 +798,22 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           return <>{domToReact(node.children) as ReactElement[]}</>;
 
           // Check for improvement
-          return (
-            <div className={node.attribs.class} id='MapDiv'>
-              <RxPropertyMap
-                agent_data={agent_data}
-                listings={[]}
-                config={{
-                  authorization: `Basic ${Buffer.from(`${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`).toString(
-                    'base64',
-                  )}`,
-                  url: process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
-                }}
-              >
-                {domToReact(node.children) as ReactElement[]}
-              </RxPropertyMap>
-            </div>
-          );
+          // return (
+          //   <div className={node.attribs.class} id='MapDiv'>
+          //     <RxPropertyMap
+          //       agent_data={agent_data}
+          //       listings={[]}
+          //       config={{
+          //         authorization: `Basic ${Buffer.from(`${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`).toString(
+          //           'base64',
+          //         )}`,
+          //         url: process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
+          //       }}
+          //     >
+          //       {domToReact(node.children) as ReactElement[]}
+          //     </RxPropertyMap>
+          //   </div>
+          // );
         }
 
         if ((node.children && node.children.length === 1) || node.name === 'input') {
