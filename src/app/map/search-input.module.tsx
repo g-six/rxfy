@@ -1,17 +1,18 @@
 'use client';
 
 import SearchAddressCombobox from '@/_replacers/FilterFields/SearchAddressCombobox';
-import { LegacySearchPayload } from '@/_typings/pipeline';
-import { retrievePublicListingsFromPipeline } from '@/_utilities/api-calls/call-legacy-search';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 
-export default function MapSearchInput(props: { className: string; placeholder?: string }) {
+export default function MapSearchInput(props: { className: string; placeholder?: string; keyword?: string }) {
   const { data, fireEvent } = useEvent(Events.MapSearch);
+  const { keyword } = data as unknown as {
+    keyword: string;
+  };
   return (
     <SearchAddressCombobox
       className={props.className}
       defaultValue=''
-      placeholder={props.placeholder}
+      placeholder={keyword || props.placeholder}
       name='city'
       id='map-city-input'
       onPlaceSelected={(p: {

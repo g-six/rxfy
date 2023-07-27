@@ -14,7 +14,7 @@ import styles from './RxMapFilters.module.scss';
 import OtherMapFilters from '@/app/map/other-filters.module';
 
 function ButtonIterator(props: { children: React.ReactElement; filters: MapFilters; onOptionSelect: (evt: React.SyntheticEvent) => void }) {
-  const { children, filters, ...p } = props;
+  const { children, filters, onOptionSelect, ...p } = props;
   const Wrapped = React.Children.map(children, c => {
     const { className } = c.props || {};
     if (c.type === 'div') {
@@ -33,7 +33,7 @@ function ButtonIterator(props: { children: React.ReactElement; filters: MapFilte
       }
       return (
         <span {...p}>
-          <ButtonIterator {...p} filters={filters}>
+          <ButtonIterator {...p} onOptionSelect={onOptionSelect} filters={filters}>
             {c.props.children}
           </ButtonIterator>
         </span>

@@ -21,7 +21,7 @@ import HomeList from './home-list.module';
 
 import list_styles from './home-list.module.scss';
 
-async function Iterator({ agent, children }: { children: React.ReactElement; agent?: AgentData }) {
+async function Iterator({ agent, children, city }: { children: React.ReactElement; agent?: AgentData; city?: string }) {
   const Wrapped = React.Children.map(children, c => {
     if (c.props && typeof c.props.children === 'string') {
       if (c.props.children.includes('{Agent Name}')) {
@@ -88,7 +88,7 @@ async function Iterator({ agent, children }: { children: React.ReactElement; age
         } else if (className.includes('left-bar')) {
           return (
             <div className={[className, list_styles['left-bar']].join(' ')}>
-              <Iterator>{props.children}</Iterator>
+              <Iterator city={city}>{props.children}</Iterator>
             </div>
           );
         } else if (className.includes('ha-icon')) {
@@ -107,7 +107,9 @@ async function Iterator({ agent, children }: { children: React.ReactElement; age
 
       return (
         <div className={className || '' + ' rexified MapPage Iterator'} {...props}>
-          <Iterator agent={agent}>{c.props.children}</Iterator>
+          <Iterator agent={agent} city={city}>
+            {c.props.children}
+          </Iterator>
         </div>
       );
     } else if (c.props?.children) {
@@ -118,7 +120,7 @@ async function Iterator({ agent, children }: { children: React.ReactElement; age
         }),
       });
     } else if (c.type === 'input' && c.props && c.props.className?.includes('search-input-field')) {
-      return <MapSearchInput {...c.props} />;
+      return <MapSearchInput {...c.props} keyword={city} />;
     }
     return c;
   });
@@ -148,7 +150,9 @@ export default async function MapPage({ searchParams }: { params: { [key: string
       console.log(Date.now() - time + 'ms', 'Finished extracting body div');
       return (
         <>
-          <Iterator agent={agent}>{domToReact(body as unknown as DOMNode[]) as unknown as React.ReactElement}</Iterator>
+          <Iterator agent={agent} city={searchParams.city}>
+            {domToReact(body as unknown as DOMNode[]) as unknown as React.ReactElement}
+          </Iterator>
         </>
       );
     }

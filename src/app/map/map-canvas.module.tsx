@@ -288,27 +288,31 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
                 context: { id: string; text: string }[];
               }[];
             };
-            const [{ text: city }] = context.filter(({ id }) => id.includes('place'));
-            const updated_filters = {
-              ...filters,
-              city,
-              lat,
-              lng,
-              nelat: map.getBounds().getNorthEast().lat,
-              nelng: map.getBounds().getNorthEast().lng,
-              swlat: map.getBounds().getSouthWest().lat,
-              swlng: map.getBounds().getSouthWest().lng,
-              zoom: map.getZoom(),
-            };
+            const [{ text: keyword }] = context.filter(({ id }) => id.includes('place'));
+            fireEvent({
+              ...data,
+              keyword,
+            } as unknown as EventsData);
             router.push(
               'map?' +
                 objectToQueryString({
                   ...queryStringToObject(search.toString()),
-                  ...updated_filters,
+                  city: keyword,
                 }),
             );
-            setLoading(true);
           });
+          const updated_filters = {
+            // ...queryStringToObject(search.toString()),
+            ...filters,
+            lat,
+            lng,
+            nelat: map.getBounds().getNorthEast().lat,
+            nelng: map.getBounds().getNorthEast().lng,
+            swlat: map.getBounds().getSouthWest().lat,
+            swlng: map.getBounds().getSouthWest().lng,
+            zoom: map.getZoom(),
+          };
+          setFilters(updated_filters);
         }
       }
     },
@@ -346,15 +350,29 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
 
   React.useEffect(() => {
     if (filters?.lat && filters?.lng) {
+      const { sort } = queryStringToObject(search.toString());
+      router.push(
+        'map?' +
+          objectToQueryString({
+            ...filters,
+            sort,
+          }),
+      );
       const { reload } = data as unknown as {
         reload: boolean;
       };
       if (!map) {
         initializeMap();
         setLoading(true);
+        return;
       } else if (reload) {
         setLoading(true);
+        return;
       }
+      fireEvent({
+        ...data,
+        reload: true,
+      });
     }
   }, [filters]);
 
