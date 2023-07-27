@@ -1,6 +1,6 @@
 export function getShortPrice(amount: number, prefix = '$') {
   const str = `${Math.round(amount / 1000)}`;
-  if (amount < 1000000) {
+  if (amount < 1000000 && !str.includes('000')) {
     return `${prefix}${str}K`;
   }
 

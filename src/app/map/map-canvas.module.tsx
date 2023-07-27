@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import mapboxgl, { GeoJSONSource, GeoJSONSourceRaw, MapboxGeoJSONFeature } from 'mapbox-gl';
+import mapboxgl, { GeoJSONSource, GeoJSONSourceRaw, LngLatLike, Map, MapboxGeoJSONFeature } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Feature } from 'geojson';
 
@@ -13,7 +13,7 @@ import { objectToQueryString, queryStringToObject } from '@/_utilities/url-helpe
 
 import styles from '@/components/RxMapbox.module.scss';
 import { classNames } from '@/_utilities/html-helper';
-import { retrievePublicListingsFromPipeline } from '@/_utilities/api-calls/call-legacy-search';
+import { must_not, retrievePublicListingsFromPipeline } from '@/_utilities/api-calls/call-legacy-search';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import PropertyListModal from '@/components/PropertyListModal';
 
@@ -57,10 +57,6 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
   }>();
   const [listings, setListings] = React.useState<PropertyDataModel[]>([]);
   const [selected_cluster, setSelectedCluster] = React.useState<PropertyDataModel[]>([]);
-
-  const { filters: map_filters } = data as unknown as {
-    filters: LegacySearchPayload;
-  };
 
   const clickEventListener = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
     const features = e.target.queryRenderedFeatures(e.point, {
@@ -232,6 +228,7 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
             ].concat(user_defined_filters as any[]) as any[],
             should,
             ...(should.length ? { minimum_should_match: 1 } : {}),
+            must_not,
           },
         },
       };
@@ -286,7 +283,7 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
         map.addControl(nav, 'bottom-right');
       }
 
-      const populate = () => {
+      const populate = (evt: { target: Map }) => {
         repositionMap();
       };
       map.off('dragend', populate);
@@ -371,7 +368,25 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
 
   React.useEffect(() => {
     if (search.toString()) {
-      setFilters(queryStringToObject(search.toString()));
+      let q = queryStringToObject(search.toString());
+      if (q.center && map) {
+        const { center, place_id, ...queryparams } = q;
+        const [lat, lng] = `${center}`.split(',').map(Number);
+        map.setCenter([lng, lat]);
+        map.setZoom(11);
+        const updated = {
+          ...queryparams,
+          lat,
+          lng,
+          nelat: map.getBounds().getNorthEast().lat,
+          swlat: map.getBounds().getSouthWest().lat,
+          nelng: map.getBounds().getNorthEast().lng,
+          swlng: map.getBounds().getSouthWest().lng,
+        };
+        setFilters(updated);
+        setLoading(true);
+        router.push('map?' + objectToQueryString(updated));
+      } else setFilters(q);
     }
   }, [search]);
 

@@ -33,6 +33,36 @@ function Iterator({
     if (['div', 'nav'].includes(`${c.type}`)) {
       const { children: subchildren, className, ...subprops } = c.props;
 
+      //<-- Property type filter modal trigger -->
+      if (className?.includes('w-dropdown-toggle')) {
+        let modal = '';
+        if (className?.includes('proptypefilters-toggle')) modal = '.filters-dropdown-modal';
+        else if (className?.includes('priceminmax-toggle')) modal = '.price-dropdown-modal';
+        else if (className?.includes('bedbathandbeyond-toggle')) modal = '.bedroom-dropdown-modal';
+        else if (className?.includes('map-sort-modal-button')) modal = '.dropdown-wrap-3';
+        else return c;
+        return (
+          <button
+            type='button'
+            className={className + ' rexified bg-transparent'}
+            onClick={(evt: React.SyntheticEvent) => {
+              evt.preventDefault();
+              evt.stopPropagation();
+              document.querySelectorAll('.w--open').forEach(el => el.classList.remove('w--open'));
+              if (evt.currentTarget.classList.contains('w--open')) {
+                evt.currentTarget.classList.remove('w--open');
+                evt.currentTarget.setAttribute('aria-expanded', 'true');
+              } else if (modal) {
+                document.querySelector(modal)?.classList.add('w--open');
+                evt.currentTarget.classList.add('w--open');
+                evt.currentTarget.setAttribute('aria-expanded', 'false');
+              }
+            }}
+          >
+            {React.Children.map(subchildren, convertDivsToSpans)}
+          </button>
+        );
+      }
       //<-- Buttons -->
       if (className?.includes('-less')) {
         return (
@@ -71,8 +101,8 @@ function Iterator({
           </div>
         );
       }
-      if (className?.includes('property-type-modal')) {
-        return <OtherMapFilters className={className}>{subchildren}</OtherMapFilters>;
+      if (className?.includes('filters-dropdown-modal')) {
+        return <OtherMapFilters className={className.split('w-dropdown-list').join('hidden absolute')}>{subchildren}</OtherMapFilters>;
       }
       if (className?.includes('max-price-dropdown')) {
         return (

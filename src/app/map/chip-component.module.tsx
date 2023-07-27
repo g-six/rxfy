@@ -1,16 +1,68 @@
 import React from 'react';
 import { convertDivsToSpans } from '@/_replacers/DivToSpan';
+import { classNames } from '@/_utilities/html-helper';
 
-export default function ChipComponent({ children, onSelectType, ...props }: { children: React.ReactElement; onSelectType(evt: React.SyntheticEvent): void }) {
+export default function ChipComponent({
+  children,
+  onSelectType,
+  active,
+  ...props
+}: {
+  children: React.ReactElement;
+  onSelectType(evt: React.SyntheticEvent): void;
+  active?: string[];
+}) {
+  const [preload, setPreload] = React.useState<{ [k: string]: string }>();
   const Wrapped = React.Children.map(children, c => {
     if (c.type === 'div') {
-      return <>{convertDivsToSpans(c)}</>;
+      return (
+        <>
+          {convertDivsToSpans(
+            React.cloneElement(c, {
+              ...c.props,
+              className: classNames(c.props.className, preload?.['data-selected'] !== undefined && 'w--redirected-checked'),
+            }),
+          )}
+        </>
+      );
     }
     return c;
   });
+
+  React.useEffect(() => {
+    if (active && active.length) {
+      React.Children.map(children, c => {
+        if (typeof c.props?.children === 'string') {
+          setPreload(
+            active.includes(c.props.children)
+              ? {
+                  'data-selected': '',
+                }
+              : {},
+          );
+        }
+      });
+    } else {
+      setPreload({});
+    }
+  }, [active]);
+
+  React.useEffect(() => {
+    if (active && active.length) {
+      React.Children.map(children, c => {
+        if (typeof c.props?.children === 'string' && active.includes(c.props.children)) {
+          setPreload({
+            'data-selected': '',
+          });
+        }
+      });
+    }
+  }, []);
+
   return (
     <label
       {...props}
+      {...preload}
       onClick={(evt: React.SyntheticEvent) => {
         evt.preventDefault();
         evt.stopPropagation();
