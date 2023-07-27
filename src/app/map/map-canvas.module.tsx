@@ -209,8 +209,9 @@ export default function MapCanvas(p: { 'agent-id': string; className: string; ch
         [key: string]: 'asc' | 'desc';
       } = { 'data.UpdateDate': 'desc' };
 
-      if (filters.sort) {
-        switch (filters.sort) {
+      const qs = queryStringToObject(search.toString());
+      if (qs.sort) {
+        switch (qs.sort) {
           case 'date-asc':
             sort = { 'data.ListingDate': 'asc' };
             break;
