@@ -10,11 +10,15 @@ import { PropertyDataModel } from '@/_typings/property';
 function Iterator({ children, ...props }: { children: React.ReactElement; 'is-empty'?: boolean }) {
   const Wrapped = React.Children.map(children, c => {
     if (c.type === 'div') {
-      if (c.props.className.includes('property-card')) {
+      if (c.props.className?.includes('property-card')) {
         return <PropertyCard {...c.props}>{c.props.children}</PropertyCard>;
       }
-      if (c.props.className.includes('empty-state')) {
-        return props['is-empty'] ? <EmptyState {...c.props}>{c.props.children}</EmptyState> : <></>;
+      if (c.props.className?.includes('empty-state')) {
+        return (
+          <EmptyState {...c.props} show={props['is-empty']}>
+            {c.props.children}
+          </EmptyState>
+        );
       }
       return (
         <div className={[c.props.className, 'rexified childof-HomeList'].join(' ')}>
@@ -32,12 +36,18 @@ export default function HomeList({ className, children }: { className: string; c
   const [is_empty, setToEmpty] = React.useState(false);
 
   React.useEffect(() => {
-    const { points } = data as unknown as {
+    const { points, reload } = data as unknown as {
       points: {
         properties: PropertyDataModel;
       }[];
+      reload?: boolean;
     };
-    setToEmpty(!points || points.length === 0);
+
+    if (points && reload === false) {
+      setToEmpty(points.length === 0);
+    } else {
+      setToEmpty(false);
+    }
   }, [data]);
 
   return (

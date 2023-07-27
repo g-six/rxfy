@@ -88,18 +88,21 @@ export default function PropertyCard({ className, children }: { className: strin
     };
     if (points) {
       setCards(
-        points.map(({ properties: p }) => (
-          <div key={p.mls_id} className={[className, p.mls_id, 'cursor-pointer rexified HomeList-PropertyCard'].join(' ')}>
-            <PropertyCardIterator
-              listing={p}
-              onClickToOpen={() => {
-                router.push('property?mls=' + p.mls_id);
-              }}
-            >
-              {children}
-            </PropertyCardIterator>
-          </div>
-        )),
+        points
+          .filter(p => p.properties.cover_photo)
+          .slice(0, 100)
+          .map(({ properties: p }) => (
+            <div key={p.mls_id} className={[className, p.mls_id, 'cursor-pointer rexified HomeList-PropertyCard'].join(' ')}>
+              <PropertyCardIterator
+                listing={p}
+                onClickToOpen={() => {
+                  router.push('property?mls=' + p.mls_id);
+                }}
+              >
+                {children}
+              </PropertyCardIterator>
+            </div>
+          )),
       );
     }
   }, [data]);

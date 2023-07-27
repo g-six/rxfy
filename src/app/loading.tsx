@@ -1,3 +1,3 @@
 export default function Loading() {
-  <div>Loading</div>;
+  return <div>Loading</div>;
 }

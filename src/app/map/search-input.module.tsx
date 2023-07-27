@@ -6,7 +6,7 @@ import { retrievePublicListingsFromPipeline } from '@/_utilities/api-calls/call-
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 
 export default function MapSearchInput(props: { className: string; placeholder?: string }) {
-  const { fireEvent } = useEvent(Events.MapSearch);
+  const { data, fireEvent } = useEvent(Events.MapSearch);
   return (
     <SearchAddressCombobox
       className={props.className}
@@ -27,7 +27,10 @@ export default function MapSearchInput(props: { className: string; placeholder?:
         swlat: number;
         swlng: number;
       }) => {
-        fireEvent(p as unknown as EventsData);
+        fireEvent({
+          ...data,
+          ...p,
+        } as unknown as EventsData);
         // const payload: LegacySearchPayload = {
         //   from: 0,
         //   size: 500,

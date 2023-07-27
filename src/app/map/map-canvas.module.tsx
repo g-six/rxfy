@@ -16,6 +16,7 @@ import { classNames } from '@/_utilities/html-helper';
 import { must_not, retrievePublicListingsFromPipeline } from '@/_utilities/api-calls/call-legacy-search';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import PropertyListModal from '@/components/PropertyListModal';
+import { getMapData } from '@/_utilities/api-calls/call-mapbox';
 
 interface ResidentialListing {
   area: string;
@@ -192,10 +193,37 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
           },
         }));
       }
+      let sort: {
+        [key: string]: 'asc' | 'desc';
+      } = { 'data.UpdateDate': 'desc' };
+
+      if (filters.sort) {
+        switch (filters.sort) {
+          case 'date-asc':
+            sort = { 'data.ListingDate': 'asc' };
+            break;
+          case 'date-desc':
+            sort = { 'data.ListingDate': 'desc' };
+            break;
+          case 'price-asc':
+            sort = { 'data.AskingPrice': 'asc' };
+            break;
+          case 'price-desc':
+            sort = { 'data.AskingPrice': 'desc' };
+            break;
+          case 'size-asc':
+            sort = { 'data.L_FloorArea_GrantTotal': 'asc' };
+            break;
+          case 'size-desc':
+            sort = { 'data.L_FloorArea_GrantTotal': 'desc' };
+            break;
+        }
+      }
+
       const legacy_params: LegacySearchPayload = {
         from: 0,
         size: 1000,
-        sort: { 'data.UpdateDate': 'desc' },
+        sort,
         query: {
           bool: {
             filter: [
@@ -239,7 +267,7 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
   };
 
   const repositionMap = React.useCallback(
-    () => {
+    (lat: number, lng: number) => {
       if (map) {
         // Not sure why we need this, perhaps performance issue in the past?
         // Commenting this out for now and if maps performance is an issue,
@@ -250,24 +278,37 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
         //     map.removeLayer(layer.id);
         //   }
         // });
-        if (marker) marker.remove();
-        marker = new mapboxgl.Marker(createMapPin()).setLngLat(map.getCenter()).addTo(map);
 
         if (filters) {
-          const updated_filters = {
-            ...filters,
-            lat: map.getCenter().lat,
-            lng: map.getCenter().lng,
-            nelat: map.getBounds().getNorthEast().lat,
-            nelng: map.getBounds().getNorthEast().lng,
-            swlat: map.getBounds().getSouthWest().lat,
-            swlng: map.getBounds().getSouthWest().lng,
-            zoom: map.getZoom(),
-          };
-          setFilters(updated_filters);
-          setLoading(true);
-          const qs = objectToQueryString(updated_filters);
-          router.push(location.pathname + '?' + qs);
+          getMapData(lng, lat).then(loc => {
+            const {
+              features: [{ context }],
+            } = loc.data as unknown as {
+              features: {
+                context: { id: string; text: string }[];
+              }[];
+            };
+            const [{ text: city }] = context.filter(({ id }) => id.includes('place'));
+            const updated_filters = {
+              ...filters,
+              city,
+              lat,
+              lng,
+              nelat: map.getBounds().getNorthEast().lat,
+              nelng: map.getBounds().getNorthEast().lng,
+              swlat: map.getBounds().getSouthWest().lat,
+              swlng: map.getBounds().getSouthWest().lng,
+              zoom: map.getZoom(),
+            };
+            router.push(
+              'map?' +
+                objectToQueryString({
+                  ...queryStringToObject(search.toString()),
+                  ...updated_filters,
+                }),
+            );
+            setLoading(true);
+          });
         }
       }
     },
@@ -282,9 +323,16 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
       if (!map.hasControl(nav)) {
         map.addControl(nav, 'bottom-right');
       }
+      marker = new mapboxgl.Marker(createMapPin()).setLngLat(map.getCenter()).addTo(map);
 
       const populate = (evt: { target: Map }) => {
-        repositionMap();
+        if (marker) marker.remove();
+
+        marker = new mapboxgl.Marker(createMapPin()).setLngLat(map.getCenter()).addTo(map);
+
+        const { lat, lng } = map.getCenter();
+
+        repositionMap(lat, lng);
       };
       map.off('dragend', populate);
       map.on('dragend', populate);
@@ -305,10 +353,6 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
         initializeMap();
         setLoading(true);
       } else if (reload) {
-        fireEvent({
-          ...data,
-          reload: false,
-        });
         setLoading(true);
       }
     }
@@ -338,6 +382,7 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
       fireEvent({
         ...data,
         points,
+        reload: false,
       } as unknown as EventsData);
       const geojson_options: GeoJSONSourceRaw = {
         type: 'geojson',
@@ -385,7 +430,6 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
         };
         setFilters(updated);
         setLoading(true);
-        router.push('map?' + objectToQueryString(updated));
       } else setFilters(q);
     }
   }, [search]);

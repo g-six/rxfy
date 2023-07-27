@@ -10,7 +10,7 @@ const formReducer = (
     case 'UPDATE_VALUE':
       return {
         ...state,
-        [action.key]: action.value,
+        [action.key]: typeof action.value === 'string' && !action.value ? undefined : action.value,
       };
     case 'RESET_VALUE':
       return action.value;

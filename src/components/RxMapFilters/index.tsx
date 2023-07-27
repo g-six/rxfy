@@ -6,13 +6,43 @@ import { DEF_LEGACY_PAYLOAD } from '@/_utilities/api-calls/call-legacy-search';
 import { objectToQueryString, queryStringToObject } from '@/_utilities/url-helper';
 import React from 'react';
 import { Events, EventsData } from '@/hooks/useFormEvent';
-import { FilterUpdateButton } from '../RxCards/RxPropertyCardList';
 import useEvent from '@/hooks/useEvent';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import { classNames } from '@/_utilities/html-helper';
 
 import styles from './RxMapFilters.module.scss';
 import OtherMapFilters from '@/app/map/other-filters.module';
+
+function ButtonIterator(props: { children: React.ReactElement; filters: MapFilters; onOptionSelect: (evt: React.SyntheticEvent) => void }) {
+  const { children, filters, ...p } = props;
+  const Wrapped = React.Children.map(children, c => {
+    const { className } = c.props || {};
+    if (c.type === 'div') {
+      //<-- Labels -->
+      if (className?.includes('beds-min')) {
+        return React.cloneElement(<span />, c.props, [filters.beds]);
+      }
+      if (className?.includes('baths-min')) {
+        return React.cloneElement(<span />, c.props, [filters.baths]);
+      }
+      if (className?.includes('maxprice') && filters.maxprice) {
+        return React.cloneElement(<span />, c.props, [getShortPrice(filters.maxprice, '')]);
+      }
+      if (className?.includes('minprice') && filters.minprice) {
+        return React.cloneElement(<span />, c.props, [getShortPrice(filters.minprice, '')]);
+      }
+      return (
+        <span {...p}>
+          <ButtonIterator {...p} filters={filters}>
+            {c.props.children}
+          </ButtonIterator>
+        </span>
+      );
+    }
+    return c;
+  });
+  return <>{Wrapped}</>;
+}
 
 function Iterator({
   children,
@@ -23,9 +53,10 @@ function Iterator({
   'agent-record-id'?: number;
   'profile-slug'?: string;
   'agent-metatag-id'?: number;
-  'is-searching'?: boolean;
   filters: MapFilters;
   onChange: (className: string) => void;
+  onReset(): void;
+  onSubmit(): void;
   onOptionSelect: (evt: React.SyntheticEvent) => void;
   'data-value'?: string;
 }) {
@@ -59,7 +90,7 @@ function Iterator({
               }
             }}
           >
-            {React.Children.map(subchildren, convertDivsToSpans)}
+            <ButtonIterator {...props}>{subchildren}</ButtonIterator>
           </button>
         );
       }
@@ -79,19 +110,6 @@ function Iterator({
         );
       }
 
-      //<-- Labels -->
-      if (className?.includes('beds-min')) {
-        return React.cloneElement(c, c.props, [props.filters.beds]);
-      }
-      if (className?.includes('baths-min')) {
-        return React.cloneElement(c, c.props, [props.filters.baths]);
-      }
-      if (className?.includes('maxprice') && props.filters.maxprice) {
-        return React.cloneElement(c, c.props, [getShortPrice(props.filters.maxprice, '')]);
-      }
-      if (className?.includes('minprice') && props.filters.minprice) {
-        return React.cloneElement(c, c.props, [getShortPrice(props.filters.minprice, '')]);
-      }
       if (className?.includes('min-price-dropdown')) {
         return (
           <div {...c.props} className={className + ' rexified'}>
@@ -122,10 +140,20 @@ function Iterator({
           </div>
         );
       }
-      if (className?.includes('w-dropdown-list') && props['is-searching']) {
-        return React.cloneElement(c, {
-          className: className.split(' w--open').join(''),
-        });
+      if (className?.includes('w-dropdown-list')) {
+        return React.cloneElement(
+          c,
+          {
+            className: className.split(' w--open').join('') + ' rexified',
+          },
+          <Iterator {...props}>{c.props.children}</Iterator>,
+        );
+      }
+      if (className?.includes('beds-min')) {
+        return React.cloneElement(<span />, c.props, [props.filters.beds]);
+      }
+      if (className?.includes('baths-min')) {
+        return React.cloneElement(<span />, c.props, [props.filters.baths]);
       }
 
       return (
@@ -138,7 +166,18 @@ function Iterator({
     }
     if (c.type === 'a') {
       if (c.props?.className?.includes('do-search')) {
-        return <FilterUpdateButton className={c.props.className + ' rexified bg-transparent'}>{convertDivsToSpans(c.props.children)}</FilterUpdateButton>;
+        return (
+          <button type='button' className={c.props.className + ' rexified bg-transparent'} onClick={props.onSubmit}>
+            {convertDivsToSpans(c.props.children)}
+          </button>
+        );
+      }
+      if (c.props?.className?.includes('do-reset')) {
+        return (
+          <button type='reset' className={c.props.className + ' rexified bg-transparent'} onClick={props.onReset}>
+            {convertDivsToSpans(c.props.children)}
+          </button>
+        );
       }
       if (c.props?.className?.includes('dropdown-link')) {
         return (
@@ -196,8 +235,12 @@ export default function RxMapFilters({ children, ...values }: { [key: string]: s
     loading: boolean;
   };
   const q = useSearchParams();
-  const [filters, setFilters] = React.useState<MapFilters>(DEFAULT_MAP_FILTERS);
-  const [is_searching, toggleSearching] = React.useState<boolean>(false);
+  let init = DEFAULT_MAP_FILTERS;
+  if (q.toString()) {
+    init = queryStringToObject(q.toString()) as unknown as MapFilters;
+  }
+
+  const [filters, setFilters] = React.useState<MapFilters>(init);
   const [legacy_filters, setLegacyFilters] = React.useState<LegacySearchPayload>({
     ...DEF_LEGACY_PAYLOAD,
   });
@@ -244,25 +287,50 @@ export default function RxMapFilters({ children, ...values }: { [key: string]: s
   };
 
   React.useEffect(() => {
-    updateLegacyFilters(filters);
+    document.querySelectorAll('.combobox-list').forEach(el => el.classList.remove('w--open'));
   }, [filters]);
 
-  React.useEffect(() => {
-    if (q.toString()) {
-      const init = queryStringToObject(q.toString()) as unknown as MapFilters;
-      setFilters(init);
-      updateLegacyFilters(init);
-    } else {
-      const qs = objectToQueryString(filters);
-      router.push(location.pathname + '?' + qs);
-    }
-  }, []);
+  // React.useEffect(() => {
+  //   if (q.toString()) {
+  //     const init = queryStringToObject(q.toString()) as unknown as MapFilters;
+  //     setFilters(init);
+  //   } else {
+  //     const qs = objectToQueryString(filters);
+  //     router.push(location.pathname + '?' + qs);
+  //   }
+  // }, []);
 
   return (
     <Iterator
       {...values}
       filters={filters}
-      is-searching={is_searching}
+      onReset={() => {
+        const { minprice, maxprice } = DEFAULT_MAP_FILTERS;
+        const updated_filters = {
+          ...filters,
+          minprice,
+          maxprice,
+        };
+        setFilters(updated_filters);
+        const qs = objectToQueryString(updated_filters as unknown as { [k: string]: string });
+        router.push('map?' + qs);
+        document.querySelectorAll('.w--open').forEach(el => el.classList.remove('w--open'));
+        document.querySelectorAll('[aria-expanded]').forEach(el => el.setAttribute('aria-expanded', 'false'));
+        fireEvent({
+          ...data,
+          reload: true,
+        });
+      }}
+      onSubmit={() => {
+        const qs = objectToQueryString(filters as unknown as { [k: string]: string });
+        router.push('map?' + qs);
+        document.querySelectorAll('.w--open').forEach(el => el.classList.remove('w--open'));
+        document.querySelectorAll('[aria-expanded]').forEach(el => el.setAttribute('aria-expanded', 'false'));
+        fireEvent({
+          ...data,
+          reload: true,
+        });
+      }}
       onChange={(className: string) => {
         let modifier = className?.includes('-less') ? -1 : 1;
         let updated_filters = {
@@ -287,12 +355,32 @@ export default function RxMapFilters({ children, ...values }: { [key: string]: s
         }
 
         setFilters(updated_filters);
-        updateLegacyFilters(updated_filters);
-        const qs = objectToQueryString(updated_filters as unknown as { [k: string]: string });
-        router.push(location.pathname + '?' + qs);
+        // updateLegacyFilters(updated_filters);
+        // const qs = objectToQueryString(updated_filters as unknown as { [k: string]: string });
+        // router.push(location.pathname + '?' + qs);
       }}
       onOptionSelect={(evt: React.SyntheticEvent) => {
         const text = evt.currentTarget.textContent?.toLowerCase() || '';
+
+        if (evt.currentTarget.className.includes('-asc') || evt.currentTarget.className.includes('-desc')) {
+          // Sorting options
+          let params_with_sort = queryStringToObject(q.toString()) as unknown as { [key: string]: string };
+          const [sort] = evt.currentTarget.className.split(' ').filter(cn => cn.includes('-asc') || cn.includes('-desc'));
+
+          if (sort && q.toString()) {
+            params_with_sort = {
+              ...params_with_sort,
+              sort,
+            };
+            document.querySelectorAll('.w--open').forEach(el => el.classList.remove('w--open'));
+            router.push('map?' + objectToQueryString(params_with_sort));
+            fireEvent({
+              ...data,
+              reload: true,
+            });
+          }
+          return;
+        }
         const [k] = text.split('$').join('').split('k') || [];
         const [m] = text.split('$').join('').split('m') || [];
         let v = 0;
@@ -314,11 +402,6 @@ export default function RxMapFilters({ children, ...values }: { [key: string]: s
             [filter_name]: isNaN(Number(v)) ? undefined : v,
           };
           setFilters(updated_filters);
-          const qs = objectToQueryString({
-            ...updated_filters,
-            reload: undefined,
-          } as unknown as { [k: string]: string | number });
-          router.push(location.pathname + '?' + qs);
         }
       }}
     >

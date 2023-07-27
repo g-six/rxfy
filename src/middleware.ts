@@ -13,7 +13,7 @@ export function middleware(request: NextRequest) {
   const [, ...segments] = pathname.split('/');
   let page_url = `https://`;
   response.headers.set('x-viewer', 'realtor');
-  response.headers.set('x-canonical', `${origin}${pathname}`);
+  response.headers.set('x-canonical', `${origin}${pathname || ''}`);
 
   if (searchParams.get('paragon') && !segments.includes('ai-result')) {
     response.headers.set('x-viewer', 'customer');
@@ -61,13 +61,14 @@ export function middleware(request: NextRequest) {
   } else if (pathname === '/') {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}`;
   } else if (pathname === '/pdf') {
-    page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}${pathname}`;
     response.headers.set('Content-Type', 'application/pdf');
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}${pathname}`;
   } else {
-    if (request.cookies.get('session_as')?.value === 'realtor') page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}${pathname}`;
-    else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}${pathname}`;
+    if (request.cookies.get('session_as')?.value === 'realtor') page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}${pathname || ''}`;
+    else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}${pathname || ''}`;
   }
+
+  if (page_url.includes('/undefined')) page_url = page_url.split('/undefined').join('');
 
   if (!page_url.includes('/_next') && !page_url.includes('.ico')) {
     if (!request.cookies.get('session_as')) response.cookies.set('session_as', page_url.indexOf(WEBFLOW_DASHBOARDS.CUSTOMER) >= 0 ? 'customer' : 'realtor');
@@ -83,8 +84,8 @@ export function middleware(request: NextRequest) {
     response.headers.set(`x-${name.split('_').join('-')}`, value);
   });
   // Do not remove this, need this to be logged in Vercel for various reasons
-  if (page_url.indexOf('/_next/') === -1) {
-    console.log('middleware', { page_url });
+  if (page_url.indexOf('/_next/') === -1 && pathname !== '/favicon.ico') {
+    console.log('middleware', { page_url, origin, pathname });
   }
   return response;
 }

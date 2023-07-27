@@ -125,11 +125,10 @@ async function Iterator({ agent, children }: { children: React.ReactElement; age
   return <>{Wrapped}</>;
 }
 
-export default async function MapPage(p: unknown) {
+export default async function MapPage({ searchParams }: { params: { [key: string]: string }; searchParams: { [key: string]: string } }) {
   const slug = headers().get('x-profile-slug');
   const agent_id = headers().get('x-agent-id');
   const url = headers().get('x-url');
-  let params = queryStringToObject(headers().get('x-search-params') || '');
   let agent;
 
   // <--- Fill up agent info (if any)
@@ -137,17 +136,6 @@ export default async function MapPage(p: unknown) {
     agent = await findAgentRecordByAgentId(agent_id);
   }
   // --->
-
-  // <-- if search params does not contain any valid filter,
-  //      let's default to Vancouver, BC
-  if (!params.city || !params.nelat || !params.nelng || !params.swlat || !params.swlng) {
-    params = {
-      city: 'Vancouver',
-      lat: 49.2767499,
-      lng: -123.2790899,
-    };
-  }
-  // -->
 
   if (url) {
     let time = Date.now();

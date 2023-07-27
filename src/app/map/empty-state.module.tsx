@@ -29,11 +29,11 @@ function Iterator({ children, reset }: { children: React.ReactElement; reset(): 
   return <>{Wrapped}</>;
 }
 
-export default function EmptyState({ className, children }: { className: string; children: React.ReactElement }) {
+export default function EmptyState({ className, children, show }: { className: string; children: React.ReactElement; show: boolean }) {
   const search = useSearchParams();
   const router = useRouter();
-  const { fireEvent } = useEvent(Events.MapSearch);
-  return (
+  const { data, fireEvent } = useEvent(Events.MapSearch);
+  return show === true ? (
     <div className={[className, styles['empty-state'], 'rexified HomeList-EmptyState'].join(' ')}>
       <Iterator
         reset={() => {
@@ -54,6 +54,7 @@ export default function EmptyState({ className, children }: { className: string;
               }),
           );
           fireEvent({
+            ...data,
             reload: true,
           });
         }}
@@ -61,5 +62,7 @@ export default function EmptyState({ className, children }: { className: string;
         {children}
       </Iterator>
     </div>
+  ) : (
+    <></>
   );
 }

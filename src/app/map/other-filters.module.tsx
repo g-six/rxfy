@@ -156,7 +156,7 @@ export default function OtherMapFilters({ className, children }: { className: st
       let { types } = state as unknown as {
         types: string;
       };
-      const dwelling_types = (types || '').split(',').filter(t => t !== value);
+      const dwelling_types = (types || '').split(',').filter(t => t && t !== value);
       if (is_selected) dwelling_types.push(value);
       dispatch({
         type: 'UPDATE_VALUE',
@@ -203,6 +203,7 @@ export default function OtherMapFilters({ className, children }: { className: st
     router.push('map?' + objectToQueryString(state as unknown as { [key: string]: string }));
     setToSubmitted(true);
     fireEvent({
+      ...data,
       reload: true,
     });
   };

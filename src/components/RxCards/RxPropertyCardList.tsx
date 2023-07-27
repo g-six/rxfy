@@ -19,7 +19,10 @@ export function FilterUpdateButton(props: { children: React.ReactElement; classN
   return (
     <button
       type='button'
-      className={props.className + ' disabled:bg-indigo-300 disabled:text-indigo-400 disabled:cursor-progress disabled:pointer-events-none'}
+      className={
+        props.className +
+        ' disabled:bg-indigo-300 disabled:text-indigo-400 disabled:cursor-progress disabled:pointer-events-none RxPropertyCardList-FilterUpdateButton'
+      }
       onClick={() => {
         toggleSearching(true);
         fireEvent({ loading: true } as unknown as EventsData);
