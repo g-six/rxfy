@@ -18,20 +18,6 @@ import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import PropertyListModal from '@/components/PropertyListModal';
 import { getMapData } from '@/_utilities/api-calls/call-mapbox';
 
-interface ResidentialListing {
-  area: string;
-  asking_price: number;
-  baths: number;
-  beds: number;
-  city: string;
-  cover_photo: string;
-  floor_area: number;
-  postal_zip_code: string;
-  state_province: string;
-  title: string;
-  year_built: number;
-}
-
 function Iterator({ children }: { children: React.ReactElement }) {
   const Wrapped = React.Children.map(children, c => {
     if (c.type === 'div') {
@@ -46,13 +32,14 @@ function Iterator({ children }: { children: React.ReactElement }) {
   return <>{Wrapped}</>;
 }
 
-export default function MapCanvas(p: { className: string; children: React.ReactElement }) {
+export default function MapCanvas(p: { 'agent-id': string; className: string; children: React.ReactElement }) {
   const router = useRouter();
   const search = useSearchParams();
   const { data, fireEvent } = useEvent(Events.MapSearch);
   const mapNode = React.useRef(null);
   const [map, setMap] = React.useState<mapboxgl.Map>();
   const [is_loading, setLoading] = React.useState<boolean>(false);
+  const [only_agent_listing, toggleListing] = React.useState<boolean>(false);
   const [filters, setFilters] = React.useState<{
     [k: string]: string | number;
   }>();
@@ -128,6 +115,7 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
           [k: string]: string;
         };
       }[] = [];
+      let minimum_should_match = 1;
       fireEvent({
         ...data,
         points: undefined,
@@ -198,6 +186,25 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
           },
         }));
       }
+
+      if (only_agent_listing) {
+        // should.push({
+        //   match: {
+        //     'data.LA1_LoginName': p['agent-id'],
+        //   },
+        // });
+        // should.push({
+        //   match: {
+        //     'data.LA2_LoginName': p['agent-id'],
+        //   },
+        // });
+        // should.push({
+        //   match: {
+        //     'data.LA3_LoginName': p['agent-id'],
+        //   },
+        // });
+        // minimum_should_match = 2;
+      }
       let sort: {
         [key: string]: 'asc' | 'desc';
       } = { 'data.UpdateDate': 'desc' };
@@ -260,7 +267,7 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
               } as unknown as Record<string, string>,
             ].concat(user_defined_filters as any[]) as any[],
             should,
-            ...(should.length ? { minimum_should_match: 1 } : {}),
+            ...(should.length ? { minimum_should_match } : {}),
             must_not,
           },
         },
@@ -335,6 +342,10 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [map],
   );
+
+  React.useEffect(() => {
+    console.log({ only_agent_listing });
+  }, [only_agent_listing]);
 
   React.useEffect(() => {
     if (map) {
@@ -441,8 +452,14 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
       }
     }
   }, [listings]);
-
   React.useEffect(() => {
+    document &&
+      document.querySelectorAll('.toggle-base').forEach(el =>
+        el.addEventListener('click', (evt: Event) => {
+          const toggle = evt.target as HTMLDivElement;
+          toggleListing(toggle.getAttribute('style')?.includes('transform') || false);
+        }),
+      );
     if (search.toString()) {
       let q = queryStringToObject(search.toString());
       if (q.center && map) {

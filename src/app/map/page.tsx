@@ -10,7 +10,6 @@ import { AgentData } from '@/_typings/agent';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import RxMapFilters from '@/components/RxMapFilters';
 import RxPropertyCardList from '@/components/RxCards/RxPropertyCardList';
-import { queryStringToObject } from '@/_utilities/url-helper';
 import HomeAlertButton from './home-alert-button.module';
 import HomeAlert1 from './home-alert-1.module';
 import HomeAlert2 from './home-alert-2.module';
@@ -20,6 +19,7 @@ import MapCanvas from './map-canvas.module';
 import HomeList from './home-list.module';
 
 import list_styles from './home-list.module.scss';
+import AgentListingsToggle from './agent-listing-toggle.module';
 
 async function Iterator({ agent, children, city }: { children: React.ReactElement; agent?: AgentData; city?: string }) {
   const Wrapped = React.Children.map(children, c => {
@@ -81,14 +81,22 @@ async function Iterator({ agent, children, city }: { children: React.ReactElemen
               </RxMapFilters>
             </div>
           );
-        } else if (className.includes('listings-by-agent-field') && !agent) {
-          return <></>;
+        } else if (className.includes('listings-by-agent-field')) {
+          return agent ? (
+            <AgentListingsToggle agent={agent} className={className}>
+              {props.children}
+            </AgentListingsToggle>
+          ) : (
+            <></>
+          );
         } else if (className.includes('all-properties')) {
           return <HomeList className={className}>{props.children}</HomeList>;
         } else if (className.includes('left-bar')) {
           return (
             <div className={[className, list_styles['left-bar']].join(' ')}>
-              <Iterator city={city}>{props.children}</Iterator>
+              <Iterator agent={agent} city={city}>
+                {props.children}
+              </Iterator>
             </div>
           );
         } else if (className.includes('ha-icon')) {
@@ -100,7 +108,11 @@ async function Iterator({ agent, children, city }: { children: React.ReactElemen
         } else if (className.includes('ha-step-3')) {
           return <HomeAlert3 className={className}>{props.children}</HomeAlert3>;
         } else if (className.includes('mapbox-canvas')) {
-          return <MapCanvas className={className}>{props.children}</MapCanvas>;
+          return (
+            <MapCanvas agent-id={agent?.agent_id || ''} className={className}>
+              {props.children}
+            </MapCanvas>
+          );
         }
       }
       // -->
@@ -138,9 +150,8 @@ async function Iterator({ agent, children, city }: { children: React.ReactElemen
   return <>{Wrapped}</>;
 }
 
-export default async function MapPage({ searchParams }: { params: { [key: string]: string }; searchParams: { [key: string]: string } }) {
-  const slug = headers().get('x-profile-slug');
-  const agent_id = headers().get('x-agent-id');
+export default async function MapPage({ params, searchParams }: { params: { [key: string]: string }; searchParams: { [key: string]: string } }) {
+  const { slug: agent_id, 'profile-slug': slug } = params;
   const url = headers().get('x-url');
   let agent;
 
