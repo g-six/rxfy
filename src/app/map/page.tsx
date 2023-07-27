@@ -24,6 +24,7 @@ import list_styles from './home-list.module.scss';
 async function Iterator({ agent, children, city }: { children: React.ReactElement; agent?: AgentData; city?: string }) {
   const Wrapped = React.Children.map(children, c => {
     if (c.props && typeof c.props.children === 'string') {
+      console.log(c.props.children);
       if (c.props.children.includes('{Agent Name}')) {
         if (agent) {
           const logo = agent.metatags.logo_for_light_bg || agent.metatags.logo_for_dark_bg;
@@ -111,6 +112,17 @@ async function Iterator({ agent, children, city }: { children: React.ReactElemen
             {c.props.children}
           </Iterator>
         </div>
+      );
+    } else if (c.type === 'a') {
+      return React.cloneElement(
+        c,
+        c.props,
+        React.Children.map(c.props.children, cc => {
+          if (!['img', 'span', 'svg'].includes(cc.type)) {
+            return <Iterator agent={agent}>{React.cloneElement(<span />, cc.props)}</Iterator>;
+          }
+          return cc;
+        }),
       );
     } else if (c.props?.children) {
       return React.cloneElement(c, {

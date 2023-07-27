@@ -267,7 +267,7 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
   };
 
   const repositionMap = React.useCallback(
-    (lat: number, lng: number) => {
+    (latlng: string) => {
       if (map) {
         // Not sure why we need this, perhaps performance issue in the past?
         // Commenting this out for now and if maps performance is an issue,
@@ -280,6 +280,7 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
         // });
 
         if (filters) {
+          const [lat, lng] = latlng.split(',').map(Number);
           getMapData(lng, lat).then(loc => {
             const {
               features: [{ context }],
@@ -313,6 +314,10 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
             zoom: map.getZoom(),
           };
           setFilters(updated_filters);
+          fireEvent({
+            ...data,
+            reload: true,
+          });
         }
       }
     },
@@ -336,7 +341,7 @@ export default function MapCanvas(p: { className: string; children: React.ReactE
 
         const { lat, lng } = map.getCenter();
 
-        repositionMap(lat, lng);
+        repositionMap(`${lat},${lng}`);
       };
       map.off('dragend', populate);
       map.on('dragend', populate);
