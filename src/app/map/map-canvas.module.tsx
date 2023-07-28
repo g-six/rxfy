@@ -17,6 +17,7 @@ import { must_not, retrievePublicListingsFromPipeline } from '@/_utilities/api-c
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import PropertyListModal from '@/components/PropertyListModal';
 import { getMapData } from '@/_utilities/api-calls/call-mapbox';
+import { AgentData } from '@/_typings/agent';
 
 function Iterator({ children }: { children: React.ReactElement }) {
   const Wrapped = React.Children.map(children, c => {
@@ -32,7 +33,7 @@ function Iterator({ children }: { children: React.ReactElement }) {
   return <>{Wrapped}</>;
 }
 
-export default function MapCanvas(p: { 'agent-id': string; className: string; children: React.ReactElement; 'default-lat': number; 'default-lng': number }) {
+export default function MapCanvas(p: { agent?: AgentData; className: string; children: React.ReactElement; 'default-lat': number; 'default-lng': number }) {
   const router = useRouter();
   const search = useSearchParams();
   const { data, fireEvent } = useEvent(Events.MapSearch);
@@ -511,6 +512,7 @@ export default function MapCanvas(p: { 'agent-id': string; className: string; ch
     <aside className={[p.className, styles.MainWrapper, 'rexified MapCanvas'].join(' ')}>
       <div id='map' className={classNames(styles.RxMapbox)} ref={mapNode}></div>
       <PropertyListModal
+        agent={p.agent}
         card={<Iterator>{p.children?.props?.children}</Iterator>}
         onClose={() => {
           setSelectedCluster([]);

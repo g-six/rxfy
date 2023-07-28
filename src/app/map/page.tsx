@@ -119,7 +119,7 @@ async function Iterator({ agent, children, city }: { children: React.ReactElemen
           const default_lat = agent?.metatags?.lat || 49.274527699999794;
           const default_lng = agent?.metatags?.lng || -123.11389869999971;
           return (
-            <MapCanvas agent-id={agent?.agent_id || ''} className={className} default-lat={default_lat} default-lng={default_lng}>
+            <MapCanvas agent={agent} className={className} default-lat={default_lat} default-lng={default_lng}>
               {props.children}
             </MapCanvas>
           );
