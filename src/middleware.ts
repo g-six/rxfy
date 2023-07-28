@@ -31,6 +31,9 @@ export function middleware(request: NextRequest) {
   } else if (segments[0] === 'property') {
     response.headers.set('x-viewer', 'customer');
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/property/propertyid`;
+  } else if (segments[0] === 'log-in') {
+    response.headers.set('x-viewer', 'realtor');
+    page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/log-in`;
   } else if (segments[0] === 'brochure') {
     response.headers.set('x-viewer', 'customer');
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/brochure`;
@@ -57,7 +60,7 @@ export function middleware(request: NextRequest) {
     response.headers.set('x-viewer', 'customer');
 
     // if (['map', 'id', 'property', 'update-password', 'my-account', 'log-in', 'my-profile', 'client-dashboard'].includes(segments[2])) {
-    if (['my-profile'].includes(segments[2])) {
+    if (['my-profile', 'map'].includes(segments[2])) {
       page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/${segments[2]}`;
     } else if (segments[2] === 'map') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/map`;
     else if (segments[2] === 'id') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/id`;

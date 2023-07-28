@@ -10,7 +10,7 @@ import { PropertyDataModel } from '@/_typings/property';
 function Iterator({ children, ...props }: { children: React.ReactElement; 'is-empty'?: boolean }) {
   const Wrapped = React.Children.map(children, c => {
     if (c.type === 'div') {
-      if (c.props.className?.includes('property-card')) {
+      if (c.props.className?.split(' ').includes('property-card')) {
         return <PropertyCard {...c.props}>{c.props.children}</PropertyCard>;
       }
       if (c.props.className?.includes('empty-state')) {

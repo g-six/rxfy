@@ -10,6 +10,7 @@ export enum Events {
   UpdatePassword = 'event-update-password',
   SignUp = 'event-signup',
   MapSearch = 'evt-map-search',
+  MapClusterModal = 'evt-map-cluster-mdl',
   SaveAccountChanges = 'event-save-acct-changes',
   SystemNotification = 'system-notification',
   MapHomeAlertToast = 'event-map-home-alert',

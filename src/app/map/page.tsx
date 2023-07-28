@@ -21,6 +21,7 @@ import HomeList from './home-list.module';
 import list_styles from './home-list.module.scss';
 import AgentListingsToggle from './agent-listing-toggle.module';
 import HeartToggle from './heart-toggle.module';
+import PropertyCardSm from './property-card-sm.module';
 
 async function Iterator({ agent, children, city }: { children: React.ReactElement; agent?: AgentData; city?: string }) {
   const Wrapped = React.Children.map(children, c => {
@@ -108,9 +109,17 @@ async function Iterator({ agent, children, city }: { children: React.ReactElemen
           return <HomeAlert2 className={className}>{props.children}</HomeAlert2>;
         } else if (className.includes('ha-step-3')) {
           return <HomeAlert3 className={className}>{props.children}</HomeAlert3>;
-        } else if (className.includes('mapbox-canvas')) {
+        } else if (className.includes('property-card-small')) {
           return (
-            <MapCanvas agent-id={agent?.agent_id || ''} className={className}>
+            <PropertyCardSm agent={agent?.id || 0} className={className}>
+              {props.children}
+            </PropertyCardSm>
+          );
+        } else if (className.includes('mapbox-canvas')) {
+          const default_lat = agent?.metatags?.lat || 49.274527699999794;
+          const default_lng = agent?.metatags?.lng || -123.11389869999971;
+          return (
+            <MapCanvas agent-id={agent?.agent_id || ''} className={className} default-lat={default_lat} default-lng={default_lng}>
               {props.children}
             </MapCanvas>
           );

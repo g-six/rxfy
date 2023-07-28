@@ -32,10 +32,11 @@ function Iterator({ children }: { children: React.ReactElement }) {
   return <>{Wrapped}</>;
 }
 
-export default function MapCanvas(p: { 'agent-id': string; className: string; children: React.ReactElement }) {
+export default function MapCanvas(p: { 'agent-id': string; className: string; children: React.ReactElement; 'default-lat': number; 'default-lng': number }) {
   const router = useRouter();
   const search = useSearchParams();
   const { data, fireEvent } = useEvent(Events.MapSearch);
+  const { fireEvent: setClusterModal } = useEvent(Events.MapClusterModal);
   const mapNode = React.useRef(null);
   const [map, setMap] = React.useState<mapboxgl.Map>();
   const [is_loading, setLoading] = React.useState<boolean>(false);
@@ -61,16 +62,25 @@ export default function MapCanvas(p: { 'agent-id': string; className: string; ch
 
           if (is_cluster) {
             cluster_source.getClusterLeaves(cluster_id, point_count, 0, (error, feats: Feature[]) => {
-              // Refactor this into a standalone function
-              setSelectedCluster(
-                feats.map(
+              setClusterModal({
+                cluster: feats.map(
                   ({ id, properties }) =>
                     ({
                       ...properties,
                       id,
                     } as unknown as PropertyDataModel),
                 ),
-              );
+              } as unknown as EventsData);
+              // Refactor this into a standalone function
+              // setSelectedCluster(
+              //   feats.map(
+              //     ({ id, properties }) =>
+              //       ({
+              //         ...properties,
+              //         id,
+              //       } as unknown as PropertyDataModel),
+              //   ),
+              // );
             });
           } else {
             const items: PropertyDataModel[] = [];
@@ -346,7 +356,7 @@ export default function MapCanvas(p: { 'agent-id': string; className: string; ch
   );
 
   React.useEffect(() => {
-    console.log({ only_agent_listing });
+    // console.log({ only_agent_listing });
   }, [only_agent_listing]);
 
   React.useEffect(() => {
@@ -462,26 +472,32 @@ export default function MapCanvas(p: { 'agent-id': string; className: string; ch
           toggleListing(toggle.getAttribute('style')?.includes('transform') || false);
         }),
       );
-    if (search.toString()) {
-      let q = queryStringToObject(search.toString());
-      if (q.center && map) {
-        const { center, place_id, ...queryparams } = q;
-        const [lat, lng] = `${center}`.split(',').map(Number);
-        map.setCenter([lng, lat]);
-        map.setZoom(11);
-        const updated = {
-          ...queryparams,
-          lat,
-          lng,
-          nelat: map.getBounds().getNorthEast().lat,
-          swlat: map.getBounds().getSouthWest().lat,
-          nelng: map.getBounds().getNorthEast().lng,
-          swlng: map.getBounds().getSouthWest().lng,
-        };
-        setFilters(updated);
-        setLoading(true);
-      } else setFilters(q);
-    }
+
+    let q = queryStringToObject(search.toString() || '');
+    if (q.center && map) {
+      const { center, place_id, ...queryparams } = q;
+      const [lat, lng] = `${center}`.split(',').map(Number);
+      map.setCenter([lng, lat]);
+      map.setZoom(11);
+      const updated = {
+        ...queryparams,
+        lat,
+        lng,
+        nelat: map.getBounds().getNorthEast().lat,
+        swlat: map.getBounds().getSouthWest().lat,
+        nelng: map.getBounds().getNorthEast().lng,
+        swlng: map.getBounds().getSouthWest().lng,
+      };
+      setFilters(updated);
+      setLoading(true);
+    } else if (!q.lat && !q.lng) {
+      const updated = {
+        lat: p['default-lat'],
+        lng: p['default-lng'],
+        zoom: 10,
+      };
+      setFilters(updated);
+    } else setFilters(q);
   }, [search]);
 
   React.useEffect(() => {

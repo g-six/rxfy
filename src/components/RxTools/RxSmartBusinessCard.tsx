@@ -31,7 +31,6 @@ export default function RxSmartBusinessCard({ nodes, agent }: ReplacerPageProps)
     } else if (actionName === 'update') {
       newArr.map(item => (item.id === data.id ? data : item));
     }
-    console.log(newArr);
     setShowDetails(false);
     setCards(newArr);
   };
