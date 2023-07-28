@@ -51,7 +51,7 @@ export default function RxNavItemMenu(p: Props) {
       },
     },
     {
-      searchFn: searchByClasses(['w-dropdown-link', 'in-session']),
+      searchFn: searchByClasses(['w-dropdown-link', WEBFLOW_NODE_SELECTOR.USER_MENU]),
       transformChild: (child: React.ReactElement) => {
         return Cookies.get('session_key') ? child : <></>;
       },

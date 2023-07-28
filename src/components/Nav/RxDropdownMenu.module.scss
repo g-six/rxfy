@@ -1,5 +1,5 @@
 .dropdown {
-  @apply w-48 flex rounded overflow-hidden min-w-0;
+  @apply w-36 flex rounded overflow-hidden min-w-0;
 
   &.session-dropdown {
     @apply top-16 mt-0 absolute right-0;

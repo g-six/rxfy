@@ -41,7 +41,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
   const mapNode = React.useRef(null);
   const [map, setMap] = React.useState<mapboxgl.Map>();
   const [is_loading, setLoading] = React.useState<boolean>(false);
-  const [only_agent_listing, toggleListing] = React.useState<boolean>(false);
+  const [only_agent_listing, toggleListing] = React.useState<boolean>();
   const [filters, setFilters] = React.useState<{
     [k: string]: string | number;
   }>();
@@ -199,6 +199,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
       }
 
       if (only_agent_listing) {
+        console.log({ p });
         // should.push({
         //   match: {
         //     'data.LA1_LoginName': p['agent-id'],
@@ -244,54 +245,58 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
         }
       }
 
-      const legacy_params: LegacySearchPayload = {
-        from: 0,
-        size: 1000,
-        sort,
-        query: {
-          bool: {
-            filter: [
-              {
-                range: {
-                  'data.lat': {
-                    lte: filters.nelat,
-                    gte: filters.swlat,
+      if (map) {
+        // Let's get more accurate if possible
+        // Data bounded by map
+        const legacy_params: LegacySearchPayload = {
+          from: 0,
+          size: 1000,
+          sort,
+          query: {
+            bool: {
+              filter: [
+                {
+                  range: {
+                    'data.lat': {
+                      lte: map.getBounds().getNorthEast().lat,
+                      gte: map.getBounds().getSouthWest().lat,
+                    },
                   },
                 },
-              },
-              {
-                range: {
-                  'data.lng': {
-                    lte: filters.nelng,
-                    gte: filters.swlng,
+                {
+                  range: {
+                    'data.lng': {
+                      lte: map.getBounds().getNorthEast().lng,
+                      gte: map.getBounds().getSouthWest().lng,
+                    },
                   },
                 },
-              },
-              {
-                match: {
-                  'data.IdxInclude': 'Yes',
+                {
+                  match: {
+                    'data.IdxInclude': 'Yes',
+                  },
                 },
-              },
-              {
-                match: {
-                  'data.Status': 'Active' as string,
-                },
-              } as unknown as Record<string, string>,
-            ].concat(user_defined_filters as any[]) as any[],
-            should,
-            ...(should.length ? { minimum_should_match } : {}),
-            must_not,
+                {
+                  match: {
+                    'data.Status': 'Active' as string,
+                  },
+                } as unknown as Record<string, string>,
+              ].concat(user_defined_filters as any[]) as any[],
+              should,
+              ...(should.length ? { minimum_should_match } : {}),
+              must_not,
+            },
           },
-        },
-      };
+        };
 
-      retrievePublicListingsFromPipeline(legacy_params).then(({ records }: { records: PropertyDataModel[] }) => {
-        setListings(records);
-        fireEvent({
-          ...data,
-          reload: false,
-        } as EventsData);
-      });
+        retrievePublicListingsFromPipeline(legacy_params).then(({ records }: { records: PropertyDataModel[] }) => {
+          setListings(records);
+          fireEvent({
+            ...data,
+            reload: false,
+          } as EventsData);
+        });
+      }
     }
   };
 
@@ -357,7 +362,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
   );
 
   React.useEffect(() => {
-    // console.log({ only_agent_listing });
+    console.log({ only_agent_listing });
   }, [only_agent_listing]);
 
   React.useEffect(() => {
@@ -466,14 +471,6 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
     }
   }, [listings]);
   React.useEffect(() => {
-    document &&
-      document.querySelectorAll('.toggle-base').forEach(el =>
-        el.addEventListener('click', (evt: Event) => {
-          const toggle = evt.target as HTMLDivElement;
-          toggleListing(toggle.getAttribute('style')?.includes('transform') || false);
-        }),
-      );
-
     let q = queryStringToObject(search.toString() || '');
     if (q.center && map) {
       const { center, place_id, ...queryparams } = q;
@@ -507,6 +504,19 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
       populateMap();
     }
   }, [is_loading]);
+
+  React.useEffect(() => {
+    document &&
+      document.querySelectorAll('.toggle-base').forEach(el =>
+        el.addEventListener('click', (evt: Event) => {
+          const toggle = evt.target as HTMLDivElement;
+          const toggle_value = toggle.getAttribute('style')?.includes('transform') || false;
+          if (only_agent_listing !== toggle_value) {
+            toggleListing(toggle_value);
+          }
+        }),
+      );
+  }, []);
 
   return (
     <aside className={[p.className, styles.MainWrapper, 'rexified MapCanvas'].join(' ')}>
