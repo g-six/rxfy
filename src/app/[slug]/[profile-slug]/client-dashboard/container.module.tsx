@@ -55,8 +55,6 @@ export default function Container({ agent, children }: { children: React.ReactEl
                 mls_ids.map(async (mls_id, idx: number) => {
                   if (existing?.filter((listing: { property: PropertyDataModel }) => mls_id === listing.property.mls_id).length === 0) {
                     return loveHome(mls_id, agent.id);
-                  } else {
-                    console.log('Skip', mls_id);
                   }
                 }),
               ).then((new_records: { record?: { id: number; notes: string; property: PropertyDataModel } }[]) => {
