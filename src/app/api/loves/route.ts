@@ -4,6 +4,7 @@ import { getResponse } from '../response-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getNewSessionKey } from '../update-session';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { getMutationForPhotoAlbumCreation } from '@/_utilities/data-helpers/property-page';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -254,14 +255,33 @@ export async function POST(request: Request) {
         },
       );
 
-      const { property } = love_response.data.data.love.record.attributes;
+      const { property, ...props } = love_response.data.data.love.record.attributes;
+
+      if (!property.data.attributes.property_photo_album?.data && property.data.attributes.mls_data?.photos?.length && property.data.id) {
+        const mutation_photos = getMutationForPhotoAlbumCreation(Number(property.data.id), property.data.attributes.mls_data.photos);
+        const album_response = await axios.post(`${process.env.NEXT_APP_CMS_GRAPHQL_URL}`, mutation_photos, {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        const {
+          data: {
+            data: { createPropertyPhotoAlbum },
+          },
+        } = album_response;
+        console.log({ album_response });
+        property.data.attributes.property_photo_album = createPropertyPhotoAlbum;
+      }
+      console.log({ property });
 
       return getResponse(
         {
           session_key,
           record: {
             id: Number(love_response.data.data.love.record.id),
-            ...love_response.data.data.love.record.attributes,
+            ...props,
+            property,
           },
         },
         200,

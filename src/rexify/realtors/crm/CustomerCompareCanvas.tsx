@@ -6,7 +6,11 @@ import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import React from 'react';
 import RxPropertyCompareCard from './RxPropertyCompareCard';
 
-type Props = { children: React.ReactElement | React.ReactElement[]; className: string };
+type Props = {
+  children: React.ReactElement | React.ReactElement[];
+  className: string;
+  properties?: LovedPropertyDataModel[];
+};
 export interface Card extends LovedPropertyDataModel {
   position?: number;
 }

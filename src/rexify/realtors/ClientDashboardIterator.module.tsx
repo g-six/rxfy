@@ -91,7 +91,11 @@ export default function ClientDashboardIterator(
             </CustomerProperties>
           );
         } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_COMPARE_WRAPPER)) {
-          return <RxCustomerCompareCanvas className={child.props.className}>{child.props.children}</RxCustomerCompareCanvas>;
+          return (
+            <RxCustomerCompareCanvas properties={p.properties ? p.properties.slice(0, 3) : undefined} className={child.props.className}>
+              {child.props.children}
+            </RxCustomerCompareCanvas>
+          );
         } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_PROPERTY_PREVIEW)) {
           return (
             <RxCustomerPropertyView reload={p.reload} property={p.property} className={child.props.className}>
