@@ -5,6 +5,7 @@ import { AgentData } from '@/_typings/agent';
 import { searchByClasses } from '@/_utilities/searchFnUtils';
 import { replaceAllTextWithBraces, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { getAgentPhoto } from '@/_utilities/data-helpers/agent-helper';
+import { searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 
 type Props = {
   child: ReactElement;
@@ -27,7 +28,7 @@ export default function RxPropertyAgent(props: Props) {
       },
     },
     {
-      searchFn: searchByClasses(['div-block-44']),
+      searchFn: searchByPartOfClass(['div-block']),
       transformChild: (child: ReactElement) => {
         return replaceAllTextWithBraces(child, {
           'Agent Name': props?.agent?.full_name,

@@ -259,6 +259,7 @@ function getIcon(input: string) {
 export function getFeatureIcons(property: unknown) {
   let features = {};
   const relationships = property as Record<string, string[]>;
+
   PROPERTY_ASSOCIATION_KEYS.forEach(relationship => {
     if (relationships[relationship] && Array.isArray(relationships[relationship])) {
       relationships[relationship].map(name => {

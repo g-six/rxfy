@@ -14,6 +14,7 @@ import DocumentsReplacer from '@/_replacers/Documents/documents';
 import RxCustomerAccountView from './crm/RxCustomerAccountView';
 import CRMNav from './crm/CRMNav';
 import { AgentData } from '@/_typings/agent';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 
 type Props = {
   children: React.ReactElement;
@@ -66,7 +67,29 @@ export default function ClientDashboardIterator(
 ) {
   const Wrapped = React.Children.map(p.children, child => {
     if (child.props?.children || child.props?.className) {
-      if (child.props?.className?.includes('confirm-delete')) {
+      if (p.agent && child.props?.className?.includes('logo-div')) {
+        let logo = '';
+        if (p.agent?.metatags.logo_for_light_bg) {
+          logo = getImageSized(p.agent?.metatags.logo_for_light_bg, 100);
+        }
+        if (p.agent?.metatags.logo_for_dark_bg) {
+          logo = getImageSized(p.agent?.metatags.logo_for_dark_bg, 100);
+        }
+        return (
+          <div className={child.props?.className}>
+            <a href={''}>
+              {logo ? (
+                <span
+                  className='inline-block rounded bg-no-repeat bg-contain w-full'
+                  style={{ backgroundImage: `url(${logo})`, height: '3rem', width: '100px' }}
+                />
+              ) : (
+                p.agent?.full_name
+              )}{' '}
+            </a>
+          </div>
+        );
+      } else if (child.props?.className?.includes('confirm-delete')) {
         return React.cloneElement(child, {
           ...child.props,
           className: p.confirm ? 'flex items-center align-center justify-center absolute w-full h-full' : child.props.className,
@@ -98,7 +121,7 @@ export default function ClientDashboardIterator(
           );
         } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_PROPERTY_PREVIEW)) {
           return (
-            <RxCustomerPropertyView reload={p.reload} property={p.property} className={child.props.className}>
+            <RxCustomerPropertyView agent={p.agent} reload={p.reload} property={p.property} className={child.props.className}>
               {child.props.children}
             </RxCustomerPropertyView>
           );

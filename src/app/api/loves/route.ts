@@ -5,6 +5,7 @@ import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extr
 import { getNewSessionKey } from '../update-session';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { getMutationForPhotoAlbumCreation } from '@/_utilities/data-helpers/property-page';
+import { getLovedHomes } from './model';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -14,23 +15,6 @@ const gql_find_home = `query FindHomeByMLSID($mls_id: String!) {
   properties(filters:{ mls_id:{ eq: $mls_id}}, pagination: {limit:1}) {
     data {
       id
-    }
-  }
-}`;
-
-const gql_get_loved = `query GetLovedHomes($customer: ID!) {
-  loves(filters:{ customer: { id: { eq: $customer } }}) {
-    data {
-      id
-      attributes {
-        notes
-        property {
-          data {
-            id
-            attributes {${GQ_FRAGMENT_PROPERTY_ATTRIBUTES}}
-          }
-        }
-      }
     }
   }
 }`;
@@ -80,89 +64,49 @@ export async function GET(request: Request) {
   let session_key = `${token}-${guid}`;
   let message = 'Unable to retrieve saved homes';
 
-  const love_response = await axios.post(
-    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-    {
-      query: gql_get_loved,
-      variables: {
-        customer: guid,
-      },
-    },
-    {
-      headers,
-    },
-  );
-
-  let loves;
-  if (love_response.data?.data?.loves?.data) {
-    loves = love_response.data.data.loves.data;
-  }
+  const loves = await getLovedHomes(guid);
   if (loves) {
     let cover_photo = 'https://assets.website-files.com/6410ad8373b7fc352794333b/642df6a57f39e6607acedd7f_Home%20Placeholder-p-500.png';
     let photos: string[] = [];
     try {
-      const records = loves.map(
-        (
-          love: Record<
-            string,
-            {
-              notes?: string;
-              property: {
-                data: {
-                  id: number;
-                  attributes: PropertyDataModel;
-                };
-              };
-            }
-          >,
-        ) => {
-          if (!love.attributes.property.data.attributes) return undefined;
-          const { property_photo_album, beds, baths, ...other_fields } = love.attributes.property.data.attributes;
-          if (property_photo_album?.data) {
-            const {
-              attributes: { photos: property_photos },
-            } = property_photo_album.data as unknown as {
-              attributes: {
-                photos: string[];
-              };
+      const records = loves.map(love => {
+        if (!love.property) return undefined;
+        const { property_photo_album, beds, baths, ...other_fields } = love.property;
+        if (property_photo_album?.data) {
+          const {
+            attributes: { photos: property_photos },
+          } = property_photo_album.data as unknown as {
+            attributes: {
+              photos: string[];
             };
-
-            photos = property_photos.map((src: string, idx) => {
-              if (idx === 0) cover_photo = getImageSized(src, 520);
-              return getImageSized(src, 1400);
-            });
-          }
-
-          let for_filters = {};
-          // FILTERS.forEach(({ keys }) => {
-          //   keys.forEach(key => {
-          //     const text = other_fields[key] ? (Array.isArray(other_fields[key]) ? (other_fields[key] as string[]).join(', ') : other_fields[key]) : undefined;
-          //     const num = text ? Number(text) : undefined;
-          //     for_filters = {
-          //       ...for_filters,
-          //       [key]: num || text,
-          //     };
-          //   });
-          // });
-          return {
-            id: Number(love.id),
-            notes: love.attributes.notes || '',
-            property: {
-              ...for_filters,
-              ...other_fields,
-              id: Number(love.attributes.property.data.id),
-              beds,
-              baths,
-              photos,
-              property_photo_album,
-              cover_photo,
-              area: love.attributes.property.data.attributes.area || love.attributes.property.data.attributes.city,
-              mls_data: undefined, // Hide prized data
-              for_filters,
-            },
           };
-        },
-      );
+
+          photos = property_photos.map((src: string, idx) => {
+            if (idx === 0) cover_photo = getImageSized(src, 520);
+            return getImageSized(src, 1400);
+          });
+        }
+
+        let for_filters = {};
+
+        return {
+          id: Number(love.id),
+          notes: love.notes || '',
+          property: {
+            ...for_filters,
+            ...other_fields,
+            id: Number(other_fields.id),
+            beds,
+            baths,
+            photos,
+            property_photo_album,
+            cover_photo,
+            area: other_fields.area || other_fields.city,
+            mls_data: undefined, // Hide prized data
+            for_filters,
+          },
+        };
+      });
 
       const user = await getNewSessionKey(token, guid);
 
@@ -225,6 +169,17 @@ export async function POST(request: Request) {
     }
 
     if (property_id) {
+      const [existing] = await getLovedHomes(guid, property_id);
+      if (existing) {
+        return getResponse(
+          {
+            session_key,
+            existing,
+            error: 'Existing record',
+          },
+          400,
+        );
+      }
       const user = await getNewSessionKey(token, guid);
       if (!user?.session_key) {
         return getResponse(
@@ -270,10 +225,8 @@ export async function POST(request: Request) {
             data: { createPropertyPhotoAlbum },
           },
         } = album_response;
-        console.log({ album_response });
         property.data.attributes.property_photo_album = createPropertyPhotoAlbum;
       }
-      console.log({ property });
 
       return getResponse(
         {

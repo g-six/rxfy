@@ -36,6 +36,13 @@ function Iterator({
         );
       }
 
+      if (props['data-field'] === 'address') {
+        return <div className={subclass}>{property.title}</div>;
+      }
+      if (props['data-field'] === 'area') {
+        return <div className={subclass}>{property.area || property.city}</div>;
+      }
+
       if (subclass?.includes('heart-full')) {
         if (!loves.includes(property.mls_id)) {
           return <></>;

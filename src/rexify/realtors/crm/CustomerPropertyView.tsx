@@ -10,6 +10,8 @@ import RxPropertyStats from '@/components/RxProperty/RxPropertyStats';
 import { AgentData } from '@/_typings/agent';
 import styles from './CustomerPropertyView.module.scss';
 import RxActionBar from './CRMPropertyPageComponents/RxActionBar';
+import RxFeatures from '@/components/RxProperty/RxFeatures';
+import { getFeatureIcons } from '@/_helpers/functions';
 
 type Props = {
   children: React.ReactElement;
@@ -158,6 +160,10 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
                 })(),
               });
           }
+        } else if (child.props['data-table'] === 'other-building-units') {
+          return p.property?.complex_compound_name ? child : <></>;
+        } else if (child.props.className === WEBFLOW_NODE_SELECTOR.PROPERTY_FEATURES) {
+          return p.property ? <RxFeatures child={child} features={getFeatureIcons(p.property as PropertyDataModel)} /> : <></>;
         } else if (child.props.className === WEBFLOW_NODE_SELECTOR.PROPERTY_MAPS) {
           return p.property && p.property.lon && p.property.lat ? <RxPropertyMaps child={child} property={p.property} /> : <></>;
         } else if (child.props.className?.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS) >= 0) {
@@ -210,7 +216,7 @@ export default function RxCustomerPropertyView(p: Props) {
   const session = useEvent(Events.LoadUserSession);
   const selectPropertyEvt = useEvent(Events.SelectCustomerLovedProperty);
   const [property, selectProperty] = React.useState<PropertyDataModel>();
-  const agent = session.data as unknown as AgentData;
+  const agent = (p.agent || session.data) as unknown as AgentData;
 
   React.useEffect(() => {
     if (selectPropertyEvt.data && Object.keys(selectPropertyEvt.data).length > 0) {
@@ -222,11 +228,13 @@ export default function RxCustomerPropertyView(p: Props) {
 
   const { reload, property: selected_property, ...props } = p;
 
-  return (
+  return property ? (
     <div {...props} className={`${p.className} ${property?.id ? styles['opened-property-view'] : styles['closed-property-view']}`}>
       <Iterator {...props} property={property} agent={agent} reload={reload}>
         {p.children}
       </Iterator>
     </div>
+  ) : (
+    <></>
   );
 }

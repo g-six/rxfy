@@ -189,21 +189,6 @@ export default function IndividualTab({ child, agent_data }: Props) {
         return <RxFeatures child={child} features={getFeatureIcons(currentProperty as PropertyDataModel)} />;
       },
     },
-    // {
-    //   searchFn: searchByClasses(['building-and-sold-column']),
-    //   transformChild: (child: ReactElement) => {
-    //     const isBuilding = !parseInt(child.key as string);
-
-    //     return (
-    //       <RxBuildOrSoldHistory
-    //         type={isBuilding ? 'building' : 'sold-history'}
-    //         // config={parseInt(child.props.key)?{}}
-    //         child={child}
-    //         data={isBuilding ? (currentProperty?.neighbours as MLSProperty[]) : (currentProperty?.sold_history as MLSProperty[])}
-    //       />
-    //     );
-    //   },
-    // },
   ];
 
   return (

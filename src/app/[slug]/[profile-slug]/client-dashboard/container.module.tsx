@@ -44,10 +44,13 @@ export default function Container({ agent, children }: { children: React.ReactEl
         .then((data: unknown) => {
           setData('viewing_customer', JSON.stringify(data));
           getLovedHomes().then(data => {
-            const local = getData(Events.LovedItem);
+            const local: string[] = getData(Events.LovedItem) || [];
             const existing: { property: PropertyDataModel; id: number; notes: string }[] = data.records || [];
-            if (local && Array.isArray(local)) {
-              const mls_ids: string[] = local;
+            if (local.length) {
+              const mls_ids: string[] = [];
+              local.forEach(mls_id => {
+                if (!mls_ids.includes(mls_id)) mls_ids.push(mls_id);
+              });
               Promise.all(
                 mls_ids.map(async (mls_id, idx: number) => {
                   if (existing?.filter((listing: { property: PropertyDataModel }) => mls_id === listing.property.mls_id).length === 0) {
