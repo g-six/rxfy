@@ -222,13 +222,14 @@ export async function PUT(request: Request) {
     return getResponse(
       {
         session_key: `${encrypt(last_activity_at)}.${encrypt(user.record.attributes.email)}-${guid}`,
+        ...updated_user,
       },
       200,
     );
   } catch (e) {
     console.log('Error in Update Account API request');
     const errors = e as AxiosError;
-    console.log(JSON.stringify({ errors }, null, 4));
+    console.log(JSON.stringify({ e, errors }, null, 4));
     return new Response(
       JSON.stringify(
         {

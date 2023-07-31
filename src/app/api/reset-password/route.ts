@@ -63,7 +63,7 @@ export async function PUT(request: Request) {
             query: mutation_gql,
             variables: {
               id: data.id,
-              timestamp: new Date().toISOString(),
+              timestamp: data.attributes.last_activity_at || new Date().toISOString(),
             },
           },
           {
@@ -80,9 +80,8 @@ export async function PUT(request: Request) {
             name: customer.data.attributes.full_name,
           },
         ];
-        const client_url = `${url.origin}${pathway ? `/${pathway}` : ''}/update-password?key=${encrypt(customer.data.attributes.last_activity_at)}.${encrypt(
-          email,
-        )}-${customer.data.id}`;
+        const session_key = `${encrypt(customer.data.attributes.last_activity_at)}.${encrypt(email)}-${customer.data.id}`;
+        const client_url = `${url.origin}${pathway ? `/${pathway}` : ''}/update-password?key=${session_key}`;
         await sendTemplate('forgot-password', send_to, {
           subject: 'Leagent Password Recovery',
           client_url,

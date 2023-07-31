@@ -167,7 +167,6 @@ export default function RxPropertyCard({
       setLovedItems(getData(Events.LovedItem) as unknown as string[]);
     }
   }, [evt.data]);
-
   return (
     <div
       data-agent={agent}

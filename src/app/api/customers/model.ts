@@ -1,11 +1,7 @@
 import { CustomerInputModel } from '@/_typings/customer';
 import axios, { AxiosError } from 'axios';
 
-const mutation_create_customer = `mutation CreateCustomers($data: CustomerInput!) {
-    customer: createCustomer(data: $data) {
-      record: data {
-        id
-        attributes {
+const customer_attributes = `{
             full_name
             first_name
             last_name
@@ -14,6 +10,12 @@ const mutation_create_customer = `mutation CreateCustomers($data: CustomerInput!
             birthday
             last_activity_at
         }
+`;
+const mutation_create_customer = `mutation CreateCustomers($data: CustomerInput!) {
+    customer: createCustomer(data: $data) {
+      record: data {
+        id
+        attributes ${customer_attributes}
       }
     }
 }`;
@@ -39,6 +41,41 @@ const mutation_create_agents_customer = `mutation CreateCustomers($data: AgentsC
       }
     }
 }`;
+
+const query_get_account = `query GetMyCustomerProfile($id: ID!) {
+  customer(id: $id) {
+    record: data {
+      id
+      attributes ${customer_attributes}
+    }
+  }
+}`;
+
+export async function getCustomer(id: number, agent?: number) {
+  const { data: response } = await axios.post(
+    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+    {
+      query: query_get_account,
+      variables: {
+        id,
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  if (response.data?.customer?.record) {
+    const { id, attributes } = response.data.customer.record;
+    return {
+      ...attributes,
+      id: Number(id),
+    };
+  }
+}
 
 export async function createCustomer(customer: CustomerInputModel, agent: number) {
   try {

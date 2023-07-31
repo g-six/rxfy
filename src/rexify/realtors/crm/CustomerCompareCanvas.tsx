@@ -1,6 +1,6 @@
 'use client';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { DndProvider, DropTargetMonitor } from 'react-dnd';
+import { DndProvider } from 'react-dnd';
 import { LovedPropertyDataModel } from '@/_typings/property';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import React from 'react';

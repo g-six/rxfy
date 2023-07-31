@@ -3,6 +3,7 @@ import { GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty, PropertyDataModel } from 
 import { getResponse } from '../response-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getNewSessionKey } from '../update-session';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -96,6 +97,8 @@ export async function GET(request: Request) {
     loves = love_response.data.data.loves.data;
   }
   if (loves) {
+    let cover_photo = 'https://assets.website-files.com/6410ad8373b7fc352794333b/642df6a57f39e6607acedd7f_Home%20Placeholder-p-500.png';
+    let photos: string[] = [];
     try {
       const records = loves.map(
         (
@@ -114,16 +117,19 @@ export async function GET(request: Request) {
         ) => {
           if (!love.attributes.property.data.attributes) return undefined;
           const { property_photo_album, beds, baths, ...other_fields } = love.attributes.property.data.attributes;
-          let thumb = 'https://assets.website-files.com/6410ad8373b7fc352794333b/642df6a57f39e6607acedd7f_Home%20Placeholder-p-500.png';
           if (property_photo_album?.data) {
             const {
-              attributes: { photos },
+              attributes: { photos: property_photos },
             } = property_photo_album.data as unknown as {
               attributes: {
                 photos: string[];
               };
             };
-            thumb = photos[0];
+
+            photos = property_photos.map((src: string, idx) => {
+              if (idx === 0) cover_photo = getImageSized(src, 520);
+              return getImageSized(src, 1400);
+            });
           }
 
           let for_filters = {};
@@ -146,7 +152,9 @@ export async function GET(request: Request) {
               id: Number(love.attributes.property.data.id),
               beds,
               baths,
-              photos: [thumb],
+              photos,
+              property_photo_album,
+              cover_photo,
               area: love.attributes.property.data.attributes.area || love.attributes.property.data.attributes.city,
               mls_data: undefined, // Hide prized data
               for_filters,

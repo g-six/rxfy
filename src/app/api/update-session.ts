@@ -6,6 +6,7 @@ import { GQ_FRAG_AGENT } from './agents/graphql';
 const line_break = '\n                        ';
 
 const GQ_FRAG_AGENTS_CUSTOMER = `data {
+            id
             attributes {
               agent {
                 data {
@@ -118,6 +119,8 @@ export default async function updateSessionKey(guid: number, email: string, user
     const now = Math.ceil(Date.now() / 1000);
     const expires_in = now - Math.ceil(ts / 1000) - SESSION_LIFE_SECS;
 
+    const query = getUpdateSessionGql(user_type);
+    console.log({ query });
     const {
       data: {
         data: {
@@ -127,7 +130,7 @@ export default async function updateSessionKey(guid: number, email: string, user
     } = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
       {
-        query: getUpdateSessionGql(user_type),
+        query,
         variables: {
           id: guid,
           last_activity_at,
@@ -180,10 +183,12 @@ export default async function updateSessionKey(guid: number, email: string, user
 }
 
 export async function getUserDataFromSessionKey(session_hash: string, id: number, user_type: 'customer' | 'realtor' = 'customer') {
+  const query = gqlFindUser(user_type);
+
   const response = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {
-      query: gqlFindUser(user_type),
+      query,
       variables: {
         id,
       },
@@ -198,7 +203,8 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
   const response_data = response ? response.data : {};
 
   if (response_data.data?.user?.data?.attributes) {
-    const { email, agent, agents, brokerage, last_activity_at, stripe_customer, stripe_subscriptions, ...fields } = response_data.data?.user?.data?.attributes;
+    const { email, birthday, agent, agents, brokerage, last_activity_at, stripe_customer, stripe_subscriptions, ...fields } =
+      response_data.data?.user?.data?.attributes;
     const now = Math.ceil(Date.now() / 1000);
     const expires_at = new Date(new Date(last_activity_at).getTime() + SESSION_LIFE_SECS * 1000);
     const expires_in = Math.ceil(expires_at.getTime() / 1000) - now;
@@ -248,6 +254,7 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
               id: Number(brokerage.data.id),
             } as unknown as BrokerageInputModel)
           : undefined,
+        birthday,
         full_name,
         email,
         user_type,

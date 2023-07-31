@@ -43,8 +43,9 @@ export async function getUserSessionData(authorization: string, user_type: 'real
     user_type,
     false,
   );
-  const { agent, birthday, brokerage, stripe_customer, stripe_subscriptions } = session_data;
+  const { agent, birthday, brokerage, stripe_customer, stripe_subscriptions, agents_customer } = session_data;
   let phone_number = session_data.phone_number || session_data.phone || session_data.agent?.data?.attributes?.phone;
+
   if (email && last_activity_at && session_key) {
     let subscription: { [key: string]: string } = {};
     if (stripe_subscriptions) {
@@ -233,10 +234,11 @@ export async function getUserSessionData(authorization: string, user_type: 'real
         customers,
       } as AgentData;
     } else {
-      results = {
-        ...results,
-        birthday,
-      };
+      if (birthday)
+        results = {
+          ...results,
+          birthday,
+        };
     }
 
     return results;
@@ -249,9 +251,9 @@ export async function GET(request: Request, internal?: boolean) {
     user_type = 'realtor';
   }
   const results = await getUserSessionData(request.headers.get('authorization') || '', user_type);
-
   const { error } = results as unknown as { error: string };
   if (error) return getResponse(results, 401);
 
-  return request.method !== 'GET' || internal ? results : getResponse(results, 200);
+  if (request.method === 'GET') return getResponse(results, 200);
+  return internal ? results : getResponse(results, 200);
 }

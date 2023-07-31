@@ -97,11 +97,11 @@ export default function CustomerProperties(p: Props) {
     } else {
       const customer_id = searchParams.get('customer') as unknown as number;
       getLovedHomes(customer_id).then(data => {
-        if (data.properties) {
-          setProperties(data.properties);
+        if (data.records) {
+          setProperties(data.records);
           lovers.fireEvent(data as unknown as EventsData);
           let default_property = false;
-          data.properties.forEach((property: LovedPropertyDataModel) => {
+          data.records.forEach((property: LovedPropertyDataModel) => {
             if (!default_property) {
               default_property = true;
               onSelectProperty(
@@ -120,7 +120,7 @@ export default function CustomerProperties(p: Props) {
   }, []);
 
   return (
-    <div {...p} className={p.className}>
+    <div className={p.className}>
       <Iterator {...p} properties={properties || []} agent={agent} onSelectProperty={onSelectProperty}>
         {p.children}
       </Iterator>

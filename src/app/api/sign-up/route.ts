@@ -19,14 +19,6 @@ const gql = `mutation SignUp ($data: CustomerInput!) {
         email
         full_name
         last_activity_at
-        agents {
-          data {
-            id
-            attributes {
-              full_name
-            }
-          }
-        }
       }
     }
   }

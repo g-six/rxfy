@@ -35,10 +35,10 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const properties: LovedPropertyDataModel[] = await getCustomerLoves(agents_customer_id);
+  const records: LovedPropertyDataModel[] = await getCustomerLoves(agents_customer_id);
   /////
   return getResponse({
-    properties,
+    records,
     session_key,
   });
 }

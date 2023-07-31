@@ -26,51 +26,8 @@ import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { classNames } from '@/_utilities/html-helper';
 
 import styles from './styles.module.scss';
+import NavIterator from '@/components/Nav/RxNavIterator';
 
-function NavIterator({ agent, children }: { children: React.ReactElement; agent?: AgentData }) {
-  const Wrapped = React.Children.map(children, c => {
-    if (c.type === 'div') {
-      const { children: subchildren, ...props } = c.props;
-      return (
-        <div {...props} className={classNames(c.props.className || '', 'rexified', 'NavIterator-div')}>
-          <NavIterator agent={agent}>{subchildren}</NavIterator>
-        </div>
-      );
-    }
-    if (c.type === 'nav') {
-      const { children: subchildren, ...props } = c.props;
-      return (
-        <nav {...props} className={classNames(c.props.className || '', 'z-30', 'rexified', 'NavIterator-nav')}>
-          <NavIterator agent={agent}>{subchildren}</NavIterator>
-        </nav>
-      );
-    }
-    if (c.type === 'ul') {
-      const { children: li, ...props } = c.props;
-      return (
-        <ul {...props} className={classNames(c.props.className || '', 'rexified', 'NavIterator-ul')}>
-          {React.Children.map(li, cc => (
-            <li {...cc.props} className={classNames(cc.props.className || '', 'rexified', 'NavIterator-li')}>
-              <NavIterator agent={agent}>{cc.props.children}</NavIterator>
-            </li>
-          ))}
-        </ul>
-      );
-    }
-    if (c.type === 'a') {
-      if (cookies().has('session_key') && c.props.className?.includes(WEBFLOW_NODE_SELECTOR.GUEST_MENU)) return <></>;
-      if (!cookies().has('session_key') && c.props.className?.includes(WEBFLOW_NODE_SELECTOR.USER_MENU)) return <></>;
-      const { href, children: contents, ...link_props } = c.props;
-      return (
-        <a href={`/${agent?.agent_id}/${agent?.metatags.profile_slug}${href}`} {...link_props}>
-          {contents}
-        </a>
-      );
-    }
-    return c;
-  });
-  return <>{Wrapped}</>;
-}
 async function Iterator({ agent, children, city }: { children: React.ReactElement; agent?: AgentData; city?: string }) {
   const Wrapped = React.Children.map(children, c => {
     if (c.props && typeof c.props.children === 'string') {

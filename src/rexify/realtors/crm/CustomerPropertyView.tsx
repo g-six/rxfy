@@ -1,7 +1,7 @@
 //saved-home-detail-panel
 'use client';
 import React from 'react';
-import { PropertyDataModel } from '@/_typings/property';
+import { LovedPropertyDataModel, PropertyDataModel } from '@/_typings/property';
 import useEvent, { Events } from '@/hooks/useEvent';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
@@ -15,6 +15,7 @@ type Props = {
   children: React.ReactElement;
   id?: string;
   agent?: AgentData;
+  property?: PropertyDataModel | LovedPropertyDataModel;
   className?: string;
   reload: (r: unknown) => void;
 };
@@ -42,8 +43,8 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
                     children: React.cloneElement(child.props.children, {
                       ...child.props.children.props,
                       src: getImageSized(p.property.photos[1], 580),
+                      srcSet: undefined,
                     }),
-                    srcSet: undefined,
                   });
               case 'property-image-3':
                 if (p.property.photos.length > 2)
@@ -65,6 +66,7 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
                 ...child.props.children[0].props,
                 key: src,
                 src: getImageSized(src, 400),
+                srcSet: undefined,
               });
             }),
           });
@@ -211,12 +213,15 @@ export default function RxCustomerPropertyView(p: Props) {
   const agent = session.data as unknown as AgentData;
 
   React.useEffect(() => {
-    if (selectPropertyEvt.data) {
+    if (selectPropertyEvt.data && Object.keys(selectPropertyEvt.data).length > 0) {
       selectProperty(selectPropertyEvt.data as unknown as PropertyDataModel);
+    } else if (p.property) {
+      selectProperty(p.property as unknown as LovedPropertyDataModel);
     }
   }, [selectPropertyEvt.data]);
 
-  const { reload, ...props } = p;
+  const { reload, property: selected_property, ...props } = p;
+
   return (
     <div {...props} className={`${p.className} ${property?.id ? styles['opened-property-view'] : styles['closed-property-view']}`}>
       <Iterator {...props} property={property} agent={agent} reload={reload}>

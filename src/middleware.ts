@@ -67,6 +67,7 @@ export function middleware(request: NextRequest) {
     else if (segments[2] === 'property') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/property/propertyid`;
     else if (segments[2] === 'update-password') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/update-password`;
     else if (segments[2] === 'log-in') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/log-in`;
+    else if (segments[2] === 'sign-up') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/sign-up`;
     else if (segments[2] === 'my-account') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/my-account`;
     else if (segments[2] === 'client-dashboard') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/client-dashboard`;
     else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}`;

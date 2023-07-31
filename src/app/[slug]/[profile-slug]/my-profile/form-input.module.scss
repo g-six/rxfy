@@ -1,0 +1,21 @@
+.date {
+  @apply flex items-center h-10 py-0 #{!important};
+  > div {
+    @apply flex items-center #{!important};
+
+    select {
+      @apply h-full rounded-md border-0 bg-transparent py-0 focus:outline-none;
+    }
+    select[name='day'] {
+      @apply w-12;
+    }
+    select[name='month'] {
+      @apply w-16;
+    }
+    .no-selection {
+      select {
+        @apply text-gray-500;
+      }
+    }
+  }
+}
