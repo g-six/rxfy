@@ -18,6 +18,8 @@ import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import PropertyListModal from '@/components/PropertyListModal';
 import { getMapData } from '@/_utilities/api-calls/call-mapbox';
 import { AgentData } from '@/_typings/agent';
+import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
+import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 
 function Iterator({ children }: { children: React.ReactElement }) {
   const Wrapped = React.Children.map(children, c => {
@@ -295,6 +297,27 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
             ...data,
             reload: false,
           } as EventsData);
+        });
+        getLovedHomes().then((love_res: unknown) => {
+          if (love_res) {
+            const { records } = love_res as {
+              records: {
+                id: number;
+                notes: string;
+                property: PropertyDataModel;
+              }[];
+            };
+
+            if (records?.length) {
+              const local: string[] = getData(Events.LovedItem) || [];
+              records.forEach(l => {
+                if (!local.includes(l.property.mls_id)) local.push(l.property.mls_id);
+              });
+              if (local.length) {
+                setData(Events.LovedItem, JSON.stringify(local));
+              }
+            }
+          }
         });
       }
     }

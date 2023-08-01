@@ -95,30 +95,33 @@ export default function PropertyCard({ className, children }: { className: strin
     };
 
     if (points && reload === false) {
-      setCards(
-        points
-          .filter(p => {
-            if (loved_only && loves) {
-              return loves.includes(p.properties.mls_id);
-            }
-            return p.properties.cover_photo;
-          })
-          .slice(0, 100)
-          .map(({ properties: p }) => (
-            <div key={p.mls_id} className={[className, p.mls_id, 'cursor-pointer rexified HomeList-PropertyCard'].join(' ')}>
-              <PropertyCardIterator
-                listing={p}
-                onClickToOpen={() => {
-                  router.push('property?mls=' + p.mls_id);
-                }}
-              >
-                {children}
-              </PropertyCardIterator>
-            </div>
-          )),
-      );
+      if (loved_only && !loves) {
+        setCards([]);
+      } else
+        setCards(
+          points
+            .filter(p => {
+              if (loved_only) {
+                return loves ? loves.includes(p.properties.mls_id) : [];
+              }
+              return p.properties.cover_photo;
+            })
+            .slice(0, 100)
+            .map(({ properties: p }) => (
+              <div key={p.mls_id} className={[className, p.mls_id, 'cursor-pointer rexified HomeList-PropertyCard'].join(' ')}>
+                <PropertyCardIterator
+                  listing={p}
+                  onClickToOpen={() => {
+                    router.push('property?mls=' + p.mls_id);
+                  }}
+                >
+                  {children}
+                </PropertyCardIterator>
+              </div>
+            )),
+        );
     }
   }, [data, loved_only]);
 
-  return <>{cards}</>;
+  return <>{cards.length > 0 && cards}</>;
 }
