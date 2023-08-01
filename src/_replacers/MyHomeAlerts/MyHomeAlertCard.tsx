@@ -86,7 +86,7 @@ export default function MyHomeAlertCard({ child, data, agent_data }: Props) {
       },
     },
     {
-      searchFn: searchByClasses(['button-secondary']),
+      searchFn: searchByPartOfClass(['button-secondary']),
       transformChild: (child: ReactElement) => {
         return cloneElement(child, { onClick: handleEditClick });
       },
