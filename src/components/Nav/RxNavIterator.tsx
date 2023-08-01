@@ -40,11 +40,15 @@ export default function NavIterator({ agent, children }: { children: React.React
       if (cookies().has('session_key') && c.props.className?.includes(WEBFLOW_NODE_SELECTOR.GUEST_MENU)) return <></>;
       if (!cookies().has('session_key') && c.props.className?.includes(WEBFLOW_NODE_SELECTOR.USER_MENU)) return <></>;
       const { href, children: contents, ...link_props } = c.props;
-      return (
-        <a href={`/${agent?.agent_id}/${agent?.metatags.profile_slug}${href}`} {...link_props}>
-          <NavIterator agent={agent}>{convertDivsToSpans(contents)}</NavIterator>
-        </a>
-      );
+      if (link_props?.className?.includes('-session')) {
+        return (
+          <a href={`/${agent?.agent_id}/${agent?.metatags.profile_slug}${href}`} {...link_props}>
+            <NavIterator agent={agent}>{convertDivsToSpans(contents)}</NavIterator>
+          </a>
+        );
+      } else if (link_props?.className?.includes('button')) {
+        return React.cloneElement(<button type='button' />, link_props, contents);
+      }
     }
     if (c.props?.className?.includes('logo')) {
       const logo = agent?.metatags?.logo_for_light_bg || agent?.metatags?.logo_for_dark_bg;
