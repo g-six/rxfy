@@ -343,12 +343,16 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
 }
 export async function getNewSessionKey(previous_token: string, id: number, user_type: 'customer' | 'realtor' = 'customer', renew = true) {
   const results = await getUserDataFromSessionKey(previous_token, id, user_type);
+  let { expires_in, email, last_activity_at } = results as unknown as {
+    expires_in?: number;
+    email?: string;
+    last_activity_at?: string;
+  };
   const now = Math.ceil(Date.now() / 1000);
-  let expires_in = results.expires_in || 0;
-  if (results.email) {
-    if (results.last_activity_at) {
+  if (email) {
+    if (last_activity_at) {
       // session life is at 2 hours
-      if (expires_in > 0) {
+      if (expires_in && expires_in > 0) {
         return {
           ...results,
           expires_in,
