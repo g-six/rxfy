@@ -146,6 +146,11 @@ export default function Form({ children, agent }: { children: React.ReactElement
               ...initial,
               ...updates,
             });
+            notify({
+              timeout: 5000,
+              category: NotificationCategory.SUCCESS,
+              message: 'Profile changes saved',
+            });
           }
         });
       }

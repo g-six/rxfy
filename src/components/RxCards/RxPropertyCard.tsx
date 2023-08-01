@@ -90,7 +90,7 @@ function RxComponentChomper({ config, children }: any): any {
         });
       } else if (child.type !== 'img') {
         //heart-full
-        if (RxElement.props.className && RxElement.props.className.indexOf('propcard-image') === 0 && config.cover_photo) {
+        if (RxElement.props.className && RxElement.props.className.indexOf('propcard-image') === 0) {
           return React.cloneElement(child, {
             ...RxElement.props,
             className: [RxElement.props.className, config.onClickItem ? 'cursor-pointer' : ''].join(' ').trim(),

@@ -155,9 +155,6 @@ export default function RxPropertyCompareCard(
               {child.props.children}
             </CompareCardItems>
           ),
-          style: {
-            backgroundImage: `url(${p.property.cover_photo})`,
-          },
         });
       } else if (child.type === 'div') {
         return (
