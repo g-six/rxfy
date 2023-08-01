@@ -166,14 +166,14 @@ export default async function Home({ params, searchParams }: { params: Record<st
           const { agent: session_agent } = session as unknown as {
             agent?: AgentData & {
               agent_metatag?: AgentMetatags;
-              featured_listings: any[];
+              featured_listings: string[];
             };
           };
 
           if (session_agent) {
             if (session_agent.featured_listings?.length) {
               try {
-                await axios.get(`https://leagent.com/api/properties/mls-id/${session.agent.featured_listings[0]}`);
+                await axios.get(`https://leagent.com/api/properties/mls-id/${session_agent.featured_listings[0]}`);
                 const feature_listing = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${session_agent.featured_listings[0]}/recent.json`);
                 property = feature_listing.data;
                 property.listing_by = `Listing courtesy of ${session_agent.full_name}`;
