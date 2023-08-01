@@ -335,7 +335,7 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
         stripe_subscriptions,
         agent_customer,
         ...(documents ? { documents } : {}),
-      };
+      } as unknown as {};
     }
   }
 
