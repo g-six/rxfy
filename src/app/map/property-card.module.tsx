@@ -98,7 +98,7 @@ export default function PropertyCard({ className, children }: { className: strin
       setCards(
         points
           .filter(p => {
-            if (loved_only) {
+            if (loved_only && loves) {
               return loves.includes(p.properties.mls_id);
             }
             return p.properties.cover_photo;
