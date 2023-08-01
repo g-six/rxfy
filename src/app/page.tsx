@@ -163,22 +163,27 @@ export default async function Home({ params, searchParams }: { params: Record<st
       if (session_hash && user_id && webflow_domain !== process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN) {
         try {
           const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
-          agent_data = session.agent;
+          const { agent: session_agent } = session as unknown as {
+            agent?: AgentData & {
+              agent_metatag?: AgentMetatags;
+              featured_listings: any[];
+            };
+          };
 
-          if (session.agent) {
-            if (session.agent?.featured_listings?.length) {
+          if (session_agent) {
+            if (session_agent.featured_listings?.length) {
               try {
                 await axios.get(`https://leagent.com/api/properties/mls-id/${session.agent.featured_listings[0]}`);
-                const feature_listing = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${session.agent.featured_listings[0]}/recent.json`);
+                const feature_listing = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${session_agent.featured_listings[0]}/recent.json`);
                 property = feature_listing.data;
-                property.listing_by = `Listing courtesy of ${session.agent.full_name}`;
+                property.listing_by = `Listing courtesy of ${session_agent.full_name}`;
               } catch (e) {
                 console.log('Featured listing not found');
               }
             }
             if (agent_data) {
-              agent_data.metatags = session.agent.agent_metatag;
-              loadAiResults($, session.agent.agent_id, agent_data.metatags.profile_slug, origin);
+              agent_data.metatags = session_agent.agent_metatag;
+              loadAiResults($, session_agent.agent_id, agent_data.metatags.profile_slug, origin);
             }
           }
         } catch (e) {
