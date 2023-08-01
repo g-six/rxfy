@@ -7,7 +7,7 @@ import { cookies, headers } from 'next/headers';
 import { Inter } from 'next/font/google';
 
 import { WEBFLOW_NODE_SELECTOR, WebFlow } from '@/_typings/webflow';
-import { AgentData } from '@/_typings/agent';
+import { AgentData, AgentMetatags } from '@/_typings/agent';
 import { getPropertyData } from '@/_utilities/data-helpers/property-page';
 import { fillAgentInfo, fillPropertyGrid, removeSection, replaceByCheerio, rexify } from '@/components/rexifier';
 import RxNotifications from '@/components/RxNotifications';
@@ -87,9 +87,14 @@ export default async function Home({ params, searchParams }: { params: Record<st
       console.log('Load agent data based on session_key', session_key);
       const [session_hash, user_id] = session_key.split('-');
       const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
+      const { agent: session_agent } = session as unknown as {
+        agent: AgentData & {
+          agent_metatag: AgentMetatags;
+        };
+      };
       agent_data = {
-        ...session.agent,
-        metatags: session.agent.agent_metatag,
+        ...session_agent,
+        metatags: session_agent.agent_metatag,
       };
     } else {
       console.log('Load customer data based on session_key', session_key);
