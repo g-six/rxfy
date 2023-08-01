@@ -37,7 +37,6 @@ import RxMyCompareDashboardPage from './full-pages/RxMyCompareDashboardPage';
 import RxDropdownMenu from './Nav/RxDropdownMenu';
 import RxMySavedHomesDashBoard from './full-pages/RxMySavedHomesDashBoard';
 import RxIdPage from './full-pages/RxIdPage';
-import RxMyHomeAlerts from './full-pages/RxMyHomeAlerts';
 import RxAgentMyListings from './full-pages/RxAgentMyListings';
 import RxTools from './full-pages/RxTools';
 import { RxTextInput } from './RxTextInput';
@@ -753,7 +752,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           }
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.PROPERTY_CARD)) {
             return;
-            // return <RxMyHomeAlerts agent_data={agent_data} child={domToReact(node.children)} className={node.attribs.class} />;
           }
           if (agent_data && node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_COMPARE_DASHBOARD) {
             return (

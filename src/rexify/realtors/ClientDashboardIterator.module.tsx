@@ -71,8 +71,7 @@ export default function ClientDashboardIterator(
         let logo = '';
         if (p.agent?.metatags.logo_for_light_bg) {
           logo = getImageSized(p.agent?.metatags.logo_for_light_bg, 100);
-        }
-        if (p.agent?.metatags.logo_for_dark_bg) {
+        } else if (p.agent?.metatags.logo_for_dark_bg) {
           logo = getImageSized(p.agent?.metatags.logo_for_dark_bg, 100);
         }
         return (

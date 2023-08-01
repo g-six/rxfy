@@ -5,10 +5,12 @@ import { WEBFLOW_DASHBOARDS } from '@/_typings/webflow';
 import { findAgentRecordByAgentId } from '@/app/api/agents/model';
 import { CheerioAPI, load } from 'cheerio';
 import Container from './container.module';
+import { AgentData } from '@/_typings/agent';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 
 export default async function ClientDashboard({ params }: { params: { [key: string]: string } }) {
-  const { data: html } = await axios.get('https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/client-dashboard');
-  const agent = await findAgentRecordByAgentId(params.slug);
+  const { data: html } = await axios.get('https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/my-home-alerts');
+  const agent: AgentData = await findAgentRecordByAgentId(params.slug);
 
   if (html && agent) {
     const $: CheerioAPI = load(html);
@@ -16,6 +18,19 @@ export default async function ClientDashboard({ params }: { params: { [key: stri
       let u = $(el).attr('href');
       if (u && u !== '#') {
         $(el).attr('href', `/${agent.agent_id}/${agent.metatags.profile_slug}${u}`);
+      }
+    });
+    $('.logo-div h3').each((i, el) => {
+      let u = $(el).attr('href');
+      const { logo_for_light_bg, logo_for_dark_bg } = agent.metatags;
+      let logo = logo_for_light_bg || logo_for_dark_bg;
+      if (logo) {
+        logo = getImageSized(logo, 100);
+        $(el).replaceWith(
+          `<span class="inline-block rounded bg-no-repeat bg-contain w-full" style="background-image: url(${logo}); display: block; width: 100px; height: 3rem;"></span>`,
+        );
+      } else {
+        $(el).replaceWith(agent.full_name);
       }
     });
     const body = $('body > div');

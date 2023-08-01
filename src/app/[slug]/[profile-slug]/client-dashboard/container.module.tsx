@@ -1,7 +1,6 @@
 'use client';
 import React from 'react';
 import { AgentData } from '@/_typings/agent';
-import { CustomerRecord } from '@/_typings/customer';
 import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';

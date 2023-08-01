@@ -63,8 +63,22 @@ export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['new-home-alert-wrapper']),
-      transformChild: (child: ReactElement) =>
-        cloneElement(child, { onClick: closeModal, style: { display: showModal ? 'flex' : 'none' }, 'data-rexifier': 'MyHomeAlertModalWrapper' }),
+      transformChild: (child: ReactElement) => {
+        let customer = 0;
+        if (getData('viewing_customer')) {
+          const { id } = getData('viewing_customer') as unknown as {
+            id: number;
+          };
+          customer = id;
+        }
+        return (
+          <RxHomeAlertForm agent={p['agent-data']} customer={customer} className={child.props.className} reload={p.onSave}>
+            {child.props.children}
+          </RxHomeAlertForm>
+        );
+      },
+      // transformChild: (child: ReactElement) =>
+      //   cloneElement(child, { onClick: closeModal, style: { display: showModal ? 'flex' : 'none' }, 'data-rexifier': 'MyHomeAlertModalWrapper' }),
     },
     {
       searchFn: searchByClasses(['prop-type-section-label']),

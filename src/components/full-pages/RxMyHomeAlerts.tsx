@@ -28,7 +28,6 @@ export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
       transformChild: (child: ReactElement) => {
         return cloneElement(child, {
           onClick: () => {
-            console.log('clo');
             fireCustomEvent({ show: true, message: 'New' }, Events.MyHomeAlertsModal);
           },
         });
