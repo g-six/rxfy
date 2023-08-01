@@ -18,6 +18,8 @@ import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import PropertyListModal from '@/components/PropertyListModal';
 import { getMapData } from '@/_utilities/api-calls/call-mapbox';
 import { AgentData } from '@/_typings/agent';
+import Cookies from 'js-cookie';
+import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 
 function Iterator({ children }: { children: React.ReactElement }) {
   const Wrapped = React.Children.map(children, c => {
@@ -516,11 +518,16 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
 
   React.useEffect(() => {
     const { loved_only } = love as unknown as { loved_only?: boolean };
-    if (loved_only && Object.keys(lovers_data_obj as {}).length) {
-      const { lovers } = lovers_data_obj as unknown as {
-        lovers: PropertyDataModel[];
-      };
-      setListings(lovers);
+    if (loved_only) {
+      if (Object.keys(lovers_data_obj as {}).length && Cookies.get('session_key')) {
+        const { lovers } = lovers_data_obj as unknown as {
+          lovers: PropertyDataModel[];
+        };
+        setListings(lovers);
+      } else {
+        const local = (getData(Events.LovedItem) || []) as string[];
+        setListings(pipeline_listings.filter(listing => local.includes(listing.mls_id)));
+      }
     } else if (loved_only === false) {
       setListings(pipeline_listings);
     }
