@@ -18,8 +18,6 @@ import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import PropertyListModal from '@/components/PropertyListModal';
 import { getMapData } from '@/_utilities/api-calls/call-mapbox';
 import { AgentData } from '@/_typings/agent';
-import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
-import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 
 function Iterator({ children }: { children: React.ReactElement }) {
   const Wrapped = React.Children.map(children, c => {
@@ -40,6 +38,8 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
   const search = useSearchParams();
   const { data, fireEvent } = useEvent(Events.MapSearch);
   const { fireEvent: setClusterModal } = useEvent(Events.MapClusterModal);
+  const { data: lovers_data_obj } = useEvent(Events.LoadLovers);
+  const { data: love } = useEvent(Events.MapLoversToggle);
   const mapNode = React.useRef(null);
   const [map, setMap] = React.useState<mapboxgl.Map>();
   const [is_loading, setLoading] = React.useState<boolean>(false);
@@ -48,6 +48,8 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
     [k: string]: string | number;
   }>();
   const [listings, setListings] = React.useState<PropertyDataModel[]>([]);
+  const [pipeline_listings, setPipelineResults] = React.useState<PropertyDataModel[]>([]);
+  const [loved_listings, setLovedResults] = React.useState<PropertyDataModel[]>([]);
   const [selected_cluster, setSelectedCluster] = React.useState<PropertyDataModel[]>([]);
 
   const clickEventListener = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
@@ -129,11 +131,12 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
         };
       }[] = [];
       let minimum_should_match = 1;
-      fireEvent({
-        ...data,
-        points: undefined,
-        reload: false,
-      } as unknown as EventsData);
+      checkThenReload(false);
+      // fireEvent({
+      //   ...data,
+      //   points: undefined,
+      //   reload: false,
+      // } as unknown as EventsData);
       const user_defined_filters: {
         range?: {
           [k: string]: {
@@ -192,8 +195,13 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
           },
         });
       }
-      if (filters.types) {
-        should = `${filters.types}`.split(',').map(t => ({
+      let { types } = filters;
+      const q = queryStringToObject(search.toString() || '');
+      if (Object.keys(q).length > 0 && q.types) {
+        types = q.types;
+      }
+      if (types) {
+        should = `${types}`.split(',').map(t => ({
           match: {
             'data.Type': t === 'House' ? 'House/Single Family' : t,
           },
@@ -201,7 +209,6 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
       }
 
       if (only_agent_listing) {
-        console.log({ p });
         // should.push({
         //   match: {
         //     'data.LA1_LoginName': p['agent-id'],
@@ -292,34 +299,24 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
         };
 
         retrievePublicListingsFromPipeline(legacy_params).then(({ records }: { records: PropertyDataModel[] }) => {
-          setListings(records);
-          fireEvent({
-            ...data,
-            reload: false,
-          } as EventsData);
-        });
-        getLovedHomes().then((love_res: unknown) => {
-          if (love_res) {
-            const { records } = love_res as {
-              records: {
-                id: number;
-                notes: string;
-                property: PropertyDataModel;
-              }[];
-            };
-
-            if (records?.length) {
-              const local: string[] = getData(Events.LovedItem) || [];
-              records.forEach(l => {
-                if (!local.includes(l.property.mls_id)) local.push(l.property.mls_id);
-              });
-              if (local.length) {
-                setData(Events.LovedItem, JSON.stringify(local));
-              }
-            }
+          setPipelineResults(records);
+          const { loved_only } = love as unknown as { loved_only?: boolean };
+          if (!loved_only) {
+            setListings(records);
+            checkThenReload(false);
           }
         });
       }
+    }
+  };
+
+  const checkThenReload = (reload?: boolean) => {
+    const { loved_only } = love as unknown as { loved_only?: boolean };
+    if (!loved_only) {
+      fireEvent({
+        ...data,
+        reload,
+      } as EventsData);
     }
   };
 
@@ -336,32 +333,11 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
         //   }
         // });
 
-        if (filters) {
+        let q = queryStringToObject(search.toString() || '');
+        if (Object.keys(q).length > 0) {
           const [lat, lng] = latlng.split(',').map(Number);
-          getMapData(lng, lat).then(loc => {
-            const {
-              features: [{ context }],
-            } = loc.data as unknown as {
-              features: {
-                context: { id: string; text: string }[];
-              }[];
-            };
-            const [{ text: keyword }] = context.filter(({ id }) => id.includes('place'));
-            fireEvent({
-              ...data,
-              keyword,
-            } as unknown as EventsData);
-            // router.push(
-            //   'map?' +
-            //     objectToQueryString({
-            //       ...queryStringToObject(search.toString()),
-            //       city: keyword,
-            //     }),
-            // );
-          });
           const updated_filters = {
-            // ...queryStringToObject(search.toString()),
-            ...filters,
+            ...q,
             lat,
             lng,
             nelat: map.getBounds().getNorthEast().lat,
@@ -371,11 +347,8 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
             zoom: map.getZoom(),
           };
           setFilters(updated_filters);
-          fireEvent({
-            ...data,
-            points: undefined,
-            reload: true,
-          } as EventsData);
+          setLoading(true);
+          // checkThenReload(true);
         }
       }
     },
@@ -383,6 +356,29 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [map],
   );
+
+  React.useEffect(() => {
+    if (data?.clicked === 'reset' && map) {
+      fireEvent({
+        ...data,
+        clicked: undefined,
+      });
+      const updated_filters: {
+        [key: string]: string | number;
+      } = {
+        ...filters,
+        lat: map.getCenter().lat,
+        lng: map.getCenter().lng,
+        nelat: map.getBounds().getNorthEast().lat,
+        nelng: map.getBounds().getNorthEast().lng,
+        swlat: map.getBounds().getSouthWest().lat,
+        swlng: map.getBounds().getSouthWest().lng,
+        zoom: map.getZoom(),
+      };
+      delete updated_filters.types;
+      router.push('map?' + objectToQueryString(updated_filters));
+    }
+  }, [data]);
 
   React.useEffect(() => {
     console.log({ only_agent_listing });
@@ -416,14 +412,6 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
 
   React.useEffect(() => {
     if (filters?.lat && filters?.lng) {
-      const { sort } = queryStringToObject(search.toString());
-      router.push(
-        'map?' +
-          objectToQueryString({
-            ...filters,
-            sort,
-          }),
-      );
       const { reload } = data as unknown as {
         reload: boolean;
       };
@@ -435,10 +423,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
         setLoading(true);
         return;
       }
-      fireEvent({
-        ...data,
-        reload: true,
-      });
+      checkThenReload(true);
     }
   }, [filters]);
 
@@ -493,6 +478,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
       }
     }
   }, [listings]);
+
   React.useEffect(() => {
     let q = queryStringToObject(search.toString() || '');
     if (q.center && map) {
@@ -529,13 +515,27 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
   }, [is_loading]);
 
   React.useEffect(() => {
+    const { loved_only } = love as unknown as { loved_only?: boolean };
+    if (loved_only && Object.keys(lovers_data_obj as {}).length) {
+      const { lovers } = lovers_data_obj as unknown as {
+        lovers: PropertyDataModel[];
+      };
+      setListings(lovers);
+    } else if (loved_only === false) {
+      setListings(pipeline_listings);
+    }
+  }, [love]);
+
+  React.useEffect(() => {
     document &&
       document.querySelectorAll('.toggle-base').forEach(el =>
         el.addEventListener('click', (evt: Event) => {
           const toggle = evt.target as HTMLDivElement;
-          const toggle_value = toggle.getAttribute('style')?.includes('transform') || false;
-          if (only_agent_listing !== toggle_value) {
-            toggleListing(toggle_value);
+          const toggle_value = toggle.getAttribute('style')?.includes('transform') || true;
+          if (only_agent_listing === undefined) {
+            toggleListing(true);
+          } else {
+            toggleListing(!toggle_value);
           }
         }),
       );

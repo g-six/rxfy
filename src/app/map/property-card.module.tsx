@@ -6,7 +6,6 @@ import styles from './home-list.module.scss';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import LoveButton from './love-button.module';
 import { PropertyDataModel } from '@/_typings/property';
-import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 
 function PropertyCardIterator({ children, listing, onClickToOpen }: { children: React.ReactElement; listing: PropertyDataModel; onClickToOpen(): void }) {
   const Wrapped = React.Children.map(children, c => {
@@ -81,47 +80,52 @@ export default function PropertyCard({ className, children }: { className: strin
   const { loved_only } = love as unknown as {
     loved_only: boolean;
   };
-  const loves = getData(Events.LovedItem) as unknown as string[];
 
   const router = useRouter();
-  const { data } = useEvent(Events.MapSearch);
-  const [cards, setCards] = React.useState<React.ReactElement[]>([]);
-  React.useEffect(() => {
-    const { points, reload } = data as unknown as {
-      points: {
-        properties: PropertyDataModel;
-      }[];
-      reload: boolean;
-    };
 
-    if (points && reload === false) {
-      if (loved_only && !loves) {
-        setCards([]);
-      } else
-        setCards(
-          points
-            .filter(p => {
-              if (loved_only) {
-                return loves ? loves.includes(p.properties.mls_id) : [];
-              }
-              return p.properties.cover_photo;
-            })
-            .slice(0, 100)
-            .map(({ properties: p }) => (
-              <div key={p.mls_id} className={[className, p.mls_id, 'cursor-pointer rexified HomeList-PropertyCard'].join(' ')}>
-                <PropertyCardIterator
-                  listing={p}
-                  onClickToOpen={() => {
-                    router.push('property?mls=' + p.mls_id);
-                  }}
-                >
-                  {children}
-                </PropertyCardIterator>
-              </div>
-            )),
-        );
-    }
-  }, [data, loved_only]);
+  const { data } = useEvent(Events.MapSearch);
+  const { points, reload } = data as unknown as {
+    points: {
+      properties: PropertyDataModel;
+    }[];
+    reload: boolean;
+  };
+
+  const [cards, setCards] = React.useState<React.ReactElement[]>([]);
+  // React.useEffect(() => {
+  //   if (points && reload === false) {
+  //     if (loved_only) {
+  //       setCards([]);
+  //     } else
+  //       setCards(
+
+  //       );
+  //   }
+  // }, [data, loved_only]);
+
+  React.useEffect(() => {
+    console.log({ points });
+    if (points)
+      setCards(
+        points
+          .filter(p => {
+            return p.properties.cover_photo;
+          })
+          .slice(0, 100)
+          .map(({ properties: p }) => (
+            <div key={p.mls_id} className={[className, p.mls_id, 'cursor-pointer rexified HomeList-PropertyCard'].join(' ')}>
+              <PropertyCardIterator
+                listing={p}
+                onClickToOpen={() => {
+                  router.push('property?mls=' + p.mls_id);
+                }}
+              >
+                {children}
+              </PropertyCardIterator>
+            </div>
+          )),
+      );
+  }, [points]);
 
   return <>{cards.length > 0 && cards}</>;
 }
