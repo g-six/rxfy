@@ -1,5 +1,5 @@
 import { captureMatchingElements, replaceAllTextWithBraces, transformMatchingElements } from '@/_helpers/dom-manipulators';
-import { searchByClasses } from '@/_utilities/rx-element-extractor';
+import { searchByClasses, searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import React, { ReactElement, cloneElement, Dispatch, SetStateAction } from 'react';
 import DocumentRow from './DocumentRow';
 import { AgentData } from '@/_typings/agent';
@@ -111,7 +111,7 @@ export default function DocumentsFolder({ template, docFolderData, setDocuments,
     },
     {
       // adding opacity to doc-upload on hover
-      searchFn: searchByClasses(['doc-upload']),
+      searchFn: searchByPartOfClass(['doc-upload']),
       transformChild: (child: ReactElement) => {
         return cloneElement(
           <RxFileUploader className={child.props.className} data={{ document_id: docFolderData.id }}>

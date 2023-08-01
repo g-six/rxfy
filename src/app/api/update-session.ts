@@ -11,6 +11,9 @@ const GQ_FRAG_AGENTS_CUSTOMER = `data {
               agent {
                 data {
                   id
+                  attributes {
+                    agent_id
+                  }
                 }
               }
             }
@@ -25,6 +28,33 @@ export const GQL_BROKERAGE_ATTRIBUTES = `
                 logo_url
                 lat
                 lon
+`;
+
+const GQL_DOCUMENTS = `
+        documents(filters: { customer: { id: { eq: $id } } }, pagination: { pageSize: 100 }) {
+          data {
+            id
+            attributes {
+              name
+              document_uploads(pagination: { pageSize: 50 }) {
+                data {
+                  id
+                  attributes {
+                    url
+                    file_name
+                    createdAt
+                    updatedAt
+                  }
+                }
+              }
+              agent {
+                data {
+                  id
+                }
+              }
+            }
+          }
+        }
 `;
 
 function gqlGetUserSubfields(user_type: 'realtor' | 'customer') {
@@ -46,7 +76,7 @@ function gqlGetUserSubfields(user_type: 'realtor' | 'customer') {
       }
     }`,
     ].join(line_break);
-  return ['birthday', 'yes_to_marketing', `agents_customer {${GQ_FRAG_AGENTS_CUSTOMER}}`].join(line_break);
+  return ['birthday', 'yes_to_marketing', `agents_customer {${GQ_FRAG_AGENTS_CUSTOMER}}`, GQL_DOCUMENTS].join(line_break);
 }
 
 export function gqlFindUser(user_type: 'realtor' | 'customer' = 'customer') {
@@ -65,6 +95,7 @@ export function gqlFindUser(user_type: 'realtor' | 'customer' = 'customer') {
         }
       }
     }
+    ${user_type === 'customer' ? '' : ''}
   }`;
 }
 
@@ -120,7 +151,7 @@ export default async function updateSessionKey(guid: number, email: string, user
     const expires_in = now - Math.ceil(ts / 1000) - SESSION_LIFE_SECS;
 
     const query = getUpdateSessionGql(user_type);
-    console.log({ query });
+
     const {
       data: {
         data: {
@@ -237,6 +268,40 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
       if (fields.agents_customer?.data) {
         agent_customer = Number(fields.agents_customer.data.id);
       }
+      let documents;
+      if (fields.documents?.data) {
+        const docs: {
+          id: number;
+          attributes: {
+            name: string;
+            agent: {
+              data?: {
+                id: number;
+              };
+            };
+            document_uploads: {
+              data?: {
+                id: number;
+                attributes: {
+                  url: string;
+                  file_name: string;
+                };
+              }[];
+            };
+          };
+        }[] = fields.documents.data || [];
+        if (docs?.length) {
+          documents = docs.map(doc => ({
+            ...doc.attributes,
+            id: Number(doc.id),
+            ...(doc.attributes.agent?.data?.id ? { agent: Number(doc.attributes.agent?.data?.id) } : {}),
+            document_uploads: (doc.attributes.document_uploads?.data || []).map(upl => ({
+              ...upl.attributes,
+              id: Number(upl.id),
+            })),
+          }));
+        }
+      }
 
       return {
         id,
@@ -247,7 +312,10 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
               real_estate_board,
               id: Number(agent.data.id),
             }
-          : undefined,
+          : {
+              ...fields.agents_customer?.data?.attributes.agent.data.attributes,
+              id: Number(fields.agents_customer?.data?.attributes.agent.data.id),
+            },
         brokerage: brokerage?.data
           ? ({
               ...brokerage.data.attributes,
@@ -266,6 +334,7 @@ export async function getUserDataFromSessionKey(session_hash: string, id: number
         stripe_customer,
         stripe_subscriptions,
         agent_customer,
+        ...(documents ? { documents } : {}),
       };
     }
   }

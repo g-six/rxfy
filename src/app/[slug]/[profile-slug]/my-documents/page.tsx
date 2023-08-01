@@ -7,12 +7,27 @@ import { CheerioAPI, load } from 'cheerio';
 import Container from './container.module';
 import { AgentData } from '@/_typings/agent';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { cookies } from 'next/headers';
+import { getUserDataFromSessionKey } from '@/app/api/update-session';
 
-export default async function MyHomeAlerts({ params }: { params: { [key: string]: string } }) {
-  const { data: html } = await axios.get('https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/my-home-alerts');
-  const agent: AgentData = await findAgentRecordByAgentId(params.slug);
+export default async function MyDocuments({ params }: { params: { [key: string]: string } }) {
+  const session_key = cookies().get('session_key')?.value;
+  if (!session_key) {
+    return <>Please log-in</>;
+  }
+  const [session_hash, id] = session_key.split('-');
+  const promises = await Promise.all([
+    axios.get('https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/my-documents'),
+    findAgentRecordByAgentId(params.slug),
+    getUserDataFromSessionKey(session_hash, Number(id), 'customer'),
+  ]);
+  //getUserBySessionKey(session_key, 'customer')
+  const { data: html } = promises[0];
+  const agent: AgentData = promises[1];
+  const user = promises[2];
+  console.log(JSON.stringify(user, null, 4));
 
-  if (html && agent) {
+  if (html && agent && session_key) {
     const $: CheerioAPI = load(html);
     $('.navbar-dashboard-wrapper [href]').each((i, el) => {
       let u = $(el).attr('href');
