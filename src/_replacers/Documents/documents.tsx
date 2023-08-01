@@ -117,7 +117,7 @@ export default function DocumentsReplacer({
       transformChild: (child: ReactElement) => {
         return cloneElement(child, {
           ...child.props,
-          className: confirm ? 'flex items-center align-center justify-center' : child.props.className,
+          className: confirm ? 'flex items-center align-center justify-center fixed top-0 left-0 w-screen h-screen z-40' : child.props.className,
           children: (
             <ConfirmDeleteIterator
               onCancel={() => {

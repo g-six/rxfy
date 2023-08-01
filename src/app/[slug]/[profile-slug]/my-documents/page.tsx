@@ -15,17 +15,9 @@ export default async function MyDocuments({ params }: { params: { [key: string]:
   if (!session_key) {
     return <>Please log-in</>;
   }
-  const [session_hash, id] = session_key.split('-');
-  const promises = await Promise.all([
-    axios.get('https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/my-documents'),
-    findAgentRecordByAgentId(params.slug),
-    getUserDataFromSessionKey(session_hash, Number(id), 'customer'),
-  ]);
-  //getUserBySessionKey(session_key, 'customer')
+  const promises = await Promise.all([axios.get('https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/my-documents'), findAgentRecordByAgentId(params.slug)]);
   const { data: html } = promises[0];
   const agent: AgentData = promises[1];
-  const user = promises[2];
-  console.log(JSON.stringify(user, null, 4));
 
   if (html && agent && session_key) {
     const $: CheerioAPI = load(html);
