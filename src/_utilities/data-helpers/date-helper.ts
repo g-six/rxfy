@@ -4,6 +4,10 @@ export function dateStringToDMY(input: string) {
 }
 
 export function convertDateStringToDateObject(dateString: string): Date {
+  if (dateString.split('-').length === 3) {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
   let dateParts = dateString.split('/');
 
   let day = Number(dateParts[0]);

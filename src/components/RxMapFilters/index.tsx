@@ -102,6 +102,10 @@ function Iterator({
           </button>
         );
       }
+
+      if (className?.includes('heart-button')) {
+        return <></>;
+      }
       if (className?.includes('-more')) {
         return (
           <button type='button' className={className + ' rexified bg-transparent'} onClick={() => props.onChange(className)}>

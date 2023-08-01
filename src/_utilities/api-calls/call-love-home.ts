@@ -52,7 +52,7 @@ export async function loveHome(mls_id: string, agent: number) {
       local_loves.push(mls_id);
       setData(Events.LovedItem, JSON.stringify(local_loves));
     }
-    if (!Cookies.get('session_key')) return;
+    if (!Cookies.get('session_key') || Cookies.get('session_as') === 'realtor') return;
 
     const response = await axios.post(
       '/api/loves',

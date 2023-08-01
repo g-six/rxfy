@@ -1,0 +1,9 @@
+.Hide {
+  @apply hidden #{!important};
+}
+.Cards {
+  @apply flex flex-col gap-2 w-full max-h-[272px] overflow-auto;
+  .Card {
+    @apply flex gap-2.5 relative;
+  }
+}

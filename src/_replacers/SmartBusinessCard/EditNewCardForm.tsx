@@ -7,7 +7,7 @@ import { AgentData } from '@/_typings/agent';
 import { sendTemplate } from '@/app/api/send-template';
 import { ImagePreview } from '@/hooks/useFormEvent';
 import { SmartCardInput, SmartCardResponse } from '@/_typings/smart-cards';
-import { createSmartCard, deleteSmartCard } from '@/_utilities/api-calls/call-smart-cards';
+import { createSmartCard, deleteSmartCard, emailSmartCard } from '@/_utilities/api-calls/call-smart-cards';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 
@@ -88,7 +88,10 @@ export default function EditNewCardForm({ template, showDetails, details, update
               el.style.borderRadius = '0';
               return html2canvas(el, { allowTaint: true, useCORS: true });
             });
+          console.log('promises');
+          console.log(promises);
           Promise.all(promises).then(canvases => {
+            console.log('map canvases');
             const anotherPromises = canvases.map(canvas => {
               return new Promise(resolve => {
                 canvas.getContext('2d');
@@ -97,28 +100,30 @@ export default function EditNewCardForm({ template, showDetails, details, update
               });
             });
             Promise.all(anotherPromises).then(files => {
+              console.log('Write attachments');
               const attachments = files.map((base64, i) => {
                 return { type: 'image/png', name: `card_image_${i + 1}.png`, content: base64 };
               });
-              const send_to: MailChimp.MessageRecipient[] = [{ email: 'team@leagent.com', name: 'Leaget Team' }];
-              sendTemplate(
-                'new-card-order',
-                send_to,
-                {
-                  name: form?.name as string,
-                  customer_email: agent && agent.email,
-                  customer_name: form?.name as string,
-                  customer_phone: agent?.phone as string,
-                },
-                attachments,
-              ).finally(() => {
-                updateCardsList('new', {
-                  id: Number(res.record.id),
-                  name: res.record.attributes.name,
-                  title: res.record.attributes.title,
-                  logo_url: res.record.attributes.logo_url,
-                } as SmartCardResponse);
-              });
+              emailSmartCard({ attachments });
+              // const send_to: MailChimp.MessageRecipient[] = [{ email: 'team@leagent.com', name: 'Leaget Team' }];
+              // sendTemplate(
+              //   'new-card-order',
+              //   send_to,
+              //   {
+              //     name: form?.name as string,
+              //     customer_email: agent && agent.email,
+              //     customer_name: form?.name as string,
+              //     customer_phone: agent?.phone as string,
+              //   },
+              //   attachments,
+              // ).then(() => {
+              //   updateCardsList('new', {
+              //     id: Number(res.record.id),
+              //     name: res.record.attributes.name,
+              //     title: res.record.attributes.title,
+              //     logo_url: res.record.attributes.logo_url,
+              //   } as SmartCardResponse);
+              // });
             });
           });
         }

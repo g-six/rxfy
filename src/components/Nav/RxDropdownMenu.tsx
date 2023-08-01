@@ -9,6 +9,8 @@ import React from 'react';
 import styles from './RxDropdownMenu.module.scss';
 import Cookies from 'js-cookie';
 import { RxUserSessionLink } from './RxUserSessionLink';
+import { useParams } from 'next/navigation';
+import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 
 type DropdownProps = {
   ['agent-data']: AgentData;
@@ -27,10 +29,11 @@ type ToggleButtonProps = {
 };
 
 function RxNavPopup(p: PopupProps) {
+  const params = useParams();
   const { data } = useEvent(Events.ToggleUserMenu);
   const matches = [
     {
-      searchFn: searchByClasses(['in-session']),
+      searchFn: searchByClasses([WEBFLOW_NODE_SELECTOR.USER_MENU]),
       transformChild: (child: React.ReactElement) => <RxUserSessionLink {...child.props}>{child.props.children}</RxUserSessionLink>,
     },
     {
@@ -43,11 +46,17 @@ function RxNavPopup(p: PopupProps) {
     },
     {
       searchFn: searchByClasses(['out-session']),
-      transformChild: (child: React.ReactElement) =>
-        React.cloneElement(child, {
+      transformChild: (child: React.ReactElement) => {
+        let { href } = child.props;
+        if (params.slug && params['profile-slug']) {
+          href = `/${params.slug}/${params['profile-slug']}${href}`;
+        }
+        return React.cloneElement(child, {
           ...child.props,
+          href,
           className: [child.props.className, Cookies.get('session_key') ? 'hidden' : 'nice'].join(' '),
-        }),
+        });
+      },
     },
   ];
   return (
@@ -61,7 +70,7 @@ function RxNavPopup(p: PopupProps) {
       leave='transition linear duration-500'
       leaveFrom='opacity-100 translate-y-0'
       leaveTo='opacity-0 -translate-y-2'
-      className={[p.className, 'w--open', styles.dropdown].join(' ')}
+      className={[p.className, 'w--open RxDropdownMenu-RxNavPopup', styles.dropdown].join(' ')}
     >
       {transformMatchingElements(p.children, matches)}
     </Transition>
@@ -114,7 +123,7 @@ export default function RxDropdownMenu(p: DropdownProps) {
         }),
     },
     {
-      searchFn: searchByClasses(['in-session']),
+      searchFn: searchByClasses([WEBFLOW_NODE_SELECTOR.USER_MENU]),
       transformChild: (child: React.ReactElement) =>
         React.cloneElement(child, {
           className: child.props.className + ' rexified',

@@ -378,6 +378,7 @@ export interface MapStateProps extends BaseKeyValuePairStateProps {
 
 export interface LovedPropertyDataModel extends PropertyDataModel {
   love?: number;
+  notes?: string;
 }
 
 export type MapStatePropsWithFilters = MapStateProps & PropertyAttributeFilters;

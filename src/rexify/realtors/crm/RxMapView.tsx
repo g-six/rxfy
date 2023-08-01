@@ -14,7 +14,7 @@ import { useSearchParams } from 'next/navigation';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
 
-export default function RxMapView({ lat, lng }: { lat?: number; lng?: number }) {
+export default function RxMapView({ lat, lng, properties }: { lat?: number; lng?: number; properties?: LovedPropertyDataModel[] }) {
   const searchParams = useSearchParams();
   const session = useEvent(Events.LoadUserSession);
   const lovers = useEvent(Events.LoadLovers);
@@ -22,7 +22,6 @@ export default function RxMapView({ lat, lng }: { lat?: number; lng?: number }) 
   const [map, setMap] = React.useState<mapboxgl.Map | null>(null);
   const [lat_lng, setLngLat] = React.useState<mapboxgl.LngLatLike>([lng || -123.1207, lat || 49.2827]);
   const [pins, setPins] = React.useState<Feature[]>();
-  const [properties, setProperties] = React.useState<LovedPropertyDataModel[]>();
 
   const clickEventListener = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
     const features = e.target.queryRenderedFeatures(e.point, {
@@ -79,64 +78,78 @@ export default function RxMapView({ lat, lng }: { lat?: number; lng?: number }) 
     setMap(m);
   };
 
+  const addPoints = (sources: LovedPropertyDataModel[]) => {
+    let minlng: boolean | number = false;
+    let maxlng: boolean | number = false;
+    let minlat: boolean | number = false;
+    let maxlat: boolean | number = false;
+    let latitude = 49.2827;
+    let longitude = -123.1207;
+    const points: Feature[] = [];
+
+    sources.forEach((property: LovedPropertyDataModel) => {
+      if (property.lat !== undefined && property.lon !== undefined) {
+        if (!minlng || (minlng as number) > property.lon) minlng = property.lon;
+        if (!maxlng || (maxlng as number) < property.lon) maxlng = property.lon;
+        if (!maxlat || (maxlat as number) < property.lat) maxlat = property.lat;
+        if (!minlat || (minlat as number) > property.lat) minlat = property.lat;
+        points.push({
+          type: 'Feature' as unknown as Feature,
+          properties: {
+            type: 'MLSProperty',
+            price: getShortPrice(property.asking_price),
+            full_price: property.asking_price,
+            sqft: property.floor_area_total,
+            ...property,
+            area: property.area || property.city,
+          },
+          geometry: {
+            coordinates: [property.lon, property.lat],
+            type: 'Point',
+          } as unknown as GeoJSON.Geometry,
+          id: property.mls_id,
+        } as unknown as Feature);
+      }
+    });
+
+    if (typeof maxlng === 'number' && typeof minlng === 'number') longitude = (maxlng + minlng) / 2;
+    else if (typeof minlng !== 'number' && typeof maxlng === 'number') longitude = maxlng;
+    else if (typeof maxlng !== 'number' && typeof minlng === 'number') longitude = minlng;
+
+    if (typeof maxlat === 'number' && typeof minlat === 'number') latitude = (maxlat + minlat) / 2;
+    else if (typeof minlat !== 'number' && typeof maxlat === 'number') latitude = maxlat;
+    else if (typeof maxlat !== 'number' && typeof minlat === 'number') latitude = minlat;
+
+    setLngLat([longitude, latitude]);
+    map?.panTo(lat_lng);
+    map?.resize();
+    setPins(points);
+  };
+
+  React.useEffect(() => {
+    if (map?.isStyleLoaded() && properties?.length) {
+      addPoints(properties);
+    }
+  }, [map?.isStyleLoaded()]);
+
   React.useEffect(() => {
     attachMap(setMap, mapDiv);
-  }, [properties]);
+  }, []);
 
   React.useEffect(() => {
     if (mapDiv && mapDiv.current && session.data?.clicked) {
-      const customer_id = searchParams.get('customer') as unknown as number;
-      const points: Feature[] = [];
-      getLovedHomes(customer_id).then(data => {
-        if (data.properties) {
-          if (data.properties && data.properties.length) {
-            let minlng: boolean | number = false;
-            let maxlng: boolean | number = false;
-            let minlat: boolean | number = false;
-            let maxlat: boolean | number = false;
-            let latitude = 49.2827;
-            let longitude = -123.1207;
-
-            data.properties.forEach((property: LovedPropertyDataModel) => {
-              if (property.lat !== undefined && property.lon !== undefined) {
-                if (!minlng || (minlng as number) > property.lon) minlng = property.lon;
-                if (!maxlng || (maxlng as number) < property.lon) maxlng = property.lon;
-                if (!maxlat || (maxlat as number) < property.lat) maxlat = property.lat;
-                if (!minlat || (minlat as number) > property.lat) minlat = property.lat;
-                points.push({
-                  type: 'Feature' as unknown as Feature,
-                  properties: {
-                    type: 'MLSProperty',
-                    price: getShortPrice(property.asking_price),
-                    full_price: property.asking_price,
-                    sqft: property.floor_area_total,
-                    ...property,
-                    area: property.area || property.city,
-                  },
-                  geometry: {
-                    coordinates: [property.lon, property.lat],
-                    type: 'Point',
-                  } as unknown as GeoJSON.Geometry,
-                  id: property.mls_id,
-                } as unknown as Feature);
-              }
-            });
-            if (typeof maxlng === 'number' && typeof minlng === 'number') longitude = (maxlng + minlng) / 2;
-            else if (typeof minlng !== 'number' && typeof maxlng === 'number') longitude = maxlng;
-            else if (typeof maxlng !== 'number' && typeof minlng === 'number') longitude = minlng;
-
-            if (typeof maxlat === 'number' && typeof minlat === 'number') latitude = (maxlat + minlat) / 2;
-            else if (typeof minlat !== 'number' && typeof maxlat === 'number') latitude = maxlat;
-            else if (typeof maxlat !== 'number' && typeof minlat === 'number') latitude = minlat;
-
-            setLngLat([longitude, latitude]);
-            map?.panTo(lat_lng);
-            map?.resize();
-            setPins(points);
+      if (!pins) {
+        const customer_id = searchParams.get('customer') as unknown as number;
+        getLovedHomes(customer_id).then(data => {
+          if (data.records) {
+            if (data.records && data.records.length) {
+              addPoints(data.records);
+            }
           }
-          // setProperties(data.properties);
-        }
-      });
+        });
+      } else {
+        map?.resize();
+      }
     }
   }, [session.data?.clicked]);
 

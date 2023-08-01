@@ -1,7 +1,7 @@
 //saved-home-detail-panel
 'use client';
 import React from 'react';
-import { PropertyDataModel } from '@/_typings/property';
+import { LovedPropertyDataModel, PropertyDataModel } from '@/_typings/property';
 import useEvent, { Events } from '@/hooks/useEvent';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
@@ -10,14 +10,40 @@ import RxPropertyStats from '@/components/RxProperty/RxPropertyStats';
 import { AgentData } from '@/_typings/agent';
 import styles from './CustomerPropertyView.module.scss';
 import RxActionBar from './CRMPropertyPageComponents/RxActionBar';
+import RxFeatures from '@/components/RxProperty/RxFeatures';
+import { getFeatureIcons } from '@/_helpers/functions';
+import { retrievePublicListingsFromPipeline } from '@/_utilities/api-calls/call-legacy-search';
+import { LegacySearchPayload } from '@/_typings/pipeline';
 
 type Props = {
   children: React.ReactElement;
   id?: string;
   agent?: AgentData;
+  property?: PropertyDataModel | LovedPropertyDataModel;
+  neighbours?: PropertyDataModel[];
   className?: string;
   reload: (r: unknown) => void;
 };
+
+function OtherUnits({ children, neighbours }: { children: React.ReactElement; neighbours: PropertyDataModel[] }) {
+  const Wrapped = React.Children.map(children, c => {
+    if (c.type === 'div') {
+      const { children: sub, ...props } = c.props;
+
+      if (props.className?.includes('div-building-units-on-sale')) {
+        return <></>;
+      }
+
+      return (
+        <div {...props}>
+          <OtherUnits neighbours={neighbours}>{sub}</OtherUnits>
+        </div>
+      );
+    }
+    return c;
+  });
+  return <>{Wrapped}</>;
+}
 
 function Iterator(p: Props & { property?: PropertyDataModel }) {
   const Wrapped = React.Children.map(p.children, child => {
@@ -42,8 +68,8 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
                     children: React.cloneElement(child.props.children, {
                       ...child.props.children.props,
                       src: getImageSized(p.property.photos[1], 580),
+                      srcSet: undefined,
                     }),
-                    srcSet: undefined,
                   });
               case 'property-image-3':
                 if (p.property.photos.length > 2)
@@ -65,6 +91,7 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
                 ...child.props.children[0].props,
                 key: src,
                 src: getImageSized(src, 400),
+                srcSet: undefined,
               });
             }),
           });
@@ -156,6 +183,10 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
                 })(),
               });
           }
+        } else if (child.props['data-table'] === 'other-building-units') {
+          return p.property?.complex_compound_name && p.neighbours ? <OtherUnits neighbours={p.neighbours}>{child}</OtherUnits> : <></>;
+        } else if (child.props.className === WEBFLOW_NODE_SELECTOR.PROPERTY_FEATURES) {
+          return p.property ? <RxFeatures child={child} features={getFeatureIcons(p.property as PropertyDataModel)} /> : <></>;
         } else if (child.props.className === WEBFLOW_NODE_SELECTOR.PROPERTY_MAPS) {
           return p.property && p.property.lon && p.property.lat ? <RxPropertyMaps child={child} property={p.property} /> : <></>;
         } else if (child.props.className?.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS) >= 0) {
@@ -208,20 +239,69 @@ export default function RxCustomerPropertyView(p: Props) {
   const session = useEvent(Events.LoadUserSession);
   const selectPropertyEvt = useEvent(Events.SelectCustomerLovedProperty);
   const [property, selectProperty] = React.useState<PropertyDataModel>();
-  const agent = session.data as unknown as AgentData;
+  const [other_units_in_bldg, setBuildingUnits] = React.useState<PropertyDataModel[]>();
+  const agent = (p.agent || session.data) as unknown as AgentData;
 
   React.useEffect(() => {
-    if (selectPropertyEvt.data) {
+    if (selectPropertyEvt.data && Object.keys(selectPropertyEvt.data).length > 0) {
       selectProperty(selectPropertyEvt.data as unknown as PropertyDataModel);
+    } else if (p.property) {
+      selectProperty(p.property as unknown as LovedPropertyDataModel);
     }
   }, [selectPropertyEvt.data]);
 
-  const { reload, ...props } = p;
-  return (
+  React.useEffect(() => {
+    if (property?.complex_compound_name) {
+      retrievePublicListingsFromPipeline({
+        from: 0,
+        size: 1000,
+        sort: {
+          'data.UpdateDate': 'desc',
+        },
+        query: {
+          bool: {
+            filter: [
+              {
+                match: {
+                  'data.L_ComplexName': property?.complex_compound_name,
+                },
+              },
+              {
+                match: {
+                  'data.IdxInclude': 'Yes',
+                },
+              },
+              {
+                match: {
+                  'data.Status': 'Active' as string,
+                },
+              } as unknown as Record<string, string>,
+            ],
+            should: [],
+            must_not: [
+              {
+                match: {
+                  'data.MLS_ID': property.mls_id,
+                },
+              },
+            ],
+          },
+        },
+      } as LegacySearchPayload).then(({ records }: { records: PropertyDataModel[] }) => {
+        if (records && records.length) setBuildingUnits(records);
+      });
+    }
+  }, [property]);
+
+  const { reload, property: selected_property, ...props } = p;
+
+  return property ? (
     <div {...props} className={`${p.className} ${property?.id ? styles['opened-property-view'] : styles['closed-property-view']}`}>
-      <Iterator {...props} property={property} agent={agent} reload={reload}>
+      <Iterator {...props} property={property} neighbours={other_units_in_bldg} agent={agent} reload={reload}>
         {p.children}
       </Iterator>
     </div>
+  ) : (
+    <></>
   );
 }

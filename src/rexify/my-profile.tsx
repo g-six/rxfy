@@ -26,7 +26,6 @@ export default function MyProfilePage(p: Props) {
   const scripts: { [key: string]: string }[] = [];
   const [dash_area, setDashArea] = React.useState<React.ReactElement>();
   const [navigation_wrapper, setNavBar] = React.useState<React.ReactElement>();
-
   React.useEffect(() => {
     const session = data as unknown as { [key: string]: string | number };
     if (session?.id) {

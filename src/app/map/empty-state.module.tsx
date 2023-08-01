@@ -2,8 +2,6 @@
 import React from 'react';
 import styles from './home-list.module.scss';
 import { convertDivsToSpans } from '@/_replacers/DivToSpan';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { objectToQueryString, queryStringToObject } from '@/_utilities/url-helper';
 import useEvent, { Events } from '@/hooks/useEvent';
 
 function Iterator({ children, reset }: { children: React.ReactElement; reset(): void }) {
@@ -29,32 +27,18 @@ function Iterator({ children, reset }: { children: React.ReactElement; reset(): 
   return <>{Wrapped}</>;
 }
 
-export default function EmptyState({ className, children, show }: { className: string; children: React.ReactElement; show: boolean }) {
-  const search = useSearchParams();
-  const router = useRouter();
+export default function EmptyState({ className, children }: { className: string; children: React.ReactElement }) {
   const { data, fireEvent } = useEvent(Events.MapSearch);
-  return show === true ? (
-    <div className={[className, styles['empty-state'], 'rexified HomeList-EmptyState'].join(' ')}>
+  const { points } = data as unknown as {
+    points?: unknown[];
+  };
+  return (
+    <div className={[className, points && points.length > 0 ? styles['filled-state'] : styles['empty-state'], 'rexified HomeList-EmptyState'].join(' ')}>
       <Iterator
         reset={() => {
-          const q = queryStringToObject(search.toString());
-          delete q.types;
-          delete q.date;
-          delete q.year_built;
-          delete q.maxsqft;
-          delete q.minsqft;
-          delete q.maxprice;
-          delete q.minprice;
-          router.push(
-            'map?' +
-              objectToQueryString({
-                ...q,
-                minprice: 340000,
-                maxprice: 20000000,
-              }),
-          );
           fireEvent({
             ...data,
+            clicked: 'reset',
             reload: true,
           });
         }}
@@ -62,7 +46,5 @@ export default function EmptyState({ className, children, show }: { className: s
         {children}
       </Iterator>
     </div>
-  ) : (
-    <></>
   );
 }

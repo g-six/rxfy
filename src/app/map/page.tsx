@@ -2,7 +2,7 @@ import React from 'react';
 import axios from 'axios';
 import { CheerioAPI, load } from 'cheerio';
 import { DOMNode, domToReact } from 'html-react-parser';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { convertDivsToSpans } from '@/_replacers/DivToSpan';
 import RxToggleSwitch from '@/components/RxPropertyMap/RxToggleSwitch';
 import { findAgentRecordByAgentId } from '../api/agents/model';
@@ -20,6 +20,13 @@ import HomeList from './home-list.module';
 
 import list_styles from './home-list.module.scss';
 import AgentListingsToggle from './agent-listing-toggle.module';
+import HeartToggle from './heart-toggle.module';
+import PropertyCardSm from './property-card-sm.module';
+import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
+import { classNames } from '@/_utilities/html-helper';
+
+import styles from './styles.module.scss';
+import NavIterator from '@/components/Nav/RxNavIterator';
 
 async function Iterator({ agent, children, city }: { children: React.ReactElement; agent?: AgentData; city?: string }) {
   const Wrapped = React.Children.map(children, c => {
@@ -48,6 +55,13 @@ async function Iterator({ agent, children, city }: { children: React.ReactElemen
           );
         } else return React.cloneElement(c, c.props, ['Leagent']);
       }
+    } else if (c.type === 'nav') {
+      const { children: nav_items, ...nav_props } = c.props;
+      return (
+        <nav {...nav_props}>
+          <NavIterator agent={agent}>{nav_items}</NavIterator>
+        </nav>
+      );
     } else if (['div', 'form', 'section'].includes(c.type as string)) {
       const { className, ...props } = c.props;
 
@@ -107,11 +121,25 @@ async function Iterator({ agent, children, city }: { children: React.ReactElemen
           return <HomeAlert2 className={className}>{props.children}</HomeAlert2>;
         } else if (className.includes('ha-step-3')) {
           return <HomeAlert3 className={className}>{props.children}</HomeAlert3>;
-        } else if (className.includes('mapbox-canvas')) {
+        } else if (className.includes('property-card-small')) {
           return (
-            <MapCanvas agent-id={agent?.agent_id || ''} className={className}>
+            <PropertyCardSm agent={agent?.id || 0} className={className}>
+              {props.children}
+            </PropertyCardSm>
+          );
+        } else if (className.includes('mapbox-canvas')) {
+          const default_lat = agent?.metatags?.lat || 49.274527699999794;
+          const default_lng = agent?.metatags?.lng || -123.11389869999971;
+          return (
+            <MapCanvas agent={agent} className={className} default-lat={default_lat} default-lng={default_lng}>
               {props.children}
             </MapCanvas>
+          );
+        } else if (className.includes('map-navbar ')) {
+          return (
+            <div className={classNames(className, styles.navbar, 'rexified')} {...props}>
+              <Iterator agent={agent}>{props.children}</Iterator>
+            </div>
           );
         }
       }
@@ -125,6 +153,9 @@ async function Iterator({ agent, children, city }: { children: React.ReactElemen
         </div>
       );
     } else if (c.type === 'a') {
+      if (c.props?.className.includes('heart-button')) {
+        return <HeartToggle className={c.props.className}>{c.props.children}</HeartToggle>;
+      }
       return React.cloneElement(
         c,
         c.props,

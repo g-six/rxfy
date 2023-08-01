@@ -17,6 +17,9 @@ import { must_not, retrievePublicListingsFromPipeline } from '@/_utilities/api-c
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import PropertyListModal from '@/components/PropertyListModal';
 import { getMapData } from '@/_utilities/api-calls/call-mapbox';
+import { AgentData } from '@/_typings/agent';
+import Cookies from 'js-cookie';
+import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 
 function Iterator({ children }: { children: React.ReactElement }) {
   const Wrapped = React.Children.map(children, c => {
@@ -32,18 +35,23 @@ function Iterator({ children }: { children: React.ReactElement }) {
   return <>{Wrapped}</>;
 }
 
-export default function MapCanvas(p: { 'agent-id': string; className: string; children: React.ReactElement }) {
+export default function MapCanvas(p: { agent?: AgentData; className: string; children: React.ReactElement; 'default-lat': number; 'default-lng': number }) {
   const router = useRouter();
   const search = useSearchParams();
   const { data, fireEvent } = useEvent(Events.MapSearch);
+  const { fireEvent: setClusterModal } = useEvent(Events.MapClusterModal);
+  const { data: lovers_data_obj } = useEvent(Events.LoadLovers);
+  const { data: love } = useEvent(Events.MapLoversToggle);
   const mapNode = React.useRef(null);
   const [map, setMap] = React.useState<mapboxgl.Map>();
   const [is_loading, setLoading] = React.useState<boolean>(false);
-  const [only_agent_listing, toggleListing] = React.useState<boolean>(false);
+  const [only_agent_listing, toggleListing] = React.useState<boolean>();
   const [filters, setFilters] = React.useState<{
     [k: string]: string | number;
   }>();
   const [listings, setListings] = React.useState<PropertyDataModel[]>([]);
+  const [pipeline_listings, setPipelineResults] = React.useState<PropertyDataModel[]>([]);
+  const [loved_listings, setLovedResults] = React.useState<PropertyDataModel[]>([]);
   const [selected_cluster, setSelectedCluster] = React.useState<PropertyDataModel[]>([]);
 
   const clickEventListener = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
@@ -61,16 +69,25 @@ export default function MapCanvas(p: { 'agent-id': string; className: string; ch
 
           if (is_cluster) {
             cluster_source.getClusterLeaves(cluster_id, point_count, 0, (error, feats: Feature[]) => {
-              // Refactor this into a standalone function
-              setSelectedCluster(
-                feats.map(
+              setClusterModal({
+                cluster: feats.map(
                   ({ id, properties }) =>
                     ({
                       ...properties,
                       id,
                     } as unknown as PropertyDataModel),
                 ),
-              );
+              } as unknown as EventsData);
+              // Refactor this into a standalone function
+              // setSelectedCluster(
+              //   feats.map(
+              //     ({ id, properties }) =>
+              //       ({
+              //         ...properties,
+              //         id,
+              //       } as unknown as PropertyDataModel),
+              //   ),
+              // );
             });
           } else {
             const items: PropertyDataModel[] = [];
@@ -116,11 +133,12 @@ export default function MapCanvas(p: { 'agent-id': string; className: string; ch
         };
       }[] = [];
       let minimum_should_match = 1;
-      fireEvent({
-        ...data,
-        points: undefined,
-        reload: false,
-      } as unknown as EventsData);
+      checkThenReload(false);
+      // fireEvent({
+      //   ...data,
+      //   points: undefined,
+      //   reload: false,
+      // } as unknown as EventsData);
       const user_defined_filters: {
         range?: {
           [k: string]: {
@@ -179,8 +197,13 @@ export default function MapCanvas(p: { 'agent-id': string; className: string; ch
           },
         });
       }
-      if (filters.types) {
-        should = `${filters.types}`.split(',').map(t => ({
+      let { types } = filters;
+      const q = queryStringToObject(search.toString() || '');
+      if (Object.keys(q).length > 0 && q.types) {
+        types = q.types;
+      }
+      if (types) {
+        should = `${types}`.split(',').map(t => ({
           match: {
             'data.Type': t === 'House' ? 'House/Single Family' : t,
           },
@@ -233,53 +256,69 @@ export default function MapCanvas(p: { 'agent-id': string; className: string; ch
         }
       }
 
-      const legacy_params: LegacySearchPayload = {
-        from: 0,
-        size: 1000,
-        sort,
-        query: {
-          bool: {
-            filter: [
-              {
-                range: {
-                  'data.lat': {
-                    lte: filters.nelat,
-                    gte: filters.swlat,
+      if (map) {
+        // Let's get more accurate if possible
+        // Data bounded by map
+        const legacy_params: LegacySearchPayload = {
+          from: 0,
+          size: 1000,
+          sort,
+          query: {
+            bool: {
+              filter: [
+                {
+                  range: {
+                    'data.lat': {
+                      lte: map.getBounds().getNorthEast().lat,
+                      gte: map.getBounds().getSouthWest().lat,
+                    },
                   },
                 },
-              },
-              {
-                range: {
-                  'data.lng': {
-                    lte: filters.nelng,
-                    gte: filters.swlng,
+                {
+                  range: {
+                    'data.lng': {
+                      lte: map.getBounds().getNorthEast().lng,
+                      gte: map.getBounds().getSouthWest().lng,
+                    },
                   },
                 },
-              },
-              {
-                match: {
-                  'data.IdxInclude': 'Yes',
+                {
+                  match: {
+                    'data.IdxInclude': 'Yes',
+                  },
                 },
-              },
-              {
-                match: {
-                  'data.Status': 'Active' as string,
-                },
-              } as unknown as Record<string, string>,
-            ].concat(user_defined_filters as any[]) as any[],
-            should,
-            ...(should.length ? { minimum_should_match } : {}),
-            must_not,
+                {
+                  match: {
+                    'data.Status': 'Active' as string,
+                  },
+                } as unknown as Record<string, string>,
+              ].concat(user_defined_filters as any[]) as any[],
+              should,
+              ...(should.length ? { minimum_should_match } : {}),
+              must_not,
+            },
           },
-        },
-      };
-      retrievePublicListingsFromPipeline(legacy_params).then(({ records }: { records: PropertyDataModel[] }) => {
-        setListings(records);
-        fireEvent({
-          ...data,
-          reload: false,
-        } as EventsData);
-      });
+        };
+
+        retrievePublicListingsFromPipeline(legacy_params).then(({ records }: { records: PropertyDataModel[] }) => {
+          setPipelineResults(records);
+          const { loved_only } = love as unknown as { loved_only?: boolean };
+          if (!loved_only) {
+            setListings(records);
+            checkThenReload(false);
+          }
+        });
+      }
+    }
+  };
+
+  const checkThenReload = (reload?: boolean) => {
+    const { loved_only } = love as unknown as { loved_only?: boolean };
+    if (!loved_only) {
+      fireEvent({
+        ...data,
+        reload,
+      } as EventsData);
     }
   };
 
@@ -296,32 +335,11 @@ export default function MapCanvas(p: { 'agent-id': string; className: string; ch
         //   }
         // });
 
-        if (filters) {
+        let q = queryStringToObject(search.toString() || '');
+        if (Object.keys(q).length > 0) {
           const [lat, lng] = latlng.split(',').map(Number);
-          getMapData(lng, lat).then(loc => {
-            const {
-              features: [{ context }],
-            } = loc.data as unknown as {
-              features: {
-                context: { id: string; text: string }[];
-              }[];
-            };
-            const [{ text: keyword }] = context.filter(({ id }) => id.includes('place'));
-            fireEvent({
-              ...data,
-              keyword,
-            } as unknown as EventsData);
-            // router.push(
-            //   'map?' +
-            //     objectToQueryString({
-            //       ...queryStringToObject(search.toString()),
-            //       city: keyword,
-            //     }),
-            // );
-          });
           const updated_filters = {
-            // ...queryStringToObject(search.toString()),
-            ...filters,
+            ...q,
             lat,
             lng,
             nelat: map.getBounds().getNorthEast().lat,
@@ -331,11 +349,8 @@ export default function MapCanvas(p: { 'agent-id': string; className: string; ch
             zoom: map.getZoom(),
           };
           setFilters(updated_filters);
-          fireEvent({
-            ...data,
-            points: undefined,
-            reload: true,
-          } as EventsData);
+          setLoading(true);
+          // checkThenReload(true);
         }
       }
     },
@@ -343,6 +358,29 @@ export default function MapCanvas(p: { 'agent-id': string; className: string; ch
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [map],
   );
+
+  React.useEffect(() => {
+    if (data?.clicked === 'reset' && map) {
+      fireEvent({
+        ...data,
+        clicked: undefined,
+      });
+      const updated_filters: {
+        [key: string]: string | number;
+      } = {
+        ...filters,
+        lat: map.getCenter().lat,
+        lng: map.getCenter().lng,
+        nelat: map.getBounds().getNorthEast().lat,
+        nelng: map.getBounds().getNorthEast().lng,
+        swlat: map.getBounds().getSouthWest().lat,
+        swlng: map.getBounds().getSouthWest().lng,
+        zoom: map.getZoom(),
+      };
+      delete updated_filters.types;
+      router.push('map?' + objectToQueryString(updated_filters));
+    }
+  }, [data]);
 
   React.useEffect(() => {
     console.log({ only_agent_listing });
@@ -376,14 +414,6 @@ export default function MapCanvas(p: { 'agent-id': string; className: string; ch
 
   React.useEffect(() => {
     if (filters?.lat && filters?.lng) {
-      const { sort } = queryStringToObject(search.toString());
-      router.push(
-        'map?' +
-          objectToQueryString({
-            ...filters,
-            sort,
-          }),
-      );
       const { reload } = data as unknown as {
         reload: boolean;
       };
@@ -395,10 +425,7 @@ export default function MapCanvas(p: { 'agent-id': string; className: string; ch
         setLoading(true);
         return;
       }
-      fireEvent({
-        ...data,
-        reload: true,
-      });
+      checkThenReload(true);
     }
   }, [filters]);
 
@@ -453,34 +480,33 @@ export default function MapCanvas(p: { 'agent-id': string; className: string; ch
       }
     }
   }, [listings]);
+
   React.useEffect(() => {
-    document &&
-      document.querySelectorAll('.toggle-base').forEach(el =>
-        el.addEventListener('click', (evt: Event) => {
-          const toggle = evt.target as HTMLDivElement;
-          toggleListing(toggle.getAttribute('style')?.includes('transform') || false);
-        }),
-      );
-    if (search.toString()) {
-      let q = queryStringToObject(search.toString());
-      if (q.center && map) {
-        const { center, place_id, ...queryparams } = q;
-        const [lat, lng] = `${center}`.split(',').map(Number);
-        map.setCenter([lng, lat]);
-        map.setZoom(11);
-        const updated = {
-          ...queryparams,
-          lat,
-          lng,
-          nelat: map.getBounds().getNorthEast().lat,
-          swlat: map.getBounds().getSouthWest().lat,
-          nelng: map.getBounds().getNorthEast().lng,
-          swlng: map.getBounds().getSouthWest().lng,
-        };
-        setFilters(updated);
-        setLoading(true);
-      } else setFilters(q);
-    }
+    let q = queryStringToObject(search.toString() || '');
+    if (q.center && map) {
+      const { center, place_id, ...queryparams } = q;
+      const [lat, lng] = `${center}`.split(',').map(Number);
+      map.setCenter([lng, lat]);
+      map.setZoom(11);
+      const updated = {
+        ...queryparams,
+        lat,
+        lng,
+        nelat: map.getBounds().getNorthEast().lat,
+        swlat: map.getBounds().getSouthWest().lat,
+        nelng: map.getBounds().getNorthEast().lng,
+        swlng: map.getBounds().getSouthWest().lng,
+      };
+      setFilters(updated);
+      setLoading(true);
+    } else if (!q.lat && !q.lng) {
+      const updated = {
+        lat: p['default-lat'],
+        lng: p['default-lng'],
+        zoom: 10,
+      };
+      setFilters(updated);
+    } else setFilters(q);
   }, [search]);
 
   React.useEffect(() => {
@@ -490,10 +516,43 @@ export default function MapCanvas(p: { 'agent-id': string; className: string; ch
     }
   }, [is_loading]);
 
+  React.useEffect(() => {
+    const { loved_only } = love as unknown as { loved_only?: boolean };
+    if (loved_only) {
+      if (Object.keys(lovers_data_obj as {}).length && Cookies.get('session_key')) {
+        const { lovers } = lovers_data_obj as unknown as {
+          lovers: PropertyDataModel[];
+        };
+        setListings(lovers);
+      } else {
+        const local = (getData(Events.LovedItem) || []) as string[];
+        setListings(pipeline_listings.filter(listing => local.includes(listing.mls_id)));
+      }
+    } else if (loved_only === false) {
+      setListings(pipeline_listings);
+    }
+  }, [love]);
+
+  React.useEffect(() => {
+    document &&
+      document.querySelectorAll('.toggle-base').forEach(el =>
+        el.addEventListener('click', (evt: Event) => {
+          const toggle = evt.target as HTMLDivElement;
+          const toggle_value = toggle.getAttribute('style')?.includes('transform') || true;
+          if (only_agent_listing === undefined) {
+            toggleListing(true);
+          } else {
+            toggleListing(!toggle_value);
+          }
+        }),
+      );
+  }, []);
+
   return (
     <aside className={[p.className, styles.MainWrapper, 'rexified MapCanvas'].join(' ')}>
       <div id='map' className={classNames(styles.RxMapbox)} ref={mapNode}></div>
       <PropertyListModal
+        agent={p.agent}
         card={<Iterator>{p.children?.props?.children}</Iterator>}
         onClose={() => {
           setSelectedCluster([]);

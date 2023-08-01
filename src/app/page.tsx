@@ -113,6 +113,13 @@ export default async function Home({ params, searchParams }: { params: Record<st
     `${data}`.split('</title>').join(`</title>
     <link rel='canonical' href='${header_list.get('referer') || header_list.get('x-canonical')}' />`),
   );
+
+  if (params.slug && params['profile-slug']) {
+    replaceByCheerio($, 'a.logo-div', {
+      href: `/${params.slug}/${params['profile-slug']}`,
+    });
+  }
+
   let { hostname: webflow_domain, pathname: slug } = new URL(headers().get('x-url') as string);
 
   $('form').removeAttr('id');

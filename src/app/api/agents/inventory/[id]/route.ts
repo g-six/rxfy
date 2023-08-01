@@ -20,12 +20,12 @@ export async function GET(request: NextRequest) {
         },
       },
     );
-    const properties: Record<string, unknown>[] = [];
+    const records: Record<string, unknown>[] = [];
     if (inventory_response.data?.inventory?.records) {
       inventory_response.data?.inventory?.records.map(({ id, attributes }: { id: number; attributes: Record<string, unknown> }) => {
         const record = attributes.property as { data: { id: number; attributes: PropertyDataModel } };
         if (record.data.attributes)
-          properties.push({
+          records.push({
             ...record.data.attributes,
             id: Number(record.data.id),
           });
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     return new Response(
       JSON.stringify(
         {
-          properties,
+          records,
         },
         null,
         4,

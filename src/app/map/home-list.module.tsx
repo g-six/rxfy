@@ -4,21 +4,15 @@ import React from 'react';
 import styles from './home-list.module.scss';
 import EmptyState from './empty-state.module';
 import PropertyCard from './property-card.module';
-import useEvent, { Events } from '@/hooks/useEvent';
-import { PropertyDataModel } from '@/_typings/property';
 
-function Iterator({ children, ...props }: { children: React.ReactElement; 'is-empty'?: boolean }) {
+function Iterator({ children }: { children: React.ReactElement }) {
   const Wrapped = React.Children.map(children, c => {
     if (c.type === 'div') {
-      if (c.props.className?.includes('property-card')) {
+      if (c.props.className?.split(' ').includes('property-card')) {
         return <PropertyCard {...c.props}>{c.props.children}</PropertyCard>;
       }
       if (c.props.className?.includes('empty-state')) {
-        return (
-          <EmptyState {...c.props} show={props['is-empty']}>
-            {c.props.children}
-          </EmptyState>
-        );
+        return <EmptyState {...c.props}>{c.props.children}</EmptyState>;
       }
       return (
         <div className={[c.props.className, 'rexified childof-HomeList'].join(' ')}>
@@ -32,27 +26,9 @@ function Iterator({ children, ...props }: { children: React.ReactElement; 'is-em
 }
 
 export default function HomeList({ className, children }: { className: string; children: React.ReactElement }) {
-  const { data } = useEvent(Events.MapSearch);
-  const [is_empty, setToEmpty] = React.useState(false);
-
-  React.useEffect(() => {
-    const { points, reload } = data as unknown as {
-      points: {
-        properties: PropertyDataModel;
-      }[];
-      reload?: boolean;
-    };
-
-    if (points && reload === false) {
-      setToEmpty(points.length === 0);
-    } else {
-      setToEmpty(false);
-    }
-  }, [data]);
-
   return (
     <div className={[className, styles['list-scroller'], 'rexified', 'HomeList'].join(' ')}>
-      <Iterator is-empty={is_empty}>{children}</Iterator>
+      <Iterator>{children}</Iterator>
     </div>
   );
 }

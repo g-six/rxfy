@@ -2,7 +2,7 @@
 import React from 'react';
 import Cookies from 'js-cookie';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 
 type RxUserSessionLinkProps = {
@@ -13,11 +13,16 @@ type RxUserSessionLinkProps = {
 };
 export function RxUserSessionLink(props: RxUserSessionLinkProps) {
   const router = useRouter();
+  const params = useParams();
   const [selector, toggleShow] = React.useState('hidden');
 
   const logout = () => {
     clearSessionCookies();
-    router.push('/');
+    let homepage = '/';
+    if (params['profile-slug'] && params.slug) {
+      homepage = `/${params.slug}/${params['profile-slug']}`;
+    }
+    router.push(homepage);
   };
 
   React.useEffect(() => {
@@ -33,9 +38,15 @@ export function RxUserSessionLink(props: RxUserSessionLinkProps) {
     }
   }, []);
 
+  let { href } = props;
+  if (params['profile-slug'] && params.slug) {
+    href = `/${params.slug}/${params['profile-slug']}${href}`;
+  }
+
   return (
     <a
       {...props}
+      href={href}
       className={[props.className, 'rexified flex w-full', selector].join(' ')}
       onClick={e => {
         // Logout button clicked

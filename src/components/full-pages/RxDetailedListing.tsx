@@ -90,16 +90,6 @@ export function RxDetailedListing(props: ReplacerPageProps) {
     },
 
     {
-      searchFn: searchByClasses(['little-profile-card']),
-      transformChild: (child: ReactElement) => {
-        const agent: AgentData = props.agent || {};
-
-        return replaceAllTextWithBraces(child, {
-          'Agent Name': 'asd',
-        }) as ReactElement;
-      },
-    },
-    {
       searchFn: searchByClasses(['legal-1']),
       transformChild: (child: ReactElement) => {
         return replaceAllTextWithBraces(child, {
