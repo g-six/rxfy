@@ -2,6 +2,7 @@ import { encrypt } from '@/_utilities/encryption-helper';
 import { MessageRecipient } from '@mailchimp/mailchimp_transactional';
 import axios from 'axios';
 import { sendTemplate } from '../send-template';
+import { getResponse } from '../response-helper';
 
 const gql = `query GetUserId ($email: String!) {
   customers(filters: { email: { eqi: $email } }) {
@@ -86,22 +87,14 @@ export async function PUT(request: Request) {
           subject: 'Leagent Password Recovery',
           client_url,
         });
-
-        return new Response(
-          JSON.stringify(
-            {
-              message: 'We have sent you an email',
-              last_activity_at: customer.data.attributes.last_activity_at,
-            },
-            null,
-            4,
-          ),
-          {
-            headers: {
-              'content-type': 'application/json',
-            },
-          },
-        );
+        return getResponse({
+          message: 'If we have a matching record (correct email), we will be emailing you the reset link.',
+          last_activity_at: customer.data.attributes.last_activity_at,
+        });
+      } else {
+        return getResponse({
+          message: 'If we have a matching record (correct email), we will be emailing you the reset link.',
+        });
       }
     }
   } catch (e) {
