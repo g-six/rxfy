@@ -560,7 +560,7 @@ export default function RxHomeAlertForm(p: Props) {
             };
 
             if (listed_at) {
-              search_params.add_date = listed_at;
+              search_params.add_date = Math.floor(listed_at / 1000);
             }
 
             alertData?.id
