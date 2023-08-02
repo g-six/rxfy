@@ -127,7 +127,7 @@ export default function DocumentsReplacer({
               onConfirm={() => {
                 generic_event.fireEvent({
                   confirm: true,
-                  confirmed_action: 'delete' + folder ? '-folder' : '',
+                  confirmed_action: 'delete' + (folder ? '-folder' : ''),
                 } as unknown as EventsData);
               }}
             >
