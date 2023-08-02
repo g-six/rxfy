@@ -61,7 +61,7 @@ export default function PropertyListModal(p: PropertyListProps) {
                   className={classNames(
                     'relative overflow-y-auto rounded-2xl',
                     p['view-only'] ? 'lg:w-80' : '',
-                    p.properties.length > 1 ? 'px-0' : 'w-72 sm:w-72',
+                    p.properties.length > 1 ? 'px-0' : '',
                     p.properties.length > 4 && 'h-[23.25rem]',
                   )}
                 >
