@@ -82,6 +82,12 @@ export default function DocumentsReplacer({
     }
   }, [notification]);
 
+  console.log({
+    folder,
+    folder_to_delete,
+    confirmed_action,
+  });
+
   useEffect(() => {
     if (folder && folder_to_delete && confirmed_action === 'delete-folder') {
       delete_event.fireEvent({});
@@ -94,7 +100,7 @@ export default function DocumentsReplacer({
         });
       });
     }
-  }, [folder]);
+  }, [folder, confirmed_action]);
 
   useEffect(() => {
     if (isNaN(agent_customer_id)) agent_customer_id = 0;
