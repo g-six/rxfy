@@ -9,7 +9,11 @@ export function middleware(request: NextRequest) {
   // we want to be able to read Property ID (MLS_ID, etc)
   // to place meta tags in HEAD dynamically based on Property Data
   const { origin, pathname, searchParams } = new URL(request.url);
+
   if (pathname.includes('/api')) return response;
+  if (pathname.includes('next')) return response;
+  if (pathname.includes('images')) return response;
+
   const [, ...segments] = pathname.split('/');
   let page_url = `https://`;
   response.headers.set('x-viewer', 'realtor');
