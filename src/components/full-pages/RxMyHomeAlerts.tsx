@@ -26,9 +26,10 @@ export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
     {
       searchFn: searchById('btn-new-home-alert'),
       transformChild: (child: ReactElement) => {
-        return cloneElement(child, {
+        return cloneElement(<button type='button' />, {
+          ...child.props,
           onClick: () => {
-            fireCustomEvent({ show: true, message: 'New' }, Events.MyHomeAlertsModal);
+            fireCustomEvent({ show: true, message: 'New', alertData: {} }, Events.MyHomeAlertsModal);
           },
         });
       },

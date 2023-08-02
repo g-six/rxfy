@@ -1,6 +1,6 @@
 'use client';
 import { removeKeys, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
-import { searchByClasses } from '@/_utilities/rx-element-extractor';
+import { searchByClasses, searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import useEvent, { Events } from '@/hooks/useEvent';
 import React, { ReactElement, cloneElement, useEffect, useState } from 'react';
 import SubmitGrid from './SubmitGrid';
@@ -81,7 +81,7 @@ export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
       //   cloneElement(child, { onClick: closeModal, style: { display: showModal ? 'flex' : 'none' }, 'data-rexifier': 'MyHomeAlertModalWrapper' }),
     },
     {
-      searchFn: searchByClasses(['prop-type-section-label']),
+      searchFn: searchByPartOfClass(['prop-type-section-label']),
       transformChild: (child: ReactElement) =>
         cloneElement(child, {}, [message ? `${message} ${formState.beds ? `${formState.beds}-br` : ''} ${formState.city || ''} Home Alert` : `New Home Alert`]),
     },
