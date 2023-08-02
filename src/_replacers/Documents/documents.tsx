@@ -84,7 +84,7 @@ export default function DocumentsReplacer({
   useEffect(() => {
     if (folder && folder_to_delete) {
       removeDocument(folder_to_delete).then(res => {
-        setDocuments(prev => [...prev.filter(docFolder => docFolder.id !== res.record.id)]);
+        setDocuments(prev => [...prev.filter(docFolder => folder_to_delete !== res.record.id)]);
         notify({
           timeout: 5000,
           category: NotificationCategory.SUCCESS,
