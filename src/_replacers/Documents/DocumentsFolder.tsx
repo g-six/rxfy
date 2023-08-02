@@ -30,8 +30,15 @@ export default function DocumentsFolder({ template, docFolderData, setDocuments,
     id: number;
   };
 
+  const deleteDocumentUpload = (id: string) => {
+    confirmDelete({
+      confirm: true,
+      id: Number(id),
+    } as unknown as EventsData);
+  };
+
   const deleteFolder = () => {
-    removeDocument(parseInt(docFolderData.id)).then(res => {
+    removeDocument(doc_to_delete).then(res => {
       setDocuments(prev => [...prev.filter(docFolder => docFolder.id !== res.record.id)]);
       notify({
         timeout: 5000,
@@ -40,14 +47,6 @@ export default function DocumentsFolder({ template, docFolderData, setDocuments,
       });
     });
   };
-
-  const deleteDocumentUpload = (id: string) => {
-    confirmDelete({
-      confirm: true,
-      id: Number(id),
-    } as unknown as EventsData);
-  };
-  console.log({ confirmed_action });
   if (confirmed_action) {
     let customer;
     if (params.get('customer')) customer = Number(params.get('customer'));
