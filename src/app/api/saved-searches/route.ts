@@ -71,12 +71,14 @@ export async function POST(request: Request) {
     const record = await createSavedSearch(agent, search_params, customer);
     if (record?.id) {
       const user = await getNewSessionKey(token, guid);
+
       if (user?.session_key) {
         session_key = user.session_key;
       } else {
         return getResponse(
           {
             error: 'Invalid token. Please login',
+            user,
           },
           401,
         );
