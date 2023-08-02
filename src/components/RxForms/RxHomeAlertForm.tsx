@@ -560,7 +560,7 @@ export default function RxHomeAlertForm(p: Props) {
             };
 
             if (listed_at) {
-              search_params.listed_at = new Date(listed_at).toISOString();
+              search_params.add_date = new Date(listed_at).toISOString().split('T')[0];
             }
 
             alertData?.id
