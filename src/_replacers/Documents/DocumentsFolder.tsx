@@ -48,25 +48,28 @@ export default function DocumentsFolder({ template, docFolderData, setDocuments,
     } as unknown as EventsData);
   };
 
-  if (confirmed_action === 'delete') {
+  if (confirmed_action) {
     let customer;
     if (params.get('customer')) customer = Number(params.get('customer'));
 
-    removeDocumentUpload(doc_to_delete, customer).then(res => {
-      if (res?.record?.id) {
-        setDocuments(prev => [
-          ...prev.map((docFolder: DocumentsFolderInterface) => {
-            const filteredData = docFolder.document_uploads.data.filter((doc: DocumentInterface) => doc.id !== res.record.id);
-            return { ...docFolderData, document_uploads: { data: [...filteredData] } };
-          }),
-        ]);
-        notify({
-          timeout: 5000,
-          category: NotificationCategory.SUCCESS,
-          message: 'Document has been deleted',
-        });
-      }
-    });
+    if (confirmed_action === 'delete')
+      removeDocumentUpload(doc_to_delete, customer).then(res => {
+        if (res?.record?.id) {
+          setDocuments(prev => [
+            ...prev.map((docFolder: DocumentsFolderInterface) => {
+              const filteredData = docFolder.document_uploads.data.filter((doc: DocumentInterface) => doc.id !== res.record.id);
+              return { ...docFolderData, document_uploads: { data: [...filteredData] } };
+            }),
+          ]);
+          notify({
+            timeout: 5000,
+            category: NotificationCategory.SUCCESS,
+            message: 'Document has been deleted',
+          });
+        }
+      });
+
+    if (confirmed_action === 'delete-folder') deleteFolder();
 
     confirmDelete({});
   }
@@ -102,7 +105,18 @@ export default function DocumentsFolder({ template, docFolderData, setDocuments,
             toggleClassNames={['doc-3dots-dropdown', 'w-dropdown-toggle']}
             menuRenderer={(child: ReactElement) => {
               return (
-                <DocumentsFolderDropdown sendReminder={sendReminder} deleteFolder={deleteFolder} key={`${docFolderData.id}_dd`} child={child} />
+                <DocumentsFolderDropdown
+                  sendReminder={sendReminder}
+                  deleteFolder={() => {
+                    confirmDelete({
+                      confirm: true,
+                      id: Number(docFolderData.id),
+                      folder: true,
+                    } as unknown as EventsData);
+                  }}
+                  key={`${docFolderData.id}_dd`}
+                  child={child}
+                />
               ) as ReactElement;
             }}
           />

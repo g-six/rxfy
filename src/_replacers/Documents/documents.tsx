@@ -61,10 +61,11 @@ export default function DocumentsReplacer({
   const { data: notification } = useEvent(Events.SystemNotification);
   const generic_event = useEvent(Events.GenericEvent);
   const {
-    data: { confirm },
+    data: { confirm, folder },
   } = generic_event as unknown as {
     data: {
       confirm?: boolean;
+      folder?: boolean;
     };
   };
 
@@ -126,7 +127,7 @@ export default function DocumentsReplacer({
               onConfirm={() => {
                 generic_event.fireEvent({
                   confirm: true,
-                  confirmed_action: 'delete',
+                  confirmed_action: 'delete' + folder ? '-folder' : '',
                 } as unknown as EventsData);
               }}
             >
