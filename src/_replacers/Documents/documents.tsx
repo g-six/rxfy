@@ -3,10 +3,10 @@ import React, { ReactElement, cloneElement, useEffect, useState } from 'react';
 
 import { captureMatchingElements, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
-import { retrieveDocuments } from '@/_utilities/api-calls/call-documents';
+import { removeDocument, retrieveDocuments } from '@/_utilities/api-calls/call-documents';
 import DocumentsFolder from './DocumentsFolder';
 import DocumentsCreateFolder from './DocumentsCreateFolder';
-import { Events, EventsData, NotificationMessages } from '@/_typings/events';
+import { Events, EventsData, NotificationCategory, NotificationMessages } from '@/_typings/events';
 import { AgentData } from '@/_typings/agent';
 import { DocumentsFolderInterface } from '@/_typings/document';
 import useEvent from '@/hooks/useEvent';
@@ -55,15 +55,17 @@ export default function DocumentsReplacer({
   customer,
 }: Props & { confirm?: boolean; customer?: { documents: DocumentsFolderInterface[] } }) {
   const params = useSearchParams();
+  const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [documents, setDocuments] = useState<DocumentsFolderInterface[]>([]);
   const templatesToFind = [{ searchFn: searchByClasses(['document-div']), elementName: 'docFolder' }];
   const templates = captureMatchingElements(nodes, templatesToFind);
   const { data: notification } = useEvent(Events.SystemNotification);
-  const generic_event = useEvent(Events.GenericEvent);
+  const delete_event = useEvent(Events.GenericEvent);
   const {
-    data: { confirm, folder },
-  } = generic_event as unknown as {
+    data: { confirm, folder, id: folder_to_delete },
+  } = delete_event as unknown as {
     data: {
+      id?: number;
       confirm?: boolean;
       folder?: boolean;
     };
@@ -78,6 +80,20 @@ export default function DocumentsReplacer({
       });
     }
   }, [notification]);
+
+  useEffect(() => {
+    if (folder && folder_to_delete) {
+      removeDocument(folder_to_delete).then(res => {
+        setDocuments(prev => [...prev.filter(docFolder => docFolder.id !== res.record.id)]);
+        notify({
+          timeout: 5000,
+          category: NotificationCategory.SUCCESS,
+          message: 'Folder has been deleted',
+        });
+      });
+      delete_event.fireEvent({});
+    }
+  }, [folder]);
 
   useEffect(() => {
     if (isNaN(agent_customer_id)) agent_customer_id = 0;
@@ -122,10 +138,10 @@ export default function DocumentsReplacer({
           children: (
             <ConfirmDeleteIterator
               onCancel={() => {
-                generic_event.fireEvent({});
+                delete_event.fireEvent({});
               }}
               onConfirm={() => {
-                generic_event.fireEvent({
+                delete_event.fireEvent({
                   confirm: true,
                   confirmed_action: 'delete' + (folder ? '-folder' : ''),
                 } as unknown as EventsData);
