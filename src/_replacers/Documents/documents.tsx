@@ -82,7 +82,8 @@ export default function DocumentsReplacer({
   }, [notification]);
 
   useEffect(() => {
-    if (folder && folder_to_delete) {
+    delete_event.fireEvent({});
+    if (folder && folder_to_delete && confirm === 'delete-folder') {
       removeDocument(folder_to_delete).then(res => {
         setDocuments(prev => [...prev.filter(docFolder => folder_to_delete !== res.record.id)]);
         notify({
@@ -91,7 +92,6 @@ export default function DocumentsReplacer({
           message: 'Folder has been deleted',
         });
       });
-      delete_event.fireEvent({});
     }
   }, [folder]);
 
