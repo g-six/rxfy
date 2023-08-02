@@ -62,12 +62,13 @@ export default function DocumentsReplacer({
   const { data: notification } = useEvent(Events.SystemNotification);
   const delete_event = useEvent(Events.GenericEvent);
   const {
-    data: { confirm, folder, id: folder_to_delete },
+    data: { confirm, folder, id: folder_to_delete, confirmed_action },
   } = delete_event as unknown as {
     data: {
       id?: number;
       confirm?: boolean;
       folder?: boolean;
+      confirmed_action?: string;
     };
   };
 
@@ -83,7 +84,7 @@ export default function DocumentsReplacer({
 
   useEffect(() => {
     delete_event.fireEvent({});
-    if (folder && folder_to_delete && confirm === 'delete-folder') {
+    if (folder && folder_to_delete && confirmed_action === 'delete-folder') {
       removeDocument(folder_to_delete).then(res => {
         setDocuments(prev => [...prev.filter(docFolder => folder_to_delete !== res.record.id)]);
         notify({
