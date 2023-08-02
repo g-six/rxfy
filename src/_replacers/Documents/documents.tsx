@@ -82,12 +82,6 @@ export default function DocumentsReplacer({
     }
   }, [notification]);
 
-  console.log({
-    folder,
-    folder_to_delete,
-    confirmed_action,
-  });
-
   useEffect(() => {
     if (folder && folder_to_delete && confirmed_action === 'delete-folder') {
       delete_event.fireEvent({});
