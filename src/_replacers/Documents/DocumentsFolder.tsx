@@ -37,26 +37,25 @@ export default function DocumentsFolder({ template, docFolderData, setDocuments,
     } as unknown as EventsData);
   };
 
-  if (confirmed_action) {
+  if (confirmed_action === 'delete') {
     let customer;
     if (params.get('customer')) customer = Number(params.get('customer'));
 
-    if (confirmed_action === 'delete')
-      removeDocumentUpload(doc_to_delete, customer).then(res => {
-        if (res?.record?.id) {
-          setDocuments(prev => [
-            ...prev.map((docFolder: DocumentsFolderInterface) => {
-              const filteredData = docFolder.document_uploads.data.filter((doc: DocumentInterface) => doc.id !== res.record.id);
-              return { ...docFolderData, document_uploads: { data: [...filteredData] } };
-            }),
-          ]);
-          notify({
-            timeout: 5000,
-            category: NotificationCategory.SUCCESS,
-            message: 'Document has been deleted',
-          });
-        }
-      });
+    removeDocumentUpload(doc_to_delete, customer).then(res => {
+      if (res?.record?.id) {
+        setDocuments(prev => [
+          ...prev.map((docFolder: DocumentsFolderInterface) => {
+            const filteredData = docFolder.document_uploads.data.filter((doc: DocumentInterface) => doc.id !== res.record.id);
+            return { ...docFolderData, document_uploads: { data: [...filteredData] } };
+          }),
+        ]);
+        notify({
+          timeout: 5000,
+          category: NotificationCategory.SUCCESS,
+          message: 'Document has been deleted',
+        });
+      }
+    });
 
     confirmDelete({});
   }
