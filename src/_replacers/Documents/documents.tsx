@@ -86,7 +86,7 @@ export default function DocumentsReplacer({
     if (folder && folder_to_delete && confirmed_action === 'delete-folder') {
       delete_event.fireEvent({});
       removeDocument(folder_to_delete).then(res => {
-        setDocuments(prev => [...prev.filter(docFolder => folder_to_delete !== res.record.id)]);
+        setDocuments(prev => [...prev.filter(docFolder => folder_to_delete !== Number(docFolder.id))]);
         notify({
           timeout: 5000,
           category: NotificationCategory.SUCCESS,
