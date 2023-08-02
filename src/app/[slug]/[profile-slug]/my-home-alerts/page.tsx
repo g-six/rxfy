@@ -21,10 +21,10 @@ export default async function MyHomeAlerts({ params }: { params: { [key: string]
   ]);
   const { data: html } = promises[0];
   const agent: AgentData = promises[1];
-  const user = promises[2];
+  const user = promises[2] as unknown as { [key: string]: string };
 
   if (!agent?.agent_id) redirect(`/log-in`);
-  if (!user) redirect(`/${agent.agent_id}/${agent.metatags.profile_slug}/log-in`);
+  if (!user || user.session_key !== cookies().get('session_key')?.value) redirect(`/${agent.agent_id}/${agent.metatags.profile_slug}/log-in`);
 
   if (html) {
     const $: CheerioAPI = load(html);
