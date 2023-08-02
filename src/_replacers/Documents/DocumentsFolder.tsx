@@ -37,16 +37,6 @@ export default function DocumentsFolder({ template, docFolderData, setDocuments,
     } as unknown as EventsData);
   };
 
-  const deleteFolder = () => {
-    removeDocument(doc_to_delete).then(res => {
-      setDocuments(prev => [...prev.filter(docFolder => docFolder.id !== res.record.id)]);
-      notify({
-        timeout: 5000,
-        category: NotificationCategory.SUCCESS,
-        message: 'Folder has been deleted',
-      });
-    });
-  };
   if (confirmed_action) {
     let customer;
     if (params.get('customer')) customer = Number(params.get('customer'));
@@ -69,8 +59,14 @@ export default function DocumentsFolder({ template, docFolderData, setDocuments,
       });
 
     if (confirmed_action === 'delete-folder') {
-      confirmDelete({});
-      deleteFolder();
+      removeDocument(doc_to_delete).then(res => {
+        setDocuments(prev => [...prev.filter(docFolder => docFolder.id !== res.record.id)]);
+        notify({
+          timeout: 5000,
+          category: NotificationCategory.SUCCESS,
+          message: 'Folder has been deleted',
+        });
+      });
     }
 
     confirmDelete({});
