@@ -47,7 +47,7 @@ export default function DocumentsFolder({ template, docFolderData, setDocuments,
       id: Number(id),
     } as unknown as EventsData);
   };
-
+  console.log({ confirmed_action });
   if (confirmed_action) {
     let customer;
     if (params.get('customer')) customer = Number(params.get('customer'));
