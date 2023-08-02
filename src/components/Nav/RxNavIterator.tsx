@@ -40,7 +40,7 @@ export default function NavIterator({ agent, children }: { children: React.React
       if (cookies().has('session_key') && c.props.className?.includes(WEBFLOW_NODE_SELECTOR.GUEST_MENU)) return <></>;
       if (!cookies().has('session_key') && c.props.className?.includes(WEBFLOW_NODE_SELECTOR.USER_MENU)) return <></>;
       const { href, children: contents, ...link_props } = c.props;
-      if (link_props?.className?.includes('-session')) {
+      if (link_props?.className?.includes('-session') || href.includes('/my-') || href.includes('dashboard')) {
         return (
           <a href={`/${agent?.agent_id}/${agent?.metatags.profile_slug}${href}`} {...link_props}>
             <NavIterator agent={agent}>{convertDivsToSpans(contents)}</NavIterator>

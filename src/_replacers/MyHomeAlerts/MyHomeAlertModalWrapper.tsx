@@ -9,6 +9,7 @@ import { saveSearch, updateSearch } from '@/_utilities/api-calls/call-saved-sear
 import { AgentData } from '@/_typings/agent';
 import RxHomeAlertForm from '@/components/RxForms/RxHomeAlertForm';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
+import Cookies from 'js-cookie';
 
 type Props = {
   child: ReactElement;
@@ -19,7 +20,6 @@ type Props = {
 export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
   const { data, fireEvent } = useEvent(Events.MyHomeAlertsModal);
   const { show, message, alertData } = data || {};
-  const showModal = show && message && ['New', 'Edit'].includes(message);
   const closeModal = () => {
     fireEvent({ show: false, message: '', alertData: undefined });
   };
@@ -92,9 +92,16 @@ export default function MyHomeAlertModalWrapper({ child, ...p }: Props) {
     {
       searchFn: searchByClasses(['property-type-modal']),
       transformChild: (child: ReactElement) => {
-        const { id: customer } = getData('viewing_customer') as unknown as {
+        const session = getData('viewing_customer') as unknown as {
           id: number;
         };
+        let customer = 0;
+        if (session?.id) {
+          customer = Number(session.id);
+        } else if (Cookies.get('session_as') === 'customer') {
+          const hash = `${Cookies.get('session_key')}`.split('-');
+          if (hash.length === 2) customer = Number(hash[1]);
+        }
         return (
           <RxHomeAlertForm agent={p['agent-data']} customer={customer} className={child.props.className} reload={p.onSave}>
             {child.props.children}

@@ -92,6 +92,5 @@ export default function MyHomeAlertCard({ child, data, agent_data }: Props) {
       },
     },
   ];
-
   return <>{transformMatchingElements(replaceAllTextWithBraces(child, replace), matches)}</>;
 }

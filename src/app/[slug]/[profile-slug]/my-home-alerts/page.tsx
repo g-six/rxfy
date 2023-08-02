@@ -9,8 +9,9 @@ import { AgentData } from '@/_typings/agent';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 
 export default async function MyHomeAlerts({ params }: { params: { [key: string]: string } }) {
-  const { data: html } = await axios.get('https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/my-home-alerts');
-  const agent: AgentData = await findAgentRecordByAgentId(params.slug);
+  const promises = await Promise.all([axios.get('https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/my-home-alerts'), findAgentRecordByAgentId(params.slug)]);
+  const { data: html } = promises[0];
+  const agent: AgentData = promises[1];
 
   if (html) {
     const $: CheerioAPI = load(html);

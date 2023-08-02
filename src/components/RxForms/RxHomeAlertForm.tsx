@@ -306,10 +306,13 @@ function Iterator(
 export default function RxHomeAlertForm(p: Props) {
   const params = useSearchParams();
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
+  const { data, fireEvent } = useEvent(Events.MyHomeAlertsModal);
   const closeModal = () => {
     fireEvent({ show: false, message: '', alertData: undefined });
   };
-  const { fireEvent } = useEvent(Events.MyHomeAlertsModal);
+  const { alertData } = data as unknown as {
+    alertData: SavedSearch;
+  };
   const [dwelling_types, setDwellingTypes] = React.useState<
     {
       name: string;
@@ -329,13 +332,6 @@ export default function RxHomeAlertForm(p: Props) {
   const [city_filter, setCityFilter] = React.useState<string>('');
   const [geo_location, setGeoLocation] = React.useState<{ [key: string]: number }>();
   const [reset_form, setResetForm] = React.useState<boolean>();
-  const {
-    data: { alertData },
-  } = useEvent(Events.MyHomeAlertsModal) as unknown as {
-    data: {
-      alertData: SavedSearch;
-    };
-  };
   const updateListedAt = (val: number) => {
     setListedAt(val);
   };
@@ -506,6 +502,13 @@ export default function RxHomeAlertForm(p: Props) {
         /// Fix to modal pre-maturely closing itself.
         evt.stopPropagation();
       }}
+      style={
+        alertData
+          ? {
+              display: 'flex',
+            }
+          : {}
+      }
     >
       <Iterator
         {...p}

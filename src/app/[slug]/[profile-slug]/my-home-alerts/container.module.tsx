@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactElement } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { AgentData } from '@/_typings/agent';
 import ClientDashboardIterator from '@/rexify/realtors/ClientDashboardIterator.module';
 
@@ -8,7 +8,7 @@ export default function MyHomeAlerts({ agent, children }: { agent: AgentData; ch
   return (
     <ClientDashboardIterator
       id='SavedHome'
-      className={'RxCustomerView-ClientDashboardIterator rexified'}
+      className={'my-home-alerts ClientDashboardIterator rexified'}
       onCancel={() => {
         console.log('canceled');
       }}
