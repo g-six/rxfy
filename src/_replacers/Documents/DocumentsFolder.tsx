@@ -68,7 +68,10 @@ export default function DocumentsFolder({ template, docFolderData, setDocuments,
         }
       });
 
-    if (confirmed_action === 'delete-folder') deleteFolder();
+    if (confirmed_action === 'delete-folder') {
+      confirmDelete({});
+      deleteFolder();
+    }
 
     confirmDelete({});
   }
