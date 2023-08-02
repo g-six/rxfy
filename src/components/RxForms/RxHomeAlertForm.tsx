@@ -542,7 +542,9 @@ export default function RxHomeAlertForm(p: Props) {
             console.log('reset');
           },
           onSubmit() {
-            const search_params = {
+            const search_params: {
+              [k: string]: number | string | number[] | undefined | boolean;
+            } = {
               ...geo_location,
               city: city_filter,
               beds,
@@ -556,6 +558,10 @@ export default function RxHomeAlertForm(p: Props) {
               tags,
               dwelling_type_ids: dwelling_types.filter(t => t.selected).map(t => t.id),
             };
+
+            if (listed_at) {
+              search_params.listed_at = new Date(listed_at).toISOString();
+            }
 
             alertData?.id
               ? updateSearch(alertData.id, p.agent, { search_params }).then(results => {
