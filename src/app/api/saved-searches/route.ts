@@ -43,17 +43,6 @@ export const gqf_saved_search_attributes = `
                 minsqft
                 maxsqft`;
 
-const gql_create_saved_search = `mutation CreateSavedSearch ($data: SavedSearchInput!) {
-    createSavedSearch(data: $data) {
-      data {
-        id
-        attributes {
-          ${gqf_saved_search_attributes}
-        }
-      }
-    }
-  }`;
-
 export async function POST(request: Request) {
   const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
   if (!token || !guid)
@@ -145,10 +134,11 @@ export async function GET(request: Request) {
         id: Number(record.id),
         ...attributes,
         dwelling_types: dwelling_types.data.map((dwelling_type: { id: number; attributes: { name: string; code: string } }) => {
-          return {
-            ...dwelling_type.attributes,
-            id: dwelling_type.id,
-          };
+          return dwelling_type.attributes.name;
+          // return {
+          //   ...dwelling_type.attributes,
+          //   id: dwelling_type.id,
+          // };
         }),
       };
     });
