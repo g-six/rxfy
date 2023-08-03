@@ -343,7 +343,8 @@ export default async function Home({ params, searchParams }: { params: Record<st
       props: $('body').attr() || {},
     },
   };
-
+  console.log('webflow.body.code', webflow.body.code);
+  console.log('agent_data', agent_data);
   return (
     <>
       {webflow.body.code ? (
