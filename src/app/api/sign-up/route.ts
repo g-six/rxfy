@@ -23,6 +23,16 @@ const gql = `mutation SignUp ($data: CustomerInput!) {
     }
   }
 }`;
+const gql_crm = `mutation PostSignUp ($data: AgentsCustomerInput!) {
+  createAgentsCustomer(data: $data) {
+    data {
+      id
+      attributes {
+        status
+      }
+    }
+  }
+}`;
 
 const gql_saved_search = `mutation CreateSavedSearch ($data: SavedSearchInput!) {
   createSavedSearch(data: $data) {
@@ -80,103 +90,6 @@ function validateInput(data: { email?: string; password?: string; full_name?: st
   };
 }
 
-async function createLegacyRecords(record: {
-  email: string;
-  password: string;
-  agent_id: number;
-  full_name?: string;
-  phone_number?: string;
-  search_url?: string;
-}): Promise<{
-  error?: string;
-  jwt?: string;
-  client?: {
-    [key: string]:
-      | string
-      | number
-      | Date
-      | {
-          [key: string]: string;
-        };
-  };
-  saved_search?: {
-    [key: string]:
-      | string
-      | number
-      | Date
-      | {
-          [key: string]: string;
-        };
-  };
-  user?: {
-    [key: string]:
-      | string
-      | number
-      | Date
-      | {
-          [key: string]: string;
-        };
-  };
-}> {
-  // First, create auth user record
-  const new_user_res = await fetch(`${process.env.NEXT_APP_STRAPI_URL}/auth/local/register`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    method: 'POST',
-    body: JSON.stringify({
-      email: record.email,
-      username: record.email,
-      name: record.full_name,
-      password: record.password,
-      user_type: 'user',
-    }),
-  });
-
-  if (new_user_res.status >= 400) {
-    return {
-      error: `Unable to create legacy user record:\n\n${new_user_res.statusText}`,
-    };
-  } else {
-    const { jwt, user } = await (<Promise<{ jwt: string; user: { id: number } }>>new_user_res.json());
-
-    if (user && user.id) {
-      // Next, create client record
-      const names = (record.full_name || '').split(' ');
-
-      const client_input = {
-        last_name: names.pop(),
-        first_name: names.join(' '),
-        email: record.email,
-        active: true,
-        client_user: user.id,
-      };
-
-      const client_xhr = await fetch(`${process.env.NEXT_APP_STRAPI_URL}/clients`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(client_input),
-      });
-
-      const client = await (<Promise<{ id: number }>>client_xhr.json());
-
-      return {
-        client,
-        user,
-      };
-    } else {
-      return {
-        jwt,
-        user,
-        error: 'Legacy API request went OK but there are no JWT or user record returned',
-      };
-    }
-  }
-}
-
 export async function POST(request: Request) {
   const { email, full_name, password, agent, logo, yes_to_marketing, saved_search, search_url } = await request.json();
   let created_saved_search: SavedSearch | undefined = undefined;
@@ -220,7 +133,36 @@ export async function POST(request: Request) {
                 encrypted_password,
                 full_name: valid_data.full_name,
                 last_activity_at: new Date().toISOString(),
-                agents: [Number(agent)],
+              },
+            },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+        const { data: response_data } = response;
+
+        if (response_data.errors) {
+          return getResponse(
+            {
+              error: 'Unable to sign up.  E-mail might have already been used in signing up.',
+            },
+            400,
+          );
+        }
+        const data = response_data.data?.createCustomer?.data || {};
+
+        const crm = await axios.post(
+          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+          {
+            query: gql_crm,
+            variables: {
+              data: {
+                agent: Number(agent),
+                customer: Number(data.id),
               },
             },
           },
@@ -232,17 +174,15 @@ export async function POST(request: Request) {
           },
         );
 
-        const { data: response_data } = response;
-        if (response_data.errors) {
+        if (crm.data.errors) {
           return getResponse(
             {
-              error: 'Unable to sign up.  E-mail might have already been used in signing up.',
+              error: 'Unable to sign up.  CRM error.',
             },
             400,
           );
         }
 
-        const data = response_data.data?.createCustomer?.data || {};
         const errors: {
           message?: string;
           extensions?: {
@@ -264,7 +204,6 @@ export async function POST(request: Request) {
           const { email, full_name, agents, last_activity_at } = attributes;
           const url = new URL(request.url);
 
-          // request.url
           if (saved_search) {
             const { data: search_response } = await axios.post(
               `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
@@ -294,18 +233,7 @@ export async function POST(request: Request) {
             }
           }
 
-          const { error: legacy_error } = await createLegacyRecords({
-            ...valid_data,
-            agent_id: Number(agent),
-            search_url,
-          });
-
-          if (legacy_error) {
-            console.log({ legacy_error });
-            return getResponse({
-              message: 'Unable to sign user up based on Strapi a v3 thrown error',
-            });
-          }
+          // search_url,
 
           await sendTemplate(
             'welcome-buyer',
@@ -318,6 +246,7 @@ export async function POST(request: Request) {
             {
               url: `${url.origin}/my-profile?key=${encrypt(last_activity_at)}.${encrypt(email)}-${data.id}`,
               agent_logo: logo,
+              password: valid_data.password,
             },
           ).catch(console.log);
 
@@ -325,7 +254,7 @@ export async function POST(request: Request) {
             JSON.stringify(
               {
                 customer: { id: Number(data.id), email, full_name, agents },
-                session_key: `${encrypt(last_activity_at)}.${encrypt(email)}`,
+                session_key: `${encrypt(last_activity_at)}.${encrypt(email)}-${data.id}`,
                 saved_search: created_saved_search,
               },
               null,

@@ -18,8 +18,12 @@ export default async function MapPage({ params, searchParams }: { params: { [key
     agent = await findAgentRecordByAgentId(agent_id);
     const [default_location] = agent.metatags.search_highlights?.labels || ([] as SearchHighlightInput[]);
     if (default_location?.lat && default_location?.lng) {
-      const { lat, lng } = default_location;
-      redirect(`/${agent_id}/${slug}/map?lat=${lat}&lng=${lng}&beds=0&baths=1&minprice=500000&maxprice=20000000`);
+      const { lat, lng, title } = default_location;
+      redirect(
+        `/${agent_id}/${slug}/map?city=${encodeURIComponent(
+          title.split(' ').join('+'),
+        )}&lat=${lat}&lng=${lng}&beds=0&baths=1&minprice=500000&maxprice=20000000`,
+      );
     }
   }
   let time = Date.now();
@@ -27,68 +31,7 @@ export default async function MapPage({ params, searchParams }: { params: { [key
   const promises = await Promise.all([axios.get(url) as Promise<any>].concat(slug && agent_id ? [findAgentRecordByAgentId(agent_id)] : []));
 
   if (url) {
-    let northeast: { lat: number; lng: number } | undefined = undefined,
-      southwest: { lat: number; lng: number } | undefined = undefined,
-      lat,
-      lng;
     if (promises.length > 1) agent = promises.pop();
-    // if (agent?.metatags) {
-    //   const locations = (agent.metatags.search_highlights?.labels || []) as unknown as {
-    //     lat: number;
-    //     lng: number;
-    //     ne: {
-    //       lat: number;
-    //       lng: number;
-    //     };
-    //     sw: {
-    //       lat: number;
-    //       lng: number;
-    //     };
-    //   }[];
-    //   let total_lat = 0;
-    //   let total_lng = 0;
-    //   if (locations.length) {
-    //     locations.map(location => {
-    //       total_lat += location.lat;
-    //       total_lng += location.lng;
-    //       if (northeast === undefined) {
-    //         northeast = location.ne;
-    //       } else {
-    //         if (location.ne.lat > northeast.lat) {
-    //           northeast.lat = location.ne.lat;
-    //         }
-    //         if (location.ne.lng > northeast.lng) {
-    //           northeast.lng = location.ne.lng;
-    //         }
-    //       }
-    //       if (southwest === undefined) {
-    //         southwest = {
-    //           lat: location.sw.lat,
-    //           lng: location.sw.lng,
-    //         };
-    //       } else {
-    //         if (location.sw.lat < southwest.lat) {
-    //           southwest.lat = location.sw.lat;
-    //         }
-    //         if (location.sw.lng > southwest.lng) {
-    //           southwest.lng = location.sw.lng;
-    //         }
-    //       }
-    //     });
-    //     lat = total_lat / locations.length;
-    //     lng = total_lng / locations.length;
-    //     if (northeast !== undefined && southwest !== undefined) {
-    //       northeast = northeast as unknown as {
-    //         lat: number;
-    //         lng: number;
-    //       };
-    //       southwest = southwest as unknown as {
-    //         lat: number;
-    //         lng: number;
-    //       };
-    //     }
-    //   }
-    // }
 
     const { data: html } = promises[0];
 
