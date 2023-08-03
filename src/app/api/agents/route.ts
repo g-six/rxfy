@@ -98,7 +98,7 @@ export async function POST(req: Request) {
                 { match: { 'data.LA3_LoginName': agent_id } },
                 { match: { 'data.LA1_Email': email } },
                 { match: { 'data.LA2_Email': email } },
-                { match: { 'data.LA3_Email': email } },
+                { match: { 'data.LA3_Emxil': email } },
               ],
               minimum_should_match: 1,
             },
@@ -119,7 +119,7 @@ export async function POST(req: Request) {
             real_estate_board,
           );
 
-          return getResponse(agent, 200);
+          return getResponse(agent as AgentData, 200);
         }
       }
     }
