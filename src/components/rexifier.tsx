@@ -379,6 +379,7 @@ export function appendJs(url: string, delay = 1200) {
             const script = document.createElement('script');
             script.type = 'text/javascript';
             script.text = script_txt.split('w-webflow-badge').join('oh-no-you-dont hidden').split('window.alert').join('console.log');
+            console.log('appendChild on 382', 'delay ${delay}')
             document.body.appendChild(script)
           })
         })
@@ -391,6 +392,7 @@ export function appendJs(url: string, delay = 1200) {
       const script = document.createElement('script');
       script.type = 'text/javascript';
       script.text = script_txt;
+      console.log('appendChild on 395')
       document.body.appendChild(script)
     })
   })
