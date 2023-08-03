@@ -59,11 +59,11 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const { hostname, origin } = new URL(url);
   let agent_data: AgentData = {} as unknown as AgentData;
   let data, listings, property, legacy_data;
-  let possible_agent = headers().get('x-agent-id');
-  let profile_slug = headers().get('x-profile-slug');
+  let possible_agent = params.slug as string;
+  let profile_slug = params['profile-slug'] as string;
   let session_key = cookies().get('session_key')?.value || '';
   let session_as = cookies().get('session_as')?.value || 'customer';
-  console.log({ possible_agent, profile_slug });
+  console.log({ possible_agent, profile_slug, params });
   if (possible_agent && profile_slug) {
     // Check if the slug matches a realtor
     if (profile_slug === 'leagent' || profile_slug.indexOf('la-') === 0) {
