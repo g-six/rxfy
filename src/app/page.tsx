@@ -63,7 +63,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   let profile_slug = params['profile-slug'] as string;
   let session_key = cookies().get('session_key')?.value || '';
   let session_as = cookies().get('session_as')?.value || 'customer';
-  console.log({ possible_agent, profile_slug, params });
+
   if (possible_agent && profile_slug) {
     // Check if the slug matches a realtor
     if (profile_slug === 'leagent' || profile_slug.indexOf('la-') === 0) {
@@ -108,6 +108,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     }
   }
 
+  console.log({ url: headers().get('x-url'), possible_agent, profile_slug, params });
   try {
     const req_page_html = await axios.get(headers().get('x-url') as string);
     data = req_page_html.data;
