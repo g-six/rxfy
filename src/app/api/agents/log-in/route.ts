@@ -3,6 +3,7 @@ import axios, { AxiosError } from 'axios';
 import updateSessionKey from '../../update-session';
 import { GQ_FRAG_AGENT } from '../graphql';
 import { getResponse } from '../../response-helper';
+import { updateAgent } from '../model';
 
 export async function POST(req: Request) {
   const data = await req.json();
@@ -55,8 +56,9 @@ async function agentAuthLogin(email: string, password: string) {
         const { agent, ...realtor_data } = realtor.attributes;
         const { agent_metatag, customers, ...agent_data } = agent.data.attributes;
         const { session_key } = await updateSessionKey(record_id, email, 'realtor');
+
         if (!agent_metatag?.id) {
-          console.log('No agent metatag for some reason');
+          console.log('No agent metatag for some reason', agent_metatag);
           // No agent metatag for some reason
           const { data: generated_metatag } = await axios.post(
             `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
@@ -88,6 +90,9 @@ async function agentAuthLogin(email: string, password: string) {
               };
             };
           };
+          await updateAgent(agent.data.id, {
+            agent_metatag: createAgentMetatag.data.id,
+          });
           metatags = {
             ...createAgentMetatag.data.attributes,
             id: Number(createAgentMetatag.data.id),
