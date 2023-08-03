@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       error: 'Please provide a valid id for the agent customer record',
     });
   }
-  const agent = await checkSession(request);
+  const agent = await checkSession(request, true);
 
   const { id: realtor, customers } = agent as unknown as {
     id: number;
