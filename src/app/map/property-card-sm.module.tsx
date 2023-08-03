@@ -31,20 +31,32 @@ function Iterator({
       if (subclass?.includes('propcard-image-small') && property.cover_photo) {
         return (
           <div className={classNames(subclass || '', 'overflow-hidden', 'rexified', 'child-of-PropertyCardSm')} {...props}>
-            <Image alt={property.title} src={getImageSized(property.cover_photo, 210)} width={210} height={170} />
+            <div
+              className='block w-full h-full bg-cover bg-center'
+              title={property.title}
+              style={{
+                backgroundImage: `url(${getImageSized(property.cover_photo, 210)})`,
+              }}
+            />
+            {/* <Image alt={property.title} src={getImageSized(property.cover_photo, 210)} width={210} height={170} /> */}
           </div>
         );
       }
 
       if (props['data-field'] === 'address') {
-        return <div className={subclass}>{property.title}</div>;
+        return (
+          <div className={classNames(subclass, 'flex flex-wrap gap-x-1')}>
+            <span>{property.title}</span>
+            <span>{property.area || property.city}</span>
+          </div>
+        );
       }
       if (props['data-field'] === 'area') {
-        return <div className={subclass}>{property.area || property.city}</div>;
+        return <div className={classNames(subclass, 'sm:hidden')}>{property.area || property.city}</div>;
       }
 
       if (subclass?.includes('heart-full')) {
-        if (loves && !loves.includes(property.mls_id)) {
+        if (!loves || !loves.includes(property.mls_id)) {
           return <></>;
         }
         return React.cloneElement(
