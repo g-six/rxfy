@@ -327,7 +327,7 @@ export const findAgentRecordByAgentId = cache(async (agent_id: string) => {
     response = await findAgentBy({ agent_id });
     createCacheItem(JSON.stringify(response, null, 4), `agent-records/${agent_id}.json`);
   }
-  return response as AgentData;
+  return response as any;
 });
 
 export const findAgentRecordByRealtorId = cache(async (realtor_id: number) => {

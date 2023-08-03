@@ -84,7 +84,7 @@ export async function POST(req: Request) {
           },
           real_estate_board,
         );
-        return getResponse(agent as AgentData, 200);
+        return getResponse(agent as any, 200);
       } else if (stripe?.customer_id) {
         // From Stripe signups
         const legacy_params: LegacySearchPayload = {
@@ -119,7 +119,7 @@ export async function POST(req: Request) {
             real_estate_board,
           );
 
-          return getResponse(agent as AgentData, 200);
+          return getResponse(agent as any, 200);
         }
       }
     }
