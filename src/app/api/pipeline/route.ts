@@ -54,7 +54,7 @@ function mapData(hits: { _source: { data: Record<string, unknown> } }[], real_es
         .join(','),
       listing_by,
     };
-  });
+  }) as PropertyDataModel[];
 }
 
 const prefix = '[Pipeline]';
