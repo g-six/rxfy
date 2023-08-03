@@ -100,7 +100,6 @@ export default function RxBrandPreferences(p: Props) {
               Cookies.get('session_key') as string,
               {
                 metatags: {
-                  id: Number(p.session.metatags.id),
                   headshot,
                   profile_image,
                   logo_for_dark_bg,
