@@ -19,7 +19,7 @@ export default async function MapPage({ params, searchParams }: { params: { [key
     const [default_location] = agent.metatags.search_highlights?.labels || ([] as SearchHighlightInput[]);
     if (default_location?.lat && default_location?.lng) {
       const { lat, lng } = default_location;
-      redirect(`/${agent_id}/${slug}/map?lat=${lat}&lng=${lng}`);
+      redirect(`/${agent_id}/${slug}/map?lat=${lat}&lng=${lng}&beds=0&baths=1&minprice=500000&maxprice=20000000`);
     }
   }
   let time = Date.now();
