@@ -8,6 +8,7 @@ import { createAgentRecordIfNoneFound } from './model';
 import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
 import { LegacySearchPayload } from '@/_typings/pipeline';
 import { getRealEstateBoard } from '../real-estate-boards/model';
+import { AgentData } from '@/_typings/agent';
 
 export async function GET(req: Request) {
   let results = {
@@ -83,7 +84,7 @@ export async function POST(req: Request) {
           },
           real_estate_board,
         );
-        return getResponse(agent, 200);
+        return getResponse(agent as AgentData, 200);
       } else if (stripe?.customer_id) {
         // From Stripe signups
         const legacy_params: LegacySearchPayload = {
