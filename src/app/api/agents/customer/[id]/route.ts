@@ -6,13 +6,16 @@ import { GET as checkSession } from '@/app/api/check-session/route';
 
 export async function PUT(request: NextRequest) {
   const agent = await checkSession(request, true);
+
   const { customers, session_key } = agent as unknown as {
     customers: { notes: string[]; id: number }[];
     session_key?: string;
   };
+
   const id = Number(request.url.split('/').pop() || -1);
 
   const [customer] = customers.filter(c => c.id === id);
+
   if (customer && session_key)
     try {
       const data = await request.json();
@@ -35,6 +38,8 @@ export async function PUT(request: NextRequest) {
           },
         },
       );
+
+      console.log('response.data', response.data);
 
       if (response.data?.updateAgentsCustomer?.data) {
         const { id, attributes } = response.data.updateAgentsCustomer.data;

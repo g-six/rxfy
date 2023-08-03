@@ -36,7 +36,7 @@ function Iterator(p: Props) {
                   <RxCRMCustomerCard
                     key={customer.id}
                     className={['rexified', child.props.className].join(' ')}
-                    data-id={customer.id}
+                    data-id={customer.agent_customer_id}
                     data-full-name={customer.full_name}
                     data-city={saved_search.city || ''}
                     data-dwelling-type={saved_search.dwelling_types || ''}

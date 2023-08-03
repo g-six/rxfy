@@ -19,7 +19,7 @@ export interface Customer extends BaseUser {
 
 export interface CustomerRecord {
   id: number;
-  agent_customer_id?: number;
+  agent_customer_id: number;
   full_name: string;
   first_name?: string;
   last_name?: string;
