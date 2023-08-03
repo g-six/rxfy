@@ -69,7 +69,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     if (profile_slug === 'leagent' || profile_slug.indexOf('la-') === 0) {
       console.log('Loading agent_record');
       const agent_record = await findAgentRecordByAgentId(possible_agent);
-      console.log('Loaded agent_record');
+      console.log('Loaded agent_record', agent_record);
       const { metatags } = agent_record;
 
       if (agent_record) {
