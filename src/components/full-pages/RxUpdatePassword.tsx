@@ -162,6 +162,6 @@ async function loadSession(search_params: Record<string, string | number | boole
       return session.data;
     }
   } else {
-    location.href = '/log-in';
+    // location.href = '/log-in';
   }
 }
