@@ -17,39 +17,6 @@ type RxSignupPageProps = {
   children: React.ReactElement;
 };
 
-type SignUpResponse = {
-  data: {
-    createCustomer: {
-      data: {
-        id: number;
-        attributes: {
-          email: string;
-          full_name: string;
-          logo_for_light_bg?: string;
-          agents: {
-            id: number;
-          }[];
-        };
-      };
-    };
-  };
-  errors?: {
-    message: string;
-    extensions: {
-      error: {
-        name: string;
-        message?: string;
-        details?: {
-          errors: {
-            path: string[];
-            message: string;
-          }[];
-        };
-      };
-    };
-  }[];
-};
-
 export function PageIterator(props: RxSignupPageProps) {
   const wrappedChildren = React.Children.map(props.children, child => {
     const child_node = child as React.ReactElement;

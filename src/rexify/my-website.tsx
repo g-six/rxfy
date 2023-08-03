@@ -196,6 +196,16 @@ function Iterator(p: {
               {p.children.props.children}
             </RxButton>
           );
+        case 'Preview website':
+          let path = `/${p.agent.agent_id}`;
+          if (p.agent.metatags) {
+            path = `${path}/${p.agent.metatags.profile_slug}`;
+            return (
+              <a {...p.children.props} href={`${path}`} target='_blank'>
+                {p.children.props.children}
+              </a>
+            );
+          }
       }
       if (p.className) {
         if (p.className.indexOf('cta-link-image-preview-upload') >= 0)
