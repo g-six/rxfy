@@ -239,6 +239,17 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
             break;
         }
       }
+      // Update query string
+      router.push(
+        'map?' +
+          objectToQueryString({
+            ...qs,
+            lat: filters.lat,
+            lng: filters.lng,
+            baths: filters.baths || 0,
+            beds: filters.beds || 0,
+          }),
+      );
 
       if (map) {
         // Let's get more accurate if possible
@@ -481,6 +492,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
         nelng: map.getBounds().getNorthEast().lng,
         swlng: map.getBounds().getSouthWest().lng,
       };
+      console.log('search params', { updated });
       setFilters(updated);
       setLoading(true);
     } else if (!q.lat && !q.lng) {

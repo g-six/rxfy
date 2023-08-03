@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
   // end logic for cachhing
   let phase_1: PropertyDataModel[] = [];
   try {
-    if (!minimized) {
+    if (!minimized || minimized.length === 0) {
       const rels = await getPropertyAttributes(req, true);
       console.log(`${Date.now() - time}ms ${prefix} relationship data retrieved`);
 
