@@ -60,7 +60,7 @@ function Iterator({
         );
       }
       if (subclass?.includes('heart-empty')) {
-        if (loves.includes(property.mls_id)) {
+        if (loves && loves.includes(property.mls_id)) {
           return <></>;
         }
         return React.cloneElement(
