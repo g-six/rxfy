@@ -63,11 +63,13 @@ export default async function Home({ params, searchParams }: { params: Record<st
   let profile_slug = headers().get('x-profile-slug');
   let session_key = cookies().get('session_key')?.value || '';
   let session_as = cookies().get('session_as')?.value || 'customer';
-
+  console.log({ possible_agent, profile_slug });
   if (possible_agent && profile_slug) {
     // Check if the slug matches a realtor
     if (profile_slug === 'leagent' || profile_slug.indexOf('la-') === 0) {
+      console.log('Loading agent_record');
       const agent_record = await findAgentRecordByAgentId(possible_agent);
+      console.log('Loaded agent_record');
       const { metatags } = agent_record;
 
       if (agent_record) {
