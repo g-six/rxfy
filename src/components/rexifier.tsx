@@ -839,13 +839,13 @@ function rexifyOrSkip(element: DOMNode, record: unknown, className = '', tagName
   const { data: placeholder } = element as { data: string };
   if (agent_data) {
     if (placeholder === '{Bio Title}' || placeholder === '{Agent Title}') {
-      if (agent_data.metatags?.personal_title) {
-        switch (tagName) {
-          case 'h1':
-            return <h1 className={className}>{agent_data.metatags?.personal_title}</h1>;
-          default:
-            return <span className={className}>{agent_data.metatags?.personal_title}</span>;
-        }
+      const agent_title = agent_data.metatags?.personal_title || agent_data.full_name;
+
+      switch (tagName) {
+        case 'h1':
+          return <h1 className={className}>{agent_title}</h1>;
+        default:
+          return <span className={className}>{agent_title}</span>;
       }
     }
     if (placeholder === '{Bio}') {
