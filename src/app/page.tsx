@@ -67,9 +67,9 @@ export default async function Home({ params, searchParams }: { params: Record<st
   if (possible_agent && profile_slug) {
     // Check if the slug matches a realtor
     if (profile_slug === 'leagent' || profile_slug.indexOf('la-') === 0) {
-      console.log('Loading agent_record');
+      console.log('Loading agent_record', possible_agent);
       const agent_record = await findAgentRecordByAgentId(possible_agent);
-      console.log('Loaded agent_record', agent_record);
+      console.log('Loaded agent_record', JSON.stringify({ agent_record }));
       const { metatags } = agent_record;
 
       if (agent_record) {
@@ -343,8 +343,8 @@ export default async function Home({ params, searchParams }: { params: Record<st
       props: $('body').attr() || {},
     },
   };
-  console.log('webflow.body.code', webflow.body.code);
-  console.log('agent_data', agent_data);
+
+  console.log('agent_data', JSON.stringify(agent_data));
   return (
     <>
       {webflow.body.code ? (
