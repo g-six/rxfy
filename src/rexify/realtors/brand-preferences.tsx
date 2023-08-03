@@ -96,10 +96,12 @@ export default function RxBrandPreferences(p: Props) {
           if (upload_xhr.status === 200) completed++;
           if (completed === queue.length) {
             const { headshot, profile_image, logo_for_dark_bg, logo_for_light_bg } = brand_updates as unknown as { [key: string]: string };
+            console.log('p.session', p.session);
             updateAccount(
               Cookies.get('session_key') as string,
               {
                 metatags: {
+                  id: Number(p.session.metatags.id),
                   headshot,
                   profile_image,
                   logo_for_dark_bg,
