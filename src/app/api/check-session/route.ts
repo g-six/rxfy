@@ -254,6 +254,8 @@ export async function GET(request: Request, internal = false) {
   const { error } = results as unknown as { error: string };
   if (error) return getResponse(results, 401);
 
-  if (request.method === 'GET' && internal) return getResponse(results, 200);
+  if (request.method === 'GET') {
+    if (internal === false) return getResponse(results, 200);
+  }
   return internal ? results : getResponse(results, 200);
 }

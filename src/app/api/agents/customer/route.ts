@@ -9,7 +9,7 @@ import { sendTemplate } from '../../send-template';
 
 export async function POST(request: NextRequest) {
   try {
-    const r = await checkSession(request);
+    const r = await checkSession(request, true);
     const user = r as { [key: string]: string };
     if (!user?.id)
       return getResponse(
