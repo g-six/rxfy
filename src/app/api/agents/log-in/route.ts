@@ -50,11 +50,49 @@ async function agentAuthLogin(email: string, password: string) {
       } = login_res.data.data;
 
       if (realtor) {
+        let metatags = {};
         record_id = Number(realtor.id);
         const { agent, ...realtor_data } = realtor.attributes;
         const { agent_metatag, customers, ...agent_data } = agent.data.attributes;
         const { session_key } = await updateSessionKey(record_id, email, 'realtor');
+        if (!agent_metatag?.id) {
+          console.log('No agent metatag for some reason');
+          // No agent metatag for some reason
+          const { data: generated_metatag } = await axios.post(
+            `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+            {
+              query: gql_create_metatag,
+              variables: {
+                data: {
+                  agent_id: agent_data.agent_id,
+                  profile_slug: `la-${record_id}-${agent_data.agent_id.toLowerCase()}`,
+                  title: agent_data.full_name,
+                },
+              },
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+                'Content-Type': 'application/json',
+              },
+            },
+          );
 
+          const { createAgentMetatag } = generated_metatag.data as unknown as {
+            createAgentMetatag: {
+              data: {
+                id: number;
+                attributes: {
+                  [key: string]: string;
+                };
+              };
+            };
+          };
+          metatags = {
+            ...createAgentMetatag.data.attributes,
+            id: Number(createAgentMetatag.data.id),
+          };
+        }
         return {
           id: record_id,
           ...realtor_data,
@@ -65,7 +103,7 @@ async function agentAuthLogin(email: string, password: string) {
                   ...agent_metatag.data.attributes,
                   id: Number(agent_metatag.data.id),
                 }
-              : {},
+              : metatags,
             customers: customers?.data
               ? customers.data.map((c: any) => ({
                   ...c.attributes.customer.data.attributes,
@@ -165,4 +203,8 @@ const gql_login = `query LoginAgent($email: String!, $encrypted_password: String
             }
         }
     }
+}`;
+
+const gql_create_metatag = `mutation CreateMetatag($data: AgentMetatagInput!) {
+  createAgentMetatag(data: $data) {${agent_metatags_data_fragment}}
 }`;
