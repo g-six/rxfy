@@ -33,7 +33,10 @@ export interface AgentMetatagsInput {
   lat?: number;
   lng?: number;
   listings_title?: string;
-  search_highlights?: SearchHighlightInput[];
+  // search_highlights?: SearchHighlightInput[];
+  search_highlights?: {
+    labels: SearchHighlightInput[];
+  };
   brokerage_name?: string;
   brokerage_id?: string;
   profile_slug?: string;

@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { gql_by_agent_uniq, gql_by_realtor_id, gql_create_agent, mutation_update_meta } from './graphql';
 import { WEBFLOW_THEME_DOMAINS } from '@/_typings/webflow';
 import { RealEstateBoardDataModel } from '@/_typings/real-estate-board';
-import { AgentInput } from '@/_typings/agent';
+import { AgentData, AgentInput } from '@/_typings/agent';
 import { getSmart } from './repair';
 import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
 import { LegacySearchPayload } from '@/_typings/pipeline';
@@ -11,6 +11,7 @@ import { MLSProperty } from '@/_typings/property';
 import { mutation_update_agent } from './graphql';
 import { SearchHighlightInput } from '@/_typings/maps';
 import { cache } from 'react';
+import { createCacheItem } from '../_helpers/cache-helper';
 
 export async function createAgent(user_data: {
   agent_id: string;
@@ -266,7 +267,7 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
   if (!record) {
     // agent record does not exist,
     console.log('agent record does not exist');
-    return record;
+    return;
   } else if (!record.attributes.agent_metatag?.data) {
     console.log('');
     console.log('');
@@ -305,9 +306,30 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
       }
     : null;
 }
+
+/**
+ * Returns cached agent data (including metatags)
+ * There is a trade-off of delta - 1 for the most recent info
+ * but it's something we can live by for now.
+ */
 export const findAgentRecordByAgentId = cache(async (agent_id: string) => {
-  return await findAgentBy({ agent_id });
+  const url = `https://${process.env.NEXT_APP_S3_PAGES_BUCKET}/agent-records/${agent_id}.json`;
+  let response = {};
+  try {
+    const cache = await axios.get(url);
+    // We're still gonna update their data behind the scenes.
+    // Difference is, we're not gonna wait for the response
+    findAgentBy({ agent_id }).then(r => {
+      createCacheItem(JSON.stringify(r, null, 4), `agent-records/${agent_id}.json`);
+    });
+    response = cache.data;
+  } catch (e) {
+    response = await findAgentBy({ agent_id });
+    createCacheItem(JSON.stringify(response, null, 4), `agent-records/${agent_id}.json`);
+  }
+  return response as AgentData;
 });
+
 export const findAgentRecordByRealtorId = cache(async (realtor_id: number) => {
   const query = {
     query: gql_by_realtor_id,

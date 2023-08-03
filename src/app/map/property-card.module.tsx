@@ -104,7 +104,6 @@ export default function PropertyCard({ className, children }: { className: strin
   // }, [data, loved_only]);
 
   React.useEffect(() => {
-    console.log({ points });
     if (points)
       setCards(
         points

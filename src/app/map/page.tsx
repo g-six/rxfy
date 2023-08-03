@@ -1,213 +1,111 @@
 import React from 'react';
 import axios from 'axios';
+import { headers } from 'next/headers';
 import { CheerioAPI, load } from 'cheerio';
 import { DOMNode, domToReact } from 'html-react-parser';
-import { cookies, headers } from 'next/headers';
-import { convertDivsToSpans } from '@/_replacers/DivToSpan';
-import RxToggleSwitch from '@/components/RxPropertyMap/RxToggleSwitch';
 import { findAgentRecordByAgentId } from '../api/agents/model';
-import { AgentData } from '@/_typings/agent';
-import { getImageSized } from '@/_utilities/data-helpers/image-helper';
-import RxMapFilters from '@/components/RxMapFilters';
-import RxPropertyCardList from '@/components/RxCards/RxPropertyCardList';
-import HomeAlertButton from './home-alert-button.module';
-import HomeAlert1 from './home-alert-1.module';
-import HomeAlert2 from './home-alert-2.module';
-import HomeAlert3 from './home-alert-3.module';
-import MapSearchInput from './search-input.module';
-import MapCanvas from './map-canvas.module';
-import HomeList from './home-list.module';
-
-import list_styles from './home-list.module.scss';
-import AgentListingsToggle from './agent-listing-toggle.module';
-import HeartToggle from './heart-toggle.module';
-import PropertyCardSm from './property-card-sm.module';
-import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
-import { classNames } from '@/_utilities/html-helper';
-
-import styles from './styles.module.scss';
-import NavIterator from '@/components/Nav/RxNavIterator';
-
-async function Iterator({ agent, children, city }: { children: React.ReactElement; agent?: AgentData; city?: string }) {
-  const Wrapped = React.Children.map(children, c => {
-    if (c.props && typeof c.props.children === 'string') {
-      if (c.props.children.includes('{Agent Name}')) {
-        if (agent) {
-          const logo = agent.metatags.logo_for_light_bg || agent.metatags.logo_for_dark_bg;
-          return React.cloneElement(
-            c,
-            {
-              ...c.props,
-              style:
-                logo && c.props?.className.includes('logo')
-                  ? {
-                      backgroundImage: `url(${getImageSized(logo, 140)})`,
-                      backgroundRepeat: 'no-repeat',
-                      backgroundSize: 'contain',
-                      display: 'inline-block',
-                      minHeight: '2.25rem',
-                      minWidth: '8rem',
-                      textIndent: '-100rem',
-                    }
-                  : undefined,
-            },
-            [agent.metatags?.title || agent.full_name],
-          );
-        } else return React.cloneElement(c, c.props, ['Leagent']);
-      }
-    } else if (c.type === 'nav') {
-      const { children: nav_items, ...nav_props } = c.props;
-      return (
-        <nav {...nav_props}>
-          <NavIterator agent={agent}>{nav_items}</NavIterator>
-        </nav>
-      );
-    } else if (['div', 'form', 'section'].includes(c.type as string)) {
-      const { className, ...props } = c.props;
-
-      // <-- Components
-      if (className) {
-        if (className.includes('toggle-base'))
-          return React.cloneElement(<RxToggleSwitch />, {
-            ...props,
-            className: className || '' + ' rexified MapPage Iterator',
-          });
-        else if (className.includes('property-card-map')) {
-          return (
-            <RxPropertyCardList {...props}>
-              {React.cloneElement(c, {
-                ...props,
-                className: 'hidden',
-                'tpl-classname': className,
-              })}
-            </RxPropertyCardList>
-          );
-        } else if (className.includes('map-filters')) {
-          return (
-            <div className={className} id={props.id}>
-              <RxMapFilters
-                agent-id={agent?.agent_id}
-                agent-record-id={agent?.id}
-                profile-slug={agent?.metatags?.profile_slug}
-                agent-metatag-id={agent?.metatags?.id}
-              >
-                {props.children}
-              </RxMapFilters>
-            </div>
-          );
-        } else if (className.includes('listings-by-agent-field')) {
-          return agent ? (
-            <AgentListingsToggle agent={agent} className={className}>
-              {props.children}
-            </AgentListingsToggle>
-          ) : (
-            <></>
-          );
-        } else if (className.includes('all-properties')) {
-          return <HomeList className={className}>{props.children}</HomeList>;
-        } else if (className.includes('left-bar')) {
-          return (
-            <div className={[className, list_styles['left-bar']].join(' ')}>
-              <Iterator agent={agent} city={city}>
-                {props.children}
-              </Iterator>
-            </div>
-          );
-        } else if (className.includes('ha-icon')) {
-          return <HomeAlertButton className={className}>{convertDivsToSpans(props.children)}</HomeAlertButton>;
-        } else if (className.includes('ha-step-1')) {
-          return <HomeAlert1 className={className}>{props.children}</HomeAlert1>;
-        } else if (className.includes('ha-step-2')) {
-          return <HomeAlert2 className={className}>{props.children}</HomeAlert2>;
-        } else if (className.includes('ha-step-3')) {
-          return <HomeAlert3 className={className}>{props.children}</HomeAlert3>;
-        } else if (className.includes('property-card-small')) {
-          return (
-            <PropertyCardSm agent={agent?.id || 0} className={className}>
-              {props.children}
-            </PropertyCardSm>
-          );
-        } else if (className.includes('mapbox-canvas')) {
-          const default_lat = agent?.metatags?.lat || 49.274527699999794;
-          const default_lng = agent?.metatags?.lng || -123.11389869999971;
-          return (
-            <MapCanvas agent={agent} className={className} default-lat={default_lat} default-lng={default_lng}>
-              {props.children}
-            </MapCanvas>
-          );
-        } else if (className.includes('map-navbar ')) {
-          return (
-            <div className={classNames(className, styles.navbar, 'rexified')} {...props}>
-              <Iterator agent={agent}>{props.children}</Iterator>
-            </div>
-          );
-        }
-      }
-      // -->
-
-      return (
-        <div className={className || '' + ' rexified MapPage Iterator'} {...props}>
-          <Iterator agent={agent} city={city}>
-            {c.props.children}
-          </Iterator>
-        </div>
-      );
-    } else if (c.type === 'a') {
-      if (c.props?.className.includes('heart-button')) {
-        return <HeartToggle className={c.props.className}>{c.props.children}</HeartToggle>;
-      }
-      return React.cloneElement(
-        c,
-        c.props,
-        React.Children.map(c.props.children, cc => {
-          if (!['img', 'span', 'svg'].includes(cc.type)) {
-            return <Iterator agent={agent}>{React.cloneElement(<span />, cc.props)}</Iterator>;
-          }
-          return cc;
-        }),
-      );
-    } else if (c.props?.children) {
-      return React.cloneElement(c, {
-        ...c.props,
-        children: React.Children.map(c.props.children, cc => {
-          return <Iterator agent={agent}>{convertDivsToSpans(cc)}</Iterator>;
-        }),
-      });
-    } else if (c.type === 'input' && c.props && c.props.className?.includes('search-input-field')) {
-      return <MapSearchInput {...c.props} keyword={city} />;
-    }
-    return c;
-  });
-  return <>{Wrapped}</>;
-}
+import MapIterator from './map-iterator.module';
+import { SearchHighlightInput } from '@/_typings/maps';
+import { redirect } from 'next/navigation';
 
 export default async function MapPage({ params, searchParams }: { params: { [key: string]: string }; searchParams: { [key: string]: string } }) {
   const { slug: agent_id, 'profile-slug': slug } = params;
   const url = headers().get('x-url');
   let agent;
-
-  // <--- Fill up agent info (if any)
-  if (slug && agent_id) {
+  if (!url || !agent_id) return <>404</>;
+  if (!searchParams.lat || !searchParams.lng) {
+    // Redirect
     agent = await findAgentRecordByAgentId(agent_id);
+    const [default_location] = agent.metatags.search_highlights?.labels || ([] as SearchHighlightInput[]);
+    if (default_location?.lat && default_location?.lng) {
+      const { lat, lng } = default_location;
+      redirect(`/${agent_id}/${slug}/map?lat=${lat}&lng=${lng}`);
+    }
   }
-  // --->
+  let time = Date.now();
+  console.log(`\n\nSSR Speed stats for ${headers().get('referer')}`);
+  const promises = await Promise.all([axios.get(url) as Promise<any>].concat(slug && agent_id ? [findAgentRecordByAgentId(agent_id)] : []));
 
   if (url) {
-    let time = Date.now();
-    const { data: html } = await axios.get(url);
+    let northeast: { lat: number; lng: number } | undefined = undefined,
+      southwest: { lat: number; lng: number } | undefined = undefined,
+      lat,
+      lng;
+    if (promises.length > 1) agent = promises.pop();
+    if (agent?.metatags) {
+      const locations = (agent.metatags.search_highlights?.labels || []) as unknown as {
+        lat: number;
+        lng: number;
+        ne: {
+          lat: number;
+          lng: number;
+        };
+        sw: {
+          lat: number;
+          lng: number;
+        };
+      }[];
+      let total_lat = 0;
+      let total_lng = 0;
+      if (locations.length) {
+        locations.map(location => {
+          total_lat += location.lat;
+          total_lng += location.lng;
+          if (northeast === undefined) {
+            northeast = location.ne;
+          } else {
+            if (location.ne.lat > northeast.lat) {
+              northeast.lat = location.ne.lat;
+            }
+            if (location.ne.lng > northeast.lng) {
+              northeast.lng = location.ne.lng;
+            }
+          }
+          if (southwest === undefined) {
+            southwest = {
+              lat: location.sw.lat,
+              lng: location.sw.lng,
+            };
+          } else {
+            if (location.sw.lat < southwest.lat) {
+              southwest.lat = location.sw.lat;
+            }
+            if (location.sw.lng > southwest.lng) {
+              southwest.lng = location.sw.lng;
+            }
+          }
+        });
+        lat = total_lat / locations.length;
+        lng = total_lng / locations.length;
+        if (northeast !== undefined && southwest !== undefined) {
+          northeast = northeast as unknown as {
+            lat: number;
+            lng: number;
+          };
+          southwest = southwest as unknown as {
+            lat: number;
+            lng: number;
+          };
+        }
+      }
+    }
+
+    const { data: html } = promises[0];
+
     if (html) {
-      console.log(Date.now() - time + 'ms', 'Finished pulling html data');
+      console.log(Date.now() - time + 'ms', '[Completed] HTML template & agent Strapi data extraction');
       const $: CheerioAPI = load(html);
-      console.log(Date.now() - time + 'ms', 'Finished loading pulled html');
+      console.log(Date.now() - time + 'ms', '[Completed] HTML template load to memory');
       const body = $('body > div');
-      console.log(Date.now() - time + 'ms', 'Finished extracting body div');
-      return (
+      const Page = (
         <>
-          <Iterator agent={agent} city={searchParams.city}>
+          <MapIterator agent={agent} city={searchParams.city} ne={northeast} sw={southwest}>
             {domToReact(body as unknown as DOMNode[]) as unknown as React.ReactElement}
-          </Iterator>
+          </MapIterator>
         </>
       );
+      console.log(Date.now() - time + 'ms', '[Completed] rexification\n\n\n');
+      return Page;
     }
   }
   return <>Page url is invalid or not found, please see app/map/page</>;
