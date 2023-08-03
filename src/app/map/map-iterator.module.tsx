@@ -22,23 +22,7 @@ import { classNames } from '@/_utilities/html-helper';
 import styles from './styles.module.scss';
 import NavIterator from '@/components/Nav/RxNavIterator';
 
-export default async function MapIterator({
-  agent,
-  children,
-  city,
-}: {
-  children: React.ReactElement;
-  agent?: AgentData;
-  city?: string;
-  ne?: {
-    lat: number;
-    lng: number;
-  };
-  sw?: {
-    lat: number;
-    lng: number;
-  };
-}) {
+export default async function MapIterator({ agent, children, city }: { children: React.ReactElement; agent?: AgentData; city?: string }) {
   const Wrapped = React.Children.map(children, c => {
     if (c.props && typeof c.props.children === 'string') {
       if (c.props.children.includes('{Agent Name}')) {

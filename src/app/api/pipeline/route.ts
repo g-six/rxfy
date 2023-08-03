@@ -5,6 +5,7 @@ import { STRAPI_FIELDS } from '@/_utilities/api-calls/call-legacy-search';
 import { GET as getPropertyAttributes } from '@/app/api/property-attributes/route';
 import { formatAddress } from '@/_utilities/string-helper';
 import { PropertyDataModel } from '@/_typings/property';
+import { objectToQueryString } from '@/_utilities/url-helper';
 
 export async function POST(req: NextRequest) {
   const rels = await getPropertyAttributes(req, true);
@@ -82,6 +83,44 @@ export async function POST(req: NextRequest) {
         const { mls_id, area, city, postal_zip_code, state_province, beds, baths, title, asking_price, cover_photo, year_built, floor_area, lat, lon } = p;
         return { mls_id, area, city, postal_zip_code, state_province, beds, baths, title, asking_price, cover_photo, year_built, floor_area, lat, lon };
       });
+      const { filter, should } = payload.query.bool as unknown as {
+        filter: {
+          range?: {
+            [k: string]: {
+              lte?: number;
+              gte?: number;
+            };
+          };
+          match?: { [k: string]: string };
+        }[];
+        should: {
+          match?: { [k: string]: string };
+        }[];
+      };
+      const cache_key: string[] = [];
+      const generic_keys = ['IdxInclude-Yes'];
+      filter.forEach(f => {
+        if (f.range) {
+          const [key] = Object.keys(f.range);
+          const kv = `${key.split('data.').join('')}/${objectToQueryString(f.range[key])
+            .split('&')
+            .map(kv => kv.split('=').pop())
+            .join(',')}`;
+          if (!generic_keys.includes(kv)) cache_key.push(kv);
+        }
+        if (f.match) {
+          const [key] = Object.keys(f.match);
+          const kv = `${key.split('data.').join('')}-${f.match[key]}`;
+          if (!generic_keys.includes(kv)) cache_key.push(kv);
+        }
+      });
+      should.forEach(f => {
+        if (f.match) {
+          const [key] = Object.keys(f.match);
+          cache_key.push(`${cache_key}${key.split('data.').join('')}-${f.match[key]}`);
+        }
+      });
+      console.log(cache_key);
       return getResponse({ records: minimized });
     } catch (e) {
       console.error(e);

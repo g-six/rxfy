@@ -51,7 +51,6 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
   }>();
   const [listings, setListings] = React.useState<PropertyDataModel[]>([]);
   const [pipeline_listings, setPipelineResults] = React.useState<PropertyDataModel[]>([]);
-  const [loved_listings, setLovedResults] = React.useState<PropertyDataModel[]>([]);
   const [selected_cluster, setSelectedCluster] = React.useState<PropertyDataModel[]>([]);
 
   const clickEventListener = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
@@ -78,16 +77,6 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
                     } as unknown as PropertyDataModel),
                 ),
               } as unknown as EventsData);
-              // Refactor this into a standalone function
-              // setSelectedCluster(
-              //   feats.map(
-              //     ({ id, properties }) =>
-              //       ({
-              //         ...properties,
-              //         id,
-              //       } as unknown as PropertyDataModel),
-              //   ),
-              // );
             });
           } else {
             const items: PropertyDataModel[] = [];
@@ -134,11 +123,6 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
       }[] = [];
       let minimum_should_match = 1;
       checkThenReload(false);
-      // fireEvent({
-      //   ...data,
-      //   points: undefined,
-      //   reload: false,
-      // } as unknown as EventsData);
       const user_defined_filters: {
         range?: {
           [k: string]: {

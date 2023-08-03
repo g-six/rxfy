@@ -32,63 +32,63 @@ export default async function MapPage({ params, searchParams }: { params: { [key
       lat,
       lng;
     if (promises.length > 1) agent = promises.pop();
-    if (agent?.metatags) {
-      const locations = (agent.metatags.search_highlights?.labels || []) as unknown as {
-        lat: number;
-        lng: number;
-        ne: {
-          lat: number;
-          lng: number;
-        };
-        sw: {
-          lat: number;
-          lng: number;
-        };
-      }[];
-      let total_lat = 0;
-      let total_lng = 0;
-      if (locations.length) {
-        locations.map(location => {
-          total_lat += location.lat;
-          total_lng += location.lng;
-          if (northeast === undefined) {
-            northeast = location.ne;
-          } else {
-            if (location.ne.lat > northeast.lat) {
-              northeast.lat = location.ne.lat;
-            }
-            if (location.ne.lng > northeast.lng) {
-              northeast.lng = location.ne.lng;
-            }
-          }
-          if (southwest === undefined) {
-            southwest = {
-              lat: location.sw.lat,
-              lng: location.sw.lng,
-            };
-          } else {
-            if (location.sw.lat < southwest.lat) {
-              southwest.lat = location.sw.lat;
-            }
-            if (location.sw.lng > southwest.lng) {
-              southwest.lng = location.sw.lng;
-            }
-          }
-        });
-        lat = total_lat / locations.length;
-        lng = total_lng / locations.length;
-        if (northeast !== undefined && southwest !== undefined) {
-          northeast = northeast as unknown as {
-            lat: number;
-            lng: number;
-          };
-          southwest = southwest as unknown as {
-            lat: number;
-            lng: number;
-          };
-        }
-      }
-    }
+    // if (agent?.metatags) {
+    //   const locations = (agent.metatags.search_highlights?.labels || []) as unknown as {
+    //     lat: number;
+    //     lng: number;
+    //     ne: {
+    //       lat: number;
+    //       lng: number;
+    //     };
+    //     sw: {
+    //       lat: number;
+    //       lng: number;
+    //     };
+    //   }[];
+    //   let total_lat = 0;
+    //   let total_lng = 0;
+    //   if (locations.length) {
+    //     locations.map(location => {
+    //       total_lat += location.lat;
+    //       total_lng += location.lng;
+    //       if (northeast === undefined) {
+    //         northeast = location.ne;
+    //       } else {
+    //         if (location.ne.lat > northeast.lat) {
+    //           northeast.lat = location.ne.lat;
+    //         }
+    //         if (location.ne.lng > northeast.lng) {
+    //           northeast.lng = location.ne.lng;
+    //         }
+    //       }
+    //       if (southwest === undefined) {
+    //         southwest = {
+    //           lat: location.sw.lat,
+    //           lng: location.sw.lng,
+    //         };
+    //       } else {
+    //         if (location.sw.lat < southwest.lat) {
+    //           southwest.lat = location.sw.lat;
+    //         }
+    //         if (location.sw.lng > southwest.lng) {
+    //           southwest.lng = location.sw.lng;
+    //         }
+    //       }
+    //     });
+    //     lat = total_lat / locations.length;
+    //     lng = total_lng / locations.length;
+    //     if (northeast !== undefined && southwest !== undefined) {
+    //       northeast = northeast as unknown as {
+    //         lat: number;
+    //         lng: number;
+    //       };
+    //       southwest = southwest as unknown as {
+    //         lat: number;
+    //         lng: number;
+    //       };
+    //     }
+    //   }
+    // }
 
     const { data: html } = promises[0];
 
@@ -99,7 +99,7 @@ export default async function MapPage({ params, searchParams }: { params: { [key
       const body = $('body > div');
       const Page = (
         <>
-          <MapIterator agent={agent} city={searchParams.city} ne={northeast} sw={southwest}>
+          <MapIterator agent={agent} city={searchParams.city}>
             {domToReact(body as unknown as DOMNode[]) as unknown as React.ReactElement}
           </MapIterator>
         </>
