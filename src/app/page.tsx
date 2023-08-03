@@ -2,7 +2,7 @@ import './globals.scss';
 import parse from 'html-react-parser';
 import { AxiosError } from 'axios';
 import { CheerioAPI, load } from 'cheerio';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { cookies, headers } from 'next/headers';
 import { Inter } from 'next/font/google';
 
@@ -87,11 +87,16 @@ export default async function Home({ params, searchParams }: { params: Record<st
       console.log('Load agent data based on session_key', session_key);
       const [session_hash, user_id] = session_key.split('-');
       const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
+      if (Object.keys(session).length === 0) {
+        redirect('log-out');
+        return;
+      }
       const { agent: session_agent } = session as unknown as {
         agent: AgentData & {
           agent_metatag: AgentMetatags;
         };
       };
+
       agent_data = {
         ...session_agent,
         metatags: session_agent.agent_metatag,
