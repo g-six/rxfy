@@ -44,7 +44,7 @@ function Iterator({
       }
 
       if (subclass?.includes('heart-full')) {
-        if (!loves.includes(property.mls_id)) {
+        if (loves && !loves.includes(property.mls_id)) {
           return <></>;
         }
         return React.cloneElement(
