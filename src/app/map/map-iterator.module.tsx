@@ -35,7 +35,7 @@ export default async function MapIterator({ agent, children, city }: { children:
               style:
                 logo && c.props?.className.includes('logo')
                   ? {
-                      backgroundImage: `url(${getImageSized(logo, 140)})`,
+                      backgroundImage: `url(${getImageSized(logo, 140)}?v=${agent.metatags.last_updated_at})`,
                       backgroundRepeat: 'no-repeat',
                       backgroundSize: 'contain',
                       display: 'inline-block',
