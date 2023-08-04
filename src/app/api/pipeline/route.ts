@@ -115,7 +115,7 @@ export async function POST(req: NextRequest, { internal }: { internal?: boolean 
           const {
             hits: { hits },
           } = data;
-          getPropertyAttributes(req, true).then(rels => {
+          getPropertyAttributes(req, { config: { internal: 'yes' } }).then(rels => {
             const { real_estate_board } = rels as unknown as {
               real_estate_board: { name: string; id: number }[];
             };
