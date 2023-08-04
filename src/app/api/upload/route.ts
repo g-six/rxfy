@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
 
     const client = new S3Client(config);
     const upload_url = await getSignedUrl(client, command);
+    invalidateCache(['/' + Key]);
     return getResponse({
       upload_url,
       file_path: Key,
