@@ -29,6 +29,7 @@ export const GQ_FRAG_AGENT_METATAG = `
       head_code
       footer_code
       ogimage_url
+      last_updated_at: updatedAt
     }
 `;
 export const GQ_FRAG_AGENT_CUSTOMER = `data {
@@ -97,6 +98,7 @@ export const GQ_FRAG_AGENT = `
           api_key
           domain_name
           webflow_domain
+          last_updated_at: updatedAt
           agent_metatag {
             data {${GQ_FRAG_AGENT_METATAG}}
           }

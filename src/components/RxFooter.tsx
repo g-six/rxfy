@@ -34,7 +34,7 @@ function Iterator({ agent, children }: { agent: AgentData; children: ReactElemen
               ...props,
               className: classNames(props.className || '', styles.logo),
               style: {
-                backgroundImage: `url(${getImageSized(logo, 200)}?v=${agent.last_activity_at})`,
+                backgroundImage: `url(${getImageSized(logo, 200)}?v=${agent.metatags.last_updated_at})`,
               },
             });
       }
