@@ -55,19 +55,21 @@ export async function getUserSessionData(authorization: string, user_type: 'real
           apiVersion: '2022-11-15',
         });
         const stripe_subscription = await stripe.subscriptions.retrieve(subscription_id);
-        console.log(JSON.stringify({ stripe_subscription }, null, 4));
-        if (stripe_subscription.items.data[0].price)
-          if (stripe_subscription.items.data[0].price.nickname) {
+
+        if (stripe_subscription.items.data[0].plan) {
+          const { nickname, interval } = stripe_subscription.items.data[0].plan;
+          if (nickname) {
             subscription = {
               ...subscription,
-              name: stripe_subscription.items.data[0].price.nickname,
+              name: nickname,
             };
           }
-        if (stripe_subscription.items.data[0].price.recurring?.interval) {
-          subscription = {
-            ...subscription,
-            interval: stripe_subscription.items.data[0].price.recurring.interval,
-          };
+          if (stripe_subscription.items.data[0].plan.interval) {
+            subscription = {
+              ...subscription,
+              interval,
+            };
+          }
         }
       }
     }
