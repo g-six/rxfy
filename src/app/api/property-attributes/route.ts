@@ -136,7 +136,7 @@ const QRY_PROPERTY_RELATIONSHIPS = `query PropertyRelationships {
 }
 `;
 
-export async function GET(request: NextRequest, ssr = false) {
+export async function GET(request: NextRequest, p?: { config?: { internal: 'yes' } }) {
   const api_url = `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`;
   if (api_url) {
     const gql_params: {
@@ -168,7 +168,7 @@ export async function GET(request: NextRequest, ssr = false) {
       });
     }
 
-    return ssr ? response : getResponse(response, 200);
+    return p?.config?.internal === 'yes' ? response : getResponse(response, 200);
   }
-  return ssr ? {} : getResponse({}, 201);
+  return p?.config?.internal === 'yes' ? {} : getResponse({}, 201);
 }

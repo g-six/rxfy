@@ -79,7 +79,7 @@ export async function POST(req: NextRequest, { internal }: { internal?: boolean 
   let phase_1: PropertyDataModel[] = [];
   try {
     if (!minimized || minimized.length === 0) {
-      const rels = await getPropertyAttributes(req, true);
+      const rels = await getPropertyAttributes(req, { config: { internal: 'yes' } });
       console.log(`${Date.now() - time}ms ${prefix} relationship data retrieved`);
 
       const {
