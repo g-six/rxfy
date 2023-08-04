@@ -58,7 +58,7 @@ export default function NavIterator({ agent, children }: { children: React.React
           {
             ...c.props,
             style: {
-              backgroundImage: `url(${getImageSized(logo, 100)})`,
+              backgroundImage: `url(${getImageSized(logo, 100)}?v=${agent.last_activity_at})`,
               backgroundRepeat: 'no-repeat',
               backgroundSize: 'contain',
               width: '100px',
