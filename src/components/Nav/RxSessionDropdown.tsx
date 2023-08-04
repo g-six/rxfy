@@ -150,7 +150,7 @@ function ToggleIterator(p: Props & { id?: string; 'data-session': unknown; onCli
     } else if (child.type === 'div' && child.props.className?.indexOf('agent-name') >= 0 && child.props.className?.indexOf('rexified') === -1) {
       return (
         <div className={[child.props.className, 'rexified'].join(' ')}>
-          <span data-value={session.full_name}>{session?.full_name}</span>
+          <span>{session?.full_name}</span>
         </div>
       );
     } else if (child.type !== 'div') {
