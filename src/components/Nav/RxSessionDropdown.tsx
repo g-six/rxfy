@@ -149,9 +149,9 @@ function ToggleIterator(p: Props & { id?: string; 'data-session': unknown; onCli
       });
     } else if (child.type === 'div' && child.props.className?.indexOf('agent-name') >= 0 && child.props.className?.indexOf('rexified') === -1) {
       return (
-        <div data-value={session.full_name} className={[child.props.className, 'rexified'].join(' ')}>
-          <div>{session && session.full_name}</div>
-        </div>
+        <span data-value={session.full_name} className={[child.props.className, 'rexified'].join(' ')}>
+          {session?.full_name}
+        </span>
       );
     } else if (child.type !== 'div') {
       return child;

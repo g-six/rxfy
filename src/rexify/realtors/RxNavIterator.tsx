@@ -36,7 +36,7 @@ export function buildNavigationComponent(children: React.ReactElement[], contain
     .filter(f => f.props.className.split(' ').includes('navigation-full-wrapper-2'))
     .map(({ props }) => {
       return (
-        <div key='navigation-full-wrapper-2' id={props.id} className={[props.className, 'rexified'].join(' ')}>
+        <div key='navigation-full-wrapper-2' id={props.id || 'rx-navigation'} className={[props.className || '', 'rexified'].join(' ')}>
           {React.Children.map(props.children, child => (
             <RxNavIterator {...child.props} {...container_props}>
               {child}

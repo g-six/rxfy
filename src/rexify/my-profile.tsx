@@ -11,8 +11,6 @@ import RxBrandPreferences from './realtors/brand-preferences';
 import { RxButton } from '@/components/RxButton';
 import { buildNavigationComponent } from './realtors/RxNavIterator';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
-import RxAgentMyListings from '@/components/full-pages/RxAgentMyListings';
-import { AgentData } from '@/_typings/agent';
 
 type Props = {
   className?: string;

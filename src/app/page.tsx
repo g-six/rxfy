@@ -177,6 +177,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
           };
 
           if (session_agent) {
+            agent_data = session_agent;
             if (session_agent.featured_listings?.length) {
               try {
                 await axios.get(`https://leagent.com/api/properties/mls-id/${session_agent.featured_listings[0]}`);
