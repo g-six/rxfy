@@ -53,34 +53,34 @@ export async function PUT(request: Request) {
       const [data] = response_data.data?.realtors?.data || [];
 
       if (data && data.id) {
-        const {
-          data: {
-            data: { realtor },
-          },
-        } = await axios.post(
-          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-          {
-            query: mutation_gql,
-            variables: {
-              id: data.id,
-              timestamp: new Date().toISOString(),
-            },
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-              'Content-Type': 'application/json',
-            },
-          },
-        );
+        // const {
+        //   data: {
+        //     data: { realtor },
+        //   },
+        // } = await axios.post(
+        //   `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+        //   {
+        //     query: mutation_gql,
+        //     variables: {
+        //       id: data.id,
+        //       timestamp: new Date().toISOString(),
+        //     },
+        //   },
+        //   {
+        //     headers: {
+        //       Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+        //       'Content-Type': 'application/json',
+        //     },
+        //   },
+        // );
 
         const send_to: MessageRecipient[] = [
           {
-            email: realtor.data.attributes.email,
-            name: realtor.data.attributes.full_name,
+            email: data.attributes.email,
+            name: data.attributes.full_name,
           },
         ];
-        const client_url = `${url.origin}/update-password?key=${encrypt(realtor.data.attributes.last_activity_at)}.${encrypt(email)}-${realtor.data.id}`;
+        const client_url = `${url.origin}/update-password?key=${encrypt(data.attributes.last_activity_at)}.${encrypt(email)}-${data.id}`;
         await sendTemplate('forgot-password', send_to, {
           subject: 'Leagent Password Recovery',
           client_url,
@@ -90,7 +90,7 @@ export async function PUT(request: Request) {
           JSON.stringify(
             {
               message: 'We have sent you an email',
-              last_activity_at: realtor.data.attributes.last_activity_at,
+              last_activity_at: data.attributes.last_activity_at,
             },
             null,
             4,

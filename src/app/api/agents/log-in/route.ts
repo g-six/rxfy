@@ -57,7 +57,7 @@ async function agentAuthLogin(email: string, password: string) {
         const { agent_metatag, customers, ...agent_data } = agent.data.attributes;
         const { session_key } = await updateSessionKey(record_id, email, 'realtor');
 
-        if (!agent_metatag?.id) {
+        if (!agent_metatag?.data?.id) {
           console.log('No agent metatag for some reason', agent_metatag);
           // No agent metatag for some reason
           const { data: generated_metatag } = await axios.post(
