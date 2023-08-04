@@ -129,10 +129,10 @@ export default async function MapIterator({ agent, children, city }: { children:
               {props.children}
             </MapCanvas>
           );
-        } else if (className.includes('map-navbar ')) {
+        } else if (className.includes('map-navbar')) {
           return (
             <div className={classNames(className, styles.navbar, 'rexified')} {...props}>
-              <MapIterator agent={agent}>{props.children}</MapIterator>
+              <NavIterator agent={agent}>{props.children}</NavIterator>
             </div>
           );
         }

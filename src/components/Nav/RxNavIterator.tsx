@@ -62,7 +62,7 @@ export default function NavIterator({ agent, children }: { children: React.React
               backgroundRepeat: 'no-repeat',
               backgroundSize: 'contain',
               width: '100px',
-              height: '1.8rem',
+              height: '3rem',
               display: 'inline-block',
             },
           },
