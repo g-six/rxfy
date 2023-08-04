@@ -4,58 +4,9 @@ import { classNames } from '@/_utilities/html-helper';
 import { Children, ReactElement, cloneElement } from 'react';
 import styles from './RxFooter.module.scss';
 
-function LinkIterator({ agent, children, ...p }: { agent: AgentData; children: ReactElement }) {
-  const Wrapped = Children.map(children, c => {
-    const { children: sub, href, ...props } = c.props || {};
-    if (props && props['data-field']) {
-      switch (props['data-field']) {
-        case 'logo':
-          const logo = agent.metatags?.logo_for_light_bg || agent.metatags?.logo_for_dark_bg;
-          return cloneElement(c, {
-            ...props,
-            className: logo ? classNames(props.className, styles.logo, 'bg-no-repeat bg-left-center') : props.className,
-            style: logo
-              ? {
-                  backgroundImage: `url(${getImageSized(logo, 120)})`,
-                  textIndent: '-99999px',
-                }
-              : {},
-          });
-        case 'phone':
-          return cloneElement(
-            c,
-            {
-              ...props,
-              href: `tel:${agent.phone}`,
-            },
-            agent.phone,
-          );
-      }
-    }
-    if (c.type === 'div') {
-      return (
-        <span {...props} className={classNames(props.className || '', 'rexified')}>
-          <LinkIterator agent={agent}>{sub}</LinkIterator>
-        </span>
-      );
-    }
-
-    return c;
-  });
-
-  return <a {...p}>{Wrapped}</a>;
-}
-
 function Iterator({ agent, children }: { agent: AgentData; children: ReactElement }) {
   const Wrapped = Children.map(children, c => {
     const { children: sub, ...props } = c.props || {};
-    // if (c.type === 'a') {
-    //   return (
-    //     <LinkIterator {...props} agent={agent}>
-    //       {sub}
-    //     </LinkIterator>
-    //   );
-    // }
     if (c.type === 'div') {
       return (
         <div {...props}>
@@ -83,7 +34,7 @@ function Iterator({ agent, children }: { agent: AgentData; children: ReactElemen
               ...props,
               className: classNames(props.className || '', styles.logo),
               style: {
-                backgroundImage: `url(${getImageSized(logo, 200)})`,
+                backgroundImage: `url(${getImageSized(logo, 200)}?v=${agent.last_activity_at})`,
               },
             });
       }
