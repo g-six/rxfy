@@ -30,7 +30,7 @@ export async function PUT(request: NextRequest) {
       error: 'Please provide a valid notes id',
     });
   }
-  const agent = await checkSession(request, true);
+  const agent = await checkSession(request, { config: { internal: 'yes' } });
 
   const { id: realtor, customers } = agent as unknown as {
     id: number;

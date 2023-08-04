@@ -5,7 +5,7 @@ import { getResponse } from '@/app/api/response-helper';
 import { GET as checkSession } from '@/app/api/check-session/route';
 
 export async function PUT(request: NextRequest) {
-  const agent = await checkSession(request, true);
+  const agent = await checkSession(request, { config: { internal: 'yes' } });
 
   const { customers, session_key } = agent as unknown as {
     customers: { notes: string[]; agent_customer_id: number }[];

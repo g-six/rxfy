@@ -16,7 +16,7 @@ export async function DELETE(request: NextRequest) {
       error: 'Please provide a valid id for the love record',
     });
   }
-  const agent = await checkSession(request, true);
+  const agent = await checkSession(request, { config: { internal: 'yes' } });
 
   const {
     id: realtor,

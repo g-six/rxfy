@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
       error: 'Please provide a valid id for the agent customer record',
     });
   }
-  const agent = await checkSession(request, true);
+  const agent = await checkSession(request, { config: { internal: 'yes' } });
 
   const {
     id: realtor,
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
   });
 }
 export async function POST(request: NextRequest, { params }: { params: { [key: string]: string } }) {
-  const r = await checkSession(request, true);
+  const r = await checkSession(request, { config: { internal: 'yes' } });
 
   const {
     id: realtor,
