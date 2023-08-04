@@ -5,7 +5,7 @@ import { graphQL } from '@/app/api/_helpers/graphql-helper';
 import { gql_delete_doc_upload } from '@/app/api/document-uploads/[id]/route';
 
 export async function DELETE(req: NextRequest, { params: { upload, id: agent_customer_id } }: { params: { upload: string; id: string } }) {
-  const r = await checkSession(req, true);
+  const r = await checkSession(req, { config: { internal: 'yes' } });
   const user = r as { id: number; customers: { agent_customer_id: number; id: number }[] };
   if (!user?.id)
     return getResponse(
