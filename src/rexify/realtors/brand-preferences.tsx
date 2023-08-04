@@ -164,7 +164,7 @@ function Iterator(props: Props & { uploads?: BrandUploads }) {
               className: child.props.className + ` bg-cover bg-center`,
               children: [],
               style: {
-                backgroundImage: `url(${getImageSized(metatags[child.props.id], 192)})`,
+                backgroundImage: `url(${getImageSized(metatags[child.props.id], 192)}?v=${Date.now()})`,
               },
             });
           }
