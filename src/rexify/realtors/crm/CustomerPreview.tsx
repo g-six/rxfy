@@ -146,20 +146,20 @@ export default function RxCRMCustomerPreview(p: Props) {
 
   React.useEffect(() => {
     if (active && data) {
-      const [record] = active ? customers?.filter(customer => customer.id === active) : [];
+      const [record] = active ? customers?.filter(customer => customer.agent_customer_id === active) : [];
       if (record) setCustomer(record);
     }
   }, [data, active]);
 
   React.useEffect(() => {
     if (active) {
-      const [record] = active ? customers?.filter(customer => customer.id === active) : [];
+      const [record] = active ? customers?.filter(customer => customer.agent_customer_id === active) : [];
       if (record) setCustomer(record);
     }
   }, [active]);
 
   React.useEffect(() => {
-    const [record] = active ? customers?.filter(customer => customer.id === active) : [];
+    const [record] = active ? customers?.filter(customer => customer.agent_customer_id === active) : [];
     if (record) setCustomer(record);
   }, []);
 

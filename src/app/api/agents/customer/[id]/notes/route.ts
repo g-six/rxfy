@@ -24,9 +24,9 @@ export async function POST(request: NextRequest) {
 
   const { id: realtor, customers } = agent as unknown as {
     id: number;
-    customers: { notes: string[]; id: number }[];
+    customers: { notes: string[]; agent_customer_id: number }[];
   };
-  const [customer] = customers.filter(c => c.id === agents_customer_id);
+  const [customer] = customers.filter(c => c.agent_customer_id === agents_customer_id);
 
   if (!customer) {
     return getResponse({
