@@ -14,6 +14,7 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { RxTextInput } from '@/components/RxTextInput';
 import { RxButton } from '@/components/RxButton';
 import { getCleanObject } from '@/_utilities/data-helpers/key-value-cleaner';
+import { convertDivsToSpans } from '@/_replacers/DivToSpan';
 
 type Props = {
   children: React.ReactElement;
@@ -207,7 +208,19 @@ function Iterator(p: {
             );
           }
       }
-      if (p.className) {
+      if (p.children.props['data-w-tab']) {
+        return React.cloneElement(
+          <div
+            onClick={(evt: React.SyntheticEvent<HTMLDivElement>) => {
+              document.querySelector('.w--tab-active')?.classList.remove('w--tab-active');
+              document.querySelector('.dash-tabs .w--current')?.classList.remove('w--current');
+              evt.currentTarget.classList.add('w--current');
+              document.querySelector('.w-tab-content [data-w-tab="' + p.children.props['data-w-tab'] + '"]')?.classList.add('w--tab-active');
+            }}
+          />,
+          p.children.props,
+        );
+      } else if (p.className) {
         if (p.className.indexOf('cta-link-image-preview-upload') >= 0)
           return (
             <RxFileUploader
