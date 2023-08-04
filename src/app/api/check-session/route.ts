@@ -245,7 +245,17 @@ export async function getUserSessionData(authorization: string, user_type: 'real
   }
   return { error: 'Please log in' };
 }
-export async function GET(request: Request, internal = false) {
+export async function GET(
+  request: Request,
+  {
+    config,
+    params,
+  }: {
+    [key: string]: {
+      [key: string]: string;
+    };
+  },
+) {
   let user_type: 'realtor' | 'customer' = request.url.split('/').includes('agent') ? 'realtor' : 'customer';
   if (isRealtorRequest(request.url)) {
     user_type = 'realtor';
@@ -254,8 +264,5 @@ export async function GET(request: Request, internal = false) {
   const { error } = results as unknown as { error: string };
   if (error) return getResponse(results, 401);
 
-  if (request.method === 'GET') {
-    if (internal === false) return getResponse(results, 200);
-  }
-  return internal ? results : getResponse(results, 200);
+  return config?.internal === 'yes' ? results : getResponse(results, 200);
 }
