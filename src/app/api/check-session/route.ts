@@ -55,6 +55,7 @@ export async function getUserSessionData(authorization: string, user_type: 'real
           apiVersion: '2022-11-15',
         });
         const stripe_subscription = await stripe.subscriptions.retrieve(subscription_id);
+        console.log(JSON.stringify({ stripe_subscription }, null, 4));
         if (stripe_subscription.items.data[0].price)
           if (stripe_subscription.items.data[0].price.nickname) {
             subscription = {
