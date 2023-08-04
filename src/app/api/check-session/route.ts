@@ -247,10 +247,7 @@ export async function getUserSessionData(authorization: string, user_type: 'real
 }
 export async function GET(
   request: Request,
-  {
-    config,
-    params,
-  }: {
+  ctx?: {
     [key: string]: {
       [key: string]: string;
     };
@@ -264,5 +261,5 @@ export async function GET(
   const { error } = results as unknown as { error: string };
   if (error) return getResponse(results, 401);
 
-  return config?.internal === 'yes' ? results : getResponse(results, 200);
+  return ctx?.config?.internal === 'yes' ? results : getResponse(results, 200);
 }
