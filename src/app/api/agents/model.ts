@@ -317,7 +317,6 @@ export const findAgentRecordByAgentId = cache(async (agent_id: string) => {
   let response = {};
   try {
     const cache = await axios.get(url);
-    console.log(JSON.stringify({ cache }, null, 4));
     // We're still gonna update their data behind the scenes.
     // Difference is, we're not gonna wait for the response
     findAgentBy({ agent_id }).then(r => {

@@ -7,6 +7,7 @@ import { formatAddress } from '@/_utilities/string-helper';
 import { PropertyDataModel } from '@/_typings/property';
 import { objectToQueryString } from '@/_utilities/url-helper';
 import { createCacheItem } from '../_helpers/cache-helper';
+import { LegacySearchPayload } from '@/_typings/pipeline';
 function mapData(hits: { _source: { data: Record<string, unknown> } }[], real_estate_board?: { name: string }[]): PropertyDataModel[] {
   return hits.map(p => {
     const {
@@ -58,7 +59,8 @@ function mapData(hits: { _source: { data: Record<string, unknown> } }[], real_es
 }
 
 const prefix = '[Pipeline]';
-export async function POST(req: NextRequest) {
+
+export async function POST(req: NextRequest, { internal }: { internal?: boolean }) {
   console.log(`\n\n${prefix} Begin`);
   const payload = await req.json();
   // For caching
@@ -96,8 +98,9 @@ export async function POST(req: NextRequest) {
       };
       phase_1 = mapData(hits, real_estate_board);
       minimized = phase_1.map((p: PropertyDataModel) => {
-        const { mls_id, area, city, postal_zip_code, state_province, beds, baths, title, asking_price, cover_photo, year_built, floor_area, lat, lon } = p;
-        return { mls_id, area, city, postal_zip_code, state_province, beds, baths, title, asking_price, cover_photo, year_built, floor_area, lat, lon };
+        const { mls_id, status, area, city, postal_zip_code, state_province, beds, baths, title, asking_price, cover_photo, year_built, floor_area, lat, lon } =
+          p;
+        return { mls_id, status, area, city, postal_zip_code, state_province, beds, baths, title, asking_price, cover_photo, year_built, floor_area, lat, lon };
       });
       createCacheItem(JSON.stringify(minimized), full_s3_file);
     } else {
@@ -122,6 +125,7 @@ export async function POST(req: NextRequest) {
                 phase_1.map((p: PropertyDataModel) => {
                   const {
                     mls_id,
+                    status,
                     area,
                     city,
                     postal_zip_code,
@@ -138,6 +142,7 @@ export async function POST(req: NextRequest) {
                   } = p;
                   return {
                     mls_id,
+                    status,
                     area,
                     city,
                     postal_zip_code,
@@ -162,6 +167,7 @@ export async function POST(req: NextRequest) {
 
     try {
       console.log(`${Date.now() - time}ms ${prefix} completed`);
+      if (internal) return minimized;
       return getResponse({ records: minimized });
     } catch (e) {
       console.error(e);
@@ -206,14 +212,15 @@ function getCacheKey(legacy_params: unknown) {
     }
     if (f.match) {
       const [key] = Object.keys(f.match);
-      const kv = `${getAlias(key)}/${f.match[key]}`;
+      const kv = `${getAlias(key)}/${f.match[key].split(' ').join('+')}`;
       if (!generic_keys.includes(kv)) cache_key.push(kv);
     }
   });
   should.forEach(f => {
     if (f.match) {
       const [key] = Object.keys(f.match);
-      cache_key.push(`${cache_key}${key.split('data.').join('')}/${f.match[key]}`);
+      const kv = `${getAlias(key)}/${f.match[key].split(' ').join('+')}`;
+      if (!generic_keys.includes(kv)) cache_key.push(kv);
     }
   });
 

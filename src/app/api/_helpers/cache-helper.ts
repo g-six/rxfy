@@ -21,6 +21,7 @@ export function invalidateCache(Items: string[]) {
     },
   });
   console.log('Invalidating cache for ', NEXT_APP_SITES_DIST_ID);
+  console.log(JSON.stringify(Items, null, 4));
   return client.send(command);
 }
 
@@ -31,6 +32,7 @@ export function createCacheItem(Body: any, Key: string, ContentType: string = 't
     Body,
     ContentType,
   });
+  invalidateCache(['/' + Key]);
 
   const config: S3ClientConfig = {
     region: 'us-west-2',

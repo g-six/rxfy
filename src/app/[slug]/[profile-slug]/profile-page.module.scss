@@ -1,0 +1,13 @@
+.heart-button {
+  @apply p-0 bg-transparent #{!important};
+}
+.CoverPhoto {
+  @apply w-full h-[216px] bg-cover bg-center overflow-hidden bg-no-repeat block;
+  &.sold-listing {
+    @apply w-48;
+  }
+}
+
+.hidden-card {
+  @apply hidden #{!important};
+}

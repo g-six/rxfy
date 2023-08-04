@@ -69,7 +69,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
     if (profile_slug === 'leagent' || profile_slug.indexOf('la-') === 0) {
       console.log('Loading agent_record', possible_agent);
       const agent_record = await findAgentRecordByAgentId(possible_agent);
-      console.log('Loaded agent_record', JSON.stringify({ agent_record }));
       const { metatags } = agent_record;
 
       if (agent_record) {
@@ -108,7 +107,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
     }
   }
 
-  console.log({ url: headers().get('x-url'), possible_agent, profile_slug, params });
   try {
     const req_page_html = await axios.get(headers().get('x-url') as string);
     data = req_page_html.data;
@@ -344,7 +342,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
     },
   };
 
-  console.log('agent_data', JSON.stringify(agent_data));
   return (
     <>
       {webflow.body.code ? (
