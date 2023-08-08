@@ -18,6 +18,7 @@ type ChildProps = {
 };
 
 function Iterator(p: ChildProps) {
+  const { showForm, ...props } = p;
   const Wrapped = React.Children.map(p.children, child => {
     if (child.props?.children) {
       if (child.props?.id && child.props?.id === 'leads_wrapper') {
@@ -44,7 +45,7 @@ function Iterator(p: ChildProps) {
         return <RxCRMCustomerCreateForm {...child.props}>{child.props.children}</RxCRMCustomerCreateForm>;
       } else if (child.props.id === `${Events.CreateCustomerForm}-trigger`) {
         return (
-          <button {...child.props} type='button' onClick={p.showForm}>
+          <button {...child.props} type='button' onClick={showForm}>
             {child.props.children}
           </button>
         );
@@ -60,7 +61,7 @@ function Iterator(p: ChildProps) {
       return child;
     }
   });
-  return <div {...p}>{Wrapped}</div>;
+  return <div {...props}>{Wrapped}</div>;
 }
 
 export default function RxCRM(p: Props) {

@@ -6,8 +6,8 @@ import MyHomeAlertModalWrapper from '@/_replacers/MyHomeAlerts/MyHomeAlertModalW
 import MyHomeAlertsList from '@/_replacers/MyHomeAlerts/MyHomeAlertsList';
 import { AgentData } from '@/_typings/agent';
 import { Events } from '@/_typings/events';
-import { SavedSearch } from '@/_typings/saved-search';
-import { searchByClasses, searchById } from '@/_utilities/rx-element-extractor';
+import { getData } from '@/_utilities/data-helpers/local-storage-helper';
+import { searchByClasses, searchByProp } from '@/_utilities/rx-element-extractor';
 import useEvent from '@/hooks/useEvent';
 
 import React, { ReactElement, ReactNode, cloneElement } from 'react';
@@ -19,18 +19,36 @@ type Props = {
 };
 
 export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
-  const { fireEvent } = useEvent(Events.MyHomeAlertsModal);
+  const { data, fireEvent } = useEvent(Events.MyHomeAlertsModal);
   const [agent_data, setAgentData] = React.useState<AgentData>();
 
   const matches: tMatch[] = [
     {
-      searchFn: searchById('btn-new-home-alert'),
+      searchFn: searchByProp('data-field', 'new_alert'),
       transformChild: (child: ReactElement) => {
         return cloneElement(<button type='button' />, {
           ...child.props,
           onClick: () => {
             fireCustomEvent({ show: true, message: 'New', alertData: {} }, Events.MyHomeAlertsModal);
           },
+        });
+      },
+    },
+    {
+      searchFn: searchByProp('data-field', 'empty_state'),
+      transformChild: (child: ReactElement) => {
+        const { agent_customer_id } = getData('viewing_customer') as unknown as {
+          agent_customer_id: number;
+        };
+        const [customer] = p['agent-data']?.customers?.filter(customer => customer.agent_customer_id === agent_customer_id) || [];
+        let show = data?.show !== true;
+
+        if (customer && customer.saved_searches && customer.saved_searches.length) {
+          show = false;
+        }
+
+        return cloneElement(child, {
+          className: show ? child.props.className : 'hidden',
         });
       },
     },

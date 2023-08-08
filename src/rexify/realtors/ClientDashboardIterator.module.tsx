@@ -124,6 +124,11 @@ export default function ClientDashboardIterator(
               {child.props.children}
             </RxCustomerPropertyView>
           );
+        } else if (p.agent && child.props['data-field'] === 'empty_state') {
+          // Hide empty state elements on presence of property or properties
+          if (p.property?.id || p.properties?.length) {
+            return <></>;
+          }
         } else if (child.props.className?.split(' ').includes('indiv-map-tabs')) {
           return (
             <RxSavedHomesNav {...child.props} active-tab={p['active-tab']}>
