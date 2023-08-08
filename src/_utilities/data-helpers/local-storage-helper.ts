@@ -37,3 +37,12 @@ export function getData(key: string, defaultVal = null) {
   }
   return res;
 }
+
+export function unsetData(key: string) {
+  try {
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') localStorage.removeItem(key);
+    else console.log('Error: unsetData can only be used client side');
+  } catch (e) {
+    console.log('Error: getData unsetData local storage failed', e);
+  }
+}
