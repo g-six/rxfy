@@ -186,8 +186,6 @@ export async function PUT(request: Request) {
       last_activity_at,
     };
 
-    console.log(JSON.stringify({ updates }));
-
     const variables = {
       id: guid,
       data: updates,

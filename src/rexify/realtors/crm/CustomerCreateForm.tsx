@@ -112,9 +112,13 @@ export default function RxCRMCustomerCreateForm(p: Props) {
       const { first_name, last_name, phone_number, email } = formHandler.data as unknown as {
         [key: string]: string;
       };
-      const { year, month, day } = formHandler.data as unknown as {
+      let { year, month, day } = formHandler.data as unknown as {
         [key: string]: number;
       };
+      console.log('formHandler.data', formHandler.data);
+      if (!month) month = 1;
+      if (!day) day = 1;
+      if (!year) year = new Date().getFullYear() - 16;
       const birthday = year && month && day ? `${year}-${month < 10 ? '0' : ''}${month}-${day < 10 ? '0' : ''}${day}` : undefined;
       if (first_name && last_name && email) {
         const client = {
