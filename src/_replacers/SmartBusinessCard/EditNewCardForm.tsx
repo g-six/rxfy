@@ -4,7 +4,6 @@ import React, { ReactElement } from 'react';
 import MailChimp from '@mailchimp/mailchimp_transactional';
 
 import { AgentData } from '@/_typings/agent';
-import { sendTemplate } from '@/app/api/send-template';
 import { ImagePreview } from '@/hooks/useFormEvent';
 import { SmartCardInput, SmartCardResponse } from '@/_typings/smart-cards';
 import { createSmartCard, deleteSmartCard, emailSmartCard } from '@/_utilities/api-calls/call-smart-cards';
@@ -91,7 +90,6 @@ export default function EditNewCardForm({ template, showDetails, details, update
           console.log('promises');
           console.log(promises);
           Promise.all(promises).then(canvases => {
-            console.log('map canvases');
             const anotherPromises = canvases.map(canvas => {
               return new Promise(resolve => {
                 canvas.getContext('2d');
@@ -100,11 +98,20 @@ export default function EditNewCardForm({ template, showDetails, details, update
               });
             });
             Promise.all(anotherPromises).then(files => {
-              console.log('Write attachments');
               const attachments = files.map((base64, i) => {
                 return { type: 'image/png', name: `card_image_${i + 1}.png`, content: base64 };
               });
-              emailSmartCard({ attachments });
+              updateCardsList('new', {
+                id: Number(res.record.id),
+                name: res.record.attributes.name,
+                title: res.record.attributes.title,
+                logo_url: res.record.attributes.logo_url,
+              } as SmartCardResponse);
+              return emailSmartCard(Number(res.record.id), attachments as unknown[], {
+                name: form?.name as string,
+                email: agent && agent.email,
+                phone: agent?.phone as string,
+              });
               // const send_to: MailChimp.MessageRecipient[] = [{ email: 'team@leagent.com', name: 'Leaget Team' }];
               // sendTemplate(
               //   'new-card-order',
