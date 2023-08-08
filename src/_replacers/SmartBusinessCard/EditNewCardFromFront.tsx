@@ -1,7 +1,7 @@
 import React, { cloneElement } from 'react';
 
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
-import { searchByClasses } from '@/_utilities/rx-element-extractor';
+import { searchByClasses, searchByPartOfClass } from '@/_utilities/rx-element-extractor';
 import { SmartCardForm } from '@/_replacers/SmartBusinessCard/EditNewCardForm';
 import { AgentData } from '@/_typings/agent';
 
@@ -14,8 +14,11 @@ type Props = {
 export default function EditNewCardFormFront({ nodes, form, logoPreview }: Props) {
   const matches: tMatch[] = [
     {
-      searchFn: searchByClasses(['smart-card-logo-front']),
-      transformChild: child => cloneElement(child, {}, logoPreview ? [<img key={0} src={logoPreview} alt='Smart Card Agent Front Logo' />] : []),
+      searchFn: searchByPartOfClass(['vectors-wrapper']),
+      transformChild: child =>
+        cloneElement(child, {
+          src: logoPreview || child.props.src,
+        }),
     },
     {
       searchFn: searchByClasses(['text-3']),

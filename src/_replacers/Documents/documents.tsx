@@ -2,7 +2,7 @@
 import React, { ReactElement, cloneElement, useEffect, useState } from 'react';
 
 import { captureMatchingElements, transformMatchingElements } from '@/_helpers/dom-manipulators';
-import { searchByClasses } from '@/_utilities/rx-element-extractor';
+import { searchByClasses, searchByProp } from '@/_utilities/rx-element-extractor';
 import { removeDocument, retrieveDocuments } from '@/_utilities/api-calls/call-documents';
 import DocumentsFolder from './DocumentsFolder';
 import DocumentsCreateFolder from './DocumentsCreateFolder';
@@ -56,6 +56,7 @@ export default function DocumentsReplacer({
 }: Props & { confirm?: boolean; customer?: { documents: DocumentsFolderInterface[] } }) {
   const params = useSearchParams();
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
+  const { data: create_folder_modal } = useEvent(Events.CreateDocFolderShow);
   const [documents, setDocuments] = useState<DocumentsFolderInterface[]>([]);
   const templatesToFind = [{ searchFn: searchByClasses(['document-div']), elementName: 'docFolder' }];
   const templates = captureMatchingElements(nodes, templatesToFind);
@@ -105,8 +106,9 @@ export default function DocumentsReplacer({
   const matches = [
     {
       //getting to doc folders container to populate  doc folders
-      searchFn: searchByClasses(['doc-folders-container']),
+      searchFn: searchByProp('data-field', 'doc_folder'),
       transformChild: (child: ReactElement) => {
+        if (documents.length === 0) return <></>;
         return cloneElement(child, {}, [
           documents.map((doc: DocumentsFolderInterface) => (
             <DocumentsFolder key={doc.id} template={templates.docFolder} docFolderData={doc} agent_data={agent_data} setDocuments={setDocuments} />
@@ -115,17 +117,30 @@ export default function DocumentsReplacer({
       },
     },
     {
-      searchFn: searchByClasses(['new-doc-div']),
+      searchFn: searchByProp('data-field', 'empty_state'),
+      transformChild: (child: ReactElement) => {
+        const show = create_folder_modal?.show || !documents.length;
+
+        return cloneElement(child, {
+          className: show ? child.props.className : 'hidden',
+        });
+      },
+    },
+    {
+      searchFn: searchByProp('data-field', 'new_doc'),
       transformChild: (child: ReactElement) => {
         return <DocumentsCreateFolder child={child} agent_data={agent_data} setDocuments={setDocuments} agent-customer={agent_customer_id} />;
       },
     },
+
     {
-      searchFn: searchByClasses(['new-dr']),
+      searchFn: searchByProp('data-field', 'new_folder'),
       transformChild: (child: ReactElement) => {
-        return cloneElement(child, {
+        return cloneElement(<button type='button' />, {
+          ...child.props,
           onClick: () => {
             document.dispatchEvent(new CustomEvent(Events.CreateDocFolderShow, { detail: { show: true } }));
+            document.querySelector('.docs-section [data-field="empty_state"]')?.remove();
           },
         });
       },
@@ -155,5 +170,9 @@ export default function DocumentsReplacer({
       },
     },
   ];
-  return <div {...nodeProps}>{transformMatchingElements(nodes, matches)}</div>;
+  return (
+    <div {...nodeProps} data-rx='_replacers/Documents/documents'>
+      {transformMatchingElements(nodes, matches)}
+    </div>
+  );
 }

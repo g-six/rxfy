@@ -175,7 +175,11 @@ export default function EditNewCardForm({ template, showDetails, details, update
     {
       searchFn: searchByClasses(['thumbnail-wrapper']),
       transformChild: child =>
-        React.cloneElement(child, {}, logoPreview ? [<img key={0} src={logoPreview} alt='Smart Card Agent Front Logo' />] : child.props.children),
+        React.cloneElement(
+          child,
+          {},
+          logoPreview ? [<img key={0} src={logoPreview} alt='Smart Card Agent Front Logo' className='w-full h-full object-contain' />] : child.props.children,
+        ),
     },
     {
       searchFn: searchByClasses(['upload-button']),
