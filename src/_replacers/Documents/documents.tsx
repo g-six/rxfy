@@ -109,11 +109,17 @@ export default function DocumentsReplacer({
       searchFn: searchByProp('data-field', 'doc_folder'),
       transformChild: (child: ReactElement) => {
         if (documents.length === 0) return <></>;
-        return cloneElement(child, {}, [
-          documents.map((doc: DocumentsFolderInterface) => (
-            <DocumentsFolder key={doc.id} template={templates.docFolder} docFolderData={doc} agent_data={agent_data} setDocuments={setDocuments} />
-          )),
-        ]);
+        return cloneElement(
+          child,
+          {
+            className: '',
+          },
+          [
+            documents.map((doc: DocumentsFolderInterface) => (
+              <DocumentsFolder key={doc.id} template={templates.docFolder} docFolderData={doc} agent_data={agent_data} setDocuments={setDocuments} />
+            )),
+          ],
+        );
       },
     },
     {
