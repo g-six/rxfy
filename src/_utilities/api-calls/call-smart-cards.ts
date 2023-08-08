@@ -63,51 +63,33 @@ export async function emailSmartCard(id: number, attachments: unknown[], { email
     let front_url = '',
       back_url = '';
 
-    await (attachments as File[]).map(async (attachment: File, idx) => {
+    return await (attachments as File[]).map(async (attachment: File, idx) => {
       const { upload_url, url } = await getUploadUrl(`realtors/${session_key.split('-')[1]}/smart-cards/${random_key}/${attachment.name}`, attachment);
       const { content } = attachment as unknown as {
         content: string;
       };
       let blob = await fetch(content).then(r => r.blob());
-      await axios.put(upload_url, new File([blob], attachment.name, { type: attachment.type }), { headers: { 'Content-Type': attachment.type } });
-      if (idx === 0) front_url = url;
-      else back_url = url;
-      console.log({
-        id,
-        url,
-        front_url,
-        back_url,
-      });
-    });
+      axios.put(upload_url, new File([blob], attachment.name, { type: attachment.type }), { headers: { 'Content-Type': attachment.type } }).then(() => {
+        if (idx === 0) front_url = url;
+        else back_url = url;
 
-    if (front_url || back_url) {
-      const results = await axios.put(
-        `/api/smart-cards/${id}`,
-        {
+        console.log({
+          id,
           front_url,
           back_url,
-        },
-        HEADERS,
-      );
+        });
 
-      // await sendTemplate(
-      //   'new-card-order',
-      //   [
-      //     {
-      //       name: 'Smart Cards',
-      //       email: 'team+smartcards@leagent.com',
-      //     },
-      //   ],
-      //   {
-      //     name,
-      //     customer_email: email,
-      //     customer_name: name,
-      //     customer_phone: phone,
-      //   },
-      //   attachments,
-      // );
-
-      return results.data;
-    }
+        if (front_url && back_url) {
+          axios.put(
+            `/api/smart-cards/${id}`,
+            {
+              front_url,
+              back_url,
+            },
+            HEADERS,
+          );
+        }
+      });
+    });
   }
 }

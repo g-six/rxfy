@@ -97,41 +97,44 @@ export default function EditNewCardForm({ template, showDetails, details, update
                 invertImage(canvasImage, base64 => resolve(base64));
               });
             });
-            Promise.all(anotherPromises).then(files => {
-              const attachments = files.map((base64, i) => {
-                return { type: 'image/png', name: `card_image_${i + 1}.png`, content: base64 };
+            Promise.all(anotherPromises)
+              .then(files => {
+                const attachments = files.map((base64, i) => {
+                  return { type: 'image/png', name: `card_image_${i + 1}.png`, content: base64 };
+                });
+                return emailSmartCard(Number(res.record.id), attachments as unknown[], {
+                  name: form?.name as string,
+                  email: agent && agent.email,
+                  phone: agent?.phone as string,
+                });
+                // const send_to: MailChimp.MessageRecipient[] = [{ email: 'team@leagent.com', name: 'Leaget Team' }];
+                // sendTemplate(
+                //   'new-card-order',
+                //   send_to,
+                //   {
+                //     name: form?.name as string,
+                //     customer_email: agent && agent.email,
+                //     customer_name: form?.name as string,
+                //     customer_phone: agent?.phone as string,
+                //   },
+                //   attachments,
+                // ).then(() => {
+                //   updateCardsList('new', {
+                //     id: Number(res.record.id),
+                //     name: res.record.attributes.name,
+                //     title: res.record.attributes.title,
+                //     logo_url: res.record.attributes.logo_url,
+                //   } as SmartCardResponse);
+                // });
+              })
+              .then(() => {
+                updateCardsList('new', {
+                  id: Number(res.record.id),
+                  name: res.record.attributes.name,
+                  title: res.record.attributes.title,
+                  logo_url: res.record.attributes.logo_url,
+                } as SmartCardResponse);
               });
-              updateCardsList('new', {
-                id: Number(res.record.id),
-                name: res.record.attributes.name,
-                title: res.record.attributes.title,
-                logo_url: res.record.attributes.logo_url,
-              } as SmartCardResponse);
-              return emailSmartCard(Number(res.record.id), attachments as unknown[], {
-                name: form?.name as string,
-                email: agent && agent.email,
-                phone: agent?.phone as string,
-              });
-              // const send_to: MailChimp.MessageRecipient[] = [{ email: 'team@leagent.com', name: 'Leaget Team' }];
-              // sendTemplate(
-              //   'new-card-order',
-              //   send_to,
-              //   {
-              //     name: form?.name as string,
-              //     customer_email: agent && agent.email,
-              //     customer_name: form?.name as string,
-              //     customer_phone: agent?.phone as string,
-              //   },
-              //   attachments,
-              // ).then(() => {
-              //   updateCardsList('new', {
-              //     id: Number(res.record.id),
-              //     name: res.record.attributes.name,
-              //     title: res.record.attributes.title,
-              //     logo_url: res.record.attributes.logo_url,
-              //   } as SmartCardResponse);
-              // });
-            });
           });
         }
       });

@@ -123,7 +123,7 @@ export async function DELETE(req: NextRequest) {
         headers,
       },
     );
-    console.log({ id }, delete_response);
+
     if (!delete_response.data.deleteSmartCard?.record)
       return getResponse(
         {
