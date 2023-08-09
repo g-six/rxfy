@@ -1,4 +1,4 @@
-import { CloudFrontClient, CreateInvalidationCommand } from '@aws-sdk/client-cloudfront';
+import { CloudFrontClient, CreateInvalidationCommand, CreateInvalidationCommandOutput } from '@aws-sdk/client-cloudfront';
 import { PutObjectCommand, S3Client, S3ClientConfig } from '@aws-sdk/client-s3';
 
 export function invalidateCache(Items: string[]) {
@@ -27,6 +27,7 @@ export function invalidateCache(Items: string[]) {
   } catch (e) {
     console.error('Error in function invalidateCache');
     console.log(JSON.stringify({ Items }, null, 4));
+    return { Items, error: 'Failed to invalidate' } as unknown as CreateInvalidationCommandOutput;
   }
 }
 
