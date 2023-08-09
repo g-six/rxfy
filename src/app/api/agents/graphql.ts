@@ -187,3 +187,23 @@ export const gql_agent_inventory = `query AgentInventory($agent: ID!) {
     }
   }
 }`;
+
+export const mutation_create_website_build = `mutation WebsiteBuildRequest($agent: ID!, $theme: String!) {
+  createWebsiteBuild(data: { agent: $agent, theme: $theme, is_published: false }) {
+    record: data {
+      id
+      attributes {
+        agent {
+          record: data {
+            id
+            attributes {
+              agent_id
+              website_theme
+              domain_name
+            }
+          }
+        }
+      }
+    }
+  }
+}`;
