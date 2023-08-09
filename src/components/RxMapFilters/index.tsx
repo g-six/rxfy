@@ -264,7 +264,7 @@ export default function RxMapFilters({ children, ...values }: { [key: string]: s
         const updated_query = updated_filters as unknown as { [k: string]: string };
         delete updated_query.sort;
         const qs = objectToQueryString(updated_query);
-        router.push('map?' + qs);
+        router.push('?' + qs);
         document.querySelectorAll('.w--open').forEach(el => el.classList.remove('w--open'));
         document.querySelectorAll('[aria-expanded]').forEach(el => el.setAttribute('aria-expanded', 'false'));
         fireEvent({
@@ -274,7 +274,7 @@ export default function RxMapFilters({ children, ...values }: { [key: string]: s
       }}
       onSubmit={() => {
         const qs = objectToQueryString(filters as unknown as { [k: string]: string });
-        router.push('map?' + qs);
+        router.push('?' + qs);
         document.querySelectorAll('.w--open').forEach(el => el.classList.remove('w--open'));
         document.querySelectorAll('[aria-expanded]').forEach(el => el.setAttribute('aria-expanded', 'false'));
         fireEvent({
@@ -324,7 +324,7 @@ export default function RxMapFilters({ children, ...values }: { [key: string]: s
               sort,
             };
             document.querySelectorAll('.w--open').forEach(el => el.classList.remove('w--open'));
-            router.push('map?' + objectToQueryString(params_with_sort));
+            router.push('?' + objectToQueryString(params_with_sort));
             fireEvent({
               ...data,
               reload: true,

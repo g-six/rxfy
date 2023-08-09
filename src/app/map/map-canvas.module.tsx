@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import mapboxgl, { GeoJSONSource, GeoJSONSourceRaw, LngLatLike, Map, MapboxGeoJSONFeature } from 'mapbox-gl';
+import mapboxgl, { GeoJSONSource, GeoJSONSourceRaw, Map, MapboxGeoJSONFeature } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Feature } from 'geojson';
 
@@ -16,7 +16,6 @@ import { classNames } from '@/_utilities/html-helper';
 import { must_not, retrievePublicListingsFromPipeline } from '@/_utilities/api-calls/call-legacy-search';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import PropertyListModal from '@/components/PropertyListModal';
-import { getMapData } from '@/_utilities/api-calls/call-mapbox';
 import { AgentData } from '@/_typings/agent';
 import Cookies from 'js-cookie';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
@@ -40,6 +39,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
   const search = useSearchParams();
   const { data, fireEvent } = useEvent(Events.MapSearch);
   const { fireEvent: setClusterModal } = useEvent(Events.MapClusterModal);
+  const { data: home_alerts_params, fireEvent: setHomeAlertsParams } = useEvent(Events.MyHomeAlertsForm);
   const { data: lovers_data_obj } = useEvent(Events.LoadLovers);
   const { data: love } = useEvent(Events.MapLoversToggle);
   const mapNode = React.useRef(null);
@@ -241,7 +241,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
       }
       // Update query string
       router.push(
-        'map?' +
+        '?' +
           objectToQueryString({
             ...qs,
             lat: filters.lat,
@@ -294,6 +294,16 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
             },
           },
         };
+
+        setHomeAlertsParams({
+          ...home_alerts_params,
+          bounds: {
+            nelat: map.getBounds().getNorthEast().lat,
+            nelng: map.getBounds().getNorthEast().lng,
+            swlat: map.getBounds().getSouthWest().lat,
+            swlng: map.getBounds().getSouthWest().lng,
+          },
+        } as unknown as EventsData);
 
         retrievePublicListingsFromPipeline(legacy_params).then(({ records }: { records: PropertyDataModel[] }) => {
           setPipelineResults(records);
@@ -373,7 +383,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
         zoom: map.getZoom(),
       };
       delete updated_filters.types;
-      router.push('map?' + objectToQueryString(updated_filters));
+      router.push('?' + objectToQueryString(updated_filters));
     }
   }, [data]);
 
@@ -408,6 +418,11 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
   }, [map]);
 
   React.useEffect(() => {
+    setHomeAlertsParams({
+      ...home_alerts_params,
+      ...filters,
+    } as unknown as EventsData);
+
     if (filters?.lat && filters?.lng) {
       const { reload } = data as unknown as {
         reload: boolean;

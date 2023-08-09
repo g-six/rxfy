@@ -110,7 +110,11 @@ export default async function MapIterator({ agent, children, city }: { children:
         } else if (className.includes('ha-icon')) {
           return <HomeAlertButton className={className}>{convertDivsToSpans(props.children)}</HomeAlertButton>;
         } else if (className.includes('ha-step-1')) {
-          return <HomeAlert1 className={className}>{props.children}</HomeAlert1>;
+          return (
+            <HomeAlert1 agent={agent?.id} className={className}>
+              {props.children}
+            </HomeAlert1>
+          );
         } else if (className.includes('ha-step-2')) {
           return <HomeAlert2 className={className}>{props.children}</HomeAlert2>;
         } else if (className.includes('ha-step-3')) {

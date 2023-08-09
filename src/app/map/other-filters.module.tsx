@@ -200,7 +200,7 @@ export default function OtherMapFilters({ className, children }: { className: st
   };
 
   const onSubmit = (evt: React.SyntheticEvent) => {
-    router.push('map?' + objectToQueryString(state as unknown as { [key: string]: string }));
+    router.push('?' + objectToQueryString(state as unknown as { [key: string]: string }));
     setToSubmitted(true);
     fireEvent({
       ...data,
@@ -237,7 +237,7 @@ export default function OtherMapFilters({ className, children }: { className: st
           key: '',
           value,
         });
-        router.push('map?' + objectToQueryString(value as unknown as { [key: string]: string }));
+        router.push('?' + objectToQueryString(value as unknown as { [key: string]: string }));
       }
     }
   }, [data]);

@@ -7,6 +7,7 @@ import { findAgentRecordByAgentId } from '../api/agents/model';
 import MapIterator from './map-iterator.module';
 import { SearchHighlightInput } from '@/_typings/maps';
 import { redirect } from 'next/navigation';
+import RxNotifications from '@/components/RxNotifications';
 
 export default async function MapPage({ params, searchParams }: { params: { [key: string]: string }; searchParams: { [key: string]: string } }) {
   const { slug: agent_id, 'profile-slug': slug } = params;
@@ -45,6 +46,7 @@ export default async function MapPage({ params, searchParams }: { params: { [key
           <MapIterator agent={agent} city={searchParams.city}>
             {domToReact(body as unknown as DOMNode[]) as unknown as React.ReactElement}
           </MapIterator>
+          <RxNotifications />
         </>
       );
       console.log(Date.now() - time + 'ms', '[Completed] rexification\n\n\n');
