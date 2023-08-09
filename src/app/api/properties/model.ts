@@ -1,7 +1,5 @@
 import { BathroomDetails, GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty, PropertyDataModel, RoomDetails } from '@/_typings/property';
-import { RealEstateBoardDataModel } from '@/_typings/real-estate-board';
 import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
-import { createAgentRecordIfNoneFound } from '@/app/api/agents/model';
 import { getFormattedPlaceDetails, googlePlaceQuery } from '../_helpers/geo-helper';
 import axios, { AxiosError } from 'axios';
 import { createCacheItem, invalidateCache } from '../_helpers/cache-helper';
