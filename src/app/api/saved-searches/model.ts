@@ -7,6 +7,17 @@ const headers = {
 };
 
 export async function createSavedSearch(agent: number, search_params: SavedSearchInput, customer: number) {
+  let params = {};
+  Object.keys(search_params).forEach(k => {
+    if (!['place_id', 'center'].includes(k)) {
+      const kv = search_params as unknown as { [key: string]: unknown };
+      params = {
+        ...params,
+        [k]: kv[k],
+      };
+    }
+  });
+
   const { data: search_response } = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {
@@ -14,7 +25,7 @@ export async function createSavedSearch(agent: number, search_params: SavedSearc
       variables: {
         data: {
           customer,
-          ...search_params,
+          ...params,
         },
       },
     },
