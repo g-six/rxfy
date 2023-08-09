@@ -224,8 +224,6 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
     getUserBySessionKey(session_key).then(setFormData);
   }
 
-  console.log({ data });
-
   const submitForm = (d = data) => {
     const updates = getCleanObject(d);
 
