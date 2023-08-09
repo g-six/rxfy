@@ -17,7 +17,6 @@ export default async function MyAllProperties({ params }: { params: { [key: stri
     const contents = $('body > div > .w-layout-grid');
     return (
       <div className={$('body > div').attr('class')}>
-        <NavIterator agent={agent}>{domToReact(nav as unknown as DOMNode[]) as React.ReactElement}</NavIterator>
         <MapIterator agent={agent}>{domToReact(contents as unknown as DOMNode[]) as React.ReactElement}</MapIterator>
       </div>
     );
