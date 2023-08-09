@@ -42,7 +42,7 @@ export default function NavIterator({ agent, children }: { children: React.React
       const { href, children: contents, ...link_props } = c.props;
       if (link_props?.className?.includes('-session') || href.includes('/my-') || href.includes('/map') || href.includes('dashboard')) {
         return (
-          <a href={`/${agent?.agent_id}/${agent?.metatags.profile_slug}${href}`} {...link_props}>
+          <a {...link_props} href={`/${agent?.agent_id}/${agent?.metatags.profile_slug}${href}`}>
             <NavIterator agent={agent}>{convertDivsToSpans(contents)}</NavIterator>
           </a>
         );
