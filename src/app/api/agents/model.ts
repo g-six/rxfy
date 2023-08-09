@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { gql_by_agent_uniq, gql_by_realtor_id, gql_create_agent, mutation_update_meta } from './graphql';
+import { gql_by_agent_uniq, gql_by_realtor_id, gql_create_agent, mutation_create_meta, mutation_create_website_build, mutation_update_meta } from './graphql';
 import { WEBFLOW_THEME_DOMAINS } from '@/_typings/webflow';
 import { RealEstateBoardDataModel } from '@/_typings/real-estate-board';
 import { AgentData, AgentInput } from '@/_typings/agent';
@@ -56,6 +56,26 @@ export async function createAgent(user_data: {
     );
 
     const agent = agent_response?.data?.data?.createAgent?.data || {};
+
+    const metatag_response = await axios.post(
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+      {
+        query: mutation_create_meta,
+        variables: {
+          data: {
+            agent_id: user_data.agent_id,
+            title: 'Your Go-To Realtor',
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
     return {
       ...agent.attributes,
       id: agent.id ? Number(agent.id) : undefined,
@@ -116,6 +136,41 @@ export async function updateAgent(
       },
     );
 
+    let website_build: { [k: string]: unknown } = {};
+    if (user_data.website_theme) {
+      website_build = {
+        ...website_build,
+        theme: user_data.website_theme as string,
+      };
+      const website_build_response = await axios.post(
+        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+        {
+          query: mutation_create_website_build,
+          variables: {
+            theme: user_data.website_theme,
+            agent: id,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      const website_record = website_build_response.data?.data?.createWebsiteBuild.record || {};
+      if (website_record.id) {
+        const { attributes: website_agent } = website_record.attributes.agent.record;
+        website_build = {
+          ...website_build,
+          id: Number(website_record.id),
+          agent: {
+            ...website_agent,
+            id,
+          },
+        };
+      }
+    }
     const agent = agent_response?.data?.data?.updateAgent?.data || {};
 
     return {
@@ -127,10 +182,11 @@ export async function updateAgent(
             id: Number(agent.attributes.agent_metatag.data.id),
           }
         : undefined,
+      website_build: Object.keys(website_build).length ? website_build : undefined,
     };
   } catch (e) {
-    console.log('Error in updateAgent');
     const axerr = e as AxiosError;
+    console.log('Error in updateAgent');
     if (axerr.response?.data) {
       const { error, errors } = axerr.response?.data as {
         error?: {
@@ -144,9 +200,7 @@ export async function updateAgent(
       console.log(
         JSON.stringify(
           {
-            response: axerr.response,
-            error,
-            errors,
+            axerr,
           },
           null,
           4,
