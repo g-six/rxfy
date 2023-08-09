@@ -83,6 +83,7 @@ export async function POST(req: Request) {
       password: string;
       full_name: string;
       agent_id: string;
+      phone: string;
     };
     stripe: {
       customer_id: string;
@@ -129,6 +130,7 @@ export async function POST(req: Request) {
         ];
         await sendTemplate('welcome-agent', receipients, {
           send_to_email: user.email,
+          password: user.password,
           dashboard_url: `${url.origin}/my-profile?key=${session_key}`,
           from_name: 'Leagent Team',
           subject: 'Welcome aboard!',
