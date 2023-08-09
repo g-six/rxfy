@@ -27,6 +27,7 @@ export async function createAgent(user_data: {
     const parts = `${user_data.full_name.split('PREC*').join('').trim()}`.split(' ');
     let last_name = parts.pop();
     let first_name = parts.join(' ');
+    let profile_slug = `la-${user_data.agent_id}-${(user_data.phone || '').split('').slice(-3).join('')}`;
 
     const metatag_response = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
@@ -36,6 +37,7 @@ export async function createAgent(user_data: {
           data: {
             agent_id: user_data.agent_id,
             title: 'Your Go-To Realtor',
+            profile_slug,
           },
         },
       },
