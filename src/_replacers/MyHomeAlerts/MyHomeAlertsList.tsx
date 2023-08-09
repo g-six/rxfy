@@ -6,8 +6,9 @@ import React, { ReactElement, cloneElement, use, useEffect, useState } from 'rea
 import MyHomeAlertCard from './MyHomeAlertCard';
 import { SavedSearch } from '@/_typings/saved-search';
 import { AgentData } from '@/_typings/agent';
-import useEvent, { Events } from '@/hooks/useEvent';
+import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { useSearchParams } from 'next/navigation';
+import { CenterLoader } from '@/app/loading';
 
 type Props = {
   child: ReactElement;
@@ -20,9 +21,19 @@ export default function MyHomeAlertsList({ child, agent_data }: Props) {
   const { key, alertData, reload } = data || {};
   const { card } = captureMatchingElements(child, [{ elementName: 'card', searchFn: searchByClasses(['home-alert-div']) }]);
   const [savedList, setSavedList] = useState<SavedSearch[]>([]);
+  const [has_loaded, toggleLoaded] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (savedList.length) {
+      fireEvent({
+        records: savedList,
+      } as unknown as EventsData);
+    }
+  }, [savedList]);
 
   useEffect(() => {
     getSearches(search.get('customer') ? Number(search.get('customer')) : undefined).then(res => {
+      toggleLoaded(true);
       setSavedList(res);
     });
   }, []);
@@ -46,10 +57,14 @@ export default function MyHomeAlertsList({ child, agent_data }: Props) {
 
   return (
     <>
-      {cloneElement(
-        child,
-        {},
-        savedList?.length > 0 ? [savedList.map(item => <MyHomeAlertCard key={item?.id} child={card} data={item} agent_data={agent_data} />)] : [],
+      {has_loaded ? (
+        cloneElement(
+          child,
+          {},
+          savedList?.length > 0 ? [savedList.map(item => <MyHomeAlertCard key={item?.id} child={card} data={item} agent_data={agent_data} />)] : [],
+        )
+      ) : (
+        <CenterLoader />
       )}
     </>
   );

@@ -11,6 +11,7 @@ import { AgentData } from '@/_typings/agent';
 import { DocumentsFolderInterface } from '@/_typings/document';
 import useEvent from '@/hooks/useEvent';
 import { useSearchParams } from 'next/navigation';
+import Loading, { CenterLoader } from '@/app/loading';
 interface Props {
   nodeProps: any;
   nodes?: ReactElement[];
@@ -48,12 +49,7 @@ function ConfirmDeleteIterator({ children, onCancel, onConfirm }: { children: Re
   return <>{Wrapped}</>;
 }
 
-export default function DocumentsReplacer({
-  nodes,
-  nodeProps,
-  agent_data,
-  customer,
-}: Props & { confirm?: boolean; customer?: { documents: DocumentsFolderInterface[] } }) {
+export default function DocumentsReplacer({ nodes, nodeProps, agent_data }: Props & { confirm?: boolean }) {
   const params = useSearchParams();
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const { data: create_folder_modal } = useEvent(Events.CreateDocFolderShow);
@@ -62,6 +58,7 @@ export default function DocumentsReplacer({
   const templates = captureMatchingElements(nodes, templatesToFind);
   const { data: notification } = useEvent(Events.SystemNotification);
   const delete_event = useEvent(Events.GenericEvent);
+  const [has_loaded, toggleLoaded] = useState<boolean>(false);
   const {
     data: { confirm, folder, id: folder_to_delete, confirmed_action },
   } = delete_event as unknown as {
@@ -77,8 +74,8 @@ export default function DocumentsReplacer({
 
   useEffect(() => {
     if (notification?.message === NotificationMessages.DOC_UPLOAD_COMPLETE) {
-      retrieveDocuments(agent_customer_id).then(documents => {
-        setDocuments(documents);
+      retrieveDocuments(agent_customer_id).then(d => {
+        setDocuments(d);
       });
     }
   }, [notification]);
@@ -100,14 +97,18 @@ export default function DocumentsReplacer({
   useEffect(() => {
     if (isNaN(agent_customer_id)) agent_customer_id = 0;
     retrieveDocuments(agent_customer_id).then(documents => {
+      toggleLoaded(true);
       setDocuments(documents || []);
     });
   }, []);
+
   const matches = [
     {
       //getting to doc folders container to populate  doc folders
       searchFn: searchByProp('data-field', 'doc_folder'),
       transformChild: (child: ReactElement) => {
+        if (!has_loaded) return <CenterLoader />;
+
         if (documents.length === 0) return <></>;
         return cloneElement(
           child,
@@ -126,9 +127,8 @@ export default function DocumentsReplacer({
       searchFn: searchByProp('data-field', 'empty_state'),
       transformChild: (child: ReactElement) => {
         const show = create_folder_modal?.show || !documents.length;
-
         return cloneElement(child, {
-          className: show ? child.props.className : 'hidden',
+          className: show && has_loaded ? child.props.className : 'hidden',
         });
       },
     },

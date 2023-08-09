@@ -73,9 +73,14 @@ export default function RxMySavedHomesDashBoard({ agent_data, className, childre
       //compare tab
       searchFn: searchByClasses(['compare-tab']),
       transformChild: (child: ReactElement) => {
+        return <></>;
         return <CompareTab child={child} />;
       },
     },
   ];
-  return <div className={className}>{transformMatchingElements(children, matches)}</div>;
+  return (
+    <div className={className} data-rx='full-pages/RxMySavedHomesDashBoard.tsx'>
+      {transformMatchingElements(children, matches)}
+    </div>
+  );
 }

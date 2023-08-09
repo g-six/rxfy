@@ -30,6 +30,7 @@ export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
           ...child.props,
           onClick: () => {
             fireCustomEvent({ show: true, message: 'New', alertData: {} }, Events.MyHomeAlertsModal);
+            document.querySelector('[data-field="empty_state"]')?.remove();
           },
         });
       },
@@ -37,19 +38,32 @@ export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
     {
       searchFn: searchByProp('data-field', 'empty_state'),
       transformChild: (child: ReactElement) => {
-        const { agent_customer_id } = getData('viewing_customer') as unknown as {
+        if (data) {
+          const { records } = data as unknown as {
+            records: unknown[];
+          };
+          if (records && records.length) {
+            return <></>;
+          }
+        }
+        const current_customer = getData('viewing_customer') as unknown as {
           agent_customer_id: number;
         };
-        const [customer] = p['agent-data']?.customers?.filter(customer => customer.agent_customer_id === agent_customer_id) || [];
-        let show = data?.show !== true;
+        if (current_customer?.agent_customer_id) {
+          if (p['agent-data']?.customers && Array.isArray(p['agent-data'].customers)) {
+            const [customer] = p['agent-data']?.customers?.filter(customer => customer.agent_customer_id === current_customer.agent_customer_id) || [];
+            let show = data?.show !== true;
 
-        if (customer && customer.saved_searches && customer.saved_searches.length) {
-          show = false;
+            if (customer && customer.saved_searches && customer.saved_searches.length) {
+              show = false;
+            }
+
+            return cloneElement(child, {
+              className: show ? child.props.className : 'hidden',
+            });
+          }
         }
-
-        return cloneElement(child, {
-          className: show ? child.props.className : 'hidden',
-        });
+        return child;
       },
     },
     {
