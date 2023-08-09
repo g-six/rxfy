@@ -28,12 +28,32 @@ export async function createAgent(user_data: {
     let last_name = parts.pop();
     let first_name = parts.join(' ');
 
+    const metatag_response = await axios.post(
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+      {
+        query: mutation_create_meta,
+        variables: {
+          data: {
+            agent_id: user_data.agent_id,
+            title: 'Your Go-To Realtor',
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
     const agent_response = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
       {
         query: gql_create_agent,
         variables: {
           data: {
+            agent_metatag: Number(metatag_response.data.data.createAgentMetatag.data.id),
             agent_id: user_data.agent_id,
             email: user_data.email,
             phone: user_data.phone,
@@ -56,25 +76,6 @@ export async function createAgent(user_data: {
     );
 
     const agent = agent_response?.data?.data?.createAgent?.data || {};
-
-    const metatag_response = await axios.post(
-      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-      {
-        query: mutation_create_meta,
-        variables: {
-          data: {
-            agent_id: user_data.agent_id,
-            title: 'Your Go-To Realtor',
-          },
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-          'Content-Type': 'application/json',
-        },
-      },
-    );
 
     return {
       ...agent.attributes,
