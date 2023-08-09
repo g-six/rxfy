@@ -23,6 +23,21 @@ type Props = {
   className?: string;
 };
 
+function TransformLink({ agent, children }: { agent: AgentData; children: React.ReactElement }) {
+  const Wrapped = React.Children.map(children, c => {
+    if (c.type === 'div') {
+      const { children: sub, ...props } = c.props;
+      return (
+        <div {...props}>
+          <TransformLink agent={agent}>{sub}</TransformLink>
+        </div>
+      );
+    }
+  });
+
+  return <>{Wrapped}</>;
+}
+
 export function ConfirmDeleteIterator({ children, onCancel, onConfirm }: { children: React.ReactElement; onConfirm: () => void; onCancel: () => void }) {
   const Wrapped = React.Children.map(children, c => {
     if (c.type === 'div') {
@@ -129,6 +144,7 @@ export default function ClientDashboardIterator(
           if (p.property?.id || p.properties?.length) {
             return <></>;
           }
+          return <TransformLink agent={p.agent}>{child}</TransformLink>;
         } else if (child.props.className?.split(' ').includes('indiv-map-tabs')) {
           return (
             <RxSavedHomesNav {...child.props} active-tab={p['active-tab']}>
