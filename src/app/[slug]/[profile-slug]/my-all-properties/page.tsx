@@ -13,6 +13,12 @@ export default async function MyAllProperties({ params }: { params: { [key: stri
 
   if (html && agent) {
     const $: CheerioAPI = load(html);
+    $('.navbar-dashboard-wrapper [href]').each((i, el) => {
+      let u = $(el).attr('href');
+      if (u && u !== '#') {
+        $(el).attr('href', `/${agent.agent_id}/${agent.metatags.profile_slug}${u}`);
+      }
+    });
     const nav = $('body > div > .navbar---dashboard');
     const contents = $('body > div > .w-layout-grid');
     return (
