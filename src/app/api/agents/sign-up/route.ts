@@ -164,7 +164,7 @@ export async function POST(req: Request) {
         email: user.email,
         full_name: agent_profile.full_name,
         login_email: user.email,
-        phone_number: agent_profile.phone,
+        phone_number: agent_profile.phone || user.phone,
         encrypted_password,
       },
       stripe,
