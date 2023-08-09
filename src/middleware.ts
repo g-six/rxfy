@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { WEBFLOW_DASHBOARDS } from './_typings/webflow';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
   // Store current request url in a custom header, which you can read later
@@ -64,7 +64,7 @@ export function middleware(request: NextRequest) {
     response.headers.set('x-viewer', 'customer');
 
     // if (['map', 'id', 'property', 'update-password', 'my-account', 'log-in', 'my-profile', 'client-dashboard'].includes(segments[2])) {
-    if (['my-profile', 'map', 'reset-password', 'my-home-alerts', 'my-compare'].includes(segments[2])) {
+    if (['my-profile', 'map', 'reset-password', 'my-home-alerts', 'my-compare', 'my-all-properties'].includes(segments[2])) {
       page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/${segments[2]}`;
     } else if (segments[2] === 'map') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/map`;
     else if (segments[2] === 'id') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/id`;
