@@ -68,7 +68,12 @@ export async function POST(request: Request) {
         400,
       );
     }
-    const record = await createSavedSearch(agent, search_params, customer);
+    const record = await createSavedSearch(
+      agent,
+      search_params,
+      /* if customer isn't set, it is assumed that the cookie session is for customers */
+      customer || guid,
+    );
     if (record?.id) {
       const user = await getNewSessionKey(token, guid);
 
