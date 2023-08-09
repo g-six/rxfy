@@ -102,7 +102,7 @@ export default function Container({ agent, children }: { children: React.ReactEl
                 ...p.property,
                 love: p.id,
                 notes: p.notes,
-                cover_photo: p.property.photos?.[0] ? getImageSized(p.property.photos[0]) : '/images/house-placeholder.png',
+                cover_photo: p.property.photos?.[0] ? getImageSized(p.property.photos[0]) : '/house-placeholder.png',
               };
             });
 
