@@ -307,3 +307,7 @@ export const deepEqual = (objA: any, objB: any, map = new WeakMap()) => {
   }
   return true;
 };
+
+export const removeEmpty = (obj: { [k: string]: unknown }) => {
+  return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
+};
