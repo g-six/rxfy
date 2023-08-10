@@ -123,7 +123,12 @@ export default function RxCRMCustomerCard(p: Props) {
   const changeClientStatus = (status: 'lead' | 'active' | 'closed') => {
     moveClient(p['data-id'], status).then(d => {
       if (d.session_key) {
-        getUserBySessionKey(d.session_key, 'realtor').then(session.fireEvent);
+        getUserBySessionKey(d.session_key, 'realtor').then(d => {
+          session.fireEvent({
+            ...session.data,
+            ...d,
+          });
+        });
       }
     });
   };

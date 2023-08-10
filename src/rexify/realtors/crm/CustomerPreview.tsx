@@ -7,11 +7,13 @@ import { RxButton } from '@/components/RxButton';
 import RxCustomerNotesWrapper from './CustomerNotesWrapper';
 import styles from './CustomerNotes.module.scss';
 import { setData } from '@/_utilities/data-helpers/local-storage-helper';
+import { AgentData } from '@/_typings/agent';
 
 type Props = {
   children: React.ReactElement;
   className?: string;
   'data-customer': CustomerRecord;
+  'data-session'?: AgentData;
 };
 
 function Iterator(p: Props) {
@@ -21,7 +23,20 @@ function Iterator(p: Props) {
         return React.cloneElement(child, {
           href: `${child.props.href}?customer=${p['data-customer'].agent_customer_id}`,
           onClick: () => {
-            setData('viewing_customer', JSON.stringify(p['data-customer'] || {}));
+            const { agent_id, metatags } = (p['data-session'] || {}) as unknown as {
+              agent_id?: string;
+              metatags?: {
+                profile_slug: string;
+              };
+            };
+            setData(
+              'viewing_customer',
+              JSON.stringify({
+                ...(p['data-customer'] || {}),
+                agent_id,
+                profile_slug: metatags?.profile_slug || '',
+              }),
+            );
           },
         });
       } else if (child.props?.['data-field']) {
@@ -115,7 +130,7 @@ function Iterator(p: Props) {
       }
       return (
         <div {...child.props}>
-          <Iterator {...child.props} data-customer={p['data-customer']}>
+          <Iterator {...child.props} data-customer={p['data-customer']} data-session={p['data-session']}>
             {child.props.children}
           </Iterator>
         </div>
@@ -167,7 +182,11 @@ export default function RxCRMCustomerPreview(p: Props) {
     <section
       className={['RxCRMCustomerPreview', p.className || '', customer !== undefined && !new_form_active ? '' : styles['hidden-component']].join(' ').trim()}
     >
-      {customer !== undefined && <Iterator data-customer={customer}>{p.children}</Iterator>}
+      {customer !== undefined && (
+        <Iterator data-customer={customer} data-session={data}>
+          {p.children}
+        </Iterator>
+      )}
     </section>
   );
 }

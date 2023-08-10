@@ -71,7 +71,10 @@ export default function RxSessionDropdown(p: Props) {
         getUserBySessionKey(Cookies.get('session_key') as string, 'realtor')
           .then(data => {
             const { expires_in } = data as unknown as { expires_in: number };
-            session.fireEvent(data);
+            session.fireEvent({
+              ...session.data,
+              ...data,
+            });
             if (expires_in > 0) {
               setSession(true);
             }

@@ -60,6 +60,12 @@ export default function RxCustomerView(p: Props) {
                 first_name,
                 last_name,
                 full_name,
+                agent: {
+                  agent_id: agent.agent_id,
+                  metatags: {
+                    profile_slug: agent.metatags.profile_slug,
+                  },
+                },
               }),
             );
           }

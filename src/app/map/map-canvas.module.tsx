@@ -557,7 +557,6 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
           }
         }),
       );
-    initializeMap();
   }, []);
 
   return (

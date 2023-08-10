@@ -15,6 +15,9 @@ import RxCustomerAccountView from './crm/RxCustomerAccountView';
 import CRMNav from './crm/CRMNav';
 import { AgentData } from '@/_typings/agent';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { getAgentBaseUrl } from '@/app/api/_helpers/agent-helper';
+import { getData } from '@/_utilities/data-helpers/local-storage-helper';
+import useEvent, { Events } from '@/hooks/useEvent';
 
 type Props = {
   children: React.ReactElement;
@@ -23,16 +26,26 @@ type Props = {
   className?: string;
 };
 
-function TransformLink({ agent, children }: { agent: AgentData; children: React.ReactElement }) {
+function TransformLink({ children }: { children: React.ReactElement }) {
+  const { data } = useEvent(Events.LoadUserSession);
   const Wrapped = React.Children.map(children, c => {
     if (c.type === 'div') {
       const { children: sub, ...props } = c.props;
       return (
         <div {...props}>
-          <TransformLink agent={agent}>{sub}</TransformLink>
+          <TransformLink base-url={props['base-url']}>{sub}</TransformLink>
         </div>
       );
     }
+    if (c.type === 'a') {
+      const { href, children: sub, ...props } = c.props;
+      return (
+        <a {...props} href={getAgentBaseUrl(data as unknown as AgentData) + href}>
+          {sub}
+        </a>
+      );
+    }
+    return c;
   });
 
   return <>{Wrapped}</>;
@@ -144,7 +157,8 @@ export default function ClientDashboardIterator(
           if (p.property?.id || p.properties?.length) {
             return <></>;
           }
-          return <TransformLink agent={p.agent}>{child}</TransformLink>;
+
+          return <TransformLink>{child}</TransformLink>;
         } else if (child.props.className?.split(' ').includes('indiv-map-tabs')) {
           return (
             <RxSavedHomesNav {...child.props} active-tab={p['active-tab']}>

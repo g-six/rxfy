@@ -1,3 +1,4 @@
+import { AgentData } from '@/_typings/agent';
 import { objectToQueryString } from '@/_utilities/url-helper';
 
 export function getFullAgentRecord(recordset: {
@@ -128,4 +129,11 @@ export function getFullAgentRecord(recordset: {
     agent.homepage = `https://${agent.domain_name}`;
   }
   return agent;
+}
+
+export function getAgentBaseUrl(agent: AgentData) {
+  if (agent.domain_name) return `https://${agent.domain_name}`;
+  if (agent.metatags) return `/${agent.agent_id}/${agent.metatags.profile_slug}`;
+
+  return '';
 }

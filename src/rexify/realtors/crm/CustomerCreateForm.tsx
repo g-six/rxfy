@@ -132,7 +132,12 @@ export default function RxCRMCustomerCreateForm(p: Props) {
         createClient(client)
           .then(() => {
             if (Cookies.get('session_key')) {
-              getUserBySessionKey(Cookies.get('session_key') as string, 'realtor').then(session.fireEvent);
+              getUserBySessionKey(Cookies.get('session_key') as string, 'realtor').then(d => {
+                session.fireEvent({
+                  ...session.data,
+                  ...d,
+                });
+              });
               notifications.fireEvent({
                 timeout: 15000,
                 category: NotificationCategory.SUCCESS,

@@ -15,6 +15,7 @@ import { RxTextInput } from '@/components/RxTextInput';
 import { RxButton } from '@/components/RxButton';
 import { getCleanObject } from '@/_utilities/data-helpers/key-value-cleaner';
 import { convertDivsToSpans } from '@/_replacers/DivToSpan';
+import RxSelectedTheme from './realtors/website/RxSelectedTheme.module';
 
 type Props = {
   children: React.ReactElement;
@@ -279,6 +280,12 @@ function Iterator(p: {
     }
 
     const media_fields = ['ogimage_url', 'favicon'];
+    if (p.children.type === 'div') {
+      if (p.className === 'selected-theme') {
+        return <RxSelectedTheme agent={p.agent}>{p.children}</RxSelectedTheme>;
+      }
+    }
+
     if (p.children.type === 'div' && p.id && media_fields.includes(p.id)) {
       let metatags: { [key: string]: string } = {};
       if (updates.metatags) metatags = updates.metatags as unknown as { [key: string]: string };
@@ -319,11 +326,13 @@ function Iterator(p: {
               setUpdates({
                 ...updates,
                 webflow_domain: p.id,
+                website_theme: p.id.split('-').reverse().pop() as ThemeName,
               });
 
               saveValues({
                 progress: 0,
                 webflow_domain: p.id,
+                website_theme: p.id.split('-').reverse().pop() as ThemeName,
               } as unknown as EventsData);
             }
           }}
