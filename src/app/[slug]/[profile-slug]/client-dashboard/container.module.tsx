@@ -113,7 +113,7 @@ export default function Container({ agent, children }: { children: React.ReactEl
           });
         })
         .catch(() => {
-          router.push('log-out');
+          router.push('/log-out');
         });
     }
   };
