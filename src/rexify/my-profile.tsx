@@ -11,6 +11,7 @@ import RxBrandPreferences from './realtors/brand-preferences';
 import { RxButton } from '@/components/RxButton';
 import { buildNavigationComponent } from './realtors/RxNavIterator';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
+import styles from './my-profile.module.scss';
 
 type Props = {
   className?: string;
@@ -145,6 +146,22 @@ export function RxPageIterator(props: Props) {
           return <RxKeyValueRow {...child.props} value={subscription.name} />;
         }
         return <RxKeyValueRow {...child.props} />;
+      } else if (child.props?.className?.split(' ').includes('faq-item-basic')) {
+        return React.cloneElement(child, {
+          onClick: (evt: React.SyntheticEvent<HTMLDivElement>) => {
+            document.querySelector('.faq-item-basic.' + styles.active + ' nav')?.setAttribute('style', 'height: 0px;');
+            document.querySelector('.faq-item-basic.' + styles.active + ' nav')?.classList.remove('w--open');
+            document.querySelector('.faq-item-basic.' + styles.active)?.classList.remove(styles.active);
+            if (evt.currentTarget.classList.contains(styles.active)) {
+              evt.currentTarget.querySelector('nav')?.setAttribute('style', 'height: 0px');
+              evt.currentTarget.classList.remove(styles.active);
+            } else {
+              evt.currentTarget.classList.add(styles.active);
+              evt.currentTarget.querySelector('nav')?.removeAttribute('style');
+              evt.currentTarget.querySelector('nav')?.classList.add('w--open');
+            }
+          },
+        });
       }
 
       // TODO
