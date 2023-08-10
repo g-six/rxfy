@@ -74,6 +74,7 @@ export default function DocumentsReplacer({ nodes, nodeProps, agent_data }: Prop
 
   useEffect(() => {
     if (notification?.message === NotificationMessages.DOC_UPLOAD_COMPLETE) {
+      toggleLoaded(true);
       retrieveDocuments(agent_customer_id).then(d => {
         setDocuments(d);
       });

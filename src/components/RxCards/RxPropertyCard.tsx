@@ -58,7 +58,7 @@ function RxComponentChomper({ config, children }: any): any {
             children: RxElement.props.children,
           }) as any,
         });
-      } else if (RxElement.props.className === 'propcard-details') {
+      } else if (RxElement.props.className.includes('propcard-details')) {
         if (config.onClickItem)
           return React.cloneElement(RxElement, {
             ...RxElement.props,
