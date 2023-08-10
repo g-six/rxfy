@@ -1,19 +1,22 @@
+import { removeEmpty } from '@/_helpers/functions';
 import { AgentData } from '@/_typings/agent';
 import { objectToQueryString } from '@/_utilities/url-helper';
 
 export function getFullAgentRecord(recordset: {
-  agent_id: string;
   agent_metatag: { data?: { id: number; attributes: { [key: string]: unknown } } };
+  agent_id: string;
   full_name: string;
+  webflow_domain?: string;
+  website_theme?: string;
 }) {
-  const { agent_id, full_name, agent_metatag } = recordset;
+  const { agent_id, full_name, agent_metatag, webflow_domain, website_theme } = recordset;
   const metatags = agent_metatag.data
     ? {
         ...agent_metatag.data.attributes,
         id: Number(agent_metatag.data.id),
       }
     : undefined;
-  let agent: { [key: string]: unknown } = { agent_id, full_name };
+  let agent: { [key: string]: unknown } = { agent_id, full_name, webflow_domain, website_theme };
   if (metatags) {
     Object.keys(metatags).forEach(k => {
       const kv: { [key: string]: string | number } = metatags as unknown as {
@@ -128,7 +131,7 @@ export function getFullAgentRecord(recordset: {
   if (agent.domain_name) {
     agent.homepage = `https://${agent.domain_name}`;
   }
-  return agent;
+  return removeEmpty(agent);
 }
 
 export function getAgentBaseUrl(agent: AgentData) {
