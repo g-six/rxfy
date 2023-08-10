@@ -157,7 +157,7 @@ export function RxPageIterator(props: Props) {
               evt.currentTarget.classList.remove(styles.active);
             } else {
               evt.currentTarget.classList.add(styles.active);
-              evt.currentTarget.querySelector('nav')?.removeAttribute('style');
+              evt.currentTarget.querySelector('nav')?.setAttribute('style', 'height: 100%');
               evt.currentTarget.querySelector('nav')?.classList.add('w--open');
             }
           },
