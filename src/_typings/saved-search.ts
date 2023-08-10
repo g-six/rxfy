@@ -30,6 +30,16 @@ export interface SavedSearchInput extends SavedSearchBaseModel {
   dwelling_types?: string[];
   dwelling_type_ids?: number[];
 }
+export interface SavedSearchOutput extends SavedSearchBaseModel {
+  id: number;
+  dwelling_types?: {
+    data: {
+      attributes: {
+        name: DwellingType;
+      };
+    }[];
+  };
+}
 
 export interface CustomerSavedSearch extends SavedSearchInput {
   customer: number;
