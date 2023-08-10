@@ -89,7 +89,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
       const [session_hash, user_id] = session_key.split('-');
       const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
       if (Object.keys(session).length === 0) {
-        redirect('log-out');
+        redirect('/log-out');
         return;
       }
       const { agent: session_agent } = session as unknown as {
