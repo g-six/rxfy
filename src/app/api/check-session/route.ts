@@ -57,11 +57,13 @@ export async function getUserSessionData(authorization: string, user_type: 'real
         const stripe_subscription = await stripe.subscriptions.retrieve(subscription_id);
 
         if (stripe_subscription.items.data[0].plan) {
-          const { nickname, interval } = stripe_subscription.items.data[0].plan;
+          const { items, status } = stripe_subscription;
+          const { nickname, interval } = items.data[0].plan;
           if (nickname) {
             subscription = {
               ...subscription,
               name: nickname,
+              status,
             };
           }
           if (stripe_subscription.items.data[0].plan.interval) {
