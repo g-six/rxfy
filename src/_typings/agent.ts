@@ -122,4 +122,14 @@ export interface AgentData {
   last_activity_at?: Date;
   encrypted_password?: string;
   customers?: CustomerRecord[];
+  stripe_subscriptions?: {
+    [subscription_id: string]: {
+      invoice?: string;
+    };
+  };
+  subscription?: {
+    name: string;
+    interval: 'month' | 'year';
+    status: string;
+  };
 }
