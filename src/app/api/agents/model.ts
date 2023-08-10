@@ -1,5 +1,13 @@
 import axios, { AxiosError } from 'axios';
-import { gql_by_agent_uniq, gql_by_realtor_id, gql_create_agent, mutation_create_meta, mutation_create_website_build, mutation_update_meta } from './graphql';
+import {
+  gql_by_agent_uniq,
+  gql_by_realtor_id,
+  gql_create_agent,
+  mutation_create_meta,
+  mutation_create_website_build,
+  mutation_update_meta,
+  qry_website_build,
+} from './graphql';
 import { WEBFLOW_THEME_DOMAINS } from '@/_typings/webflow';
 import { RealEstateBoardDataModel } from '@/_typings/real-estate-board';
 import { AgentData, AgentInput } from '@/_typings/agent';
@@ -544,4 +552,29 @@ export async function createAgentRecordIfNoneFound({ agent_id, email, phone, ful
     console.log('Caught error in createAgentRecordIfNoneFound');
     console.error(e);
   }
+}
+
+export async function getMostRecentWebsiteThemeRequest(agent: number) {
+  const response = await axios.post(
+    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+    {
+      query: qry_website_build,
+      variables: {
+        agent,
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+  const response_data = response ? response.data?.data?.websiteBuilds : {};
+  return response_data.data
+    ? {
+        ...response_data.data[0].attributes,
+        id: Number(response_data.data[0].id),
+      }
+    : null;
 }
