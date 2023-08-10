@@ -207,3 +207,26 @@ export const mutation_create_website_build = `mutation WebsiteBuildRequest($agen
     }
   }
 }`;
+
+export const qry_website_build = `query WebsiteBuildRequest($agent: ID!) {
+  websiteBuilds(filters: { agent: {
+    id: {
+      eq: $agent
+    }
+  }, is_published: { eq: false } }, pagination: { pageSize: 1 }, sort: "createdAt:desc") {
+    data {
+      id
+      attributes {
+        agent {
+          data {
+            attributes {
+              agent_id
+            }
+          }
+        }
+        theme
+        requested_at: createdAt
+      }
+    }
+  }
+}`;
