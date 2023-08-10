@@ -5,6 +5,7 @@ import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import styles from './documents.module.scss';
 import { DocumentInterface } from '@/_typings/document';
 import { getDocumentSignedUrl } from '@/_utilities/api-calls/call-documents';
+import axios from 'axios';
 type Props = {
   template: ReactElement;
   docData: DocumentInterface;
@@ -39,12 +40,14 @@ export default function DocumentRow({ template, docData, deleteRow }: Props) {
       transformChild: (child: ReactElement) => {
         return cloneElement(child, {
           href: '#',
-          download: true,
+          download: 'download',
           onClick: async (e: MouseEvent<HTMLAnchorElement>) => {
             if (e.currentTarget.href === '#') e.preventDefault();
 
             const a = document.createElement('a');
-            a.href = await getDocumentSignedUrl(file_name);
+            const url = await getDocumentSignedUrl(file_name);
+            a.href = url;
+            a.target = '_blank';
             a.setAttribute('download', 'true');
             document.body.append(a);
             a.click();

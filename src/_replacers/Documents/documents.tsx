@@ -11,7 +11,7 @@ import { AgentData } from '@/_typings/agent';
 import { DocumentsFolderInterface } from '@/_typings/document';
 import useEvent from '@/hooks/useEvent';
 import { useSearchParams } from 'next/navigation';
-import Loading, { CenterLoader } from '@/app/loading';
+import { CenterLoader } from '@/app/loading';
 interface Props {
   nodeProps: any;
   nodes?: ReactElement[];
