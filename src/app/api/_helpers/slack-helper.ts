@@ -1,5 +1,5 @@
 import { AgentData } from '@/_typings/agent';
-import { SlackBlock } from '@/_typings/slack';
+import { SlackBlock, SlackElement } from '@/_typings/slack';
 import { getAgentBaseUrl } from './agent-helper';
 
 export async function notifySlack(profile: AgentData, message: string) {
@@ -23,14 +23,18 @@ export async function notifySlack(profile: AgentData, message: string) {
     },
   ];
 
-  const slack_payload = JSON.stringify(buildMessage(`A ${profile.user.user_type} has *updated* their *Leagent* plan`, blocks, plan.created));
-  await fetch(process.env.SLACK_WEBHOOK_URL, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    method: 'POST',
-    body: slack_payload,
-  });
+  const slack_payload = JSON.stringify(
+    buildMessage(`A ${profile.agent_id || profile.full_name} has *updated* their *Leagent* plan`, blocks, Math.ceil(Date.now() / 1000)),
+  );
+  const slack_hook = process.env.NEXT_APP_SLACK_WEBHOOK_URL || '';
+  if (slack_hook)
+    await fetch(slack_hook, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      body: slack_payload,
+    });
 }
 
 export function buildMessage(message: string, contents: SlackBlock[], ts?: number): { blocks: SlackBlock[] } {
