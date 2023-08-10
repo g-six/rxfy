@@ -1,21 +1,9 @@
 import { AgentData } from '@/_typings/agent';
 import { SlackBlock } from '@/_typings/slack';
+import { getAgentBaseUrl } from './agent-helper';
 
 export async function notifySlack(profile: AgentData, message: string) {
   const blocks: SlackBlock[] = [
-    {
-      type: 'section',
-      fields: [
-        {
-          type: 'mrkdwn',
-          text: [`*Name:*\n${profile.full_name} <${profile.email}>`].join('\n\n'),
-        },
-        {
-          type: 'mrkdwn',
-          text: [`*Email:*\n${profile.user.email}`, `*Phone:*\n${profile.user.phone_number}`].join('\n\n'),
-        },
-      ],
-    },
     {
       type: 'section',
       text: {
@@ -29,8 +17,8 @@ export async function notifySlack(profile: AgentData, message: string) {
           text: 'View Profile :arrow_upper_right:',
           emoji: true,
         },
-        value: profile.profile_slug,
-        url: `${process.env.LEAGENT_APP_URL}/p/${profile.profile_slug}`,
+        value: profile.metatags?.profile_slug || '',
+        url: getAgentBaseUrl(profile),
       },
     },
   ];
@@ -43,4 +31,44 @@ export async function notifySlack(profile: AgentData, message: string) {
     method: 'POST',
     body: slack_payload,
   });
+}
+
+export function buildMessage(message: string, contents: SlackBlock[], ts?: number): { blocks: SlackBlock[] } {
+  let elements: SlackElement[] = [
+    {
+      type: 'image',
+      image_url: 'https://leagent.com/favicon.png',
+      alt_text: 'LEAGENT',
+    },
+  ];
+
+  if (ts) {
+    elements.push({ type: 'mrkdwn', text: new Intl.DateTimeFormat('en-CA', { dateStyle: 'medium' }).format(new Date(ts * 1000)) });
+  }
+
+  elements = elements.concat([
+    {
+      type: 'mrkdwn',
+      text: message,
+    },
+  ]);
+
+  let blocks: SlackBlock[] = [
+    {
+      type: 'context',
+      elements,
+    },
+    {
+      type: 'divider',
+    },
+  ];
+
+  if (contents.length) blocks = blocks.concat(contents);
+
+  const payload: { blocks: SlackBlock[]; ts?: number } = {
+    blocks,
+  };
+  console.log(JSON.stringify(blocks, null, 2));
+  if (ts) payload.ts = ts;
+  return payload;
 }
