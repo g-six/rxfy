@@ -11,13 +11,26 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { getUserSessionData } from '../api/check-session/route';
 import RxRealtorNav from '@/components/Nav/RxRealtorNav';
 import MyWebSiteSelectedTheme from './SelectedTheme.module';
+import RxSearchEngineOptimizationTab from './seo/seo-rexifier.module';
+import RxNotifications from '@/components/RxNotifications';
+import DomainHowButton from './DomainHowButton.module';
+import DomainHowModal from './DomainHowModal.module';
 
 function Rexify({ children, ...props }: { children: ReactElement; realtor: AgentData }) {
   const Rexified = Children.map(children, c => {
     if (c.props?.children && typeof c.props?.children !== 'string') {
-      const { className, children: sub } = c.props;
+      const { className, children: sub, ...wrapper } = c.props;
       if (className?.includes('selected-theme')) {
         return <MyWebSiteSelectedTheme {...props}>{c}</MyWebSiteSelectedTheme>;
+      }
+      if (wrapper['data-w-tab'] === 'Tab 2') {
+        return <RxSearchEngineOptimizationTab realtor={props.realtor}>{c}</RxSearchEngineOptimizationTab>;
+      }
+      if (className?.includes('alert-regular')) {
+        return <DomainHowButton className={className}>{sub}</DomainHowButton>;
+      }
+      if (className?.includes('domain-instructions')) {
+        return <DomainHowModal className={className}>{sub}</DomainHowModal>;
       }
       return cloneElement(c, {}, <Rexify {...props}>{sub}</Rexify>);
     }
@@ -63,10 +76,13 @@ export default async function MyWebSite() {
       }
       const nav = $('body > div > [class^="navigation-full-wrapper"]');
       return (
-        <main className={$('body > div').attr('class')}>
-          <RxRealtorNav>{domToReact(nav as unknown as DOMNode[]) as React.ReactElement}</RxRealtorNav>
-          <Rexify realtor={realtor}>{domToReact($('body > div > [data-dash]') as unknown as DOMNode[]) as React.ReactElement}</Rexify>
-        </main>
+        <>
+          <main className={$('body > div').attr('class')}>
+            <RxRealtorNav>{domToReact(nav as unknown as DOMNode[]) as React.ReactElement}</RxRealtorNav>
+            <Rexify realtor={realtor}>{domToReact($('body > div > [data-dash]') as unknown as DOMNode[]) as React.ReactElement}</Rexify>
+          </main>
+          <RxNotifications />
+        </>
       );
     }
   }
