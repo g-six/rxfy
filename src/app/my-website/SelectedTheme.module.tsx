@@ -1,6 +1,9 @@
 import { AgentData } from '@/_typings/agent';
 import { Children, ReactElement, cloneElement } from 'react';
 import { getMostRecentWebsiteThemeRequest } from '../api/agents/model';
+import { capitalizeFirstLetter } from '@/_utilities/formatters';
+import RxYourTheme from './website/your-theme.rexifier';
+import RxThemeImg from './website/theme-img.rexifier';
 
 interface RexifyComponent {
   children: ReactElement;
@@ -27,12 +30,24 @@ function Rx({ children, ...props }: RexifyComponent) {
     if (c.type === 'img' && c.props?.className?.includes('selected-theme-image')) {
       const { className, ...img_attributes } = c.props;
       const class_list = `${className || ''}`.split(' ');
-      return img_attributes.id?.includes(props.realtor.website_theme)
-        ? cloneElement(c, {
-            className: class_list.filter(cn => cn !== 'hidden').join(' '),
-          })
-        : c;
+      return (
+        <RxThemeImg
+          {...c.props}
+          className={img_attributes.id?.includes(props.realtor.website_theme) ? class_list.filter(cn => cn !== 'hidden').join(' ') : className}
+        >
+          {c}
+        </RxThemeImg>
+      );
     }
+    if (c.type === 'h6') {
+      const { children: sub, ...attributes } = c.props;
+      return (
+        <RxYourTheme {...attributes} theme={props.realtor.website_theme}>
+          {sub}
+        </RxYourTheme>
+      );
+    }
+
     if (c.type === 'a') {
       const { children: sub } = c.props;
       if (sub && typeof sub === 'string' && props.realtor.metatags?.profile_slug) {

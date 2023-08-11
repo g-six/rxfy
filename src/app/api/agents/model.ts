@@ -20,6 +20,8 @@ import { mutation_update_agent } from './graphql';
 import { SearchHighlightInput } from '@/_typings/maps';
 import { cache } from 'react';
 import { createCacheItem } from '../_helpers/cache-helper';
+import { capitalizeFirstLetter } from '@/_utilities/formatters';
+import { createTask } from '../clickup/model';
 
 export async function createAgent(user_data: {
   agent_id: string;
@@ -180,19 +182,26 @@ export async function updateAgent(
             id,
           },
         };
+        createTask(
+          `${capitalizeFirstLetter(user_data.website_theme as string)} Theme Request by ${website_agent.agent_id || website_agent.full_name}`,
+          `${website_agent.agent_id || website_agent.full_name} would like to update their site theme to ${capitalizeFirstLetter(
+            user_data.website_theme as string,
+          )}.`,
+        );
       }
     }
     const agent = agent_response?.data?.data?.updateAgent?.data || {};
+    const metatags = agent.attributes.agent_metatag.data
+      ? {
+          ...agent.attributes.agent_metatag.data.attributes,
+          id: Number(agent.attributes.agent_metatag.data.id),
+        }
+      : undefined;
 
     return {
       ...agent.attributes,
       id: agent.id ? Number(agent.id) : undefined,
-      metatags: agent.attributes.agent_metatag.data
-        ? {
-            ...agent.attributes.agent_metatag.data.attributes,
-            id: Number(agent.attributes.agent_metatag.data.id),
-          }
-        : undefined,
+      metatags,
       website_build: Object.keys(website_build).length ? website_build : undefined,
     };
   } catch (e) {

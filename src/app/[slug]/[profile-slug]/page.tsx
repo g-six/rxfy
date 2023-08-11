@@ -241,7 +241,12 @@ function Iterator({
 export default async function AgentHomePage({ params }: { params: { slug: string } }) {
   const { slug: agent_id } = params;
   if (agent_id) {
-    const promises = await Promise.all([axios.get(`https://${WEBFLOW_DASHBOARDS.CUSTOMER}`), findAgentRecordByAgentId(agent_id)]);
+    const agent = await findAgentRecordByAgentId(agent_id);
+    let webflow_site = `https://${WEBFLOW_DASHBOARDS.CUSTOMER}`;
+    if (agent.domain_name) webflow_site = `https://${agent.domain_name}`;
+    // else if (agent.webflow_domain) webflow_site = `https://${agent.webflow_domain}`;
+
+    const promises = await Promise.all([axios.get(webflow_site)]);
     const { data: html } = promises[0];
     const $: CheerioAPI = load(html);
 
@@ -263,8 +268,8 @@ export default async function AgentHomePage({ params }: { params: { slug: string
         },
       },
     ] as unknown[];
-    if (promises[1].metatags?.search_highlights?.labels) {
-      const { labels } = promises[1].metatags.search_highlights as unknown as {
+    if (agent.metatags?.search_highlights?.labels) {
+      const { labels } = agent.metatags.search_highlights as unknown as {
         labels: {
           ne: {
             lat: number;
@@ -389,7 +394,7 @@ export default async function AgentHomePage({ params }: { params: { slug: string
 
     return (
       <Iterator
-        agent={promises[1]}
+        agent={agent}
         listings={{
           active: (active || []) as unknown[] as PropertyDataModel[],
           sold: (sold || []) as unknown[] as PropertyDataModel[],

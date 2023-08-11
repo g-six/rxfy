@@ -1,3 +1,4 @@
+import { classNames } from '@/_utilities/html-helper';
 import styles from './loading.module.scss';
 
 export function CenterLoader() {
@@ -10,6 +11,6 @@ export function CenterLoader() {
   );
 }
 
-export default function Loading() {
-  return <div className={styles.loader} />;
+export default function Loading({ size }: { size?: 'small' | 'tiny' }) {
+  return <div className={classNames(styles.loader, size ? styles[size] : '')} />;
 }

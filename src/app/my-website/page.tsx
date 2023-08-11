@@ -16,6 +16,7 @@ import RxNotifications from '@/components/RxNotifications';
 import DomainHowButton from './DomainHowButton.module';
 import DomainHowModal from './DomainHowModal.module';
 import RxTrackingCodes from './tracking-codes.rexifier';
+import RxThemes from './themes-explorer.rexifier';
 
 function Rexify({ children, ...props }: { children: ReactElement; realtor: AgentData }) {
   const Rexified = Children.map(children, c => {
@@ -30,6 +31,9 @@ function Rexify({ children, ...props }: { children: ReactElement; realtor: Agent
         }
         if (wrapper['data-w-tab'] === 'Tab 3') {
           return <RxTrackingCodes realtor={props.realtor}>{c}</RxTrackingCodes>;
+        }
+        if (wrapper['data-w-tab'] === 'Tab 4') {
+          return <RxThemes realtor={props.realtor}>{c}</RxThemes>;
         }
       }
       if (className?.includes('alert-regular')) {

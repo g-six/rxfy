@@ -17,17 +17,26 @@ export async function notifySlack(profile: AgentData, message: string) {
           text: 'View Profile :arrow_upper_right:',
           emoji: true,
         },
-        value: profile.metatags?.profile_slug || '',
+        value: profile.agent_id || '',
         url: getAgentBaseUrl(profile),
       },
     },
   ];
+  if (message) {
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: message,
+      },
+    });
+  }
 
   const slack_payload = JSON.stringify(
-    buildMessage(`A ${profile.agent_id || profile.full_name} has *updated* their *Leagent* plan`, blocks, Math.ceil(Date.now() / 1000)),
+    buildMessage(`A ${profile.agent_id || profile.full_name} has an *update/request*`, blocks, Math.ceil(Date.now() / 1000)),
   );
   const slack_hook = process.env.NEXT_APP_SLACK_WEBHOOK_URL || '';
-  if (slack_hook)
+  if (slack_hook) {
     await fetch(slack_hook, {
       headers: {
         'Content-Type': 'application/json',
@@ -35,6 +44,9 @@ export async function notifySlack(profile: AgentData, message: string) {
       method: 'POST',
       body: slack_payload,
     });
+  } else {
+    console.log('slack_payload', { slack_payload });
+  }
 }
 
 export function buildMessage(message: string, contents: SlackBlock[], ts?: number): { blocks: SlackBlock[] } {
@@ -72,7 +84,7 @@ export function buildMessage(message: string, contents: SlackBlock[], ts?: numbe
   const payload: { blocks: SlackBlock[]; ts?: number } = {
     blocks,
   };
-  console.log(JSON.stringify(blocks, null, 2));
+
   if (ts) payload.ts = ts;
   return payload;
 }

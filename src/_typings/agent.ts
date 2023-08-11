@@ -80,6 +80,8 @@ export interface RealtorInputModel extends UserInputModel {
   first_name?: string;
   last_name?: string;
   phone_number?: string;
+  website_theme?: string;
+  webflow_domain?: string;
   metatags?: {
     [key: string]: unknown;
   };
