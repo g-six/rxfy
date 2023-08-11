@@ -33,7 +33,7 @@ export function RxNavIterator(p: Props) {
 
 export function buildNavigationComponent(children: React.ReactElement[], container_props: Props) {
   const [wrapper] = children
-    .filter(f => f.props.className.split(' ').includes('navigation-full-wrapper-2'))
+    .filter(f => f.props.className.includes('navigation-full-wrapper'))
     .map(({ props }) => {
       return (
         <div key='navigation-full-wrapper-2' id={props.id || 'rx-navigation'} className={[props.className || '', 'rexified'].join(' ')}>
