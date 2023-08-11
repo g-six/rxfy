@@ -1,27 +1,20 @@
 'use client';
-import { Children, ReactElement, cloneElement, useEffect, useState } from 'react';
+import { Children, ReactElement, cloneElement, useEffect } from 'react';
 import { AgentData } from '@/_typings/agent';
-import useEvent, { Events, EventsData, NotificationCategory } from '@/hooks/useEvent';
-import { RxButton } from '@/components/RxButton';
-import { updateAccount } from '@/_utilities/api-calls/call-update-account';
-import Cookies from 'js-cookie';
+import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { classNames } from '@/_utilities/html-helper';
 import { fireCustomEvent } from '@/_helpers/functions';
 import { EventData } from 'mapbox-gl';
 import Loading from '../loading';
-import { capitalizeFirstLetter } from '@/_utilities/formatters';
-
-type DataContainer = {
-  website_theme?: string;
-  webflow_domain?: string;
-};
+import RxThemeSwitchConfirmation from './ThemeSwitchConfirmation.module';
 
 function RxThemeCard({ children, ...props }: { children: ReactElement; id?: string; theme?: string; className?: string }) {
   const { data } = useEvent(Events.UpdateTheme);
-  const { clicked, website_theme } = data as unknown as {
-    webflow_domain: string;
-    website_theme: string;
+  const { clicked } = useEvent(Events.Blank).data as unknown as {
     clicked?: string;
+  };
+  const { website_theme } = data as unknown as {
+    website_theme: string;
   };
 
   const Rexified = Children.map(children, c => {
@@ -59,9 +52,9 @@ function RxThemeCard({ children, ...props }: { children: ReactElement; id?: stri
             website_theme: props.theme,
             webflow_domain: props.id,
             loading: true,
-            clicked: `${Events.UpdateTheme}-trigger`,
+            clicked: `${Events.UpdateThemeConfirmation}-trigger`,
           } as unknown as EventData,
-          Events.UpdateTheme,
+          Events.UpdateThemeConfirmation,
         );
       }}
     >
@@ -72,30 +65,19 @@ function RxThemeCard({ children, ...props }: { children: ReactElement; id?: stri
   );
 }
 
-function Rexify({ children, ...props }: { children: ReactElement; 'agent-id': string; 'form-state': 'loading' | 'enabled' | 'disabled' | 'finishing' }) {
+function Rexify({ children, ...props }: { children: ReactElement; 'agent-id': string }) {
   const Rexified = Children.map(children, c => {
     const { className, children: sub, ...component_props } = c.props || {};
+
+    if (className?.includes('change-theme')) {
+      return <RxThemeSwitchConfirmation className={className + ' rexified'}>{sub}</RxThemeSwitchConfirmation>;
+    }
 
     if (c.props?.id?.includes('.webflow.io')) {
       return (
         <RxThemeCard {...component_props} className={className} theme={c.props.id.split('-')[0].toLowerCase()}>
           {sub}
         </RxThemeCard>
-      );
-    }
-
-    if (c.type === 'a' && className?.includes('cta-tracking-save')) {
-      return (
-        <RxButton
-          id={Events.UpdateTheme + '-trigger'}
-          rx-event={Events.UpdateTheme}
-          className={className}
-          type='button'
-          disabled={props['form-state'] !== 'enabled'}
-          loading={['loading', 'finishing'].includes(props['form-state'])}
-        >
-          {sub}
-        </RxButton>
       );
     }
 
@@ -108,53 +90,15 @@ function Rexify({ children, ...props }: { children: ReactElement; 'agent-id': st
 }
 
 export default function RxThemes({ children, realtor }: { children: ReactElement; realtor: AgentData }) {
-  const { fireEvent: notify } = useEvent(Events.SystemNotification);
-  const { data, fireEvent: updateForm } = useEvent(Events.UpdateTheme);
-  const { clicked, webflow_domain, website_theme } = data as unknown as DataContainer & {
-    clicked: string;
-  };
+  const { fireEvent } = useEvent(Events.UpdateTheme);
 
   useEffect(() => {
-    if (clicked === `${Events.UpdateTheme}-trigger`) {
-      if (realtor.metatags.id) {
-        updateAccount(
-          Cookies.get('session_key') as string,
-          {
-            webflow_domain,
-            website_theme,
-          },
-          true,
-        )
-          .then(() => {
-            notify({
-              category: NotificationCategory.SUCCESS,
-              message: `Your theme change request to ${capitalizeFirstLetter(website_theme as string)} has been logged and our team is setting it up.`,
-              timeout: 3500,
-            });
-          })
-          .finally(() => {
-            updateForm({
-              ...data,
-              clicked: undefined,
-            });
-          });
-      }
-    }
-  }, [clicked]);
-
-  useEffect(() => {
-    fireCustomEvent(
-      {
-        webflow_domain: realtor.webflow_domain || '',
-        website_theme: realtor.website_theme || '',
-      } as unknown as EventsData,
-      Events.UpdateTheme,
-    );
+    fireEvent({
+      webflow_domain: realtor.webflow_domain || '',
+      website_theme: realtor.website_theme || '',
+      clicked: undefined,
+    } as unknown as EventsData);
   }, []);
 
-  return (
-    <Rexify agent-id={realtor.agent_id} form-state={clicked === `${Events.UpdateTheme}-trigger` ? 'loading' : 'enabled'}>
-      {children}
-    </Rexify>
-  );
+  return <Rexify agent-id={realtor.agent_id}>{children}</Rexify>;
 }
