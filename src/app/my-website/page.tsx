@@ -11,10 +11,11 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { getUserSessionData } from '../api/check-session/route';
 import RxRealtorNav from '@/components/Nav/RxRealtorNav';
 import MyWebSiteSelectedTheme from './SelectedTheme.module';
-import RxSearchEngineOptimizationTab from './seo/seo-rexifier.module';
+import RxSearchEngineOptimizationTab from './seo.rexifier';
 import RxNotifications from '@/components/RxNotifications';
 import DomainHowButton from './DomainHowButton.module';
 import DomainHowModal from './DomainHowModal.module';
+import RxTrackingCodes from './tracking-codes.rexifier';
 
 function Rexify({ children, ...props }: { children: ReactElement; realtor: AgentData }) {
   const Rexified = Children.map(children, c => {
@@ -23,8 +24,13 @@ function Rexify({ children, ...props }: { children: ReactElement; realtor: Agent
       if (className?.includes('selected-theme')) {
         return <MyWebSiteSelectedTheme {...props}>{c}</MyWebSiteSelectedTheme>;
       }
-      if (wrapper['data-w-tab'] === 'Tab 2') {
-        return <RxSearchEngineOptimizationTab realtor={props.realtor}>{c}</RxSearchEngineOptimizationTab>;
+      if (className?.includes('tab-pane')) {
+        if (wrapper['data-w-tab'] === 'Tab 2') {
+          return <RxSearchEngineOptimizationTab realtor={props.realtor}>{c}</RxSearchEngineOptimizationTab>;
+        }
+        if (wrapper['data-w-tab'] === 'Tab 3') {
+          return <RxTrackingCodes realtor={props.realtor}>{c}</RxTrackingCodes>;
+        }
       }
       if (className?.includes('alert-regular')) {
         return <DomainHowButton className={className}>{sub}</DomainHowButton>;

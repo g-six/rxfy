@@ -159,8 +159,8 @@ function Rexify({
 export default function RxSearchEngineOptimizationTab({ children, realtor }: { children: ReactElement; realtor: AgentData }) {
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const { data, fireEvent: updateForm } = useEvent(Events.UpdateWebsite);
-  const { data: ogimage_event_data, fireEvent: replaceOGImage } = useEvent(Events.UploadOGImage);
-  const { data: favicon_event_data, fireEvent: replaceFavicon } = useEvent(Events.UploadFavicon);
+  const { data: ogimage_event_data } = useEvent(Events.UploadOGImage);
+  const { data: favicon_event_data } = useEvent(Events.UploadFavicon);
   const [form_data, setFormData] = useState<AgentMetatags>(realtor.metatags);
   const [images, setImages] = useState<ImageSet>({});
   const [button_state, toggleSaveButton] = useState<'disabled' | 'loading' | 'enabled'>('disabled');

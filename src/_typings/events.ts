@@ -36,6 +36,7 @@ export enum Events {
   LoadUserSession = 'load-session',
   SaveUserSession = 'save-session',
   UpdateWebsite = 'update-website',
+  UpdateTrackingCodes = 'update-tracking-codes',
   UpdateBrokerage = 'update-brokerage',
   UpdateBrandPreferences = 'update-brand-preferences',
   DashboardMenuTab = 'dashboard-menu-tab',

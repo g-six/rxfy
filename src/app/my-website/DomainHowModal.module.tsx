@@ -55,7 +55,7 @@ export default function DomainHowModal({ children, className }: { children: Reac
   const { modal } = data as unknown as {
     modal?: string;
   };
-  console.log(modal);
+
   return (
     <div className={classNames(className, modal?.includes(className) ? styles.show : '')}>
       <Rexify>{children}</Rexify>
