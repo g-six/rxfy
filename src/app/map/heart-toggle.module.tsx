@@ -7,7 +7,7 @@ import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 import { LoveDataModel } from '@/_typings/love';
 
-export default function HeartToggle({ children, className }: { children: React.ReactElement; className: string }) {
+export default function HeartToggle({ children, className, records }: { children: React.ReactElement; className: string; records?: LoveDataModel[] }) {
   const { data, fireEvent } = useEvent(Events.MapLoversToggle);
   const love = useEvent(Events.LoadLovers);
   const { loved_only } = data as unknown as {
@@ -15,26 +15,32 @@ export default function HeartToggle({ children, className }: { children: React.R
   };
   const local: string[] = getData(Events.LovedItem) || [];
 
-  React.useEffect(() => {
-    getLovedHomes().then((love_res: unknown) => {
-      if (love_res) {
-        const { records } = love_res as {
-          records: LoveDataModel[];
-        };
-
-        if (records?.length) {
-          love.fireEvent({
-            lovers: records.map(rec => rec.property),
-          } as unknown as EventsData);
-          records.forEach(l => {
-            if (!local.includes(l.property.mls_id)) local.push(l.property.mls_id);
-          });
-          if (local.length) {
-            setData(Events.LovedItem, JSON.stringify(local));
-          }
-        }
+  const broadcastRecords = (r: LoveDataModel[]) => {
+    if (r?.length) {
+      love.fireEvent({
+        lovers: r.map(rec => rec.property),
+      } as unknown as EventsData);
+      r.forEach(l => {
+        if (!local.includes(l.property.mls_id)) local.push(l.property.mls_id);
+      });
+      if (local.length) {
+        setData(Events.LovedItem, JSON.stringify(local));
       }
-    });
+    }
+  };
+
+  React.useEffect(() => {
+    if (records) broadcastRecords(records);
+    else {
+      getLovedHomes().then((love_res: unknown) => {
+        if (love_res) {
+          const data = love_res as {
+            records: LoveDataModel[];
+          };
+          broadcastRecords(data.records || []);
+        }
+      });
+    }
   }, []);
 
   return (

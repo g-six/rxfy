@@ -33,8 +33,8 @@ function Iterator({ children }: { children: React.ReactElement }) {
   });
   return <>{Wrapped}</>;
 }
-
-export default function MapCanvas(p: { agent?: AgentData; className: string; children: React.ReactElement; 'default-lat': number; 'default-lng': number }) {
+export default function MapCanvas(p: { agent?: AgentData; className: string; children: React.ReactElement; properties?: PropertyDataModel[] }) {
+  const start = Date.now();
   const router = useRouter();
   const search = useSearchParams();
   const { data, fireEvent } = useEvent(Events.MapSearch);
@@ -52,7 +52,6 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
   const [listings, setListings] = React.useState<PropertyDataModel[]>([]);
   const [pipeline_listings, setPipelineResults] = React.useState<PropertyDataModel[]>([]);
   const [selected_cluster, setSelectedCluster] = React.useState<PropertyDataModel[]>([]);
-
   const clickEventListener = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
     const features = e.target.queryRenderedFeatures(e.point, {
       layers: ['rx-clusters', 'rx-home-price-bg'],
@@ -103,18 +102,24 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
       lng: number;
       zoom: number;
     };
-    setMap(
-      new mapboxgl.Map({
-        container: node,
-        accessToken: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
-        style: 'mapbox://styles/mapbox/streets-v11',
-        center: [lng, lat],
-        zoom: zoom || 12,
-      }),
-    );
+    const m = new mapboxgl.Map({
+      container: node,
+      accessToken: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [lng, lat],
+      zoom: zoom || 12,
+    });
+    m.on('load', () => {
+      if (p.properties && p.properties.length) {
+        setListings(p.properties);
+        setPipelineResults(p.properties);
+        setLoading(true);
+      }
+    });
+    setMap(m);
   };
 
-  const populateMap = () => {
+  const populateMap = (from = 0) => {
     if (filters && is_loading) {
       let should: {
         match?: {
@@ -255,8 +260,8 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
         // Let's get more accurate if possible
         // Data bounded by map
         const legacy_params: LegacySearchPayload = {
-          from: 0,
-          size: 1000,
+          from,
+          size: 500,
           sort,
           query: {
             bool: {
@@ -330,6 +335,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
   const repositionMap = React.useCallback(
     (latlng: string) => {
       if (map) {
+        console.log('Map loaded in', Date.now() - start, 'ms');
         // Not sure why we need this, perhaps performance issue in the past?
         // Commenting this out for now and if maps performance is an issue,
         // try uncommenting this
@@ -412,6 +418,9 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
 
       map.off('zoomend', populate);
       map.on('zoomend', populate);
+
+      // setListings(p.properties);
+      // setPipelineResults(p.properties);
     }
     // If we add populateMap into the dependency, it would cause an infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -429,7 +438,11 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
       };
       if (!map) {
         initializeMap();
-        setLoading(true);
+        if (!p.properties?.length) {
+          // SSR Pipeline gathering might have failed or yielded zero results,
+          // Let's try calling the /api/pipeline again by setting load - true
+          setLoading(true);
+        }
         return;
       } else if (reload) {
         setLoading(true);
@@ -512,9 +525,9 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
       setLoading(true);
     } else if (!q.lat && !q.lng) {
       const updated = {
-        lat: p['default-lat'],
-        lng: p['default-lng'],
-        zoom: 10,
+        lat: Number(search.get('lat')),
+        lng: Number(search.get('lng')),
+        zoom: 12,
       };
       setFilters(updated);
     } else setFilters(q);
@@ -560,7 +573,14 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
   }, []);
 
   return (
-    <aside className={[p.className, styles.MainWrapper, 'rexified MapCanvas'].join(' ')}>
+    <aside
+      className={[p.className, styles.MainWrapper, 'rexified MapCanvas'].join(' ')}
+      style={{
+        backgroundImage: `url(${`https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${search.get('lng')},${search.get(
+          'lat',
+        )},12/1080x720@2x?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`})`,
+      }}
+    >
       <div id='map' className={classNames(styles.RxMapbox)} ref={mapNode}></div>
       <PropertyListModal
         agent={p.agent}

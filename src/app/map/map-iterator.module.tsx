@@ -21,8 +21,20 @@ import { classNames } from '@/_utilities/html-helper';
 
 import styles from './styles.module.scss';
 import NavIterator from '@/components/Nav/RxNavIterator';
+import { LoveDataModel } from '@/_typings/love';
+import { PropertyDataModel } from '@/_typings/property';
 
-export default async function MapIterator({ agent, children, city }: { children: React.ReactElement; agent?: AgentData; city?: string }) {
+export default async function MapIterator({
+  children,
+  ...attributes
+}: {
+  children: React.ReactElement;
+  agent?: AgentData;
+  city?: string;
+  loves?: LoveDataModel[];
+  properties?: PropertyDataModel[];
+}) {
+  const { agent, city } = attributes;
   const Wrapped = React.Children.map(children, c => {
     if (c.props && typeof c.props.children === 'string') {
       if (c.props.children.includes('{Agent Name}')) {
@@ -102,9 +114,7 @@ export default async function MapIterator({ agent, children, city }: { children:
         } else if (className.includes('left-bar')) {
           return (
             <div className={[className, list_styles['left-bar']].join(' ')}>
-              <MapIterator agent={agent} city={city}>
-                {props.children}
-              </MapIterator>
+              <MapIterator {...attributes}>{props.children}</MapIterator>
             </div>
           );
         } else if (className.includes('ha-icon')) {
@@ -126,10 +136,8 @@ export default async function MapIterator({ agent, children, city }: { children:
             </PropertyCardSm>
           );
         } else if (className.includes('mapbox-canvas')) {
-          const default_lat = agent?.metatags?.lat || 49.274527699999794;
-          const default_lng = agent?.metatags?.lng || -123.11389869999971;
           return (
-            <MapCanvas agent={agent} className={className} default-lat={default_lat} default-lng={default_lng}>
+            <MapCanvas agent={agent} className={className} {...attributes}>
               {props.children}
             </MapCanvas>
           );
@@ -145,21 +153,23 @@ export default async function MapIterator({ agent, children, city }: { children:
 
       return (
         <div className={className || '' + ' rexified MapPage Iterator'} {...props}>
-          <MapIterator agent={agent} city={city}>
-            {c.props.children}
-          </MapIterator>
+          <MapIterator {...attributes}>{c.props.children}</MapIterator>
         </div>
       );
     } else if (c.type === 'a') {
       if (c.props?.className.includes('heart-button')) {
-        return <HeartToggle className={c.props.className}>{c.props.children}</HeartToggle>;
+        return (
+          <HeartToggle records={attributes.loves} className={c.props.className}>
+            {c.props.children}
+          </HeartToggle>
+        );
       }
       return React.cloneElement(
         c,
         c.props,
         React.Children.map(c.props.children, cc => {
           if (!['img', 'span', 'svg'].includes(cc.type)) {
-            return <MapIterator agent={agent}>{React.cloneElement(<span />, cc.props)}</MapIterator>;
+            return <MapIterator {...attributes}>{React.cloneElement(<span />, cc.props)}</MapIterator>;
           }
           return cc;
         }),
@@ -168,7 +178,7 @@ export default async function MapIterator({ agent, children, city }: { children:
       return React.cloneElement(c, {
         ...c.props,
         children: React.Children.map(c.props.children, cc => {
-          return <MapIterator agent={agent}>{convertDivsToSpans(cc)}</MapIterator>;
+          return <MapIterator {...attributes}>{convertDivsToSpans(cc)}</MapIterator>;
         }),
       });
     } else if (c.type === 'input' && c.props && c.props.className?.includes('search-input-field')) {

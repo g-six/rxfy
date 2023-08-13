@@ -120,3 +120,37 @@ function mapStyles(): MapStyle[] {
     },
   ];
 }
+
+const R = 6371;
+
+// offsets in kilometers
+const toRadians = (degrees: number): number => {
+  return (degrees * Math.PI) / 180;
+};
+
+const toDegrees = (radians: number): number => {
+  return (radians * 180) / Math.PI;
+};
+
+export const getBounds = (lat: number, lng: number, distance: number) => {
+  const radius = distance / R;
+
+  const latT = toRadians(lat);
+  const lonT = toRadians(lng);
+
+  const deltaLat = radius;
+  const deltaLon = Math.asin(Math.sin(radius) / Math.cos(latT));
+
+  const minLat = latT - deltaLat;
+  const maxLat = latT + deltaLat;
+
+  const minLon = lonT - deltaLon;
+  const maxLon = lonT + deltaLon;
+
+  return {
+    nelat: toDegrees(maxLat),
+    nelng: toDegrees(maxLon),
+    swlat: toDegrees(minLat),
+    swlng: toDegrees(minLon),
+  };
+};

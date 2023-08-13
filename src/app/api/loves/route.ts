@@ -1,11 +1,10 @@
 import axios from 'axios';
-import { GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty, PropertyDataModel } from '@/_typings/property';
+import { GQ_FRAGMENT_PROPERTY_ATTRIBUTES } from '@/_typings/property';
 import { getResponse } from '../response-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getNewSessionKey } from '../update-session';
-import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { getMutationForPhotoAlbumCreation } from '@/_utilities/data-helpers/property-page';
-import { getLovedHomes } from './model';
+import { getLovedHomes, regenerateRecords } from './model';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -53,6 +52,7 @@ const gql_love = `mutation LoveHome ($property_id: ID!, $agent: ID!, $customer: 
 }`;
 
 export async function GET(request: Request) {
+  const start = new Date().getTime();
   const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
   if (!token || !guid)
     return getResponse(
@@ -64,72 +64,35 @@ export async function GET(request: Request) {
   let session_key = `${token}-${guid}`;
   let message = 'Unable to retrieve saved homes';
 
-  const loves = await getLovedHomes(guid);
-  if (loves) {
-    let cover_photo = 'https://assets.website-files.com/6410ad8373b7fc352794333b/642df6a57f39e6607acedd7f_Home%20Placeholder-p-500.png';
-    let photos: string[] = [];
-    try {
-      const records = loves.map(love => {
-        if (!love.property) return undefined;
-        const { property_photo_album, beds, baths, ...other_fields } = love.property;
-        if (property_photo_album?.data) {
-          const {
-            attributes: { photos: property_photos },
-          } = property_photo_album.data as unknown as {
-            attributes: {
-              photos: string[];
-            };
-          };
+  let records = [];
+  const cache_url = `https://${process.env.NEXT_APP_S3_PAGES_BUCKET}/cache/${guid}/loves.json`;
+  const user = await getNewSessionKey(token, guid);
+  console.log(Date.now() - start, 'session');
 
-          photos = property_photos.map((src: string, idx) => {
-            if (idx === 0) cover_photo = getImageSized(src, 520);
-            return getImageSized(src, 1400);
-          });
-        }
+  if (!user) return getResponse({ message: 'Please log in' }, 401);
+  session_key = user.session_key;
 
-        let for_filters = {};
-
-        return {
-          id: Number(love.id),
-          notes: love.notes || '',
-          property: {
-            ...for_filters,
-            ...other_fields,
-            id: Number(other_fields.id),
-            beds,
-            baths,
-            photos,
-            property_photo_album,
-            cover_photo,
-            area: other_fields.area || other_fields.city,
-            mls_data: undefined, // Hide prized data
-            for_filters,
-          },
-        };
-      });
-
-      const user = await getNewSessionKey(token, guid);
-
-      if (!user) return getResponse({ message: 'Please log in' }, 401);
-
-      session_key = user.session_key;
-      return getResponse(
-        {
-          session_key,
-          records,
-        },
-        200,
-      );
-    } catch (e) {
-      console.log('Caught error in love response');
-      console.log(e);
-      return getResponse({ message: 'Caught error in love response', session_key }, 400);
+  try {
+    const results = await axios.get(cache_url);
+    console.log(Date.now() - start, 's3 cache');
+    regenerateRecords(guid);
+    if (results.data) {
+      records = results.data.records;
     }
+  } catch (e) {
+    records = await regenerateRecords(guid);
+    console.log('\nNo cache', cache_url);
   }
+  console.log(Date.now() - start, 'query');
 
-  message = `${message}\nNo valid user session`;
-
-  return getResponse({ message }, 401);
+  return getResponse(
+    {
+      session_key,
+      records,
+    },
+    200,
+    'application/json',
+  );
 }
 
 export async function POST(request: Request) {

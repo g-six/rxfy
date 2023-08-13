@@ -1,6 +1,6 @@
 .MainWrapper {
-    
-    .RxMapbox {
-        @apply h-full w-full;
-    }
+  @apply h-full w-full bg-center bg-cover;
+  .RxMapbox {
+    @apply h-full w-full bg-center bg-cover;
+  }
 }

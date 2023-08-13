@@ -10,8 +10,13 @@ export default function NavIterator({ agent, children }: { children: React.React
   const Wrapped = React.Children.map(children, c => {
     if (c.type === 'div') {
       const { children: subchildren, ...props } = c.props;
+      let className: string = props.className || '';
+      className = className
+        .split(' ')
+        .filter(cn => cn !== 'w-nav')
+        .join(' ');
       return (
-        <div {...props} className={classNames(c.props.className || '', 'rexified', 'NavIterator-div')}>
+        <div {...props} className={classNames(className || '', 'rexified', 'NavIterator-div')}>
           <NavIterator agent={agent}>{subchildren}</NavIterator>
         </div>
       );

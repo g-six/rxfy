@@ -1,5 +1,7 @@
 import { GQ_FRAGMENT_PROPERTY_ATTRIBUTES, PROPERTY_ASSOCIATION_KEYS, PropertyDataModel } from '@/_typings/property';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import axios from 'axios';
+import { createCacheItem } from '../_helpers/cache-helper';
 
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
@@ -11,6 +13,7 @@ const gql_get_loved = `query GetLovedProperty($filters: LoveFiltersInput!, $pagi
             id
             attributes {
                 notes
+                updated_at: updatedAt
                 property {
                     data {
                         id
@@ -42,6 +45,7 @@ export async function getLovedHomes(customer: number, property_id?: number) {
       id: number;
       attributes: {
         notes: string;
+        updated_at: Date;
         property: {
           data: {
             id: number;
@@ -89,4 +93,74 @@ export async function getLovedHomes(customer: number, property_id?: number) {
       },
     };
   });
+}
+
+export async function regenerateRecords(guid: number) {
+  let updated_at = 0;
+  const loves = await getLovedHomes(guid);
+
+  if (loves) {
+    const records = loves.map(love => {
+      if (!love.property) return undefined;
+      let cover_photo = 'https://assets.website-files.com/6410ad8373b7fc352794333b/642df6a57f39e6607acedd7f_Home%20Placeholder-p-500.png';
+      let photos: string[] = [];
+      const { property_photo_album, beds, baths, ...other_fields } = love.property;
+      if (property_photo_album?.data) {
+        const {
+          attributes: { photos: property_photos },
+        } = property_photo_album.data as unknown as {
+          attributes: {
+            photos: string[];
+          };
+        };
+
+        photos = property_photos.map((src: string, idx) => {
+          if (idx === 0) cover_photo = getImageSized(src, 520);
+          return getImageSized(src, 1400);
+        });
+      }
+
+      let for_filters = {};
+      const ts = new Date(love.updated_at).getTime();
+      if (updated_at < ts) updated_at = ts;
+
+      return {
+        id: Number(love.id),
+        notes: love.notes || '',
+        updated_at: new Date(love.updated_at),
+        property: {
+          ...for_filters,
+          ...other_fields,
+          id: Number(other_fields.id),
+          beds,
+          baths,
+          photos,
+          property_photo_album,
+          cover_photo,
+          area: other_fields.area || other_fields.city,
+          mls_data: undefined, // Hide prized data
+          for_filters,
+        },
+      };
+    });
+
+    if (updated_at) {
+      const timestamp = new Date(updated_at).toISOString();
+      createCacheItem(
+        JSON.stringify(
+          {
+            records,
+            timestamp,
+          },
+          null,
+          4,
+        ),
+        `cache/${guid}/loves.json`,
+      );
+    }
+
+    return records;
+  }
+
+  return [];
 }

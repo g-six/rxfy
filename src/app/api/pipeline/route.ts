@@ -7,7 +7,6 @@ import { formatAddress } from '@/_utilities/string-helper';
 import { PropertyDataModel } from '@/_typings/property';
 import { objectToQueryString } from '@/_utilities/url-helper';
 import { createCacheItem } from '../_helpers/cache-helper';
-import { LegacySearchPayload } from '@/_typings/pipeline';
 function mapData(hits: { _source: { data: Record<string, unknown> } }[], real_estate_board?: { name: string }[]): PropertyDataModel[] {
   return hits.map(p => {
     const {
@@ -231,6 +230,57 @@ function getCacheKey(legacy_params: unknown) {
       .map(k => `${(cache_key as unknown as { [k: string]: string })[k]}`)
       .join('/')
   );
+}
+
+function generateCacheKey(params: { [key: string]: string }) {
+  let cache_key = '';
+
+  if (params.beds) cache_key = params.beds;
+  else cache_key = '0';
+  cache_key = `${cache_key}bd`;
+
+  if (params.baths) cache_key = `${cache_key}${params.baths}ba`;
+  else cache_key = '${cache_key}0ba';
+  cache_key = `${cache_key}/`;
+
+  if (params.minprice) cache_key = `${cache_key}priced-${params.minprice}`;
+  else cache_key = `${cache_key}priced-0`;
+  if (params.maxprice) cache_key = `${cache_key}-${params.maxprice}`;
+  else cache_key = `${cache_key}-0`;
+  cache_key = `${cache_key}/`;
+
+  if (params.minsqft) cache_key = `${cache_key}${params.maxsqft}`;
+  else cache_key = `${cache_key}0`;
+  if (params.maxsqft) cache_key = `${cache_key}-${params.maxsqft}`;
+  else cache_key = `${cache_key}-0`;
+  cache_key = `${cache_key}sqft/`;
+
+  if (params.date) cache_key = `${cache_key}listed-at-${params.date.split('/').reverse().join('-')}/`;
+  else cache_key = `${cache_key}listed-at-anytime/`;
+
+  if (params.year_built) cache_key = `${cache_key}built-${params.year_built}/`;
+  else cache_key = `${cache_key}built-anytime/`;
+
+  if (params.keywords)
+    cache_key = `${cache_key}keywords-${params.keywords
+      .split(',')
+      .map(s => s.trim())
+      .sort()
+      .join('-')}/`;
+  else cache_key = `${cache_key}keywords-any/`;
+
+  if (params.types)
+    cache_key = `${cache_key}types-${params.types
+      .split(',')
+      .map(s => s.trim())
+      .sort()
+      .join('-')}/`;
+  else cache_key = `${cache_key}types-any/`;
+
+  if (params.sort) `${cache_key}sort-by-${params.sort}/`;
+  else `${cache_key}default-sorting/`;
+
+  return `${cache_key}${params.lat},${params.lng}.json`;
 }
 function getAlias(key: string) {
   const legacy_field_name = key.split('data.').join('');
