@@ -261,7 +261,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
         // Data bounded by map
         const legacy_params: LegacySearchPayload = {
           from,
-          size: 500,
+          size: 100,
           sort,
           query: {
             bool: {
@@ -310,14 +310,45 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
           },
         } as unknown as EventsData);
 
-        retrievePublicListingsFromPipeline(legacy_params).then(({ records }: { records: PropertyDataModel[] }) => {
-          setPipelineResults(records);
+        Promise.all([
+          retrievePublicListingsFromPipeline(legacy_params),
+          retrievePublicListingsFromPipeline({
+            ...legacy_params,
+            from: 100,
+          }),
+          retrievePublicListingsFromPipeline({
+            ...legacy_params,
+            from: 200,
+          }),
+          retrievePublicListingsFromPipeline({
+            ...legacy_params,
+            from: 300,
+          }),
+          retrievePublicListingsFromPipeline({
+            ...legacy_params,
+            from: 400,
+          }),
+        ]).then((results: { records: PropertyDataModel[] }[]) => {
+          let all_records: PropertyDataModel[] = [];
+          results.forEach(({ records }: { records: PropertyDataModel[] }) => {
+            all_records = all_records.concat(records);
+          });
+          setPipelineResults(all_records);
           const { loved_only } = love as unknown as { loved_only?: boolean };
           if (!loved_only) {
-            setListings(records);
+            setListings(all_records);
             checkThenReload(false);
           }
         });
+
+        // retrievePublicListingsFromPipeline(legacy_params).then(({ records }: { records: PropertyDataModel[] }) => {
+        //   setPipelineResults(records);
+        //   const { loved_only } = love as unknown as { loved_only?: boolean };
+        //   if (!loved_only) {
+        //     setListings(records);
+        //     checkThenReload(false);
+        //   }
+        // });
       }
     }
   };

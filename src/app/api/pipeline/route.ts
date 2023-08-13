@@ -62,6 +62,46 @@ const prefix = '[Pipeline]';
 export async function POST(req: NextRequest, { internal }: { internal?: boolean }) {
   console.log(`\n\n${prefix} Begin`);
   const payload = await req.json();
+  const time = Date.now();
+  // end logic for cachhing
+  let phase_1: PropertyDataModel[] = [];
+  try {
+    const proms = await Promise.all([
+      axios.post(process.env.NEXT_APP_LEGACY_PIPELINE_URL as string, payload, {
+        headers: {
+          Authorization: `Basic ${Buffer.from(`${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`).toString('base64')}`,
+          'Content-Type': 'application/json',
+        },
+      }),
+      getPropertyAttributes(req, { config: { internal: 'yes' } }),
+    ]);
+    const {
+      data: {
+        hits: { hits },
+      },
+    } = proms[0];
+    const { real_estate_board } = proms[1] as unknown as {
+      real_estate_board: { name: string; id: number }[];
+    };
+    const records = mapData(hits, real_estate_board);
+
+    console.log(`${Date.now() - time}ms ${prefix} completed`);
+    if (internal) return records;
+    return getResponse({ records });
+  } catch (e) {
+    const err = e as AxiosError;
+    if (err.response?.data) {
+      const { error } = err.response.data as unknown as {
+        error: any;
+      };
+      console.error(JSON.stringify(error, null, 4));
+    }
+  }
+}
+
+export async function postWithCache(req: NextRequest, { internal }: { internal?: boolean }) {
+  console.log(`\n\n${prefix} Begin`);
+  const payload = await req.json();
   // For caching
   const full_s3_file = getCacheKey(payload.query.bool as unknown);
   const full_s3_url = `https://${process.env.NEXT_APP_S3_PAGES_BUCKET}/${full_s3_file}`;
