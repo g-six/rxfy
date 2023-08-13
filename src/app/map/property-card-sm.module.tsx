@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { createRef } from 'react';
 import { classNames } from '@/_utilities/html-helper';
 import styles from './property-card-sm.module.scss';
 import { XMarkIcon } from '@heroicons/react/24/solid';
@@ -7,7 +7,6 @@ import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { Transition } from '@headlessui/react';
 import { PropertyDataModel } from '@/_typings/property';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
-import Image from 'next/image';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 import useLove from '@/hooks/useLove';
@@ -30,9 +29,9 @@ function Iterator({
       // If this is the image thumbnail
       if (subclass?.includes('propcard-image-small') && property.cover_photo) {
         return (
-          <div className={classNames(subclass || '', 'overflow-hidden', 'rexified', 'child-of-PropertyCardSm')} {...props}>
-            <div
-              className='block w-full h-full bg-cover bg-center'
+          <div className={classNames(subclass || '', 'overflow-hidden', 'rexified', 'child-of-PropertyCardSm', styles.CoverPhoto)} {...props}>
+            <a
+              href={`property?mls=${property.mls_id}`}
               title={property.title}
               style={{
                 backgroundImage: `url(${getImageSized(property.cover_photo, 210)})`,
@@ -45,10 +44,10 @@ function Iterator({
 
       if (props['data-field'] === 'address') {
         return (
-          <div className={classNames(subclass, 'flex flex-wrap gap-x-1')}>
+          <a href={`property?mls=${property.mls_id}`} className={classNames(subclass, 'flex flex-wrap gap-x-1')}>
             <span>{property.title}</span>
             <span>{property.area || property.city}</span>
-          </div>
+          </a>
         );
       }
       if (props['data-field'] === 'area') {
@@ -99,7 +98,7 @@ function Iterator({
       return (
         <div className={classNames(subclass || '', 'rexified', 'child-of-PropertyCardSm')} {...props}>
           <Iterator {...props} property={property}>
-            {props['data-field'] ? kv[props['data-field']] : subchildren}
+            {props['data-field'] ? <a href={`property?mls=${property.mls_id}`}>{kv[props['data-field']]}</a> : subchildren}
           </Iterator>
         </div>
       );
@@ -111,6 +110,7 @@ function Iterator({
 
 export default function PropertyCardSm({ agent, children, className }: { agent: number; children: React.ReactElement; className: string }) {
   const evt = useEvent(Events.MapClusterModal);
+  const blanketRef = createRef<HTMLDivElement>();
   const { fireEvent: doLove } = useLove();
   const [loves, setLoves] = React.useState(getData(Events.LovedItem) as unknown as string[]);
 

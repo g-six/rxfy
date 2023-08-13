@@ -4,6 +4,24 @@
 .Cards {
   @apply flex flex-col gap-2 w-full max-h-[272px] overflow-auto;
   .Card {
-    @apply flex gap-2.5 relative;
+    @apply flex relative cursor-pointer;
+    .CoverPhoto {
+      @apply w-28 #{!important};
+      a {
+        @apply w-28 bg-cover bg-center bg-no-repeat mb-0 #{!important};
+      }
+    }
+    .CoverPhoto + div {
+      @apply w-2/3 px-2 #{!important};
+    }
+    button {
+      @apply z-50 absolute;
+    }
+    a {
+      @apply no-underline mb-1;
+    }
+    span {
+      @apply leading-4;
+    }
   }
 }
