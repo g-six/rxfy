@@ -91,8 +91,8 @@ export async function buildCacheFiles(mls_id: string) {
       };
       const recent_json = JSON.stringify(clean, null, 4);
 
-      invalidateCache([`/${file}/recent.json`, `/${file}/legacy.json`]);
-      createCacheItem(recent_json, `${file}/recent.json`, 'text/json');
+      // invalidateCache([`/${file}/recent.json`, `/${file}/legacy.json`]);
+      // createCacheItem(recent_json, `${file}/recent.json`, 'text/json');
       return {
         ...clean,
         code: 200,
@@ -200,12 +200,12 @@ export async function getPropertyByMlsId(mls_id: string) {
         })
         .forEach((p: PropertyDataModel) => {
           records.push(p);
-          createCacheItem(JSON.stringify(p, null, 4), `listings/${p.mls_id}/recent.json`, 'text/json');
-          createCacheItem(JSON.stringify(p.mls_data, null, 4), `listings/${p.mls_id}/legacy.json`, 'text/json');
-          invalidations.push(`/listings/${p.mls_id}/recent.json`);
-          invalidations.push(`/listings/${p.mls_id}/legacy.json`);
+          // createCacheItem(JSON.stringify(p, null, 4), `listings/${p.mls_id}/recent.json`, 'text/json');
+          // createCacheItem(JSON.stringify(p.mls_data, null, 4), `listings/${p.mls_id}/legacy.json`, 'text/json');
+          // invalidations.push(`/listings/${p.mls_id}/recent.json`);
+          // invalidations.push(`/listings/${p.mls_id}/legacy.json`);
         });
-      invalidateCache(invalidations);
+      // invalidateCache(invalidations);
       return records[0];
     }
     return [];
