@@ -334,7 +334,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
     $('.w-webflow-badge').remove();
   } else {
-    console.log(hostname, 'is being treated as webflow site:', process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN);
+    log(start, hostname + ' is being treated as webflow site: ' + process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN);
   }
   $('.w-webflow-badge').remove();
 
