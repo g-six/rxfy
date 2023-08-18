@@ -52,7 +52,12 @@ function loadAiResults($: CheerioAPI, user_id: string, slug?: string, origin?: s
   });
 }
 
+function log(start: number, message = 'done') {
+  console.log(`[${Date.now() - start}ms] ${message}`);
+}
 export default async function Home({ params, searchParams }: { params: Record<string, unknown>; searchParams: Record<string, string> }) {
+  const start = Date.now();
+  log(start, 'started');
   const { TEST_WF_DOMAIN } = process.env as unknown as { [key: string]: string };
   const axios = (await import('axios')).default;
   const url = headers().get('x-url') as string;
@@ -124,6 +129,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     `${data}`.split('</title>').join(`</title>
     <link rel='canonical' href='${header_list.get('referer') || header_list.get('x-canonical')}' />`),
   );
+  log(start, 'response from webflow');
 
   if (params.slug && params['profile-slug']) {
     replaceByCheerio($, 'a.logo-div', {
@@ -159,6 +165,8 @@ export default async function Home({ params, searchParams }: { params: Record<st
       loadAiResults($, agent_data.agent_id, agent_data.metatags.profile_slug, origin);
     }
   } else if (!(searchParams.theme && searchParams.agent) && webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN) {
+    log(start, 'running script for ' + webflow_domain);
+
     if (!session_key && params.slug && ['ai-result'].includes(params.slug as string)) {
       data = '<html><head><meta name="title" content="Not found" /></head><body>Not found</body></html>';
       notFound();
@@ -216,6 +224,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
         break;
     }
   }
+  log(start, 'done with conditional checking');
 
   replaceByCheerio($, '.tab-pane-private-listings.w--active', {
     removeClassName: 'w--active',
@@ -254,7 +263,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
       if (!slug || slug === '/') {
         listings = await getPropertiesFromAgentInventory(agent_data.agent_id);
-        // listings = await getAgentListings(agent_data.agent_id);
         // Recent listings
         if (listings?.active?.length) {
           fillPropertyGrid($, listings.active, '.recent-listings-grid');
