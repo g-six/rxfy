@@ -148,6 +148,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const metas: React.ReactElement[] = [
     <title key='title'>{agent_data?.metatags?.title || $('title').text() || 'Leagent'}</title>,
     <link key='preflight-css' rel='stylesheet' type='text/css' href='/css/preflight.css' />,
+    <link key='mapbox-css' rel='stylesheet' type='text/css' href='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css' />,
   ];
 
   head_meta.toArray().map(meta => {
