@@ -99,7 +99,7 @@ export async function POST(req: NextRequest, { internal }: { internal?: boolean 
   }
 }
 
-export async function postWithCache(req: NextRequest, { internal }: { internal?: boolean }) {
+async function postWithCache(req: NextRequest, { internal }: { internal?: boolean }) {
   console.log(`\n\n${prefix} Begin`);
   const payload = await req.json();
   // For caching
