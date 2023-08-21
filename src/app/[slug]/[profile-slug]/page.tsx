@@ -50,7 +50,9 @@ function PropertyCard({ agent, listing, children }: { agent: AgentData; listing:
             key={listing.mls_id}
             className={classNames(styles.CoverPhoto, `${listing.status?.toLowerCase()}-listing`, styles[`${listing.status?.toLowerCase()}-listing`])}
             style={{
-              backgroundImage: `url(${getImageSized(listing.cover_photo || '/house-placeholder.png', listing.status?.toLowerCase() === 'sold' ? 720 : 646)})`,
+              backgroundImage: `url(${
+                listing.cover_photo ? getImageSized(listing.cover_photo, listing.status?.toLowerCase() === 'sold' ? 720 : 646) : '/house-placeholder.png'
+              })`,
             }}
           />
         </div>
