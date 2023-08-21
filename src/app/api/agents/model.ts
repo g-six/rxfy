@@ -386,7 +386,7 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
  * There is a trade-off of delta - 1 for the most recent info
  * but it's something we can live by for now.
  */
-export const findAgentRecordByAgentId = cache(async (agent_id: string) => {
+export const findAgentRecordByAgentIdOld = cache(async (agent_id: string) => {
   const url = `https://${process.env.NEXT_APP_S3_PAGES_BUCKET}/agent-records/${agent_id}.json`;
   let response = {};
   try {
@@ -402,6 +402,16 @@ export const findAgentRecordByAgentId = cache(async (agent_id: string) => {
     createCacheItem(JSON.stringify(response, null, 4), `agent-records/${agent_id}.json`);
   }
   return response as any;
+});
+export const findAgentRecordByAgentId = cache(async (agent_id: string) => {
+  try {
+    const response = await findAgentBy({ agent_id });
+    return response;
+  } catch (e) {
+    console.log('Error in api.agents.model.findAgentRecordByAgentId');
+  } finally {
+    console.log('Completed api.agents.model.findAgentRecordByAgentId call');
+  }
 });
 
 export const findAgentRecordByRealtorId = cache(async (realtor_id: number) => {

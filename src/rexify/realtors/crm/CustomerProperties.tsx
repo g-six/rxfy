@@ -35,7 +35,7 @@ function Iterator(p: {
               };
               return (
                 <RxPropertyCard
-                  key={property.id}
+                  key={`${property.id}-${property.love}`}
                   love={property.love}
                   agent={p.agent}
                   listing={listing}
