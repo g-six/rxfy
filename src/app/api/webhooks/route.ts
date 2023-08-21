@@ -32,6 +32,13 @@ const pages = [
   'ai',
   'ai-waitlist',
   'ai-result',
+  'my-all-properties',
+  'client-dashboard',
+  'my-documents',
+  'my-home-alerts',
+  'my-home-alerts',
+  'compare',
+  'private-listings',
 ];
 
 async function cacheSite(domain: string) {
