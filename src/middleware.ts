@@ -64,13 +64,7 @@ export async function middleware(request: NextRequest) {
     response.headers.set('x-profile-slug', segments[1]);
     response.headers.set('x-viewer', 'customer');
 
-    // if (['map', 'id', 'property', 'update-password', 'my-account', 'log-in', 'my-profile', 'client-dashboard'].includes(segments[2])) {
     if (['my-profile', 'map', 'reset-password', 'my-home-alerts', 'my-compare', 'my-all-properties'].includes(segments[2])) {
-      // TODO Session SSR
-      const user_type = request.cookies.get('session_as')?.value;
-      const session_key = request.cookies.get('session_key')?.value;
-      // END TODO Session SSR
-
       page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/${segments[2]}`;
     } else if (segments[2] === 'map') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/map`;
     else if (segments[2] === 'id') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/id`;
@@ -80,7 +74,14 @@ export async function middleware(request: NextRequest) {
     else if (segments[2] === 'sign-up') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/sign-up`;
     else if (segments[2] === 'my-account') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/my-account`;
     else if (segments[2] === 'client-dashboard') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/client-dashboard`;
-    else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}`;
+    else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/index`;
+    console.log(page_url);
+    console.log(page_url);
+    console.log(page_url);
+    console.log(page_url);
+    console.log(page_url);
+    console.log(page_url);
+    console.log(page_url);
   } else if (pathname === '/') {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/index`;
   } else if (REALTOR_STATIC_PAGES.filter(page => pathname === '/' + page).length >= 1) {
