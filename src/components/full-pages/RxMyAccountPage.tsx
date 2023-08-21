@@ -201,6 +201,7 @@ export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit?: React.
 
 export function RxMyAccountPage(props: RxMyAccountPageProps) {
   const reset = useEvent(Events.ResetForm);
+  const session = useEvent(Events.LoadUserSession);
   const { data, fireEvent } = useEvent(Events.SaveAccountChanges);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [is_processing, processing] = React.useState(false);
@@ -218,6 +219,7 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
       yes_to_marketing?: boolean;
     }
   >(data as EventsData);
+
   const search = useSearchParams();
   if (search.get('key') && !Cookies.get('session_key')) {
     const session_key = search.get('key') as string;
@@ -335,7 +337,7 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
 
   React.useEffect(() => {
     if (props['user-type'] === 'customer' && Cookies.get('session_key')) {
-      getUserBySessionKey(Cookies.get('session_key') as string).then(setFormData);
+      // getUserBySessionKey(Cookies.get('session_key') as string).then(setFormData);
     }
   }, []);
 
@@ -343,7 +345,10 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
     <div id='rx-my-account-page' className={[props.className || '', is_processing ? 'loading' : ''].join(' ').trim()}>
       <RxPageIterator
         {...props}
-        data={form_data}
+        data={{
+          ...session.data,
+          ...form_data,
+        }}
         onChange={(updates: { [key: string]: { [key: string]: string } }) => {
           Object.keys(updates).forEach(k => {
             if (typeof updates[k] === 'object') {
