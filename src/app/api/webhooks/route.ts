@@ -39,6 +39,7 @@ const pages = [
   'my-home-alerts',
   'compare',
   'private-listings',
+  'pricing',
 ];
 
 async function cacheSite(domain: string) {
