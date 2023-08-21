@@ -13,7 +13,7 @@ interface WebflowWebhookPayload {
   };
 }
 
-const pages = ['log-in', 'map', 'property/propertyid'];
+const pages = ['index', 'log-in', 'map', 'property/propertyid'];
 
 async function cacheSite(domain: string) {
   const scripts: string[] = [];
@@ -21,7 +21,7 @@ async function cacheSite(domain: string) {
 
   await Promise.all(
     pages.map(async (page: string) => {
-      const url = 'https://' + domain + '/' + page;
+      const url = 'https://' + domain + (page === 'index' ? '' : '/' + page);
       const html = await axios.get(url);
       const $: CheerioAPI = load(html.data);
 
