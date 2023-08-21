@@ -29,6 +29,7 @@ const pages = [
   'dash-mycrm-home-alerts',
   'dash-mycrm-profile',
   'dash-mycrm-documents',
+  'pdf',
   'ai',
   'ai-waitlist',
   'ai-result',
