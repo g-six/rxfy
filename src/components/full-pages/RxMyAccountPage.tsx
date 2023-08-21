@@ -101,7 +101,7 @@ export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit?: React.
           );
         }
         if (child_node.props.className.split(' ').includes('txt-phone-number')) {
-          return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='phone_number' defaultValue={props.session?.phone_number} />;
+          return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='phone' defaultValue={props.session?.phone} />;
         }
         if (child_node.props.className.split(' ').includes('txt-agentid')) {
           return <RxTextInput {...child_node.props} rx-event={Events.SaveAccountChanges} name='agent_id' defaultValue={props.session?.agent_id} />;
@@ -118,7 +118,8 @@ export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit?: React.
             const metatags = props.session.metatags as unknown as {
               [k: string]: string;
             };
-            default_value = metatags[child_node.props['data-field']] || '';
+
+            default_value = (metatags && metatags[child_node.props['data-field']]) || '';
             return (
               <RxTextInput
                 {...child_node.props}
@@ -349,6 +350,12 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
           ...session.data,
           ...form_data,
         }}
+        session={
+          {
+            ...session.data,
+            ...form_data,
+          } as any
+        }
         onChange={(updates: { [key: string]: { [key: string]: string } }) => {
           Object.keys(updates).forEach(k => {
             if (typeof updates[k] === 'object') {
