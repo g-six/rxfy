@@ -39,8 +39,7 @@ const pages = [
   'my-home-alerts',
   'compare',
   'private-listings',
-  'pricing',
-];
+].concat(['pricing', 'examples', 'contact']);
 
 async function cacheSite(domain: string) {
   const scripts: string[] = [];
