@@ -226,8 +226,14 @@ export default async function Home({ params, searchParams }: { params: Record<st
   }
   log(start, 'done with conditional checking');
 
+  replaceByCheerio($, 'html', {
+    removeProps: 'class',
+  });
   replaceByCheerio($, '.tab-pane-private-listings.w--active', {
     removeClassName: 'w--active',
+  });
+  replaceByCheerio($, '.w-nav', {
+    removeClassName: 'w-nav',
   });
   replaceByCheerio($, '.tab-pane-private-listings.w--tab-active', {
     removeClassName: 'w--tab-active',
