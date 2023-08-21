@@ -13,7 +13,26 @@ interface WebflowWebhookPayload {
   };
 }
 
-const pages = ['index', 'log-in', 'map', 'property/propertyid'];
+const pages = [
+  'index',
+  'log-in',
+  'reset-password',
+  'update-password',
+  'map',
+  'property/propertyid',
+  'my-profile',
+  'my-website',
+  'my-listings',
+  'dash-my-tools',
+  'dash-mycrm',
+  'dash-mycrm-saved',
+  'dash-mycrm-home-alerts',
+  'dash-mycrm-profile',
+  'dash-mycrm-documents',
+  'ai',
+  'ai-waitlist',
+  'ai-result',
+];
 
 async function cacheSite(domain: string) {
   const scripts: string[] = [];
