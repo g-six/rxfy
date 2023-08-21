@@ -31,14 +31,14 @@ export function invalidateCache(Items: string[]) {
   }
 }
 
-export function createCacheItem(Body: any, Key: string, ContentType: string = 'text/json') {
+export function createCacheItem(Body: any, Key: string, ContentType: string = 'text/json', invalidate = true) {
   const command = new PutObjectCommand({
     Bucket: process.env.NEXT_APP_S3_PAGES_BUCKET as string,
     Key,
     Body,
     ContentType,
   });
-  invalidateCache(['/' + Key]);
+  invalidate && invalidateCache(['/' + Key]);
 
   const config: S3ClientConfig = {
     region: 'us-west-2',
