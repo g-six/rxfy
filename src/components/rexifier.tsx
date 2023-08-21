@@ -286,6 +286,7 @@ type ReplacementOptions = {
   href?: string;
   className?: string;
   removeClassName?: string;
+  removeProps?: string;
   ['data-mls']?: string;
   city?: string;
   mapbox_boundaries?: MapboxBoundaries;
@@ -313,6 +314,8 @@ export function replaceByCheerio($: CheerioAPI, target: string, replacement: Rep
       $(target).attr('class', `${$(target).attr('class')} ${replacement.className}`);
     } else if (replacement.removeClassName) {
       $(target).attr('class', `${$(target).attr('class')}`.split(replacement.removeClassName).join(' ').trim());
+    } else if (replacement.removeProps) {
+      $(target).removeAttr(replacement.removeProps);
     } else if (replacement.content) {
       // Replace the whole tag
       $(target).html(replacement.content);

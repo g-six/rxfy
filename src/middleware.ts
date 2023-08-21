@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { WEBFLOW_DASHBOARDS } from './_typings/webflow';
 
+const REALTOR_STATIC_PAGES = ['pricing', 'examples', 'contact'];
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
@@ -15,7 +16,7 @@ export async function middleware(request: NextRequest) {
   if (pathname.includes('images')) return response;
 
   const [, ...segments] = pathname.split('/');
-  let page_url = `https://`;
+  let page_url = `https://pages.leagent.com/`;
   response.headers.set('x-viewer', 'realtor');
   response.headers.set('x-canonical', `${origin}${pathname || ''}`);
 
@@ -81,7 +82,9 @@ export async function middleware(request: NextRequest) {
     else if (segments[2] === 'client-dashboard') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/client-dashboard`;
     else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}`;
   } else if (pathname === '/') {
-    page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}`;
+    page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/index`;
+  } else if (REALTOR_STATIC_PAGES.filter(page => pathname === '/' + page).length >= 1) {
+    page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}${pathname}`;
   } else if (pathname === '/pdf') {
     response.headers.set('Content-Type', 'application/pdf');
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}${pathname}`;
@@ -94,7 +97,8 @@ export async function middleware(request: NextRequest) {
 
   if (!page_url.includes('/_next') && !page_url.includes('.ico')) {
     if (!request.cookies.get('session_as')) response.cookies.set('session_as', page_url.indexOf(WEBFLOW_DASHBOARDS.CUSTOMER) >= 0 ? 'customer' : 'realtor');
-    response.headers.set('x-url', page_url);
+    console.log({ page_url });
+    response.headers.set('x-url', page_url + '.html');
   }
 
   if (searchParams.get('key') && !request.cookies.get('session_key')) {
