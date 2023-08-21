@@ -11,10 +11,20 @@ import { RealtorInputModel } from '@/_typings/agent';
  * @returns
  */
 export async function updateAccount(session_key: string, data: CustomerInputModel | RealtorInputModel, realtor_mode = false) {
+  const { phone, phone_number, ...updates } = data as unknown as {
+    [key: string]: string;
+  };
   const response = await axios.put(
     `/api${realtor_mode ? '/agents' : ''}/update-account`,
     {
-      ...data,
+      ...updates,
+      ...(realtor_mode
+        ? {
+            phone_number: phone_number || phone,
+          }
+        : {
+            phone: phone_number || phone,
+          }),
     },
     {
       headers: {
