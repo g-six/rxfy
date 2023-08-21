@@ -48,23 +48,27 @@ async function cacheSite(domain: string) {
   await Promise.all(
     pages.map(async (page: string) => {
       const url = 'https://' + domain + (page === 'index' ? '' : '/' + page);
-      const html = await axios.get(url);
-      const $: CheerioAPI = load(html.data);
+      try {
+        const html = await axios.get(url);
+        const $: CheerioAPI = load(html.data);
 
-      $('script').each((i, el) => {
-        if (el.attribs.src && !scripts.includes(el.attribs.src)) {
-          const { pathname } = new URL(el.attribs.src);
-          scripts.push(el.attribs.src);
-          $(el).attr('src', pathname);
-        }
-      });
+        $('script').each((i, el) => {
+          if (el.attribs.src && !scripts.includes(el.attribs.src)) {
+            const { pathname } = new URL(el.attribs.src);
+            scripts.push(el.attribs.src);
+            $(el).attr('src', pathname);
+          }
+        });
 
-      const page_uri = domain + '/' + page + '.html';
-      invalidation_uris.push(page_uri);
-      createCacheItem($.html(), page_uri, 'text/html', false);
+        const page_uri = domain + '/' + page + '.html';
+        invalidation_uris.push(page_uri);
+        createCacheItem($.html(), page_uri, 'text/html', false);
+      } finally {
+        console.log(url, 'cached when found');
+      }
     }),
   );
-  const results = await Promise.all(
+  await Promise.all(
     scripts.map(async v => {
       const js = await axios.get(v);
       const { pathname } = new URL(v);
