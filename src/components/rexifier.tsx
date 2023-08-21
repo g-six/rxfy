@@ -445,6 +445,8 @@ export function rexifyScripts(html_code: string) {
         if (attribs.src) {
           if (attribs.src.indexOf('jquery') >= 0) {
             return <script src={attribs.src} type='text/javascript' crossOrigin='anonymous' integrity={attribs.integrity} />;
+          } else if (attribs.src.indexOf('cloudflare-static') >= 0) {
+            return <></>;
           } else {
             return (
               <script
