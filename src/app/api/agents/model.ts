@@ -590,7 +590,7 @@ export async function getMostRecentWebsiteThemeRequest(agent: number) {
     },
   );
   const response_data = response ? response.data?.data?.websiteBuilds : {};
-  return response_data.data
+  return response_data.data?.length
     ? {
         ...response_data.data[0].attributes,
         id: Number(response_data.data[0].id),
