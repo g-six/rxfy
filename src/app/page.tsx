@@ -206,23 +206,22 @@ export default async function Home({ params, searchParams }: { params: Record<st
         }
       }
     }
+  }
+  switch (params.slug) {
+    case 'my-profile':
+      return (
+        <>
+          <MyProfilePage
+            data={{ session_key, 'user-type': webflow_domain === (process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN as string) ? 'realtor' : 'customer' }}
+          >
+            {parse($.html()) as unknown as JSX.Element}
+          </MyProfilePage>
 
-    switch (params.slug) {
-      case 'my-profile':
-        return (
-          <>
-            <MyProfilePage
-              data={{ session_key, 'user-type': webflow_domain === (process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN as string) ? 'realtor' : 'customer' }}
-            >
-              {parse($.html()) as unknown as JSX.Element}
-            </MyProfilePage>
-
-            <RxNotifications />
-          </>
-        );
-      default:
-        break;
-    }
+          <RxNotifications />
+        </>
+      );
+    default:
+      break;
   }
   log(start, 'done with conditional checking');
 
