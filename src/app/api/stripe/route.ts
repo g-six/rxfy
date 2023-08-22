@@ -184,16 +184,16 @@ export async function POST(req: Request) {
               subject: 'Welcome aboard!',
             });
 
-            sendTemplate('welcome-agent', receipients, {
+            await sendTemplate('welcome-agent', receipients, {
               send_to_email: email,
               password,
               dashboard_url: `${url.origin}/my-profile?key=${session_key}`,
               from_name: 'Leagent Team',
               subject: 'Welcome aboard!',
-            }).then(() => {
-              console.log('/n/nwelcome-agent template delivered');
-              console.log('/nend');
             });
+
+            console.log('/n/nwelcome-agent template delivered');
+            console.log('/nend');
           }
         } catch (e) {
           console.log('OpenAI error for prompt:');
