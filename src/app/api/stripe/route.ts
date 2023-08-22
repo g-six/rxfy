@@ -109,7 +109,12 @@ export async function POST(req: Request) {
           const ai_results = JSON.parse(text.trim()) as unknown as AIGeneratedDetails;
           console.log({ ai_results });
 
-          createAgentRecordIfNoneFound({
+          const {
+            id: agent,
+            agent_metatag: {
+              data: { id: metatag_record, attributes: metatags },
+            },
+          } = await createAgentRecordIfNoneFound({
             agent_id,
             email,
             phone,
@@ -119,86 +124,77 @@ export async function POST(req: Request) {
             stripe_customer,
             stripe_subscription,
             ai_results,
-          }).then(
-            ({
-              id: agent,
-              agent_metatag: {
-                data: { id: metatag_record, attributes: metatags },
-              },
-            }) => {
-              const password = email.substring(0, 5) + stripe_customer.split('_').pop()?.substring(0, 5);
-              const encrypted_password = encrypt(password);
-              const last_activity_at = new Date().toISOString();
+          });
+          const password = email.substring(0, 5) + stripe_customer.split('_').pop()?.substring(0, 5);
+          const encrypted_password = encrypt(password);
+          const last_activity_at = new Date().toISOString();
 
-              const data: RealtorInput = {
-                agent,
-                email,
-                encrypted_password,
-                full_name,
-                first_name,
-                last_name,
-                stripe_customer,
-                stripe_subscriptions: {
-                  [stripe_subscription]: {
-                    invoice,
+          const { data: realtor } = await axios.post(
+            `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+            {
+              query: gql_create_realtor,
+              variables: {
+                data: {
+                  agent,
+                  email,
+                  encrypted_password,
+                  full_name,
+                  first_name,
+                  last_name,
+                  stripe_customer,
+                  stripe_subscriptions: {
+                    [stripe_subscription]: {
+                      invoice,
+                    },
                   },
+                  phone_number: phone,
+                  is_verified: false,
+                  last_activity_at,
                 },
-                phone_number: phone,
-                is_verified: false,
-                last_activity_at,
-              };
-              axios
-                .post(
-                  `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-                  {
-                    query: gql_create_realtor,
-                    variables: {
-                      data,
-                    },
-                  },
-                  {
-                    headers: {
-                      Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-                      'Content-Type': 'application/json',
-                    },
-                  },
-                )
-                .then(({ data: realtor }) => {
-                  console.log(realtor.data);
-                  const session_key = realtor.data?.createRealtor?.data?.id
-                    ? `${encrypt(last_activity_at)}.${encrypt(email)}-${realtor.data?.createRealtor?.data?.id}`
-                    : '';
-                  if (session_key) {
-                    const receipients: MessageRecipient[] = [
-                      {
-                        email,
-                        name: full_name,
-                      },
-                    ];
-
-                    const url = new URL(req.url);
-                    console.log('\nAttempt to email', {
-                      send_to_email: email,
-                      password,
-                      dashboard_url: `${url.origin}/my-profile?key=${session_key}`,
-                      from_name: 'Leagent Team',
-                      subject: 'Welcome aboard!',
-                    });
-
-                    sendTemplate('welcome-agent', receipients, {
-                      send_to_email: email,
-                      password,
-                      dashboard_url: `${url.origin}/my-profile?key=${session_key}`,
-                      from_name: 'Leagent Team',
-                      subject: 'Welcome aboard!',
-                    }).then(() => {
-                      console.log('/n/nwelcome-agent template delivered');
-                      console.log('/nend');
-                    });
-                  }
-                });
+              },
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+                'Content-Type': 'application/json',
+              },
             },
           );
+
+          console.log('realtor.data', realtor.data);
+          console.log('metatags', metatags);
+
+          const session_key = realtor.data?.createRealtor?.data?.id
+            ? `${encrypt(last_activity_at)}.${encrypt(email)}-${realtor.data?.createRealtor?.data?.id}`
+            : '';
+          if (session_key) {
+            const receipients: MessageRecipient[] = [
+              {
+                email,
+                name: full_name,
+              },
+            ];
+
+            const url = new URL(req.url);
+            console.log('\nAttempt to email', {
+              send_to_email: email,
+              password,
+              dashboard_url: `${url.origin}/my-profile?key=${session_key}`,
+              from_name: 'Leagent Team',
+              subject: 'Welcome aboard!',
+            });
+
+            sendTemplate('welcome-agent', receipients, {
+              send_to_email: email,
+              password,
+              dashboard_url: `${url.origin}/my-profile?key=${session_key}`,
+              from_name: 'Leagent Team',
+              subject: 'Welcome aboard!',
+            }).then(() => {
+              console.log('/n/nwelcome-agent template delivered');
+              console.log('/nend');
+            });
+          }
         } catch (e) {
           console.log('OpenAI error for prompt:');
           console.log(e);
