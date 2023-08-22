@@ -5,6 +5,7 @@ export enum WEBFLOW_NODE_SELECTOR {
   UPDATE_PASSWORD = 'updatePassword',
   COMPARE_WRAPPER = 'compare-wrapper',
   MY_ACCOUNT_WRAPPER = 'my-account-wrapper',
+  MY_BROKERAGE_WRAPPER = 'my-brokerage-wrapper',
   MY_COMPARE_DASHBOARD = 'cd---compare wf-section',
   MY_SAVED_PROPERTIES_DASHBOARD = 'cd---saved',
   MY_COMPARE_DASHBOARD_LEFT = 'compare-left-bar',

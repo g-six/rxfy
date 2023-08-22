@@ -10,7 +10,7 @@ import {
 } from './graphql';
 import { WEBFLOW_THEME_DOMAINS } from '@/_typings/webflow';
 import { RealEstateBoardDataModel } from '@/_typings/real-estate-board';
-import { AgentData, AgentInput } from '@/_typings/agent';
+import { AIGeneratedDetails, AgentData, AgentInput } from '@/_typings/agent';
 import { getSmart } from './repair';
 import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
 import { LegacySearchPayload } from '@/_typings/pipeline';
@@ -22,22 +22,28 @@ import { cache } from 'react';
 import { createCacheItem } from '../_helpers/cache-helper';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { createTask } from '../clickup/model';
+import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
 
-export async function createAgent(user_data: {
-  agent_id: string;
-  email: string;
-  phone?: string;
-  street_1?: string;
-  street_2?: string;
-  encrypted_password?: string;
-  full_name: string;
-  real_estate_board_id?: number;
-}) {
+export async function createAgent(
+  user_data: {
+    agent_id: string;
+    email: string;
+    phone: string;
+    street_1?: string;
+    street_2?: string;
+    encrypted_password?: string;
+    full_name: string;
+    real_estate_board_id?: number;
+  },
+  ai_results?: AIGeneratedDetails,
+) {
   try {
     const parts = `${user_data.full_name.split('PREC*').join('').trim()}`.split(' ');
     let last_name = parts.pop();
     let first_name = parts.join(' ');
-    let profile_slug = `la-${user_data.agent_id}-${(user_data.phone || '').split('').slice(-3).join('')}`.toLowerCase();
+    let profile_slug = slugifyAddress(
+      `la-${first_name}-${user_data.agent_id}-${user_data.phone.split('').reverse().slice(0, 4).reverse().join('')}`.toLowerCase(),
+    );
 
     const metatag_response = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
@@ -46,8 +52,38 @@ export async function createAgent(user_data: {
         variables: {
           data: {
             agent_id: user_data.agent_id,
-            title: 'Your Go-To Realtor',
+            title: ai_results?.title || 'Your Go-To Realtor',
+            description: ai_results?.bio ? ai_results.bio.split('. ').slice(0, 2).join('. ') : '',
+            personal_title: ai_results?.tagline || '',
+            personal_bio: ai_results?.bio || ai_results?.tagline || '',
+            target_city: ai_results?.city || '',
             profile_slug,
+            ...(ai_results?.lat !== undefined
+              ? {
+                  lat: ai_results.lat,
+                  lng: ai_results.lng,
+                  geocoding: ai_results,
+                  search_highlights: {
+                    labels: [
+                      {
+                        zoom: 12,
+                        title: ai_results.city,
+                        name: ai_results.city,
+                        lat: ai_results.lat,
+                        lng: ai_results.lng,
+                        ne: {
+                          lat: ai_results.nelat,
+                          lng: ai_results.nelng,
+                        },
+                        sw: {
+                          lat: ai_results.swlat,
+                          lng: ai_results.swlng,
+                        },
+                      },
+                    ],
+                  },
+                }
+              : {}),
           },
         },
       },
@@ -530,7 +566,10 @@ export async function createAgentRecord(agent: {
   }
 }
 
-export async function createAgentRecordIfNoneFound({ agent_id, email, phone, full_name }: AgentInput, real_estate_board?: RealEstateBoardDataModel) {
+export async function createAgentRecordIfNoneFound(
+  { agent_id, email, phone, full_name, first_name, last_name, street_1, stripe_customer, stripe_subscription, ai_results }: AgentInput,
+  real_estate_board?: RealEstateBoardDataModel,
+) {
   if (!email) return;
   if (!agent_id) return;
 
@@ -540,24 +579,25 @@ export async function createAgentRecordIfNoneFound({ agent_id, email, phone, ful
     let agent = await findAgentRecordByAgentId(agent_id);
 
     const parts = `${full_name.split('PREC*').join('').trim()}`.split(' ');
-    let last_name = parts.pop();
-    let first_name = parts.join(' ');
 
     if (!agent) {
       console.log("Agent not found, let's create it");
       const create_this = {
         agent_id,
         full_name: full_name.split('PREC').join('').trim().split('*').join(''),
-        first_name,
-        last_name,
+        first_name: first_name || parts.pop(),
+        last_name: last_name || parts.join(' '),
+        // stripe_customer,
+        // stripe_subscription,
         phone,
         email,
+        street_1,
         real_estate_board_id: real_estate_board?.id || undefined,
       };
       const t = new Date();
       console.log('timestamp', t.toISOString());
-      console.log(create_this);
-      agent = await createAgent(create_this);
+      console.log(create_this, ai_results);
+      agent = await createAgent(create_this, ai_results);
       console.log('');
       console.log('took', [Date.now() - t.getTime(), 'ms'].join(''));
       console.log('---');

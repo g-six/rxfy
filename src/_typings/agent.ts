@@ -51,14 +51,31 @@ export interface AgentMetatags extends AgentMetatagsInput {
   last_updated_at?: string;
 }
 
+export interface AIGeneratedDetails {
+  bio: string;
+  metatags: string;
+  title: string;
+  tagline: string;
+  city: string;
+  lat: number;
+  lng: number;
+  nelat: number;
+  nelng: number;
+  swlat: number;
+  swlng: number;
+}
 export interface AgentInput {
   agent_id: string;
   email: string;
   full_name: string;
   first_name?: string;
   last_name?: string;
-  phone?: string;
+  phone: string;
   brokerage?: number;
+  street_1?: string;
+  stripe_customer?: string;
+  stripe_subscription?: string;
+  ai_results?: AIGeneratedDetails;
 }
 
 export interface AgentSignUpInput extends AgentInput {

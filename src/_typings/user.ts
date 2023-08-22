@@ -22,6 +22,8 @@ export interface RealtorInput {
   email: string;
   encrypted_password: string;
   full_name: string;
+  first_name?: string;
+  last_name?: string;
   phone_number: string;
   is_verified: boolean;
   last_activity_at: string;
