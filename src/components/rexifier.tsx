@@ -52,6 +52,8 @@ import RxCRMNotes from '@/rexify/realtors/crm/CustomerNotes';
 import RxCustomerView from '@/rexify/realtors/RxCustomerView';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { updateAgentMetatags } from '@/app/api/agents/model';
+import { BrokerageInformationForm } from '@/rexify/realtors/brokerage-information';
+import { BrokerageDataModel } from '@/_typings/brokerage';
 
 async function replaceTargetCityComponents($: CheerioAPI, agent: AgentData) {
   if (agent.metatags.target_city && !agent.metatags.geocoding) {
@@ -389,6 +391,7 @@ export function appendJs(url: string, delay = 1200) {
       }, ${delay})
     `;
   }
+  if (url.indexOf('cloudflare-static') >= 0) return '';
   return `
   fetch('${url}').then((response) => {
     response.text().then(script_txt => {
@@ -721,6 +724,16 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
               </RxMyAccountPage>
             );
           }
+
+          if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.MY_BROKERAGE_WRAPPER)) {
+            // Customer session
+            return (
+              <BrokerageInformationForm {...props} type={node.type}>
+                <>{domToReact(node.children) as ReactElement[]}</>
+              </BrokerageInformationForm>
+            );
+          }
+
           if (node.attribs?.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.CLIENTS_CARDS)) {
             return (
               <RxMyClients {...props}>
