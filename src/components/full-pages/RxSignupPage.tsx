@@ -78,12 +78,13 @@ export function RxPageIterator(props: RxSignupPageProps) {
   return <>{wrappedChildren}</>;
 }
 
-function validRealtorInput(data: { email?: string; password?: string; full_name?: string; agent_id?: number; yes_to_marketing?: boolean }): {
+function validRealtorInput(data: { email?: string; password?: string; full_name?: string; agent_id?: number; yes_to_marketing?: boolean; phone?: string }): {
   data?: AgentSignUpInput;
   errors?: {
     agent_id?: string;
     email?: string;
     password?: string;
+    phone?: string;
     full_name?: string;
   };
   error?: string;
@@ -98,6 +99,9 @@ function validRealtorInput(data: { email?: string; password?: string; full_name?
   }
   if (!data.full_name) {
     error = `${error}\nYour full name`;
+  }
+  if (!data.phone) {
+    error = `${error}\nYour phone number`;
   }
   if (!data.password) {
     error = `${error}\nA hard-to-guess password with at least 10 characters is required`;
@@ -116,6 +120,7 @@ function validRealtorInput(data: { email?: string; password?: string; full_name?
       full_name: string;
       yes_to_marketing: boolean;
       agent_id: string;
+      phone: string;
     },
   };
 }
