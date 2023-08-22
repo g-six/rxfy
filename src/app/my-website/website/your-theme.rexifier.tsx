@@ -6,7 +6,7 @@ import { Children, ReactElement, cloneElement } from 'react';
 function Rx({ children, ...props }: { children: ReactElement; theme: string }) {
   const rexified = Children.map(children, c => {
     if (c.props?.['data-field'] === 'theme_name') {
-      return cloneElement(c, {}, capitalizeFirstLetter(props.theme));
+      return cloneElement(c, {}, capitalizeFirstLetter(props.theme || 'Default'));
     }
     return c;
   });
