@@ -52,7 +52,7 @@ export async function POST(req: Request) {
         },
       ] = object.custom_fields.filter(o => o.key === 'fullname');
       if (agent_id && full_name) {
-        const [first_name] = full_name.split(' ');
+        const [first_name, last_name] = full_name.split(' ', 2);
         const { customer: stripe_customer, subscription: stripe_subscription, invoice } = object;
         const { email, phone } = object.customer_details;
         const { postal_code, country } = object.customer_details.address;
@@ -115,14 +115,13 @@ export async function POST(req: Request) {
             phone,
             full_name,
             first_name,
+            last_name,
             stripe_customer,
             stripe_subscription,
             ai_results,
           }).then(
             ({
               id: agent,
-              first_name,
-              last_name,
               agent_metatag: {
                 data: { id: metatag_record, attributes: metatags },
               },
