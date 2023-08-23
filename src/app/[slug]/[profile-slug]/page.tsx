@@ -38,26 +38,43 @@ function PropertyCard({ agent, listing, children }: { agent: AgentData; listing:
         </div>
       );
     }
-    if (c.type === 'img' && c.props.className.includes('property-card-image') && listing) {
-      return (
-        <div
-          key={listing.mls_id}
-          className={styles.CoverPhoto}
-          style={{
-            backgroundImage: `url(/house-placeholder.png)`,
-          }}
-        >
+    if (c.type === 'img' && listing) {
+      if (c.props.className.includes('property-card-image'))
+        return (
           <div
             key={listing.mls_id}
-            className={classNames(styles.CoverPhoto, `${listing.status?.toLowerCase()}-listing`, styles[`${listing.status?.toLowerCase()}-listing`])}
+            className={styles.CoverPhoto}
             style={{
-              backgroundImage: `url(${
-                listing.cover_photo ? getImageSized(listing.cover_photo, listing.status?.toLowerCase() === 'sold' ? 720 : 646) : '/house-placeholder.png'
-              })`,
+              backgroundImage: `url(/house-placeholder.png)`,
             }}
-          />
-        </div>
-      );
+          >
+            <div
+              key={listing.mls_id}
+              className={classNames(styles.CoverPhoto, `${listing.status?.toLowerCase()}-listing`, styles[`${listing.status?.toLowerCase()}-listing`])}
+              style={{
+                backgroundImage: `url(${
+                  listing.cover_photo ? getImageSized(listing.cover_photo, listing.status?.toLowerCase() === 'sold' ? 720 : 646) : '/house-placeholder.png'
+                })`,
+              }}
+            />
+          </div>
+        );
+      else if (c.props.className.includes('propcard-image') && listing.cover_photo) {
+        return (
+          <div>
+            <img
+              key={listing.mls_id}
+              className={c.props.className}
+              src={getImageSized(listing.cover_photo, listing.status?.toLowerCase() === 'sold' ? 720 : 646)}
+            />
+
+            <a
+              href={(agent.domain_name ? '' : `/${agent.agent_id}/${agent.metatags.profile_slug}`) + `/property?mls=${listing.mls_id}`}
+              className='w-full h-full flex flex-col absolute top-0 left-0'
+            ></a>
+          </div>
+        );
+      }
     }
     if (c.type === 'img' && c.props.className.includes('agentface')) {
       return (
@@ -79,6 +96,7 @@ function PropertyCard({ agent, listing, children }: { agent: AgentData; listing:
     if (c.props && c.props['data-field']) {
       switch (c.props['data-field']) {
         case 'property-address':
+        case 'property_address':
           return cloneElement(c, c.props, listing.title);
         case 'area':
           return cloneElement(c, c.props, listing.area || listing.city);
@@ -236,11 +254,16 @@ function Iterator({
             return <></>;
           case 'target_map':
             if (agent.metatags) {
-              return cloneElement(c, {
-                src: `${`https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${agent.metatags.lng || -123.112},${
-                  agent.metatags.lat || 49.2768
-                },12/1080x720@2x?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`}`,
-              });
+              return (
+                <div
+                  className={'bg-cover bg-center h-full w-full ' + c.props.className}
+                  style={{
+                    backgroundImage: `url(https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${`${agent.metatags.lng || -123.112},${
+                      agent.metatags.lat || 49.2768
+                    },11/1080x720@2x?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`})`,
+                  }}
+                />
+              );
             }
           default:
             let rexified = (agent as unknown as { [key: string]: string })[c.props['data-field']];
