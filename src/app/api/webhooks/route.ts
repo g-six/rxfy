@@ -53,11 +53,13 @@ async function cacheSite(domain: string) {
         const html = await axios.get(url);
         const $: CheerioAPI = load(html.data);
 
+        let html_body = $.html();
+
         $('script').each((i, el) => {
           if (el.attribs.src && !scripts.includes(el.attribs.src)) {
             const { pathname } = new URL(el.attribs.src);
             scripts.push(el.attribs.src);
-            $(el).attr('src', pathname);
+            $(el).remove();
           }
         });
 
@@ -75,8 +77,11 @@ async function cacheSite(domain: string) {
     scripts.map(async v => {
       const js = await axios.get(v);
       const { pathname } = new URL(v);
-      invalidation_uris.push(domain + pathname);
-      createCacheItem(js.data, domain + pathname, 'text/javascript', false);
+      let filename = pathname.split('/').pop();
+      if (filename?.indexOf('webflow.') === 0) {
+        filename = 'webflow.js';
+      }
+      createCacheItem(js.data, domain + '/' + filename, 'text/javascript', false);
     }),
   );
   return invalidation_uris;
