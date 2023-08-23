@@ -17,7 +17,6 @@ import RxDatePicker from '@/components/RxForms/RxInputs/RxDatePicker';
 import { CakeIcon } from '@heroicons/react/20/solid';
 import { getCleanObject } from '@/_utilities/data-helpers/key-value-cleaner';
 import { useSearchParams } from 'next/navigation';
-import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
 
 type RxMyAccountPageProps = {
   type: string;
@@ -185,14 +184,13 @@ export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit?: React.
         );
       }
       return React.cloneElement(
-        {
-          ...child,
-        },
+        child,
         {
           ...child.props,
+          className: child.props?.className || '' + ' rexified',
           // Wrap grandchildren too
-          children: <RxPageIterator {...props}>{child.props.children}</RxPageIterator>,
         },
+        <RxPageIterator {...props}>{child.props.children}</RxPageIterator>,
       );
     } else return child;
   });
@@ -202,10 +200,10 @@ export function RxPageIterator(props: RxMyAccountPageProps & { onSubmit?: React.
 
 export function RxMyAccountPage(props: RxMyAccountPageProps) {
   const reset = useEvent(Events.ResetForm);
-  const session = useEvent(Events.LoadUserSession);
   const { data, fireEvent } = useEvent(Events.SaveAccountChanges);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [is_processing, processing] = React.useState(false);
+
   const [form_data, setFormData] = React.useState<
     EventsData & {
       agent_id?: string;
@@ -336,23 +334,19 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
     }
   }, [data]);
 
-  React.useEffect(() => {
-    if (props['user-type'] === 'customer' && Cookies.get('session_key')) {
-      // getUserBySessionKey(Cookies.get('session_key') as string).then(setFormData);
-    }
-  }, []);
+  const session = props.session || {};
 
   return (
     <div id='rx-my-account-page' className={[props.className || '', is_processing ? 'loading' : ''].join(' ').trim()}>
       <RxPageIterator
         {...props}
         data={{
-          ...session.data,
+          ...session,
           ...form_data,
         }}
         session={
           {
-            ...session.data,
+            ...session,
             ...form_data,
           } as any
         }
