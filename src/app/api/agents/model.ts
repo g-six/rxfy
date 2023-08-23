@@ -375,8 +375,7 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
 
   let [record] = response_data?.data?.agents.data;
   if (!record) {
-    // agent record does not exist,
-    console.log('agent record does not exist');
+    console.log('agent record does not exist', attributes);
     return;
   } else if (!record.attributes.agent_metatag?.data) {
     console.log('');
@@ -417,28 +416,6 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
     : null;
 }
 
-/**
- * Returns cached agent data (including metatags)
- * There is a trade-off of delta - 1 for the most recent info
- * but it's something we can live by for now.
- */
-export const findAgentRecordByAgentIdOld = cache(async (agent_id: string) => {
-  const url = `https://${process.env.NEXT_APP_S3_PAGES_BUCKET}/agent-records/${agent_id}.json`;
-  let response = {};
-  try {
-    const cache = await axios.get(url);
-    // We're still gonna update their data behind the scenes.
-    // Difference is, we're not gonna wait for the response
-    findAgentBy({ agent_id }).then(r => {
-      createCacheItem(JSON.stringify(r, null, 4), `agent-records/${agent_id}.json`);
-    });
-    response = cache.data;
-  } catch (e) {
-    response = await findAgentBy({ agent_id });
-    createCacheItem(JSON.stringify(response, null, 4), `agent-records/${agent_id}.json`);
-  }
-  return response as any;
-});
 export const findAgentRecordByAgentId = cache(async (agent_id: string) => {
   try {
     const response = await findAgentBy({ agent_id });

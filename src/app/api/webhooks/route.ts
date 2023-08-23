@@ -3,6 +3,8 @@ import { CheerioAPI, load } from 'cheerio';
 import { NextResponse } from 'next/server';
 import { createCacheItem, invalidateCache } from '../_helpers/cache-helper';
 
+const BUCKET_NAME = process.env.NEXT_PUBLIC_RX_SITE_BUCKET as string;
+const CLOUDFRONT_DISTRIBUTION_ID = 'EU4BBJ173XBCG';
 interface WebflowWebhookPayload {
   site: string;
   publishTime: number;
@@ -43,51 +45,52 @@ const pages = [
 ].concat(['pricing', 'examples', 'contact']);
 
 async function cacheSite(domain: string) {
-  const scripts: string[] = [];
   const invalidation_uris: string[] = [];
 
   await Promise.all(
     pages.map(async (page: string) => {
       const url = 'https://' + domain + (page === 'index' ? '' : '/' + page);
       try {
+        const scripts: string[] = [];
         const html = await axios.get(url);
         const $: CheerioAPI = load(html.data);
-
-        let html_body = $.html();
-
         $('script').each((i, el) => {
           if (el.attribs.src && !scripts.includes(el.attribs.src)) {
             const { pathname } = new URL(el.attribs.src);
             scripts.push(el.attribs.src);
             let filename = pathname.split('/').pop();
             if (filename?.indexOf('webflow.') === 0) {
-              filename = '/webflow.js';
+              filename = `//${BUCKET_NAME}/${domain}/webflow.js`;
+              console.log('Found webflow for', url);
+              $(el).attr('src', filename);
             } else filename = pathname;
-            $(el).attr('src', filename);
           }
         });
 
         const page_uri = domain + '/' + page + '.html';
         invalidation_uris.push(page_uri);
-        createCacheItem($.html(), page_uri, 'text/html', false);
+
+        await Promise.all(
+          scripts.map(async v => {
+            const js = await axios.get(v);
+            const { pathname } = new URL(v);
+            let filename = pathname.split('/').pop();
+            if (filename?.indexOf('webflow.') === 0) {
+              filename = '/webflow.js';
+            } else {
+              filename = pathname;
+            }
+            if (page !== 'index') filename = `/${page}${filename}`;
+            createCacheItem(js.data, domain + filename, 'text/javascript', false, BUCKET_NAME);
+          }),
+        );
+        $('.w-nav').removeClass('w-nav');
+        createCacheItem($.html(), page_uri, 'text/html', false, BUCKET_NAME);
       } catch (e) {
-        console.log('Could not reach', url);
+        // console.log('Could not reach', url);
       } finally {
-        console.log(url, 'cached when found');
+        // console.log(url, 'cached when found');
       }
-    }),
-  );
-  await Promise.all(
-    scripts.map(async v => {
-      const js = await axios.get(v);
-      const { pathname } = new URL(v);
-      let filename = pathname.split('/').pop();
-      if (filename?.indexOf('webflow.') === 0) {
-        filename = '/webflow.js';
-      } else {
-        filename = pathname;
-      }
-      createCacheItem(js.data, domain + filename, 'text/javascript', false);
     }),
   );
   return invalidation_uris;
@@ -100,6 +103,6 @@ export async function POST(req: Request) {
   response.forEach(r => {
     r.forEach(path => invalidations.push(`/${path}`));
   });
-  invalidateCache(['/*']);
+  invalidateCache(['/*'], CLOUDFRONT_DISTRIBUTION_ID);
   return NextResponse.json({ payload, invalidations });
 }
