@@ -244,7 +244,7 @@ function Iterator({
             }
             if (!rexified) {
               if (c.props['data-field'].includes('search_highlight_button')) {
-                const buttons = agent.metatags.search_highlights?.labels?.map(target => {
+                const buttons = agent.metatags.search_highlights?.labels?.map((target, idx) => {
                   const { children: search_btn_elements, ...search_btn_props } = c.props;
                   const { ne, sw, ...geo } = target;
                   let url_path = `/${agent.agent_id}/${agent.metatags.profile_slug}`;
@@ -254,6 +254,7 @@ function Iterator({
                   return (
                     <a
                       {...search_btn_props}
+                      key={`${url_path}-${idx}`}
                       href={`${url_path}/map?${objectToQueryString(
                         {
                           ...geo,
