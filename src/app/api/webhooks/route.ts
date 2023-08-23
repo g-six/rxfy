@@ -61,9 +61,9 @@ async function cacheSite(domain: string) {
             scripts.push(el.attribs.src);
             let filename = pathname.split('/').pop();
             if (filename?.indexOf('webflow.') === 0) {
-              filename = 'webflow.js';
-              $(el).attr('src', '/' + filename);
-            }
+              filename = '/webflow.js';
+            } else filename = pathname;
+            $(el).attr('src', filename);
           }
         });
 
