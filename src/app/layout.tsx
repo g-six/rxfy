@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-css-tags */
 import { CheerioAPI, load } from 'cheerio';
 import { headers } from 'next/headers';
 
@@ -147,7 +148,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const head_meta = $('head meta');
   const metas: React.ReactElement[] = [
     <title key='title'>{agent_data?.metatags?.title || $('title').text() || 'Leagent'}</title>,
-    <meta name='description' content={agent_data?.metatags?.description || $('title').text() || 'Leagent'} />,
+    <meta key='site-description' name='description' content={agent_data?.metatags?.description || $('title').text() || 'Leagent'} />,
     <link key='preflight-css' rel='stylesheet' type='text/css' href='/css/preflight.css' />,
     <link key='mapbox-css' rel='stylesheet' type='text/css' href='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css' />,
   ];
