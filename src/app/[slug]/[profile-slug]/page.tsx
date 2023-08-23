@@ -246,7 +246,7 @@ export default async function AgentHomePage({ params }: { params: { slug: string
     const agent = await findAgentRecordByAgentId(agent_id);
     let webflow_site = `https://${WEBFLOW_DASHBOARDS.CUSTOMER}`;
     if (agent.domain_name) webflow_site = `https://${agent.domain_name}`;
-    // else if (agent.webflow_domain) webflow_site = `https://${agent.webflow_domain}`;
+    else if (agent.webflow_domain) webflow_site = `https://pages.leagent.com/${agent.webflow_domain}/index.html`;
 
     const promises = await Promise.all([axios.get(webflow_site)]);
     const { data: html } = promises[0];
