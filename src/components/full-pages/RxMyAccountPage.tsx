@@ -16,7 +16,6 @@ import { RealtorInputModel } from '@/_typings/agent';
 import RxDatePicker from '@/components/RxForms/RxInputs/RxDatePicker';
 import { CakeIcon } from '@heroicons/react/20/solid';
 import { getCleanObject } from '@/_utilities/data-helpers/key-value-cleaner';
-import { useSearchParams } from 'next/navigation';
 
 type RxMyAccountPageProps = {
   type: string;
@@ -218,12 +217,6 @@ export function RxMyAccountPage(props: RxMyAccountPageProps) {
       yes_to_marketing?: boolean;
     }
   >(data as EventsData);
-
-  const search = useSearchParams();
-  if (search.get('key') && !Cookies.get('session_key')) {
-    const session_key = search.get('key') as string;
-    getUserBySessionKey(session_key).then(setFormData);
-  }
 
   const submitForm = (d = data) => {
     const updates = getCleanObject(d);
