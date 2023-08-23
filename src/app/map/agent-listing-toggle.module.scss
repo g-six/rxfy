@@ -1,0 +1,12 @@
+.toggle {
+  @apply transition-all;
+}
+.inactive {
+  @apply bg-slate-200 justify-start;
+}
+.inactive-circle {
+  @apply transition-all translate-x-full;
+}
+.active-circle {
+  @apply transition-all translate-x-full;
+}
