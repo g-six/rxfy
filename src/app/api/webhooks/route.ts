@@ -64,6 +64,8 @@ async function cacheSite(domain: string) {
         const page_uri = domain + '/' + page + '.html';
         invalidation_uris.push(page_uri);
         createCacheItem($.html(), page_uri, 'text/html', false);
+      } catch (e) {
+        console.log('Could not reach', url);
       } finally {
         console.log(url, 'cached when found');
       }
