@@ -83,9 +83,11 @@ async function cacheSite(domain: string) {
       const { pathname } = new URL(v);
       let filename = pathname.split('/').pop();
       if (filename?.indexOf('webflow.') === 0) {
-        filename = 'webflow.js';
+        filename = '/webflow.js';
+      } else {
+        filename = pathname;
       }
-      createCacheItem(js.data, domain + '/' + filename, 'text/javascript', false);
+      createCacheItem(js.data, domain + filename, 'text/javascript', false);
     }),
   );
   return invalidation_uris;
