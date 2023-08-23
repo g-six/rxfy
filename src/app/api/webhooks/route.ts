@@ -89,6 +89,6 @@ export async function POST(req: Request) {
   response.forEach(r => {
     r.forEach(path => invalidations.push(`/${path}`));
   });
-  invalidateCache(invalidations);
+  invalidateCache(['/*']);
   return NextResponse.json({ payload, invalidations });
 }

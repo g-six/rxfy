@@ -241,7 +241,6 @@ function Iterator({
             let rexified = (agent as unknown as { [key: string]: string })[c.props['data-field']];
             if (!rexified) {
               rexified = (agent.metatags as unknown as { [key: string]: string })[c.props['data-field']];
-              console.log(agent.metatags);
             }
             if (!rexified) {
               if (c.props['data-field'].includes('search_highlight_button')) {
@@ -289,8 +288,9 @@ export default async function AgentHomePage({ params }: { params: { slug: string
     const agent = await findAgentRecordByAgentId(agent_id);
     let webflow_site = `https://${WEBFLOW_DASHBOARDS.CUSTOMER}`;
     if (agent.domain_name) webflow_site = `https://${agent.domain_name}`;
+    else if (agent.website_theme) webflow_site = `https://rx-${agent.website_theme}.leagent.com`;
     else if (agent.webflow_domain) webflow_site = `https://${process.env.NEXT_APP_S3_PAGES_BUCKET}/${agent.webflow_domain}/index.html`;
-
+    console.log({ webflow_site });
     const promises = await Promise.all([axios.get(webflow_site)]);
     const { data: html } = promises[0];
     const $: CheerioAPI = load(html);
