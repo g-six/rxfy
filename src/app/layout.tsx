@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 import Script from 'next/script';
 
 import React from 'react';
-import { WebFlow } from '@/_typings/webflow';
+import { WEBFLOW_THEME_DOMAINS, WebFlow } from '@/_typings/webflow';
 import { AgentData } from '@/_typings/agent';
 import { getPropertyData } from '@/_utilities/data-helpers/property-page';
 import { replaceMetaTags } from '@/_helpers/head-manipulations';
@@ -168,9 +168,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // end of extracting and assigning <head> elements
 
   const { class: bodyClassName, ...body_props } = webflow.body.props;
-  if (webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN || requestUrl.pathname.split('/').pop() === 'map') {
-    let title = agent_data?.metatags?.title || agent_data?.full_name;
+  let use_v2 = webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN;
+  if (!use_v2) use_v2 = webflow_domain === WEBFLOW_THEME_DOMAINS.ALICANTE;
 
+  if (use_v2 || requestUrl.pathname.split('/').pop() === 'map') {
     return (
       <html data-wf-domain={`${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`} {...$('html').attr()}>
         <head>{metas}</head>

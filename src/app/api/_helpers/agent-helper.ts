@@ -1,6 +1,7 @@
 import { removeEmpty } from '@/_helpers/functions';
 import { AgentData } from '@/_typings/agent';
 import { objectToQueryString } from '@/_utilities/url-helper';
+import { gql_by_agent_uniq } from '../agents/graphql';
 
 export function getFullAgentRecord(recordset: {
   agent_metatag: { data?: { id: number; attributes: { [key: string]: unknown } } };
@@ -139,4 +140,65 @@ export function getAgentBaseUrl(agent: AgentData) {
   if (agent.metatags) return `/${agent.agent_id}/${agent.metatags.profile_slug}`;
 
   return '';
+}
+export async function getAgentBy(attributes: { [key: string]: string }) {
+  const { agent_id, profile_slug, target_city, email, full_name, neighbourhoods, phone } = attributes;
+
+  let filters: {
+    agent_id?: {
+      eqi: string;
+    };
+    profile_slug?: {
+      eqi: string;
+    };
+  } = {};
+  if (agent_id) {
+    filters = {
+      agent_id: {
+        eqi: agent_id,
+      },
+    };
+  } else if (profile_slug) {
+    filters = {
+      agent_id: {
+        eqi: agent_id,
+      },
+    };
+  } else {
+    return;
+  }
+
+  const query = {
+    query: gql_by_agent_uniq,
+    variables: {
+      filters,
+    },
+  };
+  const results = await fetch(`${process.env.NEXT_APP_CMS_GRAPHQL_URL}`, {
+    method: 'POST',
+    body: JSON.stringify(query),
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const response_data = await results.json();
+
+  let [record] = response_data?.data?.agents.data;
+  if (!record) {
+    // agent record does not exist,
+    console.log('agent record does not exist');
+    return;
+  }
+  return record?.attributes
+    ? {
+        ...record.attributes,
+        id: Number(record.id),
+        metatags: {
+          ...record.attributes.agent_metatag.data?.attributes,
+          id: record.attributes.agent_metatag.data ? Number(record.attributes.agent_metatag.data.id) : undefined,
+        },
+      }
+    : null;
 }

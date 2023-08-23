@@ -3,13 +3,12 @@ import React from 'react';
 import Cookies from 'js-cookie';
 import { emailPasswordReset, getUserBySessionKey } from '@/_utilities/api-calls/call-session';
 import { AgentData } from '@/_typings/agent';
-import { CustomerInputModel, CustomerRecord } from '@/_typings/customer';
+import { CustomerRecord } from '@/_typings/customer';
 import { classNames } from '@/_utilities/html-helper';
 import { convertDivsToSpans } from '@/_replacers/DivToSpan';
 import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
 import styles from './form-input.module.scss';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
 function Iterator({

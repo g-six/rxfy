@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { WEBFLOW_DASHBOARDS } from './_typings/webflow';
+import { getAgentBy } from './app/api/_helpers/agent-helper';
 
 const REALTOR_STATIC_PAGES = ['pricing', 'examples', 'contact'];
 export async function middleware(request: NextRequest) {
@@ -64,6 +65,10 @@ export async function middleware(request: NextRequest) {
     response.headers.set('x-profile-slug', segments[1]);
     response.headers.set('x-viewer', 'customer');
 
+    const agent_data = await getAgentBy({
+      agent_id: segments[0],
+    });
+
     if (['my-profile', 'map', 'reset-password', 'my-home-alerts', 'my-compare', 'my-all-properties'].includes(segments[2])) {
       page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/${segments[2]}`;
     } else if (segments[2] === 'map') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/map`;
@@ -74,14 +79,8 @@ export async function middleware(request: NextRequest) {
     else if (segments[2] === 'sign-up') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/sign-up`;
     else if (segments[2] === 'my-account') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/my-account`;
     else if (segments[2] === 'client-dashboard') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/client-dashboard`;
-    else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/index`;
-    console.log(page_url);
-    console.log(page_url);
-    console.log(page_url);
-    console.log(page_url);
-    console.log(page_url);
-    console.log(page_url);
-    console.log(page_url);
+    else page_url = `${page_url}${agent_data.webflow_domain}/index`;
+    console.log('load indexpage', page_url);
   } else if (pathname === '/') {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/index`;
   } else if (REALTOR_STATIC_PAGES.filter(page => pathname === '/' + page).length >= 1) {
@@ -98,7 +97,6 @@ export async function middleware(request: NextRequest) {
 
   if (!page_url.includes('/_next') && !page_url.includes('.ico')) {
     if (!request.cookies.get('session_as')) response.cookies.set('session_as', page_url.indexOf(WEBFLOW_DASHBOARDS.CUSTOMER) >= 0 ? 'customer' : 'realtor');
-    console.log({ page_url });
     response.headers.set('x-url', page_url + '.html');
   }
 
