@@ -241,6 +241,7 @@ function Iterator({
             let rexified = (agent as unknown as { [key: string]: string })[c.props['data-field']];
             if (!rexified) {
               rexified = (agent.metatags as unknown as { [key: string]: string })[c.props['data-field']];
+              console.log(agent.metatags);
             }
             if (!rexified) {
               if (c.props['data-field'].includes('search_highlight_button')) {

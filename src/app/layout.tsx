@@ -109,7 +109,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       if (searchParams.mls) {
         try {
           const cached_property = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/recent.json`);
-          const cached_legacy = await axios.get(`${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/legacy.json`);
           property = cached_property?.data || undefined;
           cache_found = true;
         } catch (e) {

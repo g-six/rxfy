@@ -42,10 +42,10 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
   const { data: home_alerts_params, fireEvent: setHomeAlertsParams } = useEvent(Events.MyHomeAlertsForm);
   const { data: lovers_data_obj } = useEvent(Events.LoadLovers);
   const { data: love } = useEvent(Events.MapLoversToggle);
+  const { data: agent_only } = useEvent(Events.AgentMyListings);
   const mapNode = React.useRef(null);
   const [map, setMap] = React.useState<mapboxgl.Map>();
   const [is_loading, setLoading] = React.useState<boolean>(false);
-  const [only_agent_listing, toggleListing] = React.useState<boolean>();
   const [filters, setFilters] = React.useState<{
     [k: string]: string | number;
   }>();
@@ -73,7 +73,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
                     ({
                       ...properties,
                       id,
-                    } as unknown as PropertyDataModel),
+                    }) as unknown as PropertyDataModel,
                 ),
               } as unknown as EventsData);
             });
@@ -198,24 +198,24 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
           },
         }));
       }
-
-      if (only_agent_listing) {
-        // should.push({
-        //   match: {
-        //     'data.LA1_LoginName': p['agent-id'],
-        //   },
-        // });
-        // should.push({
-        //   match: {
-        //     'data.LA2_LoginName': p['agent-id'],
-        //   },
-        // });
-        // should.push({
-        //   match: {
-        //     'data.LA3_LoginName': p['agent-id'],
-        //   },
-        // });
-        // minimum_should_match = 2;
+      console.log(p.agent);
+      if (agent_only?.show && p.agent?.agent_id) {
+        should.push({
+          match: {
+            'data.LA1_LoginName': p.agent.agent_id,
+          },
+        });
+        should.push({
+          match: {
+            'data.LA2_LoginName': p.agent.agent_id,
+          },
+        });
+        should.push({
+          match: {
+            'data.LA3_LoginName': p.agent.agent_id,
+          },
+        });
+        minimum_should_match = 2;
       }
       let sort: {
         [key: string]: 'asc' | 'desc';
@@ -425,10 +425,6 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
   }, [data]);
 
   React.useEffect(() => {
-    console.log({ only_agent_listing });
-  }, [only_agent_listing]);
-
-  React.useEffect(() => {
     if (map) {
       const nav = new mapboxgl.NavigationControl();
       if (!map.hasControl(nav)) {
@@ -551,7 +547,6 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
         nelng: map.getBounds().getNorthEast().lng,
         swlng: map.getBounds().getSouthWest().lng,
       };
-      console.log('search params', { updated });
       setFilters(updated);
       setLoading(true);
     } else if (!q.lat && !q.lng) {
@@ -589,19 +584,26 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
   }, [love]);
 
   React.useEffect(() => {
-    document &&
-      document.querySelectorAll('.toggle-base').forEach(el =>
-        el.addEventListener('click', (evt: Event) => {
-          const toggle = evt.target as HTMLDivElement;
-          const toggle_value = toggle.getAttribute('style')?.includes('transform') || true;
-          if (only_agent_listing === undefined) {
-            toggleListing(true);
-          } else {
-            toggleListing(!toggle_value);
-          }
-        }),
-      );
-  }, []);
+    if (agent_only?.show !== undefined) {
+      setLoading(true);
+      populateMap();
+    }
+  }, [agent_only]);
+
+  // React.useEffect(() => {
+  //   document &&
+  //     document.querySelectorAll('.toggle-base').forEach(el =>
+  //       el.addEventListener('click', (evt: Event) => {
+  //         const toggle = evt.target as HTMLDivElement;
+  //         const toggle_value = toggle.getAttribute('style')?.includes('transform') || true;
+  //         if (only_agent_listing === undefined) {
+  //           toggleListing(true);
+  //         } else {
+  //           toggleListing(!toggle_value);
+  //         }
+  //       }),
+  //     );
+  // }, []);
 
   return (
     <aside
