@@ -148,15 +148,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
   // Special cases
   if (searchParams.paragon) {
-    axios
-      .get(`${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${searchParams.paragon}?regen=1`)
-      .then(response => {
-        console.log('Successfully retrieved agent cache json');
-      })
-      .catch(e => {
-        const axerr = e as AxiosError;
-        console.log(`Error in generating ${process.env.NEXT_PUBLIC_API}/opensearch/agent-listings/${searchParams.paragon}?regen=1`, axerr.response?.status);
-      });
     agent_data = await findAgentRecordByAgentId(searchParams.paragon);
 
     if (agent_data) {

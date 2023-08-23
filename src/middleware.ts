@@ -15,9 +15,10 @@ export async function middleware(request: NextRequest) {
   if (pathname.includes('/api')) return response;
   if (pathname.includes('next')) return response;
   if (pathname.includes('images')) return response;
+  if (pathname.includes('wf_graphql')) return response;
 
   const [, ...segments] = pathname.split('/');
-  let page_url = `https://pages.leagent.com/`;
+  let page_url = `https://sites.leagent.com/`;
   response.headers.set('x-viewer', 'realtor');
   response.headers.set('x-canonical', `${origin}${pathname || ''}`);
 
@@ -94,7 +95,7 @@ export async function middleware(request: NextRequest) {
 
   if (page_url.includes('/undefined')) page_url = page_url.split('/undefined').join('');
 
-  if (!page_url.includes('/_next') && !page_url.includes('.ico')) {
+  if (!page_url.includes('/_next') && !page_url.includes('.ico') && !page_url.includes('.wf_graphql')) {
     if (!request.cookies.get('session_as')) response.cookies.set('session_as', page_url.indexOf(WEBFLOW_DASHBOARDS.CUSTOMER) >= 0 ? 'customer' : 'realtor');
     response.headers.set('x-url', page_url + '.html');
   }

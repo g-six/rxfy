@@ -18,7 +18,6 @@ import { formatValues } from '@/_utilities/data-helpers/property-page';
 import styles from './profile-page.module.scss';
 import NavIterator from '@/components/Nav/RxNavIterator';
 import FooterIterator from '@/components/RxFooter';
-import Link from 'next/link';
 import { objectToQueryString } from '@/_utilities/url-helper';
 
 function PropertyCard({ agent, listing, children }: { agent: AgentData; listing: PropertyDataModel; children: ReactElement }) {
@@ -111,7 +110,7 @@ function Iterator({
   listings?: { active: PropertyDataModel[]; sold: PropertyDataModel[] };
 }) {
   const Wrapped = Children.map(children, c => {
-    if (['div', 'header'].includes(c.type as string)) {
+    if (c.props?.children && typeof c.props?.children !== 'string') {
       const { children: sub, ...props } = c.props;
       if (props.className?.includes('property-card') && listings?.active) {
         return (
@@ -162,9 +161,7 @@ function Iterator({
       if (!agent) {
         return c;
       }
-      if (c.props.style) {
-        console.log(c.props.style);
-      }
+
       if (c.props['data-field']) {
         switch (c.props['data-field']) {
           case 'agent_name':
@@ -237,6 +234,14 @@ function Iterator({
                 );
             }
             return <></>;
+          case 'target_map':
+            if (agent.metatags) {
+              return cloneElement(c, {
+                src: `${`https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${agent.metatags.lng || -123.112},${
+                  agent.metatags.lat || 49.2768
+                },12/1080x720@2x?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`}`,
+              });
+            }
           default:
             let rexified = (agent as unknown as { [key: string]: string })[c.props['data-field']];
             if (!rexified) {
@@ -287,10 +292,11 @@ export default async function AgentHomePage({ params }: { params: { slug: string
   if (agent_id) {
     const agent = await findAgentRecordByAgentId(agent_id);
     let webflow_site = `https://${WEBFLOW_DASHBOARDS.CUSTOMER}`;
+    if (!agent) return '';
     if (agent.domain_name) webflow_site = `https://${agent.domain_name}`;
-    else if (agent.website_theme) webflow_site = `https://rx-${agent.website_theme}.leagent.com`;
+    else if (agent.webflow_domain) webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${agent.webflow_domain}/index.html`;
     else if (agent.webflow_domain) webflow_site = `https://${process.env.NEXT_APP_S3_PAGES_BUCKET}/${agent.webflow_domain}/index.html`;
-    console.log({ webflow_site });
+
     const promises = await Promise.all([axios.get(webflow_site)]);
     const { data: html } = promises[0];
     const $: CheerioAPI = load(html);

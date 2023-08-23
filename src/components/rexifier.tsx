@@ -416,6 +416,8 @@ export function rexifyScriptsV2(html_code: string) {
         if (attribs.src) {
           if (attribs.src.indexOf('jquery') >= 0) {
             return <script src={attribs.src} data-version='v2' type='text/javascript' crossOrigin='anonymous' integrity={attribs.integrity} />;
+          } else if (attribs.src.indexOf('webflow.js') >= 0) {
+            return <script src={attribs.src} defer />;
           } else {
             return (
               <>
