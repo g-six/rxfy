@@ -109,6 +109,14 @@ export type SearchHighlightInput = {
   nelng: number;
   swlat: number;
   swlng: number;
+  ne?: {
+    lat: number;
+    lng: number;
+  };
+  sw?: {
+    lat: number;
+    lng: number;
+  };
 };
 
 export interface CreateNeighborhoodMapOptions {

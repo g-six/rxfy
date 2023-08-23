@@ -13,10 +13,10 @@ export function queryStringToObject(queryString: string): Record<string, string 
 }
 
 // Function that takes in an object and outputs a query string
-export function objectToQueryString(obj: { [key: string]: string | number }): string {
+export function objectToQueryString(obj: { [key: string]: string | number }, skip_keys: string[] = []): string {
   let queryString = '';
   for (const key in obj) {
-    if (obj[key] !== undefined) queryString += `${key}=${encodeURIComponent(obj[key]).split('%20').join('+')}&`;
+    if (obj[key] !== undefined && !skip_keys.includes(key)) queryString += `${key}=${encodeURIComponent(obj[key]).split('%20').join('+')}&`;
   }
   return queryString.slice(0, queryString.length - 1);
 }

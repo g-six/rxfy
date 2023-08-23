@@ -18,6 +18,8 @@ import { formatValues } from '@/_utilities/data-helpers/property-page';
 import styles from './profile-page.module.scss';
 import NavIterator from '@/components/Nav/RxNavIterator';
 import FooterIterator from '@/components/RxFooter';
+import Link from 'next/link';
+import { objectToQueryString } from '@/_utilities/url-helper';
 
 function PropertyCard({ agent, listing, children }: { agent: AgentData; listing: PropertyDataModel; children: ReactElement }) {
   const Wrapped = Children.map(children, c => {
@@ -232,6 +234,42 @@ function Iterator({
                 );
             }
             return <></>;
+          default:
+            let rexified = (agent as unknown as { [key: string]: string })[c.props['data-field']];
+            if (!rexified) {
+              rexified = (agent.metatags as unknown as { [key: string]: string })[c.props['data-field']];
+            }
+            if (!rexified) {
+              if (c.props['data-field'].includes('search_highlight_button')) {
+                const buttons = agent.metatags.search_highlights?.labels?.map(target => {
+                  const { children: search_btn_elements, ...search_btn_props } = c.props;
+                  const { ne, sw, ...geo } = target;
+                  let url_path = `/${agent.agent_id}/${agent.metatags.profile_slug}`;
+                  if (agent.domain_name) url_path = ``;
+                  const q = ne && sw ? `&nelat=${ne.lat}&nelng=${ne.lng}&swlat=${sw.lat}&swlng=${sw.lng}` : '';
+
+                  return (
+                    <a
+                      {...search_btn_props}
+                      href={`${url_path}/map?${objectToQueryString(
+                        {
+                          ...geo,
+                          city: geo.name,
+                        },
+                        ['title', 'name'],
+                      )}&minprice=200000&maxprice=100000000`}
+                    >
+                      {Children.map(search_btn_elements, cc => (
+                        <span className={cc.className}>{target.name}</span>
+                      ))}
+                    </a>
+                  );
+                });
+                return <>{buttons}</>;
+              }
+            }
+            console.log({ rexified, key: c.props['data-field'], search: agent.metatags.search_highlights?.labels });
+            if (rexified) return cloneElement(c, c.props, rexified);
         }
       }
     }
