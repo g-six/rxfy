@@ -8,7 +8,6 @@ import CompareCard from '../ComparePage/CompareCard';
 
 import useEvent, { Events } from '@/hooks/useEvent';
 import FiltersModalWrapper from '../ComparePage/FiltersModalWrapper';
-import { property } from 'cypress/types/lodash';
 import { getMLSProperty } from '@/_utilities/api-calls/call-properties';
 
 type Props = {

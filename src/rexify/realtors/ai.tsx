@@ -13,7 +13,6 @@ import { getAgentByParagonId } from '@/_utilities/api-calls/call-realtor';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import Image from 'next/image';
 import { createAgentRecord } from '@/_utilities/api-calls/call-realtor';
-import { queryPlace } from '@/_utilities/api-calls/call-places';
 import RxStreetAddressInput from '@/components/RxForms/RxInputs/RxStreetAddressInput';
 import { SearchHighlightInput, SelectedPlaceDetails } from '@/_typings/maps';
 

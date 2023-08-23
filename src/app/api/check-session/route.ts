@@ -52,7 +52,7 @@ export async function getUserSessionData(authorization: string, user_type: 'real
       const [subscription_id] = Object.keys(stripe_subscriptions);
       if (subscription_id) {
         const stripe = new Stripe(`${process.env.NEXT_APP_STRIPE_SECRET}`, {
-          apiVersion: '2022-11-15',
+          apiVersion: '2023-08-16',
         });
         const stripe_subscription = await stripe.subscriptions.retrieve(subscription_id);
 

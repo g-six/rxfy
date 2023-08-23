@@ -9,7 +9,7 @@ export async function getSmart(
   property: { [key: string]: string | number },
   real_estate_board?: { id: number; name: string; abbreviation: string },
 ) {
-  let prompt = `My name's ${agent.full_name} and I'm a licenced realtor catering to the city of ${property.city}, ${property.province_state}`;
+  let prompt = `My name's ${agent.full_name} and I'm a licenced realtor catering to the city of ${property.city}`;
 
   if (real_estate_board) {
     prompt = `Retrieve the public information of a realtor named ${agent.full_name}, a licenced realtor for ${`${

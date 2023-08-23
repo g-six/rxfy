@@ -50,7 +50,9 @@ export async function POST(req: Request) {
           ...results,
           search_highlights: neighbourhoods,
         },
-        target_city,
+        {
+          city: target_city.name,
+        },
       );
       return getResponse(results);
     }

@@ -79,21 +79,6 @@ export function RxLoginPage(props: RxLoginPageProps) {
         }
       }
     });
-    // const api_response = await axios
-    //   .get('/api/check-session' + hasClassName(props.className || '', 'use-agent') ? '/agent' : '', {
-    //     headers: {
-    //       Authorization: `Bearer ${session_key}`,
-    //     },
-    //   })
-    //   .catch(e => {
-    //     console.log('User not logged in');
-    //   });
-
-    // const session = api_response as unknown as {
-    //   data?: {
-    //     session_key: string;
-    //   };
-    // };
   };
 
   const submitForm = async () => {

@@ -5,7 +5,6 @@ import { Transition } from '@headlessui/react';
 import React from 'react';
 import styles from './RxDropdownMenu.module.scss';
 import useEvent, { Events } from '@/hooks/useEvent';
-import { RxAgentTextWrapper } from '../RxAgentInfoWrappers/RxAgentTextWrapper';
 import { AgentData } from '@/_typings/agent';
 import { RxButton } from '../RxButton';
 import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
@@ -68,6 +67,7 @@ export default function RxSessionDropdown(p: Props) {
         session_key: string;
       };
       if (!session_key) {
+        console.log('getUserBySessionKey loaded in RxSessionDropdown');
         getUserBySessionKey(Cookies.get('session_key') as string, 'realtor')
           .then(data => {
             const { expires_in } = data as unknown as { expires_in: number };
