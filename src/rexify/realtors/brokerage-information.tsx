@@ -19,7 +19,7 @@ type Props = {
   children: React.ReactElement;
   className?: string;
   session?: { [key: string]: string | number };
-  data: BrokerageData;
+  data?: BrokerageData;
 };
 
 async function uploadBrokerageLogo(full_file_path: string, file: File) {
