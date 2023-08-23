@@ -162,6 +162,9 @@ function Iterator({
       if (!agent) {
         return c;
       }
+      if (c.props.style) {
+        console.log(c.props.style);
+      }
       if (c.props['data-field']) {
         switch (c.props['data-field']) {
           case 'agent_name':
@@ -268,7 +271,7 @@ function Iterator({
                 return <>{buttons}</>;
               }
             }
-            console.log({ rexified, key: c.props['data-field'], search: agent.metatags.search_highlights?.labels });
+
             if (rexified) return cloneElement(c, c.props, rexified);
         }
       }

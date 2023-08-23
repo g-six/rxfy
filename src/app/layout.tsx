@@ -177,7 +177,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       ...$('html').attr(),
       class: undefined,
     };
-    metas.map(m => console.log(m.props));
+
     return (
       <html data-wf-domain={`${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`} {...html_props}>
         <head>{metas.filter(m => m.key)}</head>
