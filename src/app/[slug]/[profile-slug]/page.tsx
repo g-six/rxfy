@@ -109,7 +109,7 @@ function Iterator({
   listings?: { active: PropertyDataModel[]; sold: PropertyDataModel[] };
 }) {
   const Wrapped = Children.map(children, c => {
-    if (c.type === 'div') {
+    if (['div', 'header'].includes(c.type as string)) {
       const { children: sub, ...props } = c.props;
       if (props.className?.includes('property-card') && listings?.active) {
         return (
@@ -246,7 +246,7 @@ export default async function AgentHomePage({ params }: { params: { slug: string
     const agent = await findAgentRecordByAgentId(agent_id);
     let webflow_site = `https://${WEBFLOW_DASHBOARDS.CUSTOMER}`;
     if (agent.domain_name) webflow_site = `https://${agent.domain_name}`;
-    else if (agent.webflow_domain) webflow_site = `https://pages.leagent.com/${agent.webflow_domain}/index.html`;
+    else if (agent.webflow_domain) webflow_site = `https://${process.env.NEXT_APP_S3_PAGES_BUCKET}/${agent.webflow_domain}/index.html`;
 
     const promises = await Promise.all([axios.get(webflow_site)]);
     const { data: html } = promises[0];
