@@ -147,6 +147,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const head_meta = $('head meta');
   const metas: React.ReactElement[] = [
     <title key='title'>{agent_data?.metatags?.title || $('title').text() || 'Leagent'}</title>,
+    <meta name='description' content={agent_data?.metatags?.description || $('title').text() || 'Leagent'} />,
     <link key='preflight-css' rel='stylesheet' type='text/css' href='/css/preflight.css' />,
     <link key='mapbox-css' rel='stylesheet' type='text/css' href='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css' />,
   ];
@@ -172,9 +173,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   if (!use_v2) use_v2 = webflow_domain === WEBFLOW_THEME_DOMAINS.ALICANTE;
 
   if (use_v2 || requestUrl.pathname.split('/').pop() === 'map') {
+    const html_props = {
+      ...$('html').attr(),
+      class: undefined,
+    };
+    metas.map(m => console.log(m.props));
     return (
-      <html data-wf-domain={`${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`} {...$('html').attr()}>
-        <head>{metas}</head>
+      <html data-wf-domain={`${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`} {...html_props}>
+        <head>{metas.filter(m => m.key)}</head>
 
         <body {...body_props} className={bodyClassName} suppressHydrationWarning>
           {children}
