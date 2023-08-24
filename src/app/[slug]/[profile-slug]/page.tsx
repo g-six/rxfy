@@ -19,6 +19,7 @@ import styles from './profile-page.module.scss';
 import NavIterator from '@/components/Nav/RxNavIterator';
 import FooterIterator from '@/components/RxFooter';
 import { objectToQueryString } from '@/_utilities/url-helper';
+import MapSearchInput from '@/app/map/search-input.module';
 
 function PropertyCard({ agent, listing, children }: { agent: AgentData; listing: PropertyDataModel; children: ReactElement }) {
   const Wrapped = Children.map(children, c => {
@@ -128,7 +129,9 @@ function Iterator({
   listings?: { active: PropertyDataModel[]; sold: PropertyDataModel[] };
 }) {
   const Wrapped = Children.map(children, c => {
-    if (c.type !== 'a' && c.props?.children && typeof c.props?.children !== 'string') {
+    if (c.type === 'input' && c.props.type === 'search') {
+      return <MapSearchInput className={c.props.className} />;
+    } else if (c.type !== 'a' && c.props?.children && typeof c.props?.children !== 'string') {
       const { children: sub, ...props } = c.props;
       if (props.className?.includes('property-card') && listings?.active) {
         return (
