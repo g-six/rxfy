@@ -175,6 +175,20 @@ function Iterator({
           </Iterator>
         </div>
       );
+    } else if (c.type === 'a' && c.props.href) {
+      const href = c.props.href.indexOf('/') === 0 && !agent.domain_name ? `/${agent.agent_id}/${agent.metatags.profile_slug}${c.props.href}` : c.props.href;
+
+      return (
+        <a {...c.props} href={href}>
+          {typeof c.props?.children !== 'string' ? (
+            <Iterator agent={agent} listings={listings}>
+              {c.props.children}
+            </Iterator>
+          ) : (
+            c.props.children
+          )}
+        </a>
+      );
     }
 
     if (c.props) {
