@@ -128,7 +128,7 @@ function Iterator({
   listings?: { active: PropertyDataModel[]; sold: PropertyDataModel[] };
 }) {
   const Wrapped = Children.map(children, c => {
-    if (c.props?.children && typeof c.props?.children !== 'string') {
+    if (c.type !== 'a' && c.props?.children && typeof c.props?.children !== 'string') {
       const { children: sub, ...props } = c.props;
       if (props.className?.includes('property-card') && listings?.active) {
         return (

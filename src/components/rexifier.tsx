@@ -30,12 +30,10 @@ import { RxLoginPage } from './full-pages/RxLoginPage';
 import { RxResetPasswordPage } from './full-pages/RxResetPassword';
 import { RxUpdatePasswordPage } from './full-pages/RxUpdatePassword';
 import { RxMyAccountPage } from './full-pages/RxMyAccountPage';
-import { RxDetailedListing } from './full-pages/RxDetailedListing';
 import { RxMyClients } from './full-pages/RxMyClients';
 import DocumentsReplacer from '@/_replacers/Documents/documents';
 import RxMyCompareDashboardPage from './full-pages/RxMyCompareDashboardPage';
 import RxDropdownMenu from './Nav/RxDropdownMenu';
-import RxMySavedHomesDashBoard from './full-pages/RxMySavedHomesDashBoard';
 import RxIdPage from './full-pages/RxIdPage';
 import RxAgentMyListings from './full-pages/RxAgentMyListings';
 import RxTools from './full-pages/RxTools';
@@ -53,7 +51,6 @@ import RxCustomerView from '@/rexify/realtors/RxCustomerView';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { updateAgentMetatags } from '@/app/api/agents/model';
 import { BrokerageInformationForm } from '@/rexify/realtors/brokerage-information';
-import { BrokerageDataModel } from '@/_typings/brokerage';
 
 async function replaceTargetCityComponents($: CheerioAPI, agent: AgentData) {
   if (agent.metatags.target_city && !agent.metatags.geocoding) {
@@ -582,23 +579,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
               property={property as unknown as PropertyDataModel}
               agent={agent_data}
               nodeClassName={WEBFLOW_NODE_SELECTOR.PDF_PAGE}
-              nodeProps={props}
-              nodes={domToReact(node.children) as ReactElement[]}
-            />
-          );
-        }
-
-        // Property Detailed Page
-        if (
-          (params?.slug === 'property' || params?.['site-page'] === 'property') &&
-          node.attribs.class &&
-          node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_PAGE) >= 0
-        ) {
-          return (
-            <RxDetailedListing
-              property={property as unknown as PropertyDataModel}
-              agent={agent_data}
-              nodeClassName={WEBFLOW_NODE_SELECTOR.PROPERTY_PAGE}
               nodeProps={props}
               nodes={domToReact(node.children) as ReactElement[]}
             />
