@@ -147,8 +147,8 @@ export async function buildCacheFiles(mls_id: string): Promise<
     return {
       api: 'properties.mls-id.GET',
       message: axerr.message,
-      code: axerr.code,
-    };
+      code: Number(axerr?.code || 0),
+    } as any;
   }
 }
 

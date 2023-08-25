@@ -79,6 +79,7 @@ export async function middleware(request: NextRequest) {
     response.headers.set('x-metatag-id', agent_data.metatags.id);
     response.headers.set('x-agent-name', agent_data.full_name);
     response.headers.set('x-agent-email', agent_data.email);
+    response.headers.set('x-agent-phone', agent_data.phone);
     response.headers.set('x-agent-headshot', agent_data.metatags.headshot);
 
     if (agent_data?.metatags.geocoding) {
