@@ -25,27 +25,31 @@ export async function buildCacheFiles(mls_id: string): Promise<
 > {
   let start = Date.now();
   try {
-    const [legacy] = await retrieveFromLegacyPipeline(
-      {
-        from: 0,
-        size: 1,
-        sort: { 'data.ListingDate': 'desc' },
-        query: {
-          bool: {
-            filter: [
-              {
-                match: {
-                  'data.MLS_ID': mls_id,
+    const promises = await Promise.all([
+      retrieveFromLegacyPipeline(
+        {
+          from: 0,
+          size: 1,
+          sort: { 'data.ListingDate': 'desc' },
+          query: {
+            bool: {
+              filter: [
+                {
+                  match: {
+                    'data.MLS_ID': mls_id,
+                  },
                 },
-              },
-            ],
-            should: [],
+              ],
+              should: [],
+            },
           },
         },
-      },
-      undefined,
-      2,
-    );
+        undefined,
+        2,
+      ),
+      getPropertyByMlsId(mls_id),
+    ]);
+    const [legacy] = promises[0];
 
     if (legacy) {
       const { mls_data, property_type, ...property } = legacy;
@@ -119,6 +123,7 @@ export async function buildCacheFiles(mls_id: string): Promise<
 
       return {
         ...clean,
+        ...(promises[1] || {}),
         dwelling_type,
         photos,
         formatted_address: formatAddress(clean.title) + ', ' + clean.city + ', ' + clean.state_province + ' ' + clean.postal_zip_code,

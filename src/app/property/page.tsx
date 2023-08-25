@@ -10,12 +10,23 @@ import { classNames } from '@/_utilities/html-helper';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import PhotosCarousel from '@/components/RxPropertyCarousel/PhotosCarousel';
 import RxCarouselPhoto from './carousel-photo.module';
-import { formatValues } from '@/_utilities/data-helpers/property-page';
+import { formatValues, slugifyAddress } from '@/_utilities/data-helpers/property-page';
 import { headers } from 'next/headers';
+import RxMapOfListing from '@/components/RxMapOfListing';
+import { construction_kv, financial_kv, property_info_kv } from './type.definition';
 
 interface PageData extends PropertyDataModel {
   listing_by: string;
   real_estate_board_name: string;
+  total_kitchens?: number;
+}
+interface PropertyFeaturesWithIcons {
+  amenities: { name: string }[];
+  appliances: { name: string }[];
+  facilities: { name: string }[];
+  connected_services: { name: string }[];
+  parking: { name: string }[];
+  places_of_interest: { name: string }[];
 }
 
 function replaceAgentFields($: CheerioAPI) {
@@ -82,18 +93,31 @@ export default async function PropertyPage(props: any) {
       html_data = html_data.split('href="/"').join(`href="/${agent_id}/${profile_slug}"`);
       html_data = html_data.split('href="/map"').join(`href="${headers().get('x-map-uri')}"`);
       const $: CheerioAPI = load(html_data);
-      $('title').replaceWith(`<title>${headers().get('x-page-title')}</title>`);
+      $('a[data-action="pdf"]').attr('href', `/${agent_id}/${profile_slug}/pdf?mls=${props.searchParams.mls}`);
+      $('[data-field="financial_info"]').each((i, el) => {
+        if (i > 0) $(el).remove();
+      });
+      $('[data-field="construction_info"]').each((i, el) => {
+        if (i > 0) $(el).remove();
+      });
+      $('[data-field="feature_block"]').each((i, el) => {
+        if (i > 0) $(el).remove();
+      });
 
       replaceAgentFields($);
       replaceLogos($);
       // Retrieve property
       const listing = await buildCacheFiles(props.searchParams.mls);
       if (listing) {
-        const { photos, ...property } = listing as PropertyDataModel;
-
         console.log('Property data retrieved in', Date.now() - start, 'miliseconds');
+        const { photos, room_details, ...property } = listing as PageData;
 
         if (property) {
+          if (Array.isArray(property.fireplace)) property.fireplace = property.fireplace.join('/');
+
+          if (room_details?.rooms) {
+            property.total_kitchens = room_details.rooms.filter(room => room.type.toLowerCase().includes('kitchen')).length;
+          }
           const body = $('body > div');
           return (
             <>
@@ -111,6 +135,72 @@ export default async function PropertyPage(props: any) {
   }
 }
 
+function KeyValueIterator({ children, ...props }: { children: ReactElement; label: string; value: string; className: string }) {
+  const Rexified = Children.map(children, c => {
+    if (c.props?.['data-field']) {
+      if (c.props?.['data-field'].indexOf('_name') > 0) return cloneElement(c, {}, props.label);
+      if (c.props?.['data-field'].indexOf('_result') > 0) return cloneElement(c, {}, props.value);
+    } else if (c.props?.children && typeof c.props.children !== 'string') {
+      return cloneElement(c, {}, <KeyValueIterator {...props}>{c.props.children}</KeyValueIterator>);
+    }
+    return c;
+  });
+
+  return <div className={props.className}>{Rexified}</div>;
+}
+function getAlias(feature: string) {
+  if (feature.includes('water')) return 'water';
+  switch (feature) {
+    case 'dishwasher':
+      return 'dish-washer';
+    case 'electricity':
+      return 'electricity';
+    case 'double-garage':
+      return 'garage-underbuilding';
+    default:
+      return feature;
+  }
+}
+
+const no_icons = ['dryer', 'other'];
+
+function IconIterator({ children, property, className }: { children: ReactElement; property: PageData; className: string }) {
+  const { amenities, appliances, facilities, connected_services, parking, places_of_interest } = property as unknown as PropertyFeaturesWithIcons;
+  const Icons: ReactElement[] = [];
+  let iconables = amenities;
+
+  let has_water = false;
+  if (appliances?.length) iconables = iconables.concat(appliances);
+  if (connected_services?.length) iconables = iconables.concat(connected_services);
+  if (facilities?.length) iconables = iconables.concat(facilities);
+  if (parking?.length) iconables = iconables.concat(parking);
+  if (places_of_interest?.length) iconables = iconables.concat(places_of_interest);
+
+  iconables.forEach(({ name }) => {
+    const key = slugifyAddress(name.toLowerCase());
+    if (!no_icons.includes(key))
+      Icons.push(
+        <div key={`amenity-${key}`} className={className}>
+          {Children.map(children, c => {
+            let icons: ReactElement[] = [];
+            if (c.type === 'img') {
+              return cloneElement(c, { src: `/icons/features/feature_${getAlias(key)}.svg` });
+            }
+            return cloneElement(
+              c,
+              {
+                key: key,
+              },
+              name,
+            );
+          })}
+        </div>,
+      );
+  });
+
+  return <>{Icons}</>;
+}
+
 function Iterator({ children, ...props }: { children: ReactElement; property: PageData; photos: string[] }) {
   const Rexified = Children.map(children, c => {
     if (c.props?.['data-field']) {
@@ -120,6 +210,46 @@ function Iterator({ children, ...props }: { children: ReactElement; property: Pa
       if (photos && c.props?.['data-field'].indexOf('image_') === 0) {
         const num = Number(c.props?.['data-field'].split('image_').pop());
         if (!isNaN(num) && num && photos[num - 1]) return <RxCarouselPhoto {...c.props} width={1000} photos={photos} idx={num - 1} />;
+      } else if (c.props?.['data-field'] === 'feature_block') {
+        return (
+          <IconIterator className={c.props.className} property={property}>
+            {c.props.children}
+          </IconIterator>
+        );
+      } else if (c.props?.['data-field'] === 'property_info') {
+        return Object.keys(data)
+          .filter(k => property_info_kv[k])
+          .map(k => (
+            <div key={k} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
+              <KeyValueIterator className={c.props.className} label={property_info_kv[k]} value={formatValues(property, k)}>
+                {c.props.children}
+              </KeyValueIterator>
+            </div>
+          ));
+      } else if (c.props?.['data-field'] === 'financial_info') {
+        return Object.keys(data)
+          .filter(k => financial_kv[k])
+          .map(k => (
+            <div key={k} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
+              <KeyValueIterator className={c.props.className} label={financial_kv[k]} value={formatValues(property, k)}>
+                {c.props.children}
+              </KeyValueIterator>
+            </div>
+          ));
+      } else if (c.props?.['data-field'] === 'construction_info') {
+        return Object.keys(data)
+          .filter(k => construction_kv[k])
+          .map(k => (
+            <div key={k} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
+              <KeyValueIterator className={c.props.className} label={construction_kv[k]} value={formatValues(property, k)}>
+                {c.props.children}
+              </KeyValueIterator>
+            </div>
+          ));
+      } else if (c.props?.['data-field'] === 'map_view') {
+        return <RxMapOfListing key={0} child={<div />} mapType={'neighborhood'} property={property} />;
+      } else if (c.props?.['data-field'] === 'street_view') {
+        return <RxMapOfListing key={0} child={<div />} mapType={'street'} property={property} />;
       } else if (c.props?.['data-field'] === 'logo_for_light_bg') {
       } else if (c.props.children && data[c.props['data-field']])
         return cloneElement(
