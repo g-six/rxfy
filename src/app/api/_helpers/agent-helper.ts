@@ -142,7 +142,7 @@ export function getAgentBaseUrl(agent: AgentData) {
   return '';
 }
 export async function getAgentBy(attributes: { [key: string]: string }) {
-  const { agent_id, profile_slug, target_city, email, full_name, neighbourhoods, phone } = attributes;
+  const { agent_id, profile_slug } = attributes;
 
   let filters: {
     agent_id?: {

@@ -30,6 +30,7 @@ export const GQ_FRAG_AGENT_METATAG = `
       footer_code
       ogimage_url
       last_updated_at: updatedAt
+      geocoding
     }
 `;
 export const GQ_FRAG_AGENT_CUSTOMER = `data {

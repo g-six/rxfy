@@ -175,9 +175,8 @@ function Iterator({
           </Iterator>
         </div>
       );
-    } else if (c.type === 'a' && c.props.href) {
-      const href = c.props.href.indexOf('/') === 0 && !agent.domain_name ? `/${agent.agent_id}/${agent.metatags.profile_slug}${c.props.href}` : c.props.href;
-
+    } else if (c.type === 'a' && c.props.href && c.props.href !== '#') {
+      const href = !agent.domain_name ? `/${agent.agent_id}/${agent.metatags.profile_slug}/${c.props.href.split('/').pop()}` : c.props.href;
       return (
         <a {...c.props} href={href}>
           {typeof c.props?.children !== 'string' ? (
@@ -241,7 +240,7 @@ function Iterator({
                 sizes: undefined,
               });
             break;
-          case 'search_highlights':
+          case 'search_highlight_button':
             if (agent.metatags?.search_highlights) {
               const { labels } = agent.metatags.search_highlights as unknown as {
                 labels: {
@@ -285,7 +284,12 @@ function Iterator({
             let rexified = (agent as unknown as { [key: string]: string })[c.props['data-field']];
             if (!rexified) {
               rexified = (agent.metatags as unknown as { [key: string]: string })[c.props['data-field']];
+              if (c.type === 'img')
+                return cloneElement(c, {
+                  src: c.props['data-field'].indexOf('logo_') === 0 ? getImageSized(rexified, 230) : rexified,
+                });
             }
+
             if (!rexified) {
               if (c.props['data-field'].includes('search_highlight_button')) {
                 const buttons = agent.metatags.search_highlights?.labels?.map((target, idx) => {

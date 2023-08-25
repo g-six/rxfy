@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { WEBFLOW_DASHBOARDS } from './_typings/webflow';
 import { getAgentBy } from './app/api/_helpers/agent-helper';
+import { objectToQueryString } from './_utilities/url-helper';
 
 const REALTOR_STATIC_PAGES = ['pricing', 'examples', 'contact'];
 export async function middleware(request: NextRequest) {
@@ -69,6 +70,23 @@ export async function middleware(request: NextRequest) {
     const agent_data = await getAgentBy({
       agent_id: segments[0],
     });
+    response.headers.set('x-dark-bg-logo', agent_data.metatags.logo_for_dark_bg || agent_data.metatags.logo_for_light_bg || '/leagent-icon.png');
+    response.headers.set('x-light-bg-logo', agent_data.metatags.logo_for_light_bg || agent_data.metatags.logo_for_dark_bg || '/leagent-icon.png');
+    response.headers.set('x-page-title', agent_data.metatags.title);
+    response.headers.set('x-page-description', agent_data.metatags.description);
+    response.headers.set('x-record-id', agent_data.id);
+    response.headers.set('x-wf-domain', agent_data.webflow_domain);
+    response.headers.set('x-metatag-id', agent_data.metatags.id);
+    response.headers.set('x-agent-name', agent_data.full_name);
+    response.headers.set('x-agent-email', agent_data.email);
+    response.headers.set('x-agent-headshot', agent_data.metatags.headshot);
+
+    if (agent_data?.metatags.geocoding) {
+      response.headers.set(
+        'x-map-uri',
+        `${agent_data.domain_name ? '' : '/' + segments.slice(0, 2).join('/')}/map?` + objectToQueryString(agent_data.metatags.geocoding),
+      );
+    }
 
     if (['my-profile', 'map', 'reset-password', 'my-home-alerts', 'my-compare', 'my-all-properties'].includes(segments[2])) {
       page_url = `${page_url}${agent_data.webflow_domain}/${segments[2]}`;
@@ -83,6 +101,7 @@ export async function middleware(request: NextRequest) {
     else page_url = `${page_url}${agent_data.webflow_domain}/index`;
   } else if (pathname === '/') {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/index`;
+    console.log(page_url);
   } else if (REALTOR_STATIC_PAGES.filter(page => pathname === '/' + page).length >= 1) {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}${pathname}`;
   } else if (pathname === '/pdf') {

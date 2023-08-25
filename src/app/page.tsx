@@ -299,32 +299,28 @@ export default async function Home({ params, searchParams }: { params: Record<st
         property = await getPrivateListing(Number(searchParams.lid));
       } else {
         // Publicly listed property page
-        if (searchParams.id) {
-          property = await getPropertyData(searchParams.id);
-        } else {
-          const cache_json = `${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/recent.json`;
-          try {
-            const cached_xhr = await axios.get(cache_json);
-            property = cached_xhr.data;
-            console.log('Loading cached file', cache_json);
-            if (property) {
-              const legacy_json = `${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/legacy.json`;
-              try {
-                const cached_legacy_xhr = await axios.get(legacy_json);
-                legacy_data = cached_legacy_xhr.data;
-              } catch (e) {
-                console.log('Property legacy data', legacy_json);
-                console.log('No legacy cache, do the long query');
-              }
+        const cache_json = `${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/recent.json`;
+        try {
+          const cached_xhr = await axios.get(cache_json);
+          property = cached_xhr.data;
+          console.log('Loading cached file', cache_json);
+          if (property) {
+            const legacy_json = `${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/legacy.json`;
+            try {
+              const cached_legacy_xhr = await axios.get(legacy_json);
+              legacy_data = cached_legacy_xhr.data;
+            } catch (e) {
+              console.log('Property legacy data', legacy_json);
+              console.log('No legacy cache, do the long query');
             }
-          } catch (e) {
-            // No cache, do the long query
-            console.log('building cache');
-            buildCacheFiles(searchParams.mls);
-            console.log('No cache, do the long query');
-            property = await getPropertyData(searchParams.mls, true);
-            legacy_data = property;
           }
+        } catch (e) {
+          // No cache, do the long query
+          console.log('building cache');
+          buildCacheFiles(searchParams.mls);
+          console.log('No cache, do the long query');
+          property = await getPropertyData(searchParams.mls, true);
+          legacy_data = property;
         }
       }
     }

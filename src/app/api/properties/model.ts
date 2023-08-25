@@ -7,8 +7,23 @@ import { getRealEstateBoard } from '../real-estate-boards/model';
 import { bathroomsToBathroomDetails, roomsToRoomDetails } from '@/_helpers/mls-mapper';
 import { GQ_FRAG_AGENT } from '../agents/graphql';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { formatAddress } from '@/_utilities/string-helper';
+import { formatValues } from '@/_utilities/data-helpers/property-page';
 
-export async function buildCacheFiles(mls_id: string) {
+export async function buildCacheFiles(mls_id: string): Promise<
+  | (PropertyDataModel & {
+      code: number;
+      room_details: { rooms: RoomDetails[] };
+      bathroom_details: { baths: BathroomDetails[] };
+      listing_by: string;
+      dwelling_type: { name?: string };
+      real_estate_board_name: string;
+      formatted_address: string;
+      sqft: string;
+    })
+  | undefined
+> {
+  let start = Date.now();
   try {
     const [legacy] = await retrieveFromLegacyPipeline(
       {
@@ -45,20 +60,25 @@ export async function buildCacheFiles(mls_id: string) {
         LO1_Name,
         LO2_Name,
         LO3_Name,
+        L_ShortRegionCode,
+        ...legacy_data
       } = mls_data as MLSProperty;
 
       const listing_by_name =
         LA1_FullName || LA2_FullName || LA3_FullName || SO1_FullName || SO2_FullName || SO3_FullName || LO1_Name || LO2_Name || LO3_Name || '';
-      let listing_by;
+      let listing_by = '';
       if (listing_by_name) {
         listing_by = `Listing courtesy of ${listing_by_name}`;
       }
       const dwelling_type = {
         name: property_type,
       };
-      const real_estate_board = await getRealEstateBoard(mls_data as unknown as { [key: string]: string });
-      const room_details: { rooms: RoomDetails[] } = roomsToRoomDetails(mls_data as MLSProperty);
-      const bathroom_details: { baths: BathroomDetails[] } = bathroomsToBathroomDetails(mls_data as MLSProperty);
+      console.log('Legacy pipeline data retrieved in', Date.now() - start, 'ms');
+      let real_estate_board = undefined;
+      // const real_estate_board = await getRealEstateBoard(mls_data as unknown as { [key: string]: string });
+      // console.log('Real estate board data retrieved in', Date.now() - start, 'ms');
+      const room_details: { rooms: RoomDetails[] } = roomsToRoomDetails(legacy_data as MLSProperty);
+      const bathroom_details: { baths: BathroomDetails[] } = bathroomsToBathroomDetails(legacy_data as MLSProperty);
       let details: { [key: string]: unknown } = {
         listing_id,
         real_estate_board,
@@ -66,6 +86,7 @@ export async function buildCacheFiles(mls_id: string) {
       if (isNaN(Number(legacy.lat)) && legacy.title && legacy.postal_zip_code) {
         // No lat,lon - extra processing
         const [place] = await googlePlaceQuery(`${legacy.title} ${legacy.postal_zip_code}`);
+        console.log('Google place query in', Date.now() - start, 'ms');
         if (place && place.place_id) {
           details = await getFormattedPlaceDetails(place.place_id);
 
@@ -75,26 +96,33 @@ export async function buildCacheFiles(mls_id: string) {
           };
         }
       }
-      axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+
       const file = `listings/${mls_id}`;
+      const {
+        L_ShortRegionCode: real_estate_board_name,
+        photos,
+        ...simple
+      } = property as unknown as PropertyDataModel & {
+        L_ShortRegionCode: string;
+        listing_by: string;
+      };
       const clean = {
-        ...property,
+        ...simple,
         ...details,
         room_details,
         bathroom_details,
         listing_by,
-        dwelling_type,
+        real_estate_board_name,
+        property_type,
+        photos,
       };
-      const recent_json = JSON.stringify(clean, null, 4);
 
-      // invalidateCache([`/${file}/recent.json`, `/${file}/legacy.json`]);
-      // createCacheItem(recent_json, `${file}/recent.json`, 'text/json');
       return {
         ...clean,
+        dwelling_type,
+        photos,
+        formatted_address: formatAddress(clean.title) + ', ' + clean.city + ', ' + clean.state_province + ' ' + clean.postal_zip_code,
+        sqft: formatValues(clean, 'floor_area') + ' sq.ft.',
         code: 200,
       };
     }
