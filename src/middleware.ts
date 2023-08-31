@@ -14,9 +14,11 @@ export async function middleware(request: NextRequest) {
   const { origin, pathname, searchParams } = new URL(request.url);
 
   if (pathname.includes('/api')) return response;
+  if (pathname.includes('/css')) return response;
   if (pathname.includes('next')) return response;
   if (pathname.includes('images')) return response;
-  if (pathname.includes('wf_graphql')) return response;
+  if (pathname.includes('icons')) return response;
+  if (pathname.includes('wf_graphql')) return response.json({});
 
   const [, ...segments] = pathname.split('/');
   let page_url = `https://sites.leagent.com/`;

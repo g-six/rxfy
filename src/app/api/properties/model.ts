@@ -3,7 +3,6 @@ import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-s
 import { getFormattedPlaceDetails, googlePlaceQuery } from '../_helpers/geo-helper';
 import axios, { AxiosError } from 'axios';
 import { createCacheItem, invalidateCache } from '../_helpers/cache-helper';
-import { getRealEstateBoard } from '../real-estate-boards/model';
 import { bathroomsToBathroomDetails, roomsToRoomDetails } from '@/_helpers/mls-mapper';
 import { GQ_FRAG_AGENT } from '../agents/graphql';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
@@ -101,7 +100,6 @@ export async function buildCacheFiles(mls_id: string): Promise<
         }
       }
 
-      const file = `listings/${mls_id}`;
       const {
         L_ShortRegionCode: real_estate_board_name,
         photos,
@@ -110,6 +108,7 @@ export async function buildCacheFiles(mls_id: string): Promise<
         L_ShortRegionCode: string;
         listing_by: string;
       };
+
       const clean = {
         ...simple,
         ...details,
@@ -123,9 +122,9 @@ export async function buildCacheFiles(mls_id: string): Promise<
 
       return {
         ...clean,
+        photos,
         ...(promises[1] || {}),
         dwelling_type,
-        photos,
         formatted_address: formatAddress(clean.title) + ', ' + clean.city + ', ' + clean.state_province + ' ' + clean.postal_zip_code,
         sqft: formatValues(clean, 'floor_area') + ' sq.ft.',
         code: 200,
@@ -176,7 +175,6 @@ export async function getPropertyByMlsId(mls_id: string) {
     );
     const data_records = response?.data?.data?.properties?.data;
     if (data_records && Array.isArray(data_records) && data_records.length) {
-      const invalidations: string[] = [];
       const records: PropertyDataModel[] = [];
       data_records
         .map(({ id: property_id, attributes }) => {
@@ -240,8 +238,15 @@ export async function getPropertyByMlsId(mls_id: string) {
         });
       // invalidateCache(invalidations);
       return records[0];
+    } else {
+      const xhr = await axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log(xhr.data.data);
     }
-    return [];
+    return;
   } catch (e) {
     const axerr = e as AxiosError;
     console.log('Error caught: properties.model.getPropertiesFromAgentInventory');

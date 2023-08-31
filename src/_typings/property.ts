@@ -77,6 +77,7 @@ export interface BasePropertyDataModel {
   id?: number;
   title: string;
   area: string;
+  building_unit?: string | number;
   asking_price: number;
   state_province?: string;
   city: string;
