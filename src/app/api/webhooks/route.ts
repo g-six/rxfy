@@ -18,6 +18,7 @@ interface WebflowWebhookPayload {
 const pages = [
   'index',
   'log-in',
+  'login',
   'reset-password',
   'update-password',
   'map',
