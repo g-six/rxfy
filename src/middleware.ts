@@ -18,7 +18,7 @@ export async function middleware(request: NextRequest) {
   if (pathname.includes('next')) return response;
   if (pathname.includes('images')) return response;
   if (pathname.includes('icons')) return response;
-  if (pathname.includes('wf_graphql')) return response.json({});
+  if (pathname.includes('wf_graphql')) return response;
 
   const [, ...segments] = pathname.split('/');
   let page_url = `https://sites.leagent.com/`;
