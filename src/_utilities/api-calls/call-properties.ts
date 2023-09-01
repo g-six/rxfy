@@ -80,3 +80,21 @@ export async function getSimilarProperties(property: { [key: string]: string }) 
   const { listings } = response.data || { listings: [] };
   return listings;
 }
+/**
+ * Retrieves a property by mls_id
+ * @returns property data
+ */
+export async function getHistory(address: string, postal_zip_code: string) {
+  const response = await axios.post(
+    '/api/properties/get-history',
+    { address, postal_zip_code },
+    {
+      headers: {
+        Authorization: `Bearer ${Cookies.get('session_key')}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+  const { records } = response.data || { records: [] };
+  return records;
+}
