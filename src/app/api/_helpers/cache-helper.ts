@@ -87,7 +87,6 @@ export function createTempDocument(Body: any, file_name: string, ContentType: st
 
   client
     .send(command)
-    .then(console.log)
     .catch(console.error)
     .finally(() => {
       console.log('S3 upload complete', Key);
