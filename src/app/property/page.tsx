@@ -12,15 +12,6 @@ import Iterator from './page.iterator';
 import { PageData } from './type.definition';
 import Navbar from '../navbar.module';
 
-interface PropertyFeaturesWithIcons {
-  amenities: { name: string }[];
-  appliances: { name: string }[];
-  facilities: { name: string }[];
-  connected_services: { name: string }[];
-  parking: { name: string }[];
-  places_of_interest: { name: string }[];
-}
-
 function replaceAgentFields($: CheerioAPI) {
   if ($('img[data-field="headshot"]')) {
     const src = headers().get('x-agent-headshot');
