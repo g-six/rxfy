@@ -152,11 +152,7 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
           // );
         }
 
-        if (
-          // child.props.className === 'right-side' &&
-          child.props.className === 'mapbox-canvas' &&
-          props.config
-        ) {
+        if (child.props.className === 'mapbox-canvas' && props.config) {
           MapAndHeaderHeader = cloneElement(child, {
             ...child.props,
             className: classNames('right-side', styles.RxPropertyMap),

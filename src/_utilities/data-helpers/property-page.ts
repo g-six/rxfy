@@ -376,7 +376,6 @@ export async function getPrivatePropertyData(property_id: number | string) {
   let clean: Record<string, unknown> | MLSProperty = {};
   const neighbours: MLSProperty[] = [];
   const sold_history: MLSProperty[] = [];
-  console.log({ property_id });
   const res = await axios
     .get(url, {
       headers: {
@@ -486,6 +485,7 @@ export async function getPropertyData(property_id: number | string, id_is_mls = 
   if (id_is_mls && (property === undefined || !property)) {
     // Data was not picked up by the integrations API,
     // attempt to fix
+    console.log('Data was not picked up by the integrations API');
     console.log('Trying to upsert a property to our CMS');
     const on_the_fly_record = await upsertPropertyToCMS(property_id as string);
 

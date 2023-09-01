@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactElement, cloneElement } from 'react';
 import { Events } from '@/_typings/events';
 import { PropertyDataModel } from '@/_typings/property';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
@@ -18,6 +18,10 @@ function RxComponentChomper({ config, children }: any): any {
       return config[child] || child;
     } else if (React.isValidElement(child)) {
       const RxElement = child as React.ReactElement;
+      if (RxElement.props?.['data-field']) {
+        const field = RxElement.props['data-field'];
+        return cloneElement(RxElement, {}, formatValues(config.listing, field));
+      }
       if (RxElement.props.className && (RxElement.props.className.indexOf('heart-full') >= 0 || RxElement.props.className.indexOf('heart-empty') >= 0)) {
         if (config['view-only']) return <></>;
         let opacity_class = 'opacity-0 group-hover:opacity-100';
@@ -110,6 +114,13 @@ function RxComponentChomper({ config, children }: any): any {
             }) as any,
           });
         }
+      } else if (child.type === 'img' && RxElement.props?.className?.includes('propcard-image')) {
+        return cloneElement(child as ReactElement, {
+          src: getImageSized(config.cover_photo, 800),
+          srcSet: undefined,
+          sizes: undefined,
+          loading: undefined,
+        });
       }
 
       return React.cloneElement(RxElement, {
@@ -191,6 +202,7 @@ export default function RxPropertyCard({
           cover_photo: listing.cover_photo as string,
           '{PYear}': listing.year_built || ' ',
           loved: loved_items && loved_items.includes(listing.mls_id),
+          listing,
           'view-only': props['view-only'],
           onClickItem: () => {
             toggleLoading(true);

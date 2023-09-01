@@ -590,8 +590,6 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
     }
   }, [agent_only]);
 
-  console.log(p);
-
   return (
     <aside
       className={[p.className, styles.MainWrapper, 'rexified MapCanvas'].join(' ')}

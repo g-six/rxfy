@@ -132,7 +132,7 @@ export default async function MapPage({ params, searchParams }: { params: { [key
       console.log(Date.now() - time + 'ms', '[Completed] HTML template & agent Strapi data extraction');
       const $: CheerioAPI = load(html);
       console.log(Date.now() - time + 'ms', '[Completed] HTML template load to memory');
-      const body = $('body > div');
+      const body = $('body > .map-div');
       const Page = (
         <>
           <MapIterator agent={agent} city={searchParams.city} loves={loves} properties={properties}>

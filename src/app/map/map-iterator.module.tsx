@@ -152,7 +152,7 @@ export default async function MapIterator({
       // -->
 
       return (
-        <div className={className || '' + ' rexified MapPage Iterator'} {...props}>
+        <div {...props} className={className || '' + ` had-${c.props.children.length}` + ' rexified MapPage Iterator'}>
           <MapIterator {...attributes}>{c.props.children}</MapIterator>
         </div>
       );

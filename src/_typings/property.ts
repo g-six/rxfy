@@ -53,6 +53,7 @@ export const NumericFields = [
   'lot_sqm', // 'L_LotSize_SqMtrs',
   'floor_area',
   'floor_area_total',
+  'sqft',
 ];
 
 export const FinanceFields = ['asking_price', 'price_per_sqft', 'gross_taxes', 'SoldPrice'];
