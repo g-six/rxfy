@@ -78,18 +78,11 @@ export async function middleware(request: NextRequest) {
       agent_id: segments[0],
     });
 
-    if (['my-profile', 'map', 'reset-password', 'my-home-alerts', 'my-compare', 'my-all-properties'].includes(segments[2])) {
-      page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/${segments[2]}`;
-    } else if (segments[2] === 'map') page_url = `${page_url}${agent_data.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/map`;
-    else if (segments[2] === 'id') page_url = `${page_url}${agent_data.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/id`;
-    else if (segments[2] === 'property') page_url = `${page_url}${agent_data.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/property/propertyid`;
-    else if (segments[2] === 'update-password') page_url = `${page_url}${agent_data.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/update-password`;
-    else if (segments[2] === 'log-in') page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/log-in`;
-    else if (segments[2] === 'login') page_url = `${page_url}${agent_data.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/login`;
-    else if (segments[2] === 'sign-up') page_url = `${page_url}${agent_data.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/sign-up`;
-    else if (segments[2] === 'my-account') page_url = `${page_url}${agent_data.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/my-account`;
-    else if (segments[2] === 'client-dashboard') page_url = `${page_url}${agent_data.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/client-dashboard`;
-    else page_url = `${page_url}${agent_data.webflow_domain}/index`;
+    if (!segments[2]) {
+      page_url = `${page_url}${agent_data.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/index`;
+    } else if (['map', 'id', 'property', 'login', 'log-in', 'sign-up', 'update-password'].includes(segments[2])) {
+      page_url = `${page_url}${agent_data.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/${segments[2]}`;
+    } else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/${segments[2]}`;
   } else if (pathname === '/') {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/index`;
   } else if (REALTOR_STATIC_PAGES.filter(page => pathname === '/' + page).length >= 1) {

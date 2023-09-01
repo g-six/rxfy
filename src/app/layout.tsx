@@ -49,12 +49,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     },
   } as unknown as AgentData;
   let theme = searchParams.theme;
-  let webflow_domain = process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN;
+  let webflow_domain = headers().get('x-wf-domain') || process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN;
   let agent_id = headers().get('x-agent-id'); // || 'LEAGENT';
   let profile_slug = headers().get('x-profile-slug'); // || 'leagent';
 
   if (profile_slug && agent_id) {
-    webflow_domain = process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN as string;
     const agent_record = await findAgentRecordByAgentId(agent_id);
     const metatags = {
       ...agent_record?.agent_metatag?.data?.attributes,
@@ -62,7 +61,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
     if (agent_record) {
       // If agent does not have any webflow_domain assigned yet, use the default theme
-      webflow_domain = agent_record.webflow_domain || process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN;
       agent_data = {
         ...agent_record,
       };
@@ -87,8 +85,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         webflow_domain,
       };
     }
-  } else if (agent_data?.webflow_domain) {
-    webflow_domain = agent_data.webflow_domain;
   }
 
   try {

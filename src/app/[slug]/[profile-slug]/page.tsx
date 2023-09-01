@@ -1,5 +1,3 @@
-// import DefaultPage from '@/app/page';
-
 import { Children, ReactElement, cloneElement } from 'react';
 import { AgentData } from '@/_typings/agent';
 import { WEBFLOW_DASHBOARDS } from '@/_typings/webflow';
@@ -20,6 +18,7 @@ import NavIterator from '@/components/Nav/RxNavIterator';
 import FooterIterator from '@/components/RxFooter';
 import { objectToQueryString } from '@/_utilities/url-helper';
 import HomePageSearchInput from './search-input.component';
+import Navbar from '@/app/navbar.module';
 
 function PropertyCard({ agent, listing, children }: { agent: AgentData; listing: PropertyDataModel; children: ReactElement }) {
   const Wrapped = Children.map(children, c => {
@@ -484,18 +483,23 @@ export default async function AgentHomePage({ params }: { params: { slug: string
       if (listings.length === 0) $('[data-rx-section="sold"]').remove();
     }
 
+    const navbar = $('body .navbar-component');
+    $('body .navbar-component').remove();
     const body = $('body > div');
 
     return (
-      <Iterator
-        agent={agent}
-        listings={{
-          active: (active || []) as unknown[] as PropertyDataModel[],
-          sold: (sold || []) as unknown[] as PropertyDataModel[],
-        }}
-      >
-        {domToReact(body as unknown as DOMNode[]) as unknown as ReactElement}
-      </Iterator>
+      <>
+        <Navbar agent={agent as AgentData}>{domToReact(navbar as unknown as DOMNode[]) as unknown as ReactElement}</Navbar>
+        <Iterator
+          agent={agent}
+          listings={{
+            active: (active || []) as unknown[] as PropertyDataModel[],
+            sold: (sold || []) as unknown[] as PropertyDataModel[],
+          }}
+        >
+          {domToReact(body as unknown as DOMNode[]) as unknown as ReactElement}
+        </Iterator>
+      </>
     );
   }
   return <></>;
