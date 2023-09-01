@@ -20,6 +20,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const axios = (await import('axios')).default;
   const { NEXT_APP_GGL_API_KEY } = process.env;
   const url = headers().get('x-url') as string;
+  if (!url) return <NotFound></NotFound>;
 
   let { pathname } = new URL(url);
   const requestLink = headers().get('x-url') || '';
@@ -91,6 +92,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   try {
+    console.log('Request link', requestLink);
     const req_page_html = await axios.get(requestLink);
     data = req_page_html.data;
   } catch (e) {

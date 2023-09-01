@@ -5,7 +5,7 @@ import { Children, ReactElement, cloneElement } from 'react';
 import { CheerioAPI, load } from 'cheerio';
 import { buildCacheFiles } from '../api/properties/model';
 import NotFound from '../not-found';
-import { PropertyDataModel } from '@/_typings/property';
+import { BathroomDetails, PropertyDataModel, RoomDetails } from '@/_typings/property';
 import { classNames } from '@/_utilities/html-helper';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import PhotosCarousel from '@/components/RxPropertyCarousel/PhotosCarousel';
@@ -14,6 +14,8 @@ import { formatValues, slugifyAddress } from '@/_utilities/data-helpers/property
 import { headers } from 'next/headers';
 import RxMapOfListing from '@/components/RxMapOfListing';
 import { construction_kv, financial_kv, property_info_kv } from './type.definition';
+import BuildingUnits from './building-units.module';
+import SoldHistory from './sold-history.module';
 
 interface PageData extends PropertyDataModel {
   listing_by: string;
@@ -108,15 +110,16 @@ export default async function PropertyPage(props: any) {
       replaceLogos($);
       // Retrieve property
       const listing = await buildCacheFiles(props.searchParams.mls);
+
       if (listing) {
         console.log('Property data retrieved in', Date.now() - start, 'miliseconds');
-        const { photos, room_details, ...property } = listing as PageData;
+        const { photos, ...property } = listing as PageData;
 
         if (property) {
           if (Array.isArray(property.fireplace)) property.fireplace = property.fireplace.join('/');
 
-          if (room_details?.rooms) {
-            property.total_kitchens = room_details.rooms.filter(room => room.type.toLowerCase().includes('kitchen')).length;
+          if (property?.room_details?.rooms) {
+            property.total_kitchens = property.room_details.rooms.filter(room => room.type.toLowerCase().includes('kitchen')).length;
           }
           const body = $('body > div');
           return (
@@ -151,11 +154,25 @@ function KeyValueIterator({ children, ...props }: { children: ReactElement; labe
 function getAlias(feature: string) {
   if (feature.includes('water')) return 'water';
   switch (feature) {
+    case 'city-town-centre':
+      return 'city-municipal';
     case 'dishwasher':
       return 'dish-washer';
     case 'electricity':
       return 'electricity';
     case 'double-garage':
+      return 'garage-underbuilding';
+    case 'microwave':
+      return 'microwave-oven';
+    case 'in-suite-laundry':
+      return 'washing-machine';
+    case 'recreational-area':
+      return 'park';
+    case 'shopping-mall':
+      return 'shopping';
+    case 'trash-removal':
+      return 'disposal';
+    case 'underbuilding-garage':
       return 'garage-underbuilding';
     default:
       return feature;
@@ -167,7 +184,7 @@ const no_icons = ['dryer', 'other'];
 function IconIterator({ children, property, className }: { children: ReactElement; property: PageData; className: string }) {
   const { amenities, appliances, facilities, connected_services, parking, places_of_interest } = property as unknown as PropertyFeaturesWithIcons;
   const Icons: ReactElement[] = [];
-  let iconables = amenities;
+  let iconables = amenities || [];
 
   let has_water = false;
   if (appliances?.length) iconables = iconables.concat(appliances);
@@ -176,11 +193,11 @@ function IconIterator({ children, property, className }: { children: ReactElemen
   if (parking?.length) iconables = iconables.concat(parking);
   if (places_of_interest?.length) iconables = iconables.concat(places_of_interest);
 
-  iconables.forEach(({ name }) => {
+  iconables.forEach(({ name }, idx) => {
     const key = slugifyAddress(name.toLowerCase());
     if (!no_icons.includes(key))
       Icons.push(
-        <div key={`amenity-${key}`} className={className}>
+        <div key={`${idx}-${key}`} className={className}>
           {Children.map(children, c => {
             let icons: ReactElement[] = [];
             if (c.type === 'img') {
@@ -220,7 +237,7 @@ function Iterator({ children, ...props }: { children: ReactElement; property: Pa
         return Object.keys(data)
           .filter(k => property_info_kv[k])
           .map(k => (
-            <div key={k} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
+            <div key={`${k}-${property_info_kv[k]}`} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
               <KeyValueIterator className={c.props.className} label={property_info_kv[k]} value={formatValues(property, k)}>
                 {c.props.children}
               </KeyValueIterator>
@@ -236,6 +253,69 @@ function Iterator({ children, ...props }: { children: ReactElement; property: Pa
               </KeyValueIterator>
             </div>
           ));
+      } else if (c.props?.['data-field'] === 'dimensions_info') {
+        const dimensions: ReactElement[] = [];
+        if (data.room_details) {
+          const { rooms } = data.room_details as unknown as {
+            rooms: RoomDetails[];
+          };
+          rooms
+            .filter(room => room.type?.toLowerCase() !== 'bedroom' && room.type?.toLowerCase().includes('bed'))
+            .map((k, idx) => (
+              <div key={`${k.type} ${k.level} ${k.width} x ${k.length}`} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
+                <KeyValueIterator className={c.props.className} label={k.type} value={`${k.width} x ${k.length}`}>
+                  {c.props.children}
+                </KeyValueIterator>
+              </div>
+            ))
+            .concat(
+              rooms
+                .filter(room => room.type?.toLowerCase() === 'bedroom')
+                .map((k, idx) => (
+                  <div key={`${k.type} ${k.level} ${k.width} x ${k.length}`} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
+                    <KeyValueIterator className={c.props.className} label={k.type} value={`${k.width} x ${k.length}`}>
+                      {c.props.children}
+                    </KeyValueIterator>
+                  </div>
+                )),
+            )
+            .forEach(r => dimensions.push(r));
+        }
+        if (data.bathroom_details) {
+          const { baths } = data.bathroom_details as unknown as {
+            baths: BathroomDetails[];
+          };
+          if (baths && baths.length) {
+            baths
+              .filter(bath => bath.ensuite?.toLowerCase() === 'yes')
+              .map((k, idx) => (
+                <div key={`${k.level} ensuite bath ${k.pieces}-pc`} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
+                  <KeyValueIterator className={c.props.className} label={`${k.level} ensuite bath`} value={`${k.pieces}-pc`}>
+                    {c.props.children}
+                  </KeyValueIterator>
+                </div>
+              ))
+              .forEach(b => dimensions.push(b));
+          }
+        }
+
+        if (data.room_details) {
+          const { rooms } = data.room_details as unknown as {
+            rooms: RoomDetails[];
+          };
+          rooms
+            .filter(room => !room.type?.toLowerCase().includes('bed'))
+            .map((k, idx) => (
+              <div key={idx} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
+                <KeyValueIterator className={c.props.className} label={k.type} value={`${k.width} x ${k.length}`}>
+                  {c.props.children}
+                </KeyValueIterator>
+              </div>
+            ))
+            .forEach(r => dimensions.push(r));
+        }
+
+        return dimensions;
       } else if (c.props?.['data-field'] === 'construction_info') {
         return Object.keys(data)
           .filter(k => construction_kv[k])
@@ -251,19 +331,37 @@ function Iterator({ children, ...props }: { children: ReactElement; property: Pa
       } else if (c.props?.['data-field'] === 'street_view') {
         return <RxMapOfListing key={0} child={<div />} mapType={'street'} property={property} />;
       } else if (c.props?.['data-field'] === 'logo_for_light_bg') {
-      } else if (c.props.children && data[c.props['data-field']])
+      } else if (c.props.children && !['agent', 'agent_name', 'email', 'phone'].includes(c.props['data-field']))
         return cloneElement(
           c,
           {
             className: classNames(c.props.className || '', 'property-page-rexified').trim(),
           },
-          formatValues(property, c.props['data-field']),
+          data[c.props['data-field']] ? formatValues(property, c.props['data-field']) : 'N/A',
         );
       else
         return cloneElement(c, {
           className: classNames(c.props.className || '', 'property-page-rexified').trim(),
         });
-    } else if (c.props?.children && typeof c.props?.children !== 'string') {
+    } else if (c.props?.['data-group'] === 'building_units' && props.property.postal_zip_code) {
+      return (
+        <BuildingUnits
+          className={c.props.className}
+          mls-id={props.property.mls_id}
+          address={props.property.title.split(' ').slice(2).join(' ')}
+          street_number={props.property.title.split(' ')[1]}
+          postal_zip_code={props.property.postal_zip_code}
+        >
+          {c.props.children}
+        </BuildingUnits>
+      );
+    } else if (c.props?.['data-group'] === 'history' && props.property.postal_zip_code) {
+      return (
+        <SoldHistory className={c.props.className} address={props.property.title.toUpperCase()} postal_zip_code={props.property.postal_zip_code}>
+          {c.props.children}
+        </SoldHistory>
+      );
+    } else if (c.props?.children && typeof c.props?.children !== 'string' && !['building_units', 'history'].includes(c.props?.['data-group'])) {
       return cloneElement(
         c,
         {

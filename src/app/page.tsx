@@ -116,7 +116,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     const req_page_html = await axios.get(headers().get('x-url') as string);
     data = req_page_html.data;
   } catch (e) {
-    console.log('Unable to fetch page html for');
+    console.log('Unable to fetch page html for', headers().get('x-url'));
   }
 
   if (typeof data !== 'string') {

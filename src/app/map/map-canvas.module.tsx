@@ -590,20 +590,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
     }
   }, [agent_only]);
 
-  // React.useEffect(() => {
-  //   document &&
-  //     document.querySelectorAll('.toggle-base').forEach(el =>
-  //       el.addEventListener('click', (evt: Event) => {
-  //         const toggle = evt.target as HTMLDivElement;
-  //         const toggle_value = toggle.getAttribute('style')?.includes('transform') || true;
-  //         if (only_agent_listing === undefined) {
-  //           toggleListing(true);
-  //         } else {
-  //           toggleListing(!toggle_value);
-  //         }
-  //       }),
-  //     );
-  // }, []);
+  console.log(p);
 
   return (
     <aside

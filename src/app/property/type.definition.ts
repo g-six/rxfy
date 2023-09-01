@@ -34,3 +34,9 @@ export const construction_kv: Record<string, string> = {
   complex_compound_name: 'Complex/Subdivision',
   floor_levels: 'Floor Levels',
 };
+
+export interface SoldHistory {
+  sold_at_price: number;
+  date_sold: string;
+  mls_id: string;
+}
