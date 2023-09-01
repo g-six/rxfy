@@ -1,3 +1,5 @@
+import { PropertyDataModel } from '@/_typings/property';
+
 export const property_info_kv: Record<string, string> = {
   age: 'Age',
   year_built: 'Build Year',
@@ -39,4 +41,10 @@ export interface SoldHistory {
   sold_at_price: number;
   date_sold: string;
   mls_id: string;
+}
+
+export interface PageData extends PropertyDataModel {
+  listing_by: string;
+  real_estate_board_name: string;
+  total_kitchens?: number;
 }
