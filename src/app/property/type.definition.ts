@@ -48,3 +48,11 @@ export interface PageData extends PropertyDataModel {
   real_estate_board_name: string;
   total_kitchens?: number;
 }
+export interface PropertyFeaturesWithIcons {
+  amenities: { name: string }[];
+  appliances: { name: string }[];
+  facilities: { name: string }[];
+  connected_services: { name: string }[];
+  parking: { name: string }[];
+  places_of_interest: { name: string }[];
+}

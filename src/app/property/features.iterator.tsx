@@ -1,8 +1,9 @@
 'use client';
 import { Children, ReactElement, cloneElement } from 'react';
 import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
+import { PageData, PropertyFeaturesWithIcons } from './type.definition';
 
-const no_icons = ['dryer', 'other'];
+const no_icons = ['dryer', 'other', 'front', 'open', 'wheelchair-access', 'storage'];
 export default function IconIterator({ children, property, className }: { children: ReactElement; property: PageData; className: string }) {
   const { amenities, appliances, facilities, connected_services, parking, places_of_interest } = property as unknown as PropertyFeaturesWithIcons;
   const Icons: ReactElement[] = [];
@@ -62,6 +63,8 @@ function getAlias(feature: string) {
     case 'trash-removal':
       return 'disposal';
     case 'underbuilding-garage':
+    case 'single-garage':
+    case 'double-garage':
       return 'garage-underbuilding';
     default:
       return feature;
