@@ -52,9 +52,9 @@ function replaceLogos($: CheerioAPI) {
 export default async function PropertyPage(props: any) {
   let start = Date.now();
 
-  if (props.searchParams?.mls && props.params?.slug && props.params?.['profile-slug'] && props.params['profile-slug'].indexOf('la-') === 0) {
-    const agent_id = props.params.slug;
-    const profile_slug = props.params['profile-slug'];
+  if (props.searchParams?.mls && props.params['profile-slug'].indexOf('la-') === 0) {
+    let agent_id = props.params.slug || '';
+    let profile_slug = props.params['profile-slug'] || '';
     let webflow_domain = 'leagent-webflow-rebuild.leagent.com',
       full_name = '';
     if (headers().get('x-agent-name')) {

@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
   // Store current request url in a custom header, which you can read later
   // we want to be able to read Property ID (MLS_ID, etc)
   // to place meta tags in HEAD dynamically based on Property Data
-  const { origin, pathname, searchParams } = new URL(request.url);
+  const { origin, hostname, pathname, searchParams } = new URL(request.url);
 
   if (pathname.includes('/api')) return response;
   if (pathname.includes('/css')) return response;
@@ -24,7 +24,12 @@ export async function middleware(request: NextRequest) {
   let page_url = `https://sites.leagent.com/`;
   response.headers.set('x-viewer', 'realtor');
   response.headers.set('x-canonical', `${origin}${pathname || ''}`);
-
+  let agent_data =
+    hostname === 'leagent.com'
+      ? {}
+      : await getAgentBy({
+          domain_name: hostname,
+        });
   if (searchParams.get('paragon') && !segments.includes('ai-result')) {
     response.headers.set('x-viewer', 'customer');
     switch (searchParams.get('theme')) {
@@ -69,27 +74,9 @@ export async function middleware(request: NextRequest) {
     response.headers.set('x-profile-slug', segments[1]);
     response.headers.set('x-viewer', 'customer');
 
-    const agent_data = await getAgentBy({
+    agent_data = await getAgentBy({
       agent_id: segments[0],
     });
-    response.headers.set('x-dark-bg-logo', agent_data.metatags.logo_for_dark_bg || agent_data.metatags.logo_for_light_bg || '/leagent-icon.png');
-    response.headers.set('x-light-bg-logo', agent_data.metatags.logo_for_light_bg || agent_data.metatags.logo_for_dark_bg || '/leagent-icon.png');
-    response.headers.set('x-page-title', agent_data.metatags.title);
-    response.headers.set('x-page-description', agent_data.metatags.description);
-    response.headers.set('x-record-id', agent_data.id);
-    response.headers.set('x-wf-domain', agent_data.webflow_domain);
-    response.headers.set('x-metatag-id', agent_data.metatags.id);
-    response.headers.set('x-agent-name', agent_data.full_name);
-    response.headers.set('x-agent-email', agent_data.email);
-    response.headers.set('x-agent-phone', agent_data.phone);
-    response.headers.set('x-agent-headshot', agent_data.metatags.headshot);
-
-    if (agent_data?.metatags.geocoding) {
-      response.headers.set(
-        'x-map-uri',
-        `${agent_data.domain_name ? '' : '/' + segments.slice(0, 2).join('/')}/map?` + objectToQueryString(agent_data.metatags.geocoding),
-      );
-    }
 
     if (['my-profile', 'map', 'reset-password', 'my-home-alerts', 'my-compare', 'my-all-properties'].includes(segments[2])) {
       page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/${segments[2]}`;
@@ -113,6 +100,25 @@ export async function middleware(request: NextRequest) {
   } else {
     if (request.cookies.get('session_as')?.value === 'realtor') page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}${pathname || ''}`;
     else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}${pathname || ''}`;
+  }
+
+  response.headers.set('x-dark-bg-logo', agent_data.metatags.logo_for_dark_bg || agent_data.metatags.logo_for_light_bg || '/leagent-icon.png');
+  response.headers.set('x-light-bg-logo', agent_data.metatags.logo_for_light_bg || agent_data.metatags.logo_for_dark_bg || '/leagent-icon.png');
+  response.headers.set('x-page-title', agent_data.metatags.title);
+  response.headers.set('x-page-description', agent_data.metatags.description);
+  response.headers.set('x-record-id', agent_data.id);
+  response.headers.set('x-wf-domain', agent_data.webflow_domain);
+  response.headers.set('x-metatag-id', agent_data.metatags.id);
+  response.headers.set('x-agent-name', agent_data.full_name);
+  response.headers.set('x-agent-email', agent_data.email);
+  response.headers.set('x-agent-phone', agent_data.phone);
+  response.headers.set('x-agent-headshot', agent_data.metatags.headshot);
+
+  if (agent_data?.metatags.geocoding) {
+    response.headers.set(
+      'x-map-uri',
+      `${agent_data.domain_name ? '' : '/' + segments.slice(0, 2).join('/')}/map?` + objectToQueryString(agent_data.metatags.geocoding),
+    );
   }
 
   if (page_url.includes('/undefined')) page_url = page_url.split('/undefined').join('');
