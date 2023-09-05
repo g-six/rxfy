@@ -177,90 +177,89 @@ export async function getPropertyByMlsId(mls_id: string, legacy_data?: { photos?
 
     if (data_records && Array.isArray(data_records) && data_records.length) {
       const records: PropertyDataModel[] = [];
-      data_records
-        .map(async ({ id: property_id, attributes }) => {
-          const { mls_data, property_type, ...property } = attributes as PropertyDataModel;
-          Object.keys(property).forEach(k => {
-            const attrib = property as unknown as { [a: string]: unknown };
-            if (attrib[k] === null) delete attrib[k];
-          });
-          let { photos } = (property.property_photo_album?.data?.attributes || { photos: [] }) as {
-            photos: string[];
-          };
-          let property_photo_album = Number(property.property_photo_album?.data?.id || 0);
-          let cover_photo = photos[0] || '';
-          if (!cover_photo && legacy_data?.photos?.length) {
-            const album_res = await axios.post(
-              `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-              getMutationForPhotoAlbumCreation(Number(property_id), legacy_data.photos),
-              {
-                headers: {
-                  Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-                  'Content-Type': 'application/json',
-                },
-              },
-            );
-            const {
-              data: {
-                createPropertyPhotoAlbum: { data: photo_album },
-              },
-            } = album_res;
-            property_photo_album = photo_album.id;
-            photos = photo_album.attributes.photos || [];
-            cover_photo = photos[0];
-          }
-          cover_photo = cover_photo ? getImageSized(cover_photo, 480) : '/house-placeholder.png';
-          return {
-            ...property,
-            property_photo_album,
-            photos,
-            amenities: (property.amenities?.data || []).map(item => ({
-              ...item.attributes,
-              id: Number(item.id),
-            })),
-            appliances: (property.appliances?.data || []).map(item => ({
-              ...item.attributes,
-              id: Number(item.id),
-            })),
-            build_features: (property.build_features?.data || []).map(item => ({
-              ...item.attributes,
-              id: Number(item.id),
-            })),
-            connected_services: (property.connected_services?.data || []).map(item => ({
-              ...item.attributes,
-              id: Number(item.id),
-            })),
-            facilities: (property.facilities?.data || []).map(item => ({
-              ...item.attributes,
-              id: Number(item.id),
-            })),
-            hvac: (property.hvac?.data || []).map(p => ({
-              ...p.attributes,
-              id: Number(p.id),
-            })),
-            parking: (property.parking?.data || []).map(p => ({
-              ...p.attributes,
-              id: Number(p.id),
-            })),
-            places_of_interest: (property.places_of_interest?.data || []).map(p => ({
-              ...p.attributes,
-              id: Number(p.id),
-            })),
-            real_estate_board: property.real_estate_board?.data?.attributes ? property.real_estate_board?.data?.attributes : undefined,
-            id: Number(property_id),
-            cover_photo,
-            dwelling_type: {
-              name: property_type,
-            },
-          } as unknown as PropertyDataModel;
-        })
-        .forEach((p: Promise<PropertyDataModel>) => {
-          p.then(records.push);
-          // createCacheItem(JSON.stringify(p, null, 4), `listings/${p.mls_id}/recent.json`, 'text/json');
-          // createCacheItem(JSON.stringify(p.mls_data, null, 4), `listings/${p.mls_id}/legacy.json`, 'text/json');
-          // invalidations.push(`/listings/${p.mls_id}/recent.json`);
-          // invalidations.push(`/listings/${p.mls_id}/legacy.json`);
+      data_records.map(async ({ id: property_id, attributes }) => {
+        const { mls_data, property_type, ...property } = attributes as PropertyDataModel;
+        Object.keys(property).forEach(k => {
+          const attrib = property as unknown as { [a: string]: unknown };
+          if (attrib[k] === null) delete attrib[k];
         });
+        let { photos } = (property.property_photo_album?.data?.attributes || { photos: [] }) as {
+          photos: string[];
+        };
+        let property_photo_album = Number(property.property_photo_album?.data?.id || 0);
+        let cover_photo = photos[0] || '';
+        if (!cover_photo && legacy_data?.photos?.length) {
+          const album_res = await axios.post(
+            `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+            getMutationForPhotoAlbumCreation(Number(property_id), legacy_data.photos),
+            {
+              headers: {
+                Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+                'Content-Type': 'application/json',
+              },
+            },
+          );
+          const {
+            data: {
+              createPropertyPhotoAlbum: { data: photo_album },
+            },
+          } = album_res;
+          property_photo_album = photo_album.id;
+          photos = photo_album.attributes.photos || [];
+          cover_photo = photos[0];
+        }
+        cover_photo = cover_photo ? getImageSized(cover_photo, 480) : '/house-placeholder.png';
+        records.push({
+          ...property,
+          property_photo_album,
+          photos,
+          amenities: (property.amenities?.data || []).map(item => ({
+            ...item.attributes,
+            id: Number(item.id),
+          })),
+          appliances: (property.appliances?.data || []).map(item => ({
+            ...item.attributes,
+            id: Number(item.id),
+          })),
+          build_features: (property.build_features?.data || []).map(item => ({
+            ...item.attributes,
+            id: Number(item.id),
+          })),
+          connected_services: (property.connected_services?.data || []).map(item => ({
+            ...item.attributes,
+            id: Number(item.id),
+          })),
+          facilities: (property.facilities?.data || []).map(item => ({
+            ...item.attributes,
+            id: Number(item.id),
+          })),
+          hvac: (property.hvac?.data || []).map(p => ({
+            ...p.attributes,
+            id: Number(p.id),
+          })),
+          parking: (property.parking?.data || []).map(p => ({
+            ...p.attributes,
+            id: Number(p.id),
+          })),
+          places_of_interest: (property.places_of_interest?.data || []).map(p => ({
+            ...p.attributes,
+            id: Number(p.id),
+          })),
+          real_estate_board: property.real_estate_board?.data?.attributes ? property.real_estate_board?.data?.attributes : undefined,
+          id: Number(property_id),
+          cover_photo,
+          dwelling_type: {
+            name: property_type,
+          },
+        } as unknown as PropertyDataModel);
+      });
+      // .forEach((p: Promise<PropertyDataModel>) => {
+      //   p.then(records.push);
+      // createCacheItem(JSON.stringify(p, null, 4), `listings/${p.mls_id}/recent.json`, 'text/json');
+      // createCacheItem(JSON.stringify(p.mls_data, null, 4), `listings/${p.mls_id}/legacy.json`, 'text/json');
+      // invalidations.push(`/listings/${p.mls_id}/recent.json`);
+      // invalidations.push(`/listings/${p.mls_id}/legacy.json`);
+      // });
       // invalidateCache(invalidations);
       return records[0];
     } else {
