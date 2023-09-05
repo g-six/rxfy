@@ -77,11 +77,11 @@ export async function middleware(request: NextRequest) {
     agent_data = await getAgentBy({
       agent_id: segments[0],
     });
-
     if (!segments[2]) {
       page_url = `${page_url}${agent_data.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/index`;
     } else if (['map', 'id', 'property', 'login', 'log-in', 'sign-up', 'update-password'].includes(segments[2])) {
-      page_url = `${page_url}${agent_data.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/${segments[2]}`;
+      if (segments[2] === 'property') page_url = `${page_url}${agent_data.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/property/propertyid`;
+      else page_url = `${page_url}${agent_data.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/${segments[2]}`;
     } else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/${segments[2]}`;
   } else if (pathname === '/') {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/index`;

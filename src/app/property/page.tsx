@@ -104,7 +104,7 @@ export default async function PropertyPage(props: any) {
           }
           const navbar = $('body .navbar-component');
           $('body .navbar-component').remove();
-          const body = $('body > div');
+          const body = $('body > div,section');
           const footer = $('body > footer');
           return (
             <>

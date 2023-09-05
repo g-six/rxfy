@@ -7,7 +7,7 @@ import { bathroomsToBathroomDetails, roomsToRoomDetails } from '@/_helpers/mls-m
 import { GQ_FRAG_AGENT } from '../agents/graphql';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { formatAddress } from '@/_utilities/string-helper';
-import { formatValues } from '@/_utilities/data-helpers/property-page';
+import { formatValues, getMutationForPhotoAlbumCreation } from '@/_utilities/data-helpers/property-page';
 
 export async function buildCacheFiles(mls_id: string): Promise<
   | (PropertyDataModel & {
@@ -156,7 +156,7 @@ export async function buildCacheFiles(mls_id: string): Promise<
   }
 }
 
-export async function getPropertyByMlsId(mls_id: string) {
+export async function getPropertyByMlsId(mls_id: string, legacy_data?: { photos?: string[] }) {
   try {
     const response = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
@@ -174,19 +174,46 @@ export async function getPropertyByMlsId(mls_id: string) {
       },
     );
     const data_records = response?.data?.data?.properties?.data;
+
     if (data_records && Array.isArray(data_records) && data_records.length) {
       const records: PropertyDataModel[] = [];
       data_records
-        .map(({ id: property_id, attributes }) => {
+        .map(async ({ id: property_id, attributes }) => {
           const { mls_data, property_type, ...property } = attributes as PropertyDataModel;
           Object.keys(property).forEach(k => {
             const attrib = property as unknown as { [a: string]: unknown };
             if (attrib[k] === null) delete attrib[k];
           });
-          let cover_photo = property.property_photo_album?.data?.attributes?.photos?.[0];
+          let { photos } = (property.property_photo_album?.data?.attributes || { photos: [] }) as {
+            photos: string[];
+          };
+          let property_photo_album = Number(property.property_photo_album?.data?.id || 0);
+          let cover_photo = photos[0] || '';
+          if (!cover_photo && legacy_data?.photos?.length) {
+            const album_res = await axios.post(
+              `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+              getMutationForPhotoAlbumCreation(Number(property_id), legacy_data.photos),
+              {
+                headers: {
+                  Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+                  'Content-Type': 'application/json',
+                },
+              },
+            );
+            const {
+              data: {
+                createPropertyPhotoAlbum: { data: photo_album },
+              },
+            } = album_res;
+            property_photo_album = photo_album.id;
+            photos = photo_album.attributes.photos || [];
+            cover_photo = photos[0];
+          }
           cover_photo = cover_photo ? getImageSized(cover_photo, 480) : '/house-placeholder.png';
           return {
             ...property,
+            property_photo_album,
+            photos,
             amenities: (property.amenities?.data || []).map(item => ({
               ...item.attributes,
               id: Number(item.id),
@@ -215,12 +242,10 @@ export async function getPropertyByMlsId(mls_id: string) {
               ...p.attributes,
               id: Number(p.id),
             })),
-            photos: property.property_photo_album?.data?.attributes?.photos || [],
             places_of_interest: (property.places_of_interest?.data || []).map(p => ({
               ...p.attributes,
               id: Number(p.id),
             })),
-            property_photo_album: Number(property.property_photo_album?.data?.id || 0) || undefined,
             real_estate_board: property.real_estate_board?.data?.attributes ? property.real_estate_board?.data?.attributes : undefined,
             id: Number(property_id),
             cover_photo,

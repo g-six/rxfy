@@ -3,7 +3,7 @@ import { Children, ReactElement, cloneElement } from 'react';
 import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
 import { PageData, PropertyFeaturesWithIcons } from './type.definition';
 
-const no_icons = ['dryer', 'other', 'front', 'open', 'wheelchair-access', 'storage'];
+const no_icons = ['underground', 'dryer', 'other', 'front', 'open', 'wheelchair-access', 'storage'];
 export default function IconIterator({ children, property, className }: { children: ReactElement; property: PageData; className: string }) {
   const { amenities, appliances, facilities, connected_services, parking, places_of_interest } = property as unknown as PropertyFeaturesWithIcons;
   const Icons: ReactElement[] = [];
@@ -16,6 +16,7 @@ export default function IconIterator({ children, property, className }: { childr
   if (parking?.length) iconables = iconables.concat(parking);
   if (places_of_interest?.length) iconables = iconables.concat(places_of_interest);
 
+  const already_added: string[] = [];
   iconables.forEach(({ name }, idx) => {
     const key = slugifyAddress(name.toLowerCase());
     const alias = getAlias(key);
@@ -23,7 +24,8 @@ export default function IconIterator({ children, property, className }: { childr
       if (!has_water) has_water = true;
       else return;
     }
-    if (!no_icons.includes(key))
+    if (!no_icons.includes(key) && !already_added.includes(key)) {
+      already_added.push(key);
       Icons.push(
         <div key={`${idx}-${key}`} className={className}>
           {Children.map(children, c => {
@@ -41,6 +43,7 @@ export default function IconIterator({ children, property, className }: { childr
           })}
         </div>,
       );
+    }
   });
 
   return <>{Icons}</>;
@@ -55,8 +58,6 @@ function getAlias(feature: string) {
       return 'dish-washer';
     case 'electricity':
       return 'electricity';
-    case 'double-garage':
-      return 'garage-underbuilding';
     case 'microwave':
       return 'microwave-oven';
     case 'in-suite-laundry':
@@ -65,9 +66,12 @@ function getAlias(feature: string) {
       return 'park';
     case 'shopping-mall':
       return 'shopping';
+    case 'snow-removal':
+      return '';
     case 'trash-removal':
       return 'disposal';
     case 'underbuilding-garage':
+    case 'underground-garage':
     case 'single-garage':
     case 'double-garage':
       return 'garage-underbuilding';

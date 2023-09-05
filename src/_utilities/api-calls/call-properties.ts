@@ -7,7 +7,7 @@ import { objectToQueryString } from '../url-helper';
  * @returns property data
  */
 export async function getMLSProperty(mls_id: string) {
-  const response = await axios.get(`/api/properties?mls_id=${mls_id}`, {
+  const response = await axios.get(`/api/properties/mls-id/${mls_id}`, {
     headers: {
       Authorization: `Bearer ${Cookies.get('session_key')}`,
       'Content-Type': 'application/json',
@@ -60,13 +60,13 @@ export async function getAgentPublicListings() {
  * Retrieves a property by mls_id
  * @returns property data
  */
-export async function getSimilarProperties(property: { [key: string]: string }) {
-  let filters: Record<string, string> = {};
+export async function getSimilarProperties(property: { [key: string]: string | number }) {
+  let filters: Record<string, string | number> = {};
   Object.keys(property).forEach(filter => {
-    if (['property_type', 'lat', 'lon', 'beds'].includes(filter)) {
+    if (['property_type', 'lat', 'lon', 'beds', 'complex_compound_name', 'postal_zip_code'].includes(filter) && property[filter]) {
       filters = {
         ...filters,
-        [filter]: filter === 'property_type' ? encodeURIComponent(property[filter]) : property[filter],
+        [filter]: ['property_type', 'postal_zip_code', 'complex_compound_name'].includes(filter) ? encodeURIComponent(property[filter]) : property[filter],
       };
     }
   });

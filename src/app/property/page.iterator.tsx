@@ -11,6 +11,8 @@ import SoldHistory from './sold-history.module';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import IconIterator from './features.iterator';
 import KeyValueIterator from './key-value-pair.iterator';
+import { Transition } from '@headlessui/react';
+import RecentListings from './recent-listings.module';
 
 export default function Iterator({ children, ...props }: { children: ReactElement; property: PageData; photos: string[] }) {
   const Rexified = Children.map(children, c => {
@@ -56,7 +58,10 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
           rooms
             .filter(room => room.type?.toLowerCase() !== 'bedroom' && room.type?.toLowerCase().includes('bed'))
             .map((k, idx) => (
-              <div key={`${k.type} ${k.level} ${k.width} x ${k.length}`} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
+              <div
+                key={`${k.type} ${k.level} ${k.width} x ${k.length} ${idx}`}
+                className={classNames(c.props.children.className || '', 'property-page-rexified')}
+              >
                 <KeyValueIterator className={c.props.className} label={k.type} value={`${k.width} x ${k.length}`}>
                   {c.props.children}
                 </KeyValueIterator>
@@ -66,7 +71,10 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
               rooms
                 .filter(room => room.type?.toLowerCase() === 'bedroom')
                 .map((k, idx) => (
-                  <div key={`${k.type} ${k.level} ${k.width} x ${k.length}`} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
+                  <div
+                    key={`${k.type} ${k.level} ${k.width} x ${k.length} ${idx}`}
+                    className={classNames(c.props.children.className || '', 'property-page-rexified')}
+                  >
                     <KeyValueIterator className={c.props.className} label={k.type} value={`${k.width} x ${k.length}`}>
                       {c.props.children}
                     </KeyValueIterator>
@@ -83,8 +91,11 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
             baths
               .filter(bath => bath.ensuite?.toLowerCase() === 'yes')
               .map((k, idx) => (
-                <div key={`${k.level} ensuite bath ${k.pieces}-pc`} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
-                  <KeyValueIterator className={c.props.className} label={`${k.level} ensuite bath`} value={`${k.pieces}-pc`}>
+                <div
+                  key={`${idx + 1}-${k.level}-ensuite-bath-${k.pieces}-pc`}
+                  className={classNames(c.props.children.className || '', 'property-page-rexified')}
+                >
+                  <KeyValueIterator className={c.props.className} label={`Ensuite bath ${idx + 1} (${k.level} floor)`} value={`${k.pieces}-pc`}>
                     {c.props.children}
                   </KeyValueIterator>
                 </div>
@@ -155,7 +166,32 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
           {c.props.children}
         </SoldHistory>
       );
+    } else if (c.props?.style) {
+      return (
+        <Transition
+          appear={false}
+          show={true}
+          enter='transition-opacity duration-75'
+          enterFrom='opacity-0'
+          enterTo='opacity-100'
+          leave='transition-opacity duration-150'
+          leaveFrom='opacity-100'
+          leaveTo='opacity-0'
+        >
+          {cloneElement(c, {
+            className: '',
+            style: undefined,
+          })}
+        </Transition>
+      );
     } else if (c.props?.children && typeof c.props?.children !== 'string' && !['building_units', 'history'].includes(c.props?.['data-group'])) {
+      if (c.props.className?.includes('recent-listings-grid')) {
+        return (
+          <RecentListings {...props} className={c.props.className}>
+            {c.props.children}
+          </RecentListings>
+        );
+      }
       return cloneElement(
         c,
         {
