@@ -1,6 +1,5 @@
 import './globals.scss';
 import parse from 'html-react-parser';
-import { AxiosError } from 'axios';
 import { CheerioAPI, load } from 'cheerio';
 import { notFound, redirect } from 'next/navigation';
 import { cookies, headers } from 'next/headers';
@@ -253,6 +252,11 @@ export default async function Home({ params, searchParams }: { params: Record<st
   replaceByCheerio($, '.priceminmax.w-dropdown > nav', {
     className: 'filter-group-modal',
   });
+  if (process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_BUY_BUTTON) {
+    replaceByCheerio($, '[href^="https://buy.stripe.com"]', {
+      href: process.env.NEXT_PUBLIC_BUY_BUTTON,
+    });
+  }
 
   if (hostname !== `${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}` || searchParams.paragon) {
     if (agent_data && agent_data.agent_id) {
