@@ -20,10 +20,6 @@ function Iterator({ children, listings }: { children: ReactElement; listings: Pr
                 {c}
               </AlicantePropcard>
             );
-            //   <RxPropertyCard key={listing.mls_id} listing={listing}>
-            //     {c.props.children}
-            //   </RxPropertyCard>
-            // );
           })}
         </>
       );

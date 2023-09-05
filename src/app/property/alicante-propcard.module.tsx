@@ -19,7 +19,7 @@ function Iterator({ children, listing }: { children: ReactElement; listing: Prop
       const attributes = listing as unknown as { [k: string]: string };
       const key = getStrapiField(c.props['data-field']);
 
-      if (key === 'image_cover' && listing.cover_photo) {
+      if (key === 'image_cover' && listing.cover_photo && !listing.cover_photo.includes('placeholder')) {
         return (
           <a href={`?mls=${listing.mls_id}`}>
             {cloneElement(c, {
