@@ -76,7 +76,7 @@ export async function POST(request: Request) {
       }
     }
   } catch (e) {
-    console.log(e);
+    console.log('Error in api/properties/get-history', e);
     const axerr = e as unknown as AxiosError;
     return getResponse({ error: axerr.response?.data }, 400);
   }

@@ -264,7 +264,7 @@ export function getSegregatedListings(hits: Hit[]) {
         [k]: Array.isArray(fields[key]) && !keep_as_array?.includes(k) ? Array(fields[key]).join(',') : fields[key],
       };
     });
-    console.log(data);
+
     if ((data as MLSProperty).Status?.includes('Active')) {
       active.push(data as MLSProperty);
     } else {

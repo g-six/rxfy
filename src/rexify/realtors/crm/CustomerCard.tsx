@@ -115,7 +115,6 @@ export default function RxCRMCustomerCard(p: Props) {
 
   React.useEffect(() => {
     if (dropdown.data?.clicked) {
-      console.log(dropdown.data);
       dropdown.fireEvent({});
     }
   }, [dropdown.data]);

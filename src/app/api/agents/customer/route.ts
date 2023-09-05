@@ -61,8 +61,7 @@ export async function POST(request: NextRequest) {
   } catch (e) {
     const errors = e as AxiosError;
     const { message, response } = errors;
-    console.log('API Error: agents.customer.POST');
-    console.log(response?.data);
+    console.log('API Error: agents.customer.POST', '\n', response?.data);
     return getResponse(
       {
         error: message,

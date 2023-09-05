@@ -67,8 +67,7 @@ export async function PUT(request: NextRequest) {
     } catch (e) {
       const errors = e as AxiosError;
       const { message, response } = errors;
-      console.log('API Error: agents.customer[id].PUT');
-      console.log(response?.data);
+      console.log('API Error: agents.customer[id].PUT', '\n\n', response?.data);
       return getResponse(
         {
           error: message,

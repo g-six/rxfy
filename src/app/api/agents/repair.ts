@@ -115,8 +115,7 @@ export async function getSmart(
         return prom;
       } else {
         prom.then(res => {
-          console.log(res.data?.data?.updateAgent);
-          console.log('...[DONE] mutation_update_agent');
+          console.log('...[DONE] mutation_update_agent\n\n', res.data?.data?.updateAgent);
         });
       }
     }

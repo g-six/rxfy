@@ -1,5 +1,4 @@
 'use client';
-import { PropertyDataModel } from '@/_typings/property';
 import { getHistory } from '@/_utilities/api-calls/call-properties';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import { classNames } from '@/_utilities/html-helper';
@@ -54,8 +53,6 @@ export default function SoldHistory(p: { children: ReactElement; className?: str
       if (records && records.length) setHistory(records);
     });
   }, []);
-
-  console.log(history);
 
   return (
     <section className={p.className}>

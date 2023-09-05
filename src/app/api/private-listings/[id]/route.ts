@@ -36,8 +36,6 @@ export async function DELETE(req: NextRequest) {
           401,
         );
       }
-    } else {
-      console.log(record.realtor);
     }
     return getResponse(record);
   } catch (e) {
