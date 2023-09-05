@@ -103,19 +103,18 @@ export async function middleware(request: NextRequest) {
       response.headers.set('x-page-title', agent_data.metatags.title);
       response.headers.set('x-page-description', agent_data.metatags.description);
       response.headers.set('x-agent-headshot', agent_data.metatags.headshot);
+      if (agent_data.metatags.geocoding) {
+        response.headers.set(
+          'x-map-uri',
+          `${agent_data.domain_name ? '' : '/' + segments.slice(0, 2).join('/')}/map?` + objectToQueryString(agent_data.metatags.geocoding),
+        );
+      }
     }
     response.headers.set('x-record-id', agent_data.id);
     response.headers.set('x-wf-domain', agent_data.webflow_domain);
     response.headers.set('x-agent-name', agent_data.full_name);
     response.headers.set('x-agent-email', agent_data.email);
     response.headers.set('x-agent-phone', agent_data.phone);
-  }
-
-  if (agent_data?.metatags.geocoding) {
-    response.headers.set(
-      'x-map-uri',
-      `${agent_data.domain_name ? '' : '/' + segments.slice(0, 2).join('/')}/map?` + objectToQueryString(agent_data.metatags.geocoding),
-    );
   }
 
   if (page_url.includes('/undefined')) page_url = page_url.split('/undefined').join('');
