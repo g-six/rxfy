@@ -51,6 +51,7 @@ import RxCustomerView from '@/rexify/realtors/RxCustomerView';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { updateAgentMetatags } from '@/app/api/agents/model';
 import { BrokerageInformationForm } from '@/rexify/realtors/brokerage-information';
+import { headers } from 'next/headers';
 
 async function replaceTargetCityComponents($: CheerioAPI, agent: AgentData) {
   if (agent.metatags.target_city && !agent.metatags.geocoding) {
@@ -476,6 +477,7 @@ export function rexifyScripts(html_code: string) {
  */
 export function rexify(html_code: string, agent_data: AgentData, property: Record<string, unknown> = {}, params: Record<string, unknown> = {}) {
   // Parse and replace
+  const viewer = headers().get('x-viewer') as 'realtor' | 'customer';
   const options: HTMLReactParserOptions = {
     replace: node => {
       // Take out script / replace DOM placeholders with our Rexify
@@ -502,7 +504,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
       } else if (node instanceof Element && node.attribs) {
         const { class: className, ...props } = attributesToProps(node.attribs);
-
         if (node.attribs['data-src']) {
           return <RxThemePreview className={`${props.className ? props.className + ' ' : ''} rexified`} src={node.attribs['data-src']} />;
         }
@@ -612,22 +613,14 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         }
         if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.RESET_PASSWORD) {
           return (
-            <RxResetPasswordPage
-              {...props}
-              type={node.type}
-              user-type={process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN === params.webflow_domain ? 'realtor' : 'customer'}
-            >
+            <RxResetPasswordPage {...props} type={node.type} user-type={viewer}>
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxResetPasswordPage>
           );
         }
         if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.UPDATE_PASSWORD) {
           return (
-            <RxUpdatePasswordPage
-              {...props}
-              type={node.type}
-              user-type={process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN === params.webflow_domain ? 'realtor' : 'customer'}
-            >
+            <RxUpdatePasswordPage {...props} type={node.type} user-type={viewer}>
               <>{domToReact(node.children) as ReactElement[]}</>
             </RxUpdatePasswordPage>
           );
