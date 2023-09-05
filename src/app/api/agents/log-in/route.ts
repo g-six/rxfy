@@ -32,7 +32,7 @@ async function agentAuthLogin(email: string, password: string) {
         query: gql_login,
         variables: {
           email,
-          encrypted_password: encrypt(password),
+          encrypted_password,
         },
       },
       {
@@ -123,22 +123,9 @@ async function agentAuthLogin(email: string, password: string) {
 
     console.log('+-------------------------------------------+');
     console.log('  No linked record on our new system');
-    console.log('  Logging user in via the old Strapi system');
+    console.log('  or wrong password');
     console.log(`  for user email: ${email}`);
     console.log('+-------------------------------------------+');
-
-    login_res = await axios.post(
-      `${process.env.NEXT_APP_STRAPI_URL}/auth/local`,
-      {
-        identifier: email,
-        password,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
-    );
   } catch (e) {
     const { response, code } = e as AxiosError;
     if (code == 'ERR_BAD_REQUEST') {
