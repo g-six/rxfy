@@ -254,8 +254,8 @@ export async function getPropertyByMlsId(mls_id: string, legacy_data?: { photos?
             },
           } as unknown as PropertyDataModel;
         })
-        .forEach((p: PropertyDataModel) => {
-          records.push(p);
+        .forEach((p: Promise<PropertyDataModel>) => {
+          p.then(records.push);
           // createCacheItem(JSON.stringify(p, null, 4), `listings/${p.mls_id}/recent.json`, 'text/json');
           // createCacheItem(JSON.stringify(p.mls_data, null, 4), `listings/${p.mls_id}/legacy.json`, 'text/json');
           // invalidations.push(`/listings/${p.mls_id}/recent.json`);
