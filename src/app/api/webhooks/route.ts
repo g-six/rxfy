@@ -83,9 +83,7 @@ async function cacheSite(domain: string) {
             }
             if (page !== 'index') filename = `/${page}${filename}`;
             createCacheItem(
-              js.data
-                .split('addDocumentClass()')
-                .join('addDocumentClass() {console.log("Skipping webflow script that causes html tag class error")}; function addDocumentClassOriginal()'),
+              js.data.split('addDocumentClass();').join('console.log("Skipping webflow script that causes html tag class error");'),
               domain + filename,
               'text/javascript',
               false,
