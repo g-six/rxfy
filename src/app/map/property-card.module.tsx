@@ -9,13 +9,25 @@ import { PropertyDataModel } from '@/_typings/property';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 
 function PropertyCardIterator({ children, listing, onClickToOpen }: { children: React.ReactElement; listing: PropertyDataModel; onClickToOpen(): void }) {
+  // e.g /agent-id/profile-slug/map
+  const url = new URL(location.href);
   const Wrapped = React.Children.map(children, c => {
-    if (c.type === 'img' && listing.cover_photo && c.props.className?.includes('propcard-image')) {
-      return React.cloneElement(c, {
-        ...c.props,
-        srcSet: undefined,
-        src: getImageSized(listing.cover_photo, 520),
-      });
+    if (c.type === 'img' && c.props.className?.includes('propcard-image')) {
+      const segments = url.pathname.split('/');
+      // e.g. map
+      segments.pop();
+      return (
+        <div className={c.props.className}>
+          {listing.cover_photo
+            ? React.cloneElement(c, {
+                ...c.props,
+                srcSet: undefined,
+                src: getImageSized(listing.cover_photo, 520),
+              })
+            : c}
+          <a href={`${segments.join('/')}/property?mls=${listing.mls_id}`} className='h-full w-full absolute z-20' />
+        </div>
+      );
     } else if (c.type === 'div') {
       if (c.props.className.includes('propcard-image')) {
         return (
@@ -101,6 +113,11 @@ export default function PropertyCard({ className, children }: { className: strin
   const [cards, setCards] = React.useState<React.ReactElement[]>([]);
 
   React.useEffect(() => {
+    const url = new URL(location.href);
+    // e.g /agent-id/profile-slug/map
+    const segments = url.pathname.split('/');
+    // e.g. map
+    segments.pop();
     if (points)
       setCards(
         points
@@ -113,12 +130,19 @@ export default function PropertyCard({ className, children }: { className: strin
               <PropertyCardIterator
                 listing={p}
                 onClickToOpen={() => {
-                  router.push('property?mls=' + p.mls_id);
+                  console.log(p.photos);
+                  // axios
+                  //   .get(`/api/properties/mls-id/${p.mls_id}`)
+                  //   .then(r => {
+                  //     // Fix the application error for properties not imported yet
+                  //     location.href = `${segments.join('/')}/property?mls=${p.mls_id}`;
+                  //   })
+                  //   .catch(console.error);
+                  // router.push('property?mls=' + p.mls_id);
                 }}
               >
                 {children}
               </PropertyCardIterator>
-              <a href={`property?mls=${p.mls_id}`} className='absolute top-0 left-0 h-full w-full z-20' />
             </div>
           )),
       );
