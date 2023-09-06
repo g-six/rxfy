@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     const { object } = payload.data;
 
     // Should have at least fullname and agentidparagonid
-    if (object.custom_fields.length > 1) {
+    if (object.custom_fields?.length > 1) {
       const [
         {
           text: { value: agent_id },

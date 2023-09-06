@@ -7,7 +7,8 @@ import { bathroomsToBathroomDetails, roomsToRoomDetails } from '@/_helpers/mls-m
 import { GQ_FRAG_AGENT } from '../agents/graphql';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { formatAddress } from '@/_utilities/string-helper';
-import { formatValues, getMutationForPhotoAlbumCreation } from '@/_utilities/data-helpers/property-page';
+import { formatValues } from '@/_utilities/data-helpers/property-page';
+import { createPhotoAlbumForProperty } from '../property-photo-albums/model';
 
 export async function buildCacheFiles(mls_id: string): Promise<
   | (PropertyDataModel & {
@@ -102,7 +103,7 @@ export async function buildCacheFiles(mls_id: string): Promise<
 
       const {
         L_ShortRegionCode: real_estate_board_name,
-        photos,
+        photos: mls_photos,
         ...simple
       } = property as unknown as PropertyDataModel & {
         L_ShortRegionCode: string;
@@ -117,13 +118,27 @@ export async function buildCacheFiles(mls_id: string): Promise<
         listing_by,
         real_estate_board_name,
         property_type,
-        photos,
       };
+
+      let photos: string[] = [],
+        property_photo_album: number = 0;
+
+      let strapi_record: PropertyDataModel;
+      if (promises[1]) strapi_record = promises[1];
+      else strapi_record = {} as unknown as PropertyDataModel;
+
+      if (strapi_record.photos?.length) {
+        photos = strapi_record.photos;
+      } else if (strapi_record.id && mls_photos?.length) {
+        const album = await createPhotoAlbumForProperty(strapi_record.id, mls_photos);
+        photos = album.photos;
+        property_photo_album = album.id;
+      }
 
       return {
         ...clean,
-        photos,
         ...(promises[1] || {}),
+        photos,
         dwelling_type,
         formatted_address: formatAddress(clean.title) + ', ' + clean.city + ', ' + clean.state_province + ' ' + clean.postal_zip_code,
         sqft: formatValues(clean, 'floor_area') + ' sq.ft.',
@@ -189,23 +204,9 @@ export async function getPropertyByMlsId(mls_id: string, legacy_data?: { photos?
         let property_photo_album = Number(property.property_photo_album?.data?.id || 0);
         let cover_photo = photos[0] || '';
         if (!cover_photo && legacy_data?.photos?.length) {
-          const album_res = await axios.post(
-            `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-            getMutationForPhotoAlbumCreation(Number(property_id), legacy_data.photos),
-            {
-              headers: {
-                Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-                'Content-Type': 'application/json',
-              },
-            },
-          );
-          const {
-            data: {
-              createPropertyPhotoAlbum: { data: photo_album },
-            },
-          } = album_res;
+          const photo_album = await createPhotoAlbumForProperty(Number(property_id), legacy_data.photos);
           property_photo_album = photo_album.id;
-          photos = photo_album.attributes.photos || [];
+          photos = photo_album.photos || [];
           cover_photo = photos[0];
         }
         cover_photo = cover_photo ? getImageSized(cover_photo, 480) : '/house-placeholder.png';
@@ -253,22 +254,7 @@ export async function getPropertyByMlsId(mls_id: string, legacy_data?: { photos?
           },
         } as unknown as PropertyDataModel);
       });
-      // .forEach((p: Promise<PropertyDataModel>) => {
-      //   p.then(records.push);
-      // createCacheItem(JSON.stringify(p, null, 4), `listings/${p.mls_id}/recent.json`, 'text/json');
-      // createCacheItem(JSON.stringify(p.mls_data, null, 4), `listings/${p.mls_id}/legacy.json`, 'text/json');
-      // invalidations.push(`/listings/${p.mls_id}/recent.json`);
-      // invalidations.push(`/listings/${p.mls_id}/legacy.json`);
-      // });
-      // invalidateCache(invalidations);
       return records[0];
-    } else {
-      const xhr = await axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      console.log(xhr.data.data);
     }
     return;
   } catch (e) {
