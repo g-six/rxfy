@@ -6,6 +6,7 @@ import React from 'react';
 import { RxButton } from '../RxButton';
 import { RxEmail } from '../RxEmail';
 import { NotificationCategory } from '@/_typings/events';
+import { emailPasswordReset } from '@/_utilities/api-calls/call-session';
 
 type RxResetPasswordPageProps = {
   type: string;
@@ -58,11 +59,12 @@ export function RxResetPasswordPage(props: RxResetPasswordPageProps) {
   const { data, fireEvent } = useEvent(Events.ResetPassword);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [is_loading, toggleLoading] = React.useState(false);
-
   const submitForm = async (email: string) => {
     if (is_loading) return;
     toggleLoading(true);
     try {
+      // TODO: use utility fn instead of direct axios / fetch
+      // const password_reset_xhr = await emailPasswordReset(email, user_type, pathway);
       const api_response = await axios.put(
         `/api/reset-password${props['user-type'] === 'realtor' ? '/realtor' : ''}`,
         { email },

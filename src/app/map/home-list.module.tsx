@@ -8,14 +8,14 @@ import PropertyCard from './property-card.module';
 function Iterator({ children }: { children: React.ReactElement }) {
   const Wrapped = React.Children.map(children, c => {
     if (c.type === 'div') {
-      if (c.props.className?.split(' ').includes('property-card')) {
+      if (c.props.className?.includes('is-card') || c.props.className?.split(' ').includes('property-card')) {
         return <PropertyCard {...c.props}>{c.props.children}</PropertyCard>;
       }
       if (c.props.className?.includes('empty-state')) {
         return <EmptyState {...c.props}>{c.props.children}</EmptyState>;
       }
       return (
-        <div className={[c.props.className, 'rexified childof-HomeList'].join(' ')}>
+        <div className={[c.props.className, 'rexified flex flex-col gap-y-2 childof-HomeList'].join(' ')}>
           <Iterator>{c.props.children}</Iterator>
         </div>
       );

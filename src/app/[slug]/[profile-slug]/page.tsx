@@ -485,7 +485,7 @@ export default async function AgentHomePage({ params }: { params: { slug: string
 
     const navbar = $('body .navbar-component');
     $('body .navbar-component').remove();
-    const body = $('body > div');
+    const body = $('body > div,section');
 
     return (
       <>
