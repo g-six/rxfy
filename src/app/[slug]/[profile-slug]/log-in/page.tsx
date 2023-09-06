@@ -12,11 +12,6 @@ function Iterator({ children }: { children: ReactElement }) {
     if (typeof c.props?.children !== 'string') {
       if (c.props.className?.includes('log-in-form')) {
         return <RxLoginPage className={classNames(c.props.className || 'no-default-class', 'rexified')}>{c.props.children}</RxLoginPage>;
-        cloneElement(
-          c,
-          { className: classNames(c.props.className || 'no-default-class', 'rexified') },
-          <RxLoginPage className='rexified form'>{c.props.children}</RxLoginPage>,
-        );
       }
       return cloneElement(c, { className: classNames(c.props.className || 'no-default-class', 'rexified') }, <Iterator>{c.props.children}</Iterator>);
     }
