@@ -82,7 +82,15 @@ async function cacheSite(domain: string) {
               filename = pathname;
             }
             if (page !== 'index') filename = `/${page}${filename}`;
-            createCacheItem(js.data, domain + filename, 'text/javascript', false, BUCKET_NAME);
+            createCacheItem(
+              js.data
+                .split('addDocumentClass()')
+                .join('addDocumentClass() {console.log("Skipping webflow script that causes html tag class error")}; function addDocumentClassOriginal()'),
+              domain + filename,
+              'text/javascript',
+              false,
+              BUCKET_NAME,
+            );
           }),
         );
         $('.w-nav').removeClass('w-nav');
