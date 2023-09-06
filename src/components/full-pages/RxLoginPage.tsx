@@ -86,6 +86,7 @@ export function RxLoginPage(props: RxLoginPageProps) {
     toggleLoading(true);
     try {
       const { email, password } = data as unknown as { [key: string]: string };
+      console.log('props.className', props.className);
       const api_response = await login(email, password, { is_agent: hasClassName(props.className || '', 'use-agent') })
         .catch((e: AxiosError) => {
           if (e.response && e.response.data) {
