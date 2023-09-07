@@ -143,9 +143,9 @@ export default async function MapIterator({
           );
         } else if (className.includes('map-navbar')) {
           return (
-            <div className={classNames(className, styles.navbar, 'rexified')} {...props}>
+            <nav className={classNames(className, styles.navbar, 'rexified')} {...props}>
               <NavIterator agent={agent}>{props.children}</NavIterator>
-            </div>
+            </nav>
           );
         }
       }

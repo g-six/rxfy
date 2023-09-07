@@ -52,11 +52,17 @@ export default function NavIterator({ agent, children }: { children: React.React
             <NavIterator agent={agent}>{convertDivsToSpans(contents)}</NavIterator>
           </a>
         );
+      } else if (href === '#') {
+        return (
+          <a {...link_props} data-original-href={href} href={`/${agent?.agent_id}/${agent?.metatags.profile_slug}${href}`}>
+            <NavIterator agent={agent}>{convertDivsToSpans(contents)}</NavIterator>
+          </a>
+        );
       } else if (link_props?.className?.includes('button')) {
         return React.cloneElement(<button type='button' />, link_props, contents);
       }
     }
-    if (c.props?.className?.includes('logo')) {
+    if (c.props?.['data-field'] === 'logo') {
       const logo = agent?.metatags?.logo_for_light_bg || agent?.metatags?.logo_for_dark_bg;
       if (logo) {
         return React.cloneElement(
@@ -74,6 +80,8 @@ export default function NavIterator({ agent, children }: { children: React.React
           },
           [<></>],
         );
+      } else {
+        return <h1 className={c.props.className}>{agent?.full_name}</h1>;
       }
     }
     if (typeof c.props?.children === 'string') {
