@@ -20,7 +20,7 @@ import { AgentData } from '@/_typings/agent';
 import Cookies from 'js-cookie';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 
-const PAGE_SIZE = 300;
+const PAGE_SIZE = 100;
 function Iterator({ children }: { children: React.ReactElement }) {
   const Wrapped = React.Children.map(children, c => {
     if (c.type === 'div') {
