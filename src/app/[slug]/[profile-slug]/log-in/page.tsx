@@ -10,7 +10,8 @@ import { Children, DOMElement, ReactElement, cloneElement } from 'react';
 function Iterator({ children }: { children: ReactElement }) {
   const Rexified = Children.map(children, c => {
     if (c.props?.children && typeof c.props?.children !== 'string') {
-      if (c.props.className?.includes('log-in-form')) {
+      // if (c.props.className?.includes('log-in-form')) {
+      if (c.props.method) {
         return <RxLoginPage className={classNames(c.props.className || 'no-default-class', 'rexified')}>{c.props.children}</RxLoginPage>;
       }
       return cloneElement(c, { className: classNames(c.props.className || 'no-default-class', 'rexified') }, <Iterator>{c.props.children}</Iterator>);
@@ -32,12 +33,15 @@ export default async function CustomerLogInPage(props: {
   let { data } = await axios.get(`https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/log-in.html`);
 
   // Replace webflow forms
-  data = data.split('<form').join('<section').split('</form>').join('</section>');
+  // data = data.split('<form').join('<section').split('</form>').join('</section>');
 
   // absolute urls
   data = data.split('href="/').join(`href="${domain_name ? '/' : ['', agent_data.agent_id, metatags.profile_slug, ''].join('/')}`);
 
   const $: CheerioAPI = load(data);
+  $('form').each((i, item) => {
+    item.tagName = 'div';
+  });
   const body = $('body > div,section,footer');
   return <Iterator>{domToReact(body as unknown as DOMNode[]) as unknown as ReactElement}</Iterator>;
 }
