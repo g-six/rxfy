@@ -5,6 +5,7 @@ import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { AgentData } from '@/_typings/agent';
 import { convertDivsToSpans } from '@/_replacers/DivToSpan';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { objectToQueryString } from '@/_utilities/url-helper';
 
 export default function NavIterator({ agent, children }: { children: React.ReactElement; agent?: AgentData }) {
   const Wrapped = React.Children.map(children, c => {
@@ -46,13 +47,7 @@ export default function NavIterator({ agent, children }: { children: React.React
       if (!cookies().has('session_key') && c.props.className?.includes(WEBFLOW_NODE_SELECTOR.USER_MENU)) return <></>;
       const { href, children: contents, ...link_props } = c.props;
 
-      if (link_props?.className?.includes('-session') || href.includes('/my-') || href.includes('/map') || href.includes('dashboard')) {
-        return (
-          <a {...link_props} data-original-href={href} href={`/${agent?.agent_id}/${agent?.metatags.profile_slug}${href}`}>
-            <NavIterator agent={agent}>{convertDivsToSpans(contents)}</NavIterator>
-          </a>
-        );
-      } else if (href === '#' || href === '/') {
+      if (link_props?.className?.includes('-session') || href.includes('/my-') || href.includes('dashboard')) {
         return (
           <a {...link_props} data-original-href={href} href={`/${agent?.agent_id}/${agent?.metatags.profile_slug}${href}`}>
             <NavIterator agent={agent}>{convertDivsToSpans(contents)}</NavIterator>
@@ -60,6 +55,24 @@ export default function NavIterator({ agent, children }: { children: React.React
         );
       } else if (link_props?.className?.includes('button')) {
         return React.cloneElement(<button type='button' />, link_props, contents);
+      } else if (href === '/map') {
+        return (
+          <a
+            {...link_props}
+            data-original-href={href}
+            href={`/${agent?.agent_id}/${agent?.metatags.profile_slug}${href}${
+              agent?.metatags.geocoding ? `?${objectToQueryString(agent?.metatags.geocoding as unknown as { [k: string]: string })}` : ''
+            }`}
+          >
+            <NavIterator agent={agent}>{convertDivsToSpans(contents)}</NavIterator>
+          </a>
+        );
+      } else {
+        return (
+          <a {...link_props} data-original-href={href} href={`/${agent?.agent_id}/${agent?.metatags.profile_slug}${href}`}>
+            <NavIterator agent={agent}>{convertDivsToSpans(contents)}</NavIterator>
+          </a>
+        );
       }
     }
     if (c.props?.['data-field'] === 'agent_name') {
