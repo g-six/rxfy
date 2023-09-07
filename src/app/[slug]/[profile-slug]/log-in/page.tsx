@@ -9,7 +9,7 @@ import { Children, DOMElement, ReactElement, cloneElement } from 'react';
 
 function Iterator({ children }: { children: ReactElement }) {
   const Rexified = Children.map(children, c => {
-    if (typeof c.props?.children !== 'string') {
+    if (c.props?.children && typeof c.props?.children !== 'string') {
       if (c.props.className?.includes('log-in-form')) {
         return <RxLoginPage className={classNames(c.props.className || 'no-default-class', 'rexified')}>{c.props.children}</RxLoginPage>;
       }
