@@ -1,6 +1,7 @@
 import { WEBFLOW_DASHBOARDS } from '@/_typings/webflow';
 import { classNames } from '@/_utilities/html-helper';
 import { findAgentRecordByAgentId } from '@/app/api/agents/model';
+import RxNotifications from '@/components/RxNotifications';
 import { RxLoginPage } from '@/components/full-pages/RxLoginPage';
 import axios from 'axios';
 import { CheerioAPI, load } from 'cheerio';
@@ -43,5 +44,10 @@ export default async function CustomerLogInPage(props: {
     item.tagName = 'div';
   });
   const body = $('body > div,section,footer');
-  return <Iterator>{domToReact(body as unknown as DOMNode[]) as unknown as ReactElement}</Iterator>;
+  return (
+    <>
+      <Iterator>{domToReact(body as unknown as DOMNode[]) as unknown as ReactElement}</Iterator>
+      <RxNotifications />
+    </>
+  );
 }
