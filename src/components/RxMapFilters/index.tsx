@@ -1,8 +1,6 @@
 'use client';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { convertDivsToSpans } from '@/_replacers/DivToSpan';
-import { LegacySearchPayload } from '@/_typings/pipeline';
-import { DEF_LEGACY_PAYLOAD } from '@/_utilities/api-calls/call-legacy-search';
 import { objectToQueryString, queryStringToObject } from '@/_utilities/url-helper';
 import React from 'react';
 import { Events, EventsData } from '@/hooks/useFormEvent';
@@ -97,7 +95,7 @@ function Iterator({
       //<-- Buttons -->
       if (className?.includes('-less')) {
         return (
-          <button type='button' className={className + ' rexified bg-transparent'} onClick={() => props.onChange(className)}>
+          <button {...c.props} type='button' className={className + ' rexified bg-transparent'} onClick={() => props.onChange(className)}>
             {convertDivsToSpans(subchildren)}
           </button>
         );
@@ -108,7 +106,7 @@ function Iterator({
       }
       if (className?.includes('-more')) {
         return (
-          <button type='button' className={className + ' rexified bg-transparent'} onClick={() => props.onChange(className)}>
+          <button {...c.props} type='button' className={className + ' rexified bg-transparent'} onClick={() => props.onChange(className)}>
             {convertDivsToSpans(subchildren)}
           </button>
         );
@@ -171,14 +169,14 @@ function Iterator({
     if (c.type === 'a') {
       if (c.props?.className?.includes('do-search')) {
         return (
-          <button type='button' className={c.props.className + ' rexified bg-transparent'} onClick={props.onSubmit}>
+          <button {...c.props} type='button' className={c.props.className + ' rexified bg-transparent'} onClick={props.onSubmit}>
             {convertDivsToSpans(c.props.children)}
           </button>
         );
       }
       if (c.props?.className?.includes('do-reset')) {
         return (
-          <button type='reset' className={c.props.className + ' rexified bg-transparent'} onClick={props.onReset}>
+          <button {...c.props} type='reset' className={c.props.className + ' rexified bg-transparent'} onClick={props.onReset}>
             {convertDivsToSpans(c.props.children)}
           </button>
         );
@@ -186,6 +184,7 @@ function Iterator({
       if (c.props?.className?.includes('dropdown-link')) {
         return (
           <button
+            {...c.props}
             type='button'
             className={classNames(c.props.className, 'rexified', styles.option)}
             onClick={props.onOptionSelect}
