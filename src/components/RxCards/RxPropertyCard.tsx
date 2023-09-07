@@ -25,10 +25,6 @@ function RxComponentChomper({ config, children }: any): any {
       return config[child] || child;
     } else if (React.isValidElement(child)) {
       const RxElement = child as React.ReactElement;
-      if (RxElement.props?.['data-field']) {
-        const field = RxElement.props['data-field'];
-        return cloneElement(RxElement, {}, formatValues(config.listing, field));
-      }
       if (RxElement.props.className && (isFullHeart(RxElement.props) || isEmptyHeart(RxElement.props))) {
         if (config['view-only']) return <></>;
         let opacity_class = 'opacity-0 group-hover:opacity-100';
@@ -69,6 +65,33 @@ function RxComponentChomper({ config, children }: any): any {
             children: RxElement.props.children,
           }) as any,
         });
+      } else if (RxElement.props?.['data-field']) {
+        let field = RxElement.props['data-field'];
+        if (field.includes('address')) field = 'title';
+        if (field === 'image_cover') {
+          if (RxElement.type === 'img')
+            return config.cover_photo
+              ? cloneElement(RxElement, {
+                  src: config.cover_photo,
+                })
+              : RxElement;
+          else
+            return cloneElement(
+              RxElement,
+              config.cover_photo
+                ? {
+                    style: {
+                      backgroundImage: `url(${config.cover_photo})`,
+                    },
+                  }
+                : {},
+              RxComponentChomper({
+                config,
+                children: RxElement.props.children,
+              }) as any,
+            );
+        }
+        return cloneElement(RxElement, {}, formatValues(config.listing, field));
       } else if (RxElement.props.className?.includes('propcard-details') || RxElement.props.className?.includes('is-card')) {
         if (config.onClickItem)
           return React.cloneElement(RxElement, {
