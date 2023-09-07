@@ -110,7 +110,11 @@ export default async function MapIterator({
             <></>
           );
         } else if (className.includes('all-properties')) {
-          return <HomeList className={className}>{props.children}</HomeList>;
+          return (
+            <HomeList agent={agent} className={className}>
+              {props.children}
+            </HomeList>
+          );
         } else if (className.includes('left-bar')) {
           return (
             <div className={[className, list_styles['left-bar']].join(' ')}>

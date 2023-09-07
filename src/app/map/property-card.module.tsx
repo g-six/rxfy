@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactElement, cloneElement } from 'react';
 import useEvent, { Events } from '@/hooks/useEvent';
 import { useRouter } from 'next/navigation';
 
@@ -7,45 +7,139 @@ import { formatValues } from '@/_utilities/data-helpers/property-page';
 import LoveButton from './love-button.module';
 import { PropertyDataModel } from '@/_typings/property';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { classNames } from '@/_utilities/html-helper';
+import useLove from '@/hooks/useLove';
+import { getData } from '@/_utilities/data-helpers/local-storage-helper';
+import { AgentData } from '@/_typings/agent';
 
-function PropertyCardIterator({ children, listing, onClickToOpen }: { children: React.ReactElement; listing: PropertyDataModel; onClickToOpen(): void }) {
+export function isEmptyHeart(props: { className: string; 'data-field': string }) {
+  return props.className?.indexOf('heart-full') >= 0 || props['data-field'] === 'heart_empty';
+}
+export function isFullHeart(props: { className: string; 'data-field': string }) {
+  return props.className?.indexOf('heart-full') >= 0 || props['data-field'] === 'heart_full';
+}
+
+function CoverPhotoContainerIterator({
+  children,
+  ...props
+}: {
+  children: React.ReactElement;
+  listing: PropertyDataModel;
+  loved?: boolean;
+  onLoveItem(): void;
+  onUnloveItem(): void;
+}) {
+  const Wrapped = React.Children.map(children, c => {
+    if (c.props) {
+      if (c.props.children) {
+        if (c.props['data-field'] === 'area') {
+          return cloneElement(c, {}, props.listing.area);
+        }
+        if (isFullHeart(c.props)) {
+          return cloneElement(c, {
+            className: classNames(
+              c.props.className || 'no-default-class',
+              props.loved ? 'hover:opacity-0 opacity-100' : 'hover:opacity-100 opacity-0',
+              'cursor-pointer',
+            ),
+            onClick: (e: React.SyntheticEvent) => {
+              e.stopPropagation();
+              if (e.currentTarget.classList.contains('opacity-0')) {
+                e.currentTarget.classList.remove('opacity-0');
+                e.currentTarget.classList.add('opacity-100');
+                e.currentTarget.classList.remove('hover:opacity-100');
+                e.currentTarget.classList.add('hover:opacity-0');
+              } else {
+                e.currentTarget.classList.remove('opacity-100');
+                e.currentTarget.classList.add('opacity-0');
+                e.currentTarget.classList.remove('hover:opacity-0');
+                e.currentTarget.classList.add('hover:opacity-100');
+              }
+              if (props.loved) {
+                props.onUnloveItem();
+              } else {
+                props.onLoveItem();
+              }
+            },
+          });
+        }
+        if (isEmptyHeart(c.props)) {
+          return cloneElement(c, {
+            className: classNames(c.props.className || 'no-default-class', 'group-hover:opacity-100', 'opacity-0'),
+          });
+        }
+        if (typeof c.props.children !== 'string')
+          return cloneElement(
+            c,
+            {},
+            <CoverPhotoContainerIterator key={props.listing.mls_id} {...props}>
+              {c.props.children}
+            </CoverPhotoContainerIterator>,
+          );
+      }
+    }
+    return c;
+  });
+  return <>{Wrapped}</>;
+}
+function PropertyCardIterator({
+  children,
+  listing,
+  onClickToOpen,
+  ...props
+}: {
+  children: React.ReactElement;
+  listing: PropertyDataModel;
+  onClickToOpen(): void;
+  loved?: boolean;
+  onLoveItem(): void;
+  onUnloveItem(): void;
+}) {
   // e.g /agent-id/profile-slug/map
   const url = new URL(location.href);
   const Wrapped = React.Children.map(children, c => {
-    if (c.type === 'img' && c.props.className?.includes('propcard-image')) {
+    if (c.props?.className?.includes('propcard-image')) {
       const segments = url.pathname.split('/');
       // e.g. map
       segments.pop();
-      return (
-        <div className={c.props.className}>
-          {listing.cover_photo
-            ? React.cloneElement(c, {
+      if (listing.cover_photo) {
+        if (c.type === 'img')
+          return (
+            <>
+              {React.cloneElement(c, {
                 ...c.props,
                 srcSet: undefined,
                 src: getImageSized(listing.cover_photo, 520),
-              })
-            : c}
-          <a href={`${segments.join('/')}/property?mls=${listing.mls_id}`} className='h-full w-full absolute z-20' />
-        </div>
-      );
-    } else if (c.type === 'div') {
-      if (c.props.className.includes('propcard-image')) {
-        return (
-          <div className={[c.props.className, 'relative', 'rexified', 'HomeList-PropertyCardIterator'].join(' ')}>
-            <div
-              className={styles['cover-photo']}
-              style={{
-                backgroundImage: `url(${listing.cover_photo})`,
-              }}
-              onClick={onClickToOpen}
-            />
-            <PropertyCardIterator listing={listing} onClickToOpen={onClickToOpen}>
+              })}
+              <a href={`${segments.join('/')}/property?mls=${listing.mls_id}`} className='h-full w-full absolute z-20 left-0 top-0' />
+            </>
+          );
+
+        let contents: ReactElement[] = [
+          <div key='link' className='h-full w-full absolute left-0 top-0'>
+            <a href={`${segments.join('/')}/property?mls=${listing.mls_id}`} className='h-full w-full absolute left-0 top-0' />,
+          </div>,
+        ];
+        if (c.props?.children) {
+          contents = contents.concat(
+            <CoverPhotoContainerIterator key={listing.mls_id} {...props} listing={listing}>
               {c.props.children}
-            </PropertyCardIterator>
-          </div>
+            </CoverPhotoContainerIterator>,
+          );
+        }
+        return React.cloneElement(
+          c,
+          {
+            ...c.props,
+            className: classNames(c.props.className || 'no-default-class', 'group', 'relative'),
+            style: {
+              backgroundImage: `url(${getImageSized(listing.cover_photo, 520)}`,
+            },
+          },
+          contents,
         );
       }
-
+    } else if (c.type === 'div') {
       if (c.props.className.includes('area-text') || c.props['data-field'] === 'area') {
         return <div {...c.props}>{listing.area}</div>;
       }
@@ -76,14 +170,14 @@ function PropertyCardIterator({ children, listing, onClickToOpen }: { children: 
       }
       return (
         <div
-          className={c.props.className + ' rexified z-10'}
+          className={c.props.className + ' rexified z-10 relative'}
           onClick={() => {
             if (c.props.className.includes('propcard-details')) {
               onClickToOpen();
             }
           }}
         >
-          <PropertyCardIterator listing={listing} onClickToOpen={onClickToOpen}>
+          <PropertyCardIterator {...props} listing={listing} onClickToOpen={onClickToOpen}>
             {c.props.children}
           </PropertyCardIterator>
         </div>
@@ -94,13 +188,14 @@ function PropertyCardIterator({ children, listing, onClickToOpen }: { children: 
   return <>{Wrapped}</>;
 }
 
-export default function PropertyCard({ className, children }: { className: string; children: React.ReactElement }) {
+export default function PropertyCard({ agent, className, children }: { agent?: AgentData; className: string; children: React.ReactElement }) {
   const { data: love } = useEvent(Events.MapLoversToggle);
+  const evt = useLove();
   const { loved_only } = love as unknown as {
     loved_only: boolean;
   };
-
   const router = useRouter();
+  const [loved_items, setLovedItems] = React.useState(getData(Events.LovedItem) as unknown as string[]);
 
   const { data } = useEvent(Events.MapSearch);
   const { points, reload } = data as unknown as {
@@ -111,6 +206,34 @@ export default function PropertyCard({ className, children }: { className: strin
   };
 
   const [cards, setCards] = React.useState<React.ReactElement[]>([]);
+
+  const toggleLoved = (listing: PropertyDataModel) => {
+    const last = getData(Events.LovedItem) as unknown as string[];
+    if (!loved_items.includes(listing.mls_id)) {
+      setLovedItems(last.concat([listing.mls_id]));
+      if (agent?.id) {
+        evt.fireEvent(
+          {
+            ...listing,
+            love: 0,
+          },
+          agent.id,
+        );
+      }
+    } else {
+      setLovedItems(last.filter(i => i !== listing.mls_id));
+      if (agent?.id) {
+        evt.fireEvent(
+          {
+            ...listing,
+            love: 0,
+          },
+          agent.id,
+          true,
+        );
+      }
+    }
+  };
 
   React.useEffect(() => {
     const url = new URL(location.href);
@@ -129,9 +252,20 @@ export default function PropertyCard({ className, children }: { className: strin
             <div key={p.mls_id} className={[className, p.mls_id, ' rexified HomeList-PropertyCard relative'].join(' ')}>
               <PropertyCardIterator
                 listing={p}
+                loved={loved_items && loved_items.includes(p.mls_id)}
+                onLoveItem={() => {
+                  if (agent?.id) {
+                    toggleLoved(p);
+                  }
+                }}
+                onUnloveItem={() => {
+                  if (agent) {
+                    toggleLoved(p);
+                  }
+                }}
                 onClickToOpen={() => {
-                  console.log(p.photos);
                   // axios
+                  //     location.href = `${segments.join('/')}/property?mls=${p.mls_id}`;
                   //   .get(`/api/properties/mls-id/${p.mls_id}`)
                   //   .then(r => {
                   //     // Fix the application error for properties not imported yet

@@ -12,6 +12,13 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { formatAddress } from '@/_utilities/string-helper';
 import axios from 'axios';
 
+export function isEmptyHeart(props: { className: string; 'data-field': string }) {
+  return props.className?.indexOf('heart-full') >= 0 || props['data-field'] === 'heart_empty';
+}
+export function isFullHeart(props: { className: string; 'data-field': string }) {
+  return props.className?.indexOf('heart-full') >= 0 || props['data-field'] === 'heart_full';
+}
+
 function RxComponentChomper({ config, children }: any): any {
   const cloneChildren = React.Children.map(children, child => {
     if (typeof child === 'string') {
@@ -22,7 +29,7 @@ function RxComponentChomper({ config, children }: any): any {
         const field = RxElement.props['data-field'];
         return cloneElement(RxElement, {}, formatValues(config.listing, field));
       }
-      if (RxElement.props.className && (RxElement.props.className.indexOf('heart-full') >= 0 || RxElement.props.className.indexOf('heart-empty') >= 0)) {
+      if (RxElement.props.className && (isFullHeart(RxElement.props) || isEmptyHeart(RxElement.props))) {
         if (config['view-only']) return <></>;
         let opacity_class = 'opacity-0 group-hover:opacity-100';
 

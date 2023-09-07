@@ -4,19 +4,24 @@ import React from 'react';
 import styles from './home-list.module.scss';
 import EmptyState from './empty-state.module';
 import PropertyCard from './property-card.module';
+import { AgentData } from '@/_typings/agent';
 
-function Iterator({ children }: { children: React.ReactElement }) {
+function Iterator({ children, ...props }: { agent?: AgentData; children: React.ReactElement }) {
   const Wrapped = React.Children.map(children, c => {
     if (c.type === 'div') {
       if (c.props.className?.includes('is-card') || c.props.className?.split(' ').includes('property-card')) {
-        return <PropertyCard {...c.props}>{c.props.children}</PropertyCard>;
+        return (
+          <PropertyCard {...props} {...c.props}>
+            {c.props.children}
+          </PropertyCard>
+        );
       }
       if (c.props.className?.includes('empty-state')) {
         return <EmptyState {...c.props}>{c.props.children}</EmptyState>;
       }
       return (
         <div className={[c.props.className, 'rexified flex flex-col gap-y-2 childof-HomeList'].join(' ')}>
-          <Iterator>{c.props.children}</Iterator>
+          <Iterator {...props}>{c.props.children}</Iterator>
         </div>
       );
     }
@@ -25,10 +30,10 @@ function Iterator({ children }: { children: React.ReactElement }) {
   return <>{Wrapped}</>;
 }
 
-export default function HomeList({ className, children }: { className: string; children: React.ReactElement }) {
+export default function HomeList({ agent, className, children }: { agent?: AgentData; className: string; children: React.ReactElement }) {
   return (
     <div className={[className, styles['list-scroller'], 'rexified', 'HomeList'].join(' ')}>
-      <Iterator>{children}</Iterator>
+      <Iterator agent={agent}>{children}</Iterator>
     </div>
   );
 }
