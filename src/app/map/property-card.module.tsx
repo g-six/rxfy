@@ -195,7 +195,7 @@ export default function PropertyCard({ agent, className, children }: { agent?: A
     loved_only: boolean;
   };
   const router = useRouter();
-  const [loved_items, setLovedItems] = React.useState(getData(Events.LovedItem) as unknown as string[]);
+  const [loved_items, setLovedItems] = React.useState((getData(Events.LovedItem) as unknown as string[]) || []);
 
   const { data } = useEvent(Events.MapSearch);
   const { points, reload } = data as unknown as {
