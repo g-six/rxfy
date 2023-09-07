@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { cloneElement } from 'react';
 import { AgentData } from '@/_typings/agent';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { convertDivsToSpans } from '@/_replacers/DivToSpan';
@@ -23,6 +23,12 @@ import styles from './styles.module.scss';
 import NavIterator from '@/components/Nav/RxNavIterator';
 import { LoveDataModel } from '@/_typings/love';
 import { PropertyDataModel } from '@/_typings/property';
+import { headers } from 'next/headers';
+
+function getAgentLogo(logo: string, default_src: string) {
+  if (logo) return getImageSized(logo, 300);
+  return default_src;
+}
 
 export default async function MapIterator({
   children,
@@ -36,7 +42,13 @@ export default async function MapIterator({
 }) {
   const { agent, city } = attributes;
   const Wrapped = React.Children.map(children, c => {
-    if (c.props && typeof c.props.children === 'string') {
+    if (c.props?.['data-field']) {
+      const data = agent as unknown as {
+        [k: string]: string;
+      };
+      let value = c.props['data-field'] === 'agent_name' ? agent?.full_name : data[c.props['data-field']];
+      return c.type !== 'img' ? cloneElement(c, {}, value) : <></>;
+    } else if (c.props && typeof c.props.children === 'string') {
       if (c.props.children.includes('{Agent Name}')) {
         if (agent) {
           const logo = agent.metatags.logo_for_light_bg || agent.metatags.logo_for_dark_bg;
@@ -168,12 +180,39 @@ export default async function MapIterator({
           </HeartToggle>
         );
       }
+      // Turn this on if you wish to debug agent's headers
+      // headers().forEach((val, key) => {
+      //   console.log({
+      //     key,
+      //     val,
+      //   });
+      // });
+      let { href } = c.props;
+      const { pathname } = new URL(headers().get('referer') as string);
+      const agent_base_path = `/${headers().get('x-agent-id')}/${headers().get('x-profile-slug')}`;
+      if (pathname.indexOf(agent_base_path) === 0) {
+        href = agent_base_path;
+      }
       return React.cloneElement(
         c,
-        c.props,
+        {
+          href,
+        },
         React.Children.map(c.props.children, cc => {
-          if (!['img', 'span', 'svg'].includes(cc.type)) {
-            return <MapIterator {...attributes}>{React.cloneElement(<span />, cc.props)}</MapIterator>;
+          if (!['img', 'span', 'svg', 'div'].includes(cc.type)) {
+            if (cc.type === 'div') return <MapIterator {...attributes}>{cc.props.children}</MapIterator>;
+            return <MapIterator {...attributes}>{React.cloneElement(<span data-class={cc.type} />, cc.props)}</MapIterator>;
+          }
+          if (cc.props.children) {
+            return <MapIterator {...attributes}>{cc.props.children}</MapIterator>;
+          }
+          if (cc.type === 'img' && cc.props['data-field']) {
+            switch (cc.props['data-field']) {
+              case 'logo_for_dark_bg':
+                return cloneElement(cc, { src: getAgentLogo(agent?.metatags?.logo_for_dark_bg || agent?.metatags?.logo_for_light_bg || '', cc.props.src) });
+              case 'logo_for_light_bg':
+                return cloneElement(cc, { src: getAgentLogo(agent?.metatags?.logo_for_light_bg || agent?.metatags?.logo_for_dark_bg || '', cc.props.src) });
+            }
           }
           return cc;
         }),
