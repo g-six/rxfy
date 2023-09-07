@@ -62,7 +62,7 @@ function RxComponentChomper({ config, children }: any): any {
             children: RxElement.props.children,
           }) as any,
         });
-      } else if (RxElement.props.className?.includes('propcard-details')) {
+      } else if (RxElement.props.className?.includes('propcard-details') || RxElement.props.className?.includes('is-card')) {
         if (config.onClickItem)
           return React.cloneElement(RxElement, {
             ...RxElement.props,
@@ -120,6 +120,7 @@ function RxComponentChomper({ config, children }: any): any {
           srcSet: undefined,
           sizes: undefined,
           loading: undefined,
+          className: classNames(RxElement.props.className, config.is_loading ? 'cursor-progress' : 'cursor-pointer'),
         });
       }
 
@@ -178,6 +179,7 @@ export default function RxPropertyCard({
       setLovedItems(getData(Events.LovedItem) as unknown as string[]);
     }
   }, [evt.data]);
+
   return (
     <div
       data-agent={agent}

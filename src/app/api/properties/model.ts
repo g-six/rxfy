@@ -7,9 +7,60 @@ import { bathroomsToBathroomDetails, roomsToRoomDetails } from '@/_helpers/mls-m
 import { GQ_FRAG_AGENT } from '../agents/graphql';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { formatAddress } from '@/_utilities/string-helper';
-import { formatValues } from '@/_utilities/data-helpers/property-page';
+import { formatValues, getGqlForInsertProperty } from '@/_utilities/data-helpers/property-page';
 import { createPhotoAlbumForProperty } from '../property-photo-albums/model';
+import { getMapboxAddress, getMapboxApiData } from '../map/[lat]/[lng]/route';
 
+export interface MapboxResultProperties {
+  name: string;
+  mapbox_id: string;
+  address: string;
+  full_address: string;
+  context: {
+    country: {
+      id: string;
+      name: string;
+      country_code: string;
+      country_code_alpha_3: string;
+    };
+    region: {
+      id: string;
+      name: string;
+      region_code: string;
+      region_code_full: string;
+    };
+    postcode: {
+      id: string;
+      name: string;
+    };
+    district: {
+      id: string;
+      name: string;
+    };
+    place: {
+      id: string;
+      name: string;
+    };
+    locality: {
+      id: string;
+      name: string;
+    };
+    neighborhood: {
+      id: string;
+      name: string;
+    };
+    address: {
+      id: string;
+      name: string;
+      address_number: string;
+      street_name: string;
+    };
+    street: {
+      id: string;
+      name: string;
+    };
+  };
+}
 export async function buildCacheFiles(mls_id: string): Promise<
   | (PropertyDataModel & {
       code: number;
@@ -123,10 +174,42 @@ export async function buildCacheFiles(mls_id: string): Promise<
       let photos: string[] = [],
         property_photo_album: number = 0;
 
-      let strapi_record: PropertyDataModel;
-      if (promises[1]) strapi_record = promises[1];
-      else strapi_record = {} as unknown as PropertyDataModel;
+      let strapi_record: PropertyDataModel = {} as unknown as PropertyDataModel;
+      if (!promises[1] && mls_data) {
+        strapi_record = {} as unknown as PropertyDataModel;
+        const geolocation_xhr = await getMapboxApiData(legacy_data.lat, legacy_data.lng, clean.title);
+        if (geolocation_xhr?.data?.suggestions) {
+          const [suggestion] = geolocation_xhr.data.suggestions;
+          const { address, full_address, mapbox_id, context } = suggestion as {
+            address: string;
+            full_address: string;
+            mapbox_id: string;
+            context: {
+              [k: string]: Record<string, string>;
+            };
+          };
+          if (mapbox_id) {
+            const address_xhr = await getMapboxAddress(legacy_data.lat, legacy_data.lng, mapbox_id);
+            if (address_xhr.data) {
+              const {
+                features: [feature],
+              } = address_xhr.data;
+              const { geometry, properties } = feature as {
+                geometry: {
+                  coordinates: number[]; // order of - lng, lat
+                };
+                properties: MapboxResultProperties;
+              };
+              console.log(geometry.coordinates);
+              console.log(properties.context.address.name);
+            }
+            // console.log({ address, full_address, mapbox_id });
+          }
+        }
+        const gql = getGqlForInsertProperty(mls_data);
+      } else if (promises[1]) strapi_record = promises[1];
 
+      console.log('promise', promises[1]);
       if (strapi_record.photos?.length) {
         photos = strapi_record.photos;
       } else if (strapi_record.id && mls_photos?.length) {

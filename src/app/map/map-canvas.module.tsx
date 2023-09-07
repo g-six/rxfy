@@ -20,6 +20,7 @@ import { AgentData } from '@/_typings/agent';
 import Cookies from 'js-cookie';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 
+const PAGE_SIZE = 300;
 function Iterator({ children }: { children: React.ReactElement }) {
   const Wrapped = React.Children.map(children, c => {
     if (c.type === 'div') {
@@ -198,7 +199,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
           },
         }));
       }
-      console.log(p.agent);
+
       if (agent_only?.show && p.agent?.agent_id) {
         should.push({
           match: {
@@ -261,7 +262,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
         // Data bounded by map
         const legacy_params: LegacySearchPayload = {
           from,
-          size: 100,
+          size: PAGE_SIZE,
           sort,
           query: {
             bool: {

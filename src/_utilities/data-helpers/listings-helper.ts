@@ -11,7 +11,6 @@ import {
   combineRoofData,
   setStyleType,
 } from '@/app/api/mls-normaliser';
-import axios from 'axios';
 
 const keep_as_array = ['Status', 'photos'];
 
@@ -19,9 +18,10 @@ const MAX_NUM_OF_ROOMS = 75;
 export function getCombinedData({ id, attributes }: { id?: number; attributes: PropertyDataModel & { mls_data: MLSProperty } }) {
   const { mls_data, ...cleaned } = attributes;
   let values: PropertyDataModel = cleaned;
-  attributes.mls_data &&
-    Object.keys(attributes.mls_data).forEach((key: string) => {
-      const val = attributes.mls_data[key] as string[];
+
+  mls_data &&
+    Object.keys(mls_data).forEach((key: string) => {
+      const val = mls_data[key] as string[];
       values = combineComplexCompoundName(values, key, val);
       values = combineFloorageAreaData(values, key, val as unknown as string);
       values = combineFrontageData(values, key, val);
