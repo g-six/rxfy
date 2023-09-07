@@ -1,8 +1,6 @@
 'use client';
 import { convertDivsToSpans } from '@/_replacers/DivToSpan';
 import { AgentData } from '@/_typings/agent';
-import { Menu, Transition } from '@headlessui/react';
-import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
 import { classNames } from '@/_utilities/html-helper';
 import { objectToQueryString } from '@/_utilities/url-helper';
 import { useRouter } from 'next/navigation';
@@ -47,7 +45,7 @@ function Iterator({ children, handleEvent }: { children: ReactElement; handleEve
 
   return <>{Rexified}</>;
 }
-export default function Navbar({ agent, children }: { agent?: AgentData; children: ReactElement }) {
+export default function Navbar({ agent, children, ...props }: { agent?: AgentData; children: ReactElement; className: string }) {
   const router = useRouter();
   const handleEvent = (evt_name: string) => {
     if (evt_name === 'my-dashboard') router.push('my-saved-properties');
@@ -60,7 +58,7 @@ export default function Navbar({ agent, children }: { agent?: AgentData; childre
     } else console.log({ evt_name });
   };
   return (
-    <nav>
+    <nav {...props}>
       <Iterator handleEvent={handleEvent}>{children}</Iterator>
     </nav>
   );
