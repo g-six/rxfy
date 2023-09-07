@@ -186,6 +186,22 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
             },
           },
         });
+      } else if (filters.minsqft) {
+        user_defined_filters.push({
+          range: {
+            'data.L_FloorArea_GrantTotal': {
+              gte: Number(filters.minsqft),
+            },
+          },
+        });
+      } else if (filters.maxsqft) {
+        user_defined_filters.push({
+          range: {
+            'data.L_FloorArea_GrantTotal': {
+              lte: Number(filters.maxsqft),
+            },
+          },
+        });
       }
       let { types } = filters;
       const q = queryStringToObject(search.toString() || '');
