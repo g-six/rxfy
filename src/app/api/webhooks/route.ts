@@ -19,6 +19,8 @@ const pages = [
   'index',
   'log-in',
   'login',
+  'sign-up',
+  'signup',
   'reset-password',
   'update-password',
   'map',
