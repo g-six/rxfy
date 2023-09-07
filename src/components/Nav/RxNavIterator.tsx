@@ -78,7 +78,7 @@ export default function NavIterator({ agent, children }: { children: React.React
     if (c.props?.['data-field'] === 'agent_name') {
       return React.cloneElement(c, {}, agent?.full_name);
     }
-    if (c.props?.['data-field'] === 'logo') {
+    if (c.props?.['data-field'] === 'logo' || c.props?.['data-field'] === 'logo_for_light_bg') {
       const logo = agent?.metatags?.logo_for_light_bg || agent?.metatags?.logo_for_dark_bg;
       if (logo) {
         return React.cloneElement(
