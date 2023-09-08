@@ -98,11 +98,11 @@ export async function middleware(request: NextRequest) {
   if (agent_data) {
     if (agent_data.metatags) {
       response.headers.set('x-metatag-id', agent_data.metatags.id);
-      response.headers.set('x-dark-bg-logo', agent_data.metatags.logo_for_dark_bg || agent_data.metatags.logo_for_light_bg || '/leagent-icon.png');
-      response.headers.set('x-light-bg-logo', agent_data.metatags.logo_for_light_bg || agent_data.metatags.logo_for_dark_bg || '/leagent-icon.png');
+      response.headers.set('x-dark-bg-logo', agent_data.metatags.logo_for_dark_bg || '');
+      response.headers.set('x-light-bg-logo', agent_data.metatags.logo_for_light_bg || '');
       response.headers.set('x-page-title', agent_data.metatags.title);
       response.headers.set('x-page-description', agent_data.metatags.description);
-      response.headers.set('x-agent-headshot', agent_data.metatags.headshot);
+      if (agent_data.metatags.headshot) response.headers.set('x-agent-headshot', agent_data.metatags.headshot);
       if (agent_data.metatags.geocoding) {
         response.headers.set(
           'x-map-uri',

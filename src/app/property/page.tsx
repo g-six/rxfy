@@ -13,6 +13,7 @@ import { PageData } from './type.definition';
 import FooterIterator from '@/components/RxFooter';
 import { AgentData } from '@/_typings/agent';
 import NavIterator from '@/components/Nav/RxNavIterator';
+import { WEBFLOW_DASHBOARDS } from '@/_typings/webflow';
 
 function replaceAgentFields($: CheerioAPI) {
   if ($('img[data-field="headshot"]')) {
@@ -45,29 +46,50 @@ export default async function PropertyPage(props: any) {
   if (props.searchParams?.mls && props.params['profile-slug'].indexOf('la-') === 0) {
     let agent_id = props.params.slug || '';
     let profile_slug = props.params['profile-slug'] || '';
-    let webflow_domain = 'leagent-webflow-rebuild.leagent.com',
-      full_name = '';
-    let agent: AgentData = {} as unknown as AgentData;
-    agent = await getAgentBy({
+
+    let agent = {
+      id: Number(headers().get('x-record-id')),
       agent_id,
-    });
-    if (headers().get('x-agent-name')) {
-      webflow_domain = `${headers().get('x-wf-domain')}`;
-      full_name = `${headers().get('x-agent-name')}`;
-    } else {
-      webflow_domain = agent.webflow_domain;
-      full_name = agent.full_name;
+      full_name: `${headers().get('x-agent-name')}`,
+      email: `${headers().get('x-agent-email')}`,
+      phone: `${headers().get('x-agent-phone')}`,
+      webflow_domain: WEBFLOW_DASHBOARDS.CUSTOMER,
+      metatags: {
+        id: Number(headers().get('x-metatag-id')),
+        profile_slug,
+        title: `${headers().get('x-page-title')}`,
+        description: `${headers().get('x-page-description')}`,
+        logo_for_light_bg: '',
+        logo_for_dark_bg: '',
+      },
+    } as AgentData;
+
+    if (headers().get('x-light-bg-logo')) {
+      agent.metatags.logo_for_light_bg = `${headers().get('x-light-bg-logo')}`;
+    }
+    if (headers().get('x-dark-bg-logo')) {
+      agent.metatags.logo_for_dark_bg = `${headers().get('x-dark-bg-logo')}`;
+    }
+    if (headers().get('x-agent-headshot')) {
+      agent.metatags.headshot = headers().get('x-agent-headshot') as string;
+    }
+
+    if (!agent.full_name) {
+      agent = await getAgentBy({
+        agent_id,
+      });
     }
 
     console.log('Agent data retrieved in', Date.now() - start, 'miliseconds');
-
-    if (full_name) {
-      const page_url = `https://sites.leagent.com/${webflow_domain}/property/propertyid.html`;
+    if (agent.full_name) {
+      const page_url = `https://sites.leagent.com/${agent.webflow_domain}/property/propertyid.html`;
       let { data: html_data } = await axios.get(page_url);
-      html_data = html_data.split('href="/"').join(`href="/${agent_id}/${profile_slug}"`);
+
+      html_data = html_data.split('href="/"').join(`href="/${agent_id}/${agent.metatags.profile_slug}"`);
       html_data = html_data.split('href="/map"').join(`href="${headers().get('x-map-uri')}"`);
+
       const $: CheerioAPI = load(html_data);
-      $('a[data-action="pdf"]').attr('href', `/${agent_id}/${profile_slug}/pdf?mls=${props.searchParams.mls}`);
+      $('a[data-action="pdf"]').attr('href', `/${agent.agent_id}/${agent.metatags.profile_slug}/pdf?mls=${props.searchParams.mls}`);
       $('[data-field="financial_info"]').each((i, el) => {
         if (i > 0) $(el).remove();
       });
@@ -77,7 +99,6 @@ export default async function PropertyPage(props: any) {
       $('[data-field="feature_block"]').each((i, el) => {
         if (i > 0) $(el).remove();
       });
-
       replaceAgentFields($);
       // Retrieve property
       const listing = await buildCacheFiles(props.searchParams.mls);

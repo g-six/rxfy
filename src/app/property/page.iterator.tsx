@@ -13,10 +13,14 @@ import IconIterator from './features.iterator';
 import KeyValueIterator from './key-value-pair.iterator';
 import { Transition } from '@headlessui/react';
 import RecentListings from './recent-listings.module';
+import PageAction from './page-action.module';
 
 export default function Iterator({ children, ...props }: { children: ReactElement; property: PageData; photos: string[] }) {
   const Rexified = Children.map(children, c => {
-    if (c.props?.['data-field']) {
+    if (c.props?.['data-action']) {
+      const { children: subcomponents, ...props } = c.props;
+      return <PageAction {...props}>{subcomponents}</PageAction>;
+    } else if (c.props?.['data-field']) {
       const { property, photos } = props;
 
       const data = property as unknown as { [key: string]: string };
@@ -184,21 +188,23 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
           })}
         </Transition>
       );
-    } else if (c.props?.children && typeof c.props?.children !== 'string' && !['building_units', 'history'].includes(c.props?.['data-group'])) {
-      if (c.props.className?.includes('recent-listings-grid')) {
-        return (
-          <RecentListings {...props} className={c.props.className}>
-            {c.props.children}
-          </RecentListings>
+    } else if (c.props?.children && typeof c.props?.children !== 'string') {
+      if (!['building_units', 'history'].includes(c.props?.['data-group'])) {
+        if (c.props.className?.includes('recent-listings-grid')) {
+          return (
+            <RecentListings {...props} className={c.props.className}>
+              {c.props.children}
+            </RecentListings>
+          );
+        }
+        return cloneElement(
+          c,
+          {
+            className: classNames(c.props.className || '', 'property-page-rexified').trim(),
+          },
+          <Iterator {...props}>{c.props.children}</Iterator>,
         );
       }
-      return cloneElement(
-        c,
-        {
-          className: classNames(c.props.className || '', 'property-page-rexified').trim(),
-        },
-        <Iterator {...props}>{c.props.children}</Iterator>,
-      );
     }
     return c;
   });

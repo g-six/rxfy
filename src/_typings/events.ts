@@ -67,6 +67,7 @@ export enum Events {
   Logout = 'evt-logout',
   Blank = 'blank',
   AgentMyListings = 'agent-my-listings',
+  GenericAction = 'evt-generic-action',
 }
 
 export enum NotificationCategory {
