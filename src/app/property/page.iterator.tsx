@@ -18,18 +18,22 @@ import PageAction from './page-action.module';
 export default function Iterator({ children, ...props }: { children: ReactElement; property: PageData; photos: string[] }) {
   const Rexified = Children.map(children, c => {
     if (c.props?.['data-action']) {
-      const { children: subcomponents, ...props } = c.props;
-      return <PageAction {...props}>{subcomponents}</PageAction>;
+      const { children: subcomponents, ...subprops } = c.props;
+      return (
+        <PageAction {...props} {...subprops} data-action={c.props['data-action']} data={props.property}>
+          {subcomponents}
+        </PageAction>
+      );
     } else if (c.props?.['data-field']) {
-      const { property, photos } = props;
+      const { photos } = props;
 
-      const data = property as unknown as { [key: string]: string };
+      const data = props.property as unknown as { [key: string]: string };
       if (photos && c.props?.['data-field'].indexOf('image_') === 0) {
         const num = Number(c.props?.['data-field'].split('image_').pop());
         if (!isNaN(num) && num && photos[num - 1]) return <RxCarouselPhoto {...c.props} width={1000} photos={photos} idx={num - 1} />;
       } else if (c.props?.['data-field'] === 'feature_block') {
         return (
-          <IconIterator className={c.props.className} property={property}>
+          <IconIterator className={c.props.className} property={props.property}>
             {c.props.children}
           </IconIterator>
         );
@@ -38,7 +42,7 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
           .filter(k => property_info_kv[k])
           .map(k => (
             <div key={`${k}-${property_info_kv[k]}`} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
-              <KeyValueIterator className={c.props.className} label={property_info_kv[k]} value={formatValues(property, k)}>
+              <KeyValueIterator className={c.props.className} label={property_info_kv[k]} value={formatValues(props.property, k)}>
                 {c.props.children}
               </KeyValueIterator>
             </div>
@@ -48,7 +52,7 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
           .filter(k => financial_kv[k])
           .map(k => (
             <div key={k} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
-              <KeyValueIterator className={c.props.className} label={financial_kv[k]} value={formatValues(property, k)}>
+              <KeyValueIterator className={c.props.className} label={financial_kv[k]} value={formatValues(props.property, k)}>
                 {c.props.children}
               </KeyValueIterator>
             </div>
@@ -130,15 +134,15 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
           .filter(k => construction_kv[k])
           .map(k => (
             <div key={k} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
-              <KeyValueIterator className={c.props.className} label={construction_kv[k]} value={formatValues(property, k)}>
+              <KeyValueIterator className={c.props.className} label={construction_kv[k]} value={formatValues(props.property, k)}>
                 {c.props.children}
               </KeyValueIterator>
             </div>
           ));
       } else if (c.props?.['data-field'] === 'map_view') {
-        return <RxMapOfListing key={0} child={<div />} mapType={'neighborhood'} property={property} />;
+        return <RxMapOfListing key={0} child={<div />} mapType={'neighborhood'} property={props.property} />;
       } else if (c.props?.['data-field'] === 'street_view') {
-        return <RxMapOfListing key={0} child={<div />} mapType={'street'} property={property} />;
+        return <RxMapOfListing key={0} child={<div />} mapType={'street'} property={props.property} />;
       } else if (c.props?.['data-field'] === 'logo_for_light_bg') {
       } else if (c.props.children && !['agent', 'agent_name', 'email', 'phone'].includes(c.props['data-field']))
         return cloneElement(
@@ -146,7 +150,7 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
           {
             className: classNames(c.props.className || '', 'property-page-rexified').trim(),
           },
-          data[c.props['data-field']] ? formatValues(property, c.props['data-field']) : 'N/A',
+          data[c.props['data-field']] ? formatValues(props.property, c.props['data-field']) : 'N/A',
         );
       else
         return cloneElement(c, {

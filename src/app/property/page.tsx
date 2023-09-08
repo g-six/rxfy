@@ -114,8 +114,8 @@ export default async function PropertyPage(props: any) {
             property.total_kitchens = property.room_details.rooms.filter(room => room.type.toLowerCase().includes('kitchen')).length;
           }
           const navbar = $('body > .navigation');
-
           $('body > .navigation').remove();
+
           const body = $('body > div,section');
           const footer = $('body > footer');
           return (

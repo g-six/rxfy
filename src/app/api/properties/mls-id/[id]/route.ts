@@ -1,5 +1,4 @@
 import { getResponse } from '@/app/api/response-helper';
-import axios from 'axios';
 import { buildCacheFiles } from '../../model';
 
 export async function GET(request: Request) {

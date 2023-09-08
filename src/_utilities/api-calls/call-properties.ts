@@ -1,6 +1,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { objectToQueryString } from '../url-helper';
+import { PropertyDataModel } from '@/_typings/property';
 
 /**
  * Retrieves a property by mls_id
@@ -97,4 +98,14 @@ export async function getHistory(address: string, postal_zip_code: string) {
   );
   const { records } = response.data || { records: [] };
   return records;
+}
+
+export async function sendInfoRequest(property: PropertyDataModel) {
+  const response = await axios.post('/api/properties/request-info', property, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  return response.data;
 }

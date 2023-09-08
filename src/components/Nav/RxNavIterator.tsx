@@ -6,37 +6,41 @@ import { AgentData } from '@/_typings/agent';
 import { convertDivsToSpans } from '@/_replacers/DivToSpan';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { objectToQueryString } from '@/_utilities/url-helper';
+import RequestInfoPopup from '@/app/property/request-info-popup.module';
 
-export default function NavIterator({ agent, children }: { children: React.ReactElement; agent?: AgentData }) {
+export default function NavIterator({ children, ...props }: { children: React.ReactElement; agent?: AgentData }) {
   const Wrapped = React.Children.map(children, c => {
     if (c.type === 'div') {
-      const { children: subchildren, ...props } = c.props;
-      let className: string = props.className || '';
+      const { children: subchildren, ...subprops } = c.props;
+      let className: string = subprops.className || '';
       className = className
         .split(' ')
         .filter(cn => cn !== 'w-nav')
         .join(' ');
+      if (subprops['data-popup']) {
+        return <RequestInfoPopup {...subprops}>{subchildren}</RequestInfoPopup>;
+      }
       return (
-        <div {...props} className={classNames(className || '', 'rexified', 'NavIterator-div')}>
-          <NavIterator agent={agent}>{subchildren}</NavIterator>
+        <div {...subprops} className={classNames(className || '', 'rexified', 'NavIterator-div')}>
+          <NavIterator {...props}>{subchildren}</NavIterator>
         </div>
       );
     }
     if (c.type === 'nav') {
-      const { children: subchildren, ...props } = c.props;
+      const { children: subchildren, ...subprops } = c.props;
       return (
-        <nav {...props} className={classNames(c.props.className || '', 'z-30', 'rexified', 'NavIterator-nav')}>
-          <NavIterator agent={agent}>{subchildren}</NavIterator>
+        <nav {...subprops} className={classNames(c.props.className || '', 'z-30', 'rexified', 'NavIterator-nav')}>
+          <NavIterator {...props}>{subchildren}</NavIterator>
         </nav>
       );
     }
     if (c.type === 'ul') {
-      const { children: li, ...props } = c.props;
+      const { children: li, ...subprops } = c.props;
       return (
-        <ul {...props} className={classNames(c.props.className || '', 'rexified', 'NavIterator-ul')}>
+        <ul {...subprops} className={classNames(c.props.className || '', 'rexified', 'NavIterator-ul')}>
           {React.Children.map(li, cc => (
             <li {...cc.props} className={classNames(cc.props.className || '', 'rexified', 'NavIterator-li')}>
-              <NavIterator agent={agent}>{cc.props.children}</NavIterator>
+              <NavIterator {...props}>{cc.props.children}</NavIterator>
             </li>
           ))}
         </ul>
@@ -49,8 +53,8 @@ export default function NavIterator({ agent, children }: { children: React.React
 
       if (link_props?.className?.includes('-session') || href.includes('/my-') || href.includes('dashboard')) {
         return (
-          <a {...link_props} data-original-href={href} href={`/${agent?.agent_id}/${agent?.metatags.profile_slug}${href}`}>
-            <NavIterator agent={agent}>{convertDivsToSpans(contents)}</NavIterator>
+          <a {...link_props} data-original-href={href} href={`/${props.agent?.agent_id}/${props.agent?.metatags.profile_slug}${href}`}>
+            <NavIterator {...props}>{convertDivsToSpans(contents)}</NavIterator>
           </a>
         );
       } else if (link_props?.className?.includes('button')) {
@@ -60,33 +64,33 @@ export default function NavIterator({ agent, children }: { children: React.React
           <a
             {...link_props}
             data-original-href={href}
-            href={`/${agent?.agent_id}/${agent?.metatags.profile_slug}${href}${
-              agent?.metatags.geocoding ? `?${objectToQueryString(agent?.metatags.geocoding as unknown as { [k: string]: string })}` : ''
+            href={`/${props.agent?.agent_id}/${props.agent?.metatags.profile_slug}${href}${
+              props.agent?.metatags.geocoding ? `?${objectToQueryString(props.agent?.metatags.geocoding as unknown as { [k: string]: string })}` : ''
             }`}
           >
-            <NavIterator agent={agent}>{convertDivsToSpans(contents)}</NavIterator>
+            <NavIterator {...props}>{convertDivsToSpans(contents)}</NavIterator>
           </a>
         );
       } else {
         return (
-          <a {...link_props} data-original-href={href} href={`/${agent?.agent_id}/${agent?.metatags.profile_slug}${href}`}>
-            <NavIterator agent={agent}>{convertDivsToSpans(contents)}</NavIterator>
+          <a {...link_props} data-original-href={href} href={`/${props.agent?.agent_id}/${props.agent?.metatags.profile_slug}${href}`}>
+            <NavIterator {...props}>{convertDivsToSpans(contents)}</NavIterator>
           </a>
         );
       }
     }
     if (c.props?.['data-field'] === 'agent_name') {
-      return React.cloneElement(c, {}, agent?.full_name);
+      return React.cloneElement(c, {}, props.agent?.full_name);
     }
     if (c.props?.['data-field'] === 'logo' || c.props?.['data-field'] === 'logo_for_light_bg') {
-      const logo = agent?.metatags?.logo_for_light_bg || agent?.metatags?.logo_for_dark_bg;
+      const logo = props.agent?.metatags?.logo_for_light_bg || props.agent?.metatags?.logo_for_dark_bg;
       if (logo) {
         return React.cloneElement(
           c,
           {
             ...c.props,
             style: {
-              backgroundImage: `url(${getImageSized(logo, 100)}?v=${agent.metatags.last_updated_at})`,
+              backgroundImage: `url(${getImageSized(logo, 100)}?v=${props.agent?.metatags.last_updated_at})`,
               backgroundRepeat: 'no-repeat',
               backgroundSize: 'contain',
               width: '100px',
@@ -97,7 +101,7 @@ export default function NavIterator({ agent, children }: { children: React.React
           [<></>],
         );
       } else {
-        return <h1 className={c.props.className}>{agent?.full_name}</h1>;
+        return <h1 className={c.props.className}>{props.agent?.full_name}</h1>;
       }
     }
     if (typeof c.props?.children === 'string') {
