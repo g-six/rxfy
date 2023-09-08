@@ -19,6 +19,7 @@ import FooterIterator from '@/components/RxFooter';
 import { objectToQueryString } from '@/_utilities/url-helper';
 import HomePageSearchInput from './search-input.component';
 import Navbar from '@/app/navbar.module';
+import ActionButton from './homepage-action-button.module';
 
 function PropertyCard({ agent, listing, children }: { agent: AgentData; listing: PropertyDataModel; children: ReactElement }) {
   const Wrapped = Children.map(children, c => {
@@ -192,6 +193,16 @@ function Iterator({
     if (c.props) {
       if (!agent) {
         return c;
+      }
+
+      if (c.props['data-action']) {
+        if (c.props['data-action'].includes('contact')) {
+          return (
+            <ActionButton className={c.props.className} data-action={c.props['data-action']}>
+              {c.props.children}
+            </ActionButton>
+          );
+        }
       }
 
       if (c.props['data-field']) {
@@ -489,7 +500,9 @@ export default async function AgentHomePage({ params }: { params: { slug: string
 
     return (
       <>
-        <Navbar agent={agent as AgentData}>{domToReact(navbar as unknown as DOMNode[]) as unknown as ReactElement}</Navbar>
+        <Navbar className='' agent={agent as AgentData}>
+          {domToReact(navbar as unknown as DOMNode[]) as unknown as ReactElement}
+        </Navbar>
         <Iterator
           agent={agent}
           listings={{

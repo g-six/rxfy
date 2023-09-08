@@ -209,7 +209,6 @@ export async function buildCacheFiles(mls_id: string): Promise<
         const gql = getGqlForInsertProperty(mls_data);
       } else if (promises[1]) strapi_record = promises[1];
 
-      console.log('promise', promises[1]);
       if (strapi_record.photos?.length) {
         photos = strapi_record.photos;
       } else if (strapi_record.id && mls_photos?.length) {
