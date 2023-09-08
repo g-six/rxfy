@@ -11,7 +11,7 @@ interface PageActionProps {
   className?: string;
   'data-action': string;
 }
-export default function PageAction({ children, ...props }: PageActionProps) {
+export default function PageAction({ children, data, ...props }: PageActionProps) {
   const evt = useEvent(Events.GenericAction);
   let onClick = () => {
     console.log('No button handler for this action');
@@ -19,11 +19,17 @@ export default function PageAction({ children, ...props }: PageActionProps) {
   switch (props['data-action']) {
     case 'request_info':
       onClick = () => {
-        console.log(props.data.title, props.data.style_type);
+        console.log(data.title, data.style_type);
         evt.fireEvent({ show: true });
         // sendInfoRequest(property)
       };
       break;
+    case 'pdf':
+      return (
+        <a {...props} href={`/pdf?mls=${data.mls_id}`}>
+          {children}
+        </a>
+      );
   }
   return (
     <button {...props} onClick={onClick}>

@@ -88,7 +88,7 @@ function Iterator(p: RequestInfoPopupProps) {
         c.type === 'form' ? <div /> : c,
         {
           ...attr,
-          className: classNames(className || 'no-default-clas', `rexified-${c.type}`),
+          className: classNames(className || 'no-default-class', `rexified-${c.type}`),
         },
         <Iterator {...attr}>{children}</Iterator>,
       );
@@ -105,7 +105,7 @@ export default function RequestInfoPopup({ children, ...p }: RequestInfoPopupPro
   return (
     <Transition
       key='confirmation'
-      show={evt.data?.show}
+      show={evt.data?.show || false}
       as={'section'}
       className={classNames(p.className || '', evt.data?.show ? styles.popup : '')}
       enter='transform ease-out duration-300 transition'
