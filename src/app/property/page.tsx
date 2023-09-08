@@ -53,7 +53,7 @@ export default async function PropertyPage(props: any) {
       full_name: `${headers().get('x-agent-name')}`,
       email: `${headers().get('x-agent-email')}`,
       phone: `${headers().get('x-agent-phone')}`,
-      webflow_domain: WEBFLOW_DASHBOARDS.CUSTOMER,
+      webflow_domain: `${headers().get('x-wf-domain') || WEBFLOW_DASHBOARDS.CUSTOMER}`,
       metatags: {
         id: Number(headers().get('x-metatag-id')),
         profile_slug,
