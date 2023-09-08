@@ -10,7 +10,9 @@ import PhotosCarousel from '@/components/RxPropertyCarousel/PhotosCarousel';
 import { headers } from 'next/headers';
 import Iterator from './page.iterator';
 import { PageData } from './type.definition';
-import Navbar from '../navbar.module';
+import FooterIterator from '@/components/RxFooter';
+import { AgentData } from '@/_typings/agent';
+import NavIterator from '@/components/Nav/RxNavIterator';
 
 function replaceAgentFields($: CheerioAPI) {
   if ($('img[data-field="headshot"]')) {
@@ -37,18 +39,6 @@ function replaceAgentFields($: CheerioAPI) {
   } else $('[data-field="phone"]').remove();
 }
 
-function replaceLogos($: CheerioAPI) {
-  if ($('[data-field="logo_for_light_bg"]')) {
-    const src = headers().get('x-dark-bg-logo');
-    if (src)
-      $('[data-field="logo_for_light_bg"]').replaceWith(`
-            <div
-                style="background-image: url(${getImageSized(src, 250)});"
-                class="${$('[data-field="logo_for_light_bg"]').attr('class')} flex w-40 h-10 bg-contain bg-no-repeat"
-            />`);
-  }
-}
-
 export default async function PropertyPage(props: any) {
   let start = Date.now();
 
@@ -57,13 +47,14 @@ export default async function PropertyPage(props: any) {
     let profile_slug = props.params['profile-slug'] || '';
     let webflow_domain = 'leagent-webflow-rebuild.leagent.com',
       full_name = '';
+    let agent: AgentData = {} as unknown as AgentData;
+    agent = await getAgentBy({
+      agent_id,
+    });
     if (headers().get('x-agent-name')) {
       webflow_domain = `${headers().get('x-wf-domain')}`;
       full_name = `${headers().get('x-agent-name')}`;
     } else {
-      const agent = await getAgentBy({
-        agent_id,
-      });
       webflow_domain = agent.webflow_domain;
       full_name = agent.full_name;
     }
@@ -88,7 +79,6 @@ export default async function PropertyPage(props: any) {
       });
 
       replaceAgentFields($);
-      replaceLogos($);
       // Retrieve property
       const listing = await buildCacheFiles(props.searchParams.mls);
 
@@ -102,17 +92,19 @@ export default async function PropertyPage(props: any) {
           if (property?.room_details?.rooms) {
             property.total_kitchens = property.room_details.rooms.filter(room => room.type.toLowerCase().includes('kitchen')).length;
           }
-          const navbar = $('body .navbar-component');
-          $('body .navbar-component').remove();
+          const navbar = $('body > .navigation');
+
+          $('body > .navigation').remove();
           const body = $('body > div,section');
           const footer = $('body > footer');
           return (
             <>
-              <Navbar>{domToReact(navbar as unknown as DOMNode[]) as unknown as ReactElement}</Navbar>
+              <NavIterator agent={agent}>{domToReact(navbar as unknown as DOMNode[]) as unknown as ReactElement}</NavIterator>
+
               <Iterator property={property as unknown as PageData} photos={photos || []}>
                 {domToReact(body as unknown as DOMNode[]) as unknown as ReactElement}
               </Iterator>
-              {domToReact(footer as unknown as DOMNode[]) as unknown as ReactElement}
+              <FooterIterator agent={agent}>{domToReact(footer as unknown as DOMNode[]) as unknown as ReactElement}</FooterIterator>
 
               <PhotosCarousel propertyPhotos={(photos ?? []).map(src => getImageSized(src, 1280))} />
             </>

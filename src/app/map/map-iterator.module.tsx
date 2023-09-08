@@ -24,6 +24,7 @@ import NavIterator from '@/components/Nav/RxNavIterator';
 import { LoveDataModel } from '@/_typings/love';
 import { PropertyDataModel } from '@/_typings/property';
 import { headers } from 'next/headers';
+import Navbar from '../navbar.module';
 
 function getAgentLogo(logo: string, default_src: string) {
   if (logo) return getImageSized(logo, 300);
