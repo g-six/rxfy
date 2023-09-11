@@ -12,15 +12,15 @@ function Iterator({ agent, children, ...props }: { agent: AgentData; children: R
     if (typeof c.props?.children === 'string') {
       return React.cloneElement(c, c.props, [c.props.children.split('{Agent Name}').join(agent.full_name)]);
     } else if (c.type === 'div') {
-      if (c.props.className.includes('toggle-base')) {
-        return React.cloneElement(
-          c,
-          {
-            className: classNames(c.props.className, styles.toggle, props.show ? styles.active : styles.inactive),
-          },
-          <div className={classNames(c.props.children.props.className, props.show ? styles.active_circle : styles.inactive_circle)} />,
-        );
-      }
+      // if (c.props.className.includes('toggle-base')) {
+      //   return React.cloneElement(
+      //     c,
+      //     {
+      //       className: classNames(c.props.className, styles.toggle, props.show ? styles.active : styles.inactive),
+      //     },
+      //     <div className={classNames(c.props.children.props.className, props.show ? styles.active_circle : styles.inactive_circle)} />,
+      //   );
+      // }
       return React.cloneElement(
         c,
         c.props,
