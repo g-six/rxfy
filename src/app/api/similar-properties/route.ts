@@ -31,7 +31,6 @@ export async function GET(request: Request) {
   // if (postal_zip_code) {
   //   should.push({ match: { 'data.PostalZip_Code': decodeURIComponent(postal_zip_code) } });
   // }
-  console.log(JSON.stringify({ should }, null, 4));
   const legacy_result = await retrieveFromLegacyPipeline({
     query: {
       bool: {

@@ -14,6 +14,8 @@ import { capitalizeFirstLetter } from '../formatters';
 import { MLSPropertyExtended } from '@/_typings/filters_compare';
 import { getCombinedData } from './listings-helper';
 import { must_not, retrieveFromLegacyPipeline } from '../api-calls/call-legacy-search';
+import { getRecords } from '@/app/api/property-attributes/model';
+import { formatAddress } from '../string-helper';
 
 export const general_stats: Record<string, string> = {
   age: 'Age',
@@ -158,12 +160,25 @@ export function getGqlForFilteredProperties(filters: Record<string, unknown>) {
   };
 }
 
-export function getGqlForInsertProperty(mls_data: MLSProperty, relationships?: { real_estate_board?: number }) {
+export function getGqlForInsertProperty(
+  mls_data: MLSProperty,
+  relationships?: {
+    amenities?: number[];
+    appliances?: number[];
+    build_features?: number[];
+    connected_services?: number[];
+    facilities?: number[];
+    hvac?: number[];
+    parking?: number[];
+    places_of_interest?: number[];
+    real_estate_board?: number;
+  },
+) {
   const {
     lat,
     lng: lon,
     ListingID: guid,
-    Address: title,
+    Address,
     MLS_ID: mls_id,
     Area: area,
     City: city,
@@ -172,6 +187,7 @@ export function getGqlForInsertProperty(mls_data: MLSProperty, relationships?: {
     B_Roof,
   } = mls_data;
 
+  const title = formatAddress(Address);
   return {
     query: `mutation createProperty($input: PropertyInput!) {
           property: createProperty(data: $input) {
@@ -200,6 +216,13 @@ export function getGqlForInsertProperty(mls_data: MLSProperty, relationships?: {
         roofing: Array.isArray(B_Roof) ? B_Roof.join(', ') : B_Roof,
         floor_area_main: mls_data?.L_FloorArea_Main ? Number(mls_data?.L_FloorArea_Main) : undefined,
         real_estate_board: relationships?.real_estate_board || undefined,
+        amenities: relationships?.amenities || undefined,
+        appliances: relationships?.appliances || undefined,
+        build_features: relationships?.build_features || undefined,
+        connected_services: relationships?.connected_services || undefined,
+        facilities: relationships?.facilities || undefined,
+        hvac: relationships?.hvac || undefined,
+        places_of_interest: relationships?.places_of_interest || undefined,
         mls_data,
       },
     },

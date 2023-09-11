@@ -1,4 +1,4 @@
-import { BathroomDetails, GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty, PropertyDataModel, RoomDetails } from '@/_typings/property';
+import { BathroomDetails, GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty, PropertyDataModel, PropertyInput, RoomDetails } from '@/_typings/property';
 import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
 import { getFormattedPlaceDetails, googlePlaceQuery } from '../_helpers/geo-helper';
 import axios, { AxiosError } from 'axios';
@@ -7,9 +7,22 @@ import { bathroomsToBathroomDetails, roomsToRoomDetails } from '@/_helpers/mls-m
 import { GQ_FRAG_AGENT } from '../agents/graphql';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { formatAddress } from '@/_utilities/string-helper';
-import { formatValues, getGqlForInsertProperty } from '@/_utilities/data-helpers/property-page';
+import { formatValues, getGqlForInsertProperty, getGqlForUpdateProperty } from '@/_utilities/data-helpers/property-page';
 import { createPhotoAlbumForProperty } from '../property-photo-albums/model';
 import { getMapboxAddress, getMapboxApiData } from '../map/[lat]/[lng]/route';
+import { getRealEstateBoard } from '../real-estate-boards/model';
+import { getRecords } from '../property-attributes/model';
+import {
+  getAssociatedAmenities,
+  getAssociatedAppliances,
+  getAssociatedBuildFeatures,
+  getAssociatedConnectedServices,
+  getAssociatedFacilities,
+  getAssociatedHvac,
+  getAssociatedParking,
+  getAssociatedPlacesOfInterests,
+} from './helpers';
+import { PropertyAttributes } from './types';
 
 export interface MapboxResultProperties {
   name: string;
@@ -206,7 +219,7 @@ export async function buildCacheFiles(mls_id: string): Promise<
             // console.log({ address, full_address, mapbox_id });
           }
         }
-        const gql = getGqlForInsertProperty(mls_data);
+        strapi_record = await createProperty(mls_data);
       } else if (promises[1]) strapi_record = promises[1];
 
       if (strapi_record.photos?.length) {
@@ -444,6 +457,177 @@ export async function getPropertiesFromAgentInventory(agent_id: string) {
     console.log('Error caught: properties.model.getPropertiesFromAgentInventory');
     console.log(axerr.response?.data);
   }
+}
+
+function getFeatureAlias(feature: string, category: string = 'Appliance') {
+  switch (category) {
+    case 'amenities':
+      if (feature.toLowerCase().includes('washer')) return 'In Suite Laundry';
+      if (feature.toLowerCase().includes('central') && feature.toLowerCase().includes('air condition')) return 'Central Air Conditioning';
+      if (feature.toLowerCase().includes('club') && feature.toLowerCase().includes('house')) return 'Club House';
+      if (feature.toLowerCase().includes('deck') || feature.toLowerCase().includes('dck')) return 'Deck';
+      if (feature.toLowerCase().includes('washer')) return 'Washing Machine';
+  }
+}
+
+function isPropertyAttribute(
+  key: string,
+  value: unknown,
+  property_attributes: {
+    [k: string]: {
+      id: number;
+      name: string;
+    }[];
+  },
+) {
+  if (key.toLowerCase().includes('amenities')) {
+    let ids: number[] = [];
+    (value as string[]).forEach(v => {
+      ids = property_attributes.amenities.filter(attr => attr.name.toLowerCase() === v.toLowerCase()).map(attr => attr.id);
+    });
+    return ids;
+  }
+  if (key.toLowerCase().includes('appliance')) {
+    console.log({ key, value });
+  }
+  if (key.toLowerCase().includes('connectedservice')) {
+    console.log({ key, value });
+  }
+  if (key.toLowerCase().includes('bylaw')) {
+    console.log({ key, value });
+  }
+  if (key.toLowerCase().includes('facilit')) {
+    console.log({ key, value });
+  }
+  if (key.toLowerCase().includes('features')) {
+    let ids: number[] = [];
+    (value as string[]).forEach(v => {
+      ids = property_attributes.features.filter(attr => attr.name.toLowerCase() === v.toLowerCase()).map(attr => attr.id);
+    });
+    return ids;
+  }
+  if (key.toLowerCase().includes('parking')) {
+    console.log({ key, value });
+  }
+  if (key.toLowerCase().includes('services')) {
+    let ids: number[] = [];
+    (value as string[]).forEach(v => {
+      ids = property_attributes.connected_services.filter(attr => attr.name.toLowerCase() === v.toLowerCase()).map(attr => attr.id);
+    });
+    return ids;
+  }
+  if (key.toLowerCase().includes('influence')) {
+    let ids: number[] = [];
+    (value as string[]).forEach(v => {
+      ids = property_attributes.places_of_interest.filter(attr => attr.name.toLowerCase() === v.toLowerCase()).map(attr => attr.id);
+    });
+    return ids;
+  }
+  if (key.toLowerCase().includes('outdoor')) {
+    console.log({ key, value });
+  }
+  if (key.toLowerCase().includes('water')) {
+    console.log({ key, value });
+  }
+  if (key.toLowerCase().includes('pets')) {
+    console.log({ key, value });
+  }
+  if (key.toLowerCase().includes('security')) {
+    console.log({ key, value });
+  }
+}
+async function createProperty(mls_data: MLSProperty): Promise<PropertyDataModel> {
+  const property_attributes = await getRecords();
+  const relationships = property_attributes as unknown as PropertyAttributes;
+  const { photos } = mls_data as unknown as {
+    photos?: string[];
+  };
+  let amenities: number[] = [],
+    appliances: number[] = [],
+    build_features: number[] = [],
+    connected_services: number[] = [],
+    facilities: number[] = [],
+    hvac: number[] = [],
+    places_of_interest: number[] = [],
+    parking: number[] = [];
+  if (relationships.amenities) {
+    amenities = getAssociatedAmenities(mls_data, relationships.amenities);
+  }
+
+  if (relationships.appliances) {
+    appliances = getAssociatedAppliances(mls_data, relationships.appliances);
+  }
+  if (relationships.build_features) {
+    build_features = getAssociatedBuildFeatures(mls_data, relationships.build_features);
+  }
+  if (relationships.connected_services) {
+    connected_services = getAssociatedConnectedServices(mls_data, relationships.connected_services);
+  }
+
+  if (relationships.facilities) {
+    facilities = getAssociatedFacilities(mls_data, relationships.facilities);
+  }
+  if (relationships.hvac) {
+    hvac = getAssociatedHvac(mls_data, relationships.hvac);
+  }
+  if (relationships.parking) {
+    parking = getAssociatedParking(mls_data, relationships.parking);
+  }
+  if (relationships.places_of_interest) {
+    places_of_interest = getAssociatedPlacesOfInterests(mls_data, relationships.places_of_interest);
+  }
+
+  const { id: real_estate_board } = await getRealEstateBoard(mls_data as unknown as { [k: string]: string });
+  const gql = getGqlForInsertProperty(mls_data, {
+    amenities,
+    appliances,
+    build_features,
+    connected_services,
+    facilities,
+    parking,
+    hvac,
+    places_of_interest,
+    real_estate_board,
+  });
+  const { data } = await axios.post(`${process.env.NEXT_APP_CMS_GRAPHQL_URL}`, gql, {
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (data?.data) {
+    const {
+      property: {
+        data: { id: property_id, attributes },
+      },
+    } = data.data as {
+      property: {
+        data: {
+          id: string;
+          attributes: PropertyInput;
+        };
+      };
+    };
+    let record = {
+      ...attributes,
+      id: Number(property_id),
+      mls_data: undefined,
+    };
+    if (record?.id) {
+      if (photos?.length) {
+        const { id: album_id, photos: album_photos } = await createPhotoAlbumForProperty(record.id, photos);
+        return {
+          ...record,
+          property_photo_album: Number(album_id),
+          photos: album_photos,
+        } as unknown as PropertyDataModel;
+      }
+
+      return record as unknown as PropertyDataModel;
+    }
+  }
+  return {} as PropertyDataModel;
 }
 
 const gql_inventory_by_agent_id = `query GetAgentInventory($agent_id: String!) {

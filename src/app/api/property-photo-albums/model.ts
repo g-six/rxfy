@@ -13,18 +13,17 @@ const headers = {
  * @returns Promise<{ id: number, photos: string[] }>
  */
 export async function createPhotoAlbumForProperty(property_id: number, photos: string[]): Promise<{ id: number; photos: string[] }> {
-  console.log({
-    property_id,
-    photos,
-  });
   const album_xhr = await axios.post(`${process.env.NEXT_APP_CMS_GRAPHQL_URL}`, getMutationForPhotoAlbumCreation(property_id, photos), {
     headers,
   });
   const {
     data: {
-      createPropertyPhotoAlbum: { data: photo_album },
+      data: {
+        createPropertyPhotoAlbum: { data: photo_album },
+      },
     },
   } = album_xhr;
+
   const id = Number(photo_album.id);
   photos = photo_album.attributes.photos || [];
   return {
