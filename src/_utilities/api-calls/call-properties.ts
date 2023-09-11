@@ -100,8 +100,23 @@ export async function getHistory(address: string, postal_zip_code: string) {
   return records;
 }
 
-export async function sendInfoRequest(property: PropertyDataModel) {
-  const response = await axios.post('/api/properties/request-info', property, {
+export async function sendInfoRequest(info: {
+  customer_name: string;
+  phone: string;
+  message: string;
+  property_address: string;
+  property_photo: string;
+  property_subarea_community: string;
+  property_price: string;
+  property_bedrooms: number;
+  property_baths: number;
+  property_space: number;
+  send_to: {
+    email: string;
+    name: string;
+  };
+}) {
+  const response = await axios.post('/api/properties/request-info', info, {
     headers: {
       'Content-Type': 'application/json',
     },

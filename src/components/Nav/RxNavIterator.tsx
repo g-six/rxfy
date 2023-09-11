@@ -18,7 +18,17 @@ export default function NavIterator({ children, ...props }: { children: React.Re
         .filter(cn => cn !== 'w-nav')
         .join(' ');
       if (subprops['data-popup']) {
-        return <RequestInfoPopup {...subprops}>{subchildren}</RequestInfoPopup>;
+        return (
+          <RequestInfoPopup
+            {...subprops}
+            send_to={{
+              email: props.agent?.email,
+              name: props.agent?.full_name,
+            }}
+          >
+            {subchildren}
+          </RequestInfoPopup>
+        );
       }
       return (
         <div {...subprops} className={classNames(className || '', 'rexified', 'NavIterator-div')}>

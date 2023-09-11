@@ -1,44 +1,94 @@
 'use client';
 
-import { ReactElement, Fragment, Children, cloneElement, useState } from 'react';
+import { ReactElement, Fragment, Children, cloneElement, useState, SyntheticEvent } from 'react';
 import { Transition } from '@headlessui/react';
 import { classNames } from '@/_utilities/html-helper';
-import useEvent, { Events } from '@/hooks/useEvent';
+import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import styles from './styles.module.scss';
 import { DOMNode, domToReact, htmlToDOM } from 'html-react-parser';
+import { sendInfoRequest } from '@/_utilities/api-calls/call-properties';
+import { PropertyDataModel } from '@/_typings/property';
+import { formatAddress } from '@/_utilities/string-helper';
+import { formatValues } from '@/_utilities/data-helpers/property-page';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 
 interface RequestInfoPopupProps {
   children: ReactElement;
   className?: string;
   tag?: string;
   value?: string;
+  listing?: PropertyDataModel;
+  send_to: {
+    email: string;
+    name: string;
+  };
   'data-action'?: string;
 }
 
 function CloseButton({ children, tag, ...p }: RequestInfoPopupProps) {
-  const evt = useEvent(Events.GenericAction);
+  const evt = useEvent(Events.GenericEvent);
   const attr = {
     ...p,
     onClick: () => {
-      console.log(evt.data);
       evt.fireEvent({
+        ...evt.data,
+        message: undefined,
+        name: undefined,
+        phone: undefined,
         show: false,
-      });
+      } as unknown as EventsData);
     },
   };
   if (children) return cloneElement(domToReact(htmlToDOM(`<${tag} />`) as DOMNode[]) as ReactElement, attr, children);
   return cloneElement(domToReact(htmlToDOM(`<${tag} />`) as DOMNode[]) as ReactElement, attr);
 }
 
+function FormInput({ tag, ...attr }: { tag: string; val?: string; placeholder: string; 'data-input': string; listing: PropertyDataModel }) {
+  const { data, fireEvent } = useEvent(Events.GenericEvent);
+  let { placeholder } = attr;
+
+  if (attr['data-input'] === 'message')
+    placeholder = `${placeholder} (e.g. I'd like to know more about the ${attr.listing.style_type} at ${formatAddress(attr.listing.title)}}`;
+  return cloneElement(domToReact(htmlToDOM(`<${tag} data-rx=${attr['data-input']} placeholder="${placeholder}" />`) as DOMNode[]) as ReactElement, {
+    ...attr,
+    placeholder,
+    onChange: (evt: SyntheticEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      fireEvent({
+        ...data,
+        [attr['data-input']]: evt.currentTarget.value,
+      } as unknown as EventsData);
+    },
+  });
+}
+
 function SubmitButton(p: RequestInfoPopupProps) {
+  const { data } = useEvent(Events.GenericEvent);
+  const { name: customer_name, phone, message } = data as unknown as { [k: string]: string };
   const [loading, toggleLoading] = useState(false);
-  const { children, ...attr } = p;
+  const { children, listing, send_to, ...attr } = p;
   return (
     <button
       {...attr}
       type='button'
       disabled={loading}
       onClick={() => {
+        if (listing?.title) {
+          sendInfoRequest({
+            customer_name,
+            phone,
+            message,
+            send_to,
+            property_photo: listing.cover_photo ? listing.cover_photo : '',
+            property_address: listing.title,
+            property_subarea_community: listing.subarea_community || '',
+            property_baths: Number(listing.baths),
+            property_bedrooms: Number(listing.beds),
+            property_price: `$${formatValues(listing, 'asking_price')}`,
+            property_space: Number(listing.floor_area),
+          }).then(() => {
+            toggleLoading(false);
+          });
+        }
         toggleLoading(true);
       }}
     >
@@ -66,31 +116,34 @@ function SubmitButton(p: RequestInfoPopupProps) {
   );
 }
 
-function Iterator(p: RequestInfoPopupProps) {
-  const Rexified = Children.map(p.children, c => {
+function Iterator({ children, ...p }: RequestInfoPopupProps) {
+  const Rexified = Children.map(children, c => {
     if (c.props?.['data-action'] === 'close_modal') {
       return (
-        <CloseButton {...c.props} tag={c.type}>
+        <CloseButton {...p} {...c.props} tag={c.type}>
           {c.props.children || ''}
         </CloseButton>
       );
     }
     if (c.props?.['data-action'] === 'submit') {
       return (
-        <SubmitButton {...c.props} tag={c.type}>
+        <SubmitButton {...p} {...c.props} tag={c.type}>
           {c.props.children || ''}
         </SubmitButton>
       );
     }
+    if (c.props?.['data-input']) {
+      return <FormInput {...c.props} listing={p.listing} tag={c.type} />;
+    }
     if (c.props?.children && typeof c.props.children !== 'string') {
-      const { children, className, ...attr } = c.props;
+      const { children: sub, className, ...attr } = c.props;
       return cloneElement(
         c.type === 'form' ? <div /> : c,
         {
           ...attr,
           className: classNames(className || 'no-default-class', `rexified-${c.type}`),
         },
-        <Iterator {...attr}>{children}</Iterator>,
+        <Iterator {...p}>{sub}</Iterator>,
       );
     }
     return c;
@@ -100,14 +153,14 @@ function Iterator(p: RequestInfoPopupProps) {
 }
 
 export default function RequestInfoPopup({ children, ...p }: RequestInfoPopupProps) {
-  const evt = useEvent(Events.GenericAction);
-
+  const { data } = useEvent(Events.GenericEvent);
+  const { show, ...listing } = data || {};
   return (
     <Transition
       key='confirmation'
-      show={evt.data?.show || false}
+      show={show || false}
       as={'section'}
-      className={classNames(p.className || '', evt.data?.show ? styles.popup : '')}
+      className={classNames(p.className || '', show ? styles.popup : '')}
       enter='transform ease-out duration-300 transition'
       enterFrom='translate-y-2 opacity-0 sm:translate-y-0'
       enterTo='translate-y-0 opacity-100'
@@ -115,7 +168,9 @@ export default function RequestInfoPopup({ children, ...p }: RequestInfoPopupPro
       leaveFrom='opacity-100'
       leaveTo='opacity-0'
     >
-      <Iterator {...p}>{children}</Iterator>
+      <Iterator {...p} listing={listing as unknown as PropertyDataModel}>
+        {children}
+      </Iterator>
     </Transition>
   );
 }

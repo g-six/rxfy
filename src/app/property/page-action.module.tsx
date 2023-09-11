@@ -12,16 +12,15 @@ interface PageActionProps {
   'data-action': string;
 }
 export default function PageAction({ children, data, ...props }: PageActionProps) {
-  const evt = useEvent(Events.GenericAction);
+  const evt = useEvent(Events.GenericEvent);
   let onClick = () => {
     console.log('No button handler for this action');
   };
   switch (props['data-action']) {
     case 'request_info':
       onClick = () => {
-        console.log(data.title, data.style_type);
-        evt.fireEvent({ show: true });
-        // sendInfoRequest(property)
+        const payload = { ...data, show: true } as unknown as EventsData;
+        evt.fireEvent(payload);
       };
       break;
     case 'pdf':

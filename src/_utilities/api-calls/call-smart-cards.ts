@@ -2,7 +2,6 @@ import { SmartCardInput } from '@/_typings/smart-cards';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { getUploadUrl } from './call-uploader';
-import { sendTemplate } from '@/app/api/send-template';
 
 const HEADERS = {
   headers: {
