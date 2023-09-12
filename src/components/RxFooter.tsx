@@ -14,6 +14,41 @@ function Iterator({ agent, children }: { agent: AgentData; children: ReactElemen
         </div>
       );
     }
+    if (c.props?.['data-field']) {
+      const { ['data-field']: field } = props;
+      switch (field) {
+        case 'phone':
+          return cloneElement(
+            c,
+            {
+              href: `tel:${agent.phone}`,
+            },
+            agent.phone,
+          );
+        case 'email':
+          return cloneElement(
+            c,
+            {
+              href: `mailto:${agent.email}`,
+            },
+            agent.email,
+          );
+        case 'logo':
+          const logo = agent.metatags.logo_for_light_bg || agent.metatags.logo_for_dark_bg;
+          console.log('logo', agent.metatags);
+          if (logo)
+            return cloneElement(c, {
+              ...props,
+              className: classNames(props.className || '', styles.logo),
+              style: {
+                backgroundImage: `url(${getImageSized(logo, 200)}?v=${agent.metatags.last_updated_at})`,
+              },
+            });
+          else {
+            return cloneElement(c, {}, agent.full_name);
+          }
+      }
+    }
     if (c.props?.href) {
       return cloneElement(
         c,
@@ -23,22 +58,6 @@ function Iterator({ agent, children }: { agent: AgentData; children: ReactElemen
         },
         <Iterator agent={agent}>{sub}</Iterator>,
       );
-    }
-    if (c.props?.['data-field']) {
-      const { ['data-field']: field } = props;
-
-      switch (field) {
-        case 'logo':
-          const logo = agent.metatags.logo_for_light_bg || agent.metatags.logo_for_dark_bg;
-          if (logo)
-            return cloneElement(c, {
-              ...props,
-              className: classNames(props.className || '', styles.logo),
-              style: {
-                backgroundImage: `url(${getImageSized(logo, 200)}?v=${agent.metatags.last_updated_at})`,
-              },
-            });
-      }
     }
 
     return c;

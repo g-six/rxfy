@@ -22,7 +22,6 @@ export default function HeartButton({
   const [loved_items, setLovedItems] = useState(getData(Events.LovedItem) as unknown as string[]);
   const evt = useLove();
   const onClick = () => {
-    console.log({ agent, listing, love: loved_items.includes(listing.mls_id) });
     evt.fireEvent(
       listing,
       agent.id,
@@ -35,8 +34,6 @@ export default function HeartButton({
       setLovedItems((getData(Events.LovedItem) as unknown as string[]) || []);
     }
   }, []);
-
-  console.log({ loved_items });
 
   return (
     <button

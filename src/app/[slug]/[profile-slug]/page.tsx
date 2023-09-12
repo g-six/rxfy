@@ -502,6 +502,7 @@ export default async function AgentHomePage({ params }: { params: { slug: string
         } as LegacySearchPayload;
       },
     } as unknown as NextRequest;
+    console.log(JSON.stringify({ should: should.slice(0, 3) }, null, 4));
 
     const [active, sold] = await Promise.all([getPipelineSample(internal_req, { internal: true }), getPipelineSample(intsold_req, { internal: true })]);
 
