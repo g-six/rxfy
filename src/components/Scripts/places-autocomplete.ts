@@ -41,8 +41,10 @@ export default function initializePlacesAutocomplete(props: Record<string, strin
 
         var gpaInput = document.getElementById('search-input');
         console.log('Searching for #search-input:', gpaInput)
-        if (!gpaInput) gpaInput = document.querySelector('.section---search input, .map-search-block input')
-        console.log('Searching for .section---search input, .map-search-block input:', gpaInput)
+        if (!gpaInput) {
+            gpaInput = document.querySelector('.section---search input, .map-search-block input')
+            console.log('Searching for .section---search input, .map-search-block input:', gpaInput)
+        }
 
         if (gpaInput) {
             console.log('Page search is ready')
@@ -82,7 +84,8 @@ export default function initializePlacesAutocomplete(props: Record<string, strin
                     }
                     const qs = objectToUrlParams(params)
                     
-                    location.href = '/map?' + qs
+                    const { pathname } = new URL(location.href)
+                    location.href = pathname + '/map?' + qs
                 }
             });
         }

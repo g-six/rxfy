@@ -50,29 +50,33 @@ export async function getUserSessionData(authorization: string, user_type: 'real
     let subscription: { [key: string]: string } = {};
     if (stripe_subscriptions) {
       const [subscription_id] = Object.keys(stripe_subscriptions);
-      if (subscription_id) {
-        const stripe = new Stripe(`${process.env.NEXT_APP_STRIPE_SECRET}`, {
-          apiVersion: '2023-08-16',
-        });
-        const stripe_subscription = await stripe.subscriptions.retrieve(subscription_id);
+      try {
+        if (subscription_id) {
+          const stripe = new Stripe(`${process.env.NEXT_APP_STRIPE_SECRET}`, {
+            apiVersion: '2023-08-16',
+          });
+          const stripe_subscription = await stripe.subscriptions.retrieve(subscription_id);
 
-        if (stripe_subscription.items.data[0].plan) {
-          const { items, status } = stripe_subscription;
-          const { nickname, interval } = items.data[0].plan;
-          if (nickname) {
-            subscription = {
-              ...subscription,
-              name: nickname,
-              status,
-            };
-          }
-          if (stripe_subscription.items.data[0].plan.interval) {
-            subscription = {
-              ...subscription,
-              interval,
-            };
+          if (stripe_subscription.items.data[0].plan) {
+            const { items, status } = stripe_subscription;
+            const { nickname, interval } = items.data[0].plan;
+            if (nickname) {
+              subscription = {
+                ...subscription,
+                name: nickname,
+                status,
+              };
+            }
+            if (stripe_subscription.items.data[0].plan.interval) {
+              subscription = {
+                ...subscription,
+                interval,
+              };
+            }
           }
         }
+      } catch (e) {
+        console.log('Stripe environment conflict');
       }
     }
 
@@ -90,128 +94,130 @@ export async function getUserSessionData(authorization: string, user_type: 'real
 
     if (user_type === 'realtor') {
       const customers: CustomerRecord[] = [];
-      agent.customers.data.forEach((customer: unknown) => {
-        const { id: agent_customer_id, attributes: agent_customer } = customer as {
-          id: number;
-          attributes?: {
-            status: 'active' | 'lead' | 'closed';
-            notes?: {
-              data: {
+      if (agent.customers?.data)
+        agent.customers.data.forEach((customer: unknown) => {
+          const { id: agent_customer_id, attributes: agent_customer } = customer as {
+            id: number;
+            attributes?: {
+              status: 'active' | 'lead' | 'closed';
+              notes?: {
+                data: {
+                  id: number;
+                  attributes: {
+                    body: string;
+                    created_at: string;
+                    realtor: {
+                      data: {
+                        id: number;
+                      };
+                    };
+                  };
+                }[];
+              };
+              customer: {
+                data: {
+                  id: number;
+                  attributes: {
+                    [key: string]: unknown;
+                  };
+                };
+              };
+            };
+          };
+
+          agent_customer?.customer.data.attributes &&
+            Object.keys(agent_customer?.customer.data.attributes).forEach(k => {
+              if (agent_customer?.customer.data.attributes[k] === null) delete agent_customer?.customer.data.attributes[k];
+            });
+
+          const {
+            full_name,
+            email,
+            birthday,
+            phone_number: customer_phone,
+            last_activity_at,
+            saved_searches: saved_recs,
+          } = agent_customer?.customer.data.attributes as {
+            full_name: string;
+            birthday: string;
+            phone_number: string;
+            last_activity_at: string;
+            email: string;
+            saved_searches: {
+              data?: {
                 id: number;
                 attributes: {
-                  body: string;
-                  created_at: string;
-                  realtor: {
-                    data: {
-                      id: number;
-                    };
+                  city?: string;
+                  minprice?: number;
+                  maxprice?: number;
+                  dwelling_types?: {
+                    data?: {
+                      attributes: {
+                        name: string;
+                      };
+                    }[];
                   };
                 };
               }[];
             };
-            customer: {
-              data: {
-                id: number;
-                attributes: {
-                  [key: string]: unknown;
-                };
-              };
-            };
           };
-        };
 
-        agent_customer?.customer.data.attributes &&
-          Object.keys(agent_customer?.customer.data.attributes).forEach(k => {
-            if (agent_customer?.customer.data.attributes[k] === null) delete agent_customer?.customer.data.attributes[k];
-          });
+          const saved_searches: {
+            id: number;
+            city?: string;
+            minprice?: number;
+            maxprice?: number;
+            dwelling_types?: string[];
+          }[] = [];
 
-        const {
-          full_name,
-          email,
-          birthday,
-          phone_number: customer_phone,
-          last_activity_at,
-          saved_searches: saved_recs,
-        } = agent_customer?.customer.data.attributes as {
-          full_name: string;
-          birthday: string;
-          phone_number: string;
-          last_activity_at: string;
-          email: string;
-          saved_searches: {
-            data?: {
-              id: number;
-              attributes: {
-                city?: string;
-                minprice?: number;
-                maxprice?: number;
-                dwelling_types?: {
-                  data?: {
-                    attributes: {
-                      name: string;
-                    };
-                  }[];
-                };
-              };
-            }[];
-          };
-        };
+          if (saved_recs)
+            saved_recs.data?.forEach(s => {
+              const dwelling_types: string[] = [];
+              if (s.attributes.dwelling_types?.data) {
+                s.attributes.dwelling_types.data.forEach(dt => {
+                  dwelling_types.push(dt.attributes.name);
+                });
+              }
+              let city, minprice, maxprice;
+              if (s.attributes.city) city = s.attributes.city;
+              if (s.attributes.minprice) minprice = s.attributes.minprice;
+              if (s.attributes.maxprice) maxprice = s.attributes.maxprice;
 
-        const saved_searches: {
-          id: number;
-          city?: string;
-          minprice?: number;
-          maxprice?: number;
-          dwelling_types?: string[];
-        }[] = [];
-
-        saved_recs.data?.forEach(s => {
-          const dwelling_types: string[] = [];
-          if (s.attributes.dwelling_types?.data) {
-            s.attributes.dwelling_types.data.forEach(dt => {
-              dwelling_types.push(dt.attributes.name);
+              saved_searches.push({
+                id: Number(s.id),
+                city,
+                minprice,
+                maxprice,
+                dwelling_types,
+              });
             });
-          }
-          let city, minprice, maxprice;
-          if (s.attributes.city) city = s.attributes.city;
-          if (s.attributes.minprice) minprice = s.attributes.minprice;
-          if (s.attributes.maxprice) maxprice = s.attributes.maxprice;
 
-          saved_searches.push({
-            id: Number(s.id),
-            city,
-            minprice,
-            maxprice,
-            dwelling_types,
+          const notes: {
+            id: number;
+            body: string;
+            realtor: number;
+            created_at: string;
+          }[] = agent_customer?.notes?.data
+            ? agent_customer.notes.data.map(n => ({
+                ...n.attributes,
+                realtor: Number(n.attributes.realtor.data.id),
+                id: Number(n.id),
+              }))
+            : [];
+
+          customers.push({
+            full_name,
+            email,
+            birthday,
+            phone_number: customer_phone,
+            last_activity_at,
+            status: agent_customer?.status || 'lead',
+            notes,
+            id: Number(agent_customer?.customer.data.id),
+            agent_customer_id: Number(agent_customer_id),
+            saved_searches,
           });
         });
-
-        const notes: {
-          id: number;
-          body: string;
-          realtor: number;
-          created_at: string;
-        }[] = agent_customer?.notes?.data
-          ? agent_customer.notes.data.map(n => ({
-              ...n.attributes,
-              realtor: Number(n.attributes.realtor.data.id),
-              id: Number(n.id),
-            }))
-          : [];
-
-        customers.push({
-          full_name,
-          email,
-          birthday,
-          phone_number: customer_phone,
-          last_activity_at,
-          status: agent_customer?.status || 'lead',
-          notes,
-          id: Number(agent_customer?.customer.data.id),
-          agent_customer_id: Number(agent_customer_id),
-          saved_searches,
-        });
-      });
 
       let metatags = agent?.agent_metatag ? agent?.agent_metatag : undefined;
       if (metatags && metatags.target_city && !metatags.lat && !metatags.lng) {
