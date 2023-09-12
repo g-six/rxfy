@@ -63,6 +63,7 @@ export async function getAgentPublicListings() {
  */
 export async function getSimilarProperties(property: { [key: string]: string | number }) {
   let filters: Record<string, string | number> = {};
+
   Object.keys(property).forEach(filter => {
     if (['property_type', 'lat', 'lon', 'beds', 'complex_compound_name', 'postal_zip_code'].includes(filter) && property[filter]) {
       filters = {

@@ -11,14 +11,18 @@ import AlicantePropcard from './alicante-propcard.module';
 
 function Iterator({ children, listings }: { children: ReactElement; listings: PropertyDataModel[] }) {
   const [Rexified] = Children.map(children, c => {
-    if (c.props?.className?.includes('is-card')) {
+    if (c.props?.className?.includes('is-card') || c.props?.className?.split(' ').includes('property-card')) {
       return (
         <>
           {listings.map(listing => {
-            return (
+            return c.props?.className?.includes('is-card') ? (
               <AlicantePropcard key={listing.mls_id} listing={listing}>
                 {c}
               </AlicantePropcard>
+            ) : (
+              <RxPropertyCard key={listing.mls_id} listing={listing}>
+                {c}
+              </RxPropertyCard>
             );
           })}
         </>
@@ -43,27 +47,31 @@ export default function RecentListings({ children, className, property }: { chil
   };
   let bounds: number[] = [];
   useEffect(() => {
-    getReverseGeo(lon, lat).then(({ data }) => {
-      const { features } = data;
-      if (features)
-        features.forEach((feature: { bbox: number[]; place_type: string[] }) => {
-          const { bbox, place_type } = feature;
-          if (bounds && bounds.length === 0) bounds = bbox;
-          if (place_type.includes('neighborhood')) {
-            bounds = bbox;
-          }
-        });
+    // Keeping it simple for now
+    getSimilarProperties({
+      lat,
+      lon,
+      mls_id,
+      beds,
+      property_type,
+      postal_zip_code,
+      complex_compound_name,
+    }).then(setListings);
 
-      getSimilarProperties({
-        lat,
-        lon,
-        mls_id,
-        beds,
-        property_type,
-        postal_zip_code,
-        complex_compound_name,
-      }).then(setListings);
-    });
+    // More complex logic using rectangular boundaries here
+    // getReverseGeo(lon, lat).then(({ data }) => {
+    //   const { features } = data;
+    //   if (features)
+    //     features.forEach((feature: { bbox: number[]; place_type: string[] }) => {
+    //       const { bbox, place_type } = feature;
+    //       if (bounds && bounds.length === 0) bounds = bbox;
+    //       if (place_type.includes('neighborhood')) {
+    //         bounds = bbox;
+    //       }
+    //     });
+    //   console.log(bounds);
+
+    // });
   }, []);
 
   return (

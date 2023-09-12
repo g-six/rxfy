@@ -1,11 +1,10 @@
 import { AxiosError } from 'axios';
 import { getResponse } from '../response-helper';
-import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 
 import { PropertyDataModel } from '@/_typings/property';
 import { getLatLonRange } from '@/_helpers/geocoding';
 import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
-import { getPropertyByMlsId } from '../properties/model';
+import { buildCacheFiles } from '../properties/model';
 
 export async function GET(request: Request) {
   const listings: (PropertyDataModel & { photos: string[] })[] = [];
@@ -23,15 +22,19 @@ export async function GET(request: Request) {
       range: {
         'data.L_BedroomTotal': {
           gte: Number(beds) > 3 ? Number(beds) - 1 : Number(beds),
-          lte: Number(beds) > 3 ? Number(beds) + 2 : undefined,
+          // lte: Number(beds) > 3 ? Number(beds) + 2 : undefined,
         },
       },
     },
   ];
+
   // if (postal_zip_code) {
   //   should.push({ match: { 'data.PostalZip_Code': decodeURIComponent(postal_zip_code) } });
   // }
   const legacy_result = await retrieveFromLegacyPipeline({
+    size: 3,
+    from: 0,
+    sort: { 'data.ListingDate': 'desc' },
     query: {
       bool: {
         filter: [
@@ -54,12 +57,10 @@ export async function GET(request: Request) {
           { match: { 'data.Status': 'active' } },
         ],
         should,
-        minimum_should_match: should.length - 1,
+        minimum_should_match: should.length > 1 ? should.length - 1 : should.length,
         must_not: [{ match: { 'data.MLS_ID': mls_id } }],
       },
     },
-    size: 3,
-    from: 0,
   }).catch(e => {
     const err = e as AxiosError;
     console.log('error');
@@ -69,9 +70,7 @@ export async function GET(request: Request) {
     const promises = await Promise.all(
       legacy_result.map(async (hit: PropertyDataModel) => {
         if (hit) {
-          return getPropertyByMlsId(hit.mls_id, {
-            photos: hit.photos as string[],
-          });
+          return buildCacheFiles(hit.mls_id);
         }
       }),
     );
