@@ -16,6 +16,11 @@ function Iterator({ agent, children }: { agent: AgentData; children: ReactElemen
     }
     if (c.props?.['data-field']) {
       const { ['data-field']: field } = props;
+      const { metatags } = agent as unknown as {
+        metatags: {
+          [k: string]: string;
+        };
+      };
       switch (field) {
         case 'phone':
           return cloneElement(
@@ -33,6 +38,17 @@ function Iterator({ agent, children }: { agent: AgentData; children: ReactElemen
             },
             agent.email,
           );
+        case 'facebook_url':
+        case 'twitter_url':
+        case 'instagram_url':
+        case 'linkedin_url':
+        case 'youtube_url':
+          if (!metatags[c.props['data-field']]) return <></>;
+          return cloneElement(c, {
+            className: classNames(c.props.className || '', 'homepage-rexified').trim(),
+            rel: 'nofollow',
+            href: 'https://' + `${metatags[c.props['data-field']] || `#no-${c.props['data-field']}`}`.split('://').pop(),
+          });
         case 'logo':
           const logo = agent.metatags.logo_for_light_bg || agent.metatags.logo_for_dark_bg;
           console.log('logo', agent.metatags);
