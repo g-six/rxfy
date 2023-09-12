@@ -21,7 +21,13 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
     if (c.props?.['data-action']) {
       const { children: subcomponents, property, ...subprops } = c.props;
       return (
-        <PageAction {...subprops} data-action={c.props['data-action']} data={props.property}>
+        <PageAction
+          {...subprops}
+          data-action={c.props['data-action']}
+          agent={props.agent.agent_id}
+          slug={props.agent.metatags.profile_slug}
+          data={props.property}
+        >
           {subcomponents}
         </PageAction>
       );

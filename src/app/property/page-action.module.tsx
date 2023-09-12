@@ -8,6 +8,8 @@ interface PageActionProps {
   children: ReactElement;
   data: PageData;
   className?: string;
+  slug: string;
+  agent: number;
   'data-action': string;
 }
 export default function PageAction({ children, data, ...props }: PageActionProps) {
@@ -23,8 +25,9 @@ export default function PageAction({ children, data, ...props }: PageActionProps
       };
       break;
     case 'pdf':
+      console.log(props);
       return (
-        <a {...props} href={`/pdf?mls=${data.mls_id}`}>
+        <a {...props} href={`/api/pdf/mls/${data.mls_id}?agent=${props.agent}&slug=${props.slug}`}>
           {children}
         </a>
       );

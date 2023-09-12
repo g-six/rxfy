@@ -89,7 +89,7 @@ export async function middleware(request: NextRequest) {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}${pathname}`;
   } else if (pathname === '/pdf') {
     response.headers.set('Content-Type', 'application/pdf');
-    page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}${pathname}`;
+    page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/brochure`;
   } else {
     if (request.cookies.get('session_as')?.value === 'realtor') page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}${pathname || ''}`;
     else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}${pathname || ''}`;

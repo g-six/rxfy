@@ -101,6 +101,7 @@ export default async function PropertyPage(props: any) {
       $('[data-field="feature_block"]').each((i, el) => {
         if (i > 0) $(el).remove();
       });
+
       replaceAgentFields($);
       // Retrieve property
       const listing = await buildCacheFiles(props.searchParams.mls);
@@ -121,10 +122,12 @@ export default async function PropertyPage(props: any) {
             property.total_kitchens = property.room_details.rooms.filter(room => room.type.toLowerCase().includes('kitchen')).length;
           }
           const navbar = $('body > .navigation');
+          const footer = $('body > footer, .f-footer-small');
+
           $('body > .navigation').remove();
+          $('body > footer, .f-footer-small').remove();
 
           const body = $('body > div,section');
-          const footer = $('body > footer');
 
           return (
             <>

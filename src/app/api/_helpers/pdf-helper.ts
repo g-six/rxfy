@@ -192,9 +192,9 @@ export async function getPdf(page_url: string, data: unknown) {
     $('[data-image="qr"]').replaceWith(`<img src="${qr}" width="100" height="100" />`);
   }
 
-  const { rooms } = values.room_details as unknown as {
+  const { rooms } = (values.room_details as unknown as {
     rooms: RoomDetails[];
-  };
+  }) || { rooms: [] };
   const { amenities, connected_services, facilities, parking } = values as unknown as {
     [key: string]: {
       name: string;
