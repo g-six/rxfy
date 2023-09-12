@@ -35,18 +35,20 @@ function PropertyCard({ agent, listing, children }: { agent: AgentData; listing:
           {c.props.children}
         </HeartButton>
       );
-      // return cloneElement(<HeartButton>, {
-      //   ...c.props,
-      //   className: classNames(c.props.className, styles['heart-button'], c.props?.className?.includes('heart-full') ? 'opacity-0 hover:opacity-100' : ''),
-      // });
     }
-    if (c.type === 'div' && c.props?.['data-field'] === undefined) {
-      const { children: sub, ...props } = c.props;
+    if (c.type === 'div' && (c.props?.['data-group'] === 'listing_info' || c.props?.['data-field'] === undefined)) {
+      const { children: sub, className: containerClassName, ...props } = c.props;
       return (
-        <div {...props}>
+        <div {...props} className={classNames(containerClassName, 'relative')}>
           <PropertyCard agent={agent} listing={listing}>
             {sub}
           </PropertyCard>
+          {c.props?.['data-group'] === 'listing_info' && (
+            <a
+              href={(agent.domain_name ? '' : `/${agent.agent_id}/${agent.metatags.profile_slug}`) + `/property?mls=${listing.mls_id}`}
+              className='absolute top-0 left-0 w-full h-full'
+            />
+          )}
         </div>
       );
     }
@@ -68,6 +70,10 @@ function PropertyCard({ agent, listing, children }: { agent: AgentData; listing:
                   listing.cover_photo ? getImageSized(listing.cover_photo, listing.status?.toLowerCase() === 'sold' ? 720 : 646) : '/house-placeholder.png'
                 })`,
               }}
+            />
+            <a
+              href={(agent.domain_name ? '' : `/${agent.agent_id}/${agent.metatags.profile_slug}`) + `/property?mls=${listing.mls_id}`}
+              className='absolute top-0 left-0 w-full h-full'
             />
           </div>
         );
