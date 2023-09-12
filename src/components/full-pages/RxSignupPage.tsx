@@ -27,9 +27,9 @@ export function RxPageIterator(props: RxSignupPageProps) {
     if (child_node.type === 'input') {
       if (child_node.props.type === 'submit') {
         return (
-          <RxButton {...child_node.props} rx-event={Events.SignUp} id='signup-button'>
+          <button type='button' {...child_node.props}>
             {child_node.props.value}
-          </RxButton>
+          </button>
         );
       }
       if (child_node.props.className.split(' ').includes('txt-email')) {
@@ -226,13 +226,15 @@ export function RxSignupPage(props: RxSignupPageProps) {
           valid_data,
         )
           .then(response => {
-            notify({
-              category: NotificationCategory.SUCCESS,
-              message: "Great, you're all set! Forwarding you to our login portal.",
-            });
-            setTimeout(() => {
-              location.href = '/log-in';
-            }, 1400);
+            if (response) {
+              notify({
+                category: NotificationCategory.SUCCESS,
+                message: "Great, you're all set! Forwarding you to your dashboard.",
+              });
+              setTimeout(() => {
+                location.href = 'my-profile';
+              }, 2000);
+            }
           })
           .catch((e: AxiosError) => {
             if (e.response && e.response.data) {
@@ -255,7 +257,6 @@ export function RxSignupPage(props: RxSignupPageProps) {
         ...data,
         clicked: undefined,
       });
-      submitForm();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [is_processing]);
@@ -280,6 +281,7 @@ export function RxSignupPage(props: RxSignupPageProps) {
           ...data,
           clicked: 'signup-button',
         });
+        submitForm();
       }}
     >
       <RxPageIterator {...props} />

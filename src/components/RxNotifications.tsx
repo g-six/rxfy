@@ -43,7 +43,7 @@ export default function RxNotifications() {
   return (
     <>
       {/* Global notification live region, render this permanently at the end of the document */}
-      <div aria-live='assertive' className='pointer-events-none absolute inset-0 flex items-end px-0 sm:items-start z-10'>
+      <div aria-live='assertive' className='pointer-events-none absolute inset-0 flex items-end px-0 sm:items-start' style={{ zIndex: 101 }}>
         <Transition
           show={data?.category !== undefined}
           as={'div'}

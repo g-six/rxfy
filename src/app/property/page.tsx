@@ -15,6 +15,7 @@ import { AgentData } from '@/_typings/agent';
 import NavIterator from '@/components/Nav/RxNavIterator';
 import { WEBFLOW_DASHBOARDS } from '@/_typings/webflow';
 import { BuildingUnit } from '../api/properties/types';
+import RxNotifications from '@/components/RxNotifications';
 
 function replaceAgentFields($: CheerioAPI) {
   if ($('img[data-field="headshot"]')) {
@@ -144,6 +145,7 @@ export default async function PropertyPage(props: any) {
               <FooterIterator agent={agent}>{domToReact(footer as unknown as DOMNode[]) as unknown as ReactElement}</FooterIterator>
 
               <PhotosCarousel propertyPhotos={(photos ?? []).map(src => getImageSized(src, 1280))} />
+              <RxNotifications />
             </>
           );
         }

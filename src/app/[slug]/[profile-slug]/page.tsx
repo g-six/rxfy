@@ -20,6 +20,7 @@ import { objectToQueryString } from '@/_utilities/url-helper';
 import HomePageSearchInput from './search-input.component';
 import Navbar from '@/app/navbar.module';
 import ActionButton from './homepage-action-button.module';
+import RxNotifications from '@/components/RxNotifications';
 
 function PropertyCard({ agent, listing, children }: { agent: AgentData; listing: PropertyDataModel; children: ReactElement }) {
   const Wrapped = Children.map(children, c => {
@@ -196,9 +197,9 @@ function Iterator({
       }
 
       if (c.props['data-action']) {
-        if (c.props['data-action'].includes('contact')) {
+        if (c.props['data-action'].includes('request_info')) {
           return (
-            <ActionButton className={c.props.className} data-action={c.props['data-action']}>
+            <ActionButton className={c.props.className + ' rexified-action-button'} data-action={c.props['data-action']}>
               {c.props.children}
             </ActionButton>
           );
@@ -277,6 +278,10 @@ function Iterator({
                 );
             }
             return <></>;
+          case 'target_city':
+            if (agent.metatags?.target_city) {
+              return cloneElement(c, {}, agent.metatags.target_city);
+            }
           case 'target_map':
             if (agent.metatags) {
               return (
@@ -500,9 +505,7 @@ export default async function AgentHomePage({ params }: { params: { slug: string
 
     return (
       <>
-        <Navbar className='' agent={agent as AgentData}>
-          {domToReact(navbar as unknown as DOMNode[]) as unknown as ReactElement}
-        </Navbar>
+        <NavIterator agent={agent}>{domToReact(navbar as unknown as DOMNode[]) as unknown as ReactElement}</NavIterator>
         <Iterator
           agent={agent}
           listings={{
@@ -512,6 +515,7 @@ export default async function AgentHomePage({ params }: { params: { slug: string
         >
           {domToReact(body as unknown as DOMNode[]) as unknown as ReactElement}
         </Iterator>
+        <RxNotifications />
       </>
     );
   }

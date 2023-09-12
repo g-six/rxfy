@@ -1,6 +1,5 @@
 'use client';
 import { convertDivsToSpans } from '@/_replacers/DivToSpan';
-import { sendInfoRequest } from '@/_utilities/api-calls/call-properties';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { ReactElement } from 'react';
 import { PageData } from './type.definition';

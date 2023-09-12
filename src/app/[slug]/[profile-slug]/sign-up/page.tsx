@@ -48,7 +48,6 @@ export default async function CustomerSignUpPage(props: {
 }) {
   const { metatags, domain_name, webflow_domain, ...agent_data } = await findAgentRecordByAgentId(props.params.slug);
   let data;
-  console.log(agent_data);
   const req = await axios.get(`https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/sign-up.html`);
   data = req.data;
   // try {

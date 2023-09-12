@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { cloneElement } from 'react';
 import { classNames } from '@/_utilities/html-helper';
 import { cookies } from 'next/headers';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
@@ -61,7 +61,7 @@ export default function NavIterator({ children, ...props }: { children: React.Re
       if (!cookies().has('session_key') && c.props.className?.includes(WEBFLOW_NODE_SELECTOR.USER_MENU)) return <></>;
       const { href, children: contents, ...link_props } = c.props;
 
-      if (link_props?.className?.includes('-session') || href.includes('/my-') || href.includes('dashboard')) {
+      if (href !== '/log-out' && (link_props?.className?.includes('-session') || href.includes('/my-') || href.includes('dashboard'))) {
         return (
           <a {...link_props} data-original-href={href} href={`/${props.agent?.agent_id}/${props.agent?.metatags.profile_slug}${href}`}>
             <NavIterator {...props}>{convertDivsToSpans(contents)}</NavIterator>
@@ -69,6 +69,10 @@ export default function NavIterator({ children, ...props }: { children: React.Re
         );
       } else if (link_props?.className?.includes('button')) {
         return React.cloneElement(<button type='button' />, link_props, contents);
+      } else if (href.includes('/log-out')) {
+        return cloneElement(c, {
+          href: `${href}?user-type=${link_props['data-usertype']}&redirect=${`/${props.agent?.agent_id}/${props.agent?.metatags.profile_slug}`}`,
+        });
       } else if (href === '/map') {
         return (
           <a
@@ -81,7 +85,7 @@ export default function NavIterator({ children, ...props }: { children: React.Re
             <NavIterator {...props}>{convertDivsToSpans(contents)}</NavIterator>
           </a>
         );
-      } else {
+      } else if (!href.includes('/map') && !href.includes('log-out')) {
         return (
           <a {...link_props} data-original-href={href} href={`/${props.agent?.agent_id}/${props.agent?.metatags.profile_slug}${href}`}>
             <NavIterator {...props}>{convertDivsToSpans(contents)}</NavIterator>

@@ -74,8 +74,6 @@ export async function signUp(
     },
   );
 
-  console.log(JSON.stringify(response));
-
   if (response.data?.customer?.id && response.data?.session_key) {
     Cookies.set('session_key', response.data.session_key);
   }

@@ -1,11 +1,19 @@
 'use client';
 
+import { queryStringToObject } from '@/_utilities/url-helper';
 import Cookies from 'js-cookie';
-import { redirect } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function LogOut() {
   Cookies.remove('session_as');
   Cookies.remove('session_key');
-  redirect('log-in');
+  useEffect(() => {
+    if (location) {
+      const { redirect: url } = queryStringToObject(location.search.substring(1));
+      setTimeout(() => {
+        location.href = `${url || '/log-in'}`;
+      }, 200);
+    }
+  }, []);
   return <></>;
 }

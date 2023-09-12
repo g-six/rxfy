@@ -11,6 +11,7 @@ import { PropertyDataModel } from '@/_typings/property';
 import { formatAddress } from '@/_utilities/string-helper';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { sendMessageToRealtor } from '@/_utilities/api-calls/call-realtor';
 
 interface RequestInfoPopupProps {
   children: ReactElement;
@@ -47,7 +48,7 @@ function FormInput({ tag, ...attr }: { tag: string; val?: string; placeholder: s
   const { data, fireEvent } = useEvent(Events.GenericEvent);
   let { placeholder } = attr;
 
-  if (attr['data-input'] === 'message')
+  if (attr['data-input'] === 'message' && attr.listing?.title)
     placeholder = `${placeholder} (e.g. I'd like to know more about the ${attr.listing.style_type} at ${formatAddress(attr.listing.title)}}`;
   return cloneElement(domToReact(htmlToDOM(`<${tag} data-rx=${attr['data-input']} placeholder="${placeholder}" />`) as DOMNode[]) as ReactElement, {
     ...attr,
@@ -63,7 +64,7 @@ function FormInput({ tag, ...attr }: { tag: string; val?: string; placeholder: s
 
 function SubmitButton(p: RequestInfoPopupProps) {
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
-  const { data } = useEvent(Events.GenericEvent);
+  const { data, fireEvent: closeModal } = useEvent(Events.GenericEvent);
   const { name: customer_name, phone, message } = data as unknown as { [k: string]: string };
   const [loading, toggleLoading] = useState(false);
   const { children, listing, send_to, ...attr } = p;
@@ -86,14 +87,31 @@ function SubmitButton(p: RequestInfoPopupProps) {
             property_bedrooms: Number(listing.beds),
             property_price: `$${formatValues(listing, 'asking_price')}`,
             property_space: Number(listing.floor_area),
-          }).then(() => {
-            toggleLoading(false);
-            notify({
-              timeout: 5000,
-              category: NotificationCategory.SUCCESS,
-              message: 'Fantasic! Your message has been sent to ' + send_to.name,
+          })
+            .then(() => {
+              notify({
+                timeout: 8000,
+                category: NotificationCategory.SUCCESS,
+                message: 'Fantasic! Your message has been sent to ' + send_to.name,
+              });
+            })
+            .finally(() => {
+              toggleLoading(false);
+              closeModal({ show: false });
             });
-          });
+        } else {
+          sendMessageToRealtor({ send_to, customer_name, phone, message })
+            .then(() => {
+              notify({
+                timeout: 8000,
+                category: NotificationCategory.SUCCESS,
+                message: 'Fantasic! Your message has been sent to ' + send_to.name,
+              });
+            })
+            .finally(() => {
+              toggleLoading(false);
+              closeModal({ show: false });
+            });
         }
         toggleLoading(true);
       }}

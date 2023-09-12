@@ -68,3 +68,21 @@ export async function updateCustomerNote(id: number, notes: string) {
   );
   return xhr.data || {};
 }
+
+export async function sendMessageToRealtor(info: {
+  customer_name: string;
+  phone: string;
+  message: string;
+  send_to: {
+    email: string;
+    name: string;
+  };
+}) {
+  const response = await axios.post('/api/agents/contact', info, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  return response.data;
+}
