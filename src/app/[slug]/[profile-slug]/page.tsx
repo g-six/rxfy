@@ -18,17 +18,27 @@ import NavIterator from '@/components/Nav/RxNavIterator';
 import FooterIterator from '@/components/RxFooter';
 import { objectToQueryString } from '@/_utilities/url-helper';
 import HomePageSearchInput from './search-input.component';
-import Navbar from '@/app/navbar.module';
 import ActionButton from './homepage-action-button.module';
 import RxNotifications from '@/components/RxNotifications';
+import HeartButton from './heart-button.module';
 
 function PropertyCard({ agent, listing, children }: { agent: AgentData; listing: PropertyDataModel; children: ReactElement }) {
   const Wrapped = Children.map(children, c => {
     if (c.props?.className?.includes('heart-')) {
-      return cloneElement(<button type='button' />, {
-        ...c.props,
-        className: classNames(c.props.className, styles['heart-button'], c.props?.className?.includes('heart-full') ? 'opacity-0 hover:opacity-100' : ''),
-      });
+      return (
+        <HeartButton
+          {...c.props}
+          agent={agent}
+          listing={listing}
+          className={classNames(c.props.className, styles['heart-button'], c.props?.className?.includes('heart-full') ? 'opacity-0 hover:opacity-100' : '')}
+        >
+          {c.props.children}
+        </HeartButton>
+      );
+      // return cloneElement(<HeartButton>, {
+      //   ...c.props,
+      //   className: classNames(c.props.className, styles['heart-button'], c.props?.className?.includes('heart-full') ? 'opacity-0 hover:opacity-100' : ''),
+      // });
     }
     if (c.type === 'div' && c.props?.['data-field'] === undefined) {
       const { children: sub, ...props } = c.props;
