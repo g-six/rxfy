@@ -218,6 +218,7 @@ export default function RxPropertyCard({
         props['view-only'] ? '' : 'group relative',
         sequence === 0 ? `` : 'hidden sm:block',
         Cookies.get('session_key') && listing.status?.toLowerCase() === 'sold' ? styles.ShowSold : '',
+        'relative',
       )}
     >
       <RxComponentChomper

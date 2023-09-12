@@ -1,4 +1,5 @@
 import { PropertyDataModel } from '@/_typings/property';
+import { BuildingUnit } from '../api/properties/types';
 
 export const property_info_kv: Record<string, string> = {
   age: 'Age',
@@ -47,6 +48,7 @@ export interface PageData extends PropertyDataModel {
   listing_by: string;
   real_estate_board_name: string;
   total_kitchens?: number;
+  neighbours?: BuildingUnit[];
 }
 export interface PropertyFeaturesWithIcons {
   amenities: { name: string }[];

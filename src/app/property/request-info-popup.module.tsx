@@ -3,7 +3,7 @@
 import { ReactElement, Fragment, Children, cloneElement, useState, SyntheticEvent } from 'react';
 import { Transition } from '@headlessui/react';
 import { classNames } from '@/_utilities/html-helper';
-import useEvent, { Events, EventsData } from '@/hooks/useEvent';
+import useEvent, { Events, EventsData, NotificationCategory } from '@/hooks/useEvent';
 import styles from './styles.module.scss';
 import { DOMNode, domToReact, htmlToDOM } from 'html-react-parser';
 import { sendInfoRequest } from '@/_utilities/api-calls/call-properties';
@@ -62,6 +62,7 @@ function FormInput({ tag, ...attr }: { tag: string; val?: string; placeholder: s
 }
 
 function SubmitButton(p: RequestInfoPopupProps) {
+  const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const { data } = useEvent(Events.GenericEvent);
   const { name: customer_name, phone, message } = data as unknown as { [k: string]: string };
   const [loading, toggleLoading] = useState(false);
@@ -87,6 +88,11 @@ function SubmitButton(p: RequestInfoPopupProps) {
             property_space: Number(listing.floor_area),
           }).then(() => {
             toggleLoading(false);
+            notify({
+              timeout: 5000,
+              category: NotificationCategory.SUCCESS,
+              message: 'Fantasic! Your message has been sent to ' + send_to.name,
+            });
           });
         }
         toggleLoading(true);

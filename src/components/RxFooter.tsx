@@ -26,7 +26,7 @@ function Iterator({ agent, children }: { agent: AgentData; children: ReactElemen
     }
     if (c.props?.['data-field']) {
       const { ['data-field']: field } = props;
-      console.log({ field });
+
       switch (field) {
         case 'logo':
           const logo = agent.metatags.logo_for_light_bg || agent.metatags.logo_for_dark_bg;

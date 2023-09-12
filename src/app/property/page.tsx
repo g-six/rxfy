@@ -3,7 +3,7 @@ import { getAgentBy } from '../api/_helpers/agent-helper';
 import { DOMNode, domToReact } from 'html-react-parser';
 import { ReactElement } from 'react';
 import { CheerioAPI, load } from 'cheerio';
-import { buildCacheFiles } from '../api/properties/model';
+import { buildCacheFiles, getBuildingUnits } from '../api/properties/model';
 import NotFound from '../not-found';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import PhotosCarousel from '@/components/RxPropertyCarousel/PhotosCarousel';
@@ -14,6 +14,7 @@ import FooterIterator from '@/components/RxFooter';
 import { AgentData } from '@/_typings/agent';
 import NavIterator from '@/components/Nav/RxNavIterator';
 import { WEBFLOW_DASHBOARDS } from '@/_typings/webflow';
+import { BuildingUnit } from '../api/properties/types';
 
 function replaceAgentFields($: CheerioAPI) {
   if ($('img[data-field="headshot"]')) {
@@ -107,6 +108,11 @@ export default async function PropertyPage(props: any) {
         console.log('Property data retrieved in', Date.now() - start, 'miliseconds');
         const { photos, ...property } = listing as PageData;
 
+        let neighbours: BuildingUnit[] = [];
+        if (property.lat && property.lon && property.style_type?.includes('Apartment')) {
+          neighbours = await getBuildingUnits(property);
+        }
+
         if (property) {
           if (Array.isArray(property.fireplace)) property.fireplace = property.fireplace.join('/');
 
@@ -118,11 +124,21 @@ export default async function PropertyPage(props: any) {
 
           const body = $('body > div,section');
           const footer = $('body > footer');
+
           return (
             <>
               <NavIterator agent={agent}>{domToReact(navbar as unknown as DOMNode[]) as unknown as ReactElement}</NavIterator>
 
-              <Iterator property={property as unknown as PageData} photos={photos || []}>
+              <Iterator
+                agent={agent}
+                property={
+                  {
+                    ...property,
+                    neighbours,
+                  } as unknown as PageData
+                }
+                photos={photos || []}
+              >
                 {domToReact(body as unknown as DOMNode[]) as unknown as ReactElement}
               </Iterator>
               <FooterIterator agent={agent}>{domToReact(footer as unknown as DOMNode[]) as unknown as ReactElement}</FooterIterator>

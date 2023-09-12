@@ -633,6 +633,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
         onClose={() => {
           setSelectedCluster([]);
         }}
+        view-only={false}
         properties={selected_cluster}
       />
     </aside>

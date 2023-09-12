@@ -14,8 +14,9 @@ import KeyValueIterator from './key-value-pair.iterator';
 import { Transition } from '@headlessui/react';
 import RecentListings from './recent-listings.module';
 import PageAction from './page-action.module';
+import { AgentData } from '@/_typings/agent';
 
-export default function Iterator({ children, ...props }: { children: ReactElement; property: PageData; photos: string[] }) {
+export default function Iterator({ children, ...props }: { children: ReactElement; agent: AgentData; property: PageData; photos: string[] }) {
   const Rexified = Children.map(children, c => {
     if (c.props?.['data-action']) {
       const { children: subcomponents, property, ...subprops } = c.props;
@@ -144,7 +145,17 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
       } else if (c.props?.['data-field'] === 'street_view') {
         return <RxMapOfListing key={0} child={<div />} mapType={'street'} property={props.property} />;
       } else if (c.props?.['data-field'] === 'logo_for_light_bg') {
-      } else if (c.props.children && !['agent', 'agent_name', 'email', 'phone'].includes(c.props['data-field']))
+      } else if (c.props.children && ['facebook', 'linkedin', 'instagram', 'youtube', 'twitter'].includes(c.props['data-field'])) {
+        const { metatags } = props.agent as unknown as {
+          metatags: {
+            [k: string]: string;
+          };
+        };
+        return cloneElement(c, {
+          className: classNames(c.props.className || '', 'property-page-rexified').trim(),
+          href: `${metatags[c.props['data-field']] || `#no-${c.props['data-field']}`}`,
+        });
+      } else if (c.props.children && !['agent', 'agent_name', 'email', 'phone', 'logo'].includes(c.props['data-field']))
         return cloneElement(
           c,
           {
@@ -156,17 +167,14 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
         return cloneElement(c, {
           className: classNames(c.props.className || '', 'property-page-rexified').trim(),
         });
-    } else if (c.props?.['data-group'] === 'building_units' && props.property.postal_zip_code) {
-      return (
-        <BuildingUnits
-          className={c.props.className}
-          mls-id={props.property.mls_id}
-          address={props.property.title.split(' ').slice(2).join(' ')}
-          street_number={props.property.title.split(' ')[1]}
-          postal_zip_code={props.property.postal_zip_code}
-        >
+    } else if (c.props?.['data-group'] === 'building_units') {
+      console.log('props.property.neighbours');
+      return props.property.neighbours ? (
+        <BuildingUnits className={c.props.className} neighbours={props.property.neighbours}>
           {c.props.children}
         </BuildingUnits>
+      ) : (
+        <></>
       );
     } else if (c.props?.['data-group'] === 'history' && props.property.postal_zip_code) {
       return (
