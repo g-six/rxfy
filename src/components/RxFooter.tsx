@@ -51,7 +51,6 @@ function Iterator({ agent, children }: { agent: AgentData; children: ReactElemen
           });
         case 'logo':
           const logo = agent.metatags.logo_for_light_bg || agent.metatags.logo_for_dark_bg;
-          console.log('logo', agent.metatags);
           if (logo)
             return cloneElement(c, {
               ...props,

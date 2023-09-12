@@ -17,6 +17,9 @@ import { WEBFLOW_DASHBOARDS } from '@/_typings/webflow';
 import { BuildingUnit } from '../api/properties/types';
 import RxNotifications from '@/components/RxNotifications';
 
+function isBuildingUnit(property: { complex_compound_name?: string; style_type?: string }) {
+  return property.style_type?.includes('Apartment') || property.complex_compound_name;
+}
 function replaceAgentFields($: CheerioAPI) {
   if ($('img[data-field="headshot"]')) {
     const src = headers().get('x-agent-headshot');
@@ -111,7 +114,7 @@ export default async function PropertyPage(props: any) {
         const { photos, ...property } = listing as PageData;
 
         let neighbours: BuildingUnit[] = [];
-        if (property.lat && property.lon && property.style_type?.includes('Apartment')) {
+        if (property.lat && property.lon && isBuildingUnit(property)) {
           neighbours = await getBuildingUnits(property);
         }
 

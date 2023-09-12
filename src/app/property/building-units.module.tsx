@@ -11,7 +11,6 @@ function GroupIterator(p: { units: BuildingUnit[]; children: ReactElement; class
     const { children: cc } = c.props;
     return p.units?.length ? (
       p.units.map(unit => {
-        console.log({ unit });
         const columns = Children.map(cc, col => {
           if (col.props?.['data-field']) {
             let val = '';
