@@ -25,7 +25,6 @@ export default function PageAction({ children, data, ...props }: PageActionProps
       };
       break;
     case 'pdf':
-      console.log(props);
       return (
         <a {...props} href={`/api/pdf/mls/${data.mls_id}?agent=${props.agent}&slug=${props.slug}`}>
           {children}

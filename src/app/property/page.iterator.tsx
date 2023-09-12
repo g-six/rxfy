@@ -38,6 +38,8 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
       if (photos && c.props?.['data-field'].indexOf('image_') === 0) {
         const num = Number(c.props?.['data-field'].split('image_').pop());
         if (!isNaN(num) && num && photos[num - 1]) return <RxCarouselPhoto {...c.props} width={1000} photos={photos} idx={num - 1} />;
+      } else if (c.props?.['data-field'] === 'reb_legal') {
+        return cloneElement(c, {}, props.property.real_estate_board?.legal_disclaimer || '');
       } else if (c.props?.['data-field'] === 'feature_block') {
         return (
           <IconIterator className={c.props.className} property={props.property}>
@@ -174,7 +176,6 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
           className: classNames(c.props.className || '', 'property-page-rexified').trim(),
         });
     } else if (c.props?.['data-group'] === 'building_units') {
-      console.log('props.property.neighbours');
       return props.property.neighbours ? (
         <BuildingUnits className={c.props.className} neighbours={props.property.neighbours}>
           {c.props.children}
