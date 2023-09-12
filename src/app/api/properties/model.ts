@@ -7,9 +7,8 @@ import { bathroomsToBathroomDetails, roomsToRoomDetails } from '@/_helpers/mls-m
 import { GQ_FRAG_AGENT } from '../agents/graphql';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { formatAddress } from '@/_utilities/string-helper';
-import { formatValues, getGqlForInsertProperty, getGqlForUpdateProperty } from '@/_utilities/data-helpers/property-page';
+import { formatValues, getGqlForInsertProperty } from '@/_utilities/data-helpers/property-page';
 import { createPhotoAlbumForProperty } from '../property-photo-albums/model';
-import { getMapboxAddress, getMapboxApiData } from '../map/[lat]/[lng]/route';
 import { getRealEstateBoard } from '../real-estate-boards/model';
 import { getRecords } from '../property-attributes/model';
 import {
