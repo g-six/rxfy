@@ -22,7 +22,7 @@ import {
   getAssociatedParking,
   getAssociatedPlacesOfInterests,
 } from './helpers';
-import { PropertyAttributes } from './types';
+import { BuildingUnit, PropertyAttributes } from './types';
 
 export interface MapboxResultProperties {
   name: string;
@@ -190,37 +190,12 @@ export async function buildCacheFiles(mls_id: string): Promise<
       let strapi_record: PropertyDataModel = {} as unknown as PropertyDataModel;
       if (!promises[1] && mls_data) {
         strapi_record = {} as unknown as PropertyDataModel;
-        const geolocation_xhr = await getMapboxApiData(legacy_data.lat, legacy_data.lng, clean.title);
-        if (geolocation_xhr?.data?.suggestions) {
-          const [suggestion] = geolocation_xhr.data.suggestions;
-          const { address, full_address, mapbox_id, context } = suggestion as {
-            address: string;
-            full_address: string;
-            mapbox_id: string;
-            context: {
-              [k: string]: Record<string, string>;
-            };
-          };
-          if (mapbox_id) {
-            const address_xhr = await getMapboxAddress(legacy_data.lat, legacy_data.lng, mapbox_id);
-            if (address_xhr.data) {
-              const {
-                features: [feature],
-              } = address_xhr.data;
-              const { geometry, properties } = feature as {
-                geometry: {
-                  coordinates: number[]; // order of - lng, lat
-                };
-                properties: MapboxResultProperties;
-              };
-              console.log(geometry.coordinates);
-              console.log(properties.context.address.name);
-            }
-            // console.log({ address, full_address, mapbox_id });
-          }
-        }
         strapi_record = await createProperty(mls_data);
       } else if (promises[1]) strapi_record = promises[1];
+
+      if (strapi_record.complex_compound_name) {
+        console.log('strapi_record.complex_compound_name', strapi_record.complex_compound_name);
+      }
 
       if (strapi_record.photos?.length) {
         photos = strapi_record.photos;
@@ -357,6 +332,62 @@ export async function getPropertyByMlsId(mls_id: string, legacy_data?: { photos?
     console.log('Error caught: properties.model.getPropertiesFromAgentInventory');
     console.log(axerr.response?.data);
   }
+}
+
+export async function getBuildingUnits(property: PropertyDataModel): Promise<BuildingUnit[]> {
+  const { title, state_province, postal_zip_code } = property;
+  try {
+    const response = await axios.post(
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+      {
+        query: gql_properties,
+        variables: {
+          filters: {
+            title: {
+              endsWith: title.split(' ').slice(1).join(' '),
+            },
+            postal_zip_code: {
+              eqi: postal_zip_code,
+            },
+            state_province: {
+              eqi: state_province,
+            },
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+    const data_records = response?.data?.data?.properties?.data;
+    return data_records
+      .map((n: unknown) => {
+        const { id, attributes } = n as {
+          id: number;
+          attributes: PropertyDataModel;
+        };
+        const { mls_id, title, beds, baths, asking_price, floor_area } = attributes;
+
+        return {
+          mls_id,
+          title,
+          beds,
+          baths,
+          floor_area,
+          asking_price,
+          id: Number(id),
+        };
+      })
+      .filter((n: BuildingUnit) => n.id !== property.id);
+  } catch (e) {
+    const axerr = e as AxiosError;
+    console.log('Error caught: properties.model.getPropertiesFromAgentInventory');
+    console.log(axerr.response?.data);
+  }
+  return [];
 }
 export async function getPropertiesFromAgentInventory(agent_id: string) {
   try {
@@ -653,6 +684,15 @@ const gql_inventory_by_agent_id = `query GetAgentInventory($agent_id: String!) {
 
 const gql_mls = `query GetPublicProperty($mls_id: String!) {
 	properties(filters: { mls_id: { eqi: $mls_id } }) {
+    data {
+      id
+      attributes {${GQ_FRAGMENT_PROPERTY_ATTRIBUTES}}
+    }
+  }
+}`;
+
+const gql_properties = `query GetPublicProperties($filters: PropertyFiltersInput!) {
+	properties(filters: $filters) {
     data {
       id
       attributes {${GQ_FRAGMENT_PROPERTY_ATTRIBUTES}}

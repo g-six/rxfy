@@ -128,3 +128,13 @@ export type PropertyAttributes = {
   places_of_interest?: KeyValuePair[];
   real_estate_board?: KeyValuePair[];
 };
+
+export type BuildingUnit = {
+  mls_id: string;
+  title: string;
+  beds: number;
+  baths: number;
+  floor_area: number;
+  asking_price: number;
+  id: number;
+};
