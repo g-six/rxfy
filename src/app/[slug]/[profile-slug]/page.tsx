@@ -26,12 +26,7 @@ function PropertyCard({ agent, listing, children }: { agent: AgentData; listing:
   const Wrapped = Children.map(children, c => {
     if (c.props?.className?.includes('heart-')) {
       return (
-        <HeartButton
-          {...c.props}
-          agent={agent}
-          listing={listing}
-          className={classNames(c.props.className, styles['heart-button'], c.props?.className?.includes('heart-full') ? 'opacity-0 hover:opacity-100' : '')}
-        >
+        <HeartButton {...c.props} agent={agent} listing={listing} className={classNames(c.props.className, styles['heart-button'])}>
           {c.props.children}
         </HeartButton>
       );

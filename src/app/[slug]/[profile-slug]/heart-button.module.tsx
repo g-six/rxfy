@@ -19,28 +19,37 @@ export default function HeartButton({
   className: string;
   children: ReactElement;
 }) {
-  const [loved_items, setLovedItems] = useState(getData(Events.LovedItem) as unknown as string[]);
+  const [loved_items, setLovedItems] = useState<string[]>([]);
   const evt = useLove();
   const onClick = () => {
-    evt.fireEvent(
-      listing,
-      agent.id,
-      // remove,
-    );
+    let remove = false;
+    if (loved_items && loved_items.includes(listing.mls_id)) remove = true;
+
+    if (remove) setLovedItems(loved_items.filter(mls_id => mls_id !== listing.mls_id));
+    else setLovedItems(loved_items.concat([listing.mls_id]));
+
+    evt.fireEvent(listing, agent.id, remove);
   };
 
   useEffect(() => {
-    if (!loved_items) {
-      setLovedItems((getData(Events.LovedItem) as unknown as string[]) || []);
-    }
+    setLovedItems(getData(Events.LovedItem) as unknown as string[]);
   }, []);
 
+  const is_loved = ((getData(Events.LovedItem) as unknown as string[]) || []).includes(listing.mls_id);
+  if (is_loved) console.log(listing.mls_id, 'is loved');
+
+  const getStateCss = () => {
+    if (is_loved) {
+      if (className.includes('-full')) return ' hover:opacity-0 opacity-100';
+      else return ' hover:opacity-100 opacity-0';
+    } else {
+      if (className.includes('-empty')) return ' hover:opacity-0 opacity-100';
+      else return ' hover:opacity-100 opacity-0';
+    }
+  };
+
   return (
-    <button
-      type='button'
-      className={classNames(loved_items && loved_items.includes(listing.mls_id) ? className.split(' opacity-0').join(' opacity-100') : className)}
-      onClick={onClick}
-    >
+    <button type='button' onClick={onClick} data-mls={listing.mls_id} data-is-loved={is_loved} className={classNames(className, listing.mls_id, getStateCss())}>
       {children}
     </button>
   );

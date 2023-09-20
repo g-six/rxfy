@@ -42,9 +42,10 @@ export const getLovedHomes = cache(async (relationship_id?: number) => {
  * Save a customer map search
  * @param string mls_id
  * @param number agent.id
+ * @param boolean if true, API will remove existing mls_id from loved homes OR add them if they aren't previously loved
  * @returns
  */
-export async function loveHome(mls_id: string, agent: number) {
+export async function loveHome(mls_id: string, agent: number, toggling_mode: boolean = false) {
   try {
     // Handle localStorage
     const local_loves = (getData(Events.LovedItem) as unknown as string[]) || [];
