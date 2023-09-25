@@ -193,14 +193,31 @@ export default function Form({ children, agent }: { children: React.ReactElement
         toggleResetPassword(true);
       }}
       onChange={(evt: React.SyntheticEvent) => {
-        const { name, value } = evt.currentTarget as HTMLInputElement;
+        const {
+          name,
+          value,
+          ['data-field']: field_name,
+        } = evt.currentTarget as unknown as {
+          name: string;
+          value: string;
+          'data-field': string;
+        };
+        // const { name, value } = evt.currentTarget as HTMLInputElement;
         setProfile({
           ...(profile as CustomerRecord),
-          [name]: value,
+          [field_name || name]: value,
         });
       }}
       onChangeDate={(evt: React.SyntheticEvent<HTMLSelectElement>) => {
-        const { name, value } = evt.currentTarget;
+        const {
+          name,
+          value,
+          ['data-field']: field_name,
+        } = evt.currentTarget as unknown as {
+          name: string;
+          value: string;
+          'data-field': string;
+        };
         const n = Number(value);
         if (!isNaN(n)) {
           let ymd = [0, 0, 0];
