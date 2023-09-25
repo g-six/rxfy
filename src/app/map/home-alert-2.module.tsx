@@ -4,6 +4,7 @@ import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { convertDivsToSpans } from '@/_replacers/DivToSpan';
 import { useSearchParams } from 'next/navigation';
 import { signUp } from '@/_utilities/api-calls/call-signup';
+import { AgentData } from '@/_typings/agent';
 
 const module_name = 'HomeAlert2';
 
@@ -64,7 +65,7 @@ function CloseFormButton({ className, children }: { className: string; children:
   );
 }
 
-export default function HomeAlert2({ className, children }: { className: string; children: React.ReactElement }) {
+export default function HomeAlert2({ className, children, agent }: { agent?: AgentData; className: string; children: React.ReactElement }) {
   const search = useSearchParams();
   const trigger = useEvent(Events.MyHomeAlertsForm);
   const { step } = trigger.data as unknown as {
@@ -83,8 +84,22 @@ export default function HomeAlert2({ className, children }: { className: string;
 
   React.useEffect(() => {
     if (step === 3 && email) {
-      setEmail('');
-      signUp({ id: 1 }, { email }, { search_url: search.toString() }).then(console.log).catch(console.error);
+      if (agent) {
+        setEmail('');
+        let logo = '';
+        if (agent.metatags?.logo_for_light_bg) logo = agent.metatags?.logo_for_light_bg;
+        else if (agent.metatags?.logo_for_dark_bg) logo = agent.metatags?.logo_for_dark_bg;
+        signUp(
+          {
+            id: agent.id,
+            logo,
+          },
+          { email },
+          { search_url: search.toString(), dashboard_uri: agent.domain_name ? '/my-profile' : `/${agent.agent_id}/${agent.metatags.profile_slug}/my-profile` },
+        )
+          .then(console.log)
+          .catch(console.error);
+      }
     }
   }, [step]);
 
