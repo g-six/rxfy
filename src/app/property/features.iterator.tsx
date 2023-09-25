@@ -63,13 +63,9 @@ function getAlias(feature: string) {
     case 'in-suite-laundry':
       return 'washing-machine';
     case 'recreational-area':
-      return 'park';
+      return 'recreational-facility';
     case 'shopping-mall':
       return 'shopping';
-    case 'snow-removal':
-      return '';
-    case 'trash-removal':
-      return 'disposal';
     case 'underbuilding-garage':
     case 'underground-garage':
     case 'single-garage':

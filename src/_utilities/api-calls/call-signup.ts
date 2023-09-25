@@ -45,7 +45,7 @@ export async function agentSignUp(agent: { agent_id: string; email: string; full
 export async function signUp(
   agent: { id: number; logo?: string; email?: string },
   customer: { email: string; full_name?: string; password?: string },
-  opts?: { search_url?: string },
+  opts?: { search_url?: string; dashboard_uri?: string },
 ) {
   const password = customer.password || randomString(6);
   const full_name = customer.full_name || capitalizeFirstLetter(customer.email.split('@')[0].replace(/[^\w\s!?]/g, ''));
