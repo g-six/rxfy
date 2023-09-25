@@ -33,7 +33,12 @@ function Iterator({
         <Iterator {...props}>{c.props.children}</Iterator>,
       );
     } else if (c.props?.name && props.profile) {
-      const [name] = `${c.props.name}`.split('-');
+      let [name] = `${c.props.name}`.split('-');
+
+      if (c.props['data-field']) {
+        name = c.props['data-field'];
+      }
+
       const { [name]: value } = props.profile as { [key: string]: string | number };
       if (name === 'birthday') {
         let ymd = [0, 0, 0];
@@ -91,7 +96,7 @@ function Iterator({
           </div>
         );
       }
-      if (value) {
+      if (name) {
         return React.cloneElement(c, { ...c.props, name, value, onChange: props.onChange });
       }
     } else if (c.type === 'a' && c.props?.className?.includes('reset-password')) {
@@ -120,6 +125,7 @@ export default function Form({ children, agent }: { children: React.ReactElement
   const [init, setInitial] = React.useState<unknown>();
   const [reset_password, toggleResetPassword] = React.useState(false);
   const router = useRouter();
+
   React.useEffect(() => {
     const { action } = evt.data as unknown as {
       action: 'save' | 'reset';
@@ -129,14 +135,16 @@ export default function Form({ children, agent }: { children: React.ReactElement
       const initial = init as { [k: string]: string | number };
       let updates: { [k: string]: string | number } = {};
       const changes = profile as { [k: string]: string | number };
+
       Object.keys(changes).forEach(k => {
-        if (changes[k] !== initial[k]) {
+        if (changes[k] !== initial[k] || (changes[k] !== undefined && initial[k] === undefined)) {
           updates = {
             ...updates,
             [k]: changes[k],
           };
         }
       });
+
       if (Object.keys(updates)) {
         updateAccount(session_key, updates).then(({ session_key }: { session_key: string }) => {
           if (session_key) {
@@ -192,28 +200,24 @@ export default function Form({ children, agent }: { children: React.ReactElement
       sendPasswordRequest={() => {
         toggleResetPassword(true);
       }}
-      onChange={(evt: React.SyntheticEvent) => {
+      onChange={(input_event: React.SyntheticEvent) => {
         const {
           name,
           value,
           ['data-field']: field_name,
-        } = evt.currentTarget as unknown as {
+        } = input_event.currentTarget as unknown as {
           name: string;
           value: string;
           'data-field': string;
         };
-        // const { name, value } = evt.currentTarget as HTMLInputElement;
+
         setProfile({
           ...(profile as CustomerRecord),
-          [field_name || name]: value,
+          [name]: value,
         });
       }}
-      onChangeDate={(evt: React.SyntheticEvent<HTMLSelectElement>) => {
-        const {
-          name,
-          value,
-          ['data-field']: field_name,
-        } = evt.currentTarget as unknown as {
+      onChangeDate={(input_event: React.SyntheticEvent<HTMLSelectElement>) => {
+        const { name, value } = input_event.currentTarget as unknown as {
           name: string;
           value: string;
           'data-field': string;

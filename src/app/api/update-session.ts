@@ -365,7 +365,6 @@ export async function getNewSessionKey(previous_token: string, id: number, user_
       const new_session = await updateSessionKey(id, email, user_type);
       const ts = Math.ceil(new Date(new_session.last_activity_at).getTime() / 1000);
       expires_in = now - ts + SESSION_LIFE_SECS;
-      console.log('Expires at', new_session.expires_at);
       return {
         ...results,
         ...new_session,
