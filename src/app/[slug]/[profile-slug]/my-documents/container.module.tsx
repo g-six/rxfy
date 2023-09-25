@@ -9,7 +9,7 @@ export default function MyDocumentsContainer({ agent, children }: { agent: Agent
   return (
     <>
       <ClientDashboardIterator
-        id='SavedHome'
+        id='MyDocuments'
         className={'RxCustomerView-ClientDashboardIterator rexified'}
         onCancel={() => {
           console.log('canceled');
