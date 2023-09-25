@@ -91,7 +91,7 @@ function validateInput(data: { email?: string; password?: string; full_name?: st
 }
 
 export async function POST(request: Request) {
-  const { email, full_name, password, agent, logo, yes_to_marketing, saved_search, search_url } = await request.json();
+  const { email, full_name, password, agent, logo, yes_to_marketing, saved_search, dashboard_uri } = await request.json();
   let created_saved_search: SavedSearch | undefined = undefined;
   if (!yes_to_marketing) {
     return new Response(
@@ -244,7 +244,7 @@ export async function POST(request: Request) {
               },
             ],
             {
-              url: `${url.origin}/my-profile?key=${encrypt(last_activity_at)}.${encrypt(email)}-${data.id}`,
+              url: `${url.origin}${dashboard_uri || '/my-profile'}?key=${encrypt(last_activity_at)}.${encrypt(email)}-${data.id}`,
               agent_logo: logo,
               password: valid_data.password,
             },
