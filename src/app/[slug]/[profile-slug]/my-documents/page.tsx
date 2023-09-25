@@ -7,16 +7,16 @@ import { CheerioAPI, load } from 'cheerio';
 import Container from './container.module';
 import { AgentData } from '@/_typings/agent';
 import { cookies } from 'next/headers';
-import { classNames } from '@/_utilities/html-helper';
 import NavIterator from '@/components/Nav/RxNavIterator';
 
 export default async function MyDocuments({ params }: { params: { [key: string]: string } }) {
   const session_key = cookies().get('session_key')?.value;
+  let path = '/my-documents';
   if (!cookies().get('session_key')) {
-    return <>Access denied</>;
+    path = '/access-denied';
     // redirect(`/${params.slug}/${params['profile-slug']}/log-in`);
   }
-  const promises = await Promise.all([axios.get('https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/my-documents'), findAgentRecordByAgentId(params.slug)]);
+  const promises = await Promise.all([axios.get('https://' + WEBFLOW_DASHBOARDS.CUSTOMER + path), findAgentRecordByAgentId(params.slug)]);
   const { data: html } = promises[0];
   const agent: AgentData = promises[1];
 
