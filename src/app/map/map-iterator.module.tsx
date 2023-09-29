@@ -24,11 +24,46 @@ import NavIterator from '@/components/Nav/RxNavIterator';
 import { LoveDataModel } from '@/_typings/love';
 import { PropertyDataModel } from '@/_typings/property';
 import { headers } from 'next/headers';
-import Navbar from '../navbar.module';
 
 function getAgentLogo(logo: string, default_src: string) {
   if (logo) return getImageSized(logo, 300);
   return default_src;
+}
+
+function LinkRexifier({
+  children,
+  ...attributes
+}: {
+  children: React.ReactElement;
+  agent?: AgentData;
+  city?: string;
+  loves?: LoveDataModel[];
+  properties?: PropertyDataModel[];
+}) {
+  const rexified = React.Children.map(children, cc => {
+    if (!['img', 'span', 'svg', 'div'].includes(cc.type as string)) {
+      if (cc.type === 'div') return <MapIterator {...attributes}>{cc.props.children}</MapIterator>;
+      return <MapIterator {...attributes}>{React.cloneElement(<span data-class={cc.type} />, cc.props)}</MapIterator>;
+    }
+    if (cc.props.children) {
+      return <MapIterator {...attributes}>{cc.props.children}</MapIterator>;
+    }
+    if (cc.type === 'img' && cc.props['data-field']) {
+      switch (cc.props['data-field']) {
+        case 'logo_for_dark_bg':
+          return cloneElement(cc, {
+            src: getAgentLogo(attributes.agent?.metatags?.logo_for_dark_bg || attributes.agent?.metatags?.logo_for_light_bg || '', cc.props.src),
+          });
+        case 'logo_for_light_bg':
+          return cloneElement(cc, {
+            src: getAgentLogo(attributes.agent?.metatags?.logo_for_light_bg || attributes.agent?.metatags?.logo_for_dark_bg || '', cc.props.src),
+          });
+      }
+    }
+    return cc;
+  });
+
+  return <>{rexified}</>;
 }
 
 export default async function MapIterator({
@@ -47,8 +82,31 @@ export default async function MapIterator({
       const data = agent as unknown as {
         [k: string]: string;
       };
-      let value = c.props['data-field'] === 'agent_name' ? agent?.full_name : data[c.props['data-field']];
-      return c.type !== 'img' ? cloneElement(c, {}, value) : <></>;
+      const { metatags } = agent as unknown as {
+        metatags: {
+          [k: string]: string;
+        };
+      };
+      const field = c.props['data-field'];
+      let value = field === 'agent_name' ? agent?.full_name : data[field];
+      if (!value && metatags) value = metatags[field];
+
+      return c.type !== 'img' ? (
+        cloneElement(
+          c,
+          value && ['logo_for_light_bg', 'logo_for_dark_bg'].includes(field)
+            ? {
+                className: 'bg-contain bg-no-repeat h-6 inline-block w-36',
+                style: {
+                  backgroundImage: `url(${value})`,
+                },
+              }
+            : {},
+          value && ['logo_for_light_bg', 'logo_for_dark_bg'].includes(field) ? '' : value,
+        )
+      ) : (
+        <></>
+      );
     } else if (c.props && typeof c.props.children === 'string') {
       if (c.props.children.includes('{Agent Name}')) {
         if (agent) {
@@ -143,7 +201,11 @@ export default async function MapIterator({
             </HomeAlert1>
           );
         } else if (className.includes('ha-step-2')) {
-          return <HomeAlert2 className={className}>{props.children}</HomeAlert2>;
+          return (
+            <HomeAlert2 className={className} agent={agent}>
+              {props.children}
+            </HomeAlert2>
+          );
         } else if (className.includes('ha-step-3')) {
           return <HomeAlert3 className={className}>{props.children}</HomeAlert3>;
         } else if (className.includes('property-card-small')) {
@@ -188,8 +250,8 @@ export default async function MapIterator({
       //     val,
       //   });
       // });
-      let { href } = c.props;
-      const { pathname } = new URL(headers().get('referer') as string);
+      let { href, className: link_class } = c.props;
+      const { pathname } = new URL(headers().get('x-canonical') as string);
       const agent_base_path = `/${headers().get('x-agent-id')}/${headers().get('x-profile-slug')}`;
       if (pathname.indexOf(agent_base_path) === 0) {
         href = agent_base_path;
@@ -198,25 +260,9 @@ export default async function MapIterator({
         c,
         {
           href,
+          className: classNames(link_class || '', 'rexified'),
         },
-        React.Children.map(c.props.children, cc => {
-          if (!['img', 'span', 'svg', 'div'].includes(cc.type)) {
-            if (cc.type === 'div') return <MapIterator {...attributes}>{cc.props.children}</MapIterator>;
-            return <MapIterator {...attributes}>{React.cloneElement(<span data-class={cc.type} />, cc.props)}</MapIterator>;
-          }
-          if (cc.props.children) {
-            return <MapIterator {...attributes}>{cc.props.children}</MapIterator>;
-          }
-          if (cc.type === 'img' && cc.props['data-field']) {
-            switch (cc.props['data-field']) {
-              case 'logo_for_dark_bg':
-                return cloneElement(cc, { src: getAgentLogo(agent?.metatags?.logo_for_dark_bg || agent?.metatags?.logo_for_light_bg || '', cc.props.src) });
-              case 'logo_for_light_bg':
-                return cloneElement(cc, { src: getAgentLogo(agent?.metatags?.logo_for_light_bg || agent?.metatags?.logo_for_dark_bg || '', cc.props.src) });
-            }
-          }
-          return cc;
-        }),
+        <LinkRexifier agent={agent}>{c.props.children}</LinkRexifier>,
       );
     } else if (c.props?.children) {
       return React.cloneElement(c, {

@@ -4,25 +4,55 @@ import { CustomerRecord } from '@/_typings/customer';
 import { LovedPropertyDataModel, PropertyDataModel } from '@/_typings/property';
 import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { formatValues } from '@/_utilities/data-helpers/property-page';
 import RxPropertyCard from '@/components/RxCards/RxPropertyCard';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { useSearchParams } from 'next/navigation';
-import React from 'react';
+import React, { Children, ReactElement, cloneElement, useEffect, useState } from 'react';
 
 type Props = {
-  children: React.ReactElement;
+  children: ReactElement;
   className: string;
+  'data-panel'?: string;
   properties: LovedPropertyDataModel[];
 };
 
+function PropertyIterator({ children, ...p }: { children: ReactElement; property: LovedPropertyDataModel }) {
+  const rexified = Children.map(children, c => {
+    if (c.props) {
+      if (c.props.children && typeof c.props.children !== 'string') {
+        return cloneElement(
+          c,
+          {
+            'data-rexified': c.type,
+          },
+          <PropertyIterator {...p}>{c.props.children}</PropertyIterator>,
+        );
+      } else if (c.props['data-field']) {
+        let { [c.props['data-field']]: value } = p.property as unknown as {
+          [k: string]: string;
+        };
+
+        if (c.props['data-field'] === 'address') value = formatValues(p.property, 'title');
+        if (c.props['data-field'] === 'price') value = formatValues(p.property, 'asking_price');
+        return cloneElement(c, {}, value);
+      } else if (c.props.className?.includes('image') && p.property.cover_photo) {
+        return cloneElement(c, { style: { backgroundImage: `url(${p.property.cover_photo})` } });
+      }
+    }
+    return c;
+  });
+  return <>{rexified}</>;
+}
+
 function Iterator(p: {
-  children: React.ReactElement;
+  children: ReactElement;
   agent: number;
   properties: LovedPropertyDataModel[];
   onSelectProperty: (property: LovedPropertyDataModel) => void;
 }) {
-  const Wrapped = React.Children.map(p.children, child => {
-    if (child.props?.className && child.props?.className.indexOf('property-card-wrapper') >= 0) {
+  const Wrapped = Children.map(p.children, child => {
+    if (child.props && child.props['data-component'] === 'property_card_small') {
       return (
         <>
           {p.properties ? (
@@ -33,20 +63,10 @@ function Iterator(p: {
                   ? getImageSized(property.property_photo_album?.data?.attributes.photos[0], 300)
                   : '',
               };
-              return (
-                <RxPropertyCard
-                  key={`${property.id}-${property.love}`}
-                  love={property.love}
-                  agent={p.agent}
-                  listing={listing}
-                  isLink={false}
-                  onClick={() => {
-                    p.onSelectProperty(property);
-                  }}
-                  view-only
-                >
-                  {child.props.children}
-                </RxPropertyCard>
+              return cloneElement(
+                child,
+                { key: `${property.id}-${property.love}` },
+                <PropertyIterator property={listing}>{child.props.children}</PropertyIterator>,
               );
             })
           ) : (
@@ -78,7 +98,7 @@ export default function CustomerProperties(p: Props) {
     customers: CustomerRecord[];
   };
 
-  const [properties, setProperties] = React.useState<LovedPropertyDataModel[]>([]);
+  const [properties, setProperties] = useState<LovedPropertyDataModel[]>([]);
 
   const onSelectProperty = (property: LovedPropertyDataModel) => {
     selectPropertyEvt.fireEvent(property as unknown as EventsData);
@@ -91,7 +111,7 @@ export default function CustomerProperties(p: Props) {
     } as unknown as EventsData);
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (p.properties && p.properties.length) {
       setProperties(p.properties);
     } else {
@@ -120,10 +140,10 @@ export default function CustomerProperties(p: Props) {
   }, []);
 
   return (
-    <div className={p.className}>
+    <aside className={p.className} data-panel={p['data-panel']}>
       <Iterator {...p} properties={properties || []} agent={agent} onSelectProperty={onSelectProperty}>
         {p.children}
       </Iterator>
-    </div>
+    </aside>
   );
 }

@@ -1,4 +1,3 @@
-//saved-home-detail-panel
 'use client';
 import React from 'react';
 import { LovedPropertyDataModel, PropertyDataModel } from '@/_typings/property';
@@ -296,7 +295,7 @@ export default function RxCustomerPropertyView(p: Props) {
   const { reload, property: selected_property, ...props } = p;
 
   return property ? (
-    <div {...props} className={`${p.className} ${property?.id ? styles['opened-property-view'] : styles['closed-property-view']}`}>
+    <div className={`${p.className} ${property?.id ? styles['opened-property-view'] : styles['closed-property-view']}`}>
       <Iterator {...props} property={property} neighbours={other_units_in_bldg} agent={agent} reload={reload}>
         {p.children}
       </Iterator>

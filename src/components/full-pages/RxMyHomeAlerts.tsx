@@ -3,11 +3,12 @@ import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { fireCustomEvent } from '@/_helpers/functions';
 import MyHomeAlertDeleteModalWrapper from '@/_replacers/MyHomeAlerts/MyHomeAlertDeleteModalWrapper';
 import MyHomeAlertModalWrapper from '@/_replacers/MyHomeAlerts/MyHomeAlertModalWrapper';
-import MyHomeAlertsList from '@/_replacers/MyHomeAlerts/MyHomeAlertsList';
+// import MyHomeAlertsList from '@/_replacers/MyHomeAlerts/MyHomeAlertsList';
 import { AgentData } from '@/_typings/agent';
 import { Events } from '@/_typings/events';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 import { searchByClasses, searchByProp } from '@/_utilities/rx-element-extractor';
+import { SavedHomesPropertyList } from '@/app/[slug]/[profile-slug]/client-dashboard/property-list.module';
 import useEvent from '@/hooks/useEvent';
 
 import React, { ReactElement, ReactNode, cloneElement } from 'react';
@@ -67,9 +68,14 @@ export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
       },
     },
     {
-      searchFn: searchByClasses(['all-home-alerts']),
+      searchFn: searchByProp('data-panel', 'properties_column'),
       transformChild: (child: ReactElement) => {
-        return <MyHomeAlertsList child={child} agent_data={agent_data as unknown as AgentData} />;
+        return (
+          <SavedHomesPropertyList {...child.props} agent={agent_data}>
+            {child.props.children}
+          </SavedHomesPropertyList>
+        );
+        // return <MyHomeAlertsList child={child} agent_data={agent_data as unknown as AgentData} />;
       },
     },
     {

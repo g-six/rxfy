@@ -16,7 +16,6 @@ import CRMNav from './crm/CRMNav';
 import { AgentData } from '@/_typings/agent';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { getAgentBaseUrl } from '@/app/api/_helpers/agent-helper';
-import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 import useEvent, { Events } from '@/hooks/useEvent';
 
 type Props = {
@@ -134,7 +133,7 @@ export default function ClientDashboardIterator(
             </RxCompareFiltersModal>
           );
         }
-        if (child.props.className === 'properties-column' && p.properties !== undefined) {
+        if (child.props?.['data-panel'] === 'properties_column' && p.properties !== undefined) {
           return (
             <CustomerProperties {...child.props} properties={p.properties} property={p.property}>
               {child.props.children}
@@ -203,7 +202,7 @@ export default function ClientDashboardIterator(
             <ClientDashboardIterator {...p}>{child.props.children}</ClientDashboardIterator>
           </div>
         );
-      } else if (child.props?.rx === 'filters-btn-trigger') {
+      } else if (child.props?.['data-action'] === 'change_compare_stats') {
         return React.cloneElement(<button type='button' />, {
           ...child.props,
           children: React.cloneElement(<span />, {

@@ -68,7 +68,6 @@ export default async function MapPage({ params, searchParams }: { params: { [key
       console.log(Date.now() - time + 'ms', '[Completed] Love data');
     }
   }
-
   const center = getBounds(Number(searchParams.lat), Number(searchParams.lng), 5) as unknown as SearchOpts;
   const upper = getBounds((center.nelat + Number(searchParams.lat)) / 2, center.nelng / 2, 3) as unknown as SearchOpts;
   const lower = getBounds((center.swlat + Number(searchParams.lat)) / 2, center.swlng / 2, 3) as unknown as SearchOpts;
@@ -132,7 +131,7 @@ export default async function MapPage({ params, searchParams }: { params: { [key
       console.log(Date.now() - time + 'ms', '[Completed] HTML template & agent Strapi data extraction');
       const $: CheerioAPI = load(html);
       console.log(Date.now() - time + 'ms', '[Completed] HTML template load to memory');
-      const body = $('body > .map-div');
+      const body = $('body > div');
       const Page = (
         <>
           <MapIterator agent={agent} city={searchParams.city} loves={loves} properties={properties}>

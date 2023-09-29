@@ -47,7 +47,7 @@ export default function RxMapView({ lat, lng, properties }: { lat?: number; lng?
                     ({
                       ...properties,
                       id,
-                    } as unknown as LovedPropertyDataModel),
+                    }) as unknown as LovedPropertyDataModel,
                 ),
               } as unknown as EventsData);
             });
@@ -127,16 +127,6 @@ export default function RxMapView({ lat, lng, properties }: { lat?: number; lng?
   };
 
   React.useEffect(() => {
-    if (map?.isStyleLoaded() && properties?.length) {
-      addPoints(properties);
-    }
-  }, [map?.isStyleLoaded()]);
-
-  React.useEffect(() => {
-    attachMap(setMap, mapDiv);
-  }, []);
-
-  React.useEffect(() => {
     if (mapDiv && mapDiv.current && session.data?.clicked) {
       if (!pins) {
         const customer_id = searchParams.get('customer') as unknown as number;
@@ -185,6 +175,16 @@ export default function RxMapView({ lat, lng, properties }: { lat?: number; lng?
       map.on('click', clickEventListener);
     }
   }, [pins]);
+
+  React.useEffect(() => {
+    if (map?.isStyleLoaded() && properties?.length) {
+      addPoints(properties);
+    }
+  }, [map?.isStyleLoaded()]);
+
+  React.useEffect(() => {
+    // attachMap(setMap, mapDiv);
+  }, []);
 
   return (
     <section className='w-full h-full relative'>

@@ -208,7 +208,7 @@ export default function PropertyCard({ agent, className, children }: { agent?: A
   const [cards, setCards] = React.useState<React.ReactElement[]>([]);
 
   const toggleLoved = (listing: PropertyDataModel) => {
-    const last = getData(Events.LovedItem) as unknown as string[];
+    const last = (getData(Events.LovedItem) as unknown as string[]) || [];
     if (!loved_items.includes(listing.mls_id)) {
       setLovedItems(last.concat([listing.mls_id]));
       if (agent?.id) {

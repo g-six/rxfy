@@ -211,6 +211,7 @@ export async function buildCacheFiles(mls_id: string): Promise<
         dwelling_type,
         formatted_address: formatAddress(clean.title) + ', ' + clean.city + ', ' + clean.state_province + ' ' + clean.postal_zip_code,
         sqft: formatValues(clean, 'floor_area') + ' sq.ft.',
+        ...(strapi_record.id ? { id: Number(strapi_record.id) } : {}),
         code: 200,
       };
     }

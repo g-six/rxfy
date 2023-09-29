@@ -4,7 +4,10 @@ import { getResponse } from '../response-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getNewSessionKey } from '../update-session';
 import { getMutationForPhotoAlbumCreation } from '@/_utilities/data-helpers/property-page';
+import { POST as getPipelineListings } from '@/app/api/pipeline/route';
 import { getLovedHomes, regenerateRecords } from './model';
+import { NextRequest } from 'next/server';
+import { buildCacheFiles } from '../properties/model';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -129,6 +132,9 @@ export async function POST(request: Request) {
     if (find_home_response.data?.data?.properties?.data?.length) {
       // Get Strapi ID
       property_id = find_home_response.data.data.properties.data[0].id;
+    } else {
+      const property = await buildCacheFiles(mls_id);
+      console.log(JSON.stringify(property, null, 4));
     }
 
     if (property_id) {

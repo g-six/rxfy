@@ -13,7 +13,8 @@ export default async function ClientDashboard({ params }: { params: { [key: stri
 
   if (html && agent) {
     const $: CheerioAPI = load(html);
-    const nav = $('body > div > .navbar---dashboard');
+    const nav = $('body .navbar---dashboard');
+    $('body .navbar---dashboard').remove();
     const contents = $('body > div > div:not(.navbar---dashboard)');
     return (
       <main className={$('body > div').attr('class')}>

@@ -25,3 +25,9 @@
     }
   }
 }
+button.heart {
+  @apply bg-transparent px-0;
+  svg {
+    @apply w-full;
+  }
+}

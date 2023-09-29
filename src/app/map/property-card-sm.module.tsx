@@ -55,13 +55,10 @@ function Iterator({
       }
 
       if (subclass?.includes('heart-full')) {
-        if (!loves || !loves.includes(property.mls_id)) {
-          return <></>;
-        }
         return React.cloneElement(
           <button
             type='button'
-            className={classNames(subclass, 'bg-transparent')}
+            className={classNames(subclass, styles.heart, !loves || !loves.includes(property.mls_id) ? 'opacity-0 hover:opacity-100' : 'opacity-100')}
             onClick={() => {
               updateLove();
             }}
@@ -77,7 +74,7 @@ function Iterator({
         return React.cloneElement(
           <button
             type='button'
-            className={classNames(subclass, 'bg-transparent')}
+            className={classNames(subclass, styles.heart)}
             onClick={() => {
               updateLove();
             }}

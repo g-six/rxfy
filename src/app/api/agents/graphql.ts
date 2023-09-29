@@ -60,7 +60,7 @@ export const GQ_FRAG_AGENT_CUSTOMER = `data {
                       phone_number
                       birthday
                       last_activity_at
-                      saved_searches(filters: { city: { notNull: true } }, pagination: { limit: 1 }, sort: "desc" ) {
+                      saved_searches(filters: { city: { notNull: true } }, pagination: { limit: 1 }, sort: "createdAt:desc" ) {
                         data {
                           id
                           attributes {
