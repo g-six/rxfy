@@ -193,7 +193,13 @@ export async function buildCacheFiles(mls_id: string): Promise<
       } else if (promises[1]) strapi_record = promises[1];
 
       if (strapi_record.complex_compound_name) {
+        console.log(' ');
+        console.log(' ');
+        console.log('---');
         console.log('strapi_record.complex_compound_name', strapi_record.complex_compound_name);
+        console.log('---');
+        console.log(' ');
+        console.log(' ');
       }
 
       if (strapi_record.photos?.length) {
@@ -243,22 +249,21 @@ export async function buildCacheFiles(mls_id: string): Promise<
 
 export async function getPropertyByMlsId(mls_id: string, legacy_data?: { photos?: string[] }) {
   try {
-    const response = await axios.post(
-      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-      {
+    const xhr = await fetch(`${process.env.NEXT_APP_CMS_GRAPHQL_URL}`, {
+      body: JSON.stringify({
         query: gql_mls,
         variables: {
           mls_id,
         },
+      }),
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+        'Content-Type': 'application/json',
       },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-          'Content-Type': 'application/json',
-        },
-      },
-    );
-    const data_records = response?.data?.data?.properties?.data;
+      method: 'POST',
+    });
+    const json = await xhr.json();
+    const data_records = json?.data?.properties?.data;
 
     if (data_records && Array.isArray(data_records) && data_records.length) {
       const records: PropertyDataModel[] = [];

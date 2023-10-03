@@ -32,7 +32,7 @@ export default function HeartButton({
   };
 
   useEffect(() => {
-    setLovedItems(getData(Events.LovedItem) as unknown as string[]);
+    setLovedItems((getData(Events.LovedItem) as unknown as string[]) || []);
   }, []);
 
   const is_loved = ((getData(Events.LovedItem) as unknown as string[]) || []).includes(listing.mls_id);

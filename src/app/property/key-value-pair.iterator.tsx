@@ -13,7 +13,7 @@ export default function KeyValueIterator({ children, ...props }: { children: Rea
   });
 
   return (
-    <div className={props.className} suppressHydrationWarning>
+    <div className={props.className} rx-component='property.key-value-pair.iterator' rx-labelled-as={props.label} suppressHydrationWarning>
       {Rexified}
     </div>
   );
