@@ -1,8 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React from 'react';
+import React, { cloneElement } from 'react';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { sortArrayAlphabetically } from '@/_utilities/array-helper';
 import styles from './RxCompareFiltersModal.module.scss';
+import { CheckIcon } from '@heroicons/react/24/solid';
+import { classNames } from '@/_utilities/html-helper';
 type Props = {
   children: React.ReactElement;
   className?: string;
@@ -74,6 +76,55 @@ function Iterator(
           </div>
         );
       }
+    } else if (child.props['data-group'] === 'category_field' && p.category) {
+      // filter checkbox
+      return (
+        <>
+          {p.category &&
+            p.category.name &&
+            p.category.options
+              .filter(({ label }) => {
+                if (p.keyword?.length && label.toLowerCase().indexOf(p.keyword.toLowerCase()) === -1) {
+                  return false;
+                }
+                return true;
+              })
+              .map(c => {
+                return React.cloneElement(
+                  child,
+                  {
+                    key: `${c.label}-${c.value}`,
+                    onClick: (evt: React.MouseEvent<HTMLLabelElement>) => {
+                      evt.preventDefault();
+                      evt.stopPropagation();
+                      p.category && p.toggleFilter(p.category.name, c.label);
+                    },
+                  },
+                  child.props.children
+                    ? React.Children.map(child.props.children, cc => {
+                        if (cc.type === 'div') {
+                          return (
+                            <span
+                              className={[
+                                cc.props.className,
+                                c.label &&
+                                p.category &&
+                                p['selected-filters'] &&
+                                p['selected-filters'][p.category.name] &&
+                                p['selected-filters'][p.category.name].indexOf(c.label) >= 0
+                                  ? 'w--redirected-checked'
+                                  : '',
+                              ].join(' ')}
+                            />
+                          );
+                        } else if (cc.type === 'input') return <></>;
+                        return cloneElement(cc, {}, c.label);
+                      })
+                    : undefined,
+                );
+              })}
+        </>
+      );
     } else if (child.type === 'a') {
       if (child.props.className?.indexOf('filter-update-button') >= 0) {
         return React.cloneElement(<button type='button' />, {
@@ -90,7 +141,7 @@ function Iterator(
           }),
         });
       }
-      if (child.props.children.props.children === '{Category}')
+      if (child.props.children.props.children === 'Category')
         return p.filters
           ? p.filters.map(cat =>
               React.cloneElement(<button type='button' data-key={cat} />, {
@@ -109,9 +160,16 @@ function Iterator(
             )
           : [];
     } else if (child.type === 'label') {
-      return React.cloneElement(child, {
-        ...child.props,
-        children: React.Children.map(child.props.children, checkbox => {
+      return React.cloneElement(
+        child,
+        {
+          onClick: (evt: React.MouseEvent<HTMLLabelElement>) => {
+            evt.preventDefault();
+            evt.stopPropagation();
+            p.category && p.toggleFilter(p.category.name, p['child-category']?.label);
+          },
+        },
+        React.Children.map(child.props.children, checkbox => {
           if (checkbox.type === 'div') {
             return (
               <span
@@ -134,21 +192,10 @@ function Iterator(
               ...checkbox.props,
               children: p['child-category'] ? p['child-category'].label : '',
             });
-          } else if (checkbox.type) {
-            return React.cloneElement(checkbox, {
-              ...checkbox.props,
-              name: `${p.category?.name}[]`,
-              value: p['child-category'] ? p['child-category'].value : '',
-            });
           }
           return checkbox;
         }),
-        onClick: (evt: React.MouseEvent<HTMLLabelElement>) => {
-          evt.preventDefault();
-          evt.stopPropagation();
-          p.category && p.toggleFilter(p.category.name, p['child-category']?.label);
-        },
-      });
+      );
     }
     return child;
   });

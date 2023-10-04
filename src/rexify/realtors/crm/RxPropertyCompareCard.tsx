@@ -114,24 +114,25 @@ export default function RxPropertyCompareCard(
             ...child.props,
             key: `${child.props.className}-${p.property.id}`,
             children: p['include-stats'].map((stat_name: string) => {
-              return React.cloneElement(child.props.children[0], {
-                ...child.props.children[0].props,
-                key: stat_name || 'no-valid-stat-name',
-                children: (
-                  <StatsIterator
-                    key={stat_name || 'no-valid-stat-name'}
-                    label={stat_name}
-                    value={getStatsValue(
-                      stat_name,
-                      p.property as unknown as {
-                        [key: string]: string;
-                      },
-                    )}
-                  >
-                    {child.props.children[0].props.children}
-                  </StatsIterator>
-                ),
-              });
+              if (child.props.children)
+                return React.cloneElement(child.props.children[0], {
+                  ...child.props.children[0].props,
+                  key: stat_name || 'no-valid-stat-name',
+                  children: (
+                    <StatsIterator
+                      key={stat_name || 'no-valid-stat-name'}
+                      label={stat_name}
+                      value={getStatsValue(
+                        stat_name,
+                        p.property as unknown as {
+                          [key: string]: string;
+                        },
+                      )}
+                    >
+                      {child.props.children[0].props.children}
+                    </StatsIterator>
+                  ),
+                });
             }),
           })
         ) : (
@@ -302,24 +303,25 @@ function CompareCardItems(
             ...child.props,
             key: `${child.props.className}-${p.property.id}`,
             children: p['include-stats'].map((stat_name: string) => {
-              return React.cloneElement(child.props.children[0], {
-                ...child.props.children[0].props,
-                key: stat_name || 'no-valid-stat-name',
-                children: (
-                  <StatsIterator
-                    key={stat_name || 'no-valid-stat-name'}
-                    label={stat_name}
-                    value={getStatsValue(
-                      stat_name,
-                      p.property as unknown as {
-                        [key: string]: string;
-                      },
-                    )}
-                  >
-                    {child.props.children[0].props.children}
-                  </StatsIterator>
-                ),
-              });
+              if (child.props.children && child.props.children.length)
+                return React.cloneElement(child.props.children[0], {
+                  ...child.props.children[0].props,
+                  key: stat_name || 'no-valid-stat-name',
+                  children: (
+                    <StatsIterator
+                      key={stat_name || 'no-valid-stat-name'}
+                      label={stat_name}
+                      value={getStatsValue(
+                        stat_name,
+                        p.property as unknown as {
+                          [key: string]: string;
+                        },
+                      )}
+                    >
+                      {child.props.children[0].props.children}
+                    </StatsIterator>
+                  ),
+                });
             }),
           })
         ) : (

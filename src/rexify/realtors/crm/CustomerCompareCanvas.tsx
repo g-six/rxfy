@@ -24,8 +24,9 @@ function Iterator(
 ) {
   const Wrapper = React.Children.map(p.children, (child, idx: number) => {
     if (child.type === 'div') {
-      if (child.props?.className?.indexOf('propcompare-card') >= 0) {
+      if (child.props['data-component'] === 'compare_column') {
         if (idx === 0) {
+          console.log(p.cards);
           return (
             <>
               {p.cards &&

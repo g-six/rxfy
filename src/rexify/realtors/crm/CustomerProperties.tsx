@@ -100,6 +100,9 @@ function Iterator(p: {
                   'data-property-id': property.id,
                   'data-love-id': property.love,
                   className: classNames(child.props.className || 'no-default-class', 'cursor-pointer'),
+                  onClick: () => {
+                    p.onSelectProperty(property);
+                  },
                 },
                 <PropertyIterator property={listing}>{child.props.children}</PropertyIterator>,
               );
@@ -155,20 +158,6 @@ export default function CustomerProperties(p: Props) {
         if (data.records) {
           setProperties(data.records);
           lovers.fireEvent(data as unknown as EventsData);
-          let default_property = false;
-          data.records.forEach((property: LovedPropertyDataModel) => {
-            if (!default_property) {
-              default_property = true;
-              onSelectProperty(
-                property.cover_photo
-                  ? property
-                  : {
-                      ...property,
-                      cover_photo: '/house-placeholder.png',
-                    },
-              );
-            }
-          });
         }
       });
     }
