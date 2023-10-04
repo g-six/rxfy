@@ -15,6 +15,7 @@ import { classNames } from '@/_utilities/html-helper';
 import { Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
+import { formatAddress } from '@/_utilities/string-helper';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
 
@@ -216,7 +217,7 @@ export default function RxMapView({
   }, []);
 
   return (
-    <section className='w-full h-full relative'>
+    <section className='w-full h-full relative '>
       <div
         ref={mapDiv}
         key='map'
@@ -226,12 +227,12 @@ export default function RxMapView({
       />
       <Transition
         show={!!property}
-        enter='transition-opacity duration-400'
-        enterFrom='opacity-0'
-        enterTo='opacity-100 top-0 left-0 bg-black/10 h-full w-full absolute'
-        leave='transition-opacity duration-150'
+        enter='transition-all duration-400'
+        enterFrom='opacity-0 bg-black'
+        enterTo='opacity-100 left-0 h-full bg-black/30 top-0 w-full absolute'
+        leave='transition-all duration-150'
         leaveFrom='opacity-100'
-        leaveTo='opacity-0'
+        leaveTo='opacity-0 scale-100'
       >
         {property && (
           <PropertyCard
@@ -271,8 +272,8 @@ function PropertyCardIterator({ children, property }: { children: React.ReactEle
     }
 
     if (c.props?.['data-field']) {
-      const field = c.props?.['data-field'].includes('address') ? 'title' : c.props?.['data-field'];
-      const value = formatValues(property, field);
+      const field = c.props?.['data-field'];
+      const value = c.props?.['data-field'].includes('address') ? formatAddress(property.title) : formatValues(property, field);
       if (value) {
         return React.cloneElement(c, {}, value);
       }
