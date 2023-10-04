@@ -4,9 +4,7 @@ import { getResponse } from '../response-helper';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getNewSessionKey } from '../update-session';
 import { getMutationForPhotoAlbumCreation } from '@/_utilities/data-helpers/property-page';
-import { POST as getPipelineListings } from '@/app/api/pipeline/route';
 import { getLovedHomes, regenerateRecords } from './model';
-import { NextRequest } from 'next/server';
 import { buildCacheFiles } from '../properties/model';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,

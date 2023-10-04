@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import { AgentData } from '@/_typings/agent';
 import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
 import Cookies from 'js-cookie';
@@ -48,6 +48,7 @@ export default function Container({ agent, children }: { children: React.ReactEl
   const selectPropertyEvt = useEvent(Events.SelectCustomerLovedProperty);
   const session_key = Cookies.get('session_key');
   const session = useEvent(Events.LoadUserSession);
+  const [is_ready, toggleReadiness] = useState(false);
   const {
     data: { 'active-crm-saved-homes-view': active_tab },
   } = session as unknown as {
@@ -108,6 +109,7 @@ export default function Container({ agent, children }: { children: React.ReactEl
               properties: loved_properties,
             } as unknown as EventsData);
             selectPropertyEvt.fireEvent(loved_properties[0] as unknown as EventsData);
+            toggleReadiness(true);
           });
         })
         .catch(() => {
@@ -120,7 +122,7 @@ export default function Container({ agent, children }: { children: React.ReactEl
     loadData();
   }, []);
 
-  return (
+  return is_ready ? (
     <ClientDashboardIterator
       id='SavedHome'
       className={'RxCustomerView-ClientDashboardIterator rexified'}
@@ -139,5 +141,7 @@ export default function Container({ agent, children }: { children: React.ReactEl
     >
       {children}
     </ClientDashboardIterator>
+  ) : (
+    <></>
   );
 }

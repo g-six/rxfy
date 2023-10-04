@@ -20,7 +20,7 @@ import RxNotifications from '@/components/RxNotifications';
 function isBuildingUnit(property: { complex_compound_name?: string; style_type?: string }) {
   return property.style_type?.includes('Apartment') || property.complex_compound_name;
 }
-function replaceAgentFields($: CheerioAPI) {
+export function replaceAgentFields($: CheerioAPI) {
   if ($('img[data-field="headshot"]')) {
     const src = headers().get('x-agent-headshot');
     if (src) {

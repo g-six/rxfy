@@ -7,3 +7,13 @@
     @apply h-full w-full;
   }
 }
+
+.listings-modal {
+  @apply bg-white relative mx-auto left-1/2 -translate-x-1/2 top-1/4 inline-block rounded-3xl shadow-2xl;
+  :global(.property-card-small) {
+    @apply shadow-none #{!important};
+  }
+  :global(.property-card-small + .property-card-small) {
+    @apply pt-0 #{!important};
+  }
+}

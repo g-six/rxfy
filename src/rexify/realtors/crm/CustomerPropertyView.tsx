@@ -1,6 +1,6 @@
 'use client';
-import React from 'react';
-import { LovedPropertyDataModel, PropertyDataModel } from '@/_typings/property';
+import React, { ReactElement, cloneElement } from 'react';
+import { BathroomDetails, LovedPropertyDataModel, PropertyDataModel, RoomDetails } from '@/_typings/property';
 import useEvent, { Events } from '@/hooks/useEvent';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
@@ -13,6 +13,12 @@ import RxFeatures from '@/components/RxProperty/RxFeatures';
 import { getFeatureIcons } from '@/_helpers/functions';
 import { retrievePublicListingsFromPipeline } from '@/_utilities/api-calls/call-legacy-search';
 import { LegacySearchPayload } from '@/_typings/pipeline';
+import { formatValues } from '@/_utilities/data-helpers/property-page';
+import KeyValueIterator from '@/app/property/key-value-pair.iterator';
+import { construction_kv, financial_kv, property_info_kv } from '@/app/property/type.definition';
+import { classNames } from '@/_utilities/html-helper';
+import SimilarHomes from '@/components/SimilarHomes';
+import RxMapOfListing from '@/components/RxMapOfListing';
 
 type Props = {
   children: React.ReactElement;
@@ -44,57 +50,170 @@ function OtherUnits({ children, neighbours }: { children: React.ReactElement; ne
   return <>{Wrapped}</>;
 }
 
+function PhotoComponentsIterator(p: { 'data-field': string; photos: string[]; children: ReactElement }) {
+  switch (p['data-field']) {
+    case 'image_1':
+      return React.cloneElement(p.children, {
+        style: {
+          backgroundImage: `url(${getImageSized(p.photos[0], 780)})`,
+        },
+      });
+    case 'image_2':
+      if (p.photos.length > 1)
+        return React.cloneElement(p.children, {
+          style: {
+            backgroundImage: `url(${getImageSized(p.photos[1], 580)})`,
+          },
+        });
+    case 'image_3':
+      if (p.photos.length > 2)
+        return React.cloneElement(p.children, {
+          style: {
+            backgroundImage: `url(${getImageSized(p.photos[2], 580)})`,
+          },
+        });
+    default:
+      const photo_number = Number(p['data-field'].split('_').pop());
+      if (p.photos.length >= photo_number)
+        return React.cloneElement(p.children, {
+          style: {
+            backgroundImage: `url(${getImageSized(p.photos[photo_number - 1], 360)})`,
+          },
+        });
+  }
+}
+
+function RoomsIterator(p: { children: ReactElement; rooms: RoomDetails[]; className?: string }) {
+  const dimensions: ReactElement[] = [];
+  p.rooms
+    .filter(room => room.type?.toLowerCase() !== 'bedroom' && room.type?.toLowerCase().includes('bed'))
+    .map((k, idx) => (
+      <KeyValueIterator
+        label={k.type}
+        value={`${k.width} x ${k.length}`}
+        key={`${k.type} ${k.level} ${k.width} x ${k.length} ${idx}`}
+        className={p.className || 'no-default-class'}
+      >
+        {p.children}
+      </KeyValueIterator>
+    ))
+    .concat(
+      p.rooms
+        .filter(room => room.type?.toLowerCase() === 'bedroom')
+        .map((k, idx) => (
+          <KeyValueIterator
+            label={k.type}
+            value={`${k.width} x ${k.length}`}
+            key={`${k.type} ${k.level} ${k.width} x ${k.length} ${idx}`}
+            className={p.className || 'no-default-class'}
+          >
+            {p.children}
+          </KeyValueIterator>
+        )),
+    )
+    .forEach(r => dimensions.push(r));
+
+  return dimensions;
+}
+
+function BathsIterator(p: { children: ReactElement; baths: BathroomDetails[]; className?: string }) {
+  const dimensions: ReactElement[] = [];
+  p.baths
+    .filter(bath => bath.ensuite?.toLowerCase() === 'yes')
+    .map((k, idx) => (
+      <KeyValueIterator
+        label={`Ensuite bath ${idx + 1} (${k.level} floor)`}
+        value={`${k.pieces}-pc`}
+        key={`bath-${idx + 1}`}
+        className={p.className || 'no-default-class'}
+      >
+        {p.children}
+      </KeyValueIterator>
+    ))
+    .forEach(r => dimensions.push(r));
+
+  return dimensions;
+}
+
 function Iterator(p: Props & { property?: PropertyDataModel }) {
   const Wrapped = React.Children.map(p.children, child => {
     if (child.props?.children || child.props?.className) {
       if (child.type === 'div') {
-        if (child.props.children?.type === 'img') {
-          if (p.property?.photos?.length) {
-            switch (child.props.children.props.className) {
-              case 'view-only-main-image':
-                return React.cloneElement(child, {
-                  ...child.props,
-                  children: React.cloneElement(child.props.children, {
-                    ...child.props.children.props,
-                    src: getImageSized(p.property.photos[0], 780),
-                    srcSet: undefined,
-                  }),
-                });
-              case 'property-image-2':
-                if (p.property.photos.length > 1)
-                  return React.cloneElement(child, {
-                    ...child.props,
-                    children: React.cloneElement(child.props.children, {
-                      ...child.props.children.props,
-                      src: getImageSized(p.property.photos[1], 580),
-                      srcSet: undefined,
-                    }),
-                  });
-              case 'property-image-3':
-                if (p.property.photos.length > 2)
-                  return React.cloneElement(child, {
-                    ...child.props,
-                    children: React.cloneElement(child.props.children, {
-                      ...child.props.children.props,
-                      src: getImageSized(p.property.photos[2], 580),
-                      srcSet: undefined,
-                    }),
-                  });
+        if (child.props.className?.includes('similar-')) {
+          return <></>;
+        }
+        if (child.props['data-field'] && child.props['data-field'] !== 'image_cover') {
+          if (child.props['data-field'].includes('image_') && !isNaN(Number(child.props['data-field'].split('_').pop())) && p.property?.photos?.length)
+            return (
+              <PhotoComponentsIterator photos={p.property.photos} {...child.props}>
+                {child}
+              </PhotoComponentsIterator>
+            );
+          else {
+            const value = formatValues(p.property, child.props['data-field']);
+            if (value) return cloneElement(child, {}, value);
+            else {
+              if (['lot_sqft', 'lot_sqm'].includes(child.props['data-field'])) {
+                switch (child.props['data-field']) {
+                  case 'lot_sqft':
+                    if (p.property?.lot_sqm) return cloneElement(child, {}, formatValues(p.property, 'lot_sqm') + ' sqm');
+                  default:
+                    if (p.property?.lot_sqft) return cloneElement(child, {}, formatValues(p.property, 'lot_sqft'));
+                }
+              } else if (['property_info', 'financial_info', 'construction_info'].includes(child.props['data-field'])) {
+                const data = p.property as unknown as { [key: string]: string };
+
+                let key_value_pair = property_info_kv;
+                if (child.props['data-field'] === 'financial_info') key_value_pair = financial_kv;
+                if (child.props['data-field'] === 'construction_info') key_value_pair = construction_kv;
+
+                return Object.keys(data)
+                  .filter(k => key_value_pair[k])
+                  .map(k => (
+                    <KeyValueIterator key={k} className={child.props.className} label={key_value_pair[k]} value={formatValues(p.property, k)}>
+                      {child.props.children}
+                    </KeyValueIterator>
+                  ));
+              } else if (child.props['data-field'] === 'dimensions_info') {
+                let Rooms: React.JSX.Element = <></>;
+                if (p.property?.room_details) {
+                  const { rooms } = p.property.room_details as unknown as {
+                    rooms: RoomDetails[];
+                  };
+                  Rooms = (
+                    <RoomsIterator rooms={rooms} className={child.props.className}>
+                      {child.props.children}
+                    </RoomsIterator>
+                  );
+                }
+
+                let Baths: React.JSX.Element = <></>;
+                if (p.property?.bathroom_details) {
+                  const { baths } = p.property.bathroom_details as unknown as {
+                    baths: BathroomDetails[];
+                  };
+                  Baths = (
+                    <BathsIterator baths={baths} className={child.props.className}>
+                      {child.props.children}
+                    </BathsIterator>
+                  );
+                }
+                return (
+                  <>
+                    {Rooms}
+                    {Baths}
+                  </>
+                );
+              }
+              return <></>;
             }
           }
-        } else if (p.property?.photos && p.property.photos.length > 2 && child.props.className === 'property-image-collection') {
-          return React.cloneElement(child, {
-            ...child.props,
-            children: p.property.photos.slice(3, 7).map(src => {
-              return React.cloneElement(child.props.children[0], {
-                ...child.props.children[0].props,
-                key: src,
-                src: getImageSized(src, 400),
-                srcSet: undefined,
-              });
-            }),
-          });
         } else if (typeof child.props.children === 'string') {
+          if (child.props['data-field'] === 'sqft') {
+            return React.cloneElement(child, {
+              children: new Intl.NumberFormat().format(p.property?.floor_area || p.property?.floor_area_total || p.property?.floor_area_main || 0) || 'N/A',
+            });
+          }
           switch (child.props.children) {
             case '{Price}':
               return React.cloneElement(child, {
@@ -227,6 +346,10 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
           </div>
         );
       }
+
+      if (child.type === 'img' && child.props?.['data-field']) {
+        return <ImageRexifier {...p} {...child.props} />;
+      }
     }
     return child;
   });
@@ -234,11 +357,33 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
   return <>{Wrapped}</>;
 }
 
+function ImageRexifier({
+  agent,
+  property,
+  neighbours,
+  'map-image': src,
+  ...props
+}: {
+  agent: AgentData;
+  property: PropertyDataModel;
+  id?: string;
+  className?: string;
+  'map-image': string;
+  neighbours: PropertyDataModel[];
+  'data-field': string;
+}) {
+  if (props['data-field'] === 'map_view') return <RxMapOfListing key={0} child={<div />} mapType={'neighborhood'} property={property} />;
+  else if (props['data-field'] === 'street_view') {
+    return <RxMapOfListing key={0} child={<div />} mapType={'street'} property={property} />;
+  }
+}
+
 export default function RxCustomerPropertyView(p: Props) {
   const session = useEvent(Events.LoadUserSession);
   const selectPropertyEvt = useEvent(Events.SelectCustomerLovedProperty);
   const [property, selectProperty] = React.useState<PropertyDataModel>();
   const [other_units_in_bldg, setBuildingUnits] = React.useState<PropertyDataModel[]>();
+  const [map_image, setMapImage] = React.useState('');
   const agent = (p.agent || session.data) as unknown as AgentData;
 
   React.useEffect(() => {
@@ -296,7 +441,7 @@ export default function RxCustomerPropertyView(p: Props) {
 
   return property ? (
     <div className={`${p.className} ${property?.id ? styles['opened-property-view'] : styles['closed-property-view']}`}>
-      <Iterator {...props} property={property} neighbours={other_units_in_bldg} agent={agent} reload={reload}>
+      <Iterator {...props} property={property} map-image={map_image} neighbours={other_units_in_bldg} agent={agent} reload={reload}>
         {p.children}
       </Iterator>
     </div>

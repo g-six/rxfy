@@ -6,6 +6,7 @@ import { findAgentRecordByAgentId } from '@/app/api/agents/model';
 import { CheerioAPI, load } from 'cheerio';
 import Container from './container.module';
 import NavIterator from '@/components/Nav/RxNavIterator';
+import { replaceAgentFields } from '@/app/property/page';
 
 export const metadata = {
   title: 'Leagent Real Estate Dashboard',
@@ -19,6 +20,17 @@ export default async function ClientDashboard({ params }: { params: { [key: stri
     const $: CheerioAPI = load(html);
     const nav = $('body .navbar---dashboard');
     $('body .navbar---dashboard').remove();
+    $('[data-field="financial_info"]').each((i, el) => {
+      if (i > 0) $(el).remove();
+    });
+    $('[data-field="construction_info"]').each((i, el) => {
+      if (i > 0) $(el).remove();
+    });
+    $('[data-field="feature_block"]').each((i, el) => {
+      if (i > 0) $(el).remove();
+    });
+
+    replaceAgentFields($);
     const contents = $('body > div > div:not(.navbar---dashboard)');
     return (
       <main className={$('body > div').attr('class')}>

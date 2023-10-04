@@ -16,6 +16,7 @@ import { Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import { formatAddress } from '@/_utilities/string-helper';
+import { RxSmallPropertyCard } from '@/components/RxCards/RxSmallPropertyCard';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
 
@@ -39,7 +40,7 @@ export default function RxMapView({
   const [map, setMap] = React.useState<mapboxgl.Map | null>(null);
   const [lat_lng, setLngLat] = React.useState<mapboxgl.LngLatLike>([lng || -123.1207, lat || 49.2827]);
   const [pins, setPins] = React.useState<Feature[]>();
-  const [property, setProperty] = React.useState<Feature | undefined>(undefined);
+  const [items, setItems] = React.useState<Feature[] | undefined>(undefined);
 
   const clickEventListener = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
     const features = e.target.queryRenderedFeatures(e.point, {
@@ -47,9 +48,9 @@ export default function RxMapView({
     });
 
     if (features) {
-      features.forEach(({ properties }: MapboxGeoJSONFeature) => {
-        if (properties) {
-          const { cluster_id, point_count, cluster: is_cluster } = properties;
+      features.forEach(({ properties: pins }: MapboxGeoJSONFeature) => {
+        if (pins) {
+          const { cluster_id, point_count, cluster: is_cluster } = pins;
           const cluster_source: GeoJSONSource = e.target.getSource('map-source') as GeoJSONSource;
 
           // Get children of the cluster
@@ -61,9 +62,9 @@ export default function RxMapView({
                 x: e.point.x,
                 y: e.point.y,
                 selected_pin: feats.map(
-                  ({ id, properties }) =>
+                  ({ id, ...pin }) =>
                     ({
-                      ...properties,
+                      ...pin.properties,
                       id,
                     }) as unknown as LovedPropertyDataModel,
                 ),
@@ -71,7 +72,7 @@ export default function RxMapView({
             });
           } else {
             lovers.fireEvent({
-              selected_pin: [properties],
+              selected_pin: [pins],
               x: e.point.x,
               y: e.point.y,
             } as unknown as EventsData);
@@ -89,10 +90,10 @@ export default function RxMapView({
       center: lat_lng,
       zoom: 10,
     });
-    m.on('idle', () => {
-      m.resize();
-      // generateMapPoints();
-    });
+    // m.on('idle', () => {
+    //   m.resize();
+    //   // generateMapPoints();
+    // });
     setMap(m);
   };
 
@@ -148,13 +149,13 @@ export default function RxMapView({
     if (mapDiv && mapDiv.current && session.data?.clicked) {
       if (!pins) {
         const customer_id = searchParams.get('customer') as unknown as number;
-        getLovedHomes(customer_id).then(data => {
-          if (data.records) {
-            if (data.records && data.records.length) {
-              addPoints(data.records);
-            }
-          }
-        });
+        // getLovedHomes(customer_id).then(data => {
+        //   if (data.records) {
+        //     if (data.records && data.records.length) {
+        //       addPoints(data.records);
+        //     }
+        //   }
+        // });
       } else {
         map?.resize();
       }
@@ -205,10 +206,7 @@ export default function RxMapView({
       const { selected_pin } = lovers.data as unknown as {
         selected_pin?: Feature[];
       };
-      if (selected_pin?.length === 1) {
-        const [selection] = selected_pin;
-        setProperty(selection);
-      }
+      setItems(selected_pin);
     }
   }, [lovers.data]);
 
@@ -226,7 +224,7 @@ export default function RxMapView({
         style={{ height: '100%', width: '100%', backgroundImage: 'none' }}
       />
       <Transition
-        show={!!property}
+        show={!!items}
         enter='transition-all duration-400'
         enterFrom='opacity-0 bg-black'
         enterTo='opacity-100 left-0 h-full bg-black/30 top-0 w-full absolute'
@@ -234,16 +232,35 @@ export default function RxMapView({
         leaveFrom='opacity-100'
         leaveTo='opacity-0 scale-100'
       >
-        {property && (
+        {items && items.length === 1 && (
           <PropertyCard
             className={children.props.className}
-            property={property as unknown as PropertyDataModel}
+            property={items[0] as unknown as PropertyDataModel}
             onClose={() => {
-              setProperty(undefined);
+              setItems(undefined);
             }}
           >
             {children.props.children}
           </PropertyCard>
+        )}
+        {items && items.length > 1 ? (
+          <div className={styles['listings-modal']}>
+            {items.map(property => (
+              <RxSmallPropertyCard key={property.id} {...(property as unknown as PropertyDataModel)} />
+            ))}
+            <button
+              type='button'
+              className='text-gray-100 hover:text-gray-500 focus:outline-none focus:ring-0 bg-black absolute -top-2 -right-2 z-20 rounded-full w-6 h-6 flex flex-col items-center justify-center'
+              onClick={() => {
+                setItems(undefined);
+              }}
+            >
+              <span className='sr-only'>Close</span>
+              <XMarkIcon className='h-4 w-4' aria-hidden='true' />
+            </button>
+          </div>
+        ) : (
+          <></>
         )}
       </Transition>
     </section>

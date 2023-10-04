@@ -17,6 +17,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'e52tn40a.cdn.imgeng.in',
       },
+      {
+        protocol: 'https',
+        hostname: 'api.mapbox.com',
+      },
     ],
   },
 };
