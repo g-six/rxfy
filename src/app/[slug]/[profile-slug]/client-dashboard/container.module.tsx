@@ -104,8 +104,6 @@ export default function Container({ agent, children }: { children: React.ReactEl
               };
             });
 
-            console.log({ loved_properties });
-
             lovers.fireEvent({
               properties: loved_properties,
             } as unknown as EventsData);

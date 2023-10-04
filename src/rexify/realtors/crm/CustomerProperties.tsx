@@ -5,6 +5,7 @@ import { LovedPropertyDataModel, PropertyDataModel } from '@/_typings/property';
 import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
+import { classNames } from '@/_utilities/html-helper';
 import RxPropertyCard from '@/components/RxCards/RxPropertyCard';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { useSearchParams } from 'next/navigation';
@@ -33,8 +34,37 @@ function PropertyIterator({ children, ...p }: { children: ReactElement; property
           [k: string]: string;
         };
 
-        if (c.props['data-field'] === 'address') value = formatValues(p.property, 'title');
-        if (c.props['data-field'] === 'price') value = formatValues(p.property, 'asking_price');
+        if (c.props['data-field'] === 'address')
+          return cloneElement(
+            c,
+            {
+              className: classNames(c.props.className || 'no-default-class', 'cursor-pointer', 'overflow-hidden'),
+            },
+            formatValues(p.property, 'title'),
+          );
+        if (c.props['data-field'] === 'area')
+          return cloneElement(
+            c,
+            {
+              className: classNames(c.props.className || 'no-default-class', 'cursor-pointer', 'overflow-hidden'),
+            },
+            formatValues(p.property, 'area'),
+          );
+        if (c.props['data-field'] === 'asking_price') value = formatValues(p.property, 'asking_price');
+        if (c.props['data-field'] === 'cover_photo') {
+          value = '';
+          if (p.property.cover_photo)
+            return cloneElement(
+              c,
+              {
+                className: classNames(c.props.className || 'no-default-class', 'cursor-pointer'),
+                style: {
+                  backgroundImage: `url(${p.property.cover_photo})`,
+                },
+              },
+              value,
+            );
+        }
         return cloneElement(c, {}, value);
       } else if (c.props.className?.includes('image') && p.property.cover_photo) {
         return cloneElement(c, { style: { backgroundImage: `url(${p.property.cover_photo})` } });
@@ -65,7 +95,12 @@ function Iterator(p: {
               };
               return cloneElement(
                 child,
-                { key: `${property.id}-${property.love}` },
+                {
+                  key: `${property.id}-${property.love}`,
+                  'data-property-id': property.id,
+                  'data-love-id': property.love,
+                  className: classNames(child.props.className || 'no-default-class', 'cursor-pointer'),
+                },
                 <PropertyIterator property={listing}>{child.props.children}</PropertyIterator>,
               );
             })

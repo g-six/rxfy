@@ -7,6 +7,10 @@ import { CheerioAPI, load } from 'cheerio';
 import Container from './container.module';
 import NavIterator from '@/components/Nav/RxNavIterator';
 
+export const metadata = {
+  title: 'Leagent Real Estate Dashboard',
+};
+
 export default async function ClientDashboard({ params }: { params: { [key: string]: string } }) {
   const { data: html } = await axios.get('https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/client-dashboard');
   const agent = await findAgentRecordByAgentId(params.slug);

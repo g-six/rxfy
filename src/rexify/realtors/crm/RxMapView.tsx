@@ -4,17 +4,33 @@ import React from 'react';
 import mapboxgl, { GeoJSONSource, GeoJSONSourceRaw, MapboxGeoJSONFeature } from 'mapbox-gl';
 import { Feature } from 'geojson';
 import styles from './RxMapView.module.scss';
-import { LovedPropertyDataModel } from '@/_typings/property';
+import { LovedPropertyDataModel, PropertyDataModel } from '@/_typings/property';
 import { Events, EventsData } from '@/hooks/useFormEvent';
 import useEvent from '@/hooks/useEvent';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import { addClusterHomeCountLayer, addClusterLayer, addSingleHomePins } from '@/components/RxMapbox';
 import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
 import { useSearchParams } from 'next/navigation';
+import { classNames } from '@/_utilities/html-helper';
+import { Transition } from '@headlessui/react';
+import { XMarkIcon } from '@heroicons/react/24/solid';
+import { formatValues } from '@/_utilities/data-helpers/property-page';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
 
-export default function RxMapView({ lat, lng, properties }: { lat?: number; lng?: number; properties?: LovedPropertyDataModel[] }) {
+export default function RxMapView({
+  children,
+  lat,
+  lng,
+  properties,
+  ...props
+}: {
+  children: React.ReactElement;
+  lat?: number;
+  lng?: number;
+  className?: string;
+  properties?: LovedPropertyDataModel[];
+}) {
   const searchParams = useSearchParams();
   const session = useEvent(Events.LoadUserSession);
   const lovers = useEvent(Events.LoadLovers);
@@ -22,6 +38,7 @@ export default function RxMapView({ lat, lng, properties }: { lat?: number; lng?
   const [map, setMap] = React.useState<mapboxgl.Map | null>(null);
   const [lat_lng, setLngLat] = React.useState<mapboxgl.LngLatLike>([lng || -123.1207, lat || 49.2827]);
   const [pins, setPins] = React.useState<Feature[]>();
+  const [property, setProperty] = React.useState<Feature | undefined>(undefined);
 
   const clickEventListener = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
     const features = e.target.queryRenderedFeatures(e.point, {
@@ -183,12 +200,113 @@ export default function RxMapView({ lat, lng, properties }: { lat?: number; lng?
   }, [map?.isStyleLoaded()]);
 
   React.useEffect(() => {
-    // attachMap(setMap, mapDiv);
+    if (lovers.data) {
+      const { selected_pin } = lovers.data as unknown as {
+        selected_pin?: Feature[];
+      };
+      if (selected_pin?.length === 1) {
+        const [selection] = selected_pin;
+        setProperty(selection);
+      }
+    }
+  }, [lovers.data]);
+
+  React.useEffect(() => {
+    attachMap(setMap, mapDiv);
   }, []);
 
   return (
     <section className='w-full h-full relative'>
-      <div ref={mapDiv} className={`map-container ${styles['map-container']}`} style={{ height: '100%', width: '100%' }} />
+      <div
+        ref={mapDiv}
+        key='map'
+        {...props}
+        className={classNames(props.className || 'no-map-container-class', styles['map-container'])}
+        style={{ height: '100%', width: '100%', backgroundImage: 'none' }}
+      />
+      <Transition
+        show={!!property}
+        enter='transition-opacity duration-400'
+        enterFrom='opacity-0'
+        enterTo='opacity-100 top-0 left-0 bg-black/10 h-full w-full absolute'
+        leave='transition-opacity duration-150'
+        leaveFrom='opacity-100'
+        leaveTo='opacity-0'
+      >
+        {property && (
+          <PropertyCard
+            className={children.props.className}
+            property={property as unknown as PropertyDataModel}
+            onClose={() => {
+              setProperty(undefined);
+            }}
+          >
+            {children.props.children}
+          </PropertyCard>
+        )}
+      </Transition>
     </section>
+  );
+}
+
+function PropertyCardIterator({ children, property }: { children: React.ReactElement; property: PropertyDataModel }) {
+  const Wrapped = React.Children.map(children, c => {
+    if (c.props?.children && typeof c.props?.children !== 'string') {
+      if (c.props['data-field'] === 'image_cover') {
+        if (property.cover_photo) {
+          return React.cloneElement(
+            c,
+            {
+              'data-url': property.cover_photo,
+              style: {
+                backgroundImage: `url(${property.cover_photo})`,
+              },
+            },
+            <PropertyCardIterator property={property}>{c.props.children}</PropertyCardIterator>,
+          );
+        }
+      }
+
+      return React.cloneElement(c, {}, <PropertyCardIterator property={property}>{c.props.children}</PropertyCardIterator>);
+    }
+
+    if (c.props?.['data-field']) {
+      const field = c.props?.['data-field'].includes('address') ? 'title' : c.props?.['data-field'];
+      const value = formatValues(property, field);
+      if (value) {
+        return React.cloneElement(c, {}, value);
+      }
+    }
+    return c;
+  });
+
+  return <>{Wrapped}</>;
+}
+function PropertyCard({
+  children,
+  className,
+  onClose,
+  property,
+}: {
+  children: React.ReactElement;
+  className?: string;
+  onClose(): void;
+  property: PropertyDataModel;
+}) {
+  return (
+    <div
+      style={{ position: 'absolute', top: '50%', left: '50%' }}
+      className={classNames(className || 'no-default-class', '-translate-x-1/2', '-translate-y-1/2')}
+    >
+      <PropertyCardIterator property={property}>{children}</PropertyCardIterator>
+      <button
+        type='button'
+        className='text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-0 bg-black absolute -top-2 -right-2 z-20 rounded-full w-6 h-6 flex flex-col items-center justify-center'
+        onClick={onClose}
+      >
+        <span className='sr-only'>Close</span>
+        <XMarkIcon className='h-4 w-4' aria-hidden='true' />
+      </button>
+    </div>
   );
 }

@@ -165,7 +165,11 @@ export default function ClientDashboardIterator(
             </RxSavedHomesNav>
           );
         } else if (child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_MAP)) {
-          return <RxMapView lat={p.property?.lat} lng={p.property?.lon} properties={p.properties} />;
+          return (
+            <RxMapView {...child.props} lat={p.property?.lat} lng={p.property?.lon} properties={p.properties}>
+              {child.props.children}
+            </RxMapView>
+          );
         } else if (p.agent && child.props.className?.split(' ').includes('map-property-modal')) {
           return <RxMapPropertyModal {...child.props}>{child}</RxMapPropertyModal>;
         } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.MY_HOME_ALERTS)) {
