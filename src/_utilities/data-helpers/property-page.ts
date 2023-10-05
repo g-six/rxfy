@@ -745,7 +745,9 @@ export function formatValues(obj: any, key: string): string {
   }
 
   if (FinanceFields.includes(key) && !isNaN(Number(obj[key]))) {
-    return `$${new Intl.NumberFormat(undefined, { minimumFractionDigits: 2 }).format(obj[key] as number)}`;
+    return `$${new Intl.NumberFormat(undefined, { minimumFractionDigits: ['price_per_sqft', 'gross_taxes'].includes(key) ? 2 : undefined }).format(
+      obj[key] as number,
+    )}`;
   }
 
   if (DateFields.includes(key)) {

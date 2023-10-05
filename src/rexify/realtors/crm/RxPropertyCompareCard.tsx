@@ -5,7 +5,7 @@ import { field_aliases, relationship_based_attributes } from './RxCompareFilters
 import { useDrag, useDrop, ConnectDropTarget } from 'react-dnd';
 import { Card } from './CustomerCompareCanvas';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
-import { LISTING_DATE_FIELDS, LISTING_FEETERS_FIELDS, LISTING_MONEY_FIELDS, LISTING_NUMERIC_FIELDS } from '@/_utilities/data-helpers/listings-helper';
+import { LISTING_FEETERS_FIELDS, LISTING_MONEY_FIELDS, LISTING_NUMERIC_FIELDS } from '@/_utilities/data-helpers/listings-helper';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 
 type Props = { children: React.ReactElement | React.ReactElement[]; className: string; removeCard: () => void };
@@ -261,14 +261,14 @@ function getStatsValue(key: string, kv: { [key: string]: unknown }): string {
     return '';
   }
 
-  if (LISTING_MONEY_FIELDS.includes(db_column) && val) {
-    val = val ? formatValues(kv, db_column) : 'N/A';
-  } else if (LISTING_NUMERIC_FIELDS.includes(db_column)) {
-    val = val && !isNaN(Number(val)) ? new Intl.NumberFormat().format(Number(val)) : 'N/A';
-  } else if (LISTING_FEETERS_FIELDS.includes(db_column)) {
-    val = val ? new Intl.NumberFormat().format(Number(val)) + ' Sqft' : 'N/A';
-  }
-  return val || ('N/A' as string);
+  // if (LISTING_MONEY_FIELDS.includes(db_column) && val) {
+  //   val = val ? formatValues(kv, db_column) : 'N/A';
+  // } else if (LISTING_NUMERIC_FIELDS.includes(db_column)) {
+  //   val = val && !isNaN(Number(val)) ? new Intl.NumberFormat().format(Number(val)) : 'N/A';
+  // } else if (LISTING_FEETERS_FIELDS.includes(db_column)) {
+  //   val = val ? new Intl.NumberFormat().format(Number(val)) + ' Sqft' : 'N/A';
+  // }
+  return val ? formatValues(kv, db_column) : 'N/A';
 }
 
 function CompareCardItems(
