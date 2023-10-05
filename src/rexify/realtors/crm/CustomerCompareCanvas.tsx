@@ -26,7 +26,6 @@ function Iterator(
     if (child.type === 'div') {
       if (child.props['data-component'] === 'compare_column') {
         if (idx === 0) {
-          console.log(p.cards);
           return (
             <>
               {p.cards &&

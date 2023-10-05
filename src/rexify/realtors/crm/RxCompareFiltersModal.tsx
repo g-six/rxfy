@@ -290,7 +290,7 @@ export default function RxCompareFiltersModal(
           value: idx + 1,
           label: attr,
         })),
-      'Facilities & Amenenities': amenities_facilities
+      'Facilities & Amenities': amenities_facilities
         .filter(attr => !p.exclude || !p.exclude.includes(attr))
         .map((attr, idx) => ({
           value: idx + 1,

@@ -5,7 +5,8 @@ import { field_aliases, relationship_based_attributes } from './RxCompareFilters
 import { useDrag, useDrop, ConnectDropTarget } from 'react-dnd';
 import { Card } from './CustomerCompareCanvas';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
-import { LISTING_DATE_FIELDS, LISTING_FEETERS_FIELDS, LISTING_NUMERIC_FIELDS } from '@/_utilities/data-helpers/listings-helper';
+import { LISTING_DATE_FIELDS, LISTING_FEETERS_FIELDS, LISTING_MONEY_FIELDS, LISTING_NUMERIC_FIELDS } from '@/_utilities/data-helpers/listings-helper';
+import { formatValues } from '@/_utilities/data-helpers/property-page';
 
 type Props = { children: React.ReactElement | React.ReactElement[]; className: string; removeCard: () => void };
 
@@ -103,15 +104,19 @@ export default function RxPropertyCompareCard(
         }
         return React.cloneElement(child, {
           ...child.props,
+          id: `${text_content} ${p.property.id}`,
           key: `${text_content} ${p.property.id}`,
           children: text_content,
         });
       } else if (child.props.className === 'img-placeholder') {
         return null;
       } else if (child.props.className === 'compare-stats-wrapper') {
+        console.log('function RxPropertyCompareCard include-stats', p['include-stats']);
         return p['include-stats'] ? (
           React.cloneElement(child, {
             ...child.props,
+            'include-stats': p['include-stats'].join(','),
+            id: `${child.props.className}-${p.property.id}`,
             key: `${child.props.className}-${p.property.id}`,
             children: p['include-stats'].map((stat_name: string) => {
               if (child.props.children)
@@ -256,10 +261,10 @@ function getStatsValue(key: string, kv: { [key: string]: unknown }): string {
     return '';
   }
 
-  if (LISTING_DATE_FIELDS.includes(db_column)) {
-    val = val ? '$' + new Intl.NumberFormat().format(Number(val)) : 'N/A';
+  if (LISTING_MONEY_FIELDS.includes(db_column) && val) {
+    val = val ? formatValues(kv, db_column) : 'N/A';
   } else if (LISTING_NUMERIC_FIELDS.includes(db_column)) {
-    val = val ? new Intl.NumberFormat().format(Number(val)) : 'N/A';
+    val = val && !isNaN(Number(val)) ? new Intl.NumberFormat().format(Number(val)) : 'N/A';
   } else if (LISTING_FEETERS_FIELDS.includes(db_column)) {
     val = val ? new Intl.NumberFormat().format(Number(val)) + ' Sqft' : 'N/A';
   }
@@ -297,32 +302,23 @@ function CompareCardItems(
         });
       } else if (child.props.className === 'img-placeholder') {
         return null;
-      } else if (child.props.className === 'compare-stats-wrapper') {
+      } else if (child.props['data-group'] === 'compare_stat') {
         return p['include-stats'] ? (
-          React.cloneElement(child, {
-            ...child.props,
-            key: `${child.props.className}-${p.property.id}`,
-            children: p['include-stats'].map((stat_name: string) => {
-              if (child.props.children && child.props.children.length)
-                return React.cloneElement(child.props.children[0], {
-                  ...child.props.children[0].props,
-                  key: stat_name || 'no-valid-stat-name',
-                  children: (
-                    <StatsIterator
-                      key={stat_name || 'no-valid-stat-name'}
-                      label={stat_name}
-                      value={getStatsValue(
-                        stat_name,
-                        p.property as unknown as {
-                          [key: string]: string;
-                        },
-                      )}
-                    >
-                      {child.props.children[0].props.children}
-                    </StatsIterator>
-                  ),
-                });
-            }),
+          p['include-stats'].map((stat_name: string) => {
+            return (
+              <StatsIterator
+                key={stat_name || 'no-valid-stat-name'}
+                label={stat_name}
+                value={getStatsValue(
+                  stat_name,
+                  p.property as unknown as {
+                    [key: string]: string;
+                  },
+                )}
+              >
+                {child}
+              </StatsIterator>
+            );
           })
         ) : (
           <></>
