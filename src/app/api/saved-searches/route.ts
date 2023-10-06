@@ -4,44 +4,11 @@ import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extr
 import { getResponse } from '../response-helper';
 import { getNewSessionKey } from '../update-session';
 import { createSavedSearch } from './model';
+import { gql_my_saved_searches } from './gql';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
 };
-
-export const gqf_saved_search_attributes = `
-                search_url
-                lat
-                lng
-                area
-                beds
-                baths
-                city
-                minprice
-                maxprice
-                nelat
-                nelng
-                swlat
-                swlng
-                zoom
-                type
-                sorting
-                dwelling_types {
-                  data {
-                    id
-                    attributes {
-                      name
-                      code
-                    }
-                  }
-                }
-                add_date
-                year_built
-                tags
-                last_email_at
-                is_active
-                minsqft
-                maxsqft`;
 
 export async function POST(request: Request) {
   const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
@@ -158,14 +125,3 @@ export async function GET(request: Request) {
     200,
   );
 }
-
-const gql_my_saved_searches = `query MySavedSearches($customer_id: ID!) {
-  savedSearches(filters: { customer: { id: { eq: $customer_id } } }) {
-    records: data {
-      id
-      attributes {
-        ${gqf_saved_search_attributes}
-      }
-    }
-  }
-}`;

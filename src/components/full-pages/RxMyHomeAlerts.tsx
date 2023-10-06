@@ -3,11 +3,13 @@ import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { fireCustomEvent } from '@/_helpers/functions';
 import MyHomeAlertDeleteModalWrapper from '@/_replacers/MyHomeAlerts/MyHomeAlertDeleteModalWrapper';
 import MyHomeAlertModalWrapper from '@/_replacers/MyHomeAlerts/MyHomeAlertModalWrapper';
+import MyHomeAlertsList from '@/_replacers/MyHomeAlerts/MyHomeAlertsList';
 // import MyHomeAlertsList from '@/_replacers/MyHomeAlerts/MyHomeAlertsList';
 import { AgentData } from '@/_typings/agent';
-import { Events } from '@/_typings/events';
+import { Events, EventsData } from '@/_typings/events';
+import { SavedSearchOutput } from '@/_typings/saved-search';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
-import { searchByClasses, searchByProp } from '@/_utilities/rx-element-extractor';
+import { searchByClasses, searchByPartOfClass, searchByProp } from '@/_utilities/rx-element-extractor';
 import { SavedHomesPropertyList } from '@/app/[slug]/[profile-slug]/client-dashboard/property-list.module';
 import useEvent from '@/hooks/useEvent';
 
@@ -17,11 +19,13 @@ type Props = {
   child: ReactNode;
   'agent-data': AgentData;
   className: string;
+  records?: SavedSearchOutput[];
 };
 
 export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
   const { data, fireEvent } = useEvent(Events.MyHomeAlertsModal);
   const [agent_data, setAgentData] = React.useState<AgentData>();
+  const [records, setRecords] = React.useState<SavedSearchOutput[]>([]);
 
   const matches: tMatch[] = [
     {
@@ -68,6 +72,12 @@ export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
       },
     },
     {
+      searchFn: searchByPartOfClass(['all-home-alerts']),
+      transformChild: (child: ReactElement) => {
+        return <MyHomeAlertsList child={child} agent_data={agent_data as unknown as AgentData} />;
+      },
+    },
+    {
       searchFn: searchByProp('data-panel', 'properties_column'),
       transformChild: (child: ReactElement) => {
         return (
@@ -101,7 +111,16 @@ export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
   ];
 
   React.useEffect(() => {
+    const poly = data as { records?: SavedSearchOutput[] };
+    console.log(poly);
+  }, [data]);
+
+  React.useEffect(() => {
     setAgentData(p['agent-data']);
+    if (p.records) {
+      fireEvent(p as unknown as EventsData);
+      setRecords(p.records);
+    }
   }, []);
 
   return <>{transformMatchingElements(child, matches)}</>;

@@ -493,10 +493,11 @@ export default function RxHomeAlertForm(p: Props) {
     .map(t => getShortType(t.name))
     .join(' ');
 
-  const { reload, ...props } = p;
+  const { reload, agent, ...props } = p;
   return (
     <div
       {...props}
+      data-agent={agent.agent_id}
       id='RxHomeAlertForm'
       onClick={(evt: React.SyntheticEvent) => {
         /// Fix to modal pre-maturely closing itself.

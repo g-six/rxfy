@@ -1,7 +1,7 @@
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getResponse } from '../../response-helper';
-import { gqf_saved_search_attributes } from '../route';
 import axios, { AxiosError } from 'axios';
+import { gqf_saved_search_attributes } from '../gql';
 
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
@@ -111,7 +111,7 @@ export async function PUT(request: Request) {
       error = 'Caught exception on PUT method in \n  saved-searches/[id]/route.ts';
       console.log(error);
       const axios_error = e as AxiosError;
-      console.log(axios_error);
+      console.log(axios_error.response?.data);
     }
   } catch (e) {
     error = 'Caught Bearer exception on PUT method in \n  saved-searches/[id]/route.ts';

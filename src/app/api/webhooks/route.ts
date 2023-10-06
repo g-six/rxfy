@@ -43,7 +43,6 @@ const pages = [
   'client-dashboard',
   'my-documents',
   'my-home-alerts',
-  'my-home-alerts',
   'compare',
   'private-listings',
 ].concat(['pricing', 'examples', 'contact']);

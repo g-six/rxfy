@@ -10,12 +10,16 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { getUserSessionData } from '@/app/api/check-session/route';
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { retrieveSavedSearches } from '@/app/api/saved-searches/model';
+import { SavedSearchOutput } from '@/_typings/saved-search';
+import { replaceAgentFields } from '@/app/property/page';
+import NavIterator from '@/components/Nav/RxNavIterator';
 
 export default async function MyHomeAlerts({ params }: { params: { [key: string]: string } }) {
   if (!cookies().get('session_key')?.value) redirect(`log-in`);
 
   const promises = await Promise.all([
-    axios.get('https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/my-home-alerts'),
+    axios.get('https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/my-home-alerts?x=2'),
     findAgentRecordByAgentId(params.slug),
     getUserSessionData(`Bearer ${cookies().get('session_key')?.value}`, 'customer'),
   ]);
@@ -26,31 +30,25 @@ export default async function MyHomeAlerts({ params }: { params: { [key: string]
   if (!agent?.agent_id) redirect(`/log-in`);
   if (!user || user.session_key !== cookies().get('session_key')?.value) redirect(`/${agent.agent_id}/${agent.metatags.profile_slug}/log-in`);
 
-  if (html) {
+  if (html && agent) {
     const $: CheerioAPI = load(html);
-    if (agent) {
-      $('.navbar-dashboard-wrapper [href]').each((i, el) => {
-        let u = $(el).attr('href');
-        if (u && u !== '#') {
-          $(el).attr('href', `/${agent.agent_id}/${agent.metatags.profile_slug}${u}`);
-        }
-      });
-      $('.logo-div h3').each((i, el) => {
-        let u = $(el).attr('href');
-        const { logo_for_light_bg, logo_for_dark_bg } = agent.metatags;
-        let logo = logo_for_light_bg || logo_for_dark_bg;
-        if (logo) {
-          logo = getImageSized(logo, 100);
-          $(el).replaceWith(
-            `<span class="inline-block rounded bg-no-repeat bg-contain w-full" style="background-image: url(${logo}); display: block; width: 100px; height: 3rem;"></span>`,
-          );
-        } else {
-          $(el).replaceWith(agent.full_name);
-        }
-      });
-      const body = $('body > div');
-      return <Container agent={agent}>{domToReact(body as unknown as DOMNode[]) as React.ReactElement}</Container>;
-    }
-    return <>{html}</>;
+    const nav = $('body .navbar---dashboard');
+    $('body .navbar---dashboard').remove();
+    replaceAgentFields($);
+    const contents = $('body > div > div:not(.navbar---dashboard)');
+    const records: SavedSearchOutput[] = await retrieveSavedSearches(Number(user.id));
+
+    return (
+      <>
+        <NavIterator agent={agent}>{domToReact(nav as unknown as DOMNode[]) as React.ReactElement}</NavIterator>
+        <section className={$('body > div').attr('class')}>
+          <Container agent={agent} records={records}>
+            {domToReact(contents as unknown as DOMNode[]) as React.ReactElement}
+          </Container>
+        </section>
+      </>
+    );
   }
+
+  return <></>;
 }
