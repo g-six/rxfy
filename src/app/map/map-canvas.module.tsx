@@ -629,7 +629,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
       <div id='map' className={classNames(styles.RxMapbox)} ref={mapNode}></div>
       <PropertyListModal
         agent={p.agent}
-        card={<Iterator>{p.children?.props?.children}</Iterator>}
+        card={<Iterator>{p.children}</Iterator>}
         onClose={() => {
           setSelectedCluster([]);
         }}

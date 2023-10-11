@@ -95,7 +95,7 @@ function Iterator({
       return (
         <div className={classNames(subclass || '', 'rexified', 'child-of-PropertyCardSm')} {...props}>
           <Iterator {...props} property={property}>
-            {props['data-field'] ? <a href={`property?mls=${property.mls_id}`}>{kv[props['data-field']]}</a> : subchildren}
+            {props['data-field'] ? <a href={`property?mls=${property.mls_id}`}>{formatValues(kv, props['data-field'])}</a> : subchildren}
           </Iterator>
         </div>
       );
@@ -154,7 +154,7 @@ export default function PropertyCardSm({ agent, children, className }: { agent: 
         </div>
         <button
           type='button'
-          className='bg-black rounded-full absolute -top-2 -right-2 p-1'
+          className='bg-black rounded-full absolute -top-2 -right-2 px-1 flex flex-col items-center justify-center'
           onClick={() => {
             evt.fireEvent({} as unknown as EventsData);
           }}
