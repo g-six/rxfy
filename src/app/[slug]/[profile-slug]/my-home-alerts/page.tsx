@@ -6,14 +6,13 @@ import { findAgentRecordByAgentId } from '@/app/api/agents/model';
 import { CheerioAPI, load } from 'cheerio';
 import Container from './container.module';
 import { AgentData } from '@/_typings/agent';
-import { getImageSized } from '@/_utilities/data-helpers/image-helper';
-import { getUserSessionData } from '@/app/api/check-session/route';
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { retrieveSavedSearches } from '@/app/api/saved-searches/model';
 import { SavedSearchOutput } from '@/_typings/saved-search';
-import { replaceAgentFields } from '@/app/property/page';
 import NavIterator from '@/components/Nav/RxNavIterator';
+import { getUserSessionData } from '@/app/api/check-session/model';
+import { replaceAgentFields } from '@/app/property/page.helpers';
 
 export default async function MyHomeAlerts({ params }: { params: { [key: string]: string } }) {
   if (!cookies().get('session_key')?.value) redirect(`log-in`);

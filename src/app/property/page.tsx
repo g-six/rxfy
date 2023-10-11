@@ -16,33 +16,10 @@ import NavIterator from '@/components/Nav/RxNavIterator';
 import { WEBFLOW_DASHBOARDS } from '@/_typings/webflow';
 import { BuildingUnit } from '../api/properties/types';
 import RxNotifications from '@/components/RxNotifications';
+import { replaceAgentFields } from './page.helpers';
 
 function isBuildingUnit(property: { complex_compound_name?: string; style_type?: string }) {
   return property.style_type?.includes('Apartment') || property.complex_compound_name;
-}
-export function replaceAgentFields($: CheerioAPI) {
-  if ($('img[data-field="headshot"]')) {
-    const src = headers().get('x-agent-headshot');
-    if (src) {
-      $('img[data-field="headshot"]').each((i, img_element) => {
-        $(img_element).removeAttr('srcset');
-        $(img_element).replaceWith(`${$(img_element).toString()}`.split($(img_element).attr('src') as string).join(src));
-      });
-    }
-  }
-  $('[data-field="agent_name"]').html(headers().get('x-agent-name') as string);
-  if (headers().get('x-agent-email')) {
-    $('[data-field="email"]').html(headers().get('x-agent-email') as string);
-    $('[data-field="email"]')
-      .parent('a')
-      .attr('href', `mailto:${headers().get('x-agent-email') as string}`);
-  }
-  if (headers().get('x-agent-phone')) {
-    $('[data-field="phone"]').html(headers().get('x-agent-phone') as string);
-    $('[data-field="phone"]')
-      .parent('a')
-      .attr('href', `tel:${headers().get('x-agent-phone') as string}`);
-  } else $('[data-field="phone"]').remove();
 }
 
 export default async function PropertyPage(props: any) {

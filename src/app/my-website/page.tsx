@@ -8,7 +8,6 @@ import { WEBFLOW_DASHBOARDS } from '@/_typings/webflow';
 import { AgentData } from '@/_typings/agent';
 import { replaceByCheerio } from '@/components/rexifier';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
-import { getUserSessionData } from '../api/check-session/route';
 import RxRealtorNav from '@/components/Nav/RxRealtorNav';
 import MyWebSiteSelectedTheme from './SelectedTheme.module';
 import RxSearchEngineOptimizationTab from './seo.rexifier';
@@ -17,6 +16,7 @@ import DomainHowButton from './DomainHowButton.module';
 import DomainHowModal from './DomainHowModal.module';
 import RxTrackingCodes from './tracking-codes.rexifier';
 import RxThemes from './themes-explorer.rexifier';
+import { getUserSessionData } from '../api/check-session/model';
 
 function Rexify({ children, ...props }: { children: ReactElement; realtor: AgentData }) {
   const Rexified = Children.map(children, c => {

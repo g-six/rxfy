@@ -6,7 +6,7 @@ import { findAgentRecordByAgentId } from '@/app/api/agents/model';
 import { CheerioAPI, load } from 'cheerio';
 import Container from './container.module';
 import NavIterator from '@/components/Nav/RxNavIterator';
-import { replaceAgentFields } from '@/app/property/page';
+import { replaceAgentFields } from '@/app/property/page.helpers';
 
 export const metadata = {
   title: 'Leagent Real Estate Dashboard',

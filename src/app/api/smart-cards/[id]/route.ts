@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { NextRequest } from 'next/server';
 import { getResponse } from '../../response-helper';
-import { getUserSessionData } from '../../check-session/route';
+import { getUserSessionData } from '@/app/api/check-session/model';
 
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,

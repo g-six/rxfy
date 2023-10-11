@@ -1,6 +1,5 @@
 import { retrieveBearer } from '@/_utilities/api-calls/token-extractor';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
-import { getUserById } from '../check-session/route';
 import { encrypt } from '@/_utilities/encryption-helper';
 import { getResponse } from '../response-helper';
 import { AxiosError } from 'axios';
@@ -9,6 +8,7 @@ import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-s
 import { LegacySearchPayload } from '@/_typings/pipeline';
 import { getRealEstateBoard } from '../real-estate-boards/model';
 import { AgentData } from '@/_typings/agent';
+import { getUserById } from '../check-session/model';
 
 export async function GET(req: Request) {
   let results = {
