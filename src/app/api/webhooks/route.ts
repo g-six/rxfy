@@ -71,6 +71,7 @@ async function cacheSite(domain: string) {
         });
 
         const page_uri = domain + '/' + page + '.html';
+        console.log('Invalidating', page_uri);
         invalidation_uris.push(page_uri);
 
         await Promise.all(
@@ -94,6 +95,8 @@ async function cacheSite(domain: string) {
           }),
         );
         $('.w-nav').removeClass('w-nav');
+        console.log('DONE');
+        console.log('');
         createCacheItem($.html(), page_uri, 'text/html', false, BUCKET_NAME);
       } catch (e) {
         // console.log('Could not reach', url);
