@@ -112,6 +112,6 @@ export async function POST(req: Request) {
   response.forEach(r => {
     r.forEach(path => invalidations.push(`/${path}`));
   });
-  invalidateCache(['/*'], CLOUDFRONT_DISTRIBUTION_ID);
+  await invalidateCache(['/*'], CLOUDFRONT_DISTRIBUTION_ID);
   return NextResponse.json({ payload, invalidations });
 }
