@@ -135,4 +135,8 @@
 body > a.w-webflow-badge {
   @apply hidden #{!important};
 }
+
+a {
+  color: #333;
+}
 @tailwind utilities;

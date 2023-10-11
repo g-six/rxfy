@@ -154,7 +154,7 @@ export default function PropertyCardSm({ agent, children, className }: { agent: 
         </div>
         <button
           type='button'
-          className='bg-black rounded-full absolute -top-2 -right-2 px-1 flex flex-col items-center justify-center'
+          className='bg-black rounded-full absolute -top-2 -right-2 px-1 flex flex-col items-center justify-center h-6 w-6'
           onClick={() => {
             evt.fireEvent({} as unknown as EventsData);
           }}

@@ -133,15 +133,14 @@ export default async function MapPage({ params, searchParams }: { params: { [key
       const $: CheerioAPI = load(html);
       const nav = $('body .navbar---dashboard');
       $('body .navbar---dashboard').remove();
-      console.log(Date.now() - time + 'ms', '[Completed] HTML template load to memory');
       const body = $('body > div');
       const Page = (
         <>
-          <NavIterator agent={agent}>{domToReact(nav as unknown as DOMNode[]) as React.ReactElement}</NavIterator>
-
+          <NavIterator agent={agent}>{domToReact(nav as unknown as DOMNode[]) as unknown as React.ReactElement}</NavIterator>
           <MapIterator agent={agent} city={searchParams.city} loves={loves} properties={properties}>
             {domToReact(body as unknown as DOMNode[]) as unknown as React.ReactElement}
           </MapIterator>
+
           <RxNotifications />
         </>
       );
