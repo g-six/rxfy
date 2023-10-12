@@ -405,6 +405,8 @@ export function appendJs(url: string, delay = 1200) {
 export function replaceFormsWithDiv($: CheerioAPI) {}
 
 export function rexifyScriptsV2(html_code: string) {
+  const is_ai_result_page = `${headers().get('x-url') || ''}`.split('/ai-result').length > 1;
+
   const options: HTMLReactParserOptions = {
     replace: node => {
       if (node.type === 'script') {
@@ -422,7 +424,7 @@ export function rexifyScriptsV2(html_code: string) {
                 <script
                   suppressHydrationWarning
                   dangerouslySetInnerHTML={{
-                    __html: appendJs(attribs.src, 1),
+                    __html: appendJs(attribs.src, is_ai_result_page ? 800 : 1),
                   }}
                 />
               </>

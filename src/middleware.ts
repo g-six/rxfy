@@ -35,7 +35,10 @@ export async function middleware(request: NextRequest) {
       : await getAgentBy({
           domain_name: hostname,
         });
-  if (searchParams.get('paragon') && !segments.includes('ai-result')) {
+  if (segments.includes('ai-result')) {
+    page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/ai-result`;
+    // } else if (searchParams.get('paragon') && !segments.includes('ai-result')) {
+  } else if (searchParams.get('theme')) {
     response.headers.set('x-viewer', 'customer');
     switch (searchParams.get('theme')) {
       case 'oslo':
@@ -43,11 +46,12 @@ export async function middleware(request: NextRequest) {
       case 'malta':
       case 'malaga':
       case 'hamburg':
-        page_url = `${page_url}${searchParams.get('theme')}-leagent.webflow.io`;
+        page_url = `${page_url}${searchParams.get('theme')}-leagent.webflow.io/index`;
         break;
       default:
         page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}`;
     }
+    response.headers.set('x-search-params', searchParams.toString());
   } else if (segments[0] === 'property') {
     response.headers.set('x-viewer', 'customer');
     page_url = `${page_url}/property/propertyid`;

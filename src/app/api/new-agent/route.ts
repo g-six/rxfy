@@ -1,8 +1,13 @@
-import { getResponse } from '../response-helper';
-import { AxiosError } from 'axios';
-import { getSmart } from '../agents/repair';
-import { createAgentRecord } from '../agents/model';
+import axios, { AxiosError } from 'axios';
 import { SearchHighlightInput } from '@/_typings/maps';
+import { AgentMetatagsInput } from '@/_typings/agent';
+import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
+import { findAgentRecordByAgentId } from '@/app/api/agents/model';
+import { buildCacheFiles } from '@/app/api/properties/model';
+import { getResponse } from '@/app/api/response-helper';
+import { getRealEstateBoard } from '@/app/api/real-estate-boards/model';
+import { createAgent, createAgentMetatag } from './model';
+import { getSampleListings } from './utilities';
 
 export async function POST(req: Request) {
   const payload = await req.json();
@@ -20,14 +25,12 @@ export async function POST(req: Request) {
         neighbourhoods: SearchHighlightInput[];
       }) || { neighbourhoods: [] };
 
-      const results = await createAgentRecord({
-        agent_id,
-        email,
-        phone,
-        full_name,
-        search_highlights: [target_city].concat(neighbourhoods).map((location: SearchHighlightInput) => {
+      const search_highlights = [target_city]
+        .concat(neighbourhoods.filter(n => n.name !== target_city.name))
+        .map((location: SearchHighlightInput & { address?: string }) => {
           return {
             name: location.name,
+            title: location.address || location.city || location.name,
             place_id: location.place_id,
             lat: location.lat,
             lng: location.lng,
@@ -35,19 +38,142 @@ export async function POST(req: Request) {
             nelng: location.nelng,
             swlat: location.swlat,
             swlng: location.swlng,
+            ne: {
+              lat: location.nelat,
+              lng: location.nelng,
+            },
+            sw: {
+              lat: location.swlat,
+              lng: location.swlng,
+            },
           };
-        }),
-      });
-      await getSmart(
+        });
+      const results = {
+        agent_id,
+        search_highlights: {
+          labels: search_highlights,
+        },
+        target_city: target_city.name,
+        lat: target_city.lat,
+        lng: target_city.lng,
+        geocoding: target_city,
+        listings_title: 'Recent Listings',
+      };
+      const [reb_data] = await Promise.all([getSampleListings(agent_id, target_city)]);
+
+      const {
+        hits: {
+          hits: [
+            {
+              _source: {
+                data: {
+                  MLS_ID,
+                  LA1_LoginName,
+                  LA2_LoginName,
+                  LA3_LoginName,
+                  L_ShortRegionCode,
+                  OriginatingSystemName,
+                  LA1_Board,
+                  LA2_Board,
+                  LA3_Board,
+                  LA4_Board,
+                  ListAgent1,
+                  LO1_Brokerage,
+                },
+              },
+            },
+          ],
+        },
+      } = reb_data.data;
+
+      let prompt = `My name's ${full_name} and I'm a `;
+
+      const listing = await buildCacheFiles(MLS_ID);
+      let real_estate_board = 0;
+      if (listing) {
+        const reb = await getRealEstateBoard({
+          L_ShortRegionCode,
+          OriginatingSystemName,
+          LA1_Board,
+          LA2_Board,
+          LA3_Board,
+          LA4_Board,
+          ListAgent1,
+          LO1_Brokerage,
+        });
+        if (reb?.id) {
+          real_estate_board = Number(reb.id);
+        }
+        console.log(LA1_LoginName, LA2_LoginName, LA3_LoginName);
+        prompt = `${prompt} licenced realtor off the ${listing.real_estate_board_name}`;
+      } else {
+        prompt = `${prompt} licenced realtor catering to the city of ${target_city.city}`;
+      }
+
+      prompt = `${prompt}, write me a realtor bio (JSON key "personal_bio") from a first-person point of view for prospect home buyers 
+  belonging to the demographic looking for listings in the same city or area, a set of SEO keywords (JSON key "keywords") fit for my professional website, website title (JSON key "title"), website description meta tag (JSON key "description"), and a well structured, 
+  3-worded, SEO friendly tagline (JSON key "personal_title").  Contain the results in JSON key-value pair format.
+  `;
+
+      const ai_xhr = await axios.post(
+        `${process.env.NEXT_APP_OPENAI_URI}`,
         {
-          ...results,
-          search_highlights: neighbourhoods,
+          prompt,
+          max_tokens: 400,
+          temperature: 0.1,
+          model: 'text-davinci-003',
+          // model: 'gpt-4-0613',
         },
         {
-          city: target_city.name,
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.NEXT_APP_OPENAI_API}`,
+          },
         },
       );
-      return getResponse(results);
+      const { data } = ai_xhr;
+      const {
+        choices: [{ text }],
+        error,
+      } = data;
+      let agent_metatag: AgentMetatagsInput = {
+        ...results,
+        agent_id,
+        target_city: target_city.name,
+      };
+      if (text) {
+        agent_metatag = {
+          ...JSON.parse(text),
+          ...agent_metatag,
+        };
+      }
+
+      let agent = await findAgentRecordByAgentId(agent_id);
+      if (agent) {
+        console.log('Existing agent record', { agent });
+      } else {
+        // return getResponse({ listing, real_estate_board });
+        const metatags = await createAgentMetatag({
+          ...agent_metatag,
+          profile_slug: slugifyAddress(
+            `la-${full_name.split(' ').reverse().pop()}-${agent_id}-${phone.split('').reverse().slice(0, 4).reverse().join('')}`.toLowerCase(),
+          ),
+        });
+        if (metatags?.id) {
+          const agent = await createAgent({
+            agent_id,
+            email,
+            full_name,
+            phone,
+            agent_metatag: metatags.id,
+            street_1: target_city.address || target_city.name,
+            real_estate_board: real_estate_board || undefined,
+          });
+
+          return getResponse(agent);
+        }
+      }
+      return getResponse(agent_metatag, 400);
     }
   } catch (e) {
     const axerr = e as AxiosError;

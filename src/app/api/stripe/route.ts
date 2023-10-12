@@ -107,7 +107,6 @@ export async function POST(req: Request) {
           console.log({ error });
 
           const ai_results = JSON.parse(text.trim()) as unknown as AIGeneratedDetails;
-          console.log({ ai_results });
 
           const {
             id: agent,

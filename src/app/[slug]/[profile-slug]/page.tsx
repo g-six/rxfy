@@ -21,6 +21,7 @@ import HomePageSearchInput from './search-input.component';
 import ActionButton from './homepage-action-button.module';
 import RxNotifications from '@/components/RxNotifications';
 import HeartButton from './heart-button.module';
+import { headers } from 'next/headers';
 
 function PropertyCard({ agent, listing, children }: { agent: AgentData; listing: PropertyDataModel; children: ReactElement }) {
   const Wrapped = Children.map(children, c => {
@@ -356,15 +357,16 @@ function Iterator({
   return <>{Wrapped}</>;
 }
 
-export default async function AgentHomePage({ params }: { params: { slug: string } }) {
+export default async function AgentHomePage({ params, searchParams }: { params: { slug: string }; searchParams: { [k: string]: string } }) {
   const { slug: agent_id } = params;
   if (agent_id) {
     const agent = await findAgentRecordByAgentId(agent_id);
     let webflow_site = `https://${WEBFLOW_DASHBOARDS.CUSTOMER}`;
     if (!agent) return '';
-    if (agent.domain_name) webflow_site = `https://${agent.domain_name}`;
+    if (searchParams.theme) {
+      webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${searchParams.theme}-leagent.webflow.io/index.html`;
+    } else if (agent.domain_name) webflow_site = `https://${agent.domain_name}`;
     else if (agent.webflow_domain) webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${agent.webflow_domain}/index.html`;
-    else if (agent.webflow_domain) webflow_site = `https://${process.env.NEXT_APP_S3_PAGES_BUCKET}/${agent.webflow_domain}/index.html`;
 
     const promises = await Promise.all([axios.get(webflow_site)]);
     const { data: html } = promises[0];
@@ -497,7 +499,6 @@ export default async function AgentHomePage({ params }: { params: { slug: string
         } as LegacySearchPayload;
       },
     } as unknown as NextRequest;
-    console.log(JSON.stringify({ should: should.slice(0, 3) }, null, 4));
 
     const [active, sold] = await Promise.all([getPipelineSample(internal_req, { internal: true }), getPipelineSample(intsold_req, { internal: true })]);
 

@@ -56,7 +56,7 @@ export const NumericFields = [
   'sqft',
 ];
 
-export const FinanceFields = ['asking_price', 'price_per_sqft', 'gross_taxes', 'SoldPrice'];
+export const FinanceFields = ['asking_price', 'price_per_sqft', 'gross_taxes', 'SoldPrice', 'strata_fee'];
 
 export enum PropertyStatus {
   ACTIVE = 'active',

@@ -16,8 +16,6 @@ export default async function PdfPage({ searchParams }: any) {
     const buff = await getPdf(page_url, full_data as unknown);
     const blob = new Blob([buff], { type: 'application/pdf' });
     return <>{blob}</>;
-  } else {
-    console.log(searchParams, searchParams);
   }
 
   return <></>;

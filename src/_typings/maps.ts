@@ -102,6 +102,8 @@ export type SelectedPlaceDetails = {
 
 export type SearchHighlightInput = {
   name: string;
+  address?: string;
+  city?: string;
   place_id: string;
   lat: number;
   lng: number;
