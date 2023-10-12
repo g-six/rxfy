@@ -389,7 +389,7 @@ export function appendJs(url: string, delay = 1200) {
       }, ${delay})
     `;
   }
-  if (url.indexOf('cloudflare-static') >= 0) return '';
+  if (url.indexOf('cloudflare-static') >= 0 || url.indexOf('cdn-cgi') >= 0) return '';
   return `
   fetch('${url}').then((response) => {
     response.text().then(script_txt => {
