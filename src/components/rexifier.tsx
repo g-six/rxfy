@@ -433,7 +433,7 @@ export function rexifyScriptsV2(html_code: string) {
                 <script
                   suppressHydrationWarning
                   dangerouslySetInnerHTML={{
-                    __html: appendJs(attribs.src, is_ai_result_page ? 800 : 1),
+                    __html: appendJs(attribs.src, is_ai_result_page || attribs.src.includes('assets') ? 800 : 1),
                   }}
                 />
               </>
