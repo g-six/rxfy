@@ -382,7 +382,7 @@ export function appendJs(url: string, delay = 1200) {
             const script = document.createElement('script');
             script.type = 'text/javascript';
             script.text = script_txt.split('w-webflow-badge').join('oh-no-you-dont hidden').split('window.alert').join('console.log');
-            console.log('appendChild on 382', 'delay ${delay}')
+            console.log('appendChild on 382', 'delay ${delay}', '${url}')
             document.body.appendChild(script)
           })
         })
@@ -419,6 +419,15 @@ export function rexifyScriptsV2(html_code: string) {
           } else if (attribs.src.indexOf('webflow.js') >= 0) {
             return <script src={attribs.src} defer />;
           } else {
+            if (attribs.src.includes('cdn-cgi'))
+              return (
+                <script
+                  suppressHydrationWarning
+                  dangerouslySetInnerHTML={{
+                    __html: `console.log("${attribs.src} skipped")`,
+                  }}
+                />
+              );
             return (
               <>
                 <script
