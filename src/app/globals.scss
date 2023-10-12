@@ -139,4 +139,7 @@ body > a.w-webflow-badge {
 a {
   color: #333;
 }
+iframe {
+  @apply border-none;
+}
 @tailwind utilities;
