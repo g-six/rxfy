@@ -7,7 +7,7 @@ import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
 import { searchById, searchByTagName } from '@/_utilities/rx-element-extractor';
 
 import styles from './ai.module.scss';
-import useEvent, { Events, EventsData } from '@/hooks/useEvent';
+import useEvent, { Events, EventsData, NotificationCategory } from '@/hooks/useEvent';
 import useDebounce from '@/hooks/useDebounce';
 import { getAgentByParagonId } from '@/_utilities/api-calls/call-realtor';
 import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
@@ -15,6 +15,7 @@ import Image from 'next/image';
 import { createAgentRecord } from '@/_utilities/api-calls/call-realtor';
 import RxStreetAddressInput from '@/components/RxForms/RxInputs/RxStreetAddressInput';
 import { SearchHighlightInput, SelectedPlaceDetails } from '@/_typings/maps';
+import RxNotifications from '@/components/RxNotifications';
 
 type Props = {
   children: React.ReactElement;
@@ -32,6 +33,7 @@ export default function AiPrompt(p: Props) {
     agent_id?: string;
     realtor_id?: number;
   }>();
+  const notifications = useEvent(Events.SystemNotification);
   const [neighbourhoods, selectNeighbourhoods] = React.useState<SearchHighlightInput[]>([]);
   const debounced = useDebounce(agent_id, 500);
 
@@ -151,7 +153,7 @@ export default function AiPrompt(p: Props) {
               getAgentByParagonId(debounced)
                 .then(data => {
                   if (data && data.id) {
-                    router.push(`${child.props.href}?paragon=${debounced}`);
+                    location.href = `${child.props.href}/${debounced}`;
                   } else {
                     setAgentId(debounced);
                     fireEvent({
@@ -209,7 +211,20 @@ export default function AiPrompt(p: Props) {
                 .then(data => {
                   if (data?.agent_id) location.href = `${origin || ''}/ai-result/${data.agent_id}`;
                 })
-                .catch(console.error);
+                .catch(err => {
+                  const { data } = err.response as unknown as {
+                    data?: {
+                      error: string;
+                    };
+                  };
+                  if (data?.error) {
+                    notifications.fireEvent({
+                      message: data.error,
+                      timeout: 15000,
+                      category: NotificationCategory.ERROR,
+                    });
+                  }
+                });
             }
           },
           children: React.Children.map(child.props.children, (gchild: React.ReactElement) => {

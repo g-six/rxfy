@@ -69,8 +69,14 @@ export async function POST(req: Request) {
                 data: {
                   MLS_ID,
                   LA1_LoginName,
+                  LA1_Email,
+                  LA1_FullName,
                   LA2_LoginName,
+                  LA2_Email,
+                  LA2_FullName,
                   LA3_LoginName,
+                  LA3_Email,
+                  LA3_FullName,
                   L_ShortRegionCode,
                   OriginatingSystemName,
                   LA1_Board,
@@ -104,13 +110,13 @@ export async function POST(req: Request) {
         if (reb?.id) {
           real_estate_board = Number(reb.id);
         }
-        console.log(LA1_LoginName, LA2_LoginName, LA3_LoginName);
+        console.log(LA1_Email, LA1_FullName, LA2_Email, LA2_FullName, LA3_Email, LA3_FullName);
         prompt = `${prompt} licenced realtor off the ${listing.real_estate_board_name}`;
       } else {
         prompt = `${prompt} licenced realtor catering to the city of ${target_city.city}`;
       }
 
-      prompt = `${prompt}, write me a realtor bio (JSON key "personal_bio") from a first-person point of view for prospect home buyers 
+      prompt = `${prompt}, search for a recent real estate listing in the city of ${target_city.city} and based on that listing's location and surrounding places of interests, write me a realtor bio (JSON key "personal_bio") from a first-person point of view for prospect home buyers 
   belonging to the demographic looking for listings in the same city or area, a set of SEO keywords (JSON key "keywords") fit for my professional website, website title (JSON key "title"), website description meta tag (JSON key "description"), and a well structured, 
   3-worded, SEO friendly tagline (JSON key "personal_title").  Contain the results in JSON key-value pair format.
   `;
@@ -118,11 +124,14 @@ export async function POST(req: Request) {
       const ai_xhr = await axios.post(
         `${process.env.NEXT_APP_OPENAI_URI}`,
         {
-          prompt,
+          messages: [{ role: 'user', content: prompt }],
           max_tokens: 400,
-          temperature: 0.1,
-          model: 'text-davinci-003',
-          // model: 'gpt-4-0613',
+          temperature: 1,
+          top_p: 1,
+          frequency_penalty: 0,
+          presence_penalty: 0,
+          // model: 'text-davinci-003',
+          model: 'gpt-4',
         },
         {
           headers: {
@@ -132,19 +141,25 @@ export async function POST(req: Request) {
         },
       );
       const { data } = ai_xhr;
-      const {
-        choices: [{ text }],
-        error,
-      } = data;
+      const { choices, error } = data;
+      console.log({ error });
       let agent_metatag: AgentMetatagsInput = {
         ...results,
         agent_id,
         target_city: target_city.name,
       };
+      const text = (choices as unknown[] as { message: { role: string; content: string } }[])
+        .filter(choice => choice.message.role === 'assistant')
+        .map(choice => choice.message.content)
+        .pop();
       if (text) {
+        const { keywords } = JSON.parse(text) as unknown as {
+          keywords: string[];
+        };
         agent_metatag = {
           ...JSON.parse(text),
           ...agent_metatag,
+          keywords: keywords ? keywords.join(', ') : '',
         };
       }
 
@@ -174,10 +189,25 @@ export async function POST(req: Request) {
         }
       }
       return getResponse(agent_metatag, 400);
+    } else {
+      const missing: string[] = [];
+      if (!agent_id) missing.push('Agent ID (Paragon)');
+      if (!full_name) missing.push('full name');
+      if (!email) missing.push('email');
+      if (!phone) missing.push('phone number');
+      return getResponse(
+        {
+          ...payload,
+          error: `Sorry, we need your ${
+            missing.length < 3 ? missing.join(' and ') : missing.map((field, idx) => (idx >= missing.length ? `and ${field}` : field)).join(', ')
+          }`,
+        },
+        400,
+      );
     }
   } catch (e) {
     const axerr = e as AxiosError;
-    console.log(axerr);
+    console.log('ERROR in new-agent.POST', axerr.response?.data);
     results.error = axerr.code as string;
   }
 

@@ -49,6 +49,7 @@ export async function createAgent(data: {
 }
 
 export async function createAgentMetatag(data: AgentMetatagsInput) {
+  console.log('createAgentMetatag', JSON.stringify(data, null, 4));
   const metatag_response = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {
