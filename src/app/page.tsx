@@ -17,6 +17,7 @@ import { findAgentRecordByAgentId } from './api/agents/model';
 import NotFound from './not-found';
 import { buildCacheFiles, getPropertiesFromAgentInventory } from './api/properties/model';
 import { getPrivateListing } from './api/private-listings/model';
+import { getUserSessionData } from './api/check-session/model';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -257,7 +258,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
       href: process.env.NEXT_PUBLIC_BUY_BUTTON,
     });
   }
-
   if (hostname !== `${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}` || searchParams.paragon) {
     if (agent_data && agent_data.agent_id) {
       await fillAgentInfo($, agent_data, params);
@@ -281,7 +281,22 @@ export default async function Home({ params, searchParams }: { params: Record<st
         }
       }
     } else {
-      console.log('\n\nHome.agent_data not available');
+      const session_key = cookies().get('session_key')?.value;
+      if (session_key) {
+        // TODO: write a cleaner implementation
+        // Logic: retrieve agent record based on the assumption that the session_key is for a realtor regardless of the value for session_as
+
+        const session = await getUserSessionData(`bearer ${session_key}`, 'realtor');
+        if (session.agent_id) {
+          agent_data = session as AgentData;
+        }
+      }
+      if (!agent_data.id) {
+        console.log('\n\nHome.agent_data not available');
+      } else {
+        console.log('Retrieved agent_data through alternative means and assumptions');
+        console.log(JSON.stringify({ agent_data }, null, 4));
+      }
     }
     if (params?.['profile-slug'] && params?.slug) {
       if (agent_data?.metatags.target_city) {

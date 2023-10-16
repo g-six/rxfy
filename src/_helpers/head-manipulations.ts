@@ -55,6 +55,9 @@ export function replaceMetaTags(headCode: string, agent: AgentData, property?: o
         data: `<meta property="og:image" content="${image}">`,
       });
     }
+    if (agent.metatags.favicon) {
+      headCode = headCode.split('https://assets-global.website-files.com/img/favicon.ico').join(agent.metatags.favicon);
+    }
 
     replacers.forEach(replacer => {
       if (replacer.regex.test(headCode)) {

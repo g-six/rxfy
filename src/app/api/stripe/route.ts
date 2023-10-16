@@ -195,7 +195,7 @@ export async function POST(req: Request) {
             await sendTemplate('welcome-agent', receipients, {
               send_to_email: email,
               password,
-              dashboard_url: `${url.origin}/my-profile?key=${session_key}`,
+              dashboard_url: `${url.origin}/my-profile?key=${session_key}&as=realtor`,
               from_name: 'Leagent Team',
               subject: 'Welcome aboard!',
             });

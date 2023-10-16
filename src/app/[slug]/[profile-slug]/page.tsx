@@ -12,7 +12,6 @@ import { LegacySearchPayload } from '@/_typings/pipeline';
 import { NextRequest } from 'next/server';
 import { must_not } from '@/_utilities/api-calls/call-legacy-search';
 import { PropertyDataModel } from '@/_typings/property';
-import { formatValues } from '@/_utilities/data-helpers/property-page';
 import styles from './profile-page.module.scss';
 import NavIterator from '@/components/Nav/RxNavIterator';
 import FooterIterator from '@/components/RxFooter';
@@ -20,116 +19,23 @@ import { objectToQueryString } from '@/_utilities/url-helper';
 import HomePageSearchInput from './search-input.component';
 import ActionButton from './homepage-action-button.module';
 import RxNotifications from '@/components/RxNotifications';
-import HeartButton from './heart-button.module';
-import { headers } from 'next/headers';
+import { PropertyCard } from './property-card.component';
+import { Metadata } from 'next';
 
-function PropertyCard({ agent, listing, children }: { agent: AgentData; listing: PropertyDataModel; children: ReactElement }) {
-  const Wrapped = Children.map(children, c => {
-    if (c.props?.className?.includes('heart-')) {
-      return (
-        <HeartButton {...c.props} agent={agent} listing={listing} className={classNames(c.props.className, styles['heart-button'])}>
-          {c.props.children}
-        </HeartButton>
-      );
-    }
-    if (c.type === 'div' && (c.props?.['data-group'] === 'listing_info' || c.props?.['data-field'] === undefined)) {
-      const { children: sub, className: containerClassName, ...props } = c.props;
-      return (
-        <div {...props} className={classNames(containerClassName, 'relative')}>
-          <PropertyCard agent={agent} listing={listing}>
-            {sub}
-          </PropertyCard>
-          {c.props?.['data-group'] === 'listing_info' && (
-            <a
-              href={(agent.domain_name ? '' : `/${agent.agent_id}/${agent.metatags.profile_slug}`) + `/property?mls=${listing.mls_id}`}
-              className='absolute top-0 left-0 w-full h-full'
-            />
-          )}
-        </div>
-      );
-    }
-    if (c.type === 'img' && listing) {
-      if (c.props.className.includes('property-card-image'))
-        return (
-          <div
-            key={listing.mls_id}
-            className={styles.CoverPhoto}
-            style={{
-              backgroundImage: `url(/house-placeholder.png)`,
-            }}
-          >
-            <div
-              key={listing.mls_id}
-              className={classNames(styles.CoverPhoto, `${listing.status?.toLowerCase()}-listing`, styles[`${listing.status?.toLowerCase()}-listing`])}
-              style={{
-                backgroundImage: `url(${
-                  listing.cover_photo ? getImageSized(listing.cover_photo, listing.status?.toLowerCase() === 'sold' ? 720 : 646) : '/house-placeholder.png'
-                })`,
-              }}
-            />
-            <a
-              href={(agent.domain_name ? '' : `/${agent.agent_id}/${agent.metatags.profile_slug}`) + `/property?mls=${listing.mls_id}`}
-              className='absolute top-0 left-0 w-full h-full'
-            />
-          </div>
-        );
-      else if (c.props.className.includes('propcard-image') && listing.cover_photo) {
-        return (
-          <div>
-            <img
-              key={listing.mls_id}
-              className={c.props.className}
-              src={getImageSized(listing.cover_photo, listing.status?.toLowerCase() === 'sold' ? 720 : 646)}
-            />
-
-            <a
-              href={(agent.domain_name ? '' : `/${agent.agent_id}/${agent.metatags.profile_slug}`) + `/property?mls=${listing.mls_id}`}
-              className='w-full h-full flex flex-col absolute top-0 left-0'
-            ></a>
-          </div>
-        );
-      }
-    }
-    if (c.type === 'img' && c.props.className.includes('agentface')) {
-      return (
-        <div
-          className={classNames('w-[48px] h-[48px] bg-cover bg-center overflow-hidden bg-no-repeat block')}
-          style={{
-            backgroundImage: `url(${c.props.src})`,
-          }}
-        >
-          <div
-            className={classNames('w-[48px] h-[48px] bg-cover bg-center overflow-hidden bg-no-repeat block')}
-            style={{
-              backgroundImage: `url(${getImageSized(agent.metatags.headshot || '/house-placeholder.png', 128 * 2)})`,
-            }}
-          />
-        </div>
-      );
-    }
-    if (c.props && c.props['data-field']) {
-      switch (c.props['data-field']) {
-        case 'property-address':
-        case 'property_address':
-          return cloneElement(c, c.props, listing.title);
-        case 'area':
-          return cloneElement(c, c.props, listing.area || listing.city);
-        case 'year-built':
-          return cloneElement(c, c.props, listing.year_built);
-        case 'beds':
-          return cloneElement(c, c.props, listing.beds);
-        case 'baths':
-          return cloneElement(c, c.props, listing.baths);
-        case 'sqft':
-          return cloneElement(c, c.props, formatValues(listing, 'floor_area'));
-        case 'property-price':
-          return cloneElement(c, c.props, formatValues(listing, 'asking_price'));
-      }
-    }
-    return c;
-  });
-
-  return <>{Wrapped}</>;
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const agent = await findAgentRecordByAgentId(params.slug);
+  if (agent.id) {
+    const { metatags } = agent as unknown as AgentData;
+    console.log(JSON.stringify(metatags, null, 4));
+    console.log(metatags.favicon);
+    return {
+      title: metatags.title,
+      icons: metatags.favicon,
+    };
+  }
+  return {
+    title: params.slug,
+  };
 }
 
 function Iterator({

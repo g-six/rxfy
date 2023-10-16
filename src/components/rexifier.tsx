@@ -51,7 +51,7 @@ import RxCustomerView from '@/rexify/realtors/RxCustomerView';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { updateAgentMetatags } from '@/app/api/agents/model';
 import { BrokerageInformationForm } from '@/rexify/realtors/brokerage-information';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 
 async function replaceTargetCityComponents($: CheerioAPI, agent: AgentData) {
   if (agent.metatags.target_city && !agent.metatags.geocoding) {
@@ -761,7 +761,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           }
         }
         //AGENT SIDE  START
-
         if (agent_data && node.attribs.class?.split(' ').indexOf(WEBFLOW_NODE_SELECTOR.AGENT_TOOLS) >= 0) {
           return <RxTools nodeProps={props} nodeClassName={node.attribs.class} agent={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
         }
