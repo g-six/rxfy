@@ -49,6 +49,7 @@ export interface AgentMetatagsInput {
 export interface AgentMetatags extends AgentMetatagsInput {
   id: number;
   last_updated_at?: string;
+  keywords?: string[];
 }
 
 export interface AIGeneratedDetails {

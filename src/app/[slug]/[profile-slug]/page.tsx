@@ -26,11 +26,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const agent = await findAgentRecordByAgentId(params.slug);
   if (agent.id) {
     const { metatags } = agent as unknown as AgentData;
-    console.log(JSON.stringify(metatags, null, 4));
-    console.log(metatags.favicon);
     return {
       title: metatags.title,
-      icons: metatags.favicon,
+      description: metatags.description,
+      keywords: metatags.keywords ? metatags.keywords.join(', ') : 'Leagent, Realtor',
     };
   }
   return {
