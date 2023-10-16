@@ -30,7 +30,9 @@ export async function POST(request: NextRequest) {
         },
         200,
       );
+
     const existing = await findCustomerByEmail(data.email);
+
     if (existing.id) {
       const agent_customer = await createAgentCustomer(user.agent as unknown as number, existing.id);
       console.log('agent_customer', agent_customer);

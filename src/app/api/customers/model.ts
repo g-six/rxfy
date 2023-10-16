@@ -78,13 +78,14 @@ export async function findCustomerByEmail(email: string) {
     },
   );
 
-  if (response.data?.customers?.records) {
+  if (response.data?.customers?.records?.length) {
     const { id, attributes } = response.data?.customers?.records.pop();
     return {
       ...attributes,
       id: Number(id),
     };
   }
+  return {};
 }
 
 export async function getCustomer(id: number, agent?: number) {
