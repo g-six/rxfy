@@ -1,7 +1,7 @@
 import { CloudFrontClient, CreateInvalidationCommand, CreateInvalidationCommandOutput } from '@aws-sdk/client-cloudfront';
 import { PutObjectCommand, S3Client, S3ClientConfig } from '@aws-sdk/client-s3';
 
-export function invalidateCache(Items: string[], DistributionId = process.env.NEXT_APP_S3_PAGES_BUCKET as string) {
+export function invalidateCache(Items: string[], DistributionId = process.env.NEXT_APP_SITES_DIST_ID as string) {
   try {
     const client = new CloudFrontClient({
       region: 'us-west-2',
