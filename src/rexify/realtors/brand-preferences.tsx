@@ -2,7 +2,7 @@ import React from 'react';
 import { AgentData } from '@/_typings/agent';
 import RxFileUploader from '@/components/RxForms/RxFileUploader';
 import { invalidateAgentFile } from '@/_utilities/api-calls/call-uploader';
-import { Events } from '@/hooks/useFormEvent';
+import { Events, NotificationCategory } from '@/hooks/useFormEvent';
 import useEvent from '@/hooks/useEvent';
 import axios, { AxiosResponse } from 'axios';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
@@ -28,6 +28,7 @@ export type BrandUploads = {
 export default function RxBrandPreferences(p: Props) {
   const [is_uploading, toggleUploading] = React.useState<boolean>(false);
   const [queue, setUploadQueue] = React.useState<Promise<AxiosResponse>[]>([]);
+  const notify = useEvent(Events.SystemNotification);
   const { data: headshot, fireEvent: evtH } = useEvent(Events.UploadHeadshot);
   const { data: profile_image, fireEvent: evtP } = useEvent(Events.UploadProfileImage);
   const { data: logo_for_dark_bg, fireEvent: evtL } = useEvent(Events.UploadLogoForDarkBg);
@@ -80,6 +81,11 @@ export default function RxBrandPreferences(p: Props) {
           setUploadQueue(q);
         }
       }
+      notify.fireEvent({
+        message: 'Great! Your brand preferences have been updated',
+        category: NotificationCategory.SUCCESS,
+        timeout: 8000,
+      });
       updateBrandPreferences({
         clicked: undefined,
       });
@@ -91,7 +97,6 @@ export default function RxBrandPreferences(p: Props) {
       setUploadQueue([]);
       let completed = 0;
       Promise.all(queue).then(queue_done => {
-        // toggleUploading(false);
         queue_done.map(upload_xhr => {
           if (upload_xhr.status === 200) completed++;
           if (completed === queue.length) {
