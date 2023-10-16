@@ -192,16 +192,6 @@ export async function buildCacheFiles(mls_id: string): Promise<
         strapi_record = await createProperty(mls_data);
       } else if (promises[1]) strapi_record = promises[1];
 
-      if (strapi_record.complex_compound_name) {
-        console.log(' ');
-        console.log(' ');
-        console.log('---');
-        console.log('strapi_record.complex_compound_name', strapi_record.complex_compound_name);
-        console.log('---');
-        console.log(' ');
-        console.log(' ');
-      }
-
       if (strapi_record.photos?.length) {
         photos = strapi_record.photos;
       } else if (strapi_record.id && mls_photos?.length) {
