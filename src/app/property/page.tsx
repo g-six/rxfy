@@ -17,6 +17,7 @@ import { WEBFLOW_DASHBOARDS } from '@/_typings/webflow';
 import { BuildingUnit } from '../api/properties/types';
 import RxNotifications from '@/components/RxNotifications';
 import { replaceAgentFields } from './page.helpers';
+import { getPrivateListing } from '../api/private-listings/model';
 
 function isBuildingUnit(property: { complex_compound_name?: string; style_type?: string }) {
   return property.style_type?.includes('Apartment') || property.complex_compound_name;
@@ -25,7 +26,8 @@ function isBuildingUnit(property: { complex_compound_name?: string; style_type?:
 export default async function PropertyPage(props: any) {
   let start = Date.now();
 
-  if (props.searchParams?.mls && props.params['profile-slug'].indexOf('la-') === 0) {
+  let { mls, lid } = props.searchParams;
+  if ((mls || lid) && props.params['profile-slug'].indexOf('la-') === 0) {
     let agent_id = props.params.slug || '';
     let profile_slug = props.params['profile-slug'] || '';
 
@@ -71,7 +73,7 @@ export default async function PropertyPage(props: any) {
       html_data = html_data.split('href="/map"').join(`href="${headers().get('x-map-uri')}"`);
 
       const $: CheerioAPI = load(html_data);
-      $('a[data-action="pdf"]').attr('href', `/${agent.agent_id}/${agent.metatags.profile_slug}/pdf?mls=${props.searchParams.mls}`);
+      $('a[data-action="pdf"]').attr('href', `/${agent.agent_id}/${agent.metatags.profile_slug}/pdf?mls=${mls}`);
       $('[data-field="financial_info"]').each((i, el) => {
         if (i > 0) $(el).remove();
       });
@@ -84,7 +86,8 @@ export default async function PropertyPage(props: any) {
 
       replaceAgentFields($);
       // Retrieve property
-      const listing = await buildCacheFiles(props.searchParams.mls);
+      const promises = await Promise.all([buildCacheFiles(mls), getPrivateListing(lid)]);
+      const listing = mls ? promises[0] : promises[1];
 
       if (listing) {
         console.log('Property data retrieved in', Date.now() - start, 'miliseconds');
@@ -99,7 +102,7 @@ export default async function PropertyPage(props: any) {
           if (Array.isArray(property.fireplace)) property.fireplace = property.fireplace.join('/');
 
           if (property?.room_details?.rooms) {
-            property.total_kitchens = property.room_details.rooms.filter(room => room.type.toLowerCase().includes('kitchen')).length;
+            property.total_kitchens = property.room_details.rooms.filter(room => room.type && room.type.toLowerCase().includes('kitchen')).length;
           }
           const navbar = $('body > .navigation');
           const footer = $('body > footer, .f-footer-small');

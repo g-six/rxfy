@@ -106,7 +106,7 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
           };
           if (baths && baths.length) {
             baths
-              .filter(bath => bath.ensuite?.toLowerCase() === 'yes')
+              .filter(bath => bath.ensuite && bath.ensuite?.toLowerCase() === 'yes')
               .map((k, idx) => (
                 <div
                   key={`${idx + 1}-${k.level}-ensuite-bath-${k.pieces}-pc`}
