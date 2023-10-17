@@ -116,7 +116,7 @@ export default async function PropertyPage(props: any) {
           $('body > .navigation').remove();
           $('body > footer, .f-footer-small').remove();
 
-          const body = $('body > div,section');
+          const body = $('body > div');
 
           return (
             <>

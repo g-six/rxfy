@@ -19,8 +19,6 @@ import { AgentData } from '@/_typings/agent';
 export default function Iterator({ children, ...props }: { children: ReactElement; agent: AgentData; property: PageData; photos: string[] }) {
   const Rexified = Children.map(children, c => {
     if (c.props?.['data-action']) {
-      console.log('');
-      console.log('props', Object.keys(c.props));
       const { children: subcomponents, property, ...subprops } = c.props;
       return (
         <PageAction
