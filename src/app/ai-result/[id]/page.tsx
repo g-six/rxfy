@@ -13,6 +13,7 @@ import { formatValues } from '@/_utilities/data-helpers/property-page';
 import { createPhotoAlbumForProperty } from '@/app/api/property-photo-albums/model';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { objectToQueryString } from '@/_utilities/url-helper';
+import { cookies } from 'next/headers';
 export default async function AiResultPage({ params }: { params: { id: string } }) {
   try {
     const promises = await Promise.all([
@@ -30,14 +31,99 @@ export default async function AiResultPage({ params }: { params: { id: string } 
 
     if (html && profile_slug) {
       const $: CheerioAPI = load(html);
-      $('.tabs-content [data-w-tab="Property Page"] > *').replaceWith(
-        `<iframe src="/${params.id}/${profile_slug}/property?mls=R2814552" class="w-full h-full" />`,
-      );
+      //   $('.tabs-content [data-w-tab="Property Page"] > *').replaceWith(
+      //     `<iframe src="/${params.id}/${profile_slug}/property?mls=R2814552" class="w-full h-full" />`,
+      //   );
 
-      $('.tabs-content .home-oslo').replaceWith(`<iframe src="/${params.id}/${profile_slug}?theme=oslo" class="w-full h-full" />`);
-      $('.tabs-content .home-malta').replaceWith(`<iframe src="/${params.id}/${profile_slug}?theme=malta" class="w-full h-full" />`);
-      $('.tabs-content .home-hamburg').replaceWith(`<iframe src="/${params.id}/${profile_slug}?theme=hamburg" class="w-full h-full" />`);
-      $('.tabs-content .home-alicante').replaceWith(`<iframe src="/${params.id}/${profile_slug}?theme=alicante" class="w-full h-full" />`);
+      //   $('.tabs-content .home-oslo').replaceWith(`<iframe src="/${params.id}/${profile_slug}?theme=oslo" class="w-full h-full" />`);
+      //   $('.tabs-content .home-malta').replaceWith(`<iframe src="/${params.id}/${profile_slug}?theme=malta" class="w-full h-full" />`);
+      //   $('.tabs-content .home-hamburg').replaceWith(`<iframe src="/${params.id}/${profile_slug}?theme=hamburg" class="w-full h-full" />`);
+      //   $('.tabs-content .home-alicante').replaceWith(`<iframe src="/${params.id}/${profile_slug}?theme=alicante" class="w-full h-full" />`);
+
+      if (cookies().get('session_key')?.value) {
+        $('[data-group="out_session"]').remove();
+        if (agent_data.id) {
+          let class_name = $('[data-group="in_session"] [data-field="full_name"]').attr('class');
+          $('[data-field="full_name"]').replaceWith(`<div class="${class_name}">${agent_data.full_name}</div>`);
+
+          class_name = $('[data-group="in_session"] [data-field="phone"]').attr('class');
+          $('[data-field="phone"]').replaceWith(`<div class="${class_name}"><a href="tel:${agent_data.phone}">${agent_data.phone}</a></div>`);
+
+          class_name = $('[data-group="in_session"] [data-field="email"]').attr('class');
+          $('[data-field="email"]').replaceWith(`<div class="${class_name}"><a href="mailto:${agent_data.email}">${agent_data.email}</a></div>`);
+
+          class_name = $('[data-group="in_session"] [data-field="domain_name"]').attr('class');
+
+          if (agent_data.metatags.headshot) {
+            class_name = $('[data-field="headshot"]').attr('class');
+            $('[data-group="in_session"] [data-field="headshot"]').replaceWith(
+              `<div class="${class_name} bg-contain bg-center" style="background-image: url(${getImageSized(agent_data.metatags.headshot, 100)})"></div>`,
+            );
+          }
+        }
+      } else {
+        $('[data-group="in_session"]').remove();
+      }
+
+      $('[data-text]').each((i, el) => {
+        const class_name = el.attribs.class;
+        const field = el.attribs['data-text'];
+        let value = agent_data[field] || agent_data.metatags[field];
+        if (field === 'domain_name' && !value) {
+          value = `https://leagent.com/${agent_data.agent_id}/${agent_data.metatags.profile_slug}`;
+        }
+        $(el).replaceWith(`<${el.tagName} class="${class_name}">${value}</${el.tagName}>`);
+      });
+      $('[data-group="business_card_front"] [data-field], [data-group="business_card_back"] [data-field]').each((i, el) => {
+        const class_name = el.attribs.class;
+        const field = el.attribs['data-field'];
+        let value = agent_data[field] || agent_data.metatags[field];
+        if (field === 'domain_name' && !value) {
+          value = `https://leagent.com/${agent_data.agent_id}/${agent_data.metatags.profile_slug}`;
+        }
+        if (value) {
+          if (el.tagName === 'img') {
+            $(el).replaceWith(`<${el.tagName} class="${class_name}" src="${value}" />`);
+          }
+        }
+      });
+
+      // data-group="email_signature"
+      // Links
+      $('[data-group="facebook_cover"] [data-field], [data-group="email_signature"] [data-field]').each((i, el) => {
+        let value = agent_data[el.attribs['data-field']] || agent_data.metatags[el.attribs['data-field']];
+        if (el.attribs['data-field'] === 'domain_name' && !value) value = 'leagent.com';
+        if (el.attribs['data-field']) {
+          const attribs = el.attributes;
+          const props: string[] = [];
+          attribs.forEach(attr => {
+            if (attr.name !== 'src') props.push(`${attr.name}="${attr.value}"`);
+          });
+          if (el.attribs['data-field'].includes('_url')) {
+            if (value) $(el).wrapInner(`<a href="//${value}"></a>`);
+            else $(el).remove();
+          } else {
+            if (el.tagName === 'img') $(el).replaceWith(`<${el.tagName} ${props.join(' ')} src="${getImageSized(value, 400)}" />`);
+            else if (value) {
+              if (!['headshot'].includes(el.attribs['data-field'])) $(el).replaceWith(`<${el.tagName} ${props.join(' ')}>${value}</${el.tagName}>`);
+            } else $(el).remove();
+          }
+          // if (agent_data.metatags.facebook_url) $('[data-field="facebook_url"]').wrapInner(`<a href="//${agent_data.metatags.facebook_url}"></a>`);
+          // else $('[data-field="facebook_url"]').remove();
+
+          // if (agent_data.metatags.twitter_url) $('[data-field="twitter_url"]').wrapInner(`<a href="//${agent_data.metatags.twitter_url}"></a>`);
+          // else $('[data-field="twitter_url"]').remove();
+
+          // if (agent_data.metatags.instagram_url) $('[data-field="instagram_url"]').wrapInner(`<a href="//${agent_data.metatags.instagram_url}"></a>`);
+          // else $('[data-field="instagram_url"]').remove();
+
+          // if (agent_data.metatags.linkedin_url) $('[data-field="linkedin_url"]').wrapInner(`<a href="//${agent_data.metatags.linkedin_url}"></a>`);
+          // else $('[data-field="linkedin_url"]').remove();
+
+          // $('[data-field="domain_name"]').empty();
+          // $('[data-field="domain_name"]').append(agent_data.domain_name || 'leagent.com');
+        }
+      });
 
       $('.tabs-content [data-w-tab="PDF Brochure"] > *').replaceWith(
         `<iframe src="https://leagent.com/api/pdf/mls/R2814552?agent=${params.id}&slug=${profile_slug}" class="w-full h-full" />`,
