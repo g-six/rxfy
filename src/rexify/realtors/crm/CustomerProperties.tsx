@@ -85,31 +85,29 @@ function Iterator(p: {
     if (child.props && child.props['data-component'] === 'property_card_small') {
       return (
         <>
-          {p.properties ? (
-            p.properties.map((property: LovedPropertyDataModel) => {
-              const listing = {
-                ...property,
-                cover_photo: property.property_photo_album?.data?.attributes.photos.length
-                  ? getImageSized(property.property_photo_album?.data?.attributes.photos[0], 300)
-                  : '',
-              };
-              return cloneElement(
-                child,
-                {
-                  key: `${property.id}-${property.love}`,
-                  'data-property-id': property.id,
-                  'data-love-id': property.love,
-                  className: classNames(child.props.className || 'no-default-class', 'cursor-pointer'),
-                  onClick: () => {
-                    p.onSelectProperty(property);
+          {p.properties
+            ? p.properties.map((property: LovedPropertyDataModel) => {
+                const listing = {
+                  ...property,
+                  cover_photo: property.property_photo_album?.data?.attributes.photos.length
+                    ? getImageSized(property.property_photo_album?.data?.attributes.photos[0], 300)
+                    : '',
+                };
+                return cloneElement(
+                  child,
+                  {
+                    key: `${property.id}-${property.love}`,
+                    'data-property-id': property.id,
+                    'data-love-id': property.love,
+                    className: classNames(child.props.className || 'no-default-class', 'cursor-pointer'),
+                    onClick: () => {
+                      p.onSelectProperty(property);
+                    },
                   },
-                },
-                <PropertyIterator property={listing}>{child.props.children}</PropertyIterator>,
-              );
-            })
-          ) : (
-            <></>
-          )}
+                  <PropertyIterator property={listing}>{child.props.children}</PropertyIterator>,
+                );
+              })
+            : cloneElement(child, { className: classNames(child.props.className, 'opacity-0') })}
         </>
       );
     } else if (child.type === 'div' && typeof child.props.children !== 'string') {

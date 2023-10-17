@@ -1,6 +1,6 @@
 'use client';
+import React, { cloneElement } from 'react';
 import { LovedPropertyDataModel } from '@/_typings/property';
-import React from 'react';
 import RxCompareFiltersModal from './crm/RxCompareFiltersModal';
 import CustomerProperties from './crm/CustomerProperties';
 import { RxCustomerCompareCanvas } from './crm/CustomerCompareCanvas';
@@ -17,6 +17,7 @@ import { AgentData } from '@/_typings/agent';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { getAgentBaseUrl } from '@/app/api/_helpers/agent-helper';
 import useEvent, { Events } from '@/hooks/useEvent';
+import styles from '@/rexify/dynamic-styles.module.scss';
 
 type Props = {
   children: React.ReactElement;
@@ -94,7 +95,21 @@ export default function ClientDashboardIterator(
 ) {
   const Wrapped = React.Children.map(p.children, child => {
     if (child.props?.children || child.props?.className) {
-      if (p.agent && child.props?.className?.includes('logo-div')) {
+      let { className } = child.props;
+      const classes: string[] = `${className || ''}`.split(' ');
+      if (p.property?.id || (p.properties && p.properties.length)) {
+        if (classes.includes('initially-hidden')) {
+          className = classes.filter(name => !['opacity-0', 'hidden'].includes(name)).join(' ');
+        }
+      } else {
+        if (classes.includes('initially-hidden') && child.props['data-field'] === 'empty_state') {
+          className = classes
+            .filter(name => name !== 'opacity-0')
+            .concat(styles.shown)
+            .join(' ');
+        }
+      }
+      if (p.agent && className?.includes('logo-div')) {
         let logo = '';
         if (p.agent?.metatags.logo_for_light_bg) {
           logo = getImageSized(p.agent?.metatags.logo_for_light_bg, 100);
@@ -102,7 +117,7 @@ export default function ClientDashboardIterator(
           logo = getImageSized(p.agent?.metatags.logo_for_dark_bg, 100);
         }
         return (
-          <div className={child.props?.className}>
+          <div className={className}>
             <a href={''}>
               {logo ? (
                 <span
@@ -115,7 +130,7 @@ export default function ClientDashboardIterator(
             </a>
           </div>
         );
-      } else if (child.props?.className?.includes('confirm-delete')) {
+      } else if (className?.includes('confirm-delete')) {
         return React.cloneElement(child, {
           ...child.props,
           className: p.confirm ? 'flex items-center align-center justify-center absolute w-full h-full' : child.props.className,
@@ -133,7 +148,7 @@ export default function ClientDashboardIterator(
             </RxCompareFiltersModal>
           );
         }
-        if (child.props?.['data-panel'] === 'properties_column' && p.properties !== undefined) {
+        if (child.props?.['data-panel'] === 'properties_column' && p.properties !== undefined && p.properties.length) {
           return (
             <CustomerProperties {...child.props} properties={p.properties} property={p.property}>
               {child.props.children}
@@ -153,8 +168,8 @@ export default function ClientDashboardIterator(
           );
         } else if (p.agent && child.props['data-field'] === 'empty_state') {
           // Hide empty state elements on presence of property or properties
-          if (p.property?.id || p.properties?.length) {
-            return <></>;
+          if (!p.property?.id || p.properties?.length === 0) {
+            return cloneElement(child, { className });
           }
 
           return <TransformLink>{child}</TransformLink>;

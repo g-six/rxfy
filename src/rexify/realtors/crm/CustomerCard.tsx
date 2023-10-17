@@ -108,7 +108,6 @@ export default function RxCRMCustomerCard(p: Props) {
   const addNoteEventHandler = useEvent(Events.AddCustomerNote);
   const dropdown = useEvent(Events.CRMCustomerCardActions);
   const [is_dropped, toggleDropdown] = React.useState(false);
-
   const { active } = evt.data as unknown as {
     active: number;
   };

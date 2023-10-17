@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { cloneElement } from 'react';
 import useEvent, { Events } from '@/hooks/useEvent';
 import { CustomerRecord } from '@/_typings/customer';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
@@ -8,6 +8,7 @@ import RxCustomerNotesWrapper from './CustomerNotesWrapper';
 import styles from './CustomerNotes.module.scss';
 import { setData } from '@/_utilities/data-helpers/local-storage-helper';
 import { AgentData } from '@/_typings/agent';
+import RxCRMNotes from './CustomerNotes';
 
 type Props = {
   children: React.ReactElement;
@@ -111,6 +112,18 @@ function Iterator(p: Props) {
             <div className={card_class}>{card_children}</div>
           </RxCustomerNotesWrapper>
         );
+      } else if (child.props['data-component'] === 'new_customer_note') {
+        const { className } = child.props.children;
+        return (
+          <RxCRMNotes className={className} rx-event={Events.AddCustomerNote}>
+            {child.props.children}
+          </RxCRMNotes>
+        );
+
+        //   <RxCRMNotes {...props} rx-event={Events.AddCustomerNote}>
+        //   {domToReact(node.children) as ReactElement}
+        // </RxCRMNotes>
+        // return cloneElement(<div data-component='new_customer_note' />, { className: child.props?.className }, child.props.children);
       } else if (child.type !== 'div') {
         return child;
       }

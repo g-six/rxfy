@@ -43,7 +43,7 @@ export async function getUserSessionData(authorization: string, user_type: 'real
     user_type,
     false,
   );
-  const { agent, birthday, brokerage, stripe_customer, stripe_subscriptions, agents_customer } = session_data;
+  const { agent, birthday, brokerage, stripe_customer, stripe_subscriptions } = session_data;
   let phone_number = session_data.phone_number || session_data.phone || session_data.agent?.data?.attributes?.phone;
 
   if (email && last_activity_at && session_key) {

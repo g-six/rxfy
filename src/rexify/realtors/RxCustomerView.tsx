@@ -37,7 +37,7 @@ export default function RxCustomerView(p: Props) {
   };
 
   const loadData = (r?: unknown) => {
-    const { id, customers, ...selections } = session.data as unknown as AgentData;
+    const { id, customers, ...selections } = agent as unknown as AgentData;
     const tabs = selections as unknown as {
       [key: string]: string;
     };
@@ -71,11 +71,11 @@ export default function RxCustomerView(p: Props) {
           }
         }
         getLovedHomes(customer_id).then(data => {
-          if (data.properties) {
-            setProperties(data.properties);
+          if (data.records) {
+            setProperties(data.records);
             lovers.fireEvent(data as unknown as EventsData);
             let default_property = false;
-            data.properties.forEach((property: LovedPropertyDataModel) => {
+            data.records.forEach((property: LovedPropertyDataModel) => {
               if (property.cover_photo && !default_property) {
                 default_property = true;
                 onSelectProperty(property);
@@ -102,11 +102,23 @@ export default function RxCustomerView(p: Props) {
   }, [selectPropertyEvt.data]);
 
   React.useEffect(() => {
-    loadData();
     setHydrated(true);
+  }, [properties]);
+
+  React.useEffect(() => {
+    loadData();
+  }, [agent]);
+
+  React.useEffect(() => {
+    if (!agent.id && p.agent?.id) {
+      setAgent(p.agent);
+    }
   }, []);
+
+  console.log(agent);
+
   return (
-    <div {...p}>
+    <div {...{ ...p, agent: agent.id }}>
       {hydrated ? (
         <ClientDashboardIterator
           {...p}

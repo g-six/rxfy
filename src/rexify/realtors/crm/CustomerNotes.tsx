@@ -22,6 +22,13 @@ type Props = {
 
 function Iterator(p: Props) {
   const Wrapped = React.Children.map(p.children, child => {
+    if (child.props?.value?.toUpperCase() === 'ADD A NOTE') {
+      return (
+        <RxButton className={child.props.className} rx-event={Events.SaveCustomerNote} id={`${Events.SaveCustomerNote}-trigger`}>
+          {child.props.value}
+        </RxButton>
+      );
+    }
     if (child.props?.children) {
       if (child.props.children === 'Save') {
         return (
@@ -83,6 +90,7 @@ export default function RxCRMNotes(p: Props) {
       const { notes } = saveHandler.data as unknown as {
         notes: string;
       };
+
       if (notes && (active || notes_id) && evt.data?.clicked) {
         const id = notes_id || active;
         let fn = addCustomerNote;
