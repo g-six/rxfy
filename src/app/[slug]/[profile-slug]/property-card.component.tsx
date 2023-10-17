@@ -19,7 +19,7 @@ export function PropertyCard({ agent, listing, children }: { agent: AgentData; l
     if (c.type === 'div' && (c.props?.['data-group'] === 'listing_info' || c.props?.['data-field'] === undefined)) {
       const { children: sub, className: containerClassName, ...props } = c.props;
       return (
-        <div {...props} className={classNames(containerClassName, 'relative')}>
+        <div {...props} className={classNames(containerClassName)}>
           <PropertyCard agent={agent} listing={listing}>
             {sub}
           </PropertyCard>

@@ -21,7 +21,7 @@ import ActionButton from './homepage-action-button.module';
 import RxNotifications from '@/components/RxNotifications';
 import { PropertyCard } from './property-card.component';
 import { Metadata } from 'next';
-import { SOCIAL_MEDIA_FIELDS } from '@/_constants/agent-fields';
+import { LOGO_FIELDS, SOCIAL_MEDIA_FIELDS } from '@/_constants/agent-fields';
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const agent = await findAgentRecordByAgentId(params.slug);
@@ -359,6 +359,20 @@ export default async function AgentHomePage({ params, searchParams }: { params: 
           },
         ]);
       }
+    }
+
+    $('[data-field]').each((i, el) => {
+      const attribs = Object.keys(el.attribs).map(attr => {
+        let val = el.attribs[attr];
+        if (LOGO_FIELDS.includes(el.attribs['data-field']) && agent.metatags?.[el.attribs['data-field']]) {
+          val = getImageSized(agent.metatags[el.attribs['data-field']], 160);
+        }
+        return `${attr}="${val}"`;
+      });
+      if (!el.attribs.src) $(el).replaceWith(`<${el.tagName} ${attribs.join(' ')}>${agent.full_name}</${el.tagName}>`);
+    });
+
+    if (agent.metatags?.geocoding?.area) {
     }
 
     const internal_req = {

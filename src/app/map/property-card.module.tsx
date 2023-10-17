@@ -170,7 +170,7 @@ function PropertyCardIterator({
       }
       return (
         <div
-          className={c.props.className + ' rexified z-10 relative'}
+          className={c.props.className + ' rexified z-10'}
           onClick={() => {
             if (c.props.className.includes('propcard-details')) {
               onClickToOpen();
@@ -249,7 +249,7 @@ export default function PropertyCard({ agent, className, children }: { agent?: A
           })
           .slice(0, 100)
           .map(({ properties: p }) => (
-            <div key={p.mls_id} className={[className, p.mls_id, ' rexified HomeList-PropertyCard relative'].join(' ')}>
+            <div key={p.mls_id} className={[className, p.mls_id, ' rexified HomeList-PropertyCard'].join(' ')}>
               <PropertyCardIterator
                 listing={p}
                 loved={loved_items && loved_items.includes(p.mls_id)}

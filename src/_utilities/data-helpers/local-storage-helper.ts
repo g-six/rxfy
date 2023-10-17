@@ -33,7 +33,7 @@ export function getData(key: string, defaultVal = null) {
     const data = isBrowser ? localStorage.getItem(key) : res;
     res = data && data.length && data !== 'undefined' ? JSON.parse(data) : defaultVal;
   } catch (e) {
-    console.log('Error: getData from local storage failed', e);
+    console.log(`Error: getData(${key}) from local storage failed`, e);
   }
   return res;
 }

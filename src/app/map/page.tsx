@@ -15,6 +15,9 @@ import { getBounds } from '@/_utilities/map-helper';
 import { must_not } from '@/_utilities/api-calls/call-legacy-search';
 import { NextRequest } from 'next/server';
 import { PropertyDataModel } from '@/_typings/property';
+import { LOGO_FIELDS } from '@/_constants/agent-fields';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { AgentData } from '@/_typings/agent';
 
 interface SearchOpts {
   nelat: number;
@@ -131,6 +134,28 @@ export default async function MapPage({ params, searchParams }: { params: { [key
       console.log(Date.now() - time + 'ms', '[Completed] HTML template & agent Strapi data extraction');
       const $: CheerioAPI = load(html);
       console.log(Date.now() - time + 'ms', '[Completed] HTML template load to memory');
+
+      if (agent) {
+        const { full_name, metatags } = agent as unknown as { full_name: string; metatags?: { [k: string]: string } };
+        if (metatags) {
+          $('[data-field]').each((i, el) => {
+            const field = el.attribs['data-field'];
+            if (LOGO_FIELDS.includes(field)) {
+              const attribs = Object.keys(el.attribs).map(attr => {
+                let val = el.attribs[attr];
+                if (val === field) {
+                  return '';
+                }
+                if (metatags[field]) val = getImageSized(metatags[field], 160);
+                return `${attr}="${val}"`;
+              });
+              const replacement = `<${el.tagName} ${attribs.join(' ')}>${full_name}</${el.tagName}>`;
+              console.log({ replacement });
+              if (!el.attribs.src) $(el).replaceWith(replacement);
+            }
+          });
+        }
+      }
       const body = $('body > div');
       const Page = (
         <>

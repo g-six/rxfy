@@ -43,7 +43,7 @@ function LinkRexifier({
   const rexified = React.Children.map(children, cc => {
     if (!['img', 'span', 'svg', 'div'].includes(cc.type as string)) {
       if (cc.type === 'div') return <MapIterator {...attributes}>{cc.props.children}</MapIterator>;
-      return <MapIterator {...attributes}>{React.cloneElement(<span data-class={cc.type} />, cc.props)}</MapIterator>;
+      return <MapIterator {...attributes}>{cc}</MapIterator>;
     }
     if (cc.props.children) {
       return <MapIterator {...attributes}>{cc.props.children}</MapIterator>;
