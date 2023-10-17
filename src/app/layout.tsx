@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 
 import Script from 'next/script';
 
-import React from 'react';
+import React, { ReactElement } from 'react';
 import { WEBFLOW_THEME_DOMAINS, WebFlow } from '@/_typings/webflow';
 import { AgentData } from '@/_typings/agent';
 import { getPropertyData } from '@/_utilities/data-helpers/property-page';
@@ -89,8 +89,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   try {
     console.log('Request link', requestLink);
-    const req_page_html = await axios.get(requestLink);
-    data = req_page_html.data;
+    const fetch_req = await fetch(requestLink);
+    data = await fetch_req.text();
   } catch (e) {
     console.log('Layout.tsx ERROR.  Unable to fetch page html for', requestLink);
   }
