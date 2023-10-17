@@ -1,6 +1,6 @@
 import NotFound from '@/app/not-found';
 import axios from 'axios';
-import { Cheerio, CheerioAPI, Element, load } from 'cheerio';
+import { CheerioAPI, load } from 'cheerio';
 import { DOMNode, domToReact } from 'html-react-parser';
 import { ReactElement } from 'react';
 import Iterator from './iterator.module';
@@ -44,7 +44,7 @@ export default async function AiResultPage({ params }: { params: { id: string } 
         $('[data-group="out_session"]').remove();
         if (agent_data.id) {
           let class_name = $('[data-group="in_session"] [data-field="full_name"]').attr('class');
-          $('[data-field="full_name"]').replaceWith(`<div class="${class_name}">${agent_data.full_name}</div>`);
+          $('[data-group="in_session"] [data-field="full_name"]').replaceWith(`<div class="${class_name}">${agent_data.full_name}</div>`);
 
           class_name = $('[data-group="in_session"] [data-field="phone"]').attr('class');
           $('[data-field="phone"]').replaceWith(`<div class="${class_name}"><a href="tel:${agent_data.phone}">${agent_data.phone}</a></div>`);
@@ -55,7 +55,7 @@ export default async function AiResultPage({ params }: { params: { id: string } 
           class_name = $('[data-group="in_session"] [data-field="domain_name"]').attr('class');
 
           if (agent_data.metatags.headshot) {
-            class_name = $('[data-field="headshot"]').attr('class');
+            class_name = $('[data-group="in_session"] [data-field="headshot"]').attr('class');
             $('[data-group="in_session"] [data-field="headshot"]').replaceWith(
               `<div class="${class_name} bg-contain bg-center" style="background-image: url(${getImageSized(agent_data.metatags.headshot, 100)})"></div>`,
             );
@@ -72,7 +72,13 @@ export default async function AiResultPage({ params }: { params: { id: string } 
         if (field === 'domain_name' && !value) {
           value = `https://leagent.com/${agent_data.agent_id}/${agent_data.metatags.profile_slug}`;
         }
-        $(el).replaceWith(`<${el.tagName} class="${class_name}">${value}</${el.tagName}>`);
+        if (el.tagName === 'img' && value) {
+          const props: string[] = [];
+          el.attributes.forEach(attr => {
+            if (attr.name !== 'src') props.push(`${attr.name}="${attr.value}"`);
+          });
+          $(el).replaceWith(`<${el.tagName} ${props.join(' ')} src=${value} />`);
+        } else $(el).replaceWith(`<${el.tagName} class="${class_name}">${value}</${el.tagName}>`);
       });
       $('[data-group="business_card_front"] [data-field], [data-group="business_card_back"] [data-field]').each((i, el) => {
         const class_name = el.attribs.class;
