@@ -13,7 +13,7 @@ const gql = `query LogIn ($filters: CustomerFiltersInput!) {
         full_name
         encrypted_password
         last_activity_at
-        agents_customer {
+        agents_customers {
           ${GQ_FRAG_AGENT_CUSTOMER}
         }
       }
@@ -30,7 +30,7 @@ const session_gql = `mutation UpdateCustomerSession ($id: ID!, $logged_in_at: Da
         full_name
         logged_in_at
         last_activity_at
-        agents_customer {
+        agents_customers {
           ${GQ_FRAG_AGENT_CUSTOMER}
         }
       }

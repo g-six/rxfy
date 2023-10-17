@@ -76,7 +76,7 @@ function gqlGetUserSubfields(user_type: 'realtor' | 'customer') {
       }
     }`,
     ].join(line_break);
-  return ['birthday', 'yes_to_marketing', `agents_customer {${GQ_FRAG_AGENTS_CUSTOMER}}`, GQL_DOCUMENTS].join(line_break);
+  return ['birthday', 'yes_to_marketing', `agents_customers {${GQ_FRAG_AGENTS_CUSTOMER}}`, GQL_DOCUMENTS].join(line_break);
 }
 
 export function gqlFindUser(user_type: 'realtor' | 'customer' = 'customer') {
