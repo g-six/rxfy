@@ -105,8 +105,9 @@ export default async function AiResultPage({ params }: { params: { id: string } 
           } else {
             if (el.tagName === 'img') $(el).replaceWith(`<${el.tagName} ${props.join(' ')} src="${getImageSized(value, 400)}" />`);
             else if (value) {
-              if (!['headshot'].includes(el.attribs['data-field'])) $(el).replaceWith(`<${el.tagName} ${props.join(' ')}>${value}</${el.tagName}>`);
-            } else $(el).remove();
+              if (!['headshot', 'logo_for_dark_bg'].includes(el.attribs['data-field']))
+                $(el).replaceWith(`<${el.tagName} ${props.join(' ')}>${value}</${el.tagName}>`);
+            }
           }
           // if (agent_data.metatags.facebook_url) $('[data-field="facebook_url"]').wrapInner(`<a href="//${agent_data.metatags.facebook_url}"></a>`);
           // else $('[data-field="facebook_url"]').remove();
