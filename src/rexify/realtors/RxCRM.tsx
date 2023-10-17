@@ -1,14 +1,16 @@
 'use client';
-import React from 'react';
+import React, { useEffect } from 'react';
 import RxCRMLeadsWrapper from './crm/LeadsWrapper';
 import RxCRMCustomerPreview from './crm/CustomerPreview';
 import RxCRMCustomerCreateForm from './crm/CustomerCreateForm';
 import { Events, EventsData } from '@/hooks/useFormEvent';
 import useEvent from '@/hooks/useEvent';
+import { AgentData } from '@/_typings/agent';
 
 type Props = {
   children: React.ReactElement;
   className?: string;
+  agent?: AgentData;
 };
 
 type ChildProps = {
@@ -66,6 +68,17 @@ function Iterator(p: ChildProps) {
 
 export default function RxCRM(p: Props) {
   const formToggle = useEvent(Events.CreateCustomerForm);
+  const session = useEvent(Events.LoadUserSession);
+
+  useEffect(() => {
+    if (p.agent?.id && !session.data?.user) {
+      session.fireEvent({
+        ...p.agent,
+        user: p.agent,
+      });
+    }
+  }, []);
+
   return (
     <div className={['RxCRM', p.className || ''].join(' ').trim()}>
       <Iterator
