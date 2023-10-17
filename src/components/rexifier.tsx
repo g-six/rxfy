@@ -364,7 +364,33 @@ export function replaceInlineScripts($: CheerioAPI) {
 }
 
 export function appendJs(url: string, delay = 1200) {
-  if (url.indexOf('website-files.com') >= 0) {
+  if (url.split('/').pop() === 'webflow.js') {
+    return `
+      var Webflow = Webflow || [];
+      Webflow.push(() => {
+        window.scrollTo({
+          top: 1,
+        });
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      })
+      window.addEventListener("load", (event) => {
+        console.log("Loaded whole page, let's load ${url}")
+        fetch('/api/scripts/${url.split('/').reverse().slice(0, 2).reverse().join('/')}').then((response) => {
+          response.text().then(script_txt => {
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.text = script_txt.split('w-webflow-badge').join('oh-no-you-dont hidden').split('window.alert').join('console.log');
+            console.log('appendChild on 382', 'delay ${delay}', '${url}')
+            document.body.appendChild(script)
+          })
+        })
+      });
+      
+    `;
+  } else if (url.indexOf('website-files.com') >= 0) {
     return `
       var Webflow = Webflow || [];
       Webflow.push(() => {

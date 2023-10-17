@@ -172,7 +172,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const { class: bodyClassName, ...body_props } = webflow.body.props;
   let use_v2 = webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN;
-  if (!use_v2) use_v2 = webflow_domain === WEBFLOW_THEME_DOMAINS.ALICANTE;
 
   if (use_v2 || requestUrl.pathname.split('/').pop() === 'map' || requestUrl.pathname.split('/').pop() === 'propertyid.html') {
     const html_props = {

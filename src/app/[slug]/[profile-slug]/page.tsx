@@ -21,6 +21,7 @@ import ActionButton from './homepage-action-button.module';
 import RxNotifications from '@/components/RxNotifications';
 import { PropertyCard } from './property-card.component';
 import { Metadata } from 'next';
+import { SOCIAL_MEDIA_FIELDS } from '@/_constants/agent-fields';
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const agent = await findAgentRecordByAgentId(params.slug);
@@ -207,7 +208,7 @@ function Iterator({
                   style={{
                     backgroundImage: `url(https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${`${agent.metatags.lng || -123.112},${
                       agent.metatags.lat || 49.2768
-                    },11/1080x720@2x?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`})`,
+                    },11/720x720@2x?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`})`,
                   }}
                 />
               );
@@ -217,9 +218,15 @@ function Iterator({
             if (!rexified) {
               rexified = (agent.metatags as unknown as { [key: string]: string })[c.props['data-field']];
               if (c.type === 'img')
-                return cloneElement(c, {
-                  src: c.props['data-field'].indexOf('logo_') === 0 ? getImageSized(rexified, 230) : rexified,
-                });
+                return rexified ? (
+                  cloneElement(c, {
+                    src: c.props['data-field'].indexOf('logo_') === 0 ? getImageSized(rexified, 230) : rexified,
+                  })
+                ) : SOCIAL_MEDIA_FIELDS.includes(c.props['data-field']) ? (
+                  <></>
+                ) : (
+                  c
+                );
             }
 
             if (!rexified) {
@@ -419,7 +426,7 @@ export default async function AgentHomePage({ params, searchParams }: { params: 
 
     const navbar = $('body .navbar-component');
     $('body .navbar-component').remove();
-    const body = $('body > div,section');
+    const body = $('body > div');
 
     return (
       <>

@@ -65,6 +65,7 @@ export default async function PropertyPage(props: any) {
     }
 
     console.log('Agent data retrieved in', Date.now() - start, 'miliseconds');
+    console.log(JSON.stringify(agent, null, 4));
     if (agent.full_name) {
       const page_url = `https://sites.leagent.com/${agent.webflow_domain}/property/propertyid.html`;
       let { data: html_data } = await axios.get(page_url);
@@ -86,8 +87,12 @@ export default async function PropertyPage(props: any) {
 
       replaceAgentFields($);
       // Retrieve property
-      const promises = await Promise.all([buildCacheFiles(mls), getPrivateListing(lid)]);
-      const listing = mls ? promises[0] : promises[1];
+      let listing: unknown = undefined;
+      if (lid) {
+        listing = await getPrivateListing(lid);
+      } else {
+        listing = await buildCacheFiles(mls);
+      }
 
       if (listing) {
         console.log('Property data retrieved in', Date.now() - start, 'miliseconds');
@@ -104,6 +109,7 @@ export default async function PropertyPage(props: any) {
           if (property?.room_details?.rooms) {
             property.total_kitchens = property.room_details.rooms.filter(room => room.type && room.type.toLowerCase().includes('kitchen')).length;
           }
+          $('[data-node-type]').remove();
           const navbar = $('body > .navigation');
           const footer = $('body > footer, .f-footer-small');
 
