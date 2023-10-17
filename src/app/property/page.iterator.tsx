@@ -15,6 +15,7 @@ import { Transition } from '@headlessui/react';
 import RecentListings from './recent-listings.module';
 import PageAction from './page-action.module';
 import { AgentData } from '@/_typings/agent';
+import { LOGO_FIELDS } from '@/_constants/agent-fields';
 
 export default function Iterator({ children, ...props }: { children: ReactElement; agent: AgentData; property: PageData; photos: string[] }) {
   const Rexified = Children.map(children, c => {
@@ -169,7 +170,11 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
           {
             className: classNames(c.props.className || '', 'property-page-rexified').trim(),
           },
-          data[c.props['data-field']] ? formatValues(props.property, c.props['data-field']) : 'N/A',
+          data[c.props['data-field']]
+            ? formatValues(props.property, c.props['data-field'])
+            : LOGO_FIELDS.includes(c.props['data-field'])
+            ? props.agent.full_name
+            : c.props.children,
         );
       else
         return cloneElement(c, {
