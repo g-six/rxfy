@@ -1,7 +1,7 @@
 import { getResponse } from '@/app/api/response-helper';
 import { NextRequest } from 'next/server';
 import { getPdf } from '@/app/api/_helpers/pdf-helper';
-import { buildCacheFiles, getPropertyByMlsId } from '@/app/api/properties/model';
+import { getPropertyByMlsId } from '@/app/api/properties/model';
 import { findAgentRecordByAgentId } from '@/app/api/agents/model';
 
 export async function GET(req: NextRequest) {

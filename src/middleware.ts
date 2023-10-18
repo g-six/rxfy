@@ -45,6 +45,7 @@ export async function middleware(request: NextRequest) {
       case 'lisbon':
       case 'malta':
       case 'malaga':
+      case 'alicante':
       case 'hamburg':
         page_url = `${page_url}${searchParams.get('theme')}-leagent.webflow.io/index`;
         break;
