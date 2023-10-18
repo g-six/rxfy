@@ -35,7 +35,10 @@ export default async function AiResultPage({ params }: { params: { id: string } 
       //     `<iframe src="/${params.id}/${profile_slug}/property?mls=R2814552" class="w-full h-full" />`,
       //   );
 
-      //   $('.tabs-content .home-oslo').replaceWith(`<iframe src="/${params.id}/${profile_slug}?theme=oslo" class="w-full h-full" />`);
+      $('.tabs-content .home-oslo').replaceWith(`<img src="/api/agents/preview/oslo/${params.id}/${profile_slug}" class="w-full" />`);
+      $('.tabs-content .home-malta').replaceWith(`<img src="/api/agents/preview/malta/${params.id}/${profile_slug}" class="w-full" />`);
+      $('.tabs-content .home-hamburg').replaceWith(`<img src="/api/agents/preview/hamburg/${params.id}/${profile_slug}" class="w-full" />`);
+      $('.tabs-content .home-alicante').replaceWith(`<img src="/api/agents/preview/alicante/${params.id}/${profile_slug}" class="w-full" />`);
       //   $('.tabs-content .home-malta').replaceWith(`<iframe src="/${params.id}/${profile_slug}?theme=malta" class="w-full h-full" />`);
       //   $('.tabs-content .home-hamburg').replaceWith(`<iframe src="/${params.id}/${profile_slug}?theme=hamburg" class="w-full h-full" />`);
       //   $('.tabs-content .home-alicante').replaceWith(`<iframe src="/${params.id}/${profile_slug}?theme=alicante" class="w-full h-full" />`);
@@ -234,16 +237,20 @@ export default async function AiResultPage({ params }: { params: { id: string } 
         if (p.listed_at) {
           const stat = $('[data-group="compare_stat"]').clone();
           let row = '';
-          stat.find('> *').each((i, c) => {
-            let text = '';
-            if (i > 0) {
-              const [year, month, day] = `${p.listed_at}`.split('-').map(Number);
-              text = `${new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(year, month - 1, day))}`;
-            } else {
-              text = 'Date Listed';
-            }
-            row = `${row}<${c.name} class="${c.attribs.class}">${text}</${c.name}>`;
-          });
+          try {
+            stat.find('> *').each((i, c) => {
+              let text = '';
+              if (i > 0) {
+                const [year, month, day] = `${p.listed_at}`.split('-').map(Number);
+                text = `${new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(year, month - 1, day))}`;
+              } else {
+                text = 'Date Listed';
+              }
+              row = `${row}<${c.name} class="${c.attribs.class}">${text}</${c.name}>`;
+            });
+          } catch (e) {
+            console.error('Date Listed parsing error');
+          }
           if (row) stats = `${stats}<div class="${stat.attr('class')}">${row}</div>`;
         }
         if (p.strata_fee) {

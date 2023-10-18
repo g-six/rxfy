@@ -10,8 +10,8 @@ export async function GET(req: NextRequest, { params }: { params: { theme: strin
     const browser = await puppeteer.connect({ browserWSEndpoint });
     const page = await browser.newPage();
     await page.setViewport({ width: 1440, height: 1280 });
-    await page.goto(`https://leagent.com/${params.agent_id}/${params.profile_slug}?theme=${params.theme}`);
-    // const response = await getPdf(page_url, full_data as unknown);
+    const url = `https://leagent.com/${params.agent_id}/${params.profile_slug}?theme=${params.theme}`;
+    await page.goto(url);
     const screenshot = await page.screenshot({ type: 'jpeg', fullPage: true, quality: 80 });
     return getResponse({ body: screenshot }, 200, 'image/jpeg');
   }
