@@ -49,7 +49,7 @@ function Iterator({
 }) {
   const Wrapped = Children.map(children, c => {
     if (c.type === 'input' && c.props.type === 'search') return <HomePageSearchInput {...c.props} />;
-    else if (c.type !== 'a' && c.props?.children && typeof c.props?.children !== 'string') {
+    else if (c.type !== 'a' && c.type !== 'svg' && c.props?.children && typeof c.props?.children !== 'string') {
       const { children: sub, ...props } = c.props;
       if (props.className?.includes('property-card') && listings?.active) {
         return (
@@ -259,7 +259,6 @@ function Iterator({
                 return <>{buttons}</>;
               }
             }
-
             if (rexified) return cloneElement(c, c.props, rexified);
         }
       }
@@ -361,15 +360,17 @@ export default async function AgentHomePage({ params, searchParams }: { params: 
       }
     }
 
-    $('[data-field]').each((i, el) => {
-      const attribs = Object.keys(el.attribs).map(attr => {
-        let val = el.attribs[attr];
-        if (LOGO_FIELDS.includes(el.attribs['data-field']) && agent.metatags?.[el.attribs['data-field']]) {
-          val = getImageSized(agent.metatags[el.attribs['data-field']], 160);
-        }
-        return `${attr}="${val}"`;
+    LOGO_FIELDS.forEach(logo_field => {
+      $(`[data-field="${logo_field}"]`).each((i, el) => {
+        const attribs = Object.keys(el.attribs).map(attr => {
+          let val = el.attribs[attr];
+          if (LOGO_FIELDS.includes(logo_field) && agent.metatags?.[logo_field]) {
+            val = getImageSized(agent.metatags[logo_field], 160);
+          }
+          return `${attr}="${val}"`;
+        });
+        if (!el.attribs.src) $(el).replaceWith(`<${el.tagName} ${attribs.join(' ')}>${agent.full_name}</${el.tagName}>`);
       });
-      if (!el.attribs.src) $(el).replaceWith(`<${el.tagName} ${attribs.join(' ')}>${agent.full_name}</${el.tagName}>`);
     });
 
     if (agent.metatags?.geocoding?.area) {

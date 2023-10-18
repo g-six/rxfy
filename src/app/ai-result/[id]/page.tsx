@@ -39,9 +39,6 @@ export default async function AiResultPage({ params }: { params: { id: string } 
       $('.tabs-content .home-malta').replaceWith(`<img src="/api/agents/preview/malta/${params.id}/${profile_slug}" class="w-full" />`);
       $('.tabs-content .home-hamburg').replaceWith(`<img src="/api/agents/preview/hamburg/${params.id}/${profile_slug}" class="w-full" />`);
       $('.tabs-content .home-alicante').replaceWith(`<img src="/api/agents/preview/alicante/${params.id}/${profile_slug}" class="w-full" />`);
-      //   $('.tabs-content .home-malta').replaceWith(`<iframe src="/${params.id}/${profile_slug}?theme=malta" class="w-full h-full" />`);
-      //   $('.tabs-content .home-hamburg').replaceWith(`<iframe src="/${params.id}/${profile_slug}?theme=hamburg" class="w-full h-full" />`);
-      //   $('.tabs-content .home-alicante').replaceWith(`<iframe src="/${params.id}/${profile_slug}?theme=alicante" class="w-full h-full" />`);
 
       if (cookies().get('session_key')?.value) {
         $('[data-group="out_session"]').remove();

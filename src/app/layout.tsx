@@ -163,6 +163,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     .filter(meta => meta.attribs.rel !== 'canonical')
     .map(meta => {
       let page_key = new URL(meta.attribs.href).pathname;
+      console.log(meta.attribs.href);
       if (new URL(meta.attribs.href).pathname.length < 2) {
         page_key = new URL(meta.attribs.href).hostname;
       }
