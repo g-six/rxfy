@@ -49,6 +49,7 @@ function Iterator({
 }) {
   const Wrapped = Children.map(children, c => {
     if (c.type === 'input' && c.props.type === 'search') return <HomePageSearchInput {...c.props} />;
+    else if (c.type === 'video') return c;
     else if (c.type !== 'a' && c.type !== 'svg' && c.props?.children && typeof c.props?.children !== 'string') {
       const { children: sub, ...props } = c.props;
       if (props.className?.includes('property-card') && listings?.active) {

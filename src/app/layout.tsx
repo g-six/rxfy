@@ -142,6 +142,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // To fix the issue with HMR on leagent-website, I needed to extract each
   // element in the <head> section and rexify them below
   const head_links = $('head link');
+  const head_scripts = $('head script');
   const head_meta = $('head meta');
   const metas: React.ReactElement[] = [
     <title key='title'>{header_list.get('x-page-title') || agent_data?.metatags?.title || $('title').text() || 'Leagent'}</title>,
@@ -157,13 +158,39 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   head_meta.toArray().map(meta => {
     metas.push(<meta {...attributesToProps(meta.attribs)} key={meta.attribs.property || meta.attribs.name} />);
   });
+  let scripts: string[] = [];
+  head_scripts.each((i, script) => {
+    let text = $(script).text();
+    if (text) {
+      if (text.includes('WebFont.load'))
+        text = `
+        const script = document.createElement('script');
+        script.onload = () => {
+          console.log("Webfont loaded")
+          ${text}
+        }
+        script.src = "https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js";
+        document.getElementsByTagName('head')[0].appendChild(script);
+`;
+      if (text.includes('Typekit.load()'))
+        text = `
+        const typekit_script = document.createElement('script');
+        typekit_script.onload = () => {
+          console.log("Typekit loaded")
+          ${text}
+        }
+        typekit_script.src = "https://use.typekit.net/uuj0hfs.js";
+        document.getElementsByTagName('head')[0].appendChild(typekit_script);
+`;
+      scripts.push(text);
+    }
+  });
 
   head_links
     .toArray()
     .filter(meta => meta.attribs.rel !== 'canonical')
     .map(meta => {
       let page_key = new URL(meta.attribs.href).pathname;
-      console.log(meta.attribs.href);
       if (new URL(meta.attribs.href).pathname.length < 2) {
         page_key = new URL(meta.attribs.href).hostname;
       }
@@ -182,7 +209,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
     return (
       <html data-wf-domain={`${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`} {...html_props}>
-        <head>{metas.filter(m => m.key)}</head>
+        <head>
+          {metas.filter(m => m.key)}
+          {scripts.length && (
+            <script
+              type='text/javascript'
+              dangerouslySetInnerHTML={{
+                __html: scripts.map((script, idx) => `\n// Script block ${idx + 1}\n${script}\n// End of script block ${idx + 1}\n`).join(''),
+              }}
+            ></script>
+          )}
+        </head>
 
         <body {...body_props} className={bodyClassName} suppressHydrationWarning>
           {children}
@@ -211,7 +248,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <head
             suppressHydrationWarning
             dangerouslySetInnerHTML={{
-              __html: [replaceMetaTags(webflow.head.code, agent_data, property)].join(`
+              __html: [replaceMetaTags(webflow.head.code, agent_data, property), `<script type="text/javascript">${scripts}</script>`].join(`
               
               `),
             }}
