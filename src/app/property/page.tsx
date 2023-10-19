@@ -110,11 +110,14 @@ export default async function PropertyPage(props: any) {
             property.total_kitchens = property.room_details.rooms.filter(room => room.type && room.type.toLowerCase().includes('kitchen')).length;
           }
           $('[data-node-type]').remove();
-          const navbar = $('body > .navigation');
+          const navbar = $('body > [data-component="navigation"]');
           const footer = $('body > footer, .f-footer-small');
 
-          $('body > .navigation').remove();
+          $('body > [data-component="navigation"]').remove();
           $('body > footer, .f-footer-small').remove();
+          $('[data-field="property-price"]').each((i, el) => {
+            $(el).attr('data-field', 'asking_price');
+          });
 
           const body = $('body > div');
 

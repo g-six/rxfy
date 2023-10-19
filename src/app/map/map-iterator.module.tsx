@@ -90,7 +90,6 @@ export default async function MapIterator({
       const field = c.props['data-field'];
       let value = field === 'agent_name' ? agent?.full_name : data[field];
       if (!value && metatags) value = metatags[field];
-
       return c.type !== 'img' ? (
         cloneElement(
           c,

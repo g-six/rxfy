@@ -147,9 +147,11 @@ export default async function MapPage({ params, searchParams }: { params: { [key
                   return '';
                 }
                 if (metatags[field]) val = getImageSized(metatags[field], 160);
+
                 return `${attr}="${val}"`;
               });
               if (!el.attribs.src) $(el).replaceWith(`<${el.tagName} ${attribs.join(' ')}>${full_name}</${el.tagName}>`);
+              else $(el).replaceWith(`<h5 data-rx ${attribs.join(' ')}>${full_name}</h5>`);
             }
           });
         }

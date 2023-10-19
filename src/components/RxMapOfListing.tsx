@@ -105,7 +105,7 @@ export default function RxMapOfListing({ property, child, mapType }: Props) {
       initNeighborhoodView();
       setTimeout(() => {
         document.querySelectorAll('.gm-ui-hover-effect').forEach(el => (el as HTMLElement).click());
-      }, 500);
+      }, 700);
     } else if (mapType === MapType.STREET) {
       initStreetView();
     }
@@ -121,5 +121,5 @@ export default function RxMapOfListing({ property, child, mapType }: Props) {
     height: child?.props?.style?.height ? child.props.style.height : '300px',
   });
 
-  return <div className={`${child?.props?.className}`} style={style} ref={ref} />;
+  return <div className={`${child?.props?.className || 'no-class'}`} style={style} ref={ref} />;
 }

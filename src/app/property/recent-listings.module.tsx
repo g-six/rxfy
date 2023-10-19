@@ -10,24 +10,29 @@ import { getMLSProperty, getSimilarProperties } from '@/_utilities/api-calls/cal
 import AlicantePropcard from './alicante-propcard.module';
 
 function Iterator({ children, listings }: { children: ReactElement; listings: PropertyDataModel[] }) {
-  const [Rexified] = Children.map(children, c => {
-    if (c.props?.className?.includes('is-card') || c.props?.className?.split(' ').includes('property-card')) {
-      return (
-        <>
-          {listings.map(listing => {
-            return c.props?.className?.includes('is-card') ? (
-              <AlicantePropcard key={listing.mls_id} listing={listing}>
-                {c}
-              </AlicantePropcard>
-            ) : (
-              <RxPropertyCard key={listing.mls_id} listing={listing}>
-                {c}
-              </RxPropertyCard>
-            );
-          })}
-        </>
-      );
+  const Rexified = Children.map(children, c => {
+    if (c.props?.children && typeof c.props.children !== 'string') {
+      if (c.props?.className?.includes('is-card') || c.props?.className?.split(' ').includes('property-card') || c.props?.['data-group'] === 'similar_home') {
+        return (
+          <>
+            {listings.map(listing => {
+              return c.props?.className?.includes('is-card') ? (
+                <AlicantePropcard key={listing.mls_id} listing={listing}>
+                  {c}
+                </AlicantePropcard>
+              ) : (
+                <RxPropertyCard key={listing.mls_id} listing={listing}>
+                  {c}
+                </RxPropertyCard>
+              );
+            })}
+          </>
+        );
+      }
+
+      return cloneElement(c, {}, <Iterator listings={listings}>{c.props.children}</Iterator>);
     }
+    return c;
   });
 
   return <>{Rexified}</>;
@@ -35,6 +40,7 @@ function Iterator({ children, listings }: { children: ReactElement; listings: Pr
 
 export default function RecentListings({ children, className, property }: { children: ReactElement; className: string; property: PropertyDataModel }) {
   const [listings, setListings] = useState<PropertyDataModel[]>([]);
+
   const { lat, lon, mls_id, property_type, beds, postal_zip_code, complex_compound_name } = property as {
     lat: number;
     lon: number;

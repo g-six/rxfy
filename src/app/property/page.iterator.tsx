@@ -214,7 +214,7 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
       );
     } else if (c.props?.children && typeof c.props?.children !== 'string') {
       if (!['building_units', 'history'].includes(c.props?.['data-group'])) {
-        if (c.props.className?.includes('recent-listings-grid')) {
+        if (c.props['data-group'] === 'similar_listings') {
           return (
             <RecentListings {...props} className={c.props.className}>
               {c.props.children}
