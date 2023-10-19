@@ -21,6 +21,7 @@ function Iterator({ agent, children }: { agent: AgentData; children: ReactElemen
           [k: string]: string;
         };
       };
+      console.log(JSON.stringify(agent, null, 4));
       switch (field) {
         case 'phone':
           return cloneElement(

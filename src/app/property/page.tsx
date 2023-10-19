@@ -45,6 +45,10 @@ export default async function PropertyPage(props: any) {
         description: `${headers().get('x-page-description')}`,
         logo_for_light_bg: '',
         logo_for_dark_bg: '',
+        facebook_url: headers().get('x-facebook-url'),
+        instagram_url: headers().get('x-instagram-url'),
+        youtube_url: headers().get('x-youtube-url'),
+        linkedin_url: headers().get('x-linkedin-url'),
       },
     } as AgentData;
 
@@ -75,6 +79,7 @@ export default async function PropertyPage(props: any) {
 
       const $: CheerioAPI = load(html_data);
       $('a[data-action="pdf"]').attr('href', `/${agent.agent_id}/${agent.metatags.profile_slug}/pdf?mls=${mls}`);
+      $('[data-group="similar_home"]:not(:first-child)').remove();
       $('[data-field="financial_info"]').each((i, el) => {
         if (i > 0) $(el).remove();
       });

@@ -90,6 +90,10 @@ export async function middleware(request: NextRequest) {
     if (agent_data?.metatags) {
       response.headers.set('x-page-title', agent_data.metatags.title);
       response.headers.set('x-page-description', agent_data.metatags.description);
+      response.headers.set('x-facebook-url', agent_data.metatags.facebook_url || '');
+      response.headers.set('x-linkedin-url', agent_data.metatags.linkedin_url || '');
+      response.headers.set('x-youtube-url', agent_data.metatags.youtube_url || '');
+      response.headers.set('x-instagram-url', agent_data.metatags.instagram_url || '');
     } else {
       console.log('');
       console.log('---');
