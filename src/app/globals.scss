@@ -142,4 +142,11 @@ a {
 iframe {
   @apply border-none;
 }
+.map-div {
+  .navbar-logo-link {
+    img {
+      @apply max-h-10 #{!important};
+    }
+  }
+}
 @tailwind utilities;

@@ -6,8 +6,9 @@ export async function GET(req: NextRequest, { params }: { params: { theme: strin
   const { origin, pathname } = new URL(req.url);
 
   if (origin) {
-    const browserWSEndpoint = `wss://chrome.browserless.io?token=${process.env.NEXT_APP_BROWSERLESS_TOKEN}`;
-    const browser = await puppeteer.connect({ browserWSEndpoint });
+    // const browserWSEndpoint = `wss://chrome.browserless.io?token=${process.env.NEXT_APP_BROWSERLESS_TOKEN}`;
+    // const browser = await puppeteer.connect({ browserWSEndpoint });
+    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
     const page = await browser.newPage();
     await page.setViewport({ width: 1440, height: 1280 });
     const url = `https://leagent.com/${params.agent_id}/${params.profile_slug}?theme=${params.theme}`;

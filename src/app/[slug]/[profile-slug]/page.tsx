@@ -53,6 +53,7 @@ function Iterator({
     else if (c.type !== 'a' && c.type !== 'svg' && c.props?.children && typeof c.props?.children !== 'string') {
       const { children: sub, ...props } = c.props;
       if (props.className?.includes('property-card') && listings?.active) {
+        console.log({ listings });
         return (
           <>
             {listings.active.map(l => (
@@ -65,7 +66,7 @@ function Iterator({
           </>
         );
       }
-      if (props['data-rx'] === 'sold-listing' && listings?.sold) {
+      if (props['data-component'] === 'property_card' && listings?.sold) {
         return (
           <>
             {listings.sold.map(l => (
@@ -374,6 +375,22 @@ export default async function AgentHomePage({ params, searchParams }: { params: 
       });
     });
 
+    $('a[href="/map"]').each((i, el) => {
+      const attribs = Object.keys(el.attribs).map(attr => {
+        let val = el.attribs[attr];
+        if (attr === 'href') {
+          if (agent.metatags?.geocoding) {
+            val = `/map?${objectToQueryString(agent.metatags.geocoding)}`;
+          } else {
+            val =
+              '/map?nelat=49.34023817805203&nelng=-122.79116520440928&swlat=49.111312957626524&swlng=-123.30807516134138&lat=49.22590814575915&lng=-123.0496201828758&city=Vancouver&zoom=11';
+          }
+        }
+        return `${attr}="${val}"`;
+      });
+      $(el).replaceWith(`<a ${attribs.join(' ')}>${$(el).html()}</a>`);
+    });
+
     if (agent.metatags?.geocoding?.area) {
     }
 
@@ -395,7 +412,7 @@ export default async function AgentHomePage({ params, searchParams }: { params: 
                 },
               ]),
               should,
-              minimum_should_match: 1,
+              minimum_should_match: 0,
               must_not,
             },
           },
@@ -420,7 +437,7 @@ export default async function AgentHomePage({ params, searchParams }: { params: 
                 },
               ]),
               should,
-              minimum_should_match: 1,
+              minimum_should_match: 0,
               must_not,
             },
           },
@@ -429,15 +446,12 @@ export default async function AgentHomePage({ params, searchParams }: { params: 
     } as unknown as NextRequest;
 
     const [active, sold] = await Promise.all([getPipelineSample(internal_req, { internal: true }), getPipelineSample(intsold_req, { internal: true })]);
-
     $('[data-field="search_highlights"]:not(:first-child)').remove();
     $('.property-card:not(:first-child)').remove();
-    $('[data-rx="sold-listing"]:not(:first-child)').each((i, el) => {
-      $(el).addClass(styles['hidden-card']);
-    });
+    $('[data-group="sold_listings"] [data-component="property_card"]:not(:first-child)').remove();
     if (sold) {
       const listings = sold as PropertyDataModel[];
-      if (listings.length === 0) $('[data-rx-section="sold"]').remove();
+      if (listings.length === 0) $('[data-group="sold_listings"]').remove();
     }
 
     const navbar = $('body .navbar-component');

@@ -79,7 +79,9 @@ export default function NavIterator({ children, ...props }: { children: React.Re
             {...link_props}
             data-original-href={href}
             href={`/${props.agent?.agent_id}/${props.agent?.metatags.profile_slug}${href}${
-              props.agent?.metatags.geocoding ? `?${objectToQueryString(props.agent?.metatags.geocoding as unknown as { [k: string]: string })}` : ''
+              props.agent?.metatags.geocoding
+                ? `?${objectToQueryString(props.agent?.metatags.geocoding as unknown as { [k: string]: string })}`
+                : '?nelat=49.34023817805203&nelng=-122.79116520440928&swlat=49.111312957626524&swlng=-123.30807516134138&lat=49.22590814575915&lng=-123.0496201828758&city=Vancouver&zoom=11'
             }`}
           >
             <NavIterator {...props}>{convertDivsToSpans(contents)}</NavIterator>
@@ -99,23 +101,29 @@ export default function NavIterator({ children, ...props }: { children: React.Re
     if (c.props?.['data-field'] === 'logo' || c.props?.['data-field'] === 'logo_for_light_bg') {
       const logo = props.agent?.metatags?.logo_for_light_bg || props.agent?.metatags?.logo_for_dark_bg;
       if (logo) {
-        return React.cloneElement(
-          c,
-          {
-            ...c.props,
-            style: {
-              backgroundImage: `url(${getImageSized(logo, 100)}?v=${props.agent?.metatags.last_updated_at})`,
-              backgroundRepeat: 'no-repeat',
-              backgroundSize: 'contain',
-              width: '100px',
-              height: '3rem',
-              display: 'inline-block',
+        if (c.type !== 'img')
+          return React.cloneElement(
+            c,
+            {
+              ...c.props,
+              style: {
+                backgroundImage: `url(${getImageSized(logo, 100)}?v=${props.agent?.metatags.last_updated_at})`,
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: 'contain',
+                width: '100px',
+                height: '3rem',
+                display: 'inline-block',
+              },
             },
-          },
-          [<></>],
-        );
+            [<></>],
+          );
+        else return React.cloneElement(c, { src: getImageSized(logo, 100), style: { maxHeight: '2.2rem' } });
       } else {
-        return <h1 className={c.props.className}>{props.agent?.full_name}</h1>;
+        return (
+          <h5 className={c.props.className + ' agent-name-logo'} style={{ display: 'block' }} data-field={c.props['data-field']}>
+            {props.agent?.full_name}
+          </h5>
+        );
       }
     }
     if (typeof c.props?.children === 'string') {
