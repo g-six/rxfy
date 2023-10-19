@@ -146,7 +146,7 @@ export default async function MapPage({ params, searchParams }: { params: { [key
                 if (val === field) {
                   return '';
                 }
-                if (metatags[field]) val = getImageSized(metatags[field], 160);
+                if (metatags[field] && attr === 'data-field') val = getImageSized(metatags[field], 160);
 
                 return `${attr}="${val}"`;
               });

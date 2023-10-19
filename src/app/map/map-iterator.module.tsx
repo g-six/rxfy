@@ -131,7 +131,7 @@ export default async function MapIterator({
           );
         } else return React.cloneElement(c, c.props, ['Leagent']);
       }
-    } else if (c.type === 'nav') {
+    } else if (c.props?.['data-component'] === 'navigation') {
       const { children: nav_items, ...nav_props } = c.props;
       return (
         <nav {...nav_props}>

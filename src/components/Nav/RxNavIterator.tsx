@@ -105,7 +105,6 @@ export default function NavIterator({ children, ...props }: { children: React.Re
           return React.cloneElement(
             c,
             {
-              ...c.props,
               style: {
                 backgroundImage: `url(${getImageSized(logo, 100)}?v=${props.agent?.metatags.last_updated_at})`,
                 backgroundRepeat: 'no-repeat',
