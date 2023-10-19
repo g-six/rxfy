@@ -73,7 +73,7 @@ function Iterator({
         return (
           <button
             type='button'
-            className={className + ' rexified bg-transparent'}
+            className={className + ' rexified'}
             onClick={(evt: React.SyntheticEvent) => {
               evt.preventDefault();
               evt.stopPropagation();
@@ -95,7 +95,7 @@ function Iterator({
       //<-- Buttons -->
       if (className?.includes('-less')) {
         return (
-          <button {...c.props} type='button' className={className + ' rexified bg-transparent'} onClick={() => props.onChange(className)}>
+          <button {...c.props} type='button' className={className + ' rexified'} onClick={() => props.onChange(className)}>
             {convertDivsToSpans(subchildren)}
           </button>
         );
@@ -106,7 +106,7 @@ function Iterator({
       }
       if (className?.includes('-more')) {
         return (
-          <button {...c.props} type='button' className={className + ' rexified bg-transparent'} onClick={() => props.onChange(className)}>
+          <button {...c.props} type='button' className={className + ' rexified'} onClick={() => props.onChange(className)}>
             {convertDivsToSpans(subchildren)}
           </button>
         );
@@ -169,14 +169,14 @@ function Iterator({
     if (c.type === 'a') {
       if (c.props?.className?.includes('do-search')) {
         return (
-          <button {...c.props} type='button' className={c.props.className + ' rexified bg-transparent'} onClick={props.onSubmit}>
+          <button {...c.props} type='button' className={c.props.className + ' rexified'} onClick={props.onSubmit}>
             {convertDivsToSpans(c.props.children)}
           </button>
         );
       }
       if (c.props?.className?.includes('do-reset')) {
         return (
-          <button {...c.props} type='reset' className={c.props.className + ' rexified bg-transparent'} onClick={props.onReset}>
+          <button {...c.props} type='reset' className={c.props.className + ' rexified'} onClick={props.onReset}>
             {convertDivsToSpans(c.props.children)}
           </button>
         );

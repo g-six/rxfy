@@ -53,7 +53,6 @@ function Iterator({
     else if (c.type !== 'a' && c.type !== 'svg' && c.props?.children && typeof c.props?.children !== 'string') {
       const { children: sub, ...props } = c.props;
       if (props.className?.includes('property-card') && listings?.active) {
-        console.log({ listings });
         return (
           <>
             {listings.active.map(l => (
@@ -86,9 +85,7 @@ function Iterator({
           </NavIterator>
         );
       }
-      if (props.className === 'f-footer-small') {
-        return <FooterIterator agent={agent}>{sub}</FooterIterator>;
-      }
+
       return (
         <div {...props}>
           <Iterator agent={agent} listings={listings}>
@@ -456,6 +453,10 @@ export default async function AgentHomePage({ params, searchParams }: { params: 
 
     const navbar = $('body .navbar-component');
     $('body .navbar-component').remove();
+
+    const footer = $('[data-group="footer"]');
+    $('[data-group="footer"]').remove();
+
     const body = $('body > div');
 
     return (
@@ -470,6 +471,8 @@ export default async function AgentHomePage({ params, searchParams }: { params: 
         >
           {domToReact(body as unknown as DOMNode[]) as unknown as ReactElement}
         </Iterator>
+
+        <FooterIterator agent={agent}>{domToReact(footer as unknown as DOMNode[]) as unknown as ReactElement}</FooterIterator>
         <RxNotifications />
       </>
     );

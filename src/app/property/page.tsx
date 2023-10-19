@@ -45,10 +45,10 @@ export default async function PropertyPage(props: any) {
         description: `${headers().get('x-page-description')}`,
         logo_for_light_bg: '',
         logo_for_dark_bg: '',
-        facebook_url: headers().get('x-facebook-url'),
-        instagram_url: headers().get('x-instagram-url'),
-        youtube_url: headers().get('x-youtube-url'),
-        linkedin_url: headers().get('x-linkedin-url'),
+        facebook_url: headers().get('x-facebook-url') || '',
+        instagram_url: headers().get('x-instagram-url') || '',
+        youtube_url: headers().get('x-youtube-url') || '',
+        linkedin_url: headers().get('x-linkedin-url') || '',
       },
     } as AgentData;
 
@@ -69,7 +69,6 @@ export default async function PropertyPage(props: any) {
     }
 
     console.log('Agent data retrieved in', Date.now() - start, 'miliseconds');
-    console.log(JSON.stringify(agent, null, 4));
     if (agent.full_name) {
       const page_url = `https://sites.leagent.com/${agent.webflow_domain}/property/propertyid.html`;
       let { data: html_data } = await axios.get(page_url);
@@ -116,10 +115,10 @@ export default async function PropertyPage(props: any) {
           }
           $('[data-node-type]').remove();
           const navbar = $('body > [data-component="navigation"]');
-          const footer = $('body > footer, .f-footer-small');
+          const footer = $('[data-component="footer"]');
 
           $('body > [data-component="navigation"]').remove();
-          $('body > footer, .f-footer-small').remove();
+          $('[data-component="footer"]').remove();
           $('[data-field="property-price"]').each((i, el) => {
             $(el).attr('data-field', 'asking_price');
           });

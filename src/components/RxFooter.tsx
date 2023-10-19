@@ -7,12 +7,8 @@ import styles from './RxFooter.module.scss';
 function Iterator({ agent, children }: { agent: AgentData; children: ReactElement }) {
   const Wrapped = Children.map(children, c => {
     const { children: sub, ...props } = c.props || {};
-    if (c.type === 'div') {
-      return (
-        <div {...props}>
-          <Iterator agent={agent}>{sub}</Iterator>
-        </div>
-      );
+    if (c.props?.children && typeof c.props.children !== 'string') {
+      return cloneElement(c, {}, <Iterator agent={agent}>{sub}</Iterator>);
     }
     if (c.props?.['data-field']) {
       const { ['data-field']: field } = props;
@@ -21,7 +17,6 @@ function Iterator({ agent, children }: { agent: AgentData; children: ReactElemen
           [k: string]: string;
         };
       };
-      console.log(JSON.stringify(agent, null, 4));
       switch (field) {
         case 'phone':
           return cloneElement(
@@ -51,6 +46,8 @@ function Iterator({ agent, children }: { agent: AgentData; children: ReactElemen
             href: 'https://' + `${metatags[c.props['data-field']] || `#no-${c.props['data-field']}`}`.split('://').pop(),
           });
         case 'logo':
+        case 'logo_for_light_bg':
+        case 'logo_for_dark_bg':
           const logo = agent.metatags.logo_for_light_bg || agent.metatags.logo_for_dark_bg;
           if (logo)
             return cloneElement(c, {
@@ -60,9 +57,8 @@ function Iterator({ agent, children }: { agent: AgentData; children: ReactElemen
                 backgroundImage: `url(${getImageSized(logo, 200)}?v=${agent.metatags.last_updated_at})`,
               },
             });
-          else {
-            return cloneElement(c, {}, agent.full_name);
-          }
+          else if (c.type === 'img') return agent.full_name;
+          return cloneElement(c, {}, agent.full_name);
       }
     }
     if (c.props?.href) {
@@ -82,9 +78,5 @@ function Iterator({ agent, children }: { agent: AgentData; children: ReactElemen
 }
 
 export default function FooterIterator({ agent, children }: { agent: AgentData; children: ReactElement }) {
-  return (
-    <footer className='f-footer-small'>
-      <Iterator agent={agent}>{children}</Iterator>
-    </footer>
-  );
+  return <Iterator agent={agent}>{children}</Iterator>;
 }
