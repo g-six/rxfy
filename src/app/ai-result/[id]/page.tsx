@@ -14,6 +14,8 @@ import { createPhotoAlbumForProperty } from '@/app/api/property-photo-albums/mod
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { objectToQueryString } from '@/_utilities/url-helper';
 import { cookies } from 'next/headers';
+import { getGeocode, getViewPortParamsFromGeolocation } from '@/_utilities/geocoding-helper';
+import { getReverseGeo } from '@/_utilities/api-calls/call-mapbox';
 export default async function AiResultPage({ params }: { params: { id: string } }) {
   try {
     const promises = await Promise.all([
@@ -139,137 +141,150 @@ export default async function AiResultPage({ params }: { params: { id: string } 
       );
       const compare_item = $('[data-component="compare_column"]');
       let cards = '';
-      const listings = await getSampleListings(params.id, agent_data.metatags.geocoding, 3);
-
-      const {
-        hits: { hits },
-      } = listings.data;
-      let MLS_ID = '';
-      const cards_data = await Promise.all(
-        hits.map(
-          ({
-            _source: { data: hit },
-          }: {
-            _source: {
-              data: {
-                MLS_ID: string;
-                photos: string[];
+      let { geocoding } = agent_data.metatags;
+      if (!geocoding) {
+        const geolocation = await getGeocode(agent_data.metatags.target_city);
+        if (geolocation?.place_id) {
+          const coords = await getViewPortParamsFromGeolocation(geolocation);
+          console.log(coords);
+          geocoding = {
+            ...coords,
+          };
+        }
+      }
+      if (geocoding) {
+        const listings = await getSampleListings(params.id, geocoding, 3);
+        const {
+          hits: { hits },
+        } = listings.data;
+        let MLS_ID = '';
+        const cards_data = await Promise.all(
+          hits.map(
+            ({
+              _source: { data: hit },
+            }: {
+              _source: {
+                data: {
+                  MLS_ID: string;
+                  photos: string[];
+                };
               };
-            };
-          }) => buildCacheFiles(hit.MLS_ID),
-        ),
-      );
-
-      cards_data.forEach((p: PropertyDataModel) => {
-        let item = compare_item.clone();
-        item.find('[data-field]').each((i, el) => {
-          switch (el.attribs['data-field']) {
-            case 'address':
-              $(el).replaceWith(`<${el.name} class="${$(el).attr('class')}">${formatValues(p, 'title')}</${el.name}>`);
-            case 'cover_photo':
-              if (p.cover_photo)
-                $(el).replaceWith(
-                  `<div data-mls="${p.mls_id}" class="${$(el).attr('class')}" style="background-image: url(${p.cover_photo})">${$(el).html()}</div>`,
-                );
-              else if (p.id && p.photos?.length) {
-                createPhotoAlbumForProperty(p.id, p.photos);
-                $(el).replaceWith(
-                  `<div data-mls="${p.mls_id}" class="${$(el).attr('class')}" style="background-image: url(${getImageSized(p.photos[0], 400)})">${$(
-                    el,
-                  ).html()}</div>`,
-                );
-              }
-              break;
-            default:
-              $(el).replaceWith(`<${el.name} class="${$(el).attr('class')}">${formatValues(p, el.attribs['data-field'])}</${el.name}>`);
-              break;
-          }
-        });
-        let stats = '';
-        const wrapper_class = $('[data-group="compare_stat"]').parent().attr('class');
-        if (p.year_built) {
-          const stat = $('[data-group="compare_stat"]').clone();
-          let row = '';
-          stat.find('> *').each((i, c) => {
-            let text = '';
-            if (i > 0) {
-              text = `${p.year_built}`;
-            } else {
-              text = 'Year Built';
+            }) => buildCacheFiles(hit.MLS_ID),
+          ),
+        );
+        cards_data.forEach((p: PropertyDataModel) => {
+          let item = compare_item.clone();
+          item.find('[data-field]').each((i, el) => {
+            switch (el.attribs['data-field']) {
+              case 'address':
+                $(el).replaceWith(`<${el.name} class="${$(el).attr('class')}">${formatValues(p, 'title')}</${el.name}>`);
+              case 'cover_photo':
+                if (p.cover_photo)
+                  $(el).replaceWith(
+                    `<div data-mls="${p.mls_id}" class="${$(el).attr('class')}" style="background-image: url(${p.cover_photo})">${$(el).html()}</div>`,
+                  );
+                else if (p.id && p.photos?.length) {
+                  createPhotoAlbumForProperty(p.id, p.photos);
+                  $(el).replaceWith(
+                    `<div data-mls="${p.mls_id}" class="${$(el).attr('class')}" style="background-image: url(${getImageSized(p.photos[0], 400)})">${$(
+                      el,
+                    ).html()}</div>`,
+                  );
+                }
+                break;
+              default:
+                $(el).replaceWith(`<${el.name} class="${$(el).attr('class')}">${formatValues(p, el.attribs['data-field'])}</${el.name}>`);
+                break;
             }
-            row = `${row}<${c.name} class="${c.attribs.class}">${text}</${c.name}>`;
           });
-          if (row) stats = `${stats}<div class="${stat.attr('class')}">${row}</div>`;
-        }
-        if (p.floor_area) {
-          const stat = $('[data-group="compare_stat"]').clone();
-          let row = '';
-          stat.find('> *').each((i, c) => {
-            let text = '';
-            if (i > 0) {
-              text = `${formatValues(p, 'floor_area')}`;
-            } else {
-              text = 'Floor Area';
-            }
-            row = `${row}<${c.name} class="${c.attribs.class}">${text}</${c.name}>`;
-          });
-          if (row) stats = `${stats}<div class="${stat.attr('class')}">${row}</div>`;
-        }
-        if (p.price_per_sqft) {
-          const stat = $('[data-group="compare_stat"]').clone();
-          let row = '';
-          stat.find('> *').each((i, c) => {
-            let text = '';
-            if (i > 0) {
-              text = `${formatValues(p, 'price_per_sqft')}`;
-            } else {
-              text = 'Price/Sqft.';
-            }
-            row = `${row}<${c.name} class="${c.attribs.class}">${text}</${c.name}>`;
-          });
-          if (row) stats = `${stats}<div class="${stat.attr('class')}">${row}</div>`;
-        }
-        if (p.listed_at) {
-          const stat = $('[data-group="compare_stat"]').clone();
-          let row = '';
-          try {
+          let stats = '';
+          const wrapper_class = $('[data-group="compare_stat"]').parent().attr('class');
+          if (p.year_built) {
+            const stat = $('[data-group="compare_stat"]').clone();
+            let row = '';
             stat.find('> *').each((i, c) => {
               let text = '';
               if (i > 0) {
-                const [year, month, day] = `${p.listed_at}`.split('-').map(Number);
-                text = `${new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(year, month - 1, day))}`;
+                text = `${p.year_built}`;
               } else {
-                text = 'Date Listed';
+                text = 'Year Built';
               }
               row = `${row}<${c.name} class="${c.attribs.class}">${text}</${c.name}>`;
             });
-          } catch (e) {
-            console.error('Date Listed parsing error');
+            if (row) stats = `${stats}<div class="${stat.attr('class')}">${row}</div>`;
           }
-          if (row) stats = `${stats}<div class="${stat.attr('class')}">${row}</div>`;
-        }
-        if (p.strata_fee) {
-          const stat = $('[data-group="compare_stat"]').clone();
-          let row = '';
-          stat.find('> *').each((i, c) => {
-            let text = '';
-            if (i > 0) {
-              text = `${formatValues(p, 'strata_fee')}`;
-            } else {
-              text = 'Strata Fee';
+          if (p.floor_area) {
+            const stat = $('[data-group="compare_stat"]').clone();
+            let row = '';
+            stat.find('> *').each((i, c) => {
+              let text = '';
+              if (i > 0) {
+                text = `${formatValues(p, 'floor_area')}`;
+              } else {
+                text = 'Floor Area';
+              }
+              row = `${row}<${c.name} class="${c.attribs.class}">${text}</${c.name}>`;
+            });
+            if (row) stats = `${stats}<div class="${stat.attr('class')}">${row}</div>`;
+          }
+          if (p.price_per_sqft) {
+            const stat = $('[data-group="compare_stat"]').clone();
+            let row = '';
+            stat.find('> *').each((i, c) => {
+              let text = '';
+              if (i > 0) {
+                text = `${formatValues(p, 'price_per_sqft')}`;
+              } else {
+                text = 'Price/Sqft.';
+              }
+              row = `${row}<${c.name} class="${c.attribs.class}">${text}</${c.name}>`;
+            });
+            if (row) stats = `${stats}<div class="${stat.attr('class')}">${row}</div>`;
+          }
+          if (p.listed_at) {
+            const stat = $('[data-group="compare_stat"]').clone();
+            let row = '';
+            try {
+              stat.find('> *').each((i, c) => {
+                let text = '';
+                if (i > 0) {
+                  const [year, month, day] = `${p.listed_at}`.split('-').map(Number);
+                  text = `${new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(year, month - 1, day))}`;
+                } else {
+                  text = 'Date Listed';
+                }
+                row = `${row}<${c.name} class="${c.attribs.class}">${text}</${c.name}>`;
+              });
+            } catch (e) {
+              console.error('Date Listed parsing error');
             }
-            row = `${row}<${c.name} class="${c.attribs.class}">${text}</${c.name}>`;
-          });
-          if (row) stats = `${stats}<div class="${stat.attr('class')}">${row}</div>`;
-        }
+            if (row) stats = `${stats}<div class="${stat.attr('class')}">${row}</div>`;
+          }
+          if (p.strata_fee) {
+            const stat = $('[data-group="compare_stat"]').clone();
+            let row = '';
+            stat.find('> *').each((i, c) => {
+              let text = '';
+              if (i > 0) {
+                text = `${formatValues(p, 'strata_fee')}`;
+              } else {
+                text = 'Strata Fee';
+              }
+              row = `${row}<${c.name} class="${c.attribs.class}">${text}</${c.name}>`;
+            });
+            if (row) stats = `${stats}<div class="${stat.attr('class')}">${row}</div>`;
+          }
 
-        if (stats) item.find(`.${wrapper_class}`).replaceWith(`<div class="${wrapper_class}">${stats}</div>`);
-        item.find('[data-group="compare_stat"]').remove();
+          if (stats) item.find(`.${wrapper_class}`).replaceWith(`<div class="${wrapper_class}">${stats}</div>`);
+          item.find('[data-group="compare_stat"]').remove();
 
-        cards = `${cards}<div class="${compare_item.attr('class')}">${item.html()}</div>`;
-      });
+          cards = `${cards}<div class="${compare_item.attr('class')}">${item.html()}</div>`;
+        });
+        $('[data-component="compare_column"]').replaceWith(cards);
+      } else {
+        console.log(agent_data);
+      }
 
-      $('[data-component="compare_column"]').replaceWith(cards);
       const body = $('body > *');
       let agent = agent_data as unknown as AgentData;
       return <Iterator agent={agent_data}>{domToReact(body as unknown as DOMNode[]) as unknown as ReactElement}</Iterator>;

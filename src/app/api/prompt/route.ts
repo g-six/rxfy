@@ -29,11 +29,11 @@ export async function POST(req: NextRequest) {
   const ai_response = await axios.post(
     `${process.env.NEXT_APP_OPENAI_URI}`,
     {
-      prompt,
+      messages: [{ role: 'user', content: prompt }],
       max_tokens: 100,
       temperature: 0.01,
       top_p: 1.0,
-      model: 'text-davinci-003',
+      model: 'gpt-4',
     },
     {
       headers: {

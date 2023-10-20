@@ -32,10 +32,10 @@ export async function getSmart(
   const { data } = await axios.post(
     `${process.env.NEXT_APP_OPENAI_URI}`,
     {
-      prompt,
+      messages: [{ role: 'user', content: prompt }],
       max_tokens: 400,
       temperature: 0.1,
-      model: 'text-davinci-003',
+      model: 'gpt-4',
     },
     {
       headers: {
@@ -45,78 +45,82 @@ export async function getSmart(
     },
   );
   try {
-    const {
-      choices: [{ text }],
-      error,
-    } = data;
+    const { choices, error } = data;
 
-    const ai_results = JSON.parse(text.trim());
+    const text = (choices as unknown[] as { message: { role: string; content: string } }[])
+      .filter(choice => choice.message.role === 'assistant')
+      .map(choice => choice.message.content)
+      .pop();
 
-    if (ai_results.bio) {
-      const { city: target_city, lat, lng } = property;
-      const metatag = {
-        agent_id: agent.agent_id,
-        target_city,
-        lat,
-        lng,
-        title: agent.full_name,
-        personal_title: ai_results.tagline,
-        personal_bio: ai_results.bio,
-        description: ai_results.metatags,
-        search_highlights: agent.search_highlights || [],
-        profile_slug: [
-          `${real_estate_board?.abbreviation || 'la'}`,
-          slugifyAddress(agent.full_name).split('-')[0],
-          agent.id,
-          `${`${agent.phone || target_city || agent.agent_id}`.split('').reverse().join('').substring(0, 4).split('').reverse().join('')}`,
-        ].join('-'),
-      };
+    if (text) {
+      const ai_results = JSON.parse(text.trim());
 
-      console.log('[BEGIN] mutation_create_meta');
-      console.log(JSON.stringify({ metatag }, null, 4));
-      const created_metatag = await axios.post(
-        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-        {
-          query: mutation_create_meta,
-          variables: {
-            data: metatag,
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-      console.log('...[DONE] mutation_create_meta');
+      if (ai_results.bio) {
+        const { city: target_city, lat, lng } = property;
+        const metatag = {
+          agent_id: agent.agent_id,
+          target_city,
+          lat,
+          lng,
+          title: agent.full_name,
+          personal_title: ai_results.tagline,
+          personal_bio: ai_results.bio,
+          description: ai_results.metatags,
+          search_highlights: agent.search_highlights || [],
+          profile_slug: [
+            `${real_estate_board?.abbreviation || 'la'}`,
+            slugifyAddress(agent.full_name).split('-')[0],
+            agent.id,
+            `${`${agent.phone || target_city || agent.agent_id}`.split('').reverse().join('').substring(0, 4).split('').reverse().join('')}`,
+          ].join('-'),
+        };
 
-      const agent_metatag = Number(created_metatag.data?.data?.createAgentMetatag?.data.id);
-      console.log('Link agent record', agent.id, 'to metadata', { agent_metatag });
-      const prom = axios.post(
-        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-        {
-          query: mutation_update_agent,
-          variables: {
-            id: Number(agent.id),
-            data: {
-              agent_metatag,
+        console.log('[BEGIN] mutation_create_meta');
+        console.log(JSON.stringify({ metatag }, null, 4));
+        const created_metatag = await axios.post(
+          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+          {
+            query: mutation_create_meta,
+            variables: {
+              data: metatag,
             },
           },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-            'Content-Type': 'application/json',
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+              'Content-Type': 'application/json',
+            },
           },
-        },
-      );
-      if (!real_estate_board) {
-        return prom;
-      } else {
-        prom.then(res => {
-          console.log('...[DONE] mutation_update_agent\n\n', res.data?.data?.updateAgent);
-        });
+        );
+        console.log('...[DONE] mutation_create_meta');
+
+        const agent_metatag = Number(created_metatag.data?.data?.createAgentMetatag?.data.id);
+        console.log('Link agent record', agent.id, 'to metadata', { agent_metatag });
+        const prom = axios.post(
+          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+          {
+            query: mutation_update_agent,
+            variables: {
+              id: Number(agent.id),
+              data: {
+                agent_metatag,
+              },
+            },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+        if (!real_estate_board) {
+          return prom;
+        } else {
+          prom.then(res => {
+            console.log('...[DONE] mutation_update_agent\n\n', res.data?.data?.updateAgent);
+          });
+        }
       }
     }
   } catch (e) {
