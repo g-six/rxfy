@@ -51,15 +51,15 @@ export async function getUserSessionData(authorization: string, user_type: 'real
     if (stripe_subscriptions) {
       const [subscription_id] = Object.keys(stripe_subscriptions);
       try {
-        console.log({ subscription_id });
+        console.error({ subscription_id });
         if (subscription_id) {
-          console.log({ subscription_id });
+          console.error({ subscription_id });
           const stripe = new Stripe(`${process.env.NEXT_APP_STRIPE_SECRET}`, {
             apiVersion: '2023-08-16',
           });
-          console.log('Retrieving', { subscription_id });
+          console.error('Retrieving', { subscription_id });
           const stripe_subscription = await stripe.subscriptions.retrieve(subscription_id);
-
+          console.error({ stripe_subscription });
           if (stripe_subscription.items.data[0].plan) {
             const { items, status } = stripe_subscription;
             const { nickname, interval } = items.data[0].plan;
@@ -79,7 +79,7 @@ export async function getUserSessionData(authorization: string, user_type: 'real
           }
         }
       } catch (e) {
-        console.log('Stripe environment conflict');
+        console.error('Stripe environment conflict');
       }
     }
 
