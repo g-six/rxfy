@@ -16,6 +16,7 @@ export async function GET(
     if (isRealtorRequest(request.url)) {
       user_type = 'realtor';
     }
+    console.error({ user_type });
     results = await getUserSessionData(request.headers.get('authorization') || '', user_type);
     const { error } = results as unknown as { error: string };
     if (error) return getResponse(results, 401);
