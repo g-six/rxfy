@@ -17,6 +17,7 @@ import DomainHowModal from './DomainHowModal.module';
 import RxTrackingCodes from './tracking-codes.rexifier';
 import RxThemes from './themes-explorer.rexifier';
 import { getUserSessionData } from '../api/check-session/model';
+import { redirect } from 'next/navigation';
 
 function Rexify({ children, ...props }: { children: ReactElement; realtor: AgentData }) {
   const Rexified = Children.map(children, c => {
@@ -95,6 +96,8 @@ export default async function MyWebSite() {
         </>
       );
     }
+  } else {
+    redirect('/log-in');
   }
 
   return <></>;
