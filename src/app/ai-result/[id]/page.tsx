@@ -152,6 +152,7 @@ export default async function AiResultPage({ params }: { params: { id: string } 
           };
         }
       }
+      let property = undefined;
       if (geocoding) {
         const listings = await getSampleListings(params.id, geocoding, 3);
         const {
@@ -172,6 +173,8 @@ export default async function AiResultPage({ params }: { params: { id: string } 
             }) => buildCacheFiles(hit.MLS_ID),
           ),
         );
+        property = cards_data.reverse()[0];
+        cards_data.reverse();
         cards_data.forEach((p: PropertyDataModel) => {
           let item = compare_item.clone();
           item.find('[data-field]').each((i, el) => {
@@ -287,7 +290,11 @@ export default async function AiResultPage({ params }: { params: { id: string } 
 
       const body = $('body > *');
       let agent = agent_data as unknown as AgentData;
-      return <Iterator agent={agent_data}>{domToReact(body as unknown as DOMNode[]) as unknown as ReactElement}</Iterator>;
+      return (
+        <Iterator agent={agent_data} property={property}>
+          {domToReact(body as unknown as DOMNode[]) as unknown as ReactElement}
+        </Iterator>
+      );
     }
   } catch (e) {
     console.error(e);

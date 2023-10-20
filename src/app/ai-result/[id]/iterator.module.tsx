@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 import { AgentData } from '@/_typings/agent';
+import { PropertyDataModel } from '@/_typings/property';
 import { classNames } from '@/_utilities/html-helper';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import Image from 'next/image';
@@ -55,7 +56,7 @@ function Replace({ children, onTab, ...attributes }: { children: ReactElement; o
   return <>{rexified}</>;
 }
 
-export default function Iterator(p: { agent: AgentData; children: ReactElement }) {
+export default function Iterator(p: { agent: AgentData; property?: PropertyDataModel; children: ReactElement }) {
   const tabs = useEvent(Events.Blank);
   const { tabTo } = tabs.data as unknown as {
     tabTo: string;
@@ -65,7 +66,8 @@ export default function Iterator(p: { agent: AgentData; children: ReactElement }
   const [active_tab, setActiveTab] = useState('Home Page');
 
   useEffect(() => {
-    if (active_tab === 'Property Page') setTabImage(`/api/agents/preview/default/${p.agent.agent_id}/${p.agent.metatags.profile_slug}?mls=R2825253`);
+    if (active_tab === 'Property Page')
+      setTabImage(`/api/agents/preview/default/${p.agent.agent_id}/${p.agent.metatags.profile_slug}?mls=${p.property?.mls_id || 'R2825253'}`);
     else setTabImage('');
   }, [active_tab]);
 
