@@ -13,15 +13,7 @@ export async function GET(req: NextRequest) {
     const data = await getPrivateListing(id);
 
     const page_url = ['https://', process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN, 'brochure'].join('/');
-    const pdf: Buffer = await getPdf(page_url, data as unknown);
-
-    return getResponse(
-      {
-        body: pdf,
-      },
-      200,
-      'application/pdf',
-    );
+    return await getPdf(page_url, data as unknown);
   }
 
   return getResponse({ error: 'Unable to fetch pdf' }, 400);
