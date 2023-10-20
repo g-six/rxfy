@@ -132,9 +132,6 @@ export default async function AiResultPage({ params }: { params: { id: string } 
         }
       });
 
-      $('.tabs-content [data-w-tab="PDF Brochure"] > *').replaceWith(
-        `<iframe src="https://leagent.com/api/pdf/mls/R2814552?agent=${params.id}&slug=${profile_slug}" class="w-full h-full" />`,
-      );
       $('.tabs-content [data-w-tab="Listings Map"]').attr('style', 'width: 100%; height: 100%');
       $('.tabs-content [data-w-tab="Listings Map"]').wrapInner(
         `<iframe src="https://leagent.com/${params.id}/${profile_slug}/map?${objectToQueryString(agent_data.metatags.geocoding)}" class="w-full h-full" />`,
@@ -287,6 +284,10 @@ export default async function AiResultPage({ params }: { params: { id: string } 
       } else {
         console.log(agent_data);
       }
+
+      $('.tabs-content [data-w-tab="PDF Brochure"] > *').replaceWith(
+        `<iframe src="https://leagent.com/api/pdf/mls/${property?.mls_id || 'R2814552'}?agent=${params.id}&slug=${profile_slug}" class="w-full h-full" />`,
+      );
 
       const body = $('body > *');
       let agent = agent_data as unknown as AgentData;
