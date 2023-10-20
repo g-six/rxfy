@@ -60,8 +60,8 @@ export default function NavIterator({ children, ...props }: { children: React.Re
       if (cookies().has('session_key') && c.props.className?.includes(WEBFLOW_NODE_SELECTOR.GUEST_MENU)) return <></>;
       if (!cookies().has('session_key') && c.props.className?.includes(WEBFLOW_NODE_SELECTOR.USER_MENU)) return <></>;
       const { href, children: contents, ...link_props } = c.props;
-
-      if (href !== '/log-out' && (link_props?.className?.includes('-session') || href.includes('/my-') || href.includes('dashboard'))) {
+      link_props['rx-component'] = 'Nav.RxNavIterator';
+      if (href !== '/log-out' && link_props['data-usertype']) {
         return (
           <a {...link_props} data-original-href={href} href={`/${props.agent?.agent_id}/${props.agent?.metatags.profile_slug}${href}`}>
             <NavIterator {...props}>{convertDivsToSpans(contents)}</NavIterator>
@@ -118,11 +118,12 @@ export default function NavIterator({ children, ...props }: { children: React.Re
           );
         else return React.cloneElement(c, { src: getImageSized(logo, 100), style: { maxHeight: '2.2rem' } });
       } else {
-        return (
-          <h5 className={c.props.className + ' agent-name-logo'} style={{ display: 'block' }} data-field={c.props['data-field']}>
-            {props.agent?.full_name}
-          </h5>
-        );
+        if (c.type === 'img')
+          return (
+            <h6 className={c.props.className + ' agent-name-logo'} style={{ display: 'block' }} data-field={c.props['data-field']}>
+              {props.agent?.full_name}
+            </h6>
+          );
       }
     }
     if (typeof c.props?.children === 'string') {
