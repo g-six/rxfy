@@ -381,6 +381,7 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
     console.log('');
     console.log('');
     console.log('agent metatag record does not exist');
+    console.log(' retrieve', agent_id, target_city);
     console.log('');
     const recent = await getMostRecentListing(agent_id, target_city);
 

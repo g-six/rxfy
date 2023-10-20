@@ -31,6 +31,8 @@ export default async function AiResultPage({ params }: { params: { id: string } 
       profile_slug = agent_data.metatags?.profile_slug;
     }
 
+    console.log('html', agent_data);
+
     if (html && profile_slug) {
       const $: CheerioAPI = load(html);
       // $('.w--tab-active').removeClass('w--tab-active');
@@ -281,8 +283,6 @@ export default async function AiResultPage({ params }: { params: { id: string } 
           cards = `${cards}<div class="${compare_item.attr('class')}">${item.html()}</div>`;
         });
         $('[data-component="compare_column"]').replaceWith(cards);
-      } else {
-        console.log(agent_data);
       }
 
       $('.tabs-content [data-w-tab="PDF Brochure"] > *').replaceWith(
