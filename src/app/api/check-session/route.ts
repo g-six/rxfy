@@ -29,6 +29,8 @@ export async function GET(
       console.error(JSON.stringify(errors, null, 4));
       return getResponse({ error: 'api.check-session.GET error.  See server logs for details' });
     }
+    console.error(JSON.stringify(e, null, 4));
+    return getResponse({ error: 'api.check-session.GET error.  See server logs for details' });
   }
   return ctx?.config?.internal === 'yes' ? results : getResponse(results, 200);
 }
