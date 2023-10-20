@@ -28,6 +28,7 @@ export default function MyProfilePage(p: Props) {
   React.useEffect(() => {
     const session = data as unknown as { [key: string]: string | number };
     if (session?.id) {
+      console.log(JSON.stringify(p.children));
       if (p.children.type === 'html') {
         Object.keys(p.children.props).forEach((key: string) => {
           if (key === 'children') {
