@@ -19,7 +19,7 @@ function Replace({
   switchTheme(theme: string): void;
 }) {
   const rexified = Children.map(children, c => {
-    if (c.props?.['data-theme']) {
+    if (c.props?.['data-theme'] && attributes['active-theme'] && attributes['active-image']) {
       const { children: sub, ...props } = c.props;
       return cloneElement(
         <div
@@ -36,8 +36,8 @@ function Replace({
         },
         sub,
       );
-    } else if (c.props?.['data-w-tab'] && c.props.className.includes('tab-pane')) {
-      if (attributes['active-image'])
+    } else if (c.props?.['data-panel']) {
+      if (attributes['active-image'] && attributes['active-tab'] === c.props?.['data-panel'])
         return cloneElement(
           c,
           {
@@ -49,7 +49,13 @@ function Replace({
           </div>,
         );
       if (c.props.children && typeof c.props.children !== 'string') {
-        return cloneElement(c, {}, <Replace {...attributes}>{c.props.children}</Replace>);
+        return cloneElement(
+          c,
+          {
+            className: classNames(c.props.className.split('w--tab-active').join(''), attributes['active-tab'] === c.props['data-panel'] ? 'w--tab-active' : ''),
+          },
+          <Replace {...attributes}>{c.props.children}</Replace>,
+        );
       }
     } else if (c.props?.children && typeof c.props.children !== 'string') {
       if (c.props['data-tab']) {
@@ -58,13 +64,13 @@ function Replace({
           <div
             onClick={(evt: MouseEvent<HTMLDivElement>) => {
               attributes.onTab({
-                tabTo: evt.currentTarget.getAttribute('data-w-tab'),
+                tabTo: evt.currentTarget.getAttribute('data-tab'),
               } as unknown as EventsData);
             }}
           />,
           {
             ...props,
-            className: classNames(c.props.className.split('w--current').join(''), attributes['active-tab'] === props['data-w-tab'] ? 'w--current' : ''),
+            className: classNames(c.props.className.split('w--current').join(''), attributes['active-tab'] === props['data-tab'] ? 'w--current' : ''),
           },
           sub,
         );
@@ -108,7 +114,11 @@ export default function Iterator(p: { agent: AgentData; property?: PropertyDataM
       }
 
       // setTabImage(`/api/agents/preview/default/${p.agent.agent_id}/${p.agent.metatags.profile_slug}?mls=${p.property?.mls_id || 'R2825253'}`);
-    } else setTabImage('');
+    } else {
+      setActiveTheme('');
+      setTabImage('');
+      setTabImage('');
+    }
   }, [active_tab]);
 
   useEffect(() => {
@@ -120,7 +130,7 @@ export default function Iterator(p: { agent: AgentData; property?: PropertyDataM
   useEffect(() => {
     toggleLoaded(true);
   }, []);
-  console.log({ active_theme });
+  console.log({ active_theme, active_tab, tab_image });
   return is_loaded ? (
     <Replace
       active-tab={active_tab}
