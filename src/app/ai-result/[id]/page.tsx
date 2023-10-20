@@ -31,11 +31,9 @@ export default async function AiResultPage({ params }: { params: { id: string } 
 
     if (html && profile_slug) {
       const $: CheerioAPI = load(html);
-      //   $('.tabs-content [data-w-tab="Property Page"] > *').replaceWith(
-      //     `<iframe src="/${params.id}/${profile_slug}/property?mls=R2814552" class="w-full h-full" />`,
-      //   );
 
       $('.tabs-content .home-oslo').replaceWith(`<img src="/api/agents/preview/oslo/${params.id}/${profile_slug}" class="w-full" />`);
+      $('.tabs-content .home-alicante').replaceWith(`<img src="/api/agents/preview/alicante/${params.id}/${profile_slug}" class="w-full" />`);
       // $('.tabs-content .home-malta').replaceWith(`<img src="/api/agents/preview/malta/${params.id}/${profile_slug}" class="w-full" />`);
       // $('.tabs-content .home-hamburg').replaceWith(`<img src="/api/agents/preview/hamburg/${params.id}/${profile_slug}" class="w-full" />`);
       // $('.tabs-content .home-alicante').replaceWith(`<img src="/api/agents/preview/alicante/${params.id}/${profile_slug}" class="w-full" />`);
