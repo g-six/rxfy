@@ -216,16 +216,16 @@ function Iterator({
             let rexified = (agent as unknown as { [key: string]: string })[c.props['data-field']];
             if (!rexified) {
               rexified = (agent.metatags as unknown as { [key: string]: string })[c.props['data-field']];
+              if (SOCIAL_MEDIA_FIELDS.includes(c.props['data-field'])) {
+                return rexified ? cloneElement(c, { href: rexified }) : <></>;
+              }
               if (c.type === 'img')
-                return rexified ? (
-                  cloneElement(c, {
-                    src: c.props['data-field'].indexOf('logo_') === 0 ? getImageSized(rexified, 230) : rexified,
-                  })
-                ) : SOCIAL_MEDIA_FIELDS.includes(c.props['data-field']) ? (
-                  <></>
-                ) : (
-                  c
-                );
+                return rexified
+                  ? cloneElement(c, {
+                      src: c.props['data-field'].indexOf('logo_') === 0 ? getImageSized(rexified, 230) : rexified,
+                    })
+                  : c;
+              else return c;
             }
 
             if (!rexified) {
@@ -363,8 +363,8 @@ export default async function AgentHomePage({ params, searchParams }: { params: 
       $(`[data-field="${logo_field}"]`).each((i, el) => {
         const attribs = Object.keys(el.attribs).map(attr => {
           let val = el.attribs[attr];
-          if (LOGO_FIELDS.includes(logo_field) && agent.metatags?.[logo_field]) {
-            val = getImageSized(agent.metatags[logo_field], 160);
+          if (attr === 'src' && LOGO_FIELDS.includes(logo_field) && agent.metatags?.[logo_field]) {
+            return `src="${getImageSized(agent.metatags[logo_field], 160)}"`;
           }
           return `${attr}="${val}"`;
         });
