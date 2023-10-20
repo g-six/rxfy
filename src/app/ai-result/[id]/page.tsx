@@ -134,10 +134,6 @@ export default async function AiResultPage({ params }: { params: { id: string } 
         }
       });
 
-      $('.tabs-content [data-w-tab="Listings Map"]').attr('style', 'width: 100%; height: 100%');
-      $('.tabs-content [data-w-tab="Listings Map"]').wrapInner(
-        `<iframe src="https://leagent.com/${params.id}/${profile_slug}/map?${objectToQueryString(agent_data.metatags.geocoding)}" class="w-full h-full" />`,
-      );
       const compare_item = $('[data-component="compare_column"]');
       let cards = '';
       let { geocoding } = agent_data.metatags;
@@ -145,9 +141,11 @@ export default async function AiResultPage({ params }: { params: { id: string } 
         const geolocation = await getGeocode(agent_data.metatags.target_city);
         if (geolocation?.place_id) {
           const coords = await getViewPortParamsFromGeolocation(geolocation);
-          console.log(coords);
+
           geocoding = {
             ...coords,
+            lat: geolocation?.geometry.location.lat,
+            lng: geolocation?.geometry.location.lng,
           };
         }
       }
@@ -284,6 +282,11 @@ export default async function AiResultPage({ params }: { params: { id: string } 
         });
         $('[data-component="compare_column"]').replaceWith(cards);
       }
+
+      $('.tabs-content [data-w-tab="Listings Map"]').attr('style', 'width: 100%; height: 100%');
+      $('.tabs-content [data-w-tab="Listings Map"]').wrapInner(
+        `<iframe src="https://leagent.com/${params.id}/${profile_slug}/map?${objectToQueryString(geocoding)}" class="w-full h-full" />`,
+      );
 
       $('.tabs-content [data-w-tab="PDF Brochure"] > *').replaceWith(
         `<iframe src="https://leagent.com/api/pdf/mls/${property?.mls_id || 'R2814552'}?agent=${params.id}&slug=${profile_slug}" class="w-full h-full" />`,
