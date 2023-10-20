@@ -14,8 +14,9 @@ export default async function PdfPage({ searchParams }: any) {
     } as unknown;
     const page_url = ['https://', process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN, 'brochure'].join('/');
     const buff = await getPdf(page_url, full_data as unknown);
-    const blob = new Blob([buff], { type: 'application/pdf' });
-    return <>{blob}</>;
+    return <>{buff}</>;
+    // const blob = new Blob([buff], { type: 'application/pdf' });
+    // return <>{blob}</>;
   }
 
   return <></>;

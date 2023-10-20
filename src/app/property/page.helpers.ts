@@ -7,7 +7,8 @@ export function replaceAgentFields($: CheerioAPI) {
     if (src) {
       $('img[data-field="headshot"]').each((i, img_element) => {
         $(img_element).removeAttr('srcset');
-        $(img_element).replaceWith(`${$(img_element).toString()}`.split($(img_element).attr('src') as string).join(src));
+        $(img_element).attr('src', src);
+        // $(img_element).replaceWith(`${$(img_element).toString()}`.split($(img_element).attr('src') as string).join(src));
       });
     }
   }

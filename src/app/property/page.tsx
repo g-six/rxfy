@@ -61,6 +61,7 @@ export default async function PropertyPage(props: any) {
     if (headers().get('x-agent-headshot')) {
       agent.metatags.headshot = headers().get('x-agent-headshot') as string;
     }
+    console.log('agent.metatags.headshot', agent.metatags.headshot);
 
     if (!agent.full_name) {
       agent = await getAgentBy({

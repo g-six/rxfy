@@ -16,6 +16,7 @@ import RecentListings from './recent-listings.module';
 import PageAction from './page-action.module';
 import { AgentData } from '@/_typings/agent';
 import { LOGO_FIELDS } from '@/_constants/agent-fields';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 
 export default function Iterator({ children, ...props }: { children: ReactElement; agent: AgentData; property: PageData; photos: string[] }) {
   const Rexified = Children.map(children, c => {
@@ -139,6 +140,10 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
         }
 
         return dimensions;
+      } else if (c.props?.['data-field'] === 'headshot') {
+        if (props.agent.metatags.headshot) {
+          if (c.type !== 'img') return cloneElement(c, { style: { backgroundImage: `url(${getImageSized(props.agent.metatags.headshot, 160)})` } });
+        }
       } else if (c.props?.['data-field'] === 'construction_info') {
         return Object.keys(data)
           .filter(k => construction_kv[k])
