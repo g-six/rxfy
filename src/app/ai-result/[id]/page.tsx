@@ -31,7 +31,7 @@ export default async function AiResultPage({ params }: { params: { id: string } 
 
     if (html && profile_slug) {
       const $: CheerioAPI = load(html);
-      $('.w--tab-active').removeClass('w--tab-active');
+      // $('.w--tab-active').removeClass('w--tab-active');
       $('.tabs-content .home-oslo').replaceWith(`<img src="/api/agents/preview/oslo/${params.id}/${profile_slug}" class="w-full" />`);
       $('.tabs-content .home-alicante').replaceWith(`<img src="/api/agents/preview/alicante/${params.id}/${profile_slug}" class="w-full" />`);
       // $('.tabs-content .home-malta').replaceWith(`<img src="/api/agents/preview/malta/${params.id}/${profile_slug}" class="w-full" />`);
