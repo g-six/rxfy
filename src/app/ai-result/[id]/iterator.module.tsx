@@ -1,7 +1,6 @@
 'use client';
 import { AgentData } from '@/_typings/agent';
 import { classNames } from '@/_utilities/html-helper';
-import FancyLoader from '@/components/Loaders/FancyLoader';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import Image from 'next/image';
 import { Children, MouseEvent, ReactElement, cloneElement, useEffect, useState } from 'react';
