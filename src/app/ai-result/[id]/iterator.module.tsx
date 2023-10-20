@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 import { AgentData } from '@/_typings/agent';
 import { classNames } from '@/_utilities/html-helper';
@@ -7,7 +8,22 @@ import { Children, MouseEvent, ReactElement, cloneElement, useEffect, useState }
 
 function Replace({ children, onTab, ...attributes }: { children: ReactElement; onTab(data: EventsData): void; 'active-tab': string; 'active-image': string }) {
   const rexified = Children.map(children, c => {
-    if (c.props?.children && typeof c.props.children !== 'string') {
+    if (c.props?.['data-w-tab'] && c.props.className.includes('tab-pane')) {
+      if (attributes['active-image'])
+        return cloneElement(
+          c,
+          {
+            className: classNames(c.props.className.split('w--tab-active').join(''), attributes['active-tab'] === c.props['data-w-tab'] ? 'w--tab-active' : ''),
+            'data-contents': attributes['active-image'],
+          },
+          <div className='w-full h-full overflow-auto' data-contents={attributes['active-image']}>
+            <img src={attributes['active-image']} width={'100%'} height={'auto'} alt='Image showing you how a property page would look like' />
+          </div>,
+        );
+      return cloneElement(c, {
+        className: classNames(c.props.className.split('w--tab-active').join(''), attributes['active-tab'] === c.props['data-w-tab'] ? 'w--tab-active' : ''),
+      });
+    } else if (c.props?.children && typeof c.props.children !== 'string') {
       if (c.props['data-tab']) {
         const { children: sub, ...props } = c.props;
         return cloneElement(
@@ -24,30 +40,6 @@ function Replace({ children, onTab, ...attributes }: { children: ReactElement; o
           },
           sub,
         );
-      } else if (c.props['data-w-tab'] && c.props.className.includes('tab-pane')) {
-        if (attributes['active-image'])
-          return cloneElement(
-            c,
-            {
-              className: classNames(
-                c.props.className.split('w--tab-active').join(''),
-                attributes['active-tab'] === c.props['data-w-tab'] ? 'w--tab-active' : '',
-              ),
-            },
-            <div className='w-full h-full overflow-auto'>
-              <Image
-                src={attributes['active-image']}
-                width={1400}
-                height={'100'}
-                objectFit='cover'
-                alt='Image showing you how a property page would look like'
-                quality={100}
-              />
-            </div>,
-          );
-        return cloneElement(c, {
-          className: classNames(c.props.className.split('w--tab-active').join(''), attributes['active-tab'] === c.props['data-w-tab'] ? 'w--tab-active' : ''),
-        });
       }
       return cloneElement(
         c,
@@ -65,6 +57,9 @@ function Replace({ children, onTab, ...attributes }: { children: ReactElement; o
 
 export default function Iterator(p: { agent: AgentData; children: ReactElement }) {
   const tabs = useEvent(Events.Blank);
+  const { tabTo } = tabs.data as unknown as {
+    tabTo: string;
+  };
   const [is_loaded, toggleLoaded] = useState(false);
   const [tab_image, setTabImage] = useState('');
   const [active_tab, setActiveTab] = useState('Home Page');
@@ -75,17 +70,15 @@ export default function Iterator(p: { agent: AgentData; children: ReactElement }
   }, [active_tab]);
 
   useEffect(() => {
-    if (tabs.data) {
-      const { tabTo } = tabs.data as unknown as {
-        tabTo: string;
-      };
-      if (tabTo) setActiveTab(tabTo);
+    if (tabTo && tabTo !== active_tab) {
+      setActiveTab(tabTo);
     }
   }, [tabs.data]);
 
   useEffect(() => {
     toggleLoaded(true);
   }, []);
+
   return is_loaded ? (
     <Replace active-tab={active_tab} active-image={tab_image} onTab={tabs.fireEvent}>
       {p.children}
