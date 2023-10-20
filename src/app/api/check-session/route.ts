@@ -16,7 +16,6 @@ export async function GET(
     if (isRealtorRequest(request.url)) {
       user_type = 'realtor';
     }
-    console.error({ user_type });
     results = await getUserSessionData(request.headers.get('authorization') || '', user_type);
     const { error } = results as unknown as { error: string };
     if (error) return getResponse(results, 401);
@@ -26,10 +25,8 @@ export async function GET(
       const { errors } = response?.data as unknown as {
         errors?: unknown[];
       };
-      console.error(JSON.stringify(errors, null, 4));
       return getResponse({ error: 'api.check-session.GET error.  See server logs for details' }, 400);
     }
-    console.error(JSON.stringify(e, null, 4));
     return getResponse({ e, error: 'api.check-session.GET error.  See server logs for details' }, 400);
   }
   return ctx?.config?.internal === 'yes' ? results : getResponse(results, 200);
