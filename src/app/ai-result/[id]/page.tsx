@@ -286,7 +286,7 @@ export default async function AiResultPage({ params }: { params: { id: string } 
       }
 
       $('.tabs-content [data-w-tab="PDF Brochure"] > *').replaceWith(
-        `<iframe src="https://leagent.com/api/pdf/mls/R2780890?agent=${params.id}&slug=${profile_slug}" class="w-full h-full" />`,
+        `<iframe src="https://leagent.com/api/pdf/mls/${property?.mls_id || 'R2814552'}?agent=${params.id}&slug=${profile_slug}" class="w-full h-full" />`,
       );
 
       const body = $('body > *');

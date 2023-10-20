@@ -66,7 +66,8 @@ export default function Iterator(p: { agent: AgentData; property?: PropertyDataM
   const [active_tab, setActiveTab] = useState('Home Page');
 
   useEffect(() => {
-    if (active_tab === 'Property Page') setTabImage(`/api/agents/preview/default/${p.agent.agent_id}/${p.agent.metatags.profile_slug}?mls=R2780890`);
+    if (active_tab === 'Property Page')
+      setTabImage(`/api/agents/preview/default/${p.agent.agent_id}/${p.agent.metatags.profile_slug}?mls=${p.property?.mls_id || 'R2825253'}`);
     else setTabImage('');
   }, [active_tab]);
 
