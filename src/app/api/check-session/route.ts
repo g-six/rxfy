@@ -27,10 +27,10 @@ export async function GET(
         errors?: unknown[];
       };
       console.error(JSON.stringify(errors, null, 4));
-      return getResponse({ error: 'api.check-session.GET error.  See server logs for details' });
+      return getResponse({ error: 'api.check-session.GET error.  See server logs for details' }, 400);
     }
     console.error(JSON.stringify(e, null, 4));
-    return getResponse({ e, error: 'api.check-session.GET error.  See server logs for details' });
+    return getResponse({ e, error: 'api.check-session.GET error.  See server logs for details' }, 400);
   }
   return ctx?.config?.internal === 'yes' ? results : getResponse(results, 200);
 }
