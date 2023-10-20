@@ -151,7 +151,7 @@ export default async function MapPage({ params, searchParams }: { params: { [key
                 return `${attr}="${val}"`;
               });
               if (!el.attribs.src) $(el).replaceWith(`<${el.tagName} ${attribs.join(' ')}>${full_name}</${el.tagName}>`);
-              else $(el).replaceWith(`<h5 data-rx ${attribs.join(' ')}>${full_name}</h5>`);
+              else if (el.tagName !== 'img') $(el).replaceWith(`<h5 data-rx ${attribs.join(' ')}>${full_name}</h5>`);
             }
           });
         }
