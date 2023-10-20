@@ -15,7 +15,8 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { objectToQueryString } from '@/_utilities/url-helper';
 import { cookies } from 'next/headers';
 import { getGeocode, getViewPortParamsFromGeolocation } from '@/_utilities/geocoding-helper';
-import { getReverseGeo } from '@/_utilities/api-calls/call-mapbox';
+import { put } from '@vercel/blob';
+
 export default async function AiResultPage({ params }: { params: { id: string } }) {
   try {
     const promises = await Promise.all([
@@ -31,13 +32,45 @@ export default async function AiResultPage({ params }: { params: { id: string } 
       profile_slug = agent_data.metatags?.profile_slug;
     }
 
-    console.log('html', agent_data);
-
+    const themes = ['oslo', 'default', 'lisbon', 'alicante'];
     if (html && profile_slug) {
       const $: CheerioAPI = load(html);
       // $('.w--tab-active').removeClass('w--tab-active');
-      $('.tabs-content .home-oslo').replaceWith(`<img src="/api/agents/preview/oslo/${params.id}/${profile_slug}" class="w-full" />`);
-      $('.tabs-content .home-alicante').replaceWith(`<img src="/api/agents/preview/alicante/${params.id}/${profile_slug}" class="w-full" />`);
+      const headers = {
+        'Content-Type': 'application/json',
+        Authorization: `API_KEY ${process.env.NEXT_APP_CLOUDCAPTURE_API_KEY}`,
+      };
+      const theme_previews = await Promise.all([
+        fetch(`https://cloudcapture.cc/api/grab?url=leagent.com/${params.id}/${profile_slug}?theme=oslo`, {
+          headers,
+        }),
+        fetch(`https://cloudcapture.cc/api/grab?url=leagent.com/${params.id}/${profile_slug}`, {
+          headers,
+        }),
+        fetch(`https://cloudcapture.cc/api/grab?url=leagent.com/${params.id}/${profile_slug}?theme=lisbon`, {
+          headers,
+        }),
+        fetch(`https://cloudcapture.cc/api/grab?url=leagent.com/${params.id}/${profile_slug}?theme=alicante`, {
+          headers,
+        }),
+      ]);
+
+      const blobs = await Promise.all(theme_previews.map(image => image.blob()));
+      const previews = await Promise.all(
+        blobs.map((blob, idx) =>
+          put(`${params.id}-${themes[idx]}.jpg`, blob, {
+            access: 'public',
+          }),
+        ),
+      );
+
+      previews.map((preview, idx) => {
+        $(`[data-group="themes"] div:nth-child(${idx + 1})`).html(`<img src="${preview.url}" class="w-full" />`);
+        $(`[data-group="themes"] div:nth-child(${idx + 1})`).attr('data-theme', themes[idx]);
+      });
+      // console.log(previews);
+      // $('.tabs-content .home-oslo').replaceWith(`<img src="/api/agents/preview/oslo/${params.id}/${profile_slug}" class="w-full" />`);
+      // $('.tabs-content .home-alicante').replaceWith(`<img src="/api/agents/preview/alicante/${params.id}/${profile_slug}" class="w-full" />`);
       // $('.tabs-content .home-malta').replaceWith(`<img src="/api/agents/preview/malta/${params.id}/${profile_slug}" class="w-full" />`);
       // $('.tabs-content .home-hamburg').replaceWith(`<img src="/api/agents/preview/hamburg/${params.id}/${profile_slug}" class="w-full" />`);
       // $('.tabs-content .home-alicante').replaceWith(`<img src="/api/agents/preview/alicante/${params.id}/${profile_slug}" class="w-full" />`);

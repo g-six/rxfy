@@ -7,9 +7,36 @@ import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import type { PutBlobResult } from '@vercel/blob';
 import { Children, MouseEvent, ReactElement, cloneElement, useEffect, useState } from 'react';
 
-function Replace({ children, onTab, ...attributes }: { children: ReactElement; onTab(data: EventsData): void; 'active-tab': string; 'active-image': string }) {
+function Replace({
+  children,
+  ...attributes
+}: {
+  children: ReactElement;
+  onTab(data: EventsData): void;
+  'active-tab': string;
+  'active-image': string;
+  'active-theme': string;
+  switchTheme(theme: string): void;
+}) {
   const rexified = Children.map(children, c => {
-    if (c.props?.['data-w-tab'] && c.props.className.includes('tab-pane')) {
+    if (c.props?.['data-theme']) {
+      const { children: sub, ...props } = c.props;
+      return cloneElement(
+        <div
+          data-theme={props['data-theme']}
+          onClick={(evt: MouseEvent<HTMLDivElement>) => {
+            attributes.switchTheme(evt.currentTarget.getAttribute('data-theme') as string);
+          }}
+        />,
+        {
+          ...props,
+          className: c.props.className.includes('tab-button')
+            ? classNames(c.props.className.split('w--current').join(''), attributes['active-theme'] === props['data-theme'] ? 'w--current' : '')
+            : classNames(c.props.className.split('w--tab-active').join(''), attributes['active-theme'] === props['data-theme'] ? 'w--tab-active' : ''),
+        },
+        sub,
+      );
+    } else if (c.props?.['data-w-tab'] && c.props.className.includes('tab-pane')) {
       if (attributes['active-image'])
         return cloneElement(
           c,
@@ -21,16 +48,16 @@ function Replace({ children, onTab, ...attributes }: { children: ReactElement; o
             <img src={attributes['active-image']} width={'100%'} height={'auto'} alt='Image showing you how a property page would look like' />
           </div>,
         );
-      return cloneElement(c, {
-        className: classNames(c.props.className.split('w--tab-active').join(''), attributes['active-tab'] === c.props['data-w-tab'] ? 'w--tab-active' : ''),
-      });
+      if (c.props.children && typeof c.props.children !== 'string') {
+        return cloneElement(c, {}, <Replace {...attributes}>{c.props.children}</Replace>);
+      }
     } else if (c.props?.children && typeof c.props.children !== 'string') {
       if (c.props['data-tab']) {
         const { children: sub, ...props } = c.props;
         return cloneElement(
           <div
             onClick={(evt: MouseEvent<HTMLDivElement>) => {
-              onTab({
+              attributes.onTab({
                 tabTo: evt.currentTarget.getAttribute('data-w-tab'),
               } as unknown as EventsData);
             }}
@@ -42,13 +69,7 @@ function Replace({ children, onTab, ...attributes }: { children: ReactElement; o
           sub,
         );
       }
-      return cloneElement(
-        c,
-        {},
-        <Replace {...attributes} onTab={onTab}>
-          {c.props.children}
-        </Replace>,
-      );
+      return cloneElement(c, {}, <Replace {...attributes}>{c.props.children}</Replace>);
     }
     return c;
   });
@@ -66,6 +87,7 @@ export default function Iterator(p: { agent: AgentData; property?: PropertyDataM
   const [tab_image, setTabImage] = useState('');
   const [cache, setCachedImage] = useState('');
   const [active_tab, setActiveTab] = useState('Home Page');
+  const [active_theme, setActiveTheme] = useState('oslo');
 
   useEffect(() => {
     if (active_tab === 'Property Page') {
@@ -98,9 +120,17 @@ export default function Iterator(p: { agent: AgentData; property?: PropertyDataM
   useEffect(() => {
     toggleLoaded(true);
   }, []);
-
+  console.log({ active_theme });
   return is_loaded ? (
-    <Replace active-tab={active_tab} active-image={tab_image} onTab={tabs.fireEvent}>
+    <Replace
+      active-tab={active_tab}
+      active-image={tab_image}
+      onTab={tabs.fireEvent}
+      switchTheme={name => {
+        setActiveTheme(name);
+      }}
+      active-theme={active_theme}
+    >
       {p.children}
     </Replace>
   ) : (
