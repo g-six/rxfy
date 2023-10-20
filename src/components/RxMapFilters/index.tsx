@@ -272,8 +272,14 @@ export default function RxMapFilters({ children, ...values }: { [key: string]: s
         });
       }}
       onSubmit={() => {
-        const qs = objectToQueryString(filters as unknown as { [k: string]: string });
-        router.push('?' + qs);
+        const updated_filters: {
+          [key: string]: string | number;
+        } = {
+          ...(queryStringToObject(q.toString()) as unknown as MapFilters),
+          ...filters,
+        };
+        router.push('?' + objectToQueryString(updated_filters));
+
         document.querySelectorAll('.w--open').forEach(el => el.classList.remove('w--open'));
         document.querySelectorAll('[aria-expanded]').forEach(el => el.setAttribute('aria-expanded', 'false'));
         fireEvent({
