@@ -52,8 +52,8 @@ function Replace({
           },
           c.props?.['data-panel'] === 'property_page' ? (
             <div className='w-full h-full overflow-auto' data-contents={attributes['active-image']}>
-              <div className='relative'>{c.props.children}</div>
-              <div className='relative'>
+              <div className='absolute z-10 h-full w-full'>{c.props.children}</div>
+              <div className='relative z-20'>
                 <img src={attributes['active-image']} width={'100%'} height={'auto'} alt='Image showing you how a property page would look like' />
               </div>
             </div>
@@ -100,29 +100,17 @@ export default function Iterator(p: { agent: AgentData; property?: PropertyDataM
   const [active_tab, setActiveTab] = useState('Home Page');
   const [active_theme, setActiveTheme] = useState('oslo');
 
-  useEffect(() => {
-    if (active_tab === 'property_page') {
-      if (cache) {
-        setTabImage(cache);
-      } else {
-        fetch(`/api/agents/preview/default/${p.agent.agent_id}/${p.agent.metatags.profile_slug}?mls=${p.property?.mls_id || 'R2825253'}`, {
-          next: { revalidate: 3600 },
-        }).then(response => {
-          response.json().then(d => {
-            const { url: src } = d as unknown as { url?: string };
-            if (src) {
-              setTabImage(src);
-              setCachedImage(src);
-            }
-          });
-        });
-      }
+  // useEffect(() => {
+  //   if (active_tab === 'property_page') {
+  //     if (cache) {
+  //       setTabImage(cache);
+  //     }
 
-      // setTabImage(`/api/agents/preview/default/${p.agent.agent_id}/${p.agent.metatags.profile_slug}?mls=${p.property?.mls_id || 'R2825253'}`);
-    } else {
-      setTabImage('');
-    }
-  }, [active_tab]);
+  // setTabImage(`/api/agents/preview/default/${p.agent.agent_id}/${p.agent.metatags.profile_slug}?mls=${p.property?.mls_id || 'R2825253'}`);
+  //   } else {
+  //     setTabImage('');
+  //   }
+  // }, [active_tab]);
 
   useEffect(() => {
     if (tabTo && tabTo !== active_tab) {
@@ -132,12 +120,23 @@ export default function Iterator(p: { agent: AgentData; property?: PropertyDataM
 
   useEffect(() => {
     toggleLoaded(true);
+    fetch(`/api/agents/preview/default/${p.agent.agent_id}/${p.agent.metatags.profile_slug}?mls=${p.property?.mls_id || 'R2825253'}`, {
+      next: { revalidate: 3600 },
+    }).then(response => {
+      response.json().then(d => {
+        const { url: src } = d as unknown as { url?: string };
+        if (src) {
+          setTabImage(src);
+          setCachedImage(src);
+        }
+      });
+    });
   }, []);
   console.log({ active_theme, active_tab, tab_image });
   return is_loaded ? (
     <Replace
       active-tab={active_tab}
-      active-image={tab_image}
+      active-image={cache}
       onTab={tabs.fireEvent}
       switchTheme={name => {
         setActiveTheme(name);
