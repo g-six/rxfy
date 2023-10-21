@@ -62,6 +62,8 @@ function Replace({
           ),
         );
       }
+    } else if (c.props?.['data-component'] === 'private_listing') {
+      return <img src={attributes['active-image']} width={'100%'} height={'auto'} alt='Image showing you how a property page would look like' />;
     } else if (c.props?.children && typeof c.props.children !== 'string') {
       if (c.props['data-tab']) {
         const { children: sub, ...props } = c.props;
