@@ -18,18 +18,19 @@ const GQ_FRAG_DOCUMENTS = `
                       }
                   }
 `;
-export const query_get_customer_docs = `query CustomerDocuments ($id: ID!) {
+export const query_get_customer_docs = `query CustomerDocuments($customer_id: ID!) {
+  documents(filters: { customer: { id: { eq: $customer_id } } }) {
+    records: data {${GQ_FRAG_DOCUMENTS}}
+  }
+}`;
+
+export const query_get_customer = `query Customer($id: ID!) {
   agentsCustomer(id: $id) {
     record: data {
       attributes {
         customer {
           record: data {
             id
-            attributes {
-              documents {
-                records: data {${GQ_FRAG_DOCUMENTS}}
-              }
-            }
           }
         }
       }
@@ -48,7 +49,7 @@ export async function getCustomerDocuments(id: number) {
     const { data: response } = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
       {
-        query: query_get_customer_docs,
+        query: query_get_customer,
         variables: {
           id,
         },
@@ -60,10 +61,24 @@ export async function getCustomerDocuments(id: number) {
         },
       },
     );
-
-    if (response?.data?.agentsCustomer?.record?.attributes?.customer?.record?.attributes?.documents?.records) {
-      records = response.data.agentsCustomer.record.attributes.customer.record.attributes.documents.records.map(
-        (record: { id: number; attributes: unknown }) => {
+    if (response?.data?.agentsCustomer?.record?.attributes?.customer?.record?.id) {
+      const { data: docs } = await axios.post(
+        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+        {
+          query: query_get_customer_docs,
+          variables: {
+            customer_id: Number(response.data?.agentsCustomer?.record?.attributes?.customer?.record?.id),
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      if (docs?.data?.documents?.records) {
+        records = docs.data.documents.records.map((record: { id: number; attributes: unknown }) => {
           const { id: document_id, attributes } = record;
           const data = attributes as {
             [key: string]: unknown;
@@ -73,8 +88,8 @@ export async function getCustomerDocuments(id: number) {
             ...data,
             id: Number(document_id),
           };
-        },
-      );
+        });
+      }
     }
   } catch (e) {
     const axerr = e as AxiosError;
