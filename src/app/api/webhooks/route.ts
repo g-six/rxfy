@@ -45,6 +45,7 @@ const pages = [
   'my-home-alerts',
   'compare',
   'private-listings',
+  'selling',
 ].concat(['pricing', 'examples', 'contact']);
 
 async function cacheSite(domain: string) {
