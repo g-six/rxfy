@@ -99,20 +99,8 @@ export default function Iterator(p: { agent: AgentData; property?: PropertyDataM
   const [is_loaded, toggleLoaded] = useState(false);
   const [tab_image, setTabImage] = useState('');
   const [cache, setCachedImage] = useState('');
-  const [active_tab, setActiveTab] = useState('Home Page');
+  const [active_tab, setActiveTab] = useState('home_page');
   const [active_theme, setActiveTheme] = useState('oslo');
-
-  // useEffect(() => {
-  //   if (active_tab === 'property_page') {
-  //     if (cache) {
-  //       setTabImage(cache);
-  //     }
-
-  // setTabImage(`/api/agents/preview/default/${p.agent.agent_id}/${p.agent.metatags.profile_slug}?mls=${p.property?.mls_id || 'R2825253'}`);
-  //   } else {
-  //     setTabImage('');
-  //   }
-  // }, [active_tab]);
 
   useEffect(() => {
     if (tabTo && tabTo !== active_tab) {
@@ -134,7 +122,7 @@ export default function Iterator(p: { agent: AgentData; property?: PropertyDataM
       });
     });
   }, []);
-  console.log({ active_theme, active_tab, tab_image });
+
   return is_loaded ? (
     <Replace
       active-tab={active_tab}
