@@ -41,7 +41,7 @@ function Replace({
         return cloneElement(
           c,
           {
-            className: classNames(c.props.className.split('w--tab-active').join(''), attributes['active-tab'] === c.props['data-w-tab'] ? 'w--tab-active' : ''),
+            className: classNames(c.props.className.split('w--tab-active').join(''), attributes['active-tab'] === c.props['data-panel'] ? 'w--tab-active' : ''),
             'data-contents': attributes['active-image'],
           },
           <div className='w-full h-full overflow-auto' data-contents={attributes['active-image']}>
@@ -96,7 +96,7 @@ export default function Iterator(p: { agent: AgentData; property?: PropertyDataM
   const [active_theme, setActiveTheme] = useState('oslo');
 
   useEffect(() => {
-    if (active_tab === 'Property Page') {
+    if (active_tab === 'property_page') {
       if (cache) {
         setTabImage(cache);
       } else {
@@ -116,7 +116,6 @@ export default function Iterator(p: { agent: AgentData; property?: PropertyDataM
       // setTabImage(`/api/agents/preview/default/${p.agent.agent_id}/${p.agent.metatags.profile_slug}?mls=${p.property?.mls_id || 'R2825253'}`);
     } else {
       setActiveTheme('');
-      setTabImage('');
       setTabImage('');
     }
   }, [active_tab]);

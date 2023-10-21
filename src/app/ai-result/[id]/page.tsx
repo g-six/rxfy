@@ -55,7 +55,7 @@ export default async function AiResultPage({ params }: { params: { id: string } 
         }),
       ]);
 
-      const blobs = await Promise.all(theme_previews.map(image => image.blob()));
+      const blobs = await Promise.all(theme_previews.map(async image => image.blob()));
       const previews = await Promise.all(
         blobs.map((blob, idx) =>
           put(`${params.id}-${themes[idx]}.jpg`, blob, {
