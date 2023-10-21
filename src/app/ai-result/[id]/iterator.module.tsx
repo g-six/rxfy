@@ -52,7 +52,10 @@ function Replace({
           },
           c.props?.['data-panel'] === 'property_page' ? (
             <div className='w-full h-full overflow-auto' data-contents={attributes['active-image']}>
-              <img src={attributes['active-image']} width={'100%'} height={'auto'} alt='Image showing you how a property page would look like' />
+              <div className='relative'>{c.props.children}</div>
+              <div className='relative'>
+                <img src={attributes['active-image']} width={'100%'} height={'auto'} alt='Image showing you how a property page would look like' />
+              </div>
             </div>
           ) : (
             <Replace {...attributes}>{c.props.children}</Replace>
