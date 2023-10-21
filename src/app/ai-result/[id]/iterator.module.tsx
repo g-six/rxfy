@@ -19,42 +19,44 @@ function Replace({
   switchTheme(theme: string): void;
 }) {
   const rexified = Children.map(children, c => {
-    if (c.props?.['data-theme'] && attributes['active-theme'] && attributes['active-image']) {
+    if (c.props?.['data-theme']) {
       const { children: sub, ...props } = c.props;
-      return cloneElement(
-        <div
-          data-theme={props['data-theme']}
-          onClick={(evt: MouseEvent<HTMLDivElement>) => {
-            attributes.switchTheme(evt.currentTarget.getAttribute('data-theme') as string);
-          }}
-        />,
-        {
-          ...props,
-          className: c.props.className.includes('tab-button')
-            ? classNames(c.props.className.split('w--current').join(''), attributes['active-theme'] === props['data-theme'] ? 'w--current' : '')
-            : classNames(c.props.className.split('w--tab-active').join(''), attributes['active-theme'] === props['data-theme'] ? 'w--tab-active' : ''),
-        },
-        sub,
-      );
-    } else if (c.props?.['data-panel']) {
-      if (attributes['active-image'] && attributes['active-tab'] === c.props?.['data-panel'])
+      if (props.className.includes('tab-button'))
         return cloneElement(
-          c,
+          <div
+            data-theme={props['data-theme']}
+            onClick={(evt: MouseEvent<HTMLDivElement>) => {
+              attributes.switchTheme(evt.currentTarget.getAttribute('data-theme') as string);
+            }}
+          />,
           {
-            className: classNames(c.props.className.split('w--tab-active').join(''), attributes['active-tab'] === c.props['data-panel'] ? 'w--tab-active' : ''),
-            'data-contents': attributes['active-image'],
+            ...props,
+            className: c.props.className.includes('tab-button')
+              ? classNames(c.props.className.split('w--current').join(''), attributes['active-theme'] === props['data-theme'] ? 'w--current' : '')
+              : classNames(c.props.className.split('w--tab-active').join(''), attributes['active-theme'] === props['data-theme'] ? 'w--tab-active' : ''),
           },
-          <div className='w-full h-full overflow-auto' data-contents={attributes['active-image']}>
-            <img src={attributes['active-image']} width={'100%'} height={'auto'} alt='Image showing you how a property page would look like' />
-          </div>,
+          sub,
         );
+      else {
+        return cloneElement(c, {
+          ...props,
+          className: classNames(c.props.className.split('w--tab-active').join(''), attributes['active-theme'] === props['data-theme'] ? 'w--tab-active' : ''),
+        });
+      }
+    } else if (c.props?.['data-panel']) {
       if (c.props.children && typeof c.props.children !== 'string') {
         return cloneElement(
           c,
           {
             className: classNames(c.props.className.split('w--tab-active').join(''), attributes['active-tab'] === c.props['data-panel'] ? 'w--tab-active' : ''),
           },
-          <Replace {...attributes}>{c.props.children}</Replace>,
+          c.props?.['data-panel'] === 'property_page' ? (
+            <div className='w-full h-full overflow-auto' data-contents={attributes['active-image']}>
+              <img src={attributes['active-image']} width={'100%'} height={'auto'} alt='Image showing you how a property page would look like' />
+            </div>
+          ) : (
+            <Replace {...attributes}>{c.props.children}</Replace>
+          ),
         );
       }
     } else if (c.props?.children && typeof c.props.children !== 'string') {
@@ -115,7 +117,6 @@ export default function Iterator(p: { agent: AgentData; property?: PropertyDataM
 
       // setTabImage(`/api/agents/preview/default/${p.agent.agent_id}/${p.agent.metatags.profile_slug}?mls=${p.property?.mls_id || 'R2825253'}`);
     } else {
-      setActiveTheme('');
       setTabImage('');
     }
   }, [active_tab]);
