@@ -24,134 +24,154 @@ function isBuildingUnit(property: { complex_compound_name?: string; style_type?:
 }
 
 export default async function PropertyPage(props: any) {
-  let start = Date.now();
+  try {
+    let start = Date.now();
 
-  let { mls, lid } = props.searchParams;
-  if ((mls || lid) && props.params['profile-slug'].indexOf('la-') === 0) {
-    let agent_id = props.params.slug || '';
-    let profile_slug = props.params['profile-slug'] || '';
+    let { mls, lid } = props.searchParams;
+    if ((mls || lid) && props.params['profile-slug'].indexOf('la-') === 0) {
+      let agent_id = props.params.slug || '';
+      let profile_slug = props.params['profile-slug'] || '';
 
-    let agent = {
-      id: Number(headers().get('x-record-id')),
-      agent_id,
-      full_name: `${headers().get('x-agent-name')}`,
-      email: `${headers().get('x-agent-email')}`,
-      phone: `${headers().get('x-agent-phone')}`,
-      webflow_domain: `${headers().get('x-wf-domain') || WEBFLOW_DASHBOARDS.CUSTOMER}`,
-      metatags: {
-        id: Number(headers().get('x-metatag-id')),
-        profile_slug,
-        title: `${headers().get('x-page-title')}`,
-        description: `${headers().get('x-page-description')}`,
-        logo_for_light_bg: '',
-        logo_for_dark_bg: '',
-        facebook_url: headers().get('x-facebook-url') || '',
-        instagram_url: headers().get('x-instagram-url') || '',
-        youtube_url: headers().get('x-youtube-url') || '',
-        linkedin_url: headers().get('x-linkedin-url') || '',
-      },
-    } as AgentData;
-
-    if (headers().get('x-light-bg-logo')) {
-      agent.metatags.logo_for_light_bg = `${headers().get('x-light-bg-logo')}`;
-    }
-    if (headers().get('x-dark-bg-logo')) {
-      agent.metatags.logo_for_dark_bg = `${headers().get('x-dark-bg-logo')}`;
-    }
-    if (headers().get('x-agent-headshot')) {
-      agent.metatags.headshot = headers().get('x-agent-headshot') as string;
-    }
-    console.log('agent.metatags.headshot', agent.metatags.headshot);
-
-    if (!agent.full_name) {
-      agent = await getAgentBy({
+      let agent = {
+        id: Number(headers().get('x-record-id')),
         agent_id,
-      });
-    }
+        full_name: `${headers().get('x-agent-name')}`,
+        email: `${headers().get('x-agent-email')}`,
+        phone: `${headers().get('x-agent-phone')}`,
+        webflow_domain: `${headers().get('x-wf-domain') || WEBFLOW_DASHBOARDS.CUSTOMER}`,
+        metatags: {
+          id: Number(headers().get('x-metatag-id')),
+          profile_slug,
+          title: `${headers().get('x-page-title')}`,
+          description: `${headers().get('x-page-description')}`,
+          logo_for_light_bg: '',
+          logo_for_dark_bg: '',
+          facebook_url: headers().get('x-facebook-url') || '',
+          instagram_url: headers().get('x-instagram-url') || '',
+          youtube_url: headers().get('x-youtube-url') || '',
+          linkedin_url: headers().get('x-linkedin-url') || '',
+        },
+      } as AgentData;
 
-    console.log('Agent data retrieved in', Date.now() - start, 'miliseconds');
-    if (agent.full_name) {
-      const page_url = `https://sites.leagent.com/${agent.webflow_domain}/property/propertyid.html`;
-      let { data: html_data } = await axios.get(page_url);
-
-      html_data = html_data.split('href="/"').join(`href="/${agent_id}/${agent.metatags.profile_slug}"`);
-      html_data = html_data.split('href="/map"').join(`href="${headers().get('x-map-uri')}"`);
-
-      const $: CheerioAPI = load(html_data);
-      $('a[data-action="pdf"]').attr('href', `/${agent.agent_id}/${agent.metatags.profile_slug}/pdf?mls=${mls}`);
-      $('[data-group="similar_home"]:not(:first-child)').remove();
-      $('[data-field="financial_info"]').each((i, el) => {
-        if (i > 0) $(el).remove();
-      });
-      $('[data-field="construction_info"]').each((i, el) => {
-        if (i > 0) $(el).remove();
-      });
-      $('[data-field="feature_block"]').each((i, el) => {
-        if (i > 0) $(el).remove();
-      });
-
-      replaceAgentFields($);
-      // Retrieve property
-      let listing: unknown = undefined;
-      if (lid) {
-        listing = await getPrivateListing(lid);
-      } else {
-        listing = await buildCacheFiles(mls);
+      if (headers().get('x-light-bg-logo')) {
+        agent.metatags.logo_for_light_bg = `${headers().get('x-light-bg-logo')}`;
+      }
+      if (headers().get('x-dark-bg-logo')) {
+        agent.metatags.logo_for_dark_bg = `${headers().get('x-dark-bg-logo')}`;
+      }
+      if (headers().get('x-agent-headshot')) {
+        agent.metatags.headshot = headers().get('x-agent-headshot') as string;
       }
 
-      if (listing) {
-        console.log('Property data retrieved in', Date.now() - start, 'miliseconds');
-        const { photos, ...property } = listing as PageData;
+      if (!agent.full_name) {
+        agent = await getAgentBy({
+          agent_id,
+        });
+      }
 
-        let neighbours: BuildingUnit[] = [];
-        if (property.lat && property.lon && isBuildingUnit(property)) {
-          neighbours = await getBuildingUnits(property);
+      console.log('Agent data retrieved in', Date.now() - start, 'miliseconds');
+      if (agent.full_name) {
+        const page_url = `https://sites.leagent.com/${agent.webflow_domain}/property/propertyid.html`;
+
+        console.log('');
+        console.log('Retrieving', page_url);
+        let html_data = '';
+
+        try {
+          let { data: theme_html } = await axios.get(page_url);
+          html_data = theme_html;
+        } catch (e) {
+          console.log('');
+          console.log('Page does not exist or is an invalid Web Page');
+          console.log('Fail to retrieve Webflow HTML for page', page_url);
+          return <NotFound />;
         }
 
-        if (property) {
-          if (Array.isArray(property.fireplace)) property.fireplace = property.fireplace.join('/');
+        console.log('');
+        console.log('Building section 1', page_url);
 
-          if (property?.room_details?.rooms) {
-            property.total_kitchens = property.room_details.rooms.filter(room => room.type && room.type.toLowerCase().includes('kitchen')).length;
+        html_data = html_data.split('href="/"').join(`href="/${agent_id}/${agent.metatags.profile_slug}"`);
+        html_data = html_data.split('href="/map"').join(`href="${headers().get('x-map-uri')}"`);
+
+        const $: CheerioAPI = load(html_data);
+        $('a[data-action="pdf"]').attr('href', `/${agent.agent_id}/${agent.metatags.profile_slug}/pdf?mls=${mls}`);
+        $('[data-group="similar_home"]:not(:first-child)').remove();
+        $('[data-field="financial_info"]').each((i, el) => {
+          if (i > 0) $(el).remove();
+        });
+        $('[data-field="construction_info"]').each((i, el) => {
+          if (i > 0) $(el).remove();
+        });
+        $('[data-field="feature_block"]').each((i, el) => {
+          if (i > 0) $(el).remove();
+        });
+        console.log('Building section 1', page_url);
+
+        replaceAgentFields($);
+        // Retrieve property
+        let listing: unknown = undefined;
+        if (lid) {
+          listing = await getPrivateListing(lid);
+        } else {
+          listing = await buildCacheFiles(mls);
+        }
+
+        if (listing) {
+          console.log('Property data retrieved in', Date.now() - start, 'miliseconds');
+          const { photos, ...property } = listing as PageData;
+
+          let neighbours: BuildingUnit[] = [];
+          if (property.lat && property.lon && isBuildingUnit(property)) {
+            neighbours = await getBuildingUnits(property);
           }
-          $('[data-node-type]').remove();
-          const navbar = $('body > [data-component="navigation"]');
-          const footer = $('[data-component="footer"]');
 
-          $('body > [data-component="navigation"]').remove();
-          $('[data-component="footer"]').remove();
-          $('[data-field="property-price"]').each((i, el) => {
-            $(el).attr('data-field', 'asking_price');
-          });
+          if (property) {
+            if (Array.isArray(property.fireplace)) property.fireplace = property.fireplace.join('/');
 
-          const body = $('body > div');
+            if (property?.room_details?.rooms) {
+              property.total_kitchens = property.room_details.rooms.filter(room => room.type && room.type.toLowerCase().includes('kitchen')).length;
+            }
+            $('[data-node-type]').remove();
+            const navbar = $('body > [data-component="navigation"]');
+            const footer = $('[data-component="footer"]');
 
-          return (
-            <>
-              <NavIterator agent={agent}>{domToReact(navbar as unknown as DOMNode[]) as unknown as ReactElement}</NavIterator>
+            $('body > [data-component="navigation"]').remove();
+            $('[data-component="footer"]').remove();
+            $('[data-field="property-price"]').each((i, el) => {
+              $(el).attr('data-field', 'asking_price');
+            });
 
-              <Iterator
-                agent={agent}
-                property={
-                  {
-                    ...property,
-                    neighbours,
-                  } as unknown as PageData
-                }
-                photos={photos || []}
-              >
-                {domToReact(body as unknown as DOMNode[]) as unknown as ReactElement}
-              </Iterator>
-              <FooterIterator agent={agent}>{domToReact(footer as unknown as DOMNode[]) as unknown as ReactElement}</FooterIterator>
+            const body = $('body > div');
 
-              <PhotosCarousel propertyPhotos={(photos ?? []).map(src => getImageSized(src, 1280))} />
-              <RxNotifications />
-            </>
-          );
+            return (
+              <>
+                <NavIterator agent={agent}>{domToReact(navbar as unknown as DOMNode[]) as unknown as ReactElement}</NavIterator>
+
+                <Iterator
+                  agent={agent}
+                  property={
+                    {
+                      ...property,
+                      neighbours,
+                    } as unknown as PageData
+                  }
+                  photos={photos || []}
+                >
+                  {domToReact(body as unknown as DOMNode[]) as unknown as ReactElement}
+                </Iterator>
+                <FooterIterator agent={agent}>{domToReact(footer as unknown as DOMNode[]) as unknown as ReactElement}</FooterIterator>
+
+                <PhotosCarousel propertyPhotos={(photos ?? []).map(src => getImageSized(src, 1280))} />
+                <RxNotifications />
+              </>
+            );
+          }
         }
-      }
 
-      return <NotFound>The property does not exist</NotFound>;
+        return <NotFound>The property does not exist</NotFound>;
+      }
     }
+  } catch (e) {
+    return <NotFound />;
   }
 }

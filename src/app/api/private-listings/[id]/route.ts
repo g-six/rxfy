@@ -91,6 +91,7 @@ export async function PUT(req: NextRequest) {
         {
           error,
           errors,
+          updates,
         },
         code || 400,
       );

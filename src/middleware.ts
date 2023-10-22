@@ -108,11 +108,12 @@ export async function middleware(request: NextRequest) {
         if (searchParams.get('mls')) {
           const property = await getPropertyByMlsId(searchParams.get('mls') as string);
           if (property) {
+            const home_style = property.style_type || property.residential_type || property.property_type;
             response.headers.set(
               'x-page-title',
-              `${getShortPrice(property.asking_price)} ${property.area} ${
-                property.style_type || property.residential_type || property.property_type
-              } ${formatValues(property, 'title')} | ${agent_data.metatags.title}`,
+              `${getShortPrice(property.asking_price)} ${property.area} ${home_style} ${formatValues(property, 'title')} | ${agent_data.metatags.title}`
+                .split('•')
+                .join(''),
             );
             if (property.description) response.headers.set('x-page-description', property.description);
             if (property.cover_photo) {

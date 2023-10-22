@@ -211,13 +211,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <html data-wf-domain={`${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}`} {...html_props}>
         <head>
           {metas.filter(m => m.key)}
-          {scripts.length && (
+          {scripts.length ? (
             <script
               type='text/javascript'
               dangerouslySetInnerHTML={{
                 __html: scripts.map((script, idx) => `\n// Script block ${idx + 1}\n${script}\n// End of script block ${idx + 1}\n`).join(''),
               }}
             ></script>
+          ) : (
+            <></>
           )}
         </head>
 
