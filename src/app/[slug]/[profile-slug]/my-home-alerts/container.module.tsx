@@ -25,5 +25,6 @@ export default function MyHomeAlerts({ agent, children, ...props }: { agent: Age
   // >
   //   {children}
   // </ClientDashboardIterator>
-  return records ? <RxMyHomeAlerts className={'test'} agent-data={agent} child={children} records={records} /> : <></>;
+  console.log('test', records);
+  return records ? <RxMyHomeAlerts className={'test'} agent-data={agent} child={children} records={records} /> : <>t</>;
 }
