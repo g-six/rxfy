@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { NextRequest } from 'next/server';
 import { getResponse } from '../response-helper';
 
@@ -26,38 +26,66 @@ export async function POST(req: NextRequest) {
     payload.description +
     '\nContain the results in the following JSON format:\n{ "beds": Bedrooms, "baths": Bathrooms, "dwelling_type": Style of Home, "panoramic_view": "View" }';
   //   prompt = `\n\n ${ai_instructions}`;
-  const ai_response = await axios.post(
-    `${process.env.NEXT_APP_OPENAI_URI}`,
-    {
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 100,
-      temperature: 0.01,
-      top_p: 1.0,
-      model: 'gpt-4',
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.NEXT_APP_OPENAI_API}`,
+
+  try {
+    const ai_response = await axios.post(
+      // `${process.env.NEXT_APP_OPENAI_URI}`,
+      'https://api.openai.com/v1/chat/completions',
+      {
+        messages: [{ role: 'user', content: prompt }],
+        frequency_penalty: 0,
+        presence_penalty: 0,
+        max_tokens: 2773,
+        temperature: 0.01,
+        top_p: 1.0,
+        model: 'gpt-4',
       },
-    },
-  );
-  const [{ text }] = ai_response.data.choices;
-  const json = JSON.parse(text);
-  if (json.dwelling_type) {
-    const dwelling_type = await getDwellingType(json.dwelling_type);
-    if (dwelling_type) {
-      return getResponse({
-        ...json,
-        dwelling_type: dwelling_type.id,
-        description: payload.description,
-        strapi: {
-          dwelling_type,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.NEXT_APP_OPENAI_API}`,
         },
-      });
+      },
+    );
+    const [
+      {
+        message: { content },
+      },
+    ] = ai_response.data.choices;
+    const json = JSON.parse(content);
+    if (json.dwelling_type) {
+      const dwelling_type = await getDwellingType(json.dwelling_type);
+      if (dwelling_type) {
+        return getResponse({
+          ...json,
+          dwelling_type: dwelling_type.id,
+          description: payload.description,
+          strapi: {
+            dwelling_type,
+          },
+        });
+      }
     }
+    return getResponse(json);
+  } catch (e) {
+    const { response } = e as AxiosError;
+    console.log(e);
+    if (!response)
+      return getResponse(
+        {
+          error: 'Error in api/prompt',
+        },
+        400,
+      );
+    const { data } = response as unknown as {
+      data: {
+        error: unknown[];
+      };
+    };
+
+    console.error(JSON.stringify(data, null, 4));
+    return getResponse(data, 400);
   }
-  return getResponse(json);
 }
 
 async function getDwellingType(property_type: string) {
