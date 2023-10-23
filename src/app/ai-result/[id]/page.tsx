@@ -159,8 +159,8 @@ export default async function AiResultPage({ params }: { params: { id: string } 
             }) => buildCacheFiles(hit.MLS_ID),
           ),
         );
-        property = cards_data.reverse()[0];
-        cards_data.reverse();
+        property = cards_data.filter((p: PropertyDataModel) => p.photos?.length && p.photos.length > 3)[0] || cards_data[0];
+
         cards_data.forEach((p: PropertyDataModel) => {
           let item = compare_item.clone();
           item.find('[data-field]').each((i, el) => {
@@ -173,9 +173,6 @@ export default async function AiResultPage({ params }: { params: { id: string } 
                     `<div data-mls="${p.mls_id}" class="${$(el).attr('class')}" style="background-image: url(${p.cover_photo})">${$(el).html()}</div>`,
                   );
                 } else if (p.id && p.photos?.length) {
-                  if (p.photos.length > 2) {
-                    property = p;
-                  }
                   createPhotoAlbumForProperty(p.id, p.photos);
                   $(el).replaceWith(
                     `<div data-mls="${p.mls_id}" class="${$(el).attr('class')}" style="background-image: url(${getImageSized(p.photos[0], 400)})">${$(
@@ -281,7 +278,7 @@ export default async function AiResultPage({ params }: { params: { id: string } 
       );
 
       $('.tabs-content [data-w-tab="PDF Brochure"] > *').replaceWith(
-        `<iframe src="https://leagent.com/api/pdf/mls/${property?.mls_id || 'R2814552'}?agent=${params.id}&slug=${profile_slug}" class="w-full h-full" />`,
+        `<iframe src="/api/pdf/mls/${property?.mls_id || 'R2814552'}?agent=${params.id}&slug=${profile_slug}" class="w-full h-full" />`,
       );
 
       const body = $('body > *');

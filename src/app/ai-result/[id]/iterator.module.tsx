@@ -4,7 +4,6 @@ import { AgentData } from '@/_typings/agent';
 import { PropertyDataModel } from '@/_typings/property';
 import { classNames } from '@/_utilities/html-helper';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
-import type { PutBlobResult } from '@vercel/blob';
 import { Children, MouseEvent, ReactElement, cloneElement, useEffect, useState } from 'react';
 import styles from './ai-result.module.scss';
 
@@ -18,6 +17,7 @@ function Replace({
   'active-theme': string;
   'profile-slug': string;
   'agent-id': string;
+  'mls-id'?: string;
   switchTheme(theme: string): void;
 }) {
   const rexified = Children.map(children, c => {
@@ -70,7 +70,7 @@ function Replace({
               <div className='relative z-20'>
                 <iframe
                   className={styles['theme-preview']}
-                  src={`/${attributes['agent-id']}/${attributes['profile-slug']}/property?mls=R2826531?theme=${attributes['active-theme']}`}
+                  src={`/${attributes['agent-id']}/${attributes['profile-slug']}/property?mls=${attributes['mls-id']}&theme=${attributes['active-theme']}`}
                 />
               </div>
             </div>
@@ -83,7 +83,7 @@ function Replace({
       return (
         <iframe
           className={styles['theme-preview']}
-          src={`/${attributes['agent-id']}/${attributes['profile-slug']}/property?mls=R2826531?theme=${attributes['active-theme']}`}
+          src={`/${attributes['agent-id']}/${attributes['profile-slug']}/property?mls=${attributes['mls-id']}?theme=${attributes['active-theme']}`}
         />
       );
     } else if (c.props?.children && typeof c.props.children !== 'string') {
@@ -136,6 +136,7 @@ export default function Iterator(p: { agent: AgentData; property?: PropertyDataM
       active-tab={active_tab}
       profile-slug={p.agent.metatags.profile_slug as string}
       agent-id={p.agent.agent_id}
+      mls-id={p.property?.mls_id}
       onTab={tabs.fireEvent}
       switchTheme={name => {
         setActiveTheme(name);
