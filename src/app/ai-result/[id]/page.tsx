@@ -42,7 +42,7 @@ export default async function AiResultPage({ params }: { params: { id: string } 
         $(`[data-group="themes"] > div:nth-child(${idx + 1})`).attr('data-theme', themes[idx]);
         $(`[data-group="themes"] > div:nth-child(${idx + 1})`).attr('style', 'padding: 0;');
         $(`[data-group="themes"] > div:nth-child(${idx + 1}) > div`).replaceWith(
-          `<div class="flex w-full flex-col" style="width: 100%" data-theme-contents="${themes[idx]}" />`,
+          `<div class="flex w-full h-full flex-col" style="width: 100%" data-theme-contents="${themes[idx]}" />`,
         );
       });
 
