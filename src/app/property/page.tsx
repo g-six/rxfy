@@ -7,7 +7,7 @@ import { buildCacheFiles, getBuildingUnits } from '../api/properties/model';
 import NotFound from '../not-found';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import PhotosCarousel from '@/components/RxPropertyCarousel/PhotosCarousel';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import Iterator from './page.iterator';
 import { PageData } from './type.definition';
 import FooterIterator from '@/components/RxFooter';
@@ -18,6 +18,7 @@ import { BuildingUnit } from '../api/properties/types';
 import RxNotifications from '@/components/RxNotifications';
 import { replaceAgentFields } from './page.helpers';
 import { getPrivateListing } from '../api/private-listings/model';
+import { getUserSessionData } from '../api/check-session/model';
 
 function isBuildingUnit(property: { complex_compound_name?: string; style_type?: string }) {
   return property.style_type?.includes('Apartment') || property.complex_compound_name;
@@ -130,7 +131,11 @@ export default async function PropertyPage(props: any) {
             if (Array.isArray(property.fireplace)) property.fireplace = property.fireplace.join('/');
 
             if (property?.room_details?.rooms) {
-              property.total_kitchens = property.room_details.rooms.filter(room => room.type && room.type.toLowerCase().includes('kitchen')).length;
+              if (headers().get('session_key')) {
+                property.total_kitchens = property.room_details.rooms.filter(room => room.type && room.type.toLowerCase().includes('kitchen')).length;
+              } else {
+                property.room_details.rooms = [];
+              }
             }
             $('[data-node-type]').remove();
             const navbar = $('body > [data-component="navigation"]');

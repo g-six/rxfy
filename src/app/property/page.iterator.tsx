@@ -17,6 +17,7 @@ import PageAction from './page-action.module';
 import { AgentData } from '@/_typings/agent';
 import { LOGO_FIELDS } from '@/_constants/agent-fields';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 
 export default function Iterator({ children, ...props }: { children: ReactElement; agent: AgentData; property: PageData; photos: string[] }) {
   const Rexified = Children.map(children, c => {
@@ -74,6 +75,13 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
           const { rooms } = data.room_details as unknown as {
             rooms: RoomDetails[];
           };
+          if (rooms.length === 0) {
+            if (!getData('session_key')) {
+              dimensions.push(<p className='italic'>This information is restricted due to regulations. Please login (or signup) to view restricted data.</p>);
+            } else {
+              dimensions.push(<p className='italic'>Data is being collated at the moment, please check back in a few hours.</p>);
+            }
+          }
           rooms
             .filter(room => room.type?.toLowerCase() !== 'bedroom' && room.type?.toLowerCase().includes('bed'))
             .map((k, idx) => (
