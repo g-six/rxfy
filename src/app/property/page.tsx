@@ -18,6 +18,7 @@ import { BuildingUnit } from '../api/properties/types';
 import RxNotifications from '@/components/RxNotifications';
 import { replaceAgentFields } from './page.helpers';
 import { getPrivateListing } from '../api/private-listings/model';
+import { PropertyDataModel } from '@/_typings/property';
 
 function isBuildingUnit(property: { complex_compound_name?: string; style_type?: string }) {
   return property.style_type?.includes('Apartment') || property.complex_compound_name;
@@ -109,11 +110,13 @@ export default async function PropertyPage(props: any) {
 
         replaceAgentFields($);
         // Retrieve property
-        let listing: unknown = undefined;
+        let listing = undefined;
         if (lid) {
           listing = await getPrivateListing(lid);
+          listing = listing as PropertyDataModel;
         } else {
           listing = await buildCacheFiles(mls);
+          listing = listing as PropertyDataModel;
         }
 
         console.log('Building section 3', page_url);

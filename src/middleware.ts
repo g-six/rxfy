@@ -89,7 +89,7 @@ export async function middleware(request: NextRequest) {
     });
     if (agent_data?.metatags) {
       response.headers.set('x-page-title', agent_data.metatags.title);
-      response.headers.set('x-page-description', agent_data.metatags.description);
+      response.headers.set('x-page-description', agent_data.metatags.description.split('•').join(''));
       response.headers.set('x-facebook-url', agent_data.metatags.facebook_url || '');
       response.headers.set('x-linkedin-url', agent_data.metatags.linkedin_url || '');
       response.headers.set('x-youtube-url', agent_data.metatags.youtube_url || '');
@@ -115,7 +115,12 @@ export async function middleware(request: NextRequest) {
                 .split('•')
                 .join(''),
             );
-            if (property.description) response.headers.set('x-page-description', property.description);
+            if (property.description) {
+              response.headers.set(
+                'x-page-description',
+                property.description.replace(/[\u00A0-\u9999<>\&]/g, i => '&#' + i.charCodeAt(0) + ';'),
+              );
+            }
             if (property.cover_photo) {
               response.headers.set('x-page-image', property.cover_photo);
             }
@@ -151,7 +156,10 @@ export async function middleware(request: NextRequest) {
       }
     }
     response.headers.set('x-record-id', agent_data.id);
-    response.headers.set('x-wf-domain', agent_data.webflow_domain);
+    response.headers.set(
+      'x-wf-domain',
+      searchParams.get('theme') === 'default' ? `leagent-webflow-rebuild.webflow.io` : agent_data.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER,
+    );
     response.headers.set('x-agent-name', agent_data.full_name);
     response.headers.set('x-agent-email', agent_data.email);
     response.headers.set('x-agent-phone', agent_data.phone);
@@ -161,7 +169,10 @@ export async function middleware(request: NextRequest) {
 
   if (!page_url.includes('/_next') && !page_url.includes('.ico') && !page_url.includes('.wf_graphql')) {
     if (!request.cookies.get('session_as')) response.cookies.set('session_as', page_url.indexOf(WEBFLOW_DASHBOARDS.CUSTOMER) >= 0 ? 'customer' : 'realtor');
-    response.headers.set('x-url', page_url + '.html');
+    if (page_url.endsWith('.io')) page_url = `${page_url}/index`;
+
+    page_url = `${page_url}.html`;
+    response.headers.set('x-url', page_url);
   }
 
   if (searchParams.get('key') && !request.cookies.get('session_key')) {
@@ -176,5 +187,6 @@ export async function middleware(request: NextRequest) {
   if (page_url.indexOf('/_next/') === -1 && pathname !== '/favicon.ico') {
     console.log('middleware', { page_url, origin, pathname });
   }
+
   return response;
 }

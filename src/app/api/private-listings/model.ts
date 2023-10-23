@@ -314,8 +314,16 @@ export async function getPrivateListing(id: number) {
         }
       }
 
+      let { attributes } = response.data.data.listing.record;
+
+      Object.keys(attributes).forEach(k => {
+        if (typeof attributes[k] !== 'object') {
+          attributes[k] = formatValues(attributes, k);
+        }
+      });
+
       return {
-        ...response.data.data.listing.record.attributes,
+        ...attributes,
         description,
         formatted_address: formatValues(response.data.data.listing.record.attributes, 'title'),
         id: Number(response.data.data.listing.record.id),
