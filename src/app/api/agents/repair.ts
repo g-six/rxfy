@@ -92,6 +92,8 @@ export async function getSmart(
                   geocoding = {
                     ...geocoding,
                     city: c.text,
+                    name: c.text,
+                    title: c.text,
                   };
                 }
                 if (c.id.includes('region')) {
@@ -116,6 +118,8 @@ export async function getSmart(
                   geocoding = {
                     ...geocoding,
                     city: c.text,
+                    name: c.text,
+                    title: c.text,
                   };
                 }
                 if (c.id.includes('region')) {
