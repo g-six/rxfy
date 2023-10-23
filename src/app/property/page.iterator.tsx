@@ -38,9 +38,13 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
       const { photos } = props;
 
       const data = props.property as unknown as { [key: string]: string };
-      if (photos && c.props?.['data-field'].indexOf('image_') === 0) {
-        const num = Number(c.props?.['data-field'].split('image_').pop());
-        if (!isNaN(num) && num && photos[num - 1]) return <RxCarouselPhoto {...c.props} width={1000} photos={photos} idx={num - 1} />;
+      if (c.props?.['data-field'].indexOf('image_') === 0) {
+        if (photos) {
+          const num = Number(c.props?.['data-field'].split('image_').pop());
+          if (!isNaN(num) && num && photos[num - 1]) return <RxCarouselPhoto {...c.props} width={1000} photos={photos} idx={num - 1} />;
+        } else {
+          return c;
+        }
       } else if (c.props?.['data-field'] === 'reb_legal') {
         return cloneElement(c, {}, props.property.real_estate_board?.legal_disclaimer || '');
       } else if (c.props?.['data-field'] === 'feature_block') {

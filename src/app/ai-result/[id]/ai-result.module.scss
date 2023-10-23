@@ -1,3 +1,7 @@
 .theme-preview {
-  @apply w-full h-screen pointer-events-none;
+  @apply w-full h-full;
+  a,
+  button {
+    @apply pointer-events-none;
+  }
 }

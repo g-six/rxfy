@@ -106,9 +106,14 @@ export default async function PropertyPage(props: any) {
         $('[data-field="feature_block"]').each((i, el) => {
           if (i > 0) $(el).remove();
         });
-        console.log('Building section 2', page_url);
 
+        console.log('');
+        console.log('');
+        console.log('replaceAgentFields');
         replaceAgentFields($);
+        console.log('');
+        console.log('');
+        console.log('Building section 2', page_url);
         // Retrieve property
         let listing = undefined;
         if (lid) {
@@ -119,6 +124,7 @@ export default async function PropertyPage(props: any) {
           listing = listing as PropertyDataModel;
         }
 
+        console.log('');
         console.log('Building section 3', page_url);
         if (listing) {
           console.log('Property data retrieved in', Date.now() - start, 'miliseconds');

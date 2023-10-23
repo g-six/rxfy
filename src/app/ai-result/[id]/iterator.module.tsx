@@ -65,15 +65,7 @@ function Replace({
             className: classNames(c.props.className.split('w--tab-active').join(''), attributes['active-tab'] === c.props['data-panel'] ? 'w--tab-active' : ''),
           },
           c.props?.['data-panel'] === 'property_page' ? (
-            <div className='w-full h-full overflow-auto'>
-              <div className='absolute z-10 h-full w-full'>{c.props.children}</div>
-              <div className='relative z-20'>
-                <iframe
-                  className={styles['theme-preview']}
-                  src={`/${attributes['agent-id']}/${attributes['profile-slug']}/property?mls=${attributes['mls-id']}&theme=${attributes['active-theme']}`}
-                />
-              </div>
-            </div>
+            <iframe className={styles['theme-preview']} src={`/${attributes['agent-id']}/${attributes['profile-slug']}/property?mls=${attributes['mls-id']}`} />
           ) : (
             <Replace {...attributes}>{c.props.children}</Replace>
           ),
