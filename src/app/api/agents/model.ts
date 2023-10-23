@@ -19,11 +19,11 @@ import { MLSProperty } from '@/_typings/property';
 import { mutation_update_agent } from './graphql';
 import { SearchHighlightInput } from '@/_typings/maps';
 import { cache } from 'react';
-import { createCacheItem } from '../_helpers/cache-helper';
+
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { createTask } from '../clickup/model';
 import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
-
+export const maxDuration = 300;
 export async function createAgent(
   user_data: {
     agent_id: string;
