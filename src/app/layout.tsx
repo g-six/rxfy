@@ -4,8 +4,8 @@ import { headers } from 'next/headers';
 
 import Script from 'next/script';
 
-import React, { ReactElement } from 'react';
-import { WEBFLOW_THEME_DOMAINS, WebFlow } from '@/_typings/webflow';
+import React from 'react';
+import { WebFlow } from '@/_typings/webflow';
 import { AgentData } from '@/_typings/agent';
 import { getPropertyData } from '@/_utilities/data-helpers/property-page';
 import { replaceMetaTags } from '@/_helpers/head-manipulations';

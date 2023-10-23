@@ -15,7 +15,6 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { objectToQueryString } from '@/_utilities/url-helper';
 import { cookies } from 'next/headers';
 import { getGeocode, getViewPortParamsFromGeolocation } from '@/_utilities/geocoding-helper';
-import { put } from '@vercel/blob';
 
 export default async function AiResultPage({ params }: { params: { id: string } }) {
   try {
@@ -40,40 +39,36 @@ export default async function AiResultPage({ params }: { params: { id: string } 
         'Content-Type': 'application/json',
         Authorization: `API_KEY ${process.env.NEXT_APP_CLOUDCAPTURE_API_KEY}`,
       };
-      const theme_previews = await Promise.all([
-        fetch(`https://cloudcapture.cc/api/grab?url=leagent.com/${params.id}/${profile_slug}?theme=oslo`, {
-          headers,
-        }),
-        fetch(`https://cloudcapture.cc/api/grab?url=leagent.com/${params.id}/${profile_slug}`, {
-          headers,
-        }),
-        fetch(`https://cloudcapture.cc/api/grab?url=leagent.com/${params.id}/${profile_slug}?theme=lisbon`, {
-          headers,
-        }),
-        fetch(`https://cloudcapture.cc/api/grab?url=leagent.com/${params.id}/${profile_slug}?theme=alicante`, {
-          headers,
-        }),
-      ]);
+      // const theme_previews = await Promise.all([
+      //   fetch(`https://cloudcapture.cc/api/grab?url=leagent.com/${params.id}/${profile_slug}?theme=oslo`, {
+      //     headers,
+      //   }),
+      //   fetch(`https://cloudcapture.cc/api/grab?url=leagent.com/${params.id}/${profile_slug}`, {
+      //     headers,
+      //   }),
+      //   fetch(`https://cloudcapture.cc/api/grab?url=leagent.com/${params.id}/${profile_slug}?theme=lisbon`, {
+      //     headers,
+      //   }),
+      //   fetch(`https://cloudcapture.cc/api/grab?url=leagent.com/${params.id}/${profile_slug}?theme=alicante`, {
+      //     headers,
+      //   }),
+      // ]);
 
-      const blobs = await Promise.all(theme_previews.map(async image => image.blob()));
-      const previews = await Promise.all(
-        blobs.map((blob, idx) =>
-          put(`${params.id}-${themes[idx]}.jpg`, blob, {
-            access: 'public',
-          }),
-        ),
-      );
+      // const blobs = await Promise.all(theme_previews.map(async image => image.blob()));
+      // const previews = await Promise.all(
+      //   blobs.map((blob, idx) =>
+      //     put(`${params.id}-${themes[idx]}.jpg`, blob, {
+      //       access: 'public',
+      //     }),
+      //   ),
+      // );
 
-      previews.map((preview, idx) => {
-        $(`[data-group="themes"] div:nth-child(${idx + 1})`).html(`<img src="${preview.url}" class="w-full" />`);
-        $(`[data-group="themes"] div:nth-child(${idx + 1})`).attr('data-theme', themes[idx]);
+      themes.map((preview, idx) => {
+        // previews.map((preview, idx) => {
+        //   $(`[data-group="themes"] div:nth-child(${idx + 1})`).html(`<img src="${preview.url}" class="w-full" />`);
+        $(`[data-group="themes"] > div:nth-child(${idx + 1})`).attr('data-theme', themes[idx]);
+        $(`[data-group="themes"] > div:nth-child(${idx + 1}) > div`).attr('data-theme-contents', themes[idx]);
       });
-      // console.log(previews);
-      // $('.tabs-content .home-oslo').replaceWith(`<img src="/api/agents/preview/oslo/${params.id}/${profile_slug}" class="w-full" />`);
-      // $('.tabs-content .home-alicante').replaceWith(`<img src="/api/agents/preview/alicante/${params.id}/${profile_slug}" class="w-full" />`);
-      // $('.tabs-content .home-malta').replaceWith(`<img src="/api/agents/preview/malta/${params.id}/${profile_slug}" class="w-full" />`);
-      // $('.tabs-content .home-hamburg').replaceWith(`<img src="/api/agents/preview/hamburg/${params.id}/${profile_slug}" class="w-full" />`);
-      // $('.tabs-content .home-alicante').replaceWith(`<img src="/api/agents/preview/alicante/${params.id}/${profile_slug}" class="w-full" />`);
 
       if (cookies().get('session_key')?.value) {
         $('[data-group="out_session"]').remove();
@@ -289,7 +284,7 @@ export default async function AiResultPage({ params }: { params: { id: string } 
                 row = `${row}<${c.name} class="${c.attribs.class}">${text}</${c.name}>`;
               });
             } catch (e) {
-              console.error('Date Listed parsing error');
+              console.error('Date Listed parsing error', p.listed_at);
             }
             if (row) stats = `${stats}<div class="${stat.attr('class')}">${row}</div>`;
           }

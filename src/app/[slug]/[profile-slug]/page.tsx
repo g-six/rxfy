@@ -269,12 +269,14 @@ function Iterator({
 
 export default async function AgentHomePage({ params, searchParams }: { params: { slug: string }; searchParams: { [k: string]: string } }) {
   const { slug: agent_id } = params;
+
   if (agent_id) {
     const agent = await findAgentRecordByAgentId(agent_id);
     let webflow_site = `https://${WEBFLOW_DASHBOARDS.CUSTOMER}`;
     if (!agent) return '';
     if (searchParams.theme) {
-      webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${searchParams.theme}-leagent.webflow.io/index.html`;
+      if (searchParams.theme === 'default') webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${WEBFLOW_DASHBOARDS.CUSTOMER}/index.html`;
+      else webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${searchParams.theme}-leagent.webflow.io/index.html`;
     } else if (agent.domain_name) webflow_site = `https://${agent.domain_name}`;
     else if (agent.webflow_domain) webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${agent.webflow_domain}/index.html`;
 
@@ -300,6 +302,7 @@ export default async function AgentHomePage({ params, searchParams }: { params: 
         },
       },
     ] as unknown[];
+
     if (agent.metatags?.search_highlights?.labels) {
       const { labels } = agent.metatags.search_highlights as unknown as {
         labels: {
@@ -387,9 +390,6 @@ export default async function AgentHomePage({ params, searchParams }: { params: 
       });
       $(el).replaceWith(`<a ${attribs.join(' ')}>${$(el).html()}</a>`);
     });
-
-    if (agent.metatags?.geocoding?.area) {
-    }
 
     const internal_req = {
       json() {

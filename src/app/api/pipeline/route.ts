@@ -84,7 +84,7 @@ export async function POST(req: NextRequest, { internal }: { internal?: boolean 
       real_estate_board: { name: string; id: number }[];
     };
     const records = mapData(hits, real_estate_board);
-    console.log(JSON.stringify(payload, null, 4));
+
     console.log(`${Date.now() - time}ms ${prefix} completed`);
     if (internal) return records;
     return getResponse({ records });

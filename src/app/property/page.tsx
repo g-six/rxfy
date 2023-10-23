@@ -105,7 +105,7 @@ export default async function PropertyPage(props: any) {
         $('[data-field="feature_block"]').each((i, el) => {
           if (i > 0) $(el).remove();
         });
-        console.log('Building section 1', page_url);
+        console.log('Building section 2', page_url);
 
         replaceAgentFields($);
         // Retrieve property
@@ -116,6 +116,7 @@ export default async function PropertyPage(props: any) {
           listing = await buildCacheFiles(mls);
         }
 
+        console.log('Building section 3', page_url);
         if (listing) {
           console.log('Property data retrieved in', Date.now() - start, 'miliseconds');
           const { photos, ...property } = listing as PageData;

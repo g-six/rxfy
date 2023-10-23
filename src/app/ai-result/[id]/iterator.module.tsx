@@ -16,10 +16,20 @@ function Replace({
   'active-tab': string;
   'active-image': string;
   'active-theme': string;
+  'profile-slug': string;
+  'agent-id': string;
   switchTheme(theme: string): void;
 }) {
   const rexified = Children.map(children, c => {
-    if (c.props?.['data-theme']) {
+    if (c.props?.['data-theme-contents'] === attributes['active-theme']) {
+      return cloneElement(
+        c,
+        {
+          src: `/${attributes['agent-id']}/${attributes['profile-slug']}?theme=${attributes['active-theme']}`,
+        },
+        <iframe height={'100%'} src={`/${attributes['agent-id']}/${attributes['profile-slug']}?theme=${attributes['active-theme']}`} />,
+      );
+    } else if (c.props?.['data-theme']) {
       const { children: sub, ...props } = c.props;
       if (props.className.includes('tab-button'))
         return cloneElement(
@@ -38,10 +48,14 @@ function Replace({
           sub,
         );
       else {
-        return cloneElement(c, {
-          ...props,
-          className: classNames(c.props.className.split('w--tab-active').join(''), attributes['active-theme'] === props['data-theme'] ? 'w--tab-active' : ''),
-        });
+        return cloneElement(
+          c,
+          {
+            ...props,
+            className: classNames(c.props.className.split('w--tab-active').join(''), attributes['active-theme'] === props['data-theme'] ? 'w--tab-active' : ''),
+          },
+          <Replace {...attributes}>{c.props.children}</Replace>,
+        );
       }
     } else if (c.props?.['data-panel']) {
       if (c.props.children && typeof c.props.children !== 'string') {
@@ -109,24 +123,38 @@ export default function Iterator(p: { agent: AgentData; property?: PropertyDataM
   }, [tabs.data]);
 
   useEffect(() => {
+    // fetch(`/${p.agent.agent_id}/${p.agent.metatags.profile_slug}?theme=${active_theme}`).then(page => {
+    //   page.text().then(console.log);
+    // });
+    // fetch(`/api/agents/preview/${active_theme}/${p.agent.agent_id}/${p.agent.metatags.profile_slug}`).then(console.log);
+    console.log({ active_theme });
+    console.log({ active_theme });
+    console.log({ active_theme });
+    console.log({ active_theme });
+    console.log({ active_theme });
+  }, [active_theme]);
+
+  useEffect(() => {
     toggleLoaded(true);
-    fetch(`/api/agents/preview/default/${p.agent.agent_id}/${p.agent.metatags.profile_slug}?mls=${p.property?.mls_id || 'R2825253'}`, {
-      next: { revalidate: 3600 },
-    }).then(response => {
-      response.json().then(d => {
-        const { url: src } = d as unknown as { url?: string };
-        if (src) {
-          setTabImage(src);
-          setCachedImage(src);
-        }
-      });
-    });
+    // fetch(`/api/agents/preview/default/${p.agent.agent_id}/${p.agent.metatags.profile_slug}?mls=${p.property?.mls_id || 'R2825253'}`, {
+    //   next: { revalidate: 3600 },
+    // }).then(response => {
+    //   response.json().then(d => {
+    //     const { url: src } = d as unknown as { url?: string };
+    //     if (src) {
+    //       setTabImage(src);
+    //       setCachedImage(src);
+    //     }
+    //   });
+    // });
   }, []);
 
   return is_loaded ? (
     <Replace
       active-tab={active_tab}
       active-image={cache}
+      profile-slug={p.agent.metatags.profile_slug}
+      agent-id={p.agent.agent_id}
       onTab={tabs.fireEvent}
       switchTheme={name => {
         setActiveTheme(name);
