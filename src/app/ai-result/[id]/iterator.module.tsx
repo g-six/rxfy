@@ -83,7 +83,7 @@ function Replace({
       return (
         <iframe
           className={styles['theme-preview']}
-          src={`/${attributes['agent-id']}/${attributes['profile-slug']}/property?mls=${attributes['mls-id']}?theme=${attributes['active-theme']}`}
+          src={`/${attributes['agent-id']}/${attributes['profile-slug']}/property?mls=${attributes['mls-id']}&theme=default`}
         />
       );
     } else if (c.props?.children && typeof c.props.children !== 'string') {
