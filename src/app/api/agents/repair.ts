@@ -71,6 +71,65 @@ export async function getSmart(
 
       if (ai_results.bio) {
         const { city: target_city, lat, lng } = property;
+        const { NEXT_APP_MAPBOX_TOKEN } = process.env;
+        const map_response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${NEXT_APP_MAPBOX_TOKEN}`);
+        const data = await map_response.json();
+        const { features } = data;
+        let bounds: number[] = [];
+        let geocoding: { [k: string]: any } = {};
+        if (features) {
+          features.forEach((feature: { context: { text: string; id: string }[]; bbox: number[]; place_type: string[] }) => {
+            const { bbox, place_type, context } = feature;
+            if (bounds && bounds.length === 0) {
+              context.forEach(c => {
+                if (c.id.includes('postcode')) {
+                  geocoding = {
+                    ...geocoding,
+                    postal_zip_code: c.text,
+                  };
+                }
+                if (c.id.includes('place')) {
+                  geocoding = {
+                    ...geocoding,
+                    city: c.text,
+                  };
+                }
+                if (c.id.includes('region')) {
+                  geocoding = {
+                    ...geocoding,
+                    state_province: c.text,
+                  };
+                }
+              });
+
+              bounds = bbox;
+            }
+            if (place_type.includes('neighborhood')) {
+              context.forEach(c => {
+                if (c.id.includes('postcode')) {
+                  geocoding = {
+                    ...geocoding,
+                    postal_zip_code: c.text,
+                  };
+                }
+                if (c.id.includes('place')) {
+                  geocoding = {
+                    ...geocoding,
+                    city: c.text,
+                  };
+                }
+                if (c.id.includes('region')) {
+                  geocoding = {
+                    ...geocoding,
+                    state_province: c.text,
+                  };
+                }
+              });
+              bounds = bbox;
+            }
+          });
+        }
+
         const metatag = {
           agent_id: agent.agent_id,
           target_city,
@@ -81,6 +140,16 @@ export async function getSmart(
           personal_bio: ai_results.bio,
           description: ai_results.metatags,
           search_highlights: agent.search_highlights || [],
+          geocoding:
+            bounds.length === 4
+              ? {
+                  ...geocoding,
+                  nelng: bounds[0],
+                  nelat: bounds[1],
+                  swlng: bounds[2],
+                  swlat: bounds[3],
+                }
+              : {},
           profile_slug: [
             `${real_estate_board?.abbreviation || 'la'}`,
             slugifyAddress(agent.full_name).split('-')[0],
