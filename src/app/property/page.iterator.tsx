@@ -201,20 +201,7 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
           className: classNames(c.props.className || '', 'property-page-rexified').trim(),
           href: `${metatags[c.props['data-field']] || `#no-${c.props['data-field']}`}`,
         });
-      } else if (c.props.children && ['agent_name', 'email', 'phone'].includes(c.props['data-field']) && photos) {
-        const { agent } = props as unknown as {
-          agent: {
-            [k: string]: string;
-          };
-        };
-        return cloneElement(
-          c,
-          {
-            className: classNames(c.props.className || '', 'property-page-rexified').trim(),
-          },
-          (agent && agent[c.props['data-field']]) || <i>Not available</i>,
-        );
-      } else if (c.props.children && !['agent', 'agent_name', 'email', 'phone', 'logo'].includes(c.props['data-field'])) {
+      } else if (c.props.children && !['agent', 'agent_name', 'full_name', 'email', 'phone', 'logo'].includes(c.props['data-field'])) {
         let formatted_value = data[c.props['data-field']] || '';
         if (!formatted_value && LOGO_FIELDS.includes(c.props['data-field'])) {
           formatted_value = props.agent.full_name;

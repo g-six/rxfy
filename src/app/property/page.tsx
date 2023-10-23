@@ -36,7 +36,7 @@ export default async function PropertyPage(props: any) {
       let agent = {
         id: Number(headers().get('x-record-id')),
         agent_id,
-        full_name: `${headers().get('x-agent-name')}`,
+        full_name: `${headers().get('x-agent-name') || ''}`,
         email: `${headers().get('x-agent-email')}`,
         phone: `${headers().get('x-agent-phone')}`,
         webflow_domain: `${headers().get('x-wf-domain') || WEBFLOW_DASHBOARDS.CUSTOMER}`,
@@ -68,9 +68,9 @@ export default async function PropertyPage(props: any) {
         agent = await getAgentBy({
           agent_id,
         });
+        console.log('Agent data retrieved in', Date.now() - start, 'miliseconds');
       }
 
-      console.log('Agent data retrieved in', Date.now() - start, 'miliseconds');
       if (agent.full_name) {
         const page_url = `https://sites.leagent.com/${agent.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/property/propertyid.html`;
 
@@ -107,12 +107,16 @@ export default async function PropertyPage(props: any) {
           if (i > 0) $(el).remove();
         });
 
-        console.log('');
-        console.log('');
-        console.log('replaceAgentFields');
-        replaceAgentFields($);
-        console.log('');
-        console.log('');
+        if (agent) {
+          if (agent.full_name) {
+            $('[data-field="agent_name"]').html(agent.full_name);
+            $('[data-field="agent_name"]').attr('data-val', agent.full_name);
+          }
+
+          if (agent.phone) $('[data-field="phone"]').html(agent.phone);
+
+          if (agent.email) $('[data-field="email"]').html(agent.email);
+        }
         console.log('Building section 2', page_url);
         // Retrieve property
         let listing = undefined;
