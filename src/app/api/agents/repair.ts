@@ -4,6 +4,8 @@ import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
 import { AgentInput } from '@/_typings/agent';
 import { SearchHighlightInput } from '@/_typings/maps';
 
+export const maxDuration = 300;
+
 export async function getSmart(
   agent: AgentInput & { id: number; search_highlights?: SearchHighlightInput[] },
   property: { [key: string]: string | number },
