@@ -8,7 +8,7 @@ import { getResponse } from '@/app/api/response-helper';
 import { getRealEstateBoard } from '@/app/api/real-estate-boards/model';
 import { createAgent, createAgentMetatag } from './model';
 import { getSampleListings } from './utilities';
-
+export const maxDuration = 300;
 export async function POST(req: Request) {
   const payload = await req.json();
   let results = {

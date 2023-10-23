@@ -1,13 +1,12 @@
 import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
-import axios, { Axios, AxiosError } from 'axios';
+import axios, { AxiosError } from 'axios';
 import { NextResponse } from 'next/server';
-import { createAgent, createAgentRecordIfNoneFound, findAgentRecordByAgentId } from '../agents/model';
+import { createAgentRecordIfNoneFound, findAgentRecordByAgentId } from '../agents/model';
 import { AIGeneratedDetails, AgentData } from '@/_typings/agent';
-import { RealtorInput } from '@/_typings/user';
 import { encrypt } from '@/_utilities/encryption-helper';
 import { sendTemplate } from '../send-template';
 import { MessageRecipient } from '@mailchimp/mailchimp_transactional';
-
+export const maxDuration = 300;
 type StripeCustomField = 'fullname' | 'agentidparagonid';
 interface StripeWebhookPayload {
   custom_fields: {
