@@ -100,7 +100,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   if (['/property', '/preview'].includes(requestUrl.pathname) && searchParams && (searchParams.lid || searchParams.id || searchParams.mls)) {
     if (searchParams.lid) {
-      // property = await getPrivatePropertyData(searchParams.lid);
       property = await getPrivateListing(Number(searchParams.lid));
     } else {
       // Publicly listed property page

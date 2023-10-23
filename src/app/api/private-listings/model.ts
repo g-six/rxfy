@@ -3,6 +3,7 @@ import axios, { AxiosError } from 'axios';
 import { GQ_FRAG_AGENT } from '../agents/graphql';
 import { getFullAgentRecord } from '../_helpers/agent-helper';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { formatValues } from '@/_utilities/data-helpers/property-page';
 export async function createPrivateListing(listing: PrivateListingInput, session_hash: string, realtor_id: number) {
   try {
     const response = await axios.post(
@@ -298,8 +299,25 @@ export async function getPrivateListing(id: number) {
           }
         }
       });
+
+      let { beds, baths, description, dwelling_type } = response.data.data.listing.record.attributes;
+
+      if (!description) {
+        if (beds) {
+          description = `${beds}-bedroom`;
+        }
+        if (baths) {
+          description = `${description} ${baths}-bath`;
+        }
+        if (dwelling_type?.name) {
+          description = `${description} ${dwelling_type?.name}`;
+        }
+      }
+
       return {
         ...response.data.data.listing.record.attributes,
+        description,
+        formatted_address: formatValues(response.data.data.listing.record.attributes, 'title'),
         id: Number(response.data.data.listing.record.id),
         page_url,
         photos,
@@ -408,7 +426,7 @@ export async function getPrivateListingsByRealtorId(realtor_id: number, size = 2
                 photos = attributes[key].data.attributes.photos?.filter((url: string) => url) || [];
                 let [first] = photos;
                 if (first) {
-                  cover_photo = getImageSized(first, 256);
+                  // cover_photo = getImageSized(first, 256);
                 }
                 attributes[key] = {
                   id: Number(attributes[key].data.id),

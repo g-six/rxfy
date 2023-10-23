@@ -52,23 +52,31 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
       } else if (c.props?.['data-field'] === 'property_info') {
         return Object.keys(data)
           .filter(k => property_info_kv[k])
-          .map(k => (
-            <div key={`${k}-${property_info_kv[k]}`} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
-              <KeyValueIterator className={c.props.className} label={property_info_kv[k]} value={formatValues(props.property, k)}>
-                {c.props.children}
-              </KeyValueIterator>
-            </div>
-          ));
+          .map(k => {
+            const v = formatValues(props.property, k);
+            if (!v) return <></>;
+            return (
+              <div key={`${k}-${property_info_kv[k]}`} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
+                <KeyValueIterator className={c.props.className} label={property_info_kv[k]} value={v}>
+                  {c.props.children}
+                </KeyValueIterator>
+              </div>
+            );
+          });
       } else if (c.props?.['data-field'] === 'financial_info') {
         return Object.keys(data)
           .filter(k => financial_kv[k])
-          .map(k => (
-            <div key={k} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
-              <KeyValueIterator className={c.props.className} label={financial_kv[k]} value={formatValues(props.property, k)}>
-                {c.props.children}
-              </KeyValueIterator>
-            </div>
-          ));
+          .map(k => {
+            const v = formatValues(props.property, k);
+            if (!v) return <></>;
+            return (
+              <div key={k} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
+                <KeyValueIterator className={c.props.className} label={financial_kv[k]} value={formatValues(props.property, k)}>
+                  {c.props.children}
+                </KeyValueIterator>
+              </div>
+            );
+          });
       } else if (c.props?.['data-field'] === 'dimensions_info') {
         const dimensions: ReactElement[] = [];
         if (data.room_details) {
@@ -114,6 +122,9 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
                 )),
             )
             .forEach(r => dimensions.push(r));
+        } else {
+          console.log(JSON.stringify(data, null, 4));
+          dimensions.push(<p className='italic'>Data is being collated at the moment, please check back in a few hours.</p>);
         }
         if (data.bathroom_details) {
           const { baths } = data.bathroom_details as unknown as {
@@ -160,13 +171,17 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
       } else if (c.props?.['data-field'] === 'construction_info') {
         return Object.keys(data)
           .filter(k => construction_kv[k])
-          .map(k => (
-            <div key={k} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
-              <KeyValueIterator className={c.props.className} label={construction_kv[k]} value={formatValues(props.property, k)}>
-                {c.props.children}
-              </KeyValueIterator>
-            </div>
-          ));
+          .map(k => {
+            const v = formatValues(props.property, k);
+            if (!v) return <></>;
+            return (
+              <div key={k} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
+                <KeyValueIterator className={c.props.className} label={construction_kv[k]} value={v}>
+                  {c.props.children}
+                </KeyValueIterator>
+              </div>
+            );
+          });
       } else if (c.props?.['data-field'] === 'map_view') {
         return <RxMapOfListing key={0} child={<div />} mapType={'neighborhood'} property={props.property} />;
       } else if (c.props?.['data-field'] === 'street_view') {
@@ -182,19 +197,19 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
           className: classNames(c.props.className || '', 'property-page-rexified').trim(),
           href: `${metatags[c.props['data-field']] || `#no-${c.props['data-field']}`}`,
         });
-      } else if (c.props.children && !['agent', 'agent_name', 'email', 'phone', 'logo'].includes(c.props['data-field']))
+      } else if (c.props.children && !['agent', 'agent_name', 'email', 'phone', 'logo'].includes(c.props['data-field'])) {
+        let formatted_value = data[c.props['data-field']] || '';
+        if (!formatted_value && LOGO_FIELDS.includes(c.props['data-field'])) {
+          formatted_value = props.agent.full_name;
+        }
         return cloneElement(
           c,
           {
             className: classNames(c.props.className || '', 'property-page-rexified').trim(),
           },
-          data[c.props['data-field']]
-            ? formatValues(props.property, c.props['data-field'])
-            : LOGO_FIELDS.includes(c.props['data-field'])
-            ? props.agent.full_name
-            : c.props.children,
+          formatted_value ? formatted_value : <i>Not available</i>,
         );
-      else
+      } else
         return cloneElement(c, {
           className: classNames(c.props.className || '', 'property-page-rexified').trim(),
         });
