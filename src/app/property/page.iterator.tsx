@@ -77,7 +77,12 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
           };
           if (rooms.length === 0) {
             if (!getData('session_key')) {
-              dimensions.push(<p className='italic'>This information is restricted due to regulations. Please login (or signup) to view restricted data.</p>);
+              dimensions.push(
+                <p className='italic'>
+                  This information is restricted and only available to registered users of Leagent due to regulations. Please login (or signup) to view
+                  restricted data.
+                </p>,
+              );
             } else {
               dimensions.push(<p className='italic'>Data is being collated at the moment, please check back in a few hours.</p>);
             }
