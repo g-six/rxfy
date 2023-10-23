@@ -37,6 +37,9 @@ export interface LegacySearchPayload {
       }[];
       must?: {
         match?: Record<string, string | number>;
+        exists?: {
+          field: string;
+        };
         term?: Record<string, string | number>;
         range?: {};
       }[];
