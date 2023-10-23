@@ -315,7 +315,7 @@ export default async function AiResultPage({ params }: { params: { id: string } 
         $('[data-component="compare_column"]').replaceWith(cards);
       }
 
-      $('.tabs-content [data-w-tab="Listings Map"]').attr('style', 'width: 100%; height: 100%');
+      $('.tabs-content [data-w-tab="Listings Map"]').attr('style', 'width: 100%; height: 100%; pointer-events: none;');
       $('.tabs-content [data-w-tab="Listings Map"]').wrapInner(
         `<iframe src="https://leagent.com/${params.id}/${profile_slug}/map?${objectToQueryString(geocoding)}" class="w-full h-full" />`,
       );
