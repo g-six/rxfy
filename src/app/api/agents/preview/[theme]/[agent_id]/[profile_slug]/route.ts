@@ -21,13 +21,13 @@ export async function GET(req: NextRequest, { params }: { params: { theme: strin
 
     return image;
 
-    const image_blob = await image.blob();
+    // const image_blob = await image.blob();
 
-    const blob = await put(`${params.agent_id}-${params.theme}-${mls_id ? `-mls-${mls_id}` : ''}.jpg`, image_blob, {
-      access: 'public',
-    });
+    // const blob = await put(`${params.agent_id}-${params.theme}-${mls_id ? `-mls-${mls_id}` : ''}.jpg`, image_blob, {
+    //   access: 'public',
+    // });
 
-    return getResponse(blob);
+    // return getResponse(blob);
   }
 
   return getResponse({ error: 'Unable to fetch website' }, 400);
