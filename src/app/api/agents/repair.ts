@@ -34,7 +34,10 @@ export async function getSmart(
     {
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 400,
-      temperature: 0.1,
+      temperature: 1,
+      top_p: 1,
+      frequency_penalty: 0,
+      presence_penalty: 0,
       model: 'gpt-4',
     },
     {
@@ -45,6 +48,15 @@ export async function getSmart(
     },
   );
   try {
+    console.log('');
+    console.log('');
+    console.log('');
+    console.log('');
+    console.log(JSON.stringify(data, null, 4));
+    console.log('');
+    console.log('');
+    console.log('');
+    console.log('');
     const { choices, error } = data;
 
     const text = (choices as unknown[] as { message: { role: string; content: string } }[])
