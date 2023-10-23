@@ -34,34 +34,6 @@ export default async function AiResultPage({ params }: { params: { id: string } 
     const themes = ['oslo', 'default', 'lisbon', 'alicante'];
     if (html && profile_slug) {
       const $: CheerioAPI = load(html);
-      // $('.w--tab-active').removeClass('w--tab-active');
-      const headers = {
-        'Content-Type': 'application/json',
-        Authorization: `API_KEY ${process.env.NEXT_APP_CLOUDCAPTURE_API_KEY}`,
-      };
-      // const theme_previews = await Promise.all([
-      //   fetch(`https://cloudcapture.cc/api/grab?url=leagent.com/${params.id}/${profile_slug}?theme=oslo`, {
-      //     headers,
-      //   }),
-      //   fetch(`https://cloudcapture.cc/api/grab?url=leagent.com/${params.id}/${profile_slug}`, {
-      //     headers,
-      //   }),
-      //   fetch(`https://cloudcapture.cc/api/grab?url=leagent.com/${params.id}/${profile_slug}?theme=lisbon`, {
-      //     headers,
-      //   }),
-      //   fetch(`https://cloudcapture.cc/api/grab?url=leagent.com/${params.id}/${profile_slug}?theme=alicante`, {
-      //     headers,
-      //   }),
-      // ]);
-
-      // const blobs = await Promise.all(theme_previews.map(async image => image.blob()));
-      // const previews = await Promise.all(
-      //   blobs.map((blob, idx) =>
-      //     put(`${params.id}-${themes[idx]}.jpg`, blob, {
-      //       access: 'public',
-      //     }),
-      //   ),
-      // );
 
       themes.map((preview, idx) => {
         // previews.map((preview, idx) => {
@@ -128,7 +100,6 @@ export default async function AiResultPage({ params }: { params: { id: string } 
         }
       });
 
-      // data-group="email_signature"
       // Links
       $('[data-group="facebook_cover"] [data-field], [data-group="email_signature"] [data-field]').each((i, el) => {
         let value = agent_data[el.attribs['data-field']] || agent_data.metatags[el.attribs['data-field']];
@@ -149,20 +120,6 @@ export default async function AiResultPage({ params }: { params: { id: string } 
                 $(el).replaceWith(`<${el.tagName} ${props.join(' ')}>${value}</${el.tagName}>`);
             }
           }
-          // if (agent_data.metatags.facebook_url) $('[data-field="facebook_url"]').wrapInner(`<a href="//${agent_data.metatags.facebook_url}"></a>`);
-          // else $('[data-field="facebook_url"]').remove();
-
-          // if (agent_data.metatags.twitter_url) $('[data-field="twitter_url"]').wrapInner(`<a href="//${agent_data.metatags.twitter_url}"></a>`);
-          // else $('[data-field="twitter_url"]').remove();
-
-          // if (agent_data.metatags.instagram_url) $('[data-field="instagram_url"]').wrapInner(`<a href="//${agent_data.metatags.instagram_url}"></a>`);
-          // else $('[data-field="instagram_url"]').remove();
-
-          // if (agent_data.metatags.linkedin_url) $('[data-field="linkedin_url"]').wrapInner(`<a href="//${agent_data.metatags.linkedin_url}"></a>`);
-          // else $('[data-field="linkedin_url"]').remove();
-
-          // $('[data-field="domain_name"]').empty();
-          // $('[data-field="domain_name"]').append(agent_data.domain_name || 'leagent.com');
         }
       });
 
@@ -211,11 +168,14 @@ export default async function AiResultPage({ params }: { params: { id: string } 
               case 'address':
                 $(el).replaceWith(`<${el.name} class="${$(el).attr('class')}">${formatValues(p, 'title')}</${el.name}>`);
               case 'cover_photo':
-                if (p.cover_photo)
+                if (p.cover_photo) {
                   $(el).replaceWith(
                     `<div data-mls="${p.mls_id}" class="${$(el).attr('class')}" style="background-image: url(${p.cover_photo})">${$(el).html()}</div>`,
                   );
-                else if (p.id && p.photos?.length) {
+                } else if (p.id && p.photos?.length) {
+                  if (p.photos.length > 2) {
+                    property = p;
+                  }
                   createPhotoAlbumForProperty(p.id, p.photos);
                   $(el).replaceWith(
                     `<div data-mls="${p.mls_id}" class="${$(el).attr('class')}" style="background-image: url(${getImageSized(p.photos[0], 400)})">${$(
