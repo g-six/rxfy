@@ -15,7 +15,6 @@ function Replace({
   children: ReactElement;
   onTab(data: EventsData): void;
   'active-tab': string;
-  'active-image': string;
   'active-theme': string;
   'profile-slug': string;
   'agent-id': string;
@@ -66,10 +65,13 @@ function Replace({
             className: classNames(c.props.className.split('w--tab-active').join(''), attributes['active-tab'] === c.props['data-panel'] ? 'w--tab-active' : ''),
           },
           c.props?.['data-panel'] === 'property_page' ? (
-            <div className='w-full h-full overflow-auto' data-contents={attributes['active-image']}>
+            <div className='w-full h-full overflow-auto'>
               <div className='absolute z-10 h-full w-full'>{c.props.children}</div>
               <div className='relative z-20'>
-                <img src={attributes['active-image']} width={'100%'} height={'auto'} alt='Image showing you how a property page would look like' />
+                <iframe
+                  className={styles['theme-preview']}
+                  src={`/${attributes['agent-id']}/${attributes['profile-slug']}/property?mls=R2826531?theme=${attributes['active-theme']}`}
+                />
               </div>
             </div>
           ) : (
@@ -78,7 +80,12 @@ function Replace({
         );
       }
     } else if (c.props?.['data-component'] === 'private_listing') {
-      return <img src={attributes['active-image']} width={'100%'} height={'auto'} alt='Image showing you how a property page would look like' />;
+      return (
+        <iframe
+          className={styles['theme-preview']}
+          src={`/${attributes['agent-id']}/${attributes['profile-slug']}/property?mls=R2826531?theme=${attributes['active-theme']}`}
+        />
+      );
     } else if (c.props?.children && typeof c.props.children !== 'string') {
       if (c.props['data-tab']) {
         const { children: sub, ...props } = c.props;
@@ -106,14 +113,11 @@ function Replace({
 }
 
 export default function Iterator(p: { agent: AgentData; property?: PropertyDataModel; children: ReactElement }) {
-  const [blob, setBlob] = useState<PutBlobResult | null>(null);
   const tabs = useEvent(Events.Blank);
   const { tabTo } = tabs.data as unknown as {
     tabTo: string;
   };
   const [is_loaded, toggleLoaded] = useState(false);
-  const [tab_image, setTabImage] = useState('');
-  const [cache, setCachedImage] = useState('');
   const [active_tab, setActiveTab] = useState('home_page');
   const [active_theme, setActiveTheme] = useState('oslo');
 
@@ -137,23 +141,11 @@ export default function Iterator(p: { agent: AgentData; property?: PropertyDataM
 
   useEffect(() => {
     toggleLoaded(true);
-    // fetch(`/api/agents/preview/default/${p.agent.agent_id}/${p.agent.metatags.profile_slug}?mls=${p.property?.mls_id || 'R2825253'}`, {
-    //   next: { revalidate: 3600 },
-    // }).then(response => {
-    //   response.json().then(d => {
-    //     const { url: src } = d as unknown as { url?: string };
-    //     if (src) {
-    //       setTabImage(src);
-    //       setCachedImage(src);
-    //     }
-    //   });
-    // });
   }, []);
 
   return is_loaded ? (
     <Replace
       active-tab={active_tab}
-      active-image={cache}
       profile-slug={p.agent.metatags.profile_slug as string}
       agent-id={p.agent.agent_id}
       onTab={tabs.fireEvent}
