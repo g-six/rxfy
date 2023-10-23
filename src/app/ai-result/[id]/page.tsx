@@ -67,7 +67,9 @@ export default async function AiResultPage({ params }: { params: { id: string } 
         // previews.map((preview, idx) => {
         //   $(`[data-group="themes"] div:nth-child(${idx + 1})`).html(`<img src="${preview.url}" class="w-full" />`);
         $(`[data-group="themes"] > div:nth-child(${idx + 1})`).attr('data-theme', themes[idx]);
-        $(`[data-group="themes"] > div:nth-child(${idx + 1}) > div`).attr('data-theme-contents', themes[idx]);
+        $(`[data-group="themes"] > div:nth-child(${idx + 1}) > div`).replaceWith(
+          `<div class="flex w-full flex-col" style="width: 100%" data-theme-contents="${themes[idx]}" />`,
+        );
       });
 
       if (cookies().get('session_key')?.value) {
