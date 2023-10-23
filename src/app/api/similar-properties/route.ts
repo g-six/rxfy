@@ -58,7 +58,14 @@ export async function GET(request: Request) {
         ],
         should,
         minimum_should_match: should.length > 1 ? should.length - 1 : should.length,
-        must_not: [{ match: { 'data.MLS_ID': mls_id } }],
+        must_not: [{ match: { 'data.MLS_ID': mls_id } }, { match: { 'data.L_SaleRent': 'For Rent' } }],
+        must: [
+          {
+            exists: {
+              field: 'data.photos',
+            },
+          },
+        ],
       },
     },
   }).catch(e => {
