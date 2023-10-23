@@ -128,18 +128,6 @@ export default function Iterator(p: { agent: AgentData; property?: PropertyDataM
   }, [tabs.data]);
 
   useEffect(() => {
-    // fetch(`/${p.agent.agent_id}/${p.agent.metatags.profile_slug}?theme=${active_theme}`).then(page => {
-    //   page.text().then(console.log);
-    // });
-    // fetch(`/api/agents/preview/${active_theme}/${p.agent.agent_id}/${p.agent.metatags.profile_slug}`).then(console.log);
-    console.log({ active_theme });
-    console.log({ active_theme });
-    console.log({ active_theme });
-    console.log({ active_theme });
-    console.log({ active_theme });
-  }, [active_theme]);
-
-  useEffect(() => {
     toggleLoaded(true);
   }, []);
 
