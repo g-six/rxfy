@@ -1,4 +1,3 @@
 .theme-preview {
-  @apply w-full overflow-y-visible h-screen;
-  min-height: calc(100vh - 250px);
+  @apply w-full h-screen pointer-events-none;
 }

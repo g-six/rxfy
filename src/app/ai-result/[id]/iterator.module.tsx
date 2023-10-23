@@ -154,7 +154,7 @@ export default function Iterator(p: { agent: AgentData; property?: PropertyDataM
     <Replace
       active-tab={active_tab}
       active-image={cache}
-      profile-slug={p.agent.metatags.profile_slug}
+      profile-slug={p.agent.metatags.profile_slug as string}
       agent-id={p.agent.agent_id}
       onTab={tabs.fireEvent}
       switchTheme={name => {
