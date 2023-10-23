@@ -28,10 +28,10 @@ export default async function PropertyPage(props: any) {
     let start = Date.now();
 
     let { mls, lid } = props.searchParams;
+
     if ((mls || lid) && props.params['profile-slug'].indexOf('la-') === 0) {
       let agent_id = props.params.slug || '';
       let profile_slug = props.params['profile-slug'] || '';
-
       let agent = {
         id: Number(headers().get('x-record-id')),
         agent_id,
@@ -71,7 +71,7 @@ export default async function PropertyPage(props: any) {
 
       console.log('Agent data retrieved in', Date.now() - start, 'miliseconds');
       if (agent.full_name) {
-        const page_url = `https://sites.leagent.com/${agent.webflow_domain}/property/propertyid.html`;
+        const page_url = `https://sites.leagent.com/${agent.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/property/propertyid.html`;
 
         console.log('');
         console.log('Retrieving', page_url);
