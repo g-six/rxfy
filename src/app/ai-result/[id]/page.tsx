@@ -66,7 +66,9 @@ export default async function AiResultPage({ params }: { params: { id: string } 
       themes.map((preview, idx) => {
         // previews.map((preview, idx) => {
         //   $(`[data-group="themes"] div:nth-child(${idx + 1})`).html(`<img src="${preview.url}" class="w-full" />`);
+        $('[data-group="themes"]').attr('style', 'overflow-y: hidden; padding: 0');
         $(`[data-group="themes"] > div:nth-child(${idx + 1})`).attr('data-theme', themes[idx]);
+        $(`[data-group="themes"] > div:nth-child(${idx + 1})`).attr('style', 'padding: 0;');
         $(`[data-group="themes"] > div:nth-child(${idx + 1}) > div`).replaceWith(
           `<div class="flex w-full flex-col" style="width: 100%" data-theme-contents="${themes[idx]}" />`,
         );

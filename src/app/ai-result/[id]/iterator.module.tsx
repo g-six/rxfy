@@ -6,6 +6,7 @@ import { classNames } from '@/_utilities/html-helper';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import type { PutBlobResult } from '@vercel/blob';
 import { Children, MouseEvent, ReactElement, cloneElement, useEffect, useState } from 'react';
+import styles from './ai-result.module.scss';
 
 function Replace({
   children,
@@ -27,11 +28,7 @@ function Replace({
         {
           src: `/${attributes['agent-id']}/${attributes['profile-slug']}?theme=${attributes['active-theme']}`,
         },
-        <iframe
-          className='w-full'
-          style={{ overflowY: 'visible', minHeight: 'calc(100vh - 240px)', height: '100%' }}
-          src={`/${attributes['agent-id']}/${attributes['profile-slug']}?theme=${attributes['active-theme']}`}
-        />,
+        <iframe className={styles['theme-preview']} src={`/${attributes['agent-id']}/${attributes['profile-slug']}?theme=${attributes['active-theme']}`} />,
       );
     } else if (c.props?.['data-theme']) {
       const { children: sub, ...props } = c.props;
