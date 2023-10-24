@@ -136,20 +136,22 @@ export async function getSmart(
               context.forEach(c => {
                 if (c.id.includes('place')) {
                   search_highlights.push({
-                    ne: {
-                      lat: bounds[3],
-                      lng: bounds[2],
+                    labels: {
+                      ne: {
+                        lat: bounds[3],
+                        lng: bounds[2],
+                      },
+                      sw: {
+                        lat: bounds[1],
+                        lng: bounds[0],
+                      },
+                      lat: (bounds[3] + bounds[1]) / 2,
+                      lng: (bounds[2] + bounds[0]) / 2,
+                      title: c.text,
+                      name: c.text,
+                      city: c.text,
+                      zoom: 11,
                     },
-                    sw: {
-                      lat: bounds[1],
-                      lng: bounds[0],
-                    },
-                    lat: (bounds[3] + bounds[1]) / 2,
-                    lng: (bounds[2] + bounds[0]) / 2,
-                    title: c.text,
-                    name: c.text,
-                    city: c.text,
-                    zoom: 11,
                   });
                 }
               });
