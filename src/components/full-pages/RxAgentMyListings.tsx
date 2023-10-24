@@ -41,6 +41,7 @@ export default function RxAgentMyListings({ nodeProps, agent_data, nodes }: Prop
 
         return (
           <MyListingsTab
+            data-domain={agent_data.domain_name ? `https://${agent_data.domain_name}` : `${agent_data.agent_id}/${agent_data.metatags.profile_slug}`}
             isActive={isCurrent}
             child={child}
             setCurrentTab={() => {

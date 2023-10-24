@@ -7,18 +7,19 @@ import React, { ReactElement, cloneElement, useEffect, useState } from 'react';
 import MyListingsCard from './MyListingsCard';
 import MyListingPrivateCard from './MyListingPrivateCard';
 import useEvent, { Events } from '@/hooks/useEvent';
+import { AgentData } from '@/_typings/agent';
 
 type Props = {
+  'data-domain': string;
   isActive: boolean;
   child: ReactElement;
   setCurrentTab: () => void;
 };
 
-export default function MyListingsTab({ child, isActive, setCurrentTab }: Props) {
+export default function MyListingsTab({ child, isActive, setCurrentTab, ...props }: Props) {
   const { data, fireEvent } = useEvent(Events.AgentMyListings);
   const [MLSListings, setMLSListings] = useState<any[]>([]);
   const [privateListings, setPrivateListings] = useState<any[]>([]);
-
   const [templates] = useState(
     captureMatchingElements(child, [
       { elementName: 'privateCard', searchFn: searchByClasses(['private-listing-card']) },
@@ -59,7 +60,13 @@ export default function MyListingsTab({ child, isActive, setCurrentTab }: Props)
     {
       searchFn: searchByClasses(['mls-listings']),
       transformChild: child =>
-        cloneElement(child, {}, MLSListings ? MLSListings.map((it, i) => <MyListingsCard key={i} template={templates.mlsCard} property={it} />) : []),
+        cloneElement(
+          child,
+          {},
+          MLSListings
+            ? MLSListings.map((it, i) => <MyListingsCard data-domain={props['data-domain']} key={i} template={templates.mlsCard} property={it} />)
+            : [],
+        ),
     },
     {
       searchFn: searchByClasses(['private-listings']),

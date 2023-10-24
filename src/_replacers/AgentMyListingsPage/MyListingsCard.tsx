@@ -1,4 +1,5 @@
 import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { AgentData } from '@/_typings/agent';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import RxDropMenu from '@/components/RxForms/RxDropMenu';
 import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
@@ -7,9 +8,10 @@ import React, { ReactElement, cloneElement } from 'react';
 type Props = {
   template: ReactElement;
   property: any;
+  'data-domain'?: string;
 };
 
-export default function MyListingsCard({ template, property }: Props) {
+export default function MyListingsCard({ template, property, ...props }: Props) {
   const property_bg: { [key: string]: string } = {
     sold: 'status-sold bg-red-400',
     draft: 'status-draft bg-yellow-400',
@@ -17,11 +19,12 @@ export default function MyListingsCard({ template, property }: Props) {
     terminated: 'status-sold bg-red-400',
   };
   const bg: string = property_bg[property?.status?.toLowerCase() ?? 'draft'];
+  let base_url = '/';
 
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['view-listing-button']),
-      transformChild: child => cloneElement(child, { href: `/MBAPPE/la-pacific/property?mls=R2729988` }),
+      transformChild: child => cloneElement(child, { href: `${props['data-domain']}/property?mls=R2729988` }),
     },
     {
       searchFn: searchByClasses(['propcard-image']),
