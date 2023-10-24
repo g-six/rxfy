@@ -58,6 +58,33 @@ export async function getAgentPublicListings() {
 }
 
 /**
+ * Retrieves a property by agent record.id (STRAPI ID)
+ * @returns property data
+ */
+export async function updatePublicListing(id: number, updates: { [k: string]: unknown }) {
+  const response = await axios.put(`/api/agents/inventory/${id}`, {
+    headers: {
+      Authorization: `Bearer ${Cookies.get('session_key')}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (response.status === 200) {
+    const { session_key, properties } = response.data;
+
+    if (session_key) {
+      Cookies.set('session_key', session_key);
+    } else {
+      console.log('Warning: no new session key has been issued in updatePublicListing()');
+    }
+
+    return properties;
+  }
+
+  return response;
+}
+
+/**
  * Retrieves a property by mls_id
  * @returns property data
  */

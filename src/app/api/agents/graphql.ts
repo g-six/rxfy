@@ -189,6 +189,24 @@ export const gql_agent_inventory = `query AgentInventory($agent: ID!) {
   }
 }`;
 
+export const mutate_agent_inventory = `mutation UpdateAgentInventory($id: ID!, $updates: AgentInventoryInput!) {
+  inventory: updateAgentInventory(id: $id, data: $updates) {
+    record: data {
+      id
+      attributes {
+        property {
+          data {
+            id
+            attributes {
+              ${GQ_FRAGMENT_PROPERTY_ATTRIBUTES}
+            }
+          }
+        }
+      }
+    }
+  }
+}`;
+
 export const mutation_create_website_build = `mutation WebsiteBuildRequest($agent: ID!, $theme: String!) {
   createWebsiteBuild(data: { agent: $agent, theme: $theme, is_published: false }) {
     record: data {

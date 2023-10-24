@@ -7,6 +7,8 @@ import { getResponse } from '../../response-helper';
 import { findAgentRecordByRealtorId } from '../model';
 import { encrypt } from '@/_utilities/encryption-helper';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
+import { updatePublicListing } from './model';
 
 export async function GET(request: NextRequest) {
   const { token, guid } = getTokenAndGuidFromSessionKey(request.headers.get('authorization') || '');
@@ -57,7 +59,7 @@ export async function GET(request: NextRequest) {
     );
     const properties: Record<string, unknown>[] = [];
     if (inventory_response.data?.inventory?.records) {
-      inventory_response.data?.inventory?.records.map(({ id, attributes }: { id: number; attributes: Record<string, unknown> }) => {
+      await inventory_response.data?.inventory?.records.map(async ({ id, attributes }: { id: number; attributes: Record<string, unknown> }) => {
         const record = attributes.property as { data: { id: number; attributes: PropertyDataModel } };
         if (record.data.attributes) {
           const {
@@ -74,6 +76,38 @@ export async function GET(request: NextRequest) {
             mls_data,
             ...property
           } = record.data.attributes;
+
+          if (property.status && property.status === 'Active') {
+            retrieveFromLegacyPipeline(
+              {
+                from: 0,
+                size: 1,
+                sort: { 'data.ListingDate': 'desc' },
+                query: {
+                  bool: {
+                    filter: [
+                      {
+                        match: {
+                          'data.MLS_ID': property.mls_id,
+                        },
+                      },
+                    ],
+                    should: [],
+                  },
+                },
+              },
+              undefined,
+              2,
+            ).then(mls_listings => {
+              if (mls_listings.length) {
+                const { mls_data: mls_listing_info } = mls_listings[0];
+                if (mls_listing_info?.Status !== property.status) {
+                  updatePublicListing(record.data.id, { status: mls_listing_info?.Status });
+                }
+              }
+            });
+          }
+
           let relationships: {
             [key: string]: {
               [key: string]: string | number;

@@ -694,3 +694,12 @@ const gql_properties = `query GetPublicProperties($filters: PropertyFiltersInput
     }
   }
 }`;
+
+export const mutate_public_listing = `mutation UpdateProperty($id: ID!, $updates: PropertyInput!) {
+  property: updateProperty(id: $id, data: $updates) {
+    record: data {
+      id
+      attributes {${GQ_FRAGMENT_PROPERTY_ATTRIBUTES}}
+    }
+  }
+}`;
