@@ -69,12 +69,13 @@ function Iterator(p: ChildProps) {
 export default function RxCRM(p: Props) {
   const formToggle = useEvent(Events.CreateCustomerForm);
   const session = useEvent(Events.LoadUserSession);
+  const { agent, ...props } = p;
 
   useEffect(() => {
-    if (p.agent?.id && !session.data?.user) {
+    if (agent?.id && !session.data?.user) {
       session.fireEvent({
-        ...p.agent,
-        user: p.agent,
+        ...agent,
+        user: agent,
       });
     }
   }, []);
@@ -82,7 +83,7 @@ export default function RxCRM(p: Props) {
   return (
     <div className={['RxCRM', p.className || ''].join(' ').trim()}>
       <Iterator
-        {...p}
+        {...props}
         showForm={() => {
           formToggle.fireEvent({
             active: true,

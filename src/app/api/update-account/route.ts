@@ -196,7 +196,7 @@ export async function PUT(request: Request) {
         const { id: metatag_id, ...updates } = metatags;
         await updateAgentMetatags(metatag_id, updates);
       }
-      await updateAgent(Number(record.agent.data.id), agent_updates);
+      if (Object.keys(agent_updates).length) await updateAgent(Number(record.agent.data.id), agent_updates);
     }
 
     const {
@@ -227,7 +227,7 @@ export async function PUT(request: Request) {
       200,
     );
   } catch (e) {
-    console.log('Error in Update Account API request');
+    console.log('Error in Update Account API request', e);
     const errors = e as AxiosError;
     console.log(JSON.stringify({ e, errors }, null, 4));
     return new Response(

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { Children, ReactElement, cloneElement } from 'react';
 import { cookies } from 'next/headers';
 import { CheerioAPI, load } from 'cheerio';
 import { DOMNode, domToReact } from 'html-react-parser';
@@ -9,46 +8,10 @@ import { AgentData } from '@/_typings/agent';
 import { replaceByCheerio } from '@/components/rexifier';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import RxRealtorNav from '@/components/Nav/RxRealtorNav';
-import MyWebSiteSelectedTheme from './SelectedTheme.module';
-import RxSearchEngineOptimizationTab from './seo.rexifier';
 import RxNotifications from '@/components/RxNotifications';
-import DomainHowButton from './DomainHowButton.module';
-import DomainHowModal from './DomainHowModal.module';
-import RxTrackingCodes from './tracking-codes.rexifier';
-import RxThemes from './themes-explorer.rexifier';
 import { getUserSessionData } from '../api/check-session/model';
 import { redirect } from 'next/navigation';
-
-function Rexify({ children, ...props }: { children: ReactElement; realtor: AgentData }) {
-  const Rexified = Children.map(children, c => {
-    if (c.props?.children && typeof c.props?.children !== 'string') {
-      const { className, children: sub, ...wrapper } = c.props;
-      if (className?.includes('selected-theme')) {
-        return <MyWebSiteSelectedTheme {...props}>{c}</MyWebSiteSelectedTheme>;
-      }
-      if (className?.includes('tab-pane')) {
-        if (wrapper['data-w-tab'] === 'Tab 2') {
-          return <RxSearchEngineOptimizationTab realtor={props.realtor}>{c}</RxSearchEngineOptimizationTab>;
-        }
-        if (wrapper['data-w-tab'] === 'Tab 3') {
-          return <RxTrackingCodes realtor={props.realtor}>{c}</RxTrackingCodes>;
-        }
-        if (wrapper['data-w-tab'] === 'Tab 4') {
-          return <RxThemes realtor={props.realtor}>{c}</RxThemes>;
-        }
-      }
-      if (className?.includes('alert-regular')) {
-        return <DomainHowButton className={className}>{sub}</DomainHowButton>;
-      }
-      if (className?.includes('domain-instructions')) {
-        return <DomainHowModal className={className}>{sub}</DomainHowModal>;
-      }
-      return cloneElement(c, {}, <Rexify {...props}>{sub}</Rexify>);
-    }
-    return c;
-  });
-  return <>{Rexified}</>;
-}
+import { Rexify } from './page.rexifier';
 
 export default async function MyWebSite() {
   const session_key = cookies().get('session_key')?.value;
@@ -69,17 +32,15 @@ export default async function MyWebSite() {
           },
         }),
       };
-      const avatar = data.metatags.logo_for_light_bg || data.metatags.logo_for_dark_bg || data.metatags.headshot;
-
       const $: CheerioAPI = load(html);
       replaceByCheerio($, 'body > div > [class^="navigation-full-wrapper"] .agent-name', {
         content: data.full_name,
       });
 
-      if (avatar) {
-        replaceByCheerio($, 'body > div > [class^="navigation-full-wrapper"] .avatar-regular', {
-          content: `<div class='w-full h-full inline-block bg-cover bg-center' style='background-image: url(${getImageSized(avatar, 120)});'></div>`,
-        });
+      if (realtor.metatags?.headshot) {
+        $('[data-field="headshot"]').html(
+          `<div style="background-image: url(${getImageSized(realtor.metatags.headshot, 150)})" class="w-36 h-36 bg-cover bg-no-repeat bg-center block" />`,
+        );
       }
 
       if (realtor.subscription?.status !== 'trialing') {

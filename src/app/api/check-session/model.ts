@@ -59,8 +59,8 @@ export async function getUserSessionData(authorization: string, user_type: 'real
           });
           console.error('Retrieving', { subscription_id });
           const stripe_subscription = await stripe.subscriptions.retrieve(subscription_id);
-          console.error({ stripe_subscription });
           if (stripe_subscription.items.data[0].plan) {
+            console.log('Stripe plan found');
             const { items, status } = stripe_subscription;
             const { nickname, interval } = items.data[0].plan;
             if (nickname) {
@@ -76,6 +76,8 @@ export async function getUserSessionData(authorization: string, user_type: 'real
                 interval,
               };
             }
+          } else {
+            console.log('Stripe plan not found');
           }
         }
       } catch (e) {
