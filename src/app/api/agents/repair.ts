@@ -148,10 +148,10 @@ export async function getSmart(
             bounds.length === 4
               ? {
                   ...geocoding,
-                  nelng: bounds[0],
-                  nelat: bounds[1],
-                  swlng: bounds[2],
-                  swlat: bounds[3],
+                  swlng: bounds[0],
+                  swlat: bounds[1],
+                  nelng: bounds[2],
+                  nelat: bounds[3],
                 }
               : {},
           profile_slug: [
