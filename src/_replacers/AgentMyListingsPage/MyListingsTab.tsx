@@ -7,7 +7,6 @@ import React, { ReactElement, cloneElement, useEffect, useState } from 'react';
 import MyListingsCard from './MyListingsCard';
 import MyListingPrivateCard from './MyListingPrivateCard';
 import useEvent, { Events } from '@/hooks/useEvent';
-import { AgentData } from '@/_typings/agent';
 
 type Props = {
   'data-domain': string;

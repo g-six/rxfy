@@ -100,6 +100,7 @@ export default function ClientDashboardIterator(
       if (p.property?.id || (p.properties && p.properties.length)) {
         if (classes.includes('initially-hidden')) {
           className = classes.filter(name => !['opacity-0', 'hidden'].includes(name)).join(' ');
+          console.log('p.property', className, p.property);
         }
       } else {
         if (classes.includes('initially-hidden') && child.props['data-field'] === 'empty_state') {
@@ -133,7 +134,7 @@ export default function ClientDashboardIterator(
       } else if (className?.includes('confirm-delete')) {
         return React.cloneElement(child, {
           ...child.props,
-          className: p.confirm ? 'flex items-center align-center justify-center absolute w-full h-full' : child.props.className,
+          className: p.confirm ? 'flex items-center align-center justify-center absolute w-full h-full' : className,
           children: (
             <ConfirmDeleteIterator onCancel={p.onCancel} onConfirm={p.onConfirm}>
               {child.props.children}
@@ -154,15 +155,15 @@ export default function ClientDashboardIterator(
               {child.props.children}
             </CustomerProperties>
           );
-        } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_COMPARE_WRAPPER)) {
+        } else if (p.agent && className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_COMPARE_WRAPPER)) {
           return (
-            <RxCustomerCompareCanvas properties={p.properties ? p.properties.slice(0, 3) : undefined} className={child.props.className}>
+            <RxCustomerCompareCanvas properties={p.properties ? p.properties.slice(0, 3) : undefined} className={className}>
               {child.props.children}
             </RxCustomerCompareCanvas>
           );
-        } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_PROPERTY_PREVIEW)) {
+        } else if (p.agent && className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_PROPERTY_PREVIEW)) {
           return (
-            <RxCustomerPropertyView agent={p.agent} reload={p.reload} property={p.property} className={child.props.className}>
+            <RxCustomerPropertyView agent={p.agent} reload={p.reload} property={p.property} className={className}>
               {child.props.children}
             </RxCustomerPropertyView>
           );
@@ -173,41 +174,37 @@ export default function ClientDashboardIterator(
           }
 
           return <TransformLink>{child}</TransformLink>;
-        } else if (child.props.className?.split(' ').includes('indiv-map-tabs')) {
+        } else if (className?.split(' ').includes('indiv-map-tabs')) {
           return (
             <RxSavedHomesNav {...child.props} active-tab={p['active-tab']}>
               {child.props.children}
             </RxSavedHomesNav>
           );
-        } else if (child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_MAP)) {
+        } else if (className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_MAP)) {
           return (
             <RxMapView {...child.props} lat={p.property?.lat} lng={p.property?.lon} properties={p.properties}>
               {child.props.children}
             </RxMapView>
           );
-        } else if (p.agent && child.props.className?.split(' ').includes('map-property-modal')) {
+        } else if (p.agent && className?.split(' ').includes('map-property-modal')) {
           return <RxMapPropertyModal {...child.props}>{child}</RxMapPropertyModal>;
-        } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.MY_HOME_ALERTS)) {
+        } else if (p.agent && className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.MY_HOME_ALERTS)) {
           return <RxMyHomeAlerts {...child.props} agent-data={p.agent} child={child} />;
-        } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.DOCUMENTS)) {
+        } else if (p.agent && className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.DOCUMENTS)) {
           return <DocumentsReplacer nodeProps={child.props} agent_data={p.agent} nodes={child.props.children} />;
-        } else if (p.agent && child.props.className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_ACCOUNT_FORM)) {
+        } else if (p.agent && className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_ACCOUNT_FORM)) {
           return (
             <RxCustomerAccountView agent-data={p.agent} {...child.props}>
               {child.props.children}
             </RxCustomerAccountView>
           );
-        } else if (p.agent && child.props.className === WEBFLOW_NODE_SELECTOR.CRM_NAV_WRAPPER) {
-          return <CRMNav className={child.props.className}>{child}</CRMNav>;
+        } else if (p.agent && className === WEBFLOW_NODE_SELECTOR.CRM_NAV_WRAPPER) {
+          return <CRMNav className={className}>{child}</CRMNav>;
         } else if (child.props?.['data-w-tab']) {
           return React.cloneElement(child, {
             ...child.props,
             children: <ClientDashboardIterator {...p}>{child.props.children}</ClientDashboardIterator>,
-            className:
-              child.props.className.split('w--tab-active').join('') +
-              ' rexified' +
-              ' ' +
-              (p['active-tab'] === child.props['data-w-tab'] ? 'w--tab-active' : ''),
+            className: className.split('w--tab-active').join('') + ' rexified' + ' ' + (p['active-tab'] === child.props['data-w-tab'] ? 'w--tab-active' : ''),
           });
         }
         return (

@@ -93,13 +93,15 @@ function Iterator(p: {
                     ? getImageSized(property.property_photo_album?.data?.attributes.photos[0], 300)
                     : '',
                 };
+                let className = classNames(child.props.className || 'no-default-class', 'cursor-pointer');
+                className = className.split(' opacity-0').join(' ');
                 return cloneElement(
                   child,
                   {
                     key: `${property.id}-${property.love}`,
                     'data-property-id': property.id,
                     'data-love-id': property.love,
-                    className: classNames(child.props.className || 'no-default-class', 'cursor-pointer'),
+                    className,
                     onClick: () => {
                       p.onSelectProperty(property);
                     },

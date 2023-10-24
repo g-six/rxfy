@@ -482,10 +482,12 @@ export async function getPrivateListingsByRealtorId(realtor_id: number, size = 2
     }
   } catch (e) {
     const axerr = e as AxiosError;
-    console.log(axerr);
+    const error = 'Caught error in private-listings/model.getPrivateListingsByRealtorId';
+    console.log(error);
     console.log(JSON.stringify(axerr.response?.data || {}, null, 4));
+    console.log(axerr);
     return {
-      error: 'Caught error in private-listings/model.getPrivateListingsByRealtorId',
+      error,
       realtor_id,
     };
   }

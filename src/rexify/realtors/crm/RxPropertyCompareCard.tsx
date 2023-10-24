@@ -82,6 +82,8 @@ export default function RxPropertyCompareCard(
 
   const Wrapper = React.Children.map(p.children, (child, child_idx) => {
     if (child.props?.className) {
+      let { className } = child.props;
+
       if (typeof child.props.children === 'string') {
         let text_content = child.props.children;
         switch (child.props.children) {
@@ -107,9 +109,9 @@ export default function RxPropertyCompareCard(
           key: `${text_content} ${p.property.id}`,
           children: text_content,
         });
-      } else if (child.props.className === 'img-placeholder') {
+      } else if (className === 'img-placeholder') {
         return null;
-      } else if (child.props.className === 'compare-stats-wrapper') {
+      } else if (className === 'compare-stats-wrapper') {
         console.log('function RxPropertyCompareCard include-stats', p['include-stats']);
         return p['include-stats'] ? (
           React.cloneElement(child, {
@@ -142,10 +144,11 @@ export default function RxPropertyCompareCard(
         ) : (
           <></>
         );
-      } else if (child.props.className === 'propcompare-card-image') {
+      } else if (className === 'propcompare-card-image') {
+        className = className.split(' opacity-0').join('');
         return React.cloneElement(child, {
           ...child.props,
-          className: child.props.className + ' bg-center bg-cover',
+          className: className + ' bg-center bg-cover',
           children: (
             <CompareCardItems
               {...p}
@@ -162,8 +165,9 @@ export default function RxPropertyCompareCard(
           ),
         });
       } else if (child.type === 'div') {
+        className = className.split(' opacity-0').join('');
         return (
-          <div className={child.props.className || ''} key={`compare-car-item-${child_idx}`}>
+          <div className={className || ''} key={`compare-car-item-${child_idx}`}>
             <CompareCardItems
               {...p}
               key={`compare-item-wrapper-${child_idx}`}
@@ -334,7 +338,7 @@ function CompareCardItems(
           className: child.props.className + ' cursor-pointer',
           onClick: p.removeCard,
         });
-      } else if (child.props.className === 'propcompare-card-image') {
+      } else if (child.props['data-field'] === 'cover_photo') {
         return React.cloneElement(child, {
           ...child.props,
           className: child.props.className + ' bg-center bg-cover',

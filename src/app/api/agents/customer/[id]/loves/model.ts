@@ -87,7 +87,7 @@ export async function getCustomerLoves(id: number) {
           let cover_photo;
           if (property_attributes.property_photo_album?.data?.attributes?.photos) {
             photos = property_attributes.property_photo_album?.data?.attributes?.photos as unknown as string[];
-            if (cover_photo === undefined) {
+            if (cover_photo === undefined || !cover_photo) {
               cover_photo = getImageSized(photos[0], 400);
             }
           }

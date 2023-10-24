@@ -115,8 +115,6 @@ export default function RxCustomerView(p: Props) {
     }
   }, []);
 
-  console.log(agent);
-
   return (
     <div {...{ ...p, agent: agent.id }}>
       {hydrated ? (
