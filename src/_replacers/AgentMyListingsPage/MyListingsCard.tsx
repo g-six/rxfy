@@ -24,7 +24,7 @@ export default function MyListingsCard({ template, property, ...props }: Props) 
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['view-listing-button']),
-      transformChild: child => cloneElement(child, { href: `${props['data-domain']}/property?mls=R2729988` }),
+      transformChild: child => cloneElement(child, { href: `${props['data-domain']}/property?mls=${property.mls_id}` }),
     },
     {
       searchFn: searchByClasses(['propcard-image']),
