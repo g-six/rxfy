@@ -434,7 +434,7 @@ export async function getPrivateListingsByRealtorId(realtor_id: number, size = 2
                 photos = attributes[key].data.attributes.photos?.filter((url: string) => url) || [];
                 let [first] = photos;
                 if (first) {
-                  // cover_photo = getImageSized(first, 256);
+                  cover_photo = getImageSized(first, 256);
                 }
                 attributes[key] = {
                   id: Number(attributes[key].data.id),
