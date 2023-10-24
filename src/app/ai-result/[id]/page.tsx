@@ -34,7 +34,7 @@ export default async function AiResultPage({ params }: { params: { id: string } 
     const themes = ['oslo', 'default', 'lisbon', 'alicante'];
     if (html && profile_slug) {
       const $: CheerioAPI = load(html);
-
+      $('.btn-stripe-buy').attr('href', `${process.env.NEXT_PUBLIC_BUY_BUTTON}`);
       themes.map((preview, idx) => {
         // previews.map((preview, idx) => {
         //   $(`[data-group="themes"] div:nth-child(${idx + 1})`).html(`<img src="${preview.url}" class="w-full" />`);
