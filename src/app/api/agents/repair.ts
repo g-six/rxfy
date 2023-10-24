@@ -149,9 +149,9 @@ export async function getSmart(
               ? {
                   ...geocoding,
                   nelng: bounds[0],
-                  nelat: bounds[3],
+                  nelat: bounds[1],
                   swlng: bounds[2],
-                  swlat: bounds[1],
+                  swlat: bounds[3],
                 }
               : {},
           profile_slug: [
