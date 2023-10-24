@@ -15,20 +15,19 @@ function StatsIterator(p: { className?: string; children: React.ReactElement; la
     if (typeof child?.props?.children === 'string') {
       switch (child.props.children) {
         case '{Compare Stat Name}':
+        case 'Compare Stat Name':
           return React.cloneElement(child, {
             ...child.props,
             children: capitalizeFirstLetter(p.label.split('_').join(' ')),
           });
         case '{Compare Stat}':
+        case 'Compare Stat':
           return React.cloneElement(child, {
             ...child.props,
             children: p.value,
           });
       }
-    } else if (child.props.children)
-      return React.cloneElement(child, {
-        children: <StatsIterator {...p}>{child.props.children}</StatsIterator>,
-      });
+    } else if (child.props.children) return React.cloneElement(child, {}, <StatsIterator {...p}>{child.props.children}</StatsIterator>);
     return child;
   });
   return <>{Wrapper}</>;

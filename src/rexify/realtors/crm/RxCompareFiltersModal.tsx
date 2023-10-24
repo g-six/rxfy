@@ -250,6 +250,7 @@ export default function RxCompareFiltersModal(
     exclude?: string[];
   },
 ) {
+  console.log(p);
   const filterEvent = useEvent(Events.AddPropertyFilter);
   const [filter_keyword, setKeyword] = React.useState('');
   const [selected_filters, setFilters] = React.useState<{ [key: string]: string[] }>(
