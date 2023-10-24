@@ -209,7 +209,10 @@ export default function AiPrompt(p: Props) {
                 neighbourhoods,
               })
                 .then(data => {
-                  if (data?.agent_id) location.href = `${origin || ''}/ai-result/${data.agent_id}`;
+                  if (data?.agent_id)
+                    setTimeout(() => {
+                      location.href = `${origin || ''}/ai-result/${data.agent_id}`;
+                    }, 1000);
                 })
                 .catch(err => {
                   const { data } = err.response as unknown as {

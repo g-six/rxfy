@@ -70,6 +70,7 @@ export async function getSmart(
       const ai_results = JSON.parse(text.trim());
 
       if (ai_results.bio) {
+        const search_highlights: unknown[] = [];
         const { city: target_city, lat, lng } = property;
         const { NEXT_APP_MAPBOX_TOKEN } = process.env;
         const map_response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${NEXT_APP_MAPBOX_TOKEN}`);
@@ -131,6 +132,29 @@ export async function getSmart(
               });
               bounds = bbox;
             }
+            if (place_type.includes('address')) {
+              context.forEach(c => {
+                if (c.id.includes('place')) {
+                  search_highlights.push({
+                    ne: {
+                      lat: bounds[3],
+                      lng: bounds[2],
+                    },
+                    sw: {
+                      lat: bounds[1],
+                      lng: bounds[0],
+                    },
+                    lat: (bounds[3] + bounds[1]) / 2,
+                    lng: (bounds[2] + bounds[0]) / 2,
+                    title: c.text,
+                    name: c.text,
+                    city: c.text,
+                    zoom: 11,
+                  });
+                }
+              });
+              bounds = bbox;
+            }
           });
         }
 
@@ -143,7 +167,7 @@ export async function getSmart(
           personal_title: ai_results.tagline,
           personal_bio: ai_results.bio,
           description: ai_results.metatags,
-          search_highlights: agent.search_highlights || [],
+          search_highlights: agent.search_highlights || search_highlights || [],
           geocoding:
             bounds.length === 4
               ? {
