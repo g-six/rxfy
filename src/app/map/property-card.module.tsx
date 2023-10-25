@@ -123,7 +123,7 @@ function PropertyCardIterator({
         if (c.props?.children) {
           contents = contents.concat(
             <CoverPhotoContainerIterator key={listing.mls_id} {...props} listing={listing}>
-              {c.props.children}
+              <>{(c.props.children as ReactElement[]).filter(cc => cc.type !== 'img')}</>
             </CoverPhotoContainerIterator>,
           );
         }
