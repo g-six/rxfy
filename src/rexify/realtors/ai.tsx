@@ -150,7 +150,7 @@ export default function AiPrompt(p: Props) {
           disabled: !debounced,
           onClick: () => {
             if (debounced) {
-              toggleLoader(true);
+              fireLoader({ loader: 'ai' } as unknown as EventsData);
               getAgentByParagonId(debounced)
                 .then(data => {
                   if (data && data.id) {
@@ -192,7 +192,7 @@ export default function AiPrompt(p: Props) {
           className: `f-button-neutral ${styles.button} ${debounced || agent_id}`,
           disabled: !`${(data as { [key: string]: string }).agent_id}}`,
           onClick: () => {
-            fireLoader({ loader: 'ai' } as unknown as EventsData);
+            toggleLoader(true);
             const { agent_id, email, full_name, target_city, phone } = data as unknown as {
               agent_id: string;
               email: string;
