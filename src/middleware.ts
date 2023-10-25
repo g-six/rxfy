@@ -36,12 +36,24 @@ export async function middleware(request: NextRequest) {
           domain_name: hostname,
         });
 
+  if (!agent_data?.agent_id && searchParams.get('agent')) {
+    agent_data = await getAgentBy({
+      agent_id: searchParams.get('agent') as string,
+    });
+  }
+
+  if (!agent_data?.agent_id && segments.length === 2 && searchParams.get('theme')) {
+    agent_data = await getAgentBy({
+      agent_id: segments[0],
+    });
+  }
+
   if (agent_data?.agent_id) {
     response.headers.set('x-agent-id', agent_data.agent_id);
     response.headers.set('x-profile-slug', agent_data.metatags.profile_slug);
   }
 
-  if (searchParams.get('theme') || agent_data?.domain_name === hostname) {
+  if (searchParams.get('theme') || agent_data?.agent_id) {
     response.headers.set('x-viewer', 'customer');
     const theme = searchParams.get('theme') || agent_data.website_theme;
     switch (theme) {
@@ -56,12 +68,11 @@ export async function middleware(request: NextRequest) {
       default:
         page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}`;
     }
-    if (segments[0] === '') {
+    if (segments[0] === '' || segments[0] === agent_data.agent_id) {
       page_url = `${page_url}/index`;
     } else {
       page_url = `${page_url}/${segments.join('/')}`;
     }
-    console.log({ page_url });
     response.headers.set('x-search-params', searchParams.toString());
   } else if (segments.includes('ai-result')) {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/ai-result`;
