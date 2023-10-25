@@ -12,5 +12,9 @@ export function CenterLoader() {
 }
 
 export default function Loading({ size }: { size?: 'small' | 'tiny' }) {
-  return <div className={classNames(styles.loader, size ? styles[size] : '')} />;
+  return (
+    <div className={styles.wrapper}>
+      <div className={classNames(styles.loader, size ? styles[size] : '')} />
+    </div>
+  );
 }

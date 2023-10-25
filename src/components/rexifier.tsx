@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-sync-scripts */
 /* eslint-disable @next/next/no-img-element */
-import { Children, ReactElement } from 'react';
+import { Children, ReactElement, cloneElement } from 'react';
 import { Cheerio, CheerioAPI } from 'cheerio';
 import parse, { HTMLReactParserOptions, Element, attributesToProps, DOMNode, domToReact, htmlToDOM } from 'html-react-parser';
 
@@ -52,6 +52,7 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { updateAgentMetatags } from '@/app/api/agents/model';
 import { BrokerageInformationForm } from '@/rexify/realtors/brokerage-information';
 import { cookies, headers } from 'next/headers';
+import CustomLoader from './Loaders/CustomLoader';
 
 async function replaceTargetCityComponents($: CheerioAPI, agent: AgentData) {
   if (agent.metatags.target_city && !agent.metatags.geocoding) {
@@ -567,6 +568,14 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
                 <>{domToReact(node.children)}</>
               </AiPrompt>
             );
+        }
+
+        if (props['data-component'] === 'loader') {
+          return (
+            <CustomLoader {...props} data-loader='ai'>
+              {domToReact(node.children) as ReactElement}
+            </CustomLoader>
+          );
         }
 
         if (props.className && props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_NOTES_WRAPPER)) {

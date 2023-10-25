@@ -25,6 +25,7 @@ type Props = {
 
 export default function AiPrompt(p: Props) {
   const { data, fireEvent } = useEvent(Events.LoadUserSession);
+  const { fireEvent: fireLoader } = useEvent(Events.Loading);
   const params = useSearchParams();
   const router = useRouter();
   const [agent_id, setAgentId] = React.useState('');
@@ -191,6 +192,7 @@ export default function AiPrompt(p: Props) {
           className: `f-button-neutral ${styles.button} ${debounced || agent_id}`,
           disabled: !`${(data as { [key: string]: string }).agent_id}}`,
           onClick: () => {
+            fireLoader({ loader: 'ai' } as unknown as EventsData);
             const { agent_id, email, full_name, target_city, phone } = data as unknown as {
               agent_id: string;
               email: string;
