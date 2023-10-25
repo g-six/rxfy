@@ -6,6 +6,9 @@ import RxTrackingCodes from './tracking-codes.rexifier';
 import RxThemes from './themes-explorer.rexifier';
 import DomainHowButton from './DomainHowButton.module';
 import DomainHowModal from './DomainHowModal.module';
+import { Events } from '@/hooks/useFormEvent';
+import SaveWebsiteUrlButton from './website-url-save-button.module';
+import WebsiteURLInput from './website-url-input.module';
 
 export function Rexify({ children, ...props }: { children: ReactElement; realtor: AgentData }) {
   const Rexified = Children.map(children, c => {
@@ -15,6 +18,8 @@ export function Rexify({ children, ...props }: { children: ReactElement; realtor
         return <MyWebSiteSelectedTheme {...props}>{c}</MyWebSiteSelectedTheme>;
       }
       if (className?.includes('tab-pane')) {
+        if (wrapper['data-w-tab'] === 'Tab 2') {
+        }
         if (wrapper['data-w-tab'] === 'Tab 2') {
           return <RxSearchEngineOptimizationTab realtor={props.realtor}>{c}</RxSearchEngineOptimizationTab>;
         }
@@ -32,6 +37,19 @@ export function Rexify({ children, ...props }: { children: ReactElement; realtor
         return <DomainHowModal className={className}>{sub}</DomainHowModal>;
       }
       return cloneElement(c, {}, <Rexify {...props}>{sub}</Rexify>);
+    }
+
+    if (c.props?.['data-input'] === 'domain_name') {
+      return <WebsiteURLInput {...c.props} />;
+    }
+
+    if (c.props?.['data-action'] === 'save') {
+      const { children: sub, className, ...wrapper } = c.props;
+      return (
+        <SaveWebsiteUrlButton {...wrapper} className={className}>
+          {sub}
+        </SaveWebsiteUrlButton>
+      );
     }
     return c;
   });
