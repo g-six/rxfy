@@ -150,6 +150,7 @@ export default function AiPrompt(p: Props) {
           disabled: !debounced,
           onClick: () => {
             if (debounced) {
+              toggleLoader(true);
               fireLoader({ loader: 'ai' } as unknown as EventsData);
               getAgentByParagonId(debounced)
                 .then(data => {
@@ -163,7 +164,10 @@ export default function AiPrompt(p: Props) {
                     } as unknown as EventsData);
                   }
                 })
-                .finally(() => toggleLoader(false));
+                .finally(() => {
+                  toggleLoader(false);
+                  fireLoader({});
+                });
             }
           },
           children: React.Children.map(child.props.children, (gchild: React.ReactElement, idx: number) => {
@@ -193,6 +197,7 @@ export default function AiPrompt(p: Props) {
           disabled: !`${(data as { [key: string]: string }).agent_id}}`,
           onClick: () => {
             toggleLoader(true);
+            fireLoader({ loader: 'ai' } as unknown as EventsData);
             const { agent_id, email, full_name, target_city, phone } = data as unknown as {
               agent_id: string;
               email: string;
