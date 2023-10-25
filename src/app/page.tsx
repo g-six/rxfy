@@ -18,6 +18,7 @@ import NotFound from './not-found';
 import { buildCacheFiles, getPropertiesFromAgentInventory } from './api/properties/model';
 import { getPrivateListing } from './api/private-listings/model';
 import { getUserSessionData } from './api/check-session/model';
+import { PageComponent } from './[slug]/[profile-slug]/page';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -68,6 +69,13 @@ export default async function Home({ params, searchParams }: { params: Record<st
   let profile_slug = params['profile-slug'] as string;
   let session_key = cookies().get('session_key')?.value || '';
   let session_as = cookies().get('session_as')?.value || 'customer';
+
+  if (!possible_agent && !profile_slug && headers().get('x-url') && `${headers().get('x-url')}`.split('/').pop() === 'index.html') {
+    if (headers().get('x-agent-id') && headers().get('x-profile-slug')) {
+      return <PageComponent agent_id={headers().get('x-agent-id') as string} />;
+    }
+  }
+  // return AgentHomePage
 
   if (possible_agent && profile_slug) {
     // Check if the slug matches a realtor

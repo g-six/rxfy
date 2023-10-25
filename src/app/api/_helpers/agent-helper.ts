@@ -142,13 +142,16 @@ export function getAgentBaseUrl(agent: AgentData) {
   return '';
 }
 export async function getAgentBy(attributes: { [key: string]: string }) {
-  const { agent_id, profile_slug } = attributes;
-  console.log('_helpers/agent-helper.getAgentBy', agent_id);
+  const { agent_id, domain_name, profile_slug } = attributes;
+  console.log('_helpers/agent-helper.getAgentBy', attributes);
   let filters: {
     agent_id?: {
       eqi: string;
     };
     profile_slug?: {
+      eqi: string;
+    };
+    domain_name?: {
       eqi: string;
     };
   } = {};
@@ -162,6 +165,12 @@ export async function getAgentBy(attributes: { [key: string]: string }) {
     filters = {
       agent_id: {
         eqi: agent_id,
+      },
+    };
+  } else if (domain_name) {
+    filters = {
+      domain_name: {
+        eqi: domain_name,
       },
     };
   } else {

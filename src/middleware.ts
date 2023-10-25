@@ -28,12 +28,19 @@ export async function middleware(request: NextRequest) {
   let page_url = `https://sites.leagent.com/`;
   response.headers.set('x-viewer', 'realtor');
   response.headers.set('x-canonical', `${origin}${pathname || ''}`);
+
   let agent_data =
     hostname === 'leagent.com'
       ? {}
       : await getAgentBy({
           domain_name: hostname,
         });
+
+  if (agent_data?.agent_id) {
+    response.headers.set('x-agent-id', agent_data.agent_id);
+    response.headers.set('x-profile-slug', agent_data.metatags.profile_slug);
+  }
+
   if (searchParams.get('theme') || agent_data?.domain_name === hostname) {
     response.headers.set('x-viewer', 'customer');
     const theme = searchParams.get('theme') || agent_data.website_theme;
