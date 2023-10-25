@@ -143,7 +143,7 @@ export function getAgentBaseUrl(agent: AgentData) {
 }
 export async function getAgentBy(attributes: { [key: string]: string }) {
   const { agent_id, profile_slug } = attributes;
-
+  console.log('_helpers/agent-helper.getAgentBy', agent_id);
   let filters: {
     agent_id?: {
       eqi: string;

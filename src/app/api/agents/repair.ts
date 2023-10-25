@@ -170,7 +170,7 @@ export async function getSmart(
           description: ai_results.metatags,
           search_highlights: agent.search_highlights || search_highlights || [],
           geocoding:
-            bounds.length === 4
+            bounds && bounds.length === 4
               ? {
                   ...geocoding,
                   swlng: bounds[0],
@@ -188,7 +188,6 @@ export async function getSmart(
         };
 
         console.log('[BEGIN] mutation_create_meta');
-        console.log(JSON.stringify({ metatag }, null, 4));
         const created_metatag = await axios.post(
           `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
           {
