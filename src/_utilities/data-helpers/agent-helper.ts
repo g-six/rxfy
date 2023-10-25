@@ -58,12 +58,25 @@ export function getAgentPhoto(agent: AgentData) {
 }
 export function getAgentHomePageUrl(agent: AgentData) {
   const { domain_name } = agent;
-  return domain_name ? `https://${domain_name}` : `https://leagent.com/${agent.agent_id}/${agent.metatags.profile_slug}`;
+  return domain_name ? `https://${domain_name}` : `/${agent.agent_id}/${agent.metatags.profile_slug}`;
 }
 export function getAgentMapDefaultUrl(agent: AgentData) {
   let url = getAgentHomePageUrl(agent) + '/map';
   if (agent.metatags.geocoding) {
-    url = `${url}?${objectToQueryString(agent.metatags.geocoding as { [key: string]: string })}`;
+    const { nelat, nelng, swlat, swlng } = agent.metatags.geocoding as unknown as {
+      [k: string]: number;
+    };
+    if (nelat && swlat && nelng && swlng) {
+      const lat = `${(nelat + swlat) / 2}`;
+      const lng = `${(nelng + swlng) / 2}`;
+      url = `${url}?${objectToQueryString({
+        ...agent.metatags.geocoding,
+        lat,
+        lng,
+      } as { [key: string]: string })}`;
+    } else {
+      url = `${url}?nelat=49.34023817805203&nelng=-122.79116520440928&swlat=49.111312957626524&swlng=-123.30807516134138&lat=49.22590814575915&lng=-123.0496201828758&city=Vancouver&zoom=11`;
+    }
   }
   return url;
 }

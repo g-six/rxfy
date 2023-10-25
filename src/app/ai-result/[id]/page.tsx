@@ -125,7 +125,7 @@ export default async function AiResultPage({ params }: { params: { id: string } 
 
       const compare_item = $('[data-component="compare_column"]');
       let cards = '';
-      let { geocoding } = agent_data.metatags;
+      let { geocoding, lat, lng } = agent_data.metatags;
       if (!geocoding) {
         const geolocation = await getGeocode(agent_data.metatags.target_city);
         if (geolocation?.place_id) {
@@ -276,8 +276,13 @@ export default async function AiResultPage({ params }: { params: { id: string } 
       }
 
       $('.tabs-content [data-w-tab="Listings Map"]').attr('style', 'width: 100%; height: 100%; pointer-events: none;');
+
       $('.tabs-content [data-w-tab="Listings Map"]').wrapInner(
-        `<iframe src="https://leagent.com/${params.id}/${profile_slug}/map?${objectToQueryString(geocoding)}" class="w-full h-full" />`,
+        `<iframe src="/${params.id}/${profile_slug}/map?${objectToQueryString({
+          ...geocoding,
+          lat,
+          lng,
+        })}" class="w-full h-full" />`,
       );
 
       $('.tabs-content [data-w-tab="PDF Brochure"] > *').replaceWith(

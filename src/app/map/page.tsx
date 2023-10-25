@@ -18,6 +18,7 @@ import { PropertyDataModel } from '@/_typings/property';
 import { LOGO_FIELDS } from '@/_constants/agent-fields';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { AgentData } from '@/_typings/agent';
+import NotFound from '../not-found';
 
 interface SearchOpts {
   nelat: number;
@@ -42,7 +43,7 @@ export default async function MapPage({ params, searchParams }: { params: { [key
   const { slug: agent_id, 'profile-slug': slug } = params;
   const url = headers().get('x-url');
   let agent;
-  if (!url || !agent_id) return <>404</>;
+  if (!url || !agent_id) return <NotFound />;
 
   if (!searchParams.lat || !searchParams.lng) {
     // Redirect

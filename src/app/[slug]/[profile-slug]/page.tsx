@@ -21,6 +21,7 @@ import RxNotifications from '@/components/RxNotifications';
 import { PropertyCard } from './property-card.component';
 import { Metadata } from 'next';
 import { LOGO_FIELDS, SOCIAL_MEDIA_FIELDS } from '@/_constants/agent-fields';
+import { getAgentMapDefaultUrl } from '@/_utilities/data-helpers/agent-helper';
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const agent = await findAgentRecordByAgentId(params.slug);
@@ -377,12 +378,7 @@ export default async function AgentHomePage({ params, searchParams }: { params: 
       const attribs = Object.keys(el.attribs).map(attr => {
         let val = el.attribs[attr];
         if (attr === 'href') {
-          if (agent.metatags?.geocoding) {
-            val = `/map?${objectToQueryString(agent.metatags.geocoding)}`;
-          } else {
-            val =
-              '/map?nelat=49.34023817805203&nelng=-122.79116520440928&swlat=49.111312957626524&swlng=-123.30807516134138&lat=49.22590814575915&lng=-123.0496201828758&city=Vancouver&zoom=11';
-          }
+          return `${attr}=${getAgentMapDefaultUrl(agent)}`;
         }
         return `${attr}="${val}"`;
       });
