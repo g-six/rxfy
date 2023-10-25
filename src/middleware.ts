@@ -68,7 +68,7 @@ export async function middleware(request: NextRequest) {
       default:
         page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}`;
     }
-    if (segments[0] === '' || segments[0] === agent_data.agent_id) {
+    if (segments[0] === '' || segments[0] === agent_data?.agent_id) {
       page_url = `${page_url}/index`;
     } else {
       page_url = `${page_url}/${segments.join('/')}`;

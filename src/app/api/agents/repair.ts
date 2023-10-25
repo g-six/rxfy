@@ -11,11 +11,15 @@ export async function getSmart(
   property: { [key: string]: string | number },
   real_estate_board?: { id: number; name: string; abbreviation: string },
 ) {
-  let prompt = `My name's ${agent.full_name} and I'm a licenced realtor catering to the city of ${property.city}`;
+  let prompt = `My name's ${agent.full_name} and I'm a licenced realtor catering to the city of ${property.city}${
+    property.city && property.state_province ? ', ' : ''
+  }${property.state_province || ''}`;
 
   if (real_estate_board) {
     prompt = `Retrieve the public information of a realtor named ${agent.full_name}, a licenced realtor for ${`${
-      real_estate_board?.name ? `(${real_estate_board.name})` : property.city
+      real_estate_board?.name
+        ? `(${real_estate_board.name})`
+        : `${property.city}${property.city && property.state_province ? ', ' : ''}${property.state_province || ''}`
     } `} with Paragon ID "${agent.agent_id}" from the internet and only use the most recently published source or article anytime from November ${
       new Date().getFullYear() - 1
     } to today. Based on that factual information`;
@@ -105,7 +109,9 @@ export async function getSmart(
                 }
               });
 
-              bounds = bbox;
+              if (bbox && bbox.length >= 0) {
+                bounds = bbox;
+              }
             }
             if (place_type.includes('neighborhood')) {
               context.forEach(c => {
@@ -130,7 +136,9 @@ export async function getSmart(
                   };
                 }
               });
-              bounds = bbox;
+              if (bbox && bbox.length >= 0) {
+                bounds = bbox;
+              }
             }
             if (place_type.includes('address')) {
               // context.forEach(c => {
