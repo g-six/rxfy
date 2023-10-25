@@ -34,15 +34,10 @@ export async function middleware(request: NextRequest) {
       : await getAgentBy({
           domain_name: hostname,
         });
-  if (agent_data?.domain_name === hostname) {
-    page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}`;
+  if (searchParams.get('theme') || agent_data?.domain_name === hostname) {
     response.headers.set('x-viewer', 'customer');
-  } else if (segments.includes('ai-result')) {
-    page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/ai-result`;
-    // } else if (searchParams.get('paragon') && !segments.includes('ai-result')) {
-  } else if (searchParams.get('theme')) {
-    response.headers.set('x-viewer', 'customer');
-    switch (searchParams.get('theme')) {
+    const theme = searchParams.get('theme') || agent_data.website_theme;
+    switch (theme) {
       case 'oslo':
       case 'lisbon':
       case 'malta':
@@ -55,6 +50,9 @@ export async function middleware(request: NextRequest) {
         page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}`;
     }
     response.headers.set('x-search-params', searchParams.toString());
+  } else if (segments.includes('ai-result')) {
+    page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/ai-result`;
+    // } else if (searchParams.get('paragon') && !segments.includes('ai-result')) {
   } else if (segments[0] === 'property') {
     response.headers.set('x-viewer', 'customer');
     page_url = `${page_url}/property/propertyid`;
