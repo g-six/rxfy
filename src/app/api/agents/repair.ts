@@ -28,7 +28,7 @@ export async function getSmart(
   prompt = `${prompt}, write me a realtor bio (JSON key "bio") from a first-person point of view for prospect clients 
   belonging to the demographic looking for listings in the same city or area, 
   a set of SEO metatags (JSON key "metatags") fit for my professional website, website title (JSON key "title") and a well structured, 
-  3-worded, SEO friendly tagline  (JSON key "tagline").  Contain the results in JSON key-value pair format.
+  3-worded, and SEO friendly tagline (JSON key "tagline"). Contain the results in JSON key-value pair format.
   `;
   console.log('---');
   console.log('Processing:');
@@ -74,14 +74,15 @@ export async function getSmart(
       const ai_results = JSON.parse(text.trim());
 
       if (ai_results.bio) {
-        const search_highlights: unknown[] = [];
+        let search_highlights: unknown[] = [];
         const { city: target_city, lat, lng } = property;
         const { NEXT_APP_MAPBOX_TOKEN } = process.env;
+        let geocoding: { [k: string]: any } = {};
+
         const map_response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${NEXT_APP_MAPBOX_TOKEN}`);
         const data = await map_response.json();
         const { features } = data;
         let bounds: number[] = [];
-        let geocoding: { [k: string]: any } = {};
         if (features) {
           features.forEach((feature: { context: { text: string; id: string }[]; bbox: number[]; place_type: string[] }) => {
             const { bbox, place_type, context } = feature;
@@ -113,7 +114,7 @@ export async function getSmart(
                 bounds = bbox;
               }
             }
-            if (place_type.includes('neighborhood')) {
+            if (place_type.includes('neighborhood') && bbox) {
               context.forEach(c => {
                 if (c.id.includes('postcode')) {
                   geocoding = {
@@ -136,35 +137,42 @@ export async function getSmart(
                   };
                 }
               });
-              if (bbox && bbox.length >= 0) {
-                bounds = bbox;
-              }
             }
             if (place_type.includes('address')) {
-              // context.forEach(c => {
-              //   if (c.id.includes('place')) {
-              //     search_highlights.push({
-              //       labels: {
-              //         ne: {
-              //           lat: bounds[3],
-              //           lng: bounds[2],
-              //         },
-              //         sw: {
-              //           lat: bounds[1],
-              //           lng: bounds[0],
-              //         },
-              //         lat: (bounds[3] + bounds[1]) / 2,
-              //         lng: (bounds[2] + bounds[0]) / 2,
-              //         title: c.text,
-              //         name: c.text,
-              //         city: c.text,
-              //         zoom: 11,
-              //       },
-              //     });
-              //   }
-              // });
+              context
+                .filter(c => c.id.includes('address.'))
+                .forEach(c => {
+                  search_highlights.push({
+                    labels: {
+                      title: c.text,
+                      name: c.text,
+                      city: c.text,
+                      zoom: 11,
+                    },
+                  });
+                });
             }
           });
+        }
+        if (bounds && bounds.length === 4) {
+          geocoding = {
+            ...geocoding,
+            swlng: bounds[0],
+            swlat: bounds[1],
+            nelng: bounds[2],
+            nelat: bounds[3],
+          };
+          search_highlights = search_highlights.map(h => ({
+            ...(h as any),
+            ne: {
+              lng: bounds[2],
+              lat: bounds[3],
+            },
+            sw: {
+              lng: bounds[0],
+              lat: bounds[1],
+            },
+          }));
         }
 
         const metatag = {
@@ -177,16 +185,7 @@ export async function getSmart(
           personal_bio: ai_results.bio,
           description: ai_results.metatags,
           search_highlights: agent.search_highlights || search_highlights || [],
-          geocoding:
-            bounds && bounds.length === 4
-              ? {
-                  ...geocoding,
-                  swlng: bounds[0],
-                  swlat: bounds[1],
-                  nelng: bounds[2],
-                  nelat: bounds[3],
-                }
-              : {},
+          geocoding,
           profile_slug: [
             `${real_estate_board?.abbreviation || 'la'}`,
             slugifyAddress(agent.full_name).split('-')[0],
@@ -195,7 +194,15 @@ export async function getSmart(
           ].join('-'),
         };
 
+        console.log('');
+        console.log('');
+        console.log('');
+        console.log('');
         console.log('[BEGIN] mutation_create_meta');
+        console.log('metatag:', JSON.stringify(metatag, 4, null));
+        console.log('');
+        console.log('');
+        console.log('');
         const created_metatag = await axios.post(
           `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
           {
