@@ -39,9 +39,9 @@ export default async function Page(props: { params: { [k: string]: string }; sea
     $('body [class^="navigation-full-wrapper"]').remove();
 
     // Add hidden class to data-field="empty_state" components
-    $('[data-field="empty_state"]').addClass('opacity-0 initially-hidden');
-    $('[data-component]').addClass('opacity-0 initially-hidden');
-    $('.w-tab-content [data-w-tab] > *').addClass('hidden initially-hidden');
+    // $('[data-field="empty_state"]').addClass('opacity-0 initially-hidden');
+    // $('[data-component]').addClass('opacity-0 initially-hidden');
+    // $('.w-tab-content [data-w-tab] > *').addClass('hidden initially-hidden');
     const body = $('body .dash-wrapper');
 
     const wrapped = domToReact(body as unknown as DOMNode[]) as unknown as ReactElement;
