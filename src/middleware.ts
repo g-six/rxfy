@@ -16,7 +16,6 @@ export async function middleware(request: NextRequest) {
   // we want to be able to read Property ID (MLS_ID, etc)
   // to place meta tags in HEAD dynamically based on Property Data
   const { origin, hostname, pathname, searchParams } = new URL(request.url);
-
   if (pathname.includes('/api')) return response;
   if (pathname.includes('/css')) return response;
   if (pathname.includes('next')) return response;
@@ -35,7 +34,10 @@ export async function middleware(request: NextRequest) {
       : await getAgentBy({
           domain_name: hostname,
         });
-  if (segments.includes('ai-result')) {
+  if (agent_data?.domain_name === hostname) {
+    page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}`;
+    response.headers.set('x-viewer', 'customer');
+  } else if (segments.includes('ai-result')) {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/ai-result`;
     // } else if (searchParams.get('paragon') && !segments.includes('ai-result')) {
   } else if (searchParams.get('theme')) {
