@@ -40,6 +40,7 @@ export default function RxMapView({
   const [lat_lng, setLngLat] = React.useState<mapboxgl.LngLatLike>([lng || -123.1207, lat || 49.2827]);
   const [pins, setPins] = React.useState<Feature[]>();
   const [items, setItems] = React.useState<Feature[] | undefined>(undefined);
+  const [height, setHeight] = React.useState<string>('');
 
   const clickEventListener = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
     const features = e.target.queryRenderedFeatures(e.point, {
@@ -89,10 +90,10 @@ export default function RxMapView({
       center: lat_lng,
       zoom: 10,
     });
-    // m.on('idle', () => {
-    //   m.resize();
-    //   // generateMapPoints();
-    // });
+    m.on('idle', () => {
+      m.resize();
+      // generateMapPoints();
+    });
     setMap(m);
   };
 
@@ -210,17 +211,29 @@ export default function RxMapView({
   }, [lovers.data]);
 
   React.useEffect(() => {
-    attachMap(setMap, mapDiv);
+    if (mapDiv.current) {
+      const { current } = mapDiv;
+      const boundingRect = current.getBoundingClientRect();
+      if (boundingRect.height === 0) {
+        setHeight('1000px');
+        attachMap(setMap, mapDiv);
+      }
+      console.log(boundingRect.width, boundingRect.height);
+    }
+  }, [mapDiv]);
+
+  React.useEffect(() => {
+    // attachMap(setMap, mapDiv);
   }, []);
 
   return (
-    <section className='w-full h-full relative '>
+    <section className='w-full h-full relative'>
       <div
         ref={mapDiv}
         key='map'
         {...props}
         className={classNames(props.className || 'no-map-container-class', styles['map-container'])}
-        style={{ height: '100%', width: '100%', backgroundImage: 'none' }}
+        style={{ backgroundImage: 'none', height }}
       />
       <Transition
         show={!!items}
