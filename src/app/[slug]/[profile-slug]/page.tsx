@@ -12,7 +12,6 @@ import { LegacySearchPayload } from '@/_typings/pipeline';
 import { NextRequest } from 'next/server';
 import { must_not } from '@/_utilities/api-calls/call-legacy-search';
 import { PropertyDataModel } from '@/_typings/property';
-import styles from './profile-page.module.scss';
 import NavIterator from '@/components/Nav/RxNavIterator';
 import FooterIterator from '@/components/RxFooter';
 import { objectToQueryString } from '@/_utilities/url-helper';
@@ -283,7 +282,6 @@ export default async function AgentHomePage({ params, searchParams }: { params: 
     const promises = await Promise.all([axios.get(webflow_site)]);
     const { data: html } = promises[0];
     const $: CheerioAPI = load(html);
-
     let filter = [] as unknown[];
     let should = [
       {

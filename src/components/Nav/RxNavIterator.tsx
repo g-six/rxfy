@@ -61,6 +61,7 @@ export default function NavIterator({ children, ...props }: { children: React.Re
       if (!cookies().has('session_key') && c.props.className?.includes(WEBFLOW_NODE_SELECTOR.USER_MENU)) return <></>;
       const { href, children: contents, ...link_props } = c.props;
       link_props['rx-component'] = 'Nav.RxNavIterator';
+      if (href.indexOf('tel:') === 0) return c;
       if (href !== '/log-out' && link_props['data-usertype']) {
         return (
           <a {...link_props} data-original-href={href} href={`/${props.agent?.agent_id}/${props.agent?.metatags.profile_slug}${href}`}>
