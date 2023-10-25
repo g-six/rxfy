@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
   response.headers.set('x-canonical', `${origin}${pathname || ''}`);
 
   let agent_data =
-    hostname === 'leagent.com'
+    hostname === 'leagent.com' || (segments && segments[0] === 'log-in')
       ? {}
       : await getAgentBy({
           domain_name: hostname,
