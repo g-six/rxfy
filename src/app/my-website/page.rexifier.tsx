@@ -40,7 +40,7 @@ export function Rexify({ children, ...props }: { children: ReactElement; realtor
     }
 
     if (c.props?.['data-input'] === 'domain_name') {
-      return <WebsiteURLInput {...c.props} />;
+      return <WebsiteURLInput {...c.props} value={props.realtor.domain_name} />;
     }
 
     if (c.props?.['data-action'] === 'save') {

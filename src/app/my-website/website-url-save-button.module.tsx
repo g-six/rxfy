@@ -11,7 +11,6 @@ export default function SaveWebsiteUrlButton({ children, ...props }: { children:
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [is_loading, toggleLoading] = useState(false);
 
-  console.log(data);
   return (
     <button
       {...props}
