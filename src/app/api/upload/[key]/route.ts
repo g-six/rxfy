@@ -1,5 +1,5 @@
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getResponse } from '@/app/api/response-helper';
 import { deleteObject } from '../../_helpers/s3-helper';
 
@@ -38,4 +38,26 @@ export async function DELETE(request: NextRequest) {
     },
     400,
   );
+}
+
+export async function GET(request: NextRequest, { params }: { params: { key: string } }) {
+  const headers = {
+    Authorization: `API_TOKEN ${process.env.NEXT_APP_CLOUDCAPTURE_API_KEY}`,
+  };
+  const url = `https://cloudcapture.cc/api/img?size=${params.key}&url=${request.nextUrl.searchParams.get('url')}`;
+  const image = await fetch(url, {
+    headers,
+    body: undefined,
+    method: 'GET',
+  });
+
+  if (image.status === 200) {
+    const res = await image.blob();
+    return new Response(res, {
+      headers: image.headers,
+    });
+  }
+  return getResponse({
+    type: image.headers.get('Content-Type'),
+  });
 }
