@@ -92,6 +92,7 @@ export default function RxMapView({
     });
     m.on('idle', () => {
       m.resize();
+      m.panTo(lat_lng);
       // generateMapPoints();
     });
     setMap(m);
@@ -215,7 +216,7 @@ export default function RxMapView({
       const { current } = mapDiv;
       const boundingRect = current.getBoundingClientRect();
       if (boundingRect.height === 0) {
-        setHeight('1000px');
+        setHeight('100%');
         attachMap(setMap, mapDiv);
       }
       console.log(boundingRect.width, boundingRect.height);
