@@ -39,15 +39,18 @@ interface SearchOpts {
   };
 }
 
-export default async function MapPage({ params, searchParams }: { params: { [key: string]: string }; searchParams: { [key: string]: string } }) {
-  const { slug: agent_id, 'profile-slug': slug } = params;
+export async function MapPage({ params, searchParams }: { params: { [key: string]: string }; searchParams: { [key: string]: string } }) {
+  const { 'profile-slug': slug } = params;
   const url = headers().get('x-url');
+
   let agent;
+  const agent_id = params.slug || headers().get('x-agent-id') || '';
   if (!url || !agent_id) return <NotFound />;
 
   if (!searchParams.lat || !searchParams.lng) {
     // Redirect
     agent = await findAgentRecordByAgentId(agent_id);
+
     const [default_location] = agent.metatags.search_highlights?.labels || ([] as SearchHighlightInput[]);
     if (default_location?.lat && default_location?.lng) {
       const { lat, lng, title } = default_location;
@@ -111,7 +114,7 @@ export default async function MapPage({ params, searchParams }: { params: { [key
         } as unknown as NextRequest,
         { internal: true },
       ),
-    ].concat(slug && agent_id ? [findAgentRecordByAgentId(agent_id)] : []),
+    ].concat(agent_id ? [findAgentRecordByAgentId(agent_id)] : []),
   );
 
   if (url) {
@@ -292,3 +295,5 @@ function generatePipelineParams(opts: SearchOpts, size = 100) {
 
   return legacy_params;
 }
+
+export default MapPage;

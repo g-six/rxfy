@@ -75,7 +75,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
       return <PageComponent agent_id={headers().get('x-agent-id') as string} />;
     }
   }
-  // return AgentHomePage
 
   if (possible_agent && profile_slug) {
     // Check if the slug matches a realtor

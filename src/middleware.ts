@@ -51,11 +51,17 @@ export async function middleware(request: NextRequest) {
       case 'malaga':
       case 'alicante':
       case 'hamburg':
-        page_url = `${page_url}${searchParams.get('theme')}-leagent.webflow.io/index`;
+        page_url = `${page_url}${searchParams.get('theme')}-leagent.webflow.io`;
         break;
       default:
         page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}`;
     }
+    if (segments[0] === '') {
+      page_url = `${page_url}/index`;
+    } else {
+      page_url = `${page_url}/${segments.join('/')}`;
+    }
+    console.log({ page_url });
     response.headers.set('x-search-params', searchParams.toString());
   } else if (segments.includes('ai-result')) {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/ai-result`;
