@@ -87,7 +87,7 @@ function RxComponentChomper({ config, children }: any): any {
                 : {},
               RxComponentChomper({
                 config,
-                children: RxElement.props.children,
+                children: (RxElement.props.children as ReactElement[]).filter(r => r.type !== 'img'),
               }) as any,
             );
         }

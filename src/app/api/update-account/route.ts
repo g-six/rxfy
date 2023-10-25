@@ -5,6 +5,7 @@ import axios, { AxiosError } from 'axios';
 import { getResponse } from '@/app/api/response-helper';
 import { GQ_FRAG_AGENT } from '../agents/graphql';
 import { updateAgent, updateAgentMetatags } from '../agents/model';
+import { createRealtorVercelDomain } from '../_helpers/agent-helper';
 
 const gql = `query GetUserId ($id: ID!) {
   user: customer(id: $id) {
@@ -178,6 +179,14 @@ export async function PUT(request: Request) {
         ...updates,
         encrypted_password: encrypt(password),
       };
+    }
+
+    if (agent_updates.domain_name) {
+      try {
+        await createRealtorVercelDomain(agent_updates.domain_name, guid);
+      } catch (e) {
+        console.log('Unable to create vercel domain', agent_updates.domain_name);
+      }
     }
 
     const last_activity_at = new Date().toISOString();

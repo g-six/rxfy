@@ -39,7 +39,7 @@ interface SearchOpts {
   };
 }
 
-export async function MapPage({ params, searchParams }: { params: { [key: string]: string }; searchParams: { [key: string]: string } }) {
+export default async function MapPage({ params, searchParams }: { params: { [key: string]: string }; searchParams: { [key: string]: string } }) {
   const { 'profile-slug': slug } = params;
   const url = headers().get('x-url');
 
@@ -295,5 +295,3 @@ function generatePipelineParams(opts: SearchOpts, size = 100) {
 
   return legacy_params;
 }
-
-export default MapPage;

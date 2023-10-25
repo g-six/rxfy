@@ -2,6 +2,7 @@ import { removeEmpty } from '@/_helpers/functions';
 import { AgentData } from '@/_typings/agent';
 import { objectToQueryString } from '@/_utilities/url-helper';
 import { gql_by_agent_uniq } from '../agents/graphql';
+import axios from 'axios';
 
 export function getFullAgentRecord(recordset: {
   agent_metatag: { data?: { id: number; attributes: { [key: string]: unknown } } };
@@ -211,3 +212,60 @@ export async function getAgentBy(attributes: { [key: string]: string }) {
       }
     : null;
 }
+
+/**
+ * Creates a domain (under the rexify project) using Vercel's API
+ * @param domain_name string
+ * @param agent_record_id number agents.id
+ */
+export async function createRealtorVercelDomain(domain_name: string, id: number) {
+  console.log(`Creating vercel domain ${domain_name}`);
+  try {
+    const vercel_headers = {
+      Authorization: `Bearer ${process.env.NEXT_APP_VERCEL_TOKEN as string}`,
+      'Content-Type': 'application/json',
+    };
+
+    const vercel_domains_api_url = `https://api.vercel.com/v9/projects/rexify/domains?teamId=${process.env.NEXT_APP_VERCEL_TEAM_ID}`;
+
+    const vercel_response = await axios.post(vercel_domains_api_url, { name: domain_name }, { headers: vercel_headers });
+
+    if (vercel_response.data?.name) {
+      const updated_domain = await axios.post(
+        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+        {
+          query: gql_update_agent_domain,
+          variables: {
+            id,
+            data: {
+              domain_name: vercel_response.data?.name,
+            },
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      if (updated_domain.data?.data?.updateAgent?.data?.attributes?.domain_name) {
+        console.log('Updated domain name to', updated_domain.data.data.updateAgent.data.attributes.domain_name);
+      }
+    }
+  } catch (e) {
+    console.log('Unable to successfully create vercel domain.');
+  }
+}
+
+const gql_update_agent_domain = `mutation UpdateAgent ($id: ID!, $data: AgentInput!) {
+  updateAgent(id: $id, data: $data) {
+    data {
+      id
+      attributes {
+        domain_name
+        webflow_domain
+      }
+    }
+  }
+}`;

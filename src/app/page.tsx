@@ -18,7 +18,7 @@ import NotFound from './not-found';
 import { buildCacheFiles, getPropertiesFromAgentInventory } from './api/properties/model';
 import { getPrivateListing } from './api/private-listings/model';
 import { getUserSessionData } from './api/check-session/model';
-import { PageComponent } from './[slug]/[profile-slug]/page';
+import PageComponent from './[slug]/[profile-slug]/page.module';
 
 const inter = Inter({ subsets: ['latin'] });
 
