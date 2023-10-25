@@ -9,6 +9,7 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { Rexify } from './page.rexifier';
 import NotFound from '../not-found';
 import RxNotifications from '@/components/RxNotifications';
+import { redirect } from 'next/navigation';
 
 /**
  * This is the Realtor's my-profile page
@@ -21,13 +22,15 @@ export default async function MyProfile() {
     const [page_results, realtor_results] = await Promise.all([fetch(page_url), getUserSessionData(session_key, 'realtor')]);
 
     const html = await page_results.text();
-
     if (html && realtor_results) {
+      // Realtor
+      const realtor = realtor_results as AgentData & { phone_number: string; error?: string };
+      if (realtor.error) {
+        redirect('/log-in');
+        return <></>;
+      }
       // Load html into Cheerio class
       const $: CheerioAPI = load(html);
-
-      // and realtor
-      const realtor = realtor_results as AgentData & { phone_number: string };
 
       // If no longer on trial
       if (realtor.subscription?.status !== 'trialing') {
