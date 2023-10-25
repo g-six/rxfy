@@ -105,7 +105,7 @@ export default function ClientDashboardIterator(
       } else {
         if (classes.includes('initially-hidden') && child.props['data-field'] === 'empty_state') {
           className = classes
-            .filter(name => name !== 'opacity-0')
+            .filter(name => name !== 'opacity-0' && name !== 'hidden')
             .concat(styles.shown)
             .join(' ');
         }
@@ -182,7 +182,7 @@ export default function ClientDashboardIterator(
           );
         } else if (className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_MAP)) {
           return (
-            <RxMapView {...child.props} lat={p.property?.lat} lng={p.property?.lon} properties={p.properties}>
+            <RxMapView {...child.props} className='' lat={p.property?.lat} lng={p.property?.lon} properties={p.properties}>
               {child.props.children}
             </RxMapView>
           );

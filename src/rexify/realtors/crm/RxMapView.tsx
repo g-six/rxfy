@@ -9,7 +9,6 @@ import { Events, EventsData } from '@/hooks/useFormEvent';
 import useEvent from '@/hooks/useEvent';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import { addClusterHomeCountLayer, addClusterLayer, addSingleHomePins } from '@/components/RxMapbox';
-import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
 import { useSearchParams } from 'next/navigation';
 import { classNames } from '@/_utilities/html-helper';
 import { Transition } from '@headlessui/react';
