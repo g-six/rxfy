@@ -323,7 +323,7 @@ export async function getPdf(page_url: string, data: unknown) {
   }
 
   const {
-    agent: { metatags, brokerage, brokerages },
+    agent: { metatags },
   } = values as unknown as {
     agent: {
       metatags: {
