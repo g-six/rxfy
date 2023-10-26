@@ -127,7 +127,7 @@ export async function middleware(request: NextRequest) {
       console.log('');
     }
     if (!segments[2]) {
-      page_url = `${page_url}${agent_data.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/index`;
+      page_url = `${page_url}${agent_data?.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/index`;
     } else if (['map', 'id', 'property', 'login', 'log-in', 'sign-up', 'update-password'].includes(segments[2])) {
       if (segments[2] === 'property') {
         if (searchParams.get('mls')) {
