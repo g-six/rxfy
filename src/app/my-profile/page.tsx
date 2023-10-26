@@ -10,13 +10,22 @@ import { Rexify } from './page.rexifier';
 import NotFound from '../not-found';
 import RxNotifications from '@/components/RxNotifications';
 import { redirect } from 'next/navigation';
+import { queryStringToObject } from '@/_utilities/url-helper';
 
 /**
  * This is the Realtor's my-profile page
  */
 export default async function MyProfile() {
   const page_url = headers().get('x-url');
-  const session_key = cookies().get('session_key')?.value || '';
+  let session_key = cookies().get('session_key')?.value || '';
+
+  if (!session_key) {
+    const search_params = headers().get('x-search-params') as string;
+    if (search_params) {
+      const { key } = queryStringToObject(search_params);
+      if (key) session_key = key as string;
+    }
+  }
 
   if (page_url) {
     const [page_results, realtor_results] = await Promise.all([fetch(page_url), getUserSessionData(session_key, 'realtor')]);

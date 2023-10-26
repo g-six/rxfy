@@ -30,6 +30,7 @@ export async function middleware(request: NextRequest) {
   response.headers.set('x-viewer', 'realtor');
   response.headers.set('x-canonical', `${origin}${pathname || ''}`);
   response.headers.set('x-hostname', `${hostname || ''}`);
+  response.headers.set('x-search-params', searchParams.toString());
 
   let agent_data =
     hostname === 'leagent.com' || (segments && segments[0] === 'log-in')
@@ -40,7 +41,7 @@ export async function middleware(request: NextRequest) {
   if (searchParams.get('key') && searchParams.get('as')) {
     const session_key = searchParams.get('key') as string;
     response.cookies.set('session_key', session_key);
-    agent_data = await getUserSessionData(session_key, searchParams.get('as') as 'realtor' | 'customer');
+    response.cookies.set('session_as', searchParams.get('as') as 'realtor' | 'customer');
   }
 
   if (!agent_data?.agent_id && searchParams.get('agent')) {
@@ -80,7 +81,6 @@ export async function middleware(request: NextRequest) {
     } else {
       page_url = `${page_url}/${segments.join('/')}`;
     }
-    response.headers.set('x-search-params', searchParams.toString());
   } else if (segments.includes('ai-result')) {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/ai-result`;
     // } else if (searchParams.get('paragon') && !segments.includes('ai-result')) {
