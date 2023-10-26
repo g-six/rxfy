@@ -1,10 +1,11 @@
 import QR from 'qrcode';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
-import { LISTING_FEETERS_FIELDS, LISTING_MONEY_FIELDS, LISTING_NUMERIC_FIELDS } from '@/_utilities/data-helpers/listings-helper';
+import { LISTING_FEETERS_FIELDS, LISTING_MEASUREMENT_FIELDS, LISTING_MONEY_FIELDS, LISTING_NUMERIC_FIELDS } from '@/_utilities/data-helpers/listings-helper';
 import axios from 'axios';
 import { CheerioAPI, load } from 'cheerio';
 import { AgentData } from '@/_typings/agent';
 import { RoomDetails } from '@/_typings/property';
+import { construction_stats, dimension_stats, general_stats } from '@/_utilities/data-helpers/property-page';
 
 export async function getPdf(page_url: string, data: unknown) {
   const { data: html_data } = await axios.get(page_url);
@@ -83,10 +84,12 @@ export async function getPdf(page_url: string, data: unknown) {
       }
     } else if (LISTING_NUMERIC_FIELDS.includes(key)) {
       values[key] = new Intl.NumberFormat().format(Number(values[key]));
-      if (key === 'floor_area' && values.floor_area_uom === 'Feet') {
-        values[key] = values[key] + ' Sqft';
-      } else {
-        values[key] = values[key] + ' Sqm';
+      if (LISTING_MEASUREMENT_FIELDS.includes(key)) {
+        if (key === 'floor_area' && values.floor_area_uom === 'Feet') {
+          values[key] = values[key] + ' Sqft';
+        } else {
+          values[key] = values[key] + ' Sqm';
+        }
       }
     } else if (LISTING_FEETERS_FIELDS.includes(key)) {
       values[key] = new Intl.NumberFormat().format(Number(values[key])) + 'sqft';
@@ -137,19 +140,42 @@ export async function getPdf(page_url: string, data: unknown) {
   $('[data-field="map"]').replaceWith(map_div);
 
   const { photos } = values as unknown as { photos: string[] };
+  const image_container = $('[data-image="photos"]');
   photos &&
     photos.length > 1 &&
     photos.slice(1).forEach((url, idx) => {
-      $(`.b-images:nth-child(${idx + 1})`).replaceWith(
-        `<div style="background-image: url(${getImageSized(url, 320)}); background-position: center; background-size: cover;" class="${$(
-          `.b-images:nth-child(${idx + 1})`,
-        ).attr('class')} filled"></div>`,
-      );
+      if (idx === 0) {
+        $(`[data-image="photos"]:nth-child(${idx + 1})`).replaceWith(
+          `<div data-image="photos" style="background-image: url(${getImageSized(
+            url,
+            320,
+          )}); background-position: center; background-size: cover;" class="${image_container.attr('class')} filled"></div>`,
+        );
+      } else if (idx < 9) {
+        $(`[data-image="photos"]:last-child`)
+          .parent()
+          .append(
+            `<div data-image="photos" style="background-image: url(${getImageSized(
+              url,
+              320,
+            )}); background-position: center; background-size: cover;" class="${image_container.attr('class')} filled"></div>`,
+          );
+      }
+
+      // replaceWith(`<div style="background-image: url(${getImageSized(url, 320)}); background-position: center; background-size: cover;" class="${$(
+      //   `.b-images:nth-child(${idx + 1})`,
+      // ).attr('class')} filled"></div>`)
+      // image_container.clone()
+      // $(`.b-images:nth-child(${idx + 1})`).replaceWith(
+      //   `<div style="background-image: url(${getImageSized(url, 320)}); background-position: center; background-size: cover;" class="${$(
+      //     `.b-images:nth-child(${idx + 1})`,
+      //   ).attr('class')} filled"></div>`,
+      // );
     });
 
-  $('[data-image="cover_photo"]').replaceWith(
+  $('[data-field="cover_photo"]').replaceWith(
     `<div style="background-image: url(${getImageSized(values.photos[0], 600)}); background-position: center; background-size: cover;" class="${$(
-      '[data-image="cover_photo"]',
+      '[data-field="cover_photo"]',
     ).attr('class')}"></div>`,
   );
 
@@ -190,35 +216,79 @@ export async function getPdf(page_url: string, data: unknown) {
   const { rooms } = (values.room_details as unknown as {
     rooms: RoomDetails[];
   }) || { rooms: [] };
-  const { amenities, connected_services, facilities, parking } = values as unknown as {
+  const { amenities, connected_services, facilities, places_of_interest, parking } = values as unknown as {
     [key: string]: {
       name: string;
     }[];
   };
 
-  let placeholder = $('[data-group="amenities"] .field-value:first').clone();
-  $('[data-group="amenities"] .field-value:first').remove();
-  if (amenities?.length) {
-    amenities.forEach(({ name }) => {
-      placeholder.replaceWith(`<span class="${placeholder.attr('class')} text-xs">${name}</span>`);
-      $('[data-group="amenities"]').append(placeholder);
+  const sections: {
+    key: string;
+    labels: any;
+    alias?: string;
+  }[] = [
+    {
+      key: 'property_info',
+      labels: general_stats,
+    },
+    {
+      key: 'construction_info',
+      labels: construction_stats,
+      alias: 'construction',
+    },
+    {
+      key: 'dimensions_info',
+      labels: dimension_stats,
+      alias: 'dimensions',
+    },
+  ];
+  console.log('');
+  sections.forEach(group => {
+    const Wrapper = $(`[data-group="${group.key}"]`).parent();
+    Object.keys(group.labels).forEach(stat => {
+      const Row = $(`[data-group="${group.key}"]`).first().clone();
+      if (values[stat] && group.labels[stat]) {
+        if (typeof values[stat] !== 'object') {
+          Row.find(`[data-field="${group.alias || group.key}_result"]`).text(values[stat]);
+          Row.find(`[data-field="${group.alias || group.key}_name"]`).text(group.labels[stat]);
+          Wrapper.append(Row);
+          console.log(stat, typeof values[stat], values[stat], group.key);
+        }
+      }
     });
-  }
-  if (facilities?.length) {
-    facilities.forEach(({ name }) => {
-      placeholder.replaceWith(`<span class="${placeholder.attr('class')} text-xs">${name}</span>`);
-      $('[data-group="amenities"]').append(placeholder);
-    });
-  }
-  if (parking?.length) {
-    parking.forEach(({ name }) => {
-      if (name !== 'Other') placeholder.replaceWith(`<span class="${placeholder.attr('class')} text-xs">${name}</span>`);
-      $('[data-group="amenities"]').append(placeholder);
-    });
-  }
-  $('[data-group="amenities"] .field-value:first').remove();
+    $(`[data-group="${group.key}"]`).first().remove();
+  });
+  console.log('');
+  console.log('');
 
-  placeholder = $('[data-group="services"] .field-value:first').clone();
+  let amenities_facilities: { name: string }[] = [];
+  if (amenities?.length) amenities_facilities = amenities_facilities.concat(amenities);
+  if (facilities?.length) amenities_facilities = amenities_facilities.concat(facilities);
+  if (places_of_interest?.length) amenities_facilities = amenities_facilities.concat(places_of_interest);
+  if (amenities_facilities?.length) {
+    const classname = $('[data-field="amenities_name"]').attr('class');
+    const wrapper = $('[data-field="amenities_name"]:last-child').parent();
+    amenities_facilities.forEach(({ name }) => {
+      // placeholder.replaceWith(`<span class="${placeholder.attr('class')} text-xs">${name}</span>`);
+      $(wrapper).append(`<div class="${classname}">${name}</div>`);
+    });
+  }
+  // $('[data-group="amenities"] .field-value:first').remove();
+  // if (facilities?.length) {
+  //   facilities.forEach(({ name }) => {
+  //     placeholder.replaceWith(`<span class="${placeholder.attr('class')} text-xs">${name}</span>`);
+  //     $('[data-group="amenities"]').append(placeholder);
+  //   });
+  // }
+  // if (parking?.length) {
+  //   parking.forEach(({ name }) => {
+  //     if (name !== 'Other') placeholder.replaceWith(`<span class="${placeholder.attr('class')} text-xs">${name}</span>`);
+  //     $('[data-group="amenities"]').append(placeholder);
+  //   });
+  // }
+  // $('[data-group="amenities"] .field-value:first').remove();
+
+  let placeholder = $('[data-group="services"] .field-value:first').clone();
   $('[data-group="services"] .field-value:first').remove();
   if (connected_services?.length) {
     connected_services.forEach(({ name }) => {
@@ -252,19 +322,68 @@ export async function getPdf(page_url: string, data: unknown) {
     $('[data-repeater="room"]:first').remove();
   }
 
+  const {
+    agent: { metatags, brokerage, brokerages },
+  } = values as unknown as {
+    agent: {
+      metatags: {
+        [k: string]: string;
+      };
+    };
+  };
+
+  const { geocoding } = metatags as unknown as {
+    geocoding: {
+      city: string;
+      state_province: string;
+      postal_zip_code: string;
+    };
+  };
   $('[data-field]').each((idx, el) => {
-    if (el.attribs['data-field']) {
-      const field = el.attribs['data-field'];
-      if (field && values[field]) {
-        if (field !== 'map') {
-          $(el).text(values[field]);
+    let field = el.attribs['data-field'];
+    if (field === 'formatted_address') field = 'title';
+
+    if (el.attribs['data-object'] === 'agent') {
+      const { agent } = values as unknown as {
+        agent: {
+          [k: string]: string;
+        };
+      };
+      if (field === 'address') {
+        let address = metatags.target_city;
+        if (geocoding?.city) {
+          address = geocoding.city;
+          if (geocoding?.postal_zip_code) address = `${address}, `;
         }
+        if (geocoding?.postal_zip_code) address = `${address}${geocoding.postal_zip_code}`;
+        if (geocoding?.state_province) address = `${address} ${geocoding.state_province}`;
+        if (address) $(el).text(address);
+      } else if (['headshot', 'logo_for_light_bg', 'logo_for_dark_bg'].includes(field)) {
+        $(el).replaceWith(
+          `<div style="background-color: transparent !important; background-image: url('${
+            metatags[field]
+          }'); background-position: center; background-repeat: no-repeat; background-size: ${
+            field === 'headshot' ? 'cover' : 'contain'
+          }; height: 100%; min-width: 120px;">&nbsp;</div>`,
+        );
       } else {
-        console.log(field, 'field not available');
-        $(el).remove();
+        $(el).text(agent[field]);
+      }
+    } else {
+      if (field === '') {
+      } else {
+        if (field && values[field]) {
+          if (field !== 'map') {
+            $(el).text(values[field]);
+          }
+        } else {
+          console.log(field, 'field not available');
+          // $(el).remove();
+        }
       }
     }
   });
+
   $('[data-stats]').each((idx, el) => {
     const field = el.attribs['data-stats'];
     if (field) {

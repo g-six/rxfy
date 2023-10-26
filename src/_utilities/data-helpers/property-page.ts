@@ -33,6 +33,7 @@ export const general_stats: Record<string, string> = {
   parking: 'Parking Info.',
   Zoning: 'Zoning',
   heating: 'Fuel/Heating',
+  dwelling_type: 'Type',
 };
 
 export const main_stats: Record<string, string> = {
