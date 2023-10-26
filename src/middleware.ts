@@ -6,6 +6,7 @@ import { objectToQueryString } from './_utilities/url-helper';
 import { getPropertyByMlsId } from './app/api/properties/model';
 import { formatValues } from './_utilities/data-helpers/property-page';
 import { getShortPrice } from './_utilities/data-helpers/price-helper';
+import { getUserSessionData } from './app/api/check-session/model';
 
 const REALTOR_STATIC_PAGES = ['pricing', 'examples', 'contact'];
 const SKIP_AGENT_SEARCH = ['cdn-cgi'];
@@ -36,6 +37,11 @@ export async function middleware(request: NextRequest) {
       : await getAgentBy({
           domain_name: hostname,
         });
+  if (searchParams.get('key') && segments?.length === 1 && segments[0] === 'my-profile') {
+    const session_key = searchParams.get('key') as string;
+    response.cookies.set('session_key', session_key);
+    agent_data = await getUserSessionData(session_key, 'realtor');
+  }
 
   if (!agent_data?.agent_id && searchParams.get('agent')) {
     agent_data = await getAgentBy({
@@ -198,10 +204,6 @@ export async function middleware(request: NextRequest) {
 
     page_url = `${page_url}.html`;
     response.headers.set('x-url', page_url);
-  }
-
-  if (searchParams.get('key') && !request.cookies.get('session_key')) {
-    response.cookies.set('session_key', searchParams.get('key') as string);
   }
 
   const allCookies = request.cookies.getAll();
