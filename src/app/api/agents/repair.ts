@@ -199,7 +199,6 @@ export async function getSmart(
         console.log('');
         console.log('');
         console.log('[BEGIN] mutation_create_meta');
-        console.log('metatag:', JSON.stringify(metatag, 4, null));
         console.log('');
         console.log('');
         console.log('');
