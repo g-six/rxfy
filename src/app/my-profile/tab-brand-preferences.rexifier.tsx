@@ -9,6 +9,7 @@ import RxFileUploader from '@/components/RxForms/RxFileUploader';
 import axios from 'axios';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
+import { TabProps } from './page.types';
 
 async function uploadImages(full_file_path: string, file: File) {
   return await getUploadUrl(`${full_file_path}.${file.name.split('.').pop()}`, file);
@@ -87,9 +88,10 @@ function Iterate({
             className=''
             buttonClassName={`${c.props.className} w-full`}
             data={{
-              folder_file_name: `${props.agent.agent_id}/${c.props['event-name'].split('evt-upload-').pop()}`,
+              folder_file_name: `${props.agent.agent_id}/${c.props['event-name'].split('evt-upload-').pop()}-${Date.now()}`,
             }}
             uploadHandler={async (folder_file_name, file) => {
+              // TODO: don't save uploads into S3 until Save button is clicked!
               const { upload_url } = await uploadImages(folder_file_name, file);
               props.replaceMedia(file, upload_url);
             }}
@@ -132,7 +134,7 @@ interface FormValues {
   logo_for_light_bg?: string;
   logo_for_dark_bg?: string;
 }
-export default function TabBrandPreferences({ children, ...props }: { agent: AgentData; children: ReactElement }) {
+export default function TabBrandPreferences({ children, ...props }: TabProps) {
   const [data, setData] = useState<FormValues & { id?: number }>({});
   const [is_loading, toggleLoading] = useState<boolean>(false);
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
@@ -152,6 +154,13 @@ export default function TabBrandPreferences({ children, ...props }: { agent: Age
           true,
         )
           .then(() => {
+            props.onContentUpdate({
+              ...props.agent,
+              metatags: {
+                ...props.agent.metatags,
+                ...data,
+              },
+            });
             notify({
               timeout: 10000,
               category: NotificationCategory.SUCCESS,
@@ -169,7 +178,7 @@ export default function TabBrandPreferences({ children, ...props }: { agent: Age
     const { metatags } = props.agent as unknown as {
       metatags?: FormValues & { id?: number };
     };
-    if (metatags?.id) {
+    if (metatags?.id && Object.keys(data).length === 0) {
       let record: Record<string, unknown> = {};
       Object.keys(metatags).forEach(k => {
         const value = (metatags as Record<string, unknown>)[k];

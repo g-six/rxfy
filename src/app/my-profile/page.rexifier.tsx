@@ -16,6 +16,7 @@ function Iterate({
   children: ReactElement;
   agent: AgentData & { phone_number: string };
   onTabClick(evt: MouseEvent<HTMLDivElement>): void;
+  onContentUpdate(updates: AgentData & { phone_number: string }): void;
 }) {
   const rexified = Children.map(children, c => {
     if (c.props) {
@@ -54,13 +55,18 @@ function Iterate({
   });
   return <>{rexified}</>;
 }
-export function Rexify({ children, ...props }: { agent: AgentData & { phone_number: string }; children: ReactElement }) {
+export function Rexify({ children, agent, ...props }: { agent: AgentData & { phone_number: string }; children: ReactElement }) {
+  const [agent_data, setAgent] = useState<AgentData & { phone_number: string }>(agent);
   const [active, activateTab] = useState('Account Info');
 
   return (
     <Iterate
       {...props}
+      agent={agent_data}
       active={active}
+      onContentUpdate={(updates: AgentData & { phone_number: string }) => {
+        setAgent(updates);
+      }}
       onTabClick={evt => {
         const name = evt.currentTarget.getAttribute('data-w-tab') as string;
         activateTab(name || 'Account Info');

@@ -10,6 +10,7 @@ import axios from 'axios';
 import { updateBrokerageInformation } from '@/_utilities/api-calls/call-realtor';
 import { BrokerageInput } from '@/_typings/brokerage';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { TabProps } from './page.types';
 
 async function uploadBrokerageLogo(full_file_path: string, file: File) {
   return await getUploadUrl(`${full_file_path}.${file.name.split('.').pop()}`, file);
@@ -130,7 +131,7 @@ interface FormValues {
   lat?: number;
   lon?: number;
 }
-export default function TabBrokerageInformation({ children, ...props }: { agent: AgentData; children: ReactElement }) {
+export default function TabBrokerageInformation({ children, ...props }: TabProps) {
   const { data: logo, fireEvent: replaceLogo } = useEvent(Events.UploadBrokerageLogo);
   const [data, setData] = useState<FormValues & { id?: number }>({});
   const [is_loading, toggleLoading] = useState<boolean>(false);
@@ -142,6 +143,13 @@ export default function TabBrokerageInformation({ children, ...props }: { agent:
       if (session_key) {
         updateBrokerageInformation(data as unknown as BrokerageInput)
           .then(brokerage => {
+            props.onContentUpdate({
+              ...props.agent,
+              brokerage: {
+                ...props.agent.brokerage,
+                ...brokerage,
+              },
+            });
             setData(brokerage);
             notify({
               timeout: 10000,
@@ -174,8 +182,6 @@ export default function TabBrokerageInformation({ children, ...props }: { agent:
       setData(record);
     }
   }, []);
-
-  console.log(JSON.stringify(data, null, 4));
 
   return (
     <>

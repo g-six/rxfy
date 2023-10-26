@@ -4,6 +4,7 @@ import { classNames } from '@/_utilities/html-helper';
 import Cookie from 'js-cookie';
 import SpinningDots from '@/components/Loaders/SpinningDots';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
+import { TabProps } from './page.types';
 
 function Iterate({
   children,
@@ -34,43 +35,51 @@ function Iterate({
           }
         }
 
-        switch (c.props.placeholder?.toLowerCase()) {
-          case 'enter name':
-            return cloneElement(c, {
-              name: 'first_name',
-              value: first_name,
-              onChange: props.onChange,
-            });
-            break;
-          case 'enter last name':
-            return cloneElement(c, {
-              name: 'last_name',
-              value: last_name,
-              onChange: props.onChange,
-            });
-            break;
-          case 'enter email':
-            return cloneElement(c, {
-              name: 'email',
-              value: props.agent.email || '',
-              onChange: props.onChange,
-            });
-            break;
-          case 'phone number':
-            return cloneElement(c, {
-              name: 'phone_number',
-              value: props.agent.phone_number || '',
-              onChange: props.onChange,
-            });
-            break;
-          case 'enter your paragon id':
-            return cloneElement(c, {
-              name: 'agent_id',
-              value: props.agent.agent_id || '',
-              onChange: props.onChange,
-            });
-            break;
-        }
+        if (c.props['data-input'])
+          switch (c.props['data-input']) {
+            case 'first_name':
+              return cloneElement(c, {
+                name: c.props['data-input'],
+                value: first_name,
+                onChange: props.onChange,
+              });
+              break;
+            case 'last_name':
+              return cloneElement(c, {
+                name: c.props['data-input'],
+                value: last_name,
+                onChange: props.onChange,
+              });
+            default:
+              const kv = props.agent as unknown as { [k: string]: string };
+              return cloneElement(c, {
+                name: c.props['data-input'],
+                value: kv[c.props['data-input']],
+                onChange: props.onChange,
+              });
+              //   break;
+              // case 'enter email':
+              //   return cloneElement(c, {
+              //     name: 'email',
+              //     value: props.agent.email || '',
+              //     onChange: props.onChange,
+              //   });
+              //   break;
+              // case 'phone number':
+              //   return cloneElement(c, {
+              //     name: 'phone_number',
+              //     value: props.agent.phone_number || '',
+              //     onChange: props.onChange,
+              //   });
+              //   break;
+              // case 'enter your paragon id':
+              //   return cloneElement(c, {
+              //     name: 'agent_id',
+              //     value: props.agent.agent_id || '',
+              //     onChange: props.onChange,
+              //   });
+              break;
+          }
       } else if (typeof c.props.children === 'string' && ['a', 'button'].includes(c.type as string)) {
         const text = c.props.children as string;
         if (text.toLowerCase() === 'save') {
@@ -103,7 +112,7 @@ interface FormValues {
   phone_number?: string;
   agent_id?: string;
 }
-export default function TabAccountInfo({ children, ...props }: { agent: AgentData & { phone_number: string }; children: ReactElement }) {
+export default function TabAccountInfo({ children, ...props }: TabProps) {
   const [agent, setAgent] = useState<AgentData & { phone_number: string }>();
   const [data, setData] = useState<FormValues>({});
   const [is_loading, toggleLoading] = useState<boolean>(false);
@@ -114,8 +123,18 @@ export default function TabAccountInfo({ children, ...props }: { agent: AgentDat
 
       if (session_key) {
         updateAccount(session_key, data, true)
-          .then(data => {
-            console.log({ data });
+          .then(response => {
+            let { first_name, last_name, full_name, email, phone_number } = response as {
+              [k: string]: string;
+            };
+            props.onContentUpdate({
+              ...props.agent,
+              first_name: first_name || props.agent.first_name,
+              last_name: last_name || props.agent.last_name,
+              full_name: full_name || props.agent.full_name,
+              email: email || props.agent.email,
+              phone_number: phone_number || props.agent.phone_number,
+            });
           })
           .finally(() => {
             toggleLoading(false);

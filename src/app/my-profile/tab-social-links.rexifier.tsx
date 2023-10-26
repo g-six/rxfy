@@ -6,6 +6,7 @@ import SpinningDots from '@/components/Loaders/SpinningDots';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
 import { Events, NotificationCategory } from '@/hooks/useFormEvent';
 import useEvent from '@/hooks/useEvent';
+import { TabProps } from './page.types';
 
 function Iterate({
   children,
@@ -80,7 +81,7 @@ interface FormValues {
   facebook_url?: string;
   linkedin_url?: string;
 }
-export default function TabSocialLinks({ children, ...props }: { agent: AgentData & { phone_number: string }; children: ReactElement }) {
+export default function TabSocialLinks({ children, ...props }: TabProps) {
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [agent, setAgent] = useState<AgentData & { phone_number: string }>();
   const [data, setData] = useState<FormValues>({});
@@ -92,7 +93,14 @@ export default function TabSocialLinks({ children, ...props }: { agent: AgentDat
 
       if (session_key) {
         updateAccount(session_key, { metatags: data as unknown as { [k: string]: unknown } }, true)
-          .then(data => {
+          .then(updates => {
+            props.onContentUpdate({
+              ...props.agent,
+              metatags: {
+                ...props.agent.metatags,
+                ...data,
+              },
+            });
             notify({
               timeout: 10000,
               category: NotificationCategory.SUCCESS,

@@ -5,10 +5,9 @@ import { ChangeEvent } from 'react';
 
 export default function WebsiteURLInput(props: { value: string; className: string }) {
   const { fireEvent } = useEvent(Events.UpdateWebsite);
-
   return (
     <input
-      {...props}
+      className={props.className}
       defaultValue={props.value || ''}
       onChange={(evt: ChangeEvent<HTMLInputElement>) => {
         fireEvent({
