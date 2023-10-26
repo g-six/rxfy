@@ -37,10 +37,10 @@ export async function middleware(request: NextRequest) {
       : await getAgentBy({
           domain_name: hostname,
         });
-  if (searchParams.get('key') && segments?.length === 1 && segments[0] === 'my-profile') {
+  if (searchParams.get('key') && searchParams.get('as')) {
     const session_key = searchParams.get('key') as string;
     response.cookies.set('session_key', session_key);
-    agent_data = await getUserSessionData(session_key, 'realtor');
+    agent_data = await getUserSessionData(session_key, searchParams.get('as') as 'realtor' | 'customer');
   }
 
   if (!agent_data?.agent_id && searchParams.get('agent')) {
