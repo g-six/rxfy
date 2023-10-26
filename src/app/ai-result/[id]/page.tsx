@@ -114,10 +114,12 @@ export default async function AiResultPage({ params }: { params: { id: string } 
             if (value) $(el).wrapInner(`<a href="//${value}"></a>`);
             else $(el).remove();
           } else {
-            if (el.tagName === 'img') $(el).replaceWith(`<${el.tagName} ${props.join(' ')} src="${getImageSized(value, 400)}" />`);
-            else if (value) {
-              if (!['headshot', 'logo_for_dark_bg'].includes(el.attribs['data-field']))
-                $(el).replaceWith(`<${el.tagName} ${props.join(' ')}>${value}</${el.tagName}>`);
+            if (value) {
+              if (el.tagName === 'img') $(el).replaceWith(`<${el.tagName} ${props.join(' ')} src="${getImageSized(value, 400)}" />`);
+              else {
+                if (!['headshot', 'logo_for_dark_bg'].includes(el.attribs['data-field']))
+                  $(el).replaceWith(`<${el.tagName} ${props.join(' ')}>${value}</${el.tagName}>`);
+              }
             }
           }
         }
