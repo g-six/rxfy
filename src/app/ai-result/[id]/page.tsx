@@ -193,81 +193,22 @@ export default async function AiResultPage({ params }: { params: { id: string } 
             });
             let stats = '';
             const wrapper_class = $('[data-group="compare_stat"]').parent().attr('class');
-            if (p.year_built) {
+            const labels = ['Year Built', 'Floor Area (Sqft.)', 'Type', 'Price per sqft.', 'Date Listed'];
+            ['year_built', 'floor_area_total', 'residential_type', 'price_per_sqft', 'listed_at'].forEach((field, idx) => {
+              const data = p as unknown as { [k: string]: string };
               const stat = $('[data-group="compare_stat"]').clone();
               let row = '';
               stat.find('> *').each((i, c) => {
                 let text = '';
                 if (i > 0) {
-                  text = `${p.year_built}`;
+                  text = formatValues(data, field);
                 } else {
-                  text = 'Year Built';
+                  text = labels[idx];
                 }
                 row = `${row}<${c.name} class="${c.attribs.class}">${text}</${c.name}>`;
               });
               if (row) stats = `${stats}<div class="${stat.attr('class')}">${row}</div>`;
-            }
-            if (p.floor_area) {
-              const stat = $('[data-group="compare_stat"]').clone();
-              let row = '';
-              stat.find('> *').each((i, c) => {
-                let text = '';
-                if (i > 0) {
-                  text = `${formatValues(p, 'floor_area')}`;
-                } else {
-                  text = 'Floor Area';
-                }
-                row = `${row}<${c.name} class="${c.attribs.class}">${text}</${c.name}>`;
-              });
-              if (row) stats = `${stats}<div class="${stat.attr('class')}">${row}</div>`;
-            }
-            if (p.price_per_sqft) {
-              const stat = $('[data-group="compare_stat"]').clone();
-              let row = '';
-              stat.find('> *').each((i, c) => {
-                let text = '';
-                if (i > 0) {
-                  text = `${formatValues(p, 'price_per_sqft')}`;
-                } else {
-                  text = 'Price/Sqft.';
-                }
-                row = `${row}<${c.name} class="${c.attribs.class}">${text}</${c.name}>`;
-              });
-              if (row) stats = `${stats}<div class="${stat.attr('class')}">${row}</div>`;
-            }
-            if (p.listed_at) {
-              const stat = $('[data-group="compare_stat"]').clone();
-              let row = '';
-              try {
-                stat.find('> *').each((i, c) => {
-                  let text = '';
-                  if (i > 0) {
-                    const [year, month, day] = `${p.listed_at}`.split('-').map(Number);
-                    text = `${new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(year, month - 1, day))}`;
-                  } else {
-                    text = 'Date Listed';
-                  }
-                  row = `${row}<${c.name} class="${c.attribs.class}">${text}</${c.name}>`;
-                });
-              } catch (e) {
-                console.error('Date Listed parsing error', p.listed_at);
-              }
-              if (row) stats = `${stats}<div class="${stat.attr('class')}">${row}</div>`;
-            }
-            if (p.strata_fee) {
-              const stat = $('[data-group="compare_stat"]').clone();
-              let row = '';
-              stat.find('> *').each((i, c) => {
-                let text = '';
-                if (i > 0) {
-                  text = `${formatValues(p, 'strata_fee')}`;
-                } else {
-                  text = 'Strata Fee';
-                }
-                row = `${row}<${c.name} class="${c.attribs.class}">${text}</${c.name}>`;
-              });
-              if (row) stats = `${stats}<div class="${stat.attr('class')}">${row}</div>`;
-            }
+            });
 
             if (stats) item.find(`.${wrapper_class}`).replaceWith(`<div class="${wrapper_class}">${stats}</div>`);
             item.find('[data-group="compare_stat"]').remove();
