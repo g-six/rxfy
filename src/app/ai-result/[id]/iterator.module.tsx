@@ -74,8 +74,9 @@ function Replace({
     } else if (c.props?.['data-component'] === 'private_listing') {
       return (
         <iframe
+          style={{ minHeight: '2000px', width: '100%' }}
           className={styles['theme-preview']}
-          src={`/${attributes['agent-id']}/${attributes['profile-slug']}/property?mls=${attributes['mls-id']}&theme=default`}
+          src={`/${attributes['agent-id']}/${attributes['profile-slug']}/property?mls=${attributes['mls-id']}`}
         />
       );
     } else if (c.props?.children && typeof c.props.children !== 'string') {
