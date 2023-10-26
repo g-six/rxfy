@@ -9,7 +9,7 @@ export default function WebsiteURLInput(props: { value: string; className: strin
   return (
     <input
       {...props}
-      defaultValue={props.value}
+      defaultValue={props.value || ''}
       onChange={(evt: ChangeEvent<HTMLInputElement>) => {
         fireEvent({
           domain_name: evt.currentTarget.value,

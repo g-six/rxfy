@@ -352,8 +352,6 @@ async function claimAgent(
     stripe_subscriptions,
   };
 
-  // await createRealtorVercelDomain(`r${id}.leagent.com`, id);
-
   const realtor_response = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {

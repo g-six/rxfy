@@ -255,6 +255,7 @@ export async function createRealtorVercelDomain(domain_name: string, id: number)
     }
   } catch (e) {
     console.log('Unable to successfully create vercel domain.');
+    console.error(JSON.stringify((e as { response: { data: { error: unknown } } }).response.data.error), null, 4);
   }
 }
 

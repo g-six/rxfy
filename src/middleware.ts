@@ -28,6 +28,7 @@ export async function middleware(request: NextRequest) {
   let page_url = `https://sites.leagent.com/`;
   response.headers.set('x-viewer', 'realtor');
   response.headers.set('x-canonical', `${origin}${pathname || ''}`);
+  response.headers.set('x-hostname', `${hostname || ''}`);
 
   let agent_data =
     hostname === 'leagent.com' || (segments && segments[0] === 'log-in')
