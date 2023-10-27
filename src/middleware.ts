@@ -56,9 +56,42 @@ export async function middleware(request: NextRequest) {
     });
   }
 
-  if (agent_data?.agent_id) {
+  if (agent_data?.agent_id && agent_data.metatags?.id) {
+    let webflow_domain = agent_data.webflow_domain || '';
+    if (!webflow_domain) {
+      webflow_domain = WEBFLOW_DASHBOARDS.CUSTOMER;
+      if (agent_data.theme) webflow_domain = `${agent_data.theme}-leagent.webflow.io`;
+    }
     response.headers.set('x-agent-id', agent_data.agent_id);
     response.headers.set('x-profile-slug', agent_data.metatags.profile_slug);
+    response.headers.set('x-agent-name', agent_data.full_name);
+    response.headers.set('x-agent-email', agent_data.email);
+    response.headers.set('x-agent-phone', agent_data.phone);
+    response.headers.set('x-wf-domain', webflow_domain);
+
+    response.headers.set('x-metatag-id', agent_data.metatags?.id);
+    response.headers.set('x-page-title', agent_data.metatags?.title);
+    response.headers.set('x-page-description', agent_data.metatags?.description.split('•').join(''));
+    response.headers.set('x-dark-bg-logo', agent_data.metatags?.logo_for_dark_bg || '');
+    response.headers.set('x-light-bg-logo', agent_data.metatags?.logo_for_light_bg || '');
+    response.headers.set('x-facebook-url', agent_data.metatags?.facebook_url || '');
+    response.headers.set('x-linkedin-url', agent_data.metatags?.linkedin_url || '');
+    response.headers.set('x-youtube-url', agent_data.metatags?.youtube_url || '');
+    response.headers.set('x-instagram-url', agent_data.metatags?.instagram_url || '');
+
+    if (REALTOR_MAIN_PAGES.includes(segments[0]) || pathname === '/') {
+      response.headers.set('x-viewer', 'customer');
+      const allCookies = request.cookies.getAll();
+      allCookies.forEach(({ name, value }) => {
+        response.headers.set(`x-${name.split('_').join('-')}`, value);
+      });
+      page_url = `https://sites.leagent.com/${webflow_domain}/${segments[0] || 'index'}`;
+      if (segments[0] === 'property') page_url = `${page_url}/propertyid`;
+      page_url = `${page_url}.html`;
+      console.log('Going to bring visitor to Realtor page', page_url);
+      response.headers.set('x-url', page_url);
+      return response;
+    }
   }
 
   if (searchParams.get('theme') || agent_data?.agent_id) {
