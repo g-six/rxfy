@@ -130,7 +130,7 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
           console.log(JSON.stringify(data, null, 4));
           dimensions.push(<p className='italic'>Data is being collated at the moment, please check back in a few hours.</p>);
         }
-        if (data.bathroom_details) {
+        if (data.bathroom_details && getData('session_key')) {
           const { baths } = data.bathroom_details as unknown as {
             baths: BathroomDetails[];
           };
