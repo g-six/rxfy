@@ -16,7 +16,6 @@ import NavIterator from '@/components/Nav/RxNavIterator';
 import { WEBFLOW_DASHBOARDS } from '@/_typings/webflow';
 import { BuildingUnit } from '../api/properties/types';
 import RxNotifications from '@/components/RxNotifications';
-import { replaceAgentFields } from './page.helpers';
 import { getPrivateListing } from '../api/private-listings/model';
 import { PropertyDataModel } from '@/_typings/property';
 
@@ -30,9 +29,16 @@ export default async function PropertyPage(props: any) {
 
     let { mls, lid } = props.searchParams;
 
-    if ((mls || lid) && props.params['profile-slug'].indexOf('la-') === 0) {
-      let agent_id = props.params.slug || '';
-      let profile_slug = props.params['profile-slug'] || '';
+    let agent_id = headers().get('x-agent-id') || '';
+    if (!agent_id && props.params.slug) {
+      agent_id = props.params.slug;
+    }
+
+    let profile_slug = headers().get('x-profile-slug') || '';
+    if (!profile_slug && props.params['profile-slug']) {
+      profile_slug = props.params['profile-slug'];
+    }
+    if ((mls || lid) && profile_slug.indexOf('la-') === 0) {
       let agent = {
         id: Number(headers().get('x-record-id')),
         agent_id,
@@ -190,6 +196,7 @@ export default async function PropertyPage(props: any) {
       }
     }
   } catch (e) {
+    console.log('Layout 120', e);
     return <NotFound />;
   }
 }
