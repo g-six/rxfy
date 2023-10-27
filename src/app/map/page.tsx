@@ -44,7 +44,7 @@ export default async function MapPage({ params, searchParams }: { params: { [key
   const url = headers().get('x-url');
 
   let agent;
-  const agent_id = params.slug || headers().get('x-agent-id') || '';
+  const agent_id = headers().get('x-agent-id') || params.slug || '';
   if (!url || !agent_id) return <NotFound />;
 
   if (!searchParams.lat || !searchParams.lng) {

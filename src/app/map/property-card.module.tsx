@@ -82,7 +82,7 @@ function CoverPhotoContainerIterator({
   });
   return <>{Wrapped}</>;
 }
-function PropertyCardIterator({
+export function PropertyCardIterator({
   children,
   listing,
   onClickToOpen,
@@ -96,12 +96,9 @@ function PropertyCardIterator({
   onUnloveItem(): void;
 }) {
   // e.g /agent-id/profile-slug/map
-  const url = new URL(location.href);
   const Wrapped = React.Children.map(children, c => {
     if (c.props?.className?.includes('propcard-image')) {
-      const segments = url.pathname.split('/');
       // e.g. map
-      segments.pop();
       if (listing.cover_photo) {
         if (c.type === 'img')
           return (
@@ -111,13 +108,13 @@ function PropertyCardIterator({
                 srcSet: undefined,
                 src: getImageSized(listing.cover_photo, 520),
               })}
-              <a href={`${segments.join('/')}/property?mls=${listing.mls_id}`} className='h-full w-full absolute z-20 left-0 top-0' />
+              <a href={`property?mls=${listing.mls_id}`} className='h-full w-full absolute z-20 left-0 top-0' />
             </>
           );
 
         let contents: ReactElement[] = [
           <div key='link' className='h-full w-full absolute left-0 top-0'>
-            <a href={`${segments.join('/')}/property?mls=${listing.mls_id}`} className='h-full w-full absolute left-0 top-0' />,
+            <a href={`property?mls=${listing.mls_id}`} className='h-full w-full absolute left-0 top-0' />,
           </div>,
         ];
         if (c.props?.children) {
