@@ -198,7 +198,7 @@ export async function getAgentBy(attributes: { [key: string]: string }) {
   let [record] = response_data?.data?.agents.data;
   if (!record) {
     // agent record does not exist,
-    console.log('agent record does not exist');
+    console.log('getAgentBy: agent record does not exist');
     return;
   }
   return record?.attributes
