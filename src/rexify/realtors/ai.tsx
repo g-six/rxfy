@@ -24,7 +24,7 @@ type Props = {
 
 export default function AiPrompt(p: Props) {
   const { data, fireEvent } = useEvent(Events.LoadUserSession);
-  const { fireEvent: fireLoader } = useEvent(Events.Loading);
+  const { data: ui, fireEvent: fireLoader } = useEvent(Events.Loading);
   const params = useSearchParams();
   const [agent_id, setAgentId] = React.useState('');
   const [show_loader, toggleLoader] = React.useState(false);
@@ -162,9 +162,12 @@ export default function AiPrompt(p: Props) {
                     } as unknown as EventsData);
                   }
                 })
+                .catch(e => {
+                  console.error(e);
+                  fireLoader({});
+                })
                 .finally(() => {
                   toggleLoader(false);
-                  fireLoader({});
                 });
             }
           },
@@ -274,7 +277,7 @@ export default function AiPrompt(p: Props) {
             : styles.hide
           : (p.className === WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL_BLANK && styles.hide) || styles.show,
         WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL_BLANK,
-        p.className === WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL && show_loader ? styles.zoom : '',
+        p.className === WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL ? (ui && Object.keys(ui).length ? styles.zoom : styles['zoom-back-in']) : '',
         'rexified w-full',
       ].join(' ')}
     >

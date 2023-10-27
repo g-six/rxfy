@@ -18,20 +18,35 @@
   animation: zoom-out 60s ease-in;
 }
 
+.zoom-back-in {
+  animation: zoom-in 10s ease;
+}
+
+@keyframes zoom-in {
+  100% {
+    transform: scale(1, 1);
+    opacity: 1;
+  }
+
+  0% {
+    transform: scale(0.25, 0.25);
+    opacity: 0;
+  }
+}
+
 @keyframes zoom-out {
   0% {
     transform: scale(1, 1);
+    opacity: 1;
   }
 
   25% {
-    transform: scale(0.5, 0.5);
-  }
-
-  75% {
     transform: scale(0.25, 0.25);
+    opacity: 0.25;
   }
 
   100% {
     transform: scale(0, 0);
+    opacity: 0;
   }
 }
