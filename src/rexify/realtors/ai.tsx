@@ -276,7 +276,6 @@ export default function AiPrompt(p: Props) {
             ? styles.show
             : styles.hide
           : (p.className === WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL_BLANK && styles.hide) || styles.show,
-        WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL_BLANK,
         p.className === WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL ? (ui && Object.keys(ui).length ? styles.zoom : styles['zoom-back-in']) : '',
         'rexified w-full',
       ].join(' ')}
