@@ -51,7 +51,7 @@ export default function RxEmailSignatureContent({ nodes, agent }: ReplacerPagePr
         if (!website_display) website_display = `${agent.agent_id}/${agent.metatags.profile_slug}`;
         return React.cloneElement(<a />, {
           ...child.props,
-          children: 'leagent.com' + new URL(getAgentHomePageUrl(agent)).pathname,
+          children: getAgentHomePageUrl(agent),
           href: getAgentHomePageUrl(agent),
           target: '_blank',
           rel: 'noopener noreferrer',

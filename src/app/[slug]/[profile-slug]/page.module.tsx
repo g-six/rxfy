@@ -19,13 +19,12 @@ import { PropertyDataModel } from '@/_typings/property';
 
 export default async function PageComponent({ agent_id, theme = 'default' }: { agent_id: string; theme?: string }) {
   const agent = await findAgentRecordByAgentId(agent_id);
-  let webflow_site = `https://${WEBFLOW_DASHBOARDS.CUSTOMER}`;
+  let webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${agent.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/index.html`;
   if (!agent) return <></>;
-  if (theme) {
+  if (!agent.webflow_domain && theme) {
     if (theme === 'default') webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${WEBFLOW_DASHBOARDS.CUSTOMER}/index.html`;
     else webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${theme}-leagent.webflow.io/index.html`;
   } else if (agent.domain_name) webflow_site = `https://${agent.domain_name}`;
-  else if (agent.webflow_domain) webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${agent.webflow_domain}/index.html`;
 
   const promises = await Promise.all([axios.get(webflow_site)]);
   const { data: html } = promises[0];
