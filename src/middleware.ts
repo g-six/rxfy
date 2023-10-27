@@ -34,6 +34,10 @@ export async function middleware(request: NextRequest) {
   response.headers.set('x-search-params', searchParams.toString());
 
   if (segments.includes('_next')) return request;
+  console.log({
+    domain_name,
+    segments,
+  });
   let agent_data =
     domain_name === 'leagent.com' || (segments && !REALTOR_MAIN_PAGES.includes(segments[0]))
       ? {}
@@ -41,8 +45,7 @@ export async function middleware(request: NextRequest) {
           domain_name,
         });
   if (searchParams.get('key') && searchParams.get('as')) {
-    const session_key = searchParams.get('key') as string;
-    response.cookies.set('session_key', session_key);
+    response.cookies.set('session_key', searchParams.get('key') as string);
     response.cookies.set('session_as', searchParams.get('as') as 'realtor' | 'customer');
   }
 
