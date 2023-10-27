@@ -69,10 +69,7 @@ export async function middleware(request: NextRequest) {
   response.headers.set('x-search-params', searchParams.toString());
 
   if (segments.includes('_next')) return request;
-  console.log({
-    domain_name,
-    segments,
-  });
+
   let is_leagent_website = domain_name === 'leagent.com';
 
   // Maybe it's not a custom domain?
@@ -81,7 +78,7 @@ export async function middleware(request: NextRequest) {
   }
 
   let agent_data =
-    domain_name === 'leagent.com' || (segments && !REALTOR_MAIN_PAGES.includes(segments[0]))
+    domain_name.includes('leagent.com') || (segments && !REALTOR_MAIN_PAGES.includes(segments[0]))
       ? {}
       : await getAgentBy({
           domain_name,
