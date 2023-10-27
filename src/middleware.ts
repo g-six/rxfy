@@ -38,12 +38,17 @@ export async function middleware(request: NextRequest) {
     domain_name,
     segments,
   });
-  let agent_data =
-    domain_name === 'leagent.com' || (segments && !REALTOR_MAIN_PAGES.includes(segments[0]))
-      ? {}
-      : await getAgentBy({
-          domain_name,
-        });
+  let is_leagent_website = domain_name === 'leagent.com';
+
+  // Maybe it's not a custom domain?
+  if (!is_leagent_website && segments) {
+    if (segments[0] && !REALTOR_MAIN_PAGES.includes(segments[0])) {
+      is_leagent_website = true;
+    }
+  }
+
+  let agent_data = is_leagent_website ? {} : await getAgentBy({ domain_name });
+
   if (searchParams.get('key') && searchParams.get('as')) {
     response.cookies.set('session_key', searchParams.get('key') as string);
     response.cookies.set('session_as', searchParams.get('as') as 'realtor' | 'customer');
