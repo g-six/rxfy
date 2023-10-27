@@ -2,6 +2,7 @@ import { SearchHighlightInput } from '@/_typings/maps';
 import axios from 'axios';
 
 export async function getSampleListings(agent_id: string, target_city: SearchHighlightInput, size = 1) {
+  console.log('Retrieving sample listing', { agent_id, target_city, size });
   return axios.post(
     process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
     {
