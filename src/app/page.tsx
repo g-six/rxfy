@@ -19,6 +19,7 @@ import { buildCacheFiles, getPropertiesFromAgentInventory } from './api/properti
 import { getPrivateListing } from './api/private-listings/model';
 import { getUserSessionData } from './api/check-session/model';
 import PageComponent from './[slug]/[profile-slug]/page.module';
+import { getAgentBy } from './api/_helpers/agent-helper';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -56,30 +57,54 @@ function loadAiResults($: CheerioAPI, user_id: string, slug?: string, origin?: s
 function log(start: number, message = 'done') {
   console.log(`[${Date.now() - start}ms] ${message}`);
 }
+
+const LEAGENT_DOMAINS = ['leagent.com', 'dev.leagent.com', 'beta.leagent.com'];
+
 export default async function Home({ params, searchParams }: { params: Record<string, unknown>; searchParams: Record<string, string> }) {
   const start = Date.now();
   log(start, 'started');
-  const { TEST_WF_DOMAIN } = process.env as unknown as { [key: string]: string };
-  const axios = (await import('axios')).default;
+
   const url = headers().get('x-url') as string;
-  const { hostname, origin } = new URL(url);
-  let agent_data: AgentData = {} as unknown as AgentData;
-  let data, listings, property, legacy_data;
+  const { hostname, origin, pathname } = new URL(url);
+
   let possible_agent = params.slug as string;
   let profile_slug = params['profile-slug'] as string;
+
+  let agent_data: AgentData = {} as unknown as AgentData;
+  const domain_name = `${headers().get('host')}`.split(':').reverse().pop();
+
+  if (domain_name && !LEAGENT_DOMAINS.includes(domain_name)) {
+    agent_data = await getAgentBy({
+      domain_name,
+    });
+
+    if (agent_data?.agent_id && pathname.split('/').pop() === 'index.html') {
+      console.log('Returning PageComponent');
+      return <PageComponent agent_id={agent_data.agent_id} />;
+    }
+  }
+
+  const { TEST_WF_DOMAIN } = process.env as unknown as { [key: string]: string };
+  const axios = (await import('axios')).default;
+
+  let data, listings, property, legacy_data;
   let session_key = cookies().get('session_key')?.value || '';
   let session_as = cookies().get('session_as')?.value || 'customer';
 
-  console.log('Headers');
-  console.log('   X-Url:', headers().get('x-url'));
-  console.log('   Agent ID:', possible_agent);
-  console.log('   Slug:', profile_slug);
-
   if (!possible_agent && !profile_slug && headers().get('x-url') && `${headers().get('x-url')}`.split('/').pop() === 'index.html') {
     if (headers().get('x-agent-id') && headers().get('x-profile-slug')) {
+      console.log('Returning PageComponent');
       return <PageComponent agent_id={headers().get('x-agent-id') as string} />;
     }
   }
+
+  console.log('Headers');
+  console.log('   X-Url:', headers().get('x-url'));
+  console.log('   X-Agent-Id:', headers().get('x-agent-id'));
+  console.log('   X-Profile-Slug:', headers().get('x-profile-slug'));
+  console.log('   Page:', `${headers().get('x-url')}`.split('/').pop());
+  console.log('   Agent ID:', possible_agent);
+  console.log('   Slug:', profile_slug);
 
   if (possible_agent && profile_slug) {
     // Check if the slug matches a realtor

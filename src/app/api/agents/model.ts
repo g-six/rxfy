@@ -434,7 +434,7 @@ export const findAgentRecordByAgentId = cache(async (agent_id: string) => {
     console.error(axerr?.data?.error);
     console.log('Error in api.agents.model.findAgentRecordByAgentId:', agent_id);
   } finally {
-    console.log('Completed api.agents.model.findAgentRecordByAgentId call');
+    console.log('Completed api.agents.model.findAgentRecordByAgentId call for', agent_id);
   }
 });
 

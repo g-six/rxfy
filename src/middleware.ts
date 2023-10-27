@@ -11,67 +11,7 @@ const REALTOR_STATIC_PAGES = ['pricing', 'examples', 'contact'];
 const REALTOR_MAIN_PAGES = ['property', 'map'];
 const SKIP_AGENT_SEARCH = ['cdn-cgi'];
 export async function middleware(request: NextRequest) {
-  const response = NextResponse.next();
-
-  // Store current request url in a custom header, which you can read later
-  // we want to be able to read Property ID (MLS_ID, etc)
-  // to place meta tags in HEAD dynamically based on Property Data
-  const { origin, hostname, pathname, searchParams } = new URL(request.url);
-  const domain_name = `${request.headers.get('host') || hostname}`.split(':').reverse().pop() || hostname;
-  if (pathname.includes('/api')) return response;
-  if (pathname.includes('/css')) return response;
-  if (pathname.includes('next')) return response;
-  if (pathname.includes('images')) return response;
-  if (pathname.includes('icons')) return response;
-  if (pathname.includes('wf_graphql')) return response;
-  response.headers.set('x-page-title', 'Leagent');
-
-  const [, ...segments] = pathname.split('/');
-  let page_url = `https://sites.leagent.com/`;
-  response.headers.set('x-viewer', 'realtor');
-  response.headers.set('x-canonical', `${origin}${pathname || ''}`);
-  response.headers.set('x-hostname', `${domain_name || ''}`);
-  response.headers.set('x-search-params', searchParams.toString());
-
-  if (segments.includes('_next')) return request;
-  console.log({
-    domain_name,
-    segments,
-  });
-  let is_leagent_website = domain_name === 'leagent.com';
-
-  // Maybe it's not a custom domain?
-  if (!is_leagent_website && segments) {
-    if (segments[0] && !REALTOR_MAIN_PAGES.includes(segments[0])) {
-      is_leagent_website = true;
-    }
-  }
-
-  let agent_data = is_leagent_website ? {} : await getAgentBy({ domain_name });
-
-  if (searchParams.get('key') && searchParams.get('as')) {
-    response.cookies.set('session_key', searchParams.get('key') as string);
-    response.cookies.set('session_as', searchParams.get('as') as 'realtor' | 'customer');
-  }
-
-  if (!agent_data?.agent_id && searchParams.get('agent')) {
-    agent_data = await getAgentBy({
-      agent_id: searchParams.get('agent') as string,
-    });
-  }
-
-  if (!agent_data?.agent_id && segments.length === 2 && searchParams.get('theme')) {
-    agent_data = await getAgentBy({
-      agent_id: segments[0],
-    });
-  }
-
-  if (agent_data?.agent_id && agent_data.metatags?.id) {
-    let webflow_domain = agent_data.webflow_domain || '';
-    if (!webflow_domain) {
-      webflow_domain = WEBFLOW_DASHBOARDS.CUSTOMER;
-      if (agent_data.theme) webflow_domain = `${agent_data.theme}-leagent.webflow.io`;
-    }
+  const setAgentWebsiteHeaders = (webflow_domain: string) => {
     response.headers.set('x-agent-id', agent_data.agent_id);
     response.headers.set('x-profile-slug', agent_data.metatags.profile_slug);
     response.headers.set('x-agent-name', agent_data.full_name);
@@ -103,6 +43,72 @@ export async function middleware(request: NextRequest) {
           }),
       );
     }
+  };
+
+  const response = NextResponse.next();
+
+  // Store current request url in a custom header, which you can read later
+  // we want to be able to read Property ID (MLS_ID, etc)
+  // to place meta tags in HEAD dynamically based on Property Data
+  const { origin, hostname, pathname, searchParams } = new URL(request.url);
+  const domain_name = `${request.headers.get('host') || hostname}`.split(':').reverse().pop() || hostname;
+  if (pathname.includes('/api')) return response;
+  if (pathname.includes('/css')) return response;
+  if (pathname.includes('next')) return response;
+  if (pathname.includes('images')) return response;
+  if (pathname.includes('icons')) return response;
+  if (pathname.includes('wf_graphql')) return response;
+  response.headers.set('x-page-title', 'Leagent');
+
+  const [, ...segments] = pathname.split('/');
+  let page_url = `https://sites.leagent.com/`;
+  response.headers.set('x-viewer', 'realtor');
+  response.headers.set('x-canonical', `${origin}${pathname || ''}`);
+  response.headers.set('x-hostname', `${domain_name || ''}`);
+  response.headers.set('x-search-params', searchParams.toString());
+
+  if (segments.includes('_next')) return request;
+  console.log({
+    domain_name,
+    segments,
+  });
+  let is_leagent_website = domain_name === 'leagent.com';
+
+  // Maybe it's not a custom domain?
+  if (!is_leagent_website && segments[0] && !REALTOR_MAIN_PAGES.includes(segments[0])) {
+    is_leagent_website = true;
+  }
+
+  let agent_data =
+    domain_name === 'leagent.com' || (segments && !REALTOR_MAIN_PAGES.includes(segments[0]))
+      ? {}
+      : await getAgentBy({
+          domain_name,
+        });
+  if (searchParams.get('key') && searchParams.get('as')) {
+    response.cookies.set('session_key', searchParams.get('key') as string);
+    response.cookies.set('session_as', searchParams.get('as') as 'realtor' | 'customer');
+  }
+
+  if (!agent_data?.agent_id && searchParams.get('agent')) {
+    agent_data = await getAgentBy({
+      agent_id: searchParams.get('agent') as string,
+    });
+  }
+
+  if (!agent_data?.agent_id && segments.length === 2 && searchParams.get('theme')) {
+    agent_data = await getAgentBy({
+      agent_id: segments[0],
+    });
+  }
+
+  if (agent_data?.agent_id && agent_data.metatags?.id) {
+    let webflow_domain = agent_data.webflow_domain || '';
+    if (!webflow_domain) {
+      webflow_domain = WEBFLOW_DASHBOARDS.CUSTOMER;
+      if (agent_data.theme) webflow_domain = `${agent_data.theme}-leagent.webflow.io`;
+    }
+    setAgentWebsiteHeaders(webflow_domain);
 
     if (REALTOR_MAIN_PAGES.includes(segments[0]) || pathname === '/') {
       response.headers.set('x-viewer', 'customer');
@@ -119,7 +125,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (searchParams.get('theme') || agent_data?.agent_id) {
+  if (searchParams.get('theme') || (agent_data?.agent_id && domain_name !== 'leagent.com')) {
     response.headers.set('x-viewer', 'customer');
     const theme = searchParams.get('theme') || agent_data.website_theme;
     switch (theme) {
@@ -168,7 +174,7 @@ export async function middleware(request: NextRequest) {
   } else if (pathname && pathname === '/client-dashboard') {
     response.headers.set('x-viewer', 'customer');
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}${pathname}`;
-  } else if (segments.length >= 2 && !SKIP_AGENT_SEARCH.includes(segments[0])) {
+  } else if (segments.length >= 2 && !SKIP_AGENT_SEARCH.includes(segments[0]) && !agent_data.metatags) {
     response.headers.set('x-agent-id', segments[0]);
     response.headers.set('x-profile-slug', segments[1]);
     response.headers.set('x-viewer', 'customer');
@@ -220,7 +226,19 @@ export async function middleware(request: NextRequest) {
       } else page_url = `${page_url}${agent_data.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/${segments[2]}`;
     } else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/${segments[2]}`;
   } else if (pathname === '/') {
-    page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/index`;
+    if (domain_name === 'leagent.com') page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/index`;
+    else {
+      // Agent has custom domain to host homepage
+      agent_data = await getAgentBy({
+        domain_name,
+      });
+      if (agent_data.agent_id) {
+        setAgentWebsiteHeaders(agent_data.webflow_domain);
+        if (agent_data.webflow_domain.includes('leagent')) {
+          page_url = `${page_url}${agent_data.webflow_domain}/index`;
+        }
+      }
+    }
   } else if (REALTOR_STATIC_PAGES.filter(page => pathname === '/' + page).length >= 1) {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}${pathname}`;
   } else if (pathname === '/pdf') {
@@ -231,7 +249,7 @@ export async function middleware(request: NextRequest) {
     else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}${pathname || ''}`;
   }
 
-  if (agent_data) {
+  if (agent_data && agent_data.agent_id) {
     if (agent_data.metatags) {
       response.headers.set('x-metatag-id', agent_data.metatags.id);
       response.headers.set('x-dark-bg-logo', agent_data.metatags.logo_for_dark_bg || '');
