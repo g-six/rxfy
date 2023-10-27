@@ -45,6 +45,7 @@ export default async function PropertyPage(props: any) {
         full_name: `${headers().get('x-agent-name') || ''}`,
         email: `${headers().get('x-agent-email')}`,
         phone: `${headers().get('x-agent-phone')}`,
+        domain_name: `${headers().get('x-agent-domain-name') || ''}`,
         webflow_domain: `${headers().get('x-wf-domain') || WEBFLOW_DASHBOARDS.CUSTOMER}`,
         metatags: {
           id: Number(headers().get('x-metatag-id')),
@@ -97,7 +98,7 @@ export default async function PropertyPage(props: any) {
         console.log('');
         console.log('Building section 1', page_url);
 
-        html_data = html_data.split('href="/"').join(`href="/${agent_id}/${agent.metatags.profile_slug}"`);
+        // html_data = html_data.split('href="/"').join(`href="/${agent_id}/${agent.metatags.profile_slug}"`);
         html_data = html_data.split('href="/map"').join(`href="${headers().get('x-map-uri')}"`);
 
         const $: CheerioAPI = load(html_data);

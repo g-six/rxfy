@@ -7,6 +7,7 @@ import { convertDivsToSpans } from '@/_replacers/DivToSpan';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { objectToQueryString } from '@/_utilities/url-helper';
 import RequestInfoPopup from '@/app/property/request-info-popup.module';
+import { getAgentBaseUrl } from '@/app/api/_helpers/agent-helper';
 
 export default function NavIterator({ children, ...props }: { children: React.ReactElement; agent?: AgentData }) {
   const Wrapped = React.Children.map(children, c => {
@@ -79,7 +80,7 @@ export default function NavIterator({ children, ...props }: { children: React.Re
           <a
             {...link_props}
             data-original-href={href}
-            href={`/${props.agent?.agent_id}/${props.agent?.metatags.profile_slug}${href}${
+            href={`${props.agent && getAgentBaseUrl(props.agent)}${href}${
               props.agent?.metatags.geocoding
                 ? `?${objectToQueryString(props.agent?.metatags.geocoding as unknown as { [k: string]: string })}`
                 : '?nelat=49.34023817805203&nelng=-122.79116520440928&swlat=49.111312957626524&swlng=-123.30807516134138&lat=49.22590814575915&lng=-123.0496201828758&city=Vancouver&zoom=11'
@@ -89,8 +90,9 @@ export default function NavIterator({ children, ...props }: { children: React.Re
           </a>
         );
       } else if (!href.includes('/map') && !href.includes('log-out')) {
+        console.log(props.agent);
         return (
-          <a {...link_props} data-original-href={href} href={`/${props.agent?.agent_id}/${props.agent?.metatags.profile_slug}${href}`}>
+          <a {...link_props} data-original-href={href} href={`${props.agent && getAgentBaseUrl(props.agent)}${href}`}>
             <NavIterator {...props}>{convertDivsToSpans(contents)}</NavIterator>
           </a>
         );

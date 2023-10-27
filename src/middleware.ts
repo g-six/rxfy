@@ -11,6 +11,13 @@ const REALTOR_STATIC_PAGES = ['pricing', 'examples', 'contact'];
 const REALTOR_MAIN_PAGES = ['property', 'map'];
 const SKIP_AGENT_SEARCH = ['cdn-cgi'];
 export async function middleware(request: NextRequest) {
+  const response = NextResponse.next();
+
+  // Store current request url in a custom header, which you can read later
+  // we want to be able to read Property ID (MLS_ID, etc)
+  // to place meta tags in HEAD dynamically based on Property Data
+  const { origin, hostname, pathname, searchParams } = new URL(request.url);
+  const domain_name = `${request.headers.get('host') || hostname}`.split(':').reverse().pop() || hostname;
   const setAgentWebsiteHeaders = (webflow_domain: string) => {
     response.headers.set('x-agent-id', agent_data.agent_id);
     response.headers.set('x-profile-slug', agent_data.metatags.profile_slug);
@@ -18,6 +25,7 @@ export async function middleware(request: NextRequest) {
     response.headers.set('x-agent-email', agent_data.email);
     response.headers.set('x-agent-phone', agent_data.phone);
     response.headers.set('x-wf-domain', webflow_domain);
+    if (agent_data.domain_name) response.headers.set('x-agent-domain-name', agent_data.domain_name);
 
     response.headers.set('x-metatag-id', agent_data.metatags?.id);
     response.headers.set('x-page-title', agent_data.metatags?.title);
@@ -45,13 +53,6 @@ export async function middleware(request: NextRequest) {
     }
   };
 
-  const response = NextResponse.next();
-
-  // Store current request url in a custom header, which you can read later
-  // we want to be able to read Property ID (MLS_ID, etc)
-  // to place meta tags in HEAD dynamically based on Property Data
-  const { origin, hostname, pathname, searchParams } = new URL(request.url);
-  const domain_name = `${request.headers.get('host') || hostname}`.split(':').reverse().pop() || hostname;
   if (pathname.includes('/api')) return response;
   if (pathname.includes('/css')) return response;
   if (pathname.includes('next')) return response;
