@@ -259,6 +259,16 @@ export async function getPropertyByMlsId(mls_id: string, legacy_data?: { photos?
       const records: PropertyDataModel[] = [];
       data_records.map(async ({ id: property_id, attributes }) => {
         const { mls_data, property_type, ...property } = attributes as PropertyDataModel;
+        let listing_by = '';
+        let listing_by_name = '';
+        if (mls_data) {
+          const { LA1_FullName, LA2_FullName, LA3_FullName, SO1_FullName, SO2_FullName, SO3_FullName, LO1_Name, LO2_Name, LO3_Name } = mls_data;
+          listing_by_name =
+            LA1_FullName || LA2_FullName || LA3_FullName || SO1_FullName || SO2_FullName || SO3_FullName || LO1_Name || LO2_Name || LO3_Name || '';
+          if (listing_by_name) {
+            listing_by = `Listing courtesy of ${listing_by_name}`;
+          }
+        }
         Object.keys(property).forEach(k => {
           const attrib = property as unknown as { [a: string]: unknown };
           if (attrib[k] === null) delete attrib[k];
@@ -277,6 +287,8 @@ export async function getPropertyByMlsId(mls_id: string, legacy_data?: { photos?
         cover_photo = cover_photo ? getImageSized(cover_photo, 480) : '/house-placeholder.png';
         records.push({
           ...property,
+          listing_by,
+          listing_by_name,
           property_photo_album,
           photos,
           amenities: (property.amenities?.data || []).map(item => ({
