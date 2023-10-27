@@ -70,6 +70,11 @@ export default async function Home({ params, searchParams }: { params: Record<st
   let session_key = cookies().get('session_key')?.value || '';
   let session_as = cookies().get('session_as')?.value || 'customer';
 
+  console.log('Headers');
+  console.log('   X-Url:', headers().get('x-url'));
+  console.log('   Agent ID:', possible_agent);
+  console.log('   Slug:', profile_slug);
+
   if (!possible_agent && !profile_slug && headers().get('x-url') && `${headers().get('x-url')}`.split('/').pop() === 'index.html') {
     if (headers().get('x-agent-id') && headers().get('x-profile-slug')) {
       return <PageComponent agent_id={headers().get('x-agent-id') as string} />;
