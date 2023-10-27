@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest } from 'next/server';
 import { WEBFLOW_DASHBOARDS } from './_typings/webflow';
 import { getAgentBy } from './app/api/_helpers/agent-helper';
 import { objectToQueryString } from './_utilities/url-helper';
@@ -17,6 +17,7 @@ export async function middleware(request: NextRequest) {
   // we want to be able to read Property ID (MLS_ID, etc)
   // to place meta tags in HEAD dynamically based on Property Data
   const { origin, hostname, pathname, searchParams } = new URL(request.url);
+  const domain_name = `${request.headers.get('host') || hostname}`.split(':').reverse().pop() || hostname;
   if (pathname.includes('/api')) return response;
   if (pathname.includes('/css')) return response;
   if (pathname.includes('next')) return response;
@@ -29,14 +30,15 @@ export async function middleware(request: NextRequest) {
   let page_url = `https://sites.leagent.com/`;
   response.headers.set('x-viewer', 'realtor');
   response.headers.set('x-canonical', `${origin}${pathname || ''}`);
-  response.headers.set('x-hostname', `${hostname || ''}`);
+  response.headers.set('x-hostname', `${domain_name || ''}`);
   response.headers.set('x-search-params', searchParams.toString());
 
+  if (segments.includes('_next')) return request;
   let agent_data =
-    hostname === 'leagent.com' || (segments && !REALTOR_MAIN_PAGES.includes(segments[0]))
+    domain_name === 'leagent.com' || (segments && !REALTOR_MAIN_PAGES.includes(segments[0]))
       ? {}
       : await getAgentBy({
-          domain_name: hostname,
+          domain_name,
         });
   if (searchParams.get('key') && searchParams.get('as')) {
     const session_key = searchParams.get('key') as string;
@@ -78,6 +80,21 @@ export async function middleware(request: NextRequest) {
     response.headers.set('x-linkedin-url', agent_data.metatags?.linkedin_url || '');
     response.headers.set('x-youtube-url', agent_data.metatags?.youtube_url || '');
     response.headers.set('x-instagram-url', agent_data.metatags?.instagram_url || '');
+    if (agent_data.metatags.headshot) response.headers.set('x-agent-headshot', agent_data.metatags.headshot);
+    if (agent_data.metatags.geocoding) {
+      let { lat, lng, ...geocoding } = agent_data.metatags.geocoding;
+      if (!lat) lat = agent_data.metatags.lat;
+      if (!lng) lng = agent_data.metatags.lng;
+      response.headers.set(
+        'x-map-uri',
+        `${agent_data.domain_name ? '' : '/' + segments.slice(0, 2).join('/')}/map?` +
+          objectToQueryString({
+            ...geocoding,
+            lat,
+            lng,
+          }),
+      );
+    }
 
     if (REALTOR_MAIN_PAGES.includes(segments[0]) || pathname === '/') {
       response.headers.set('x-viewer', 'customer');
