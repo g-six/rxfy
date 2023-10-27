@@ -2,35 +2,13 @@ import axios, { AxiosError } from 'axios';
 import { gql_agent_inventory, mutate_agent_inventory } from '../../graphql';
 import { PropertyDataModel } from '@/_typings/property';
 import { NextRequest } from 'next/server';
+import { retrieveAgentInventory } from '../model';
 
 export async function GET(request: NextRequest) {
   try {
-    const { data: inventory_response } = await axios.post(
-      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-      {
-        query: gql_agent_inventory,
-        variables: {
-          agent: new URL(request.url || '').pathname.split('/').pop(),
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-          'Content-Type': 'application/json',
-        },
-      },
-    );
-    const records: Record<string, unknown>[] = [];
-    if (inventory_response.data?.inventory?.records) {
-      inventory_response.data?.inventory?.records.map(({ id, attributes }: { id: number; attributes: Record<string, unknown> }) => {
-        const record = attributes.property as { data: { id: number; attributes: PropertyDataModel } };
-        if (record.data.attributes)
-          records.push({
-            ...record.data.attributes,
-            id: Number(record.data.id),
-          });
-      });
-    }
+    const agent_id = new URL(request.url || '').pathname.split('/').pop() as string;
+
+    const records: Record<string, unknown>[] = await retrieveAgentInventory(agent_id);
 
     return new Response(
       JSON.stringify(
@@ -56,7 +34,7 @@ export async function GET(request: NextRequest) {
   return new Response(
     JSON.stringify(
       {
-        error: 'Please login to retrieve documents',
+        error: 'Please login to retrieve agent inventory',
       },
       null,
       4,

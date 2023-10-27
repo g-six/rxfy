@@ -176,6 +176,26 @@ export const gql_agent_inventory = `query AgentInventory($agent: ID!) {
     records: data {
       id
       attributes {
+        mls_id
+        property {
+          data {
+            id
+            attributes {
+              ${GQ_FRAGMENT_PROPERTY_ATTRIBUTES}
+            }
+          }
+        }
+      }
+    }
+  }
+}`;
+
+export const gql_agent_id_inventory = `query AgentInventory($agent: String!) {
+  inventory: agentInventories(filters: { agent_id: { eqi: $agent } }) {
+    records: data {
+      id
+      attributes {
+        mls_id
         property {
           data {
             id

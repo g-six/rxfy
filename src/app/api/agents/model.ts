@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import {
+  gql_agent_id_inventory,
   gql_by_agent_uniq,
   gql_by_realtor_id,
   gql_create_agent,
@@ -23,6 +24,7 @@ import { cache } from 'react';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { createTask } from '../clickup/model';
 import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
+import { retrieveAgentInventory } from './inventory/model';
 export const maxDuration = 300;
 export async function createAgent(
   user_data: {
@@ -482,9 +484,14 @@ export async function getMostRecentListing(agent_id: string, city: string, size:
       },
     },
   };
-  const legacy_listings = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
 
-  const listing = legacy_listings.length && legacy_listings[0];
+  const [legacy_listings, listings] = await Promise.all([
+    retrieveFromLegacyPipeline(legacy_params, undefined, 1),
+    retrieveAgentInventory(agent_id, gql_agent_id_inventory),
+  ]);
+
+  //You can reorder the return priority (either legacy_listings or listings (strapi))
+  const listing = (listings.length && listings[0]) || (legacy_listings.length && legacy_listings[0]);
   if (listing) {
     const {
       title,

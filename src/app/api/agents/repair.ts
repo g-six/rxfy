@@ -15,17 +15,21 @@ export async function getSmart(
     property.city && property.state_province ? ', ' : ''
   }${property.state_province || ''}`;
 
-  if (real_estate_board) {
-    prompt = `Retrieve the public information of a realtor named ${agent.full_name}, a licenced realtor for ${`${
-      real_estate_board?.name
-        ? `(${real_estate_board.name})`
-        : `${property.city}${property.city && property.state_province ? ', ' : ''}${property.state_province || ''}`
-    } `} with Paragon ID "${agent.agent_id}" from the internet and only use the most recently published source or article anytime from November ${
-      new Date().getFullYear() - 1
-    } to today. Based on that factual information`;
+  if (property.description) {
+    prompt = `\nI've also recently listed a real estate property at ${property.title} with the following advertisement:\n\n"${property.description}"\n. With that taken into consideration`;
   }
 
-  prompt = `${prompt}, write me a realtor bio (JSON key "bio") from a first-person point of view for prospect clients 
+  // if (real_estate_board) {
+  // prompt = `Retrieve the public information of a realtor named ${agent.full_name}, a licenced realtor for ${`${
+  //   real_estate_board?.name
+  //     ? `(${real_estate_board.name})`
+  //     : `${property.city}${property.city && property.state_province ? ', ' : ''}${property.state_province || ''}`
+  // } `} with Paragon ID "${agent.agent_id}" from the internet and only use the most recently published source or article anytime from November ${
+  //   new Date().getFullYear() - 1
+  // } to today. Based on that factual information`;
+  // }
+
+  prompt = `${prompt}, write me a 200-worded realtor bio (JSON key "bio") from a first-person point of view for prospect clients 
   belonging to the demographic looking for listings in the same city or area, 
   a set of SEO metatags (JSON key "metatags") fit for my professional website, website title (JSON key "title") and a well structured, 
   3-worded, and SEO friendly tagline (JSON key "tagline"). Contain the results in JSON key-value pair format.
@@ -39,7 +43,7 @@ export async function getSmart(
     `${process.env.NEXT_APP_OPENAI_URI}`,
     {
       messages: [{ role: 'user', content: prompt }],
-      max_tokens: 400,
+      max_tokens: 1200,
       temperature: 1,
       top_p: 1,
       frequency_penalty: 0,
@@ -67,7 +71,7 @@ export async function getSmart(
 
     const text = (choices as unknown[] as { message: { role: string; content: string } }[])
       .filter(choice => choice.message.role === 'assistant')
-      .map(choice => choice.message.content)
+      .map(choice => choice.message.content.split('"\n\n  "').join('",\n\n  "'))
       .pop();
 
     if (text) {
@@ -75,11 +79,16 @@ export async function getSmart(
 
       if (ai_results.bio) {
         let search_highlights: unknown[] = [];
-        const { city: target_city, lat, lng } = property;
+        const { city: target_city, lat } = property;
+        const lng = property.lng || property.lon;
         const { NEXT_APP_MAPBOX_TOKEN } = process.env;
         let geocoding: { [k: string]: any } = {};
 
-        const map_response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${NEXT_APP_MAPBOX_TOKEN}`);
+        const mapbox_url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(target_city)}.json?${
+          lat && lng ? `proximity=${lng},${lat}&` : ''
+        }access_token=${NEXT_APP_MAPBOX_TOKEN}`;
+
+        const map_response = await fetch(mapbox_url);
         const data = await map_response.json();
         const { features } = data;
         let bounds: number[] = [];
@@ -88,6 +97,9 @@ export async function getSmart(
             const { bbox, place_type, context } = feature;
             if (bounds && bounds.length === 0) {
               context.forEach(c => {
+                if (bounds && bounds.length === 0 && bbox && bbox.length >= 0) {
+                  bounds = bbox;
+                }
                 if (c.id.includes('postcode')) {
                   geocoding = {
                     ...geocoding,
@@ -109,35 +121,8 @@ export async function getSmart(
                   };
                 }
               });
+            }
 
-              if (bbox && bbox.length >= 0) {
-                bounds = bbox;
-              }
-            }
-            if (place_type.includes('neighborhood') && bbox) {
-              context.forEach(c => {
-                if (c.id.includes('postcode')) {
-                  geocoding = {
-                    ...geocoding,
-                    postal_zip_code: c.text,
-                  };
-                }
-                if (c.id.includes('place')) {
-                  geocoding = {
-                    ...geocoding,
-                    city: c.text,
-                    name: c.text,
-                    title: c.text,
-                  };
-                }
-                if (c.id.includes('region')) {
-                  geocoding = {
-                    ...geocoding,
-                    state_province: c.text,
-                  };
-                }
-              });
-            }
             if (place_type.includes('address')) {
               context
                 .filter(c => c.id.includes('address.'))
@@ -157,10 +142,10 @@ export async function getSmart(
         if (bounds && bounds.length === 4) {
           geocoding = {
             ...geocoding,
-            swlng: bounds[0],
-            swlat: bounds[1],
-            nelng: bounds[2],
-            nelat: bounds[3],
+            swlng: bounds[0] - 0.0009,
+            swlat: bounds[1] - 0.0006,
+            nelng: bounds[2] + 0.0009,
+            nelat: bounds[3] + 0.0006,
           };
           search_highlights = search_highlights.map(h => ({
             ...(h as any),
@@ -244,6 +229,9 @@ export async function getSmart(
         } else {
           prom.then(res => {
             console.log('...[DONE] mutation_update_agent\n\n', res.data?.data?.updateAgent);
+            if (res.data?.data?.updateAgent.data?.attributes?.agent_metatag?.data?.attributes) {
+              console.log('metatags ', JSON.stringify(res.data?.data?.updateAgent.data.attributes.agent_metatag.data.attributes, null, 4));
+            }
           });
         }
       }
