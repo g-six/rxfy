@@ -18,6 +18,7 @@ import NavIterator from '@/components/Nav/RxNavIterator';
 import { PropertyDataModel } from '@/_typings/property';
 
 export default async function PageComponent({ agent_id, theme = 'default' }: { agent_id: string; theme?: string }) {
+  console.log('Loading app/[slug]/[profile-slug]/page.module.tsx', { slug: agent_id });
   const agent = await findAgentRecordByAgentId(agent_id);
   let webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${agent.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/index.html`;
   if (!agent) return <></>;
