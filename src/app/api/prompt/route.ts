@@ -53,11 +53,16 @@ export async function POST(req: NextRequest) {
       },
     ] = ai_response.data.choices;
     const json = JSON.parse(content);
+    let { beds, baths } = json;
+    if (isNaN(beds)) beds = 0;
+    if (isNaN(baths)) baths = 0;
     if (json.dwelling_type) {
       const dwelling_type = await getDwellingType(json.dwelling_type);
       if (dwelling_type) {
         return getResponse({
           ...json,
+          beds,
+          baths,
           dwelling_type: dwelling_type.id,
           description: payload.description,
           strapi: {

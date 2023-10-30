@@ -377,7 +377,7 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
 
   let [record] = response_data?.data?.agents.data;
   if (!record) {
-    console.log('agent record does not exist', attributes);
+    console.log('api.agents.model.findAgentsBy: agent record does not exist', attributes);
     return;
   } else if (!record.attributes.agent_metatag?.data) {
     console.log('');

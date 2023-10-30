@@ -54,6 +54,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let profile_slug = headers().get('x-profile-slug'); // || 'leagent';
 
   if (profile_slug && agent_id) {
+    console.log('layout', { profile_slug, agent_id });
     const agent_record = await findAgentRecordByAgentId(agent_id);
     const metatags = {
       ...agent_record?.agent_metatag?.data?.attributes,

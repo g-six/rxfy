@@ -41,10 +41,37 @@ export async function POST(req: NextRequest) {
     );
   // We'll handle photos after creation of the listing
   try {
-    const { area, title, beds, baths, lat, lon, city, neighbourhood, postal_zip_code, state_province, dwelling_type, status }: PrivateListingInput =
-      await req.json();
+    const {
+      area,
+      title,
+      beds,
+      baths,
+      lat,
+      lon,
+      city,
+      neighbourhood,
+      postal_zip_code,
+      state_province,
+      dwelling_type,
+      description,
+      status,
+    }: PrivateListingInput = await req.json();
     const record = await createPrivateListing(
-      { area, title, beds, baths, lat, lon, city, neighbourhood, postal_zip_code, state_province, dwelling_type, status: status || 'draft' },
+      {
+        area,
+        title,
+        description,
+        beds: beds || 0,
+        baths: baths || 0,
+        lat,
+        lon,
+        city,
+        neighbourhood,
+        postal_zip_code,
+        state_province,
+        dwelling_type,
+        status: status || 'draft',
+      },
       token,
       Number(guid),
     );

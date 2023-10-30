@@ -21,7 +21,6 @@ import styles from '@/components/RxButton.module.scss';
 
 let btn_key = 1;
 export default function TabAi({ template, nextStepClick, saveAndExit, data, fireEvent }: TabContentProps) {
-  // const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, initialState);
   const [new_album_contents, setAlbumContents] = React.useState<string[]>();
   const [text_for_ai, setDescriptionForAi] = React.useState<string>('');
   const debouncedPrompt = useDebounce(text_for_ai, 900);

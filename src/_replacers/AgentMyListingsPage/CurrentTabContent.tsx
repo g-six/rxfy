@@ -42,7 +42,7 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, ag
   const formEvt = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
   const [attributes, setAttributes] = useState<{ [key: string]: ValueInterface[] }>();
   const { fireEvent: fireTabEvent } = useEvent(Events.AgentMyListings, true);
-  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, { floor_area_uom: 'sqft', lot_uom: 'sqft' });
+  const { data, fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, { beds: 0, baths: 0, floor_area_uom: 'sqft', lot_uom: 'sqft' });
   const [uploading, toggleUploading] = useState<boolean>(false);
   const tabsTemplates = captureMatchingElements(
     child,
@@ -69,11 +69,6 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, ag
         .then((uploads: ImagePreview[]) => {
           if (uploads.length) {
             const photos: string[] = uploads.map(p => p.preview).filter(p => p);
-            // if (data?.id && photos.length) updateXPrivateListing(data.id, { photos });
-            // formEvt.fireEvent({
-            //   ...formEvt.data,
-            //   photos: photos.length ? uploads.filter(p => p && p.preview) : undefined,
-            // });
           }
         })
         .finally(() => {
@@ -81,6 +76,8 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, ag
         });
     }
   }, [currentTab]);
+
+  console.log({ data });
 
   useEffect(() => {
     getPropertyAttributes().then((res: { [key: string]: { id: number; name: string }[] }) => setAttributes(res));
@@ -109,7 +106,6 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, ag
         if (record?.id) {
           console.log('Firing event from CurrentTabContent');
           fireEvent(record);
-          // setData({ id: record.id });
         }
 
         if (nextStepIndex !== currentStepIndex) {
