@@ -3,8 +3,7 @@ import React, { cloneElement } from 'react';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { sortArrayAlphabetically } from '@/_utilities/array-helper';
 import styles from './RxCompareFiltersModal.module.scss';
-import { CheckIcon } from '@heroicons/react/24/solid';
-import { classNames } from '@/_utilities/html-helper';
+
 type Props = {
   children: React.ReactElement;
   className?: string;
@@ -141,7 +140,7 @@ function Iterator(
           }),
         });
       }
-      if (child.props.children.props.children === 'Category')
+      if (['Category'].includes(child.props.children.props.children))
         return p.filters
           ? p.filters.map(cat =>
               React.cloneElement(<button type='button' data-key={cat} />, {
@@ -333,6 +332,7 @@ export default function RxCompareFiltersModal(
         onClose={(evt: React.MouseEvent<HTMLButtonElement>) => {
           evt.preventDefault();
           document.getElementById('customer-view-modal-compare-filters')?.classList.remove('is-really-visible');
+          document.getElementById('customer-view-modal-compare-filters')?.classList.remove(styles['show-modal']);
           document.getElementById('modal-compare-filters')?.classList.remove('is-really-visible');
           document.getElementById('modal-compare-filters')?.classList.remove(styles['show-modal']);
           document.getElementById('modal-compare-filters')?.classList.add('hidden-block');

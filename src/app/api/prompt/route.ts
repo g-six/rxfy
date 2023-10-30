@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
         messages: [{ role: 'user', content: prompt }],
         frequency_penalty: 0,
         presence_penalty: 0,
-        max_tokens: 2773,
+        max_tokens: 800,
         temperature: 0.01,
         top_p: 1.0,
         model: 'gpt-4',

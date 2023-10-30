@@ -33,8 +33,8 @@ function Iterator(
           evt.preventDefault();
           switch (evt.currentTarget.textContent?.toLowerCase()) {
             case 'find more fields':
-              document.getElementById('modal-compare-filters')?.classList.add(styles['show-modal']);
-              document.getElementById('modal-compare-filters')?.classList.remove('hidden-block');
+              document.getElementById('customer-view-modal-compare-filters')?.classList.add(styles['show-modal']);
+              document.getElementById('customer-view-modal-compare-filters')?.classList.remove('hidden-block');
               break;
             case 'next step':
               p.onSave();
@@ -125,7 +125,7 @@ function Iterator(
         ),
       });
     } else if (child.type === 'div') {
-      if (child.props.id === 'modal-compare-filters') {
+      if (child.props.id === 'customer-view-modal-compare-filters') {
         let selected_filters: { [key: string]: string[] } = {};
         if (p.filters && p.attributes) {
           const has_values: string[] = p.filters as string[];
@@ -139,11 +139,12 @@ function Iterator(
             };
           });
         }
+
         return (
           <RxCompareFiltersModal
             {...child.props}
             selected_filters={selected_filters}
-            filters={[]}
+            filters={p.attributes}
             updateFilters={p.updateFilters}
             exclude={fields_already_in_other_panels}
           >

@@ -8,6 +8,7 @@ import { formatValues } from './_utilities/data-helpers/property-page';
 import { getShortPrice } from './_utilities/data-helpers/price-helper';
 
 const REALTOR_STATIC_PAGES = ['pricing', 'examples', 'contact'];
+const GATED_PAGES = ['my-profile'];
 const REALTOR_MAIN_PAGES = ['property', 'map'];
 const SKIP_AGENT_SEARCH = ['cdn-cgi'];
 export async function middleware(request: NextRequest) {
@@ -93,7 +94,6 @@ export async function middleware(request: NextRequest) {
       agent_id: searchParams.get('agent') as string,
     });
   }
-
   if (!agent_data?.agent_id && segments.length === 2 && searchParams.get('theme')) {
     agent_data = await getAgentBy({
       agent_id: segments[0],
@@ -120,6 +120,12 @@ export async function middleware(request: NextRequest) {
       console.log('Going to bring visitor to Realtor page', page_url);
       response.headers.set('x-url', page_url);
       return response;
+    }
+  }
+
+  if (GATED_PAGES.includes(segments[0])) {
+    if (!request.cookies.get('session_key')?.value && request.cookies.get('session_as')?.value !== 'realtor') {
+      return NextResponse.redirect(new URL('/log-in', request.url));
     }
   }
 

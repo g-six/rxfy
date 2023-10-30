@@ -77,8 +77,6 @@ export default function CurrentTabContent({ child, currentTab, setCurrentTab, ag
     }
   }, [currentTab]);
 
-  console.log({ data });
-
   useEffect(() => {
     getPropertyAttributes().then((res: { [key: string]: { id: number; name: string }[] }) => setAttributes(res));
   }, []);

@@ -27,6 +27,8 @@ export default async function MyProfile() {
     }
   }
 
+  if (!session_key) return redirect('/log-in');
+
   if (page_url) {
     const [page_results, realtor_results] = await Promise.all([fetch(page_url), getUserSessionData(session_key, 'realtor')]);
 

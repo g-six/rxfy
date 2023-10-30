@@ -328,7 +328,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
           agent_data = session as AgentData;
         }
       }
-      if (!agent_data.id) {
+      if (!agent_data || !agent_data.id) {
         console.log('\n\nHome.agent_data not available');
       } else {
         console.log('Retrieved agent_data through alternative means and assumptions');
