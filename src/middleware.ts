@@ -230,13 +230,13 @@ export async function middleware(request: NextRequest) {
       } else page_url = `${page_url}${agent_data.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/${segments[2]}`;
     } else page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}/${segments[2]}`;
   } else if (pathname === '/') {
-    if (domain_name === 'leagent.com') page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/index`;
-    else {
+    page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/index`;
+    if (domain_name !== 'leagent.com') {
       // Agent has custom domain to host homepage
       agent_data = await getAgentBy({
         domain_name,
       });
-      if (agent_data.agent_id) {
+      if (agent_data && agent_data?.agent_id) {
         setAgentWebsiteHeaders(agent_data.webflow_domain);
         if (agent_data.webflow_domain.includes('leagent')) {
           page_url = `${page_url}${agent_data.webflow_domain}/index`;
