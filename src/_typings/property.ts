@@ -51,8 +51,13 @@ export const NumericFields = [
   'floor_area_main', //'L_FloorArea_Main',
   // 'L_FloorArea_GrantTotal',
   'lot_sqm', // 'L_LotSize_SqMtrs',
+  'lot_area',
   'floor_area',
   'floor_area_total',
+  'total_kitchens',
+  'total_parking',
+  'total_allowed_rentals',
+  'year_built',
   'sqft',
 ];
 

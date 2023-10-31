@@ -651,17 +651,21 @@ export function getRoomPlusLevelText(type: string, level: string, width?: string
       return `${level} Level: ${type}${measurements}`;
   }
 }
-export function formatValues(obj: any, key: string): string {
+export function formatValues(obj: any, key: string, reverse = false): string | number {
   if (!obj || !obj[key]) return '';
 
   if (NumericFields.includes(key)) {
-    return new Intl.NumberFormat(undefined).format(parseInt((obj as Record<string, string>)[key], 10) as number);
+    return reverse
+      ? Number((obj as Record<string, string>)[key])
+      : new Intl.NumberFormat(undefined).format(parseInt((obj as Record<string, string>)[key], 10) as number);
   }
 
   if (FinanceFields.includes(key) && !isNaN(Number(obj[key]))) {
-    return `$${new Intl.NumberFormat(undefined, { minimumFractionDigits: ['price_per_sqft', 'gross_taxes'].includes(key) ? 2 : undefined }).format(
-      obj[key] as number,
-    )}`;
+    return reverse
+      ? Number((obj as Record<string, string>)[key])
+      : `$${new Intl.NumberFormat(undefined, { minimumFractionDigits: ['price_per_sqft', 'gross_taxes'].includes(key) ? 2 : undefined }).format(
+          obj[key] as number,
+        )}`;
   }
 
   if (DateFields.includes(key)) {

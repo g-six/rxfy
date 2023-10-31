@@ -247,6 +247,7 @@ export default function RxCompareFiltersModal(
     selected_filters?: { [key: string]: string[] };
     updateFilters?: (filters: { [key: string]: unknown }) => void;
     exclude?: string[];
+    'selected-tab'?: 'Home Attributes';
   },
 ) {
   const filterEvent = useEvent(Events.AddPropertyFilter);
@@ -258,6 +259,7 @@ export default function RxCompareFiltersModal(
   );
   const [attributes, setAttributes] = React.useState<{ [key: string]: { label: string; value: number }[] }>();
   const [category, selectCategory] = React.useState<{ options: { value: number; label: string }[]; name: string }>();
+
   const handleClick = (action: string) => {
     const categories = attributes as unknown as {
       [key: string]: {
@@ -265,10 +267,12 @@ export default function RxCompareFiltersModal(
         label: string;
       }[];
     };
-    selectCategory({
-      options: categories[action],
-      name: action,
-    });
+
+    categories?.[action] &&
+      selectCategory({
+        options: categories[action],
+        name: action,
+      });
   };
 
   React.useEffect(() => {
@@ -315,6 +319,7 @@ export default function RxCompareFiltersModal(
         })),
     });
     if (p.selected_filters) setFilters(p.selected_filters);
+    if (p['selected-tab']) handleClick(p['selected-tab']);
   }, []);
 
   const onInputFilter = (evt: React.KeyboardEvent<HTMLInputElement>) => {

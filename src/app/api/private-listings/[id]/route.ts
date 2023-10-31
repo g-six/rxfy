@@ -5,6 +5,7 @@ import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extr
 import { PrivateListingInput } from '@/_typings/private-listing';
 import { getNewSessionKey } from '../../update-session';
 import { deleteObject } from '../../_helpers/s3-helper';
+import { formatValues } from '@/_utilities/data-helpers/property-page';
 
 export async function DELETE(req: NextRequest) {
   const { token, guid } = getTokenAndGuidFromSessionKey(req.headers.get('authorization') || '');
@@ -79,11 +80,18 @@ export async function PUT(req: NextRequest) {
       const updated_album = await updatePrivateListingAlbum(photos, property_photo_album);
       if (updated_album?.id) {
         listing = {
-          ...listing,
           property_photo_album: updated_album.id,
         } as unknown as PrivateListingInput;
       }
     }
+
+    Object.keys(listing).map(key => {
+      listing = {
+        ...listing,
+        [key]: formatValues(listing, key, true),
+      };
+    });
+
     const record = await updatePrivateListing(id, listing, token, Number(guid));
     if (record.error) {
       const { error, errors, code } = record;

@@ -44,60 +44,60 @@ function Iterator(
     } else if (child.type === 'form') {
       const grouped_fields: React.ReactElement[] = [];
       if (p.filters) {
-        p.filters.forEach(selected_filter => {
+        console.log('if (p.filters)', p.filters);
+        console.log('p.selected', p.selected);
+        p.filters.forEach(f => {
           const existing: string[] = [];
           const field_kps: React.ReactElement[] = [];
-          if (!p.attributes || !p.attributes[selected_filter]) {
-            const label = selected_filter
+          if (!p.attributes || !p.attributes[f]) {
+            const label = f
               .split('_')
               .map((s: string, i: number) => (i === 0 ? capitalizeFirstLetter(s) : s))
               .join(' ');
-            if (isDateValue(selected_filter)) {
+            if (isDateValue(f) && p.selected?.[f]) {
               grouped_fields.push(
-                <div className='mt-4 w-[47%]' key={selected_filter}>
-                  <label htmlFor={`${selected_filter}-day`} className='block text-sm font-medium leading-6 text-gray-900'>
+                <div className='mt-4 w-[47%]' key={f}>
+                  <label htmlFor={`${f}-day`} className='block text-sm font-medium leading-6 text-gray-900'>
                     {label}
                   </label>
                   <RxDateInputGroup
-                    key={selected_filter}
-                    field_name={selected_filter}
-                    default_value={p.selected?.[selected_filter] as Date}
+                    key={f}
+                    field_name={f}
+                    default_value={getInputFormattedValue(p.selected as unknown as PrivateListingOutput, f) as Date}
                     onChange={(value: number | string) => {
-                      p.toggleFilter(value, selected_filter);
+                      p.toggleFilter(value, f);
                     }}
                   />
                 </div>,
               );
             } else {
               grouped_fields.push(
-                <div className='mt-4 w-[47%]' key={selected_filter}>
-                  <label htmlFor={`input-${selected_filter}`} className='block text-sm font-medium leading-6 text-gray-900'>
+                <div className='mt-4 w-[47%]' key={f}>
+                  <label htmlFor={`input-${f}`} className='block text-sm font-medium leading-6 text-gray-900' selected-filter={f}>
                     {label}
                   </label>
                   <RxTextInput
-                    key={selected_filter}
-                    field_name={selected_filter}
-                    default_value={p.selected?.[selected_filter]}
+                    key={f}
+                    field_name={f}
+                    default_value={p.selected?.[f]}
                     onChange={(value: number | string) => {
-                      p.toggleFilter(value, selected_filter);
+                      p.toggleFilter(value, f);
                     }}
                   />
                 </div>,
               );
             }
-          } else if (Array.isArray(p.attributes[selected_filter])) {
-            p.attributes[selected_filter]
+          } else if (Array.isArray(p.attributes[f])) {
+            p.attributes[f]
               .filter(attr => !existing.includes(`${attr.id} - ${attr.name}`))
               .forEach(attr => {
-                const selected_in_category = (p.selected?.[selected_filter] || []) as number[];
+                const selected_in_category = (p.selected?.[f] || []) as number[];
                 field_kps.push(
                   <label
-                    className={`rounded-full border border-slate-300 ${selected_filter} ${
-                      selected_in_category.includes(attr.id) ? 'bg-slate-300' : 'bg-slate-100'
-                    }`}
+                    className={`rounded-full border border-slate-300 ${f} ${selected_in_category.includes(attr.id) ? 'bg-slate-300' : 'bg-slate-100'}`}
                     key={attr.id}
                     onClick={() => {
-                      p.toggleFilter(attr.id, attr.name, selected_filter);
+                      p.toggleFilter(attr.id, attr.name, f);
                     }}
                   >
                     <span className='t-filter-label w-form-label'>{attr.name}</span>
@@ -105,10 +105,10 @@ function Iterator(
                 );
                 existing.push(`${attr.id} - ${attr.name}`);
               });
-            existing.push(selected_filter);
+            existing.push(f);
             grouped_fields.push(
               <>
-                <label className='capitalize mt-4 block text-sm font-medium leading-6 text-gray-900'>{selected_filter.split('_').join(' ')}</label>
+                <label className='capitalize mt-4 block text-sm font-medium leading-6 text-gray-900'>{f.split('_').join(' ')}</label>
                 <div className='flex flex-row flex-wrap flex-start items-start justify-start gap-x-1'>{field_kps}</div>
               </>,
             );
@@ -143,7 +143,7 @@ function Iterator(
         return (
           <RxCompareFiltersModal
             {...child.props}
-            selected_filters={selected_filters}
+            selected-tab='Home Attributes'
             filters={p.attributes}
             updateFilters={p.updateFilters}
             exclude={fields_already_in_other_panels}
@@ -192,15 +192,18 @@ export default function TabMore({ data, template, nextStepClick }: TabContentPro
         if (relationship_based_attributes[label]) key = relationship_based_attributes[label];
         else if (field_aliases[label]) key = field_aliases[label];
         else key = label.split(' ').join('_').toLowerCase();
-        if (key === 'heating_&_ventilation_/_air_conditioning') key = 'hvac';
-        enable.push(key);
-        if (selected_fields && selected_fields[key]) {
-          delete updated_selection[key];
+
+        if (!enable.includes(key)) {
+          if (key === 'heating_&_ventilation_/_air_conditioning') key = 'hvac';
+          enable.push(key);
+          if (selected_fields && selected_fields[key]) {
+            delete updated_selection[key];
+          }
         }
       });
     });
+
     setEnabledFields(enable);
-    toggleField(updated_selection);
   };
 
   React.useEffect(() => {
@@ -235,7 +238,7 @@ export default function TabMore({ data, template, nextStepClick }: TabContentPro
       <Iterator
         updateFilters={updateFilters}
         filters={enabled_fields}
-        selected={selected_fields}
+        selected={data}
         attributes={attributes}
         toggleFilter={(value: number | string, field?: string, category?: string) => {
           if (category && attributes && attributes[category]) {
