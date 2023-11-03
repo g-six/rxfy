@@ -90,7 +90,7 @@ function Iterator({
 
       // Since we have property.price short-formatted for map,
       // let's get the full original price
-      kv.price = formatValues(property, 'asking_price');
+      kv.price = formatValues(property, 'asking_price') as string;
 
       return (
         <div className={classNames(subclass || '', 'rexified', 'child-of-PropertyCardSm')} {...props}>

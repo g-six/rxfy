@@ -61,7 +61,7 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
             if (!v) return <></>;
             return (
               <div key={`${k}-${property_info_kv[k]}`} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
-                <KeyValueIterator className={c.props.className} label={property_info_kv[k]} value={v}>
+                <KeyValueIterator className={c.props.className} label={property_info_kv[k]} value={`${v || ''}`}>
                   {c.props.children}
                 </KeyValueIterator>
               </div>
@@ -75,7 +75,7 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
             if (!v) return <></>;
             return (
               <div key={k} className={classNames(c.props.children.className || '', 'property-page-rexified')}>
-                <KeyValueIterator className={c.props.className} label={financial_kv[k]} value={formatValues(props.property, k)}>
+                <KeyValueIterator className={c.props.className} label={financial_kv[k]} value={`${formatValues(props.property, k) || ''}`}>
                   {c.props.children}
                 </KeyValueIterator>
               </div>
@@ -208,7 +208,7 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
         }
 
         const prop = formatValues(data, c.props['data-field']);
-        if (prop) formatted_value = prop;
+        if (prop) formatted_value = `${prop}`;
 
         return cloneElement(
           c,
