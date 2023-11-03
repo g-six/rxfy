@@ -198,7 +198,8 @@ export async function buildCacheFiles(mls_id: string): Promise<
       let strapi_record: PropertyDataModel = {} as unknown as PropertyDataModel;
       if (!promises[1] && mls_data) {
         strapi_record = {} as unknown as PropertyDataModel;
-        strapi_record = await createProperty(mls_data);
+        const created = await createProperty(mls_data);
+        if (created) strapi_record = created;
       } else if (promises[1]) strapi_record = promises[1];
 
       if (strapi_record.photos?.length) {
