@@ -201,7 +201,7 @@ export default async function AiResultPage({ params }: { params: { id: string } 
               stat.find('> *').each((i, c) => {
                 let text = '';
                 if (i > 0) {
-                  text = formatValues(data, field);
+                  text = formatValues(data, field) as unknown as string;
                 } else {
                   text = labels[idx];
                 }
