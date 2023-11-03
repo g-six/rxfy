@@ -211,7 +211,7 @@ export function RexifyStatBlock({
                   label_class={RowItem.firstChild.attribs.class}
                   value_class={RowItem.lastChild.attribs.class}
                   label={stat_keys[key] as string}
-                  value={value}
+                  value={isNaN(Number(value)) ? `${value || ''}` : `${value}`}
                 />
               ) : (
                 <></>

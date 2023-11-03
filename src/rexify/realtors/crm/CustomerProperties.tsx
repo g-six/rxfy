@@ -50,7 +50,7 @@ function PropertyIterator({ children, ...p }: { children: ReactElement; property
             },
             formatValues(p.property, 'area'),
           );
-        if (c.props['data-field'] === 'asking_price') value = formatValues(p.property, 'asking_price');
+        if (c.props['data-field'] === 'asking_price') value = `${formatValues(p.property, 'asking_price')}`;
         if (c.props['data-field'] === 'cover_photo') {
           value = '';
           if (p.property.cover_photo)

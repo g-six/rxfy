@@ -264,14 +264,7 @@ function getStatsValue(key: string, kv: { [key: string]: unknown }): string {
     return '';
   }
 
-  // if (LISTING_MONEY_FIELDS.includes(db_column) && val) {
-  //   val = val ? formatValues(kv, db_column) : 'N/A';
-  // } else if (LISTING_NUMERIC_FIELDS.includes(db_column)) {
-  //   val = val && !isNaN(Number(val)) ? new Intl.NumberFormat().format(Number(val)) : 'N/A';
-  // } else if (LISTING_FEETERS_FIELDS.includes(db_column)) {
-  //   val = val ? new Intl.NumberFormat().format(Number(val)) + ' Sqft' : 'N/A';
-  // }
-  return val ? formatValues(kv, db_column) : 'N/A';
+  return `${val ? formatValues(kv, db_column) : ''}`;
 }
 
 function CompareCardItems(
