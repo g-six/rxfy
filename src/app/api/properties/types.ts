@@ -74,6 +74,7 @@ export const AMENITY_RELATED_FIELDS: LegacyPipelineFields[] = [
 ];
 
 export const APPLIANCE_RELATED_FIELDS: LegacyPipelineFields[] = ['L_Features', 'LFD_FeaturesIncluded_55'];
+export const POI_FIELDS: LegacyPipelineFields[] = ['LFD_SiteInfluences_46'];
 
 export const BUILD_RELATED_FIELDS: LegacyPipelineFields[] = [
   'B_Construction',

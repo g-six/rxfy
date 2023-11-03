@@ -1,4 +1,13 @@
-import { BathroomDetails, GQ_FRAGMENT_PROPERTY_ATTRIBUTES, MLSProperty, PropertyDataModel, PropertyInput, RoomDetails } from '@/_typings/property';
+import {
+  BathroomDetails,
+  GQL_MARK_SOLD,
+  GQ_FRAGMENT_PROPERTY_ATTRIBUTES,
+  MLSProperty,
+  PropertyDataModel,
+  PropertyInput,
+  RoomDetails,
+  SoldPropertyInput,
+} from '@/_typings/property';
 import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
 import { getFormattedPlaceDetails, googlePlaceQuery } from '../_helpers/geo-helper';
 import axios, { AxiosError } from 'axios';
@@ -237,7 +246,7 @@ export async function buildCacheFiles(mls_id: string): Promise<
   }
 }
 
-export async function getPropertyByMlsId(mls_id: string, legacy_data?: { photos?: string[] }) {
+export async function getPropertyByMlsId(mls_id: string, legacy_data?: { photos?: string[] }, upsert?: MLSProperty) {
   try {
     const xhr = await fetch(`${process.env.NEXT_APP_CMS_GRAPHQL_URL}`, {
       body: JSON.stringify({
@@ -333,10 +342,17 @@ export async function getPropertyByMlsId(mls_id: string, legacy_data?: { photos?
       });
       return records[0];
     }
+
+    // If records not found in properties collection and upsert record was provided in params,
+    if (upsert) {
+      return await createProperty(upsert);
+    }
     return;
   } catch (e) {
     const axerr = e as AxiosError;
-    console.log('Error caught: properties.model.getPropertiesFromAgentInventory');
+    console.log('Error caught: properties.model.getPropertyByMlsId');
+    console.error(e);
+    upsert && console.log(upsert);
     console.log(axerr.response?.data);
   }
 }
@@ -391,7 +407,7 @@ export async function getBuildingUnits(property: PropertyDataModel): Promise<Bui
       .filter((n: BuildingUnit) => n.id !== property.id);
   } catch (e) {
     const axerr = e as AxiosError;
-    console.log('Error caught: properties.model.getPropertiesFromAgentInventory');
+    console.log('Error caught: properties.model.getBuildingUnits');
     console.log(axerr.response?.data);
   }
   return [];
@@ -574,7 +590,7 @@ function isPropertyAttribute(
     console.log({ key, value });
   }
 }
-async function createProperty(mls_data: MLSProperty): Promise<PropertyDataModel> {
+async function createProperty(mls_data: MLSProperty): Promise<PropertyDataModel | undefined> {
   const property_attributes = await getRecords();
   const relationships = property_attributes as unknown as PropertyAttributes;
   const { photos } = mls_data as unknown as {
@@ -653,6 +669,36 @@ async function createProperty(mls_data: MLSProperty): Promise<PropertyDataModel>
       mls_data: undefined,
     };
     if (record?.id) {
+      if (mls_data.SoldPrice) {
+        const sold: SoldPropertyInput = {
+          sold_at_price: Number(mls_data.SoldPrice),
+          date_sold: `${mls_data.ClosingDate || ''}`.split('T').reverse().pop() || '',
+          mls_id: record.mls_id,
+          property: record.id,
+        };
+
+        const { data: sold_response } = await axios.post(
+          `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+          {
+            query: GQL_MARK_SOLD,
+            variables: {
+              input: sold,
+            },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+
+        if (sold_response?.data) {
+          const sold_data = sold_response.data;
+          console.log(JSON.stringify({ sold_data }, null, 4));
+        }
+      }
+
       if (photos?.length) {
         const { id: album_id, photos: album_photos } = await createPhotoAlbumForProperty(record.id, photos);
         return {

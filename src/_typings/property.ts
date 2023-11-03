@@ -223,6 +223,9 @@ export interface MLSProperty extends Record<string, string | number | boolean | 
   PostalCode_Zip: string;
   Area: string;
   AskingPrice: number;
+  ClosingDate: string;
+  SoldPrice: number;
+  L_Sold_PricePerSqFt: number;
   B_ServicesConnected: string[];
   CDOM: number;
   City: string;
@@ -531,6 +534,36 @@ export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
                         }
                       }
 `;
+
+export interface SoldPropertyInput {
+  date_sold: string;
+  sold_at_price: number;
+  mls_id: string;
+  property: number;
+}
+
+export const GQL_MARK_SOLD = `mutation AddHistory($input: SoldPropertyInput!) {
+  createSoldProperty(data: $input) {
+    data {
+      id
+      attributes {
+        date_sold
+        sold_at_price
+        mls_id
+        property {
+          data {
+            attributes {
+              title
+              city
+              area
+              mls_id
+            }
+          }
+        }
+      }
+    }
+  }
+}`;
 
 export interface PropertyPageData extends PropertyDataModel {
   photos?: string[];

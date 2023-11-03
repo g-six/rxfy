@@ -127,6 +127,7 @@ export const STRAPI_FIELDS: {
 } = {
   // ids
   MLS_ID: 'mls_id',
+  ListingID: 'guid',
 
   // geolocation
   lat: 'lat',

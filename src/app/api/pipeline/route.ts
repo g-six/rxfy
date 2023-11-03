@@ -4,9 +4,10 @@ import { getResponse } from '../response-helper';
 import { STRAPI_FIELDS } from '@/_utilities/api-calls/call-legacy-search';
 import { GET as getPropertyAttributes } from '@/app/api/property-attributes/route';
 import { formatAddress } from '@/_utilities/string-helper';
-import { PropertyDataModel } from '@/_typings/property';
+import { MLSProperty, PropertyDataModel } from '@/_typings/property';
 import { objectToQueryString } from '@/_utilities/url-helper';
 import { createCacheItem } from '../_helpers/cache-helper';
+import { getPropertyByMlsId } from '../properties/model';
 function mapData(hits: { _source: { data: Record<string, unknown> } }[], real_estate_board?: { name: string }[]): PropertyDataModel[] {
   return hits.map(p => {
     const {
@@ -66,8 +67,59 @@ export async function POST(req: NextRequest, { internal }: { internal?: boolean 
   // end logic for cachhing
   let phase_1: PropertyDataModel[] = [];
   try {
+    let pipeline_params = payload;
+    if (payload.search_for === 'RECENTLY_SOLD') {
+      let date = new Date().toISOString().split('T').reverse().pop();
+      let closing_date = {
+        lte: date + 'T23:59:59',
+        gte: date + 'T00:00:00',
+      };
+      if (payload.date) date = payload.date;
+      if (payload.from) closing_date.gte = payload.from + 'T00:00:00';
+      if (payload.to) closing_date.lte = payload.from + 'T23:59:59';
+
+      pipeline_params = {
+        size: Number(payload.size || 1),
+        sort: {
+          'data.ListingDate': 'desc',
+        },
+        query: {
+          ...payload.query,
+          exists: undefined,
+          bool: {
+            ...(payload.query?.bool || {}),
+            filter: [
+              {
+                range: {
+                  'data.ClosingDate': closing_date,
+                },
+              },
+            ],
+            must: [
+              {
+                exists: {
+                  field: 'data.ClosingDate',
+                },
+              },
+              {
+                exists: {
+                  field: 'data.SoldPrice',
+                },
+              },
+            ],
+            must_not: [
+              { match: { 'data.IdxInclude': 'no' } },
+              { match: { 'data.L_Class': 'Rental' } },
+              { match: { 'data.L_Class': 'Commercial Lease' } },
+              { match: { 'data.L_Class': 'Commercial Sale' } },
+            ],
+          },
+        },
+      };
+    }
+
     const proms = await Promise.all([
-      axios.post(process.env.NEXT_APP_LEGACY_PIPELINE_URL as string, payload, {
+      axios.post(process.env.NEXT_APP_LEGACY_PIPELINE_URL as string, pipeline_params, {
         headers: {
           Authorization: `Basic ${Buffer.from(`${process.env.NEXT_APP_LEGACY_PIPELINE_USER}:${process.env.NEXT_APP_LEGACY_PIPELINE_PW}`).toString('base64')}`,
           'Content-Type': 'application/json',
@@ -85,8 +137,21 @@ export async function POST(req: NextRequest, { internal }: { internal?: boolean 
     };
     const records = mapData(hits, real_estate_board);
 
-    console.log(`${Date.now() - time}ms ${prefix} completed`);
     if (internal) return records;
+    if (payload.search_for === 'RECENTLY_SOLD') {
+      const properties = await Promise.all(
+        records.map(p => {
+          return getPropertyByMlsId(
+            p.mls_id,
+            undefined,
+            hits
+              .filter((hit: { _source: { data: MLSProperty } }) => hit._source.data.MLS_ID === p.mls_id)
+              .map((hit: { _source: { data: MLSProperty } }) => hit._source.data)
+              .pop(),
+          );
+        }),
+      );
+    }
     return getResponse({ records });
   } catch (e) {
     const err = e as AxiosError;
