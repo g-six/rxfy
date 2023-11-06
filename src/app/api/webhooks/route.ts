@@ -111,6 +111,8 @@ async function cacheSite(domain: string) {
 
 export async function POST(req: Request) {
   const payload: WebflowWebhookPayload = await req.json();
+  console.log('api.webhooks.POST payload');
+  console.log(JSON.stringify(payload, null, 4));
   const response = await Promise.all(payload.domains.map(async domain => cacheSite(`${domain}`)));
   const invalidations: string[] = [];
   response.forEach(r => {
