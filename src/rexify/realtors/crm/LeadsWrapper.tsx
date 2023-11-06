@@ -76,7 +76,7 @@ export default function RxCRMLeadsWrapper(p: Props) {
   };
   const filtered = customers?.filter(customer => customer.status === p['data-status']);
   React.useEffect(() => {
-    if (filtered?.length && p['data-status'] === 'lead' && !active) {
+    if (filtered?.length && !active) {
       evt.fireEvent({
         active: filtered[0].id,
       } as unknown as EventsData);

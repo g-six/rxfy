@@ -3,12 +3,12 @@ import React, { cloneElement } from 'react';
 import useEvent, { Events } from '@/hooks/useEvent';
 import { CustomerRecord } from '@/_typings/customer';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
-import { RxButton } from '@/components/RxButton';
 import RxCustomerNotesWrapper from './CustomerNotesWrapper';
 import styles from './CustomerNotes.module.scss';
 import { setData } from '@/_utilities/data-helpers/local-storage-helper';
-import { AgentData } from '@/_typings/agent';
 import RxCRMNotes from './CustomerNotes';
+import { classNames } from '@/_utilities/html-helper';
+import { RxButtonV2 } from '@/components/RxButtonV2';
 
 type Props = {
   children: React.ReactElement;
@@ -96,14 +96,15 @@ function Iterator(p: Props) {
         }
       } else if (child.props.children === 'Add a Note') {
         return (
-          <RxButton
-            className={child.props.className}
+          <RxButtonV2
+            className={classNames(child.props.className, 'rexify-realtors-crm-CustomerPreview.Iterator.Wrapped')}
             rx-event={Events.AddCustomerNote}
+            data={p['data-customer'] as unknown as Record<string, string>}
             id={`${Events.AddCustomerNote}-trigger`}
             disabled={!p['data-customer']?.id}
           >
             {child.props.children}
-          </RxButton>
+          </RxButtonV2>
         );
       } else if (child.props.className?.indexOf('all-notes') >= 0) {
         const { children: card_children, className: card_class } = child.props.children[0].props;
@@ -115,15 +116,10 @@ function Iterator(p: Props) {
       } else if (child.props['data-component'] === 'new_customer_note') {
         const { className } = child.props.children;
         return (
-          <RxCRMNotes className={className} rx-event={Events.AddCustomerNote}>
+          <RxCRMNotes className={classNames(className, 'customer-preview-iterator-wrapped')} rx-event={Events.AddCustomerNote}>
             {child.props.children}
           </RxCRMNotes>
         );
-
-        //   <RxCRMNotes {...props} rx-event={Events.AddCustomerNote}>
-        //   {domToReact(node.children) as ReactElement}
-        // </RxCRMNotes>
-        // return cloneElement(<div data-component='new_customer_note' />, { className: child.props?.className }, child.props.children);
       } else if (child.type !== 'div') {
         return child;
       }
@@ -146,10 +142,10 @@ export default function RxCRMCustomerPreview(p: Props) {
   const { active: new_form_active } = formToggle.data as unknown as {
     active: boolean;
   };
-  const evt = useEvent(Events.SelectCustomerCard);
+  const { data: selected_customer } = useEvent(Events.SelectCustomerCard);
   const [customer, setCustomer] = React.useState<CustomerRecord>();
 
-  const { active } = evt.data as unknown as {
+  const { active } = selected_customer as unknown as {
     active: number;
   };
 

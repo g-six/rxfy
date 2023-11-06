@@ -1,14 +1,14 @@
 'use client';
-import React from 'react';
+import React, { cloneElement } from 'react';
 import styles from './CustomerNotes.module.scss';
 import { Transition } from '@headlessui/react';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
-import { RxButton } from '@/components/RxButton';
 import { addCustomerNote, updateCustomerNote } from '@/_utilities/api-calls/call-realtor';
 import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
 import Cookies from 'js-cookie';
 import { AxiosError } from 'axios';
 import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
+import { RxButtonV2 } from '@/components/RxButtonV2';
 
 type Props = {
   className?: string;
@@ -23,19 +23,28 @@ type Props = {
 function Iterator(p: Props) {
   const Wrapped = React.Children.map(p.children, child => {
     if (child.props?.value?.toUpperCase() === 'ADD A NOTE') {
+      if (p['data-id']) {
+        return (
+          <RxButtonV2 className={child.props.className} rx-event={Events.SaveCustomerNote} id={`${Events.SaveCustomerNote}-trigger`}>
+            <>Update note</>
+          </RxButtonV2>
+        );
+      }
       return (
-        <RxButton className={child.props.className} rx-event={Events.SaveCustomerNote} id={`${Events.SaveCustomerNote}-trigger`}>
+        <RxButtonV2 className={child.props.className} rx-event={Events.AddCustomerNote} id={`${Events.AddCustomerNote}-trigger`}>
           {child.props.value}
-        </RxButton>
+        </RxButtonV2>
       );
     }
     if (child.props?.children) {
       if (child.props.children === 'Save') {
         return (
-          <RxButton className={child.props.className} rx-event={Events.SaveCustomerNote} id={`${Events.SaveCustomerNote}-trigger`}>
+          <RxButtonV2 className={child.props.className} rx-event={Events.SaveCustomerNote} id={`${Events.SaveCustomerNote}-trigger`}>
             {child.props.children}
-          </RxButton>
+          </RxButtonV2>
         );
+      } else if (child.props.children === 'New Note' && p['data-id']) {
+        return cloneElement(child, {}, <>Update Notes</>);
       } else if (child.props.children === 'Cancel') {
         return (
           <button type='reset' className={child.props.className} onClick={p.onClose}>
@@ -77,31 +86,67 @@ export default function RxCRMNotes(p: Props) {
   const session = useEvent(Events.LoadUserSession);
   const evt = useEvent(p['rx-event']);
   const saveHandler = useEvent(Events.SaveCustomerNote);
-  const { data: chosen } = useEvent(Events.SelectCustomerCard);
-  const { active } = chosen as unknown as {
+  const { data: active_customer } = useEvent(Events.SelectCustomerCard);
+  const { data: note_to_update, fireEvent: toggleCustomerNoteEditor } = useEvent(Events.EditCustomerNote);
+  const { active: agent_customer_id } = active_customer as unknown as {
     active: number;
   };
-  const { id: notes_id, body } = evt.data as unknown as {
+  const { id: existing_notes_id, notes } = saveHandler.data as unknown as {
+    notes: string;
+    id: number;
+  };
+  const { id: notes_id, body } = note_to_update as unknown as {
     id: number;
     body: string;
   };
+
+  const closeNoteEditor = () => {
+    saveHandler.fireEvent({});
+    evt.fireEvent({});
+    toggleCustomerNoteEditor({});
+  };
+
+  React.useEffect(() => {
+    if (evt.data?.clicked && p['rx-event'] === Events.AddCustomerNote) {
+      const { agent_customer_id } = (evt.data || {}) as unknown as {
+        agent_customer_id?: number;
+      };
+      if (agent_customer_id && notes) {
+        addCustomerNote(agent_customer_id, notes)
+          .then(() => {
+            getUserBySessionKey(Cookies.get('session_key') as string, 'realtor')
+              .then(d => {
+                session.fireEvent(d);
+              })
+              .catch(e => {
+                const axerr = e as AxiosError;
+                if (axerr.response?.status === 401) {
+                  clearSessionCookies();
+                  setTimeout(() => {
+                    location.href = '/log-in';
+                  }, 500);
+                }
+              });
+          })
+          .catch(console.error)
+          .finally(closeNoteEditor);
+      }
+    }
+  }, [evt.data]);
+
   React.useEffect(() => {
     if (saveHandler.data?.clicked) {
-      const { notes } = saveHandler.data as unknown as {
-        notes: string;
-      };
-
-      if (notes && (active || notes_id) && evt.data?.clicked) {
-        const id = notes_id || active;
+      if (notes && (agent_customer_id || notes_id)) {
+        const id = notes_id || agent_customer_id;
         let fn = addCustomerNote;
         if (notes_id) fn = updateCustomerNote;
+        console.log({ agent_customer_id, notes_id });
 
         fn(id, notes)
           .then(console.log)
           .catch(console.error)
           .finally(() => {
-            saveHandler.fireEvent({});
-            evt.fireEvent({});
+            closeNoteEditor();
             getUserBySessionKey(Cookies.get('session_key') as string, 'realtor')
               .then(data => {
                 session.fireEvent(data);
@@ -126,7 +171,7 @@ export default function RxCRMNotes(p: Props) {
   return (
     <Transition
       key='confirmation'
-      show={evt.data?.clicked === `${p['rx-event']}-trigger`}
+      show={!!notes_id || !!evt.data?.clicked}
       enter='transform ease-out duration-300 transition top-0'
       enterFrom='opacity-0'
       enterTo='opacity-100'
@@ -134,22 +179,21 @@ export default function RxCRMNotes(p: Props) {
       leaveFrom='opacity-100'
       leaveTo='opacity-0'
       as='div'
-      className={p.className + ` customer-${active} ` + styles.Modal}
+      className={p.className + ` customer-${agent_customer_id} ` + styles.Modal}
     >
       <Iterator
         rx-event={p['rx-event']}
-        data-id={active}
+        data-id={notes_id}
         data-body={body || ''}
         onChange={(evt: React.ChangeEvent<HTMLTextAreaElement>) => {
+          // Every key stroke on the Notes textarea
           saveHandler.fireEvent({
+            id: notes_id,
             notes: evt.currentTarget.value,
+            clicked: undefined,
           } as unknown as EventsData);
         }}
-        onClose={() => {
-          evt.fireEvent({
-            clicked: undefined,
-          });
-        }}
+        onClose={closeNoteEditor}
       >
         {p.children}
       </Iterator>

@@ -1,6 +1,6 @@
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
-import React from 'react';
+import React, { MouseEvent } from 'react';
 import styles from './CustomerNotes.module.scss';
 import RxTwCombo from '@/components/RxForms/RxTwCombo';
 import { moveClient } from '@/_utilities/api-calls/call-clients';
@@ -104,11 +104,10 @@ function Iterator(p: Props & { onActionClick: (e: React.MouseEvent<HTMLButtonEle
 export default function RxCRMCustomerCard(p: Props) {
   const formToggle = useEvent(Events.CreateCustomerForm);
   const session = useEvent(Events.LoadUserSession);
-  const evt = useEvent(Events.SelectCustomerCard);
-  const addNoteEventHandler = useEvent(Events.AddCustomerNote);
+  const customerCardHandler = useEvent(Events.SelectCustomerCard);
   const dropdown = useEvent(Events.CRMCustomerCardActions);
   const [is_dropped, toggleDropdown] = React.useState(false);
-  const { active } = evt.data as unknown as {
+  const { active } = customerCardHandler.data as unknown as {
     active: number;
   };
 
@@ -134,14 +133,13 @@ export default function RxCRMCustomerCard(p: Props) {
   return (
     <div
       className={['RxCRMCustomerCard', p.className || '', active === p['data-id'] && 'active', 'pointer-events-auto'].join(' ').trim()}
-      onClick={divevt => {
-        if (p['data-id']) {
+      data-id={p['data-id']}
+      onClick={(divevt: MouseEvent<HTMLDivElement>) => {
+        const agent_customer_id = Number(divevt.currentTarget.getAttribute('data-id'));
+        if (!isNaN(agent_customer_id)) {
           formToggle.fireEvent({});
-          evt.fireEvent({
-            active: p['data-id'],
-          } as unknown as EventsData);
-          addNoteEventHandler.fireEvent({
-            relationship_id: p['data-id'],
+          customerCardHandler.fireEvent({
+            active: agent_customer_id,
           } as unknown as EventsData);
         }
       }}
