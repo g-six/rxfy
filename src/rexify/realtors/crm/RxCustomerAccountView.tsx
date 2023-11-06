@@ -71,13 +71,10 @@ function Iterator(p: Props & { disabled?: boolean; customer: { [key: string]: st
     switch (child.type) {
       case 'input':
         if (!p.customer) return child;
-        if (child.props.name === 'birthday') {
+        if (child.props['data-field'] === 'birthday') {
           const dt = new Date();
-          if (child.props.name && p.customer[child.props.name]) {
-            const [year, month, day] =
-              p.customer[child.props.name] && typeof p.customer[child.props.name] === 'string'
-                ? p.customer[child.props.name].split('-').map(Number)
-                : [1990, 10, 3];
+          if (p.customer.birthday) {
+            const [year, month, day] = p.customer.birthday.split('-').length === 3 ? p.customer.birthday.split('-').map(Number) : [1990, 10, 3];
             dt.setFullYear(year);
             dt.setMonth(month - 1);
             dt.setDate(day);
@@ -98,9 +95,10 @@ function Iterator(p: Props & { disabled?: boolean; customer: { [key: string]: st
             />
           );
         }
+        console.log(child.props.name, p.customer);
         return React.cloneElement(child, {
           ...child.props,
-          value: (child.props.name && p.customer[child.props.name]) || '',
+          value: (child.props['data-field'] && p.customer[child.props['data-field']]) || '',
           onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
             p.onChange({
               [child.props.name]: evt.currentTarget.value,
