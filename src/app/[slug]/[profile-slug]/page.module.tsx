@@ -26,7 +26,7 @@ export default async function PageComponent({ agent_id, theme = 'default' }: { a
     if (theme === 'default') webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${WEBFLOW_DASHBOARDS.CUSTOMER}/index.html`;
     else webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${theme}-leagent.webflow.io/index.html`;
   }
-  console.log('show', webflow_site);
+
   const promises = await Promise.all([axios.get(webflow_site)]);
   const { data: html } = promises[0];
   const $: CheerioAPI = load(html);
@@ -184,6 +184,7 @@ export default async function PageComponent({ agent_id, theme = 'default' }: { a
   } as unknown as NextRequest;
 
   const [active, sold] = await Promise.all([getPipelineSample(internal_req, { internal: true }), getPipelineSample(intsold_req, { internal: true })]);
+
   $('[data-field="search_highlights"]:not(:first-child)').remove();
   $('.property-card:not(:first-child)').remove();
   $('[data-group="sold_listings"] [data-component="property_card"]:not(:first-child)').remove();
