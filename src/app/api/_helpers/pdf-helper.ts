@@ -192,11 +192,10 @@ export async function getPdf(page_url: string, data: unknown) {
 
   let logo_replacement = values['agent.metatags.logo_for_light_bg'] ? getImageSized(values['agent.metatags.logo_for_light_bg'], 200) : '';
   if (!logo_replacement) logo_replacement = values['agent.metatags.logo_for_dark_bg'] ? getImageSized(values['agent.metatags.logo_for_dark_bg'], 200) : '';
-  $('[data-image="agent.metatags.logo_for_light_bg"]').replaceWith(
-    logo_replacement
-      ? `<img class="${$('[data-image="agent.metatags.logo_for_light_bg"]').attr('class')}" src="${logo_replacement}"></div>`
-      : `<span>${values['agent.full_name']}</span>`,
-  );
+  if (logo_replacement)
+    $('[data-image="agent.metatags.logo_for_light_bg"]').replaceWith(
+      `<img class="${$('[data-image="agent.metatags.logo_for_light_bg"]').attr('class')}" src="${logo_replacement}"></div>`,
+    );
   let qr_url = '';
   if (agent.domain_name) {
     qr_url = `https://${agent.domain_name}/id`;
@@ -358,7 +357,7 @@ export async function getPdf(page_url: string, data: unknown) {
         if (geocoding?.postal_zip_code) address = `${address}${geocoding.postal_zip_code}`;
         if (geocoding?.state_province) address = `${address} ${geocoding.state_province}`;
         if (address) $(el).text(address);
-      } else if (['headshot', 'logo_for_light_bg', 'logo_for_dark_bg'].includes(field)) {
+      } else if (['headshot', 'logo_for_light_bg', 'logo_for_dark_bg'].includes(field) && metatags[field]) {
         $(el).replaceWith(
           `<div style="background-color: transparent !important; background-image: url('${
             metatags[field]
