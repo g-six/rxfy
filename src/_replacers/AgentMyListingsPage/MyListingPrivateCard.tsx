@@ -17,6 +17,13 @@ type Props = {
 export default function MyListingPrivateCard({ template, property, changeTab, onDelete }: Props) {
   const { fireEvent } = useFormEvent<PrivateListingData>(Events.PrivateListingForm, {}, true);
   const { fireEvent: fireListingUpdate } = useEvent(Events.AgentMyListings, true);
+  const { fireEvent: promptConfirmation, data: dialog } = useEvent(Events.Prompt);
+
+  if (dialog?.clicked === 'Confirm Action') {
+    promptConfirmation({});
+    deletePrivateListing(property.id).then(onDelete);
+  }
+
   const dropdownMatches: tMatch[] = [
     {
       searchFn: searchByClasses(['set-as-draft']),
@@ -60,7 +67,9 @@ export default function MyListingPrivateCard({ template, property, changeTab, on
       transformChild: child =>
         cloneElement(child, {
           onClick: () => {
-            deletePrivateListing(property.id).then(onDelete);
+            promptConfirmation({
+              message: `Are you sure you want to remove "${property.title}"?`,
+            });
           },
         }),
     },

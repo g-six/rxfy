@@ -66,6 +66,7 @@ export enum Events {
   SaveClient = 'evt-save-client',
   Logout = 'evt-logout',
   Blank = 'blank',
+  Prompt = 'prompt',
   AgentMyListings = 'agent-my-listings',
 }
 

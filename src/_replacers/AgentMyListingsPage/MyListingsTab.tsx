@@ -7,6 +7,7 @@ import React, { ReactElement, cloneElement, useEffect, useState } from 'react';
 import MyListingsCard from './MyListingsCard';
 import MyListingPrivateCard from './MyListingPrivateCard';
 import useEvent, { Events } from '@/hooks/useEvent';
+import RxDialog from '@/components/RxDialogs/RxDialog';
 
 type Props = {
   'data-domain': string;
@@ -54,7 +55,14 @@ export default function MyListingsTab({ child, isActive, setCurrentTab, ...props
     {
       searchFn: searchByClasses(['my-listings-tab-content']),
       transformChild: child =>
-        cloneElement(child, { className: `${removeClasses(child.props.className, ['w--tab-active'])} ${isActive ? 'w--tab-active' : ''}` }),
+        cloneElement(
+          child,
+          { className: `${removeClasses(child.props.className, ['w--tab-active'])} ${isActive ? 'w--tab-active' : ''}` },
+          <>
+            {child.props.children}
+            <RxDialog />
+          </>,
+        ),
     },
     {
       searchFn: searchByClasses(['mls-listings']),
