@@ -43,7 +43,17 @@ export default function RxFacebookCoverContent({ nodes, agent }: ReplacerPagePro
       searchFn: searchByClasses(['agent-photo']),
       transformChild: (child: ReactElement) => {
         const photo = getAgentPhoto(agent);
-        return !photo ? <></> : React.cloneElement(child, { ...child.props, src: photo });
+
+        return !photo ? (
+          <></>
+        ) : (
+          <div
+            className='bg-no-repeat bg-cover bg-center w-40 h-full'
+            style={{
+              backgroundImage: `url(${photo})`,
+            }}
+          />
+        );
       },
     },
   ];

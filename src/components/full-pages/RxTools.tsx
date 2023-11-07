@@ -9,8 +9,16 @@ import RxEmailSignature from '@/components/RxTools/RxEmailSignature';
 import RxFacebookCover from '@/components/RxTools/RxFacebookCover';
 import RxPaperBusinessCard from '@/components/RxTools/RxPaperBusinessCard';
 import RxPropertyBrochures from '@/components/RxTools/RxPropertyBrochures';
+import { getAgentPhoto } from '@/_utilities/data-helpers/agent-helper';
 
-export default function RxTools({ agent, nodes }: ReplacerPageProps) {
+export default async function RxTools({ agent, nodes }: ReplacerPageProps) {
+  let headshot = getAgentPhoto(agent);
+  if (headshot) {
+    const agent_headshot_req = await fetch(headshot);
+    const content_type = agent_headshot_req.headers.get('content-type');
+    const buff = await agent_headshot_req.arrayBuffer();
+    headshot = `data:${content_type};base64,${Buffer.from(buff).toString('base64')}`;
+  }
   const matches: tMatch[] = [
     {
       searchFn: searchByClasses(['smart-business-card-tab']),
@@ -27,7 +35,20 @@ export default function RxTools({ agent, nodes }: ReplacerPageProps) {
     {
       searchFn: searchByClasses(['facebook-cover-tab']),
       transformChild: (child: ReactElement) => {
-        return <RxFacebookCover nodes={[child]} nodeClassName={child.props.className} nodeProps={child.props} agent={agent} />;
+        return (
+          <RxFacebookCover
+            nodes={[child]}
+            nodeClassName={child.props.className}
+            nodeProps={child.props}
+            agent={{
+              ...agent,
+              metatags: {
+                ...agent.metatags,
+                headshot,
+              },
+            }}
+          />
+        );
       },
     },
     {
