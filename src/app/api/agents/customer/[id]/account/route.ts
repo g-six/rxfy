@@ -5,12 +5,6 @@ import { getUserSessionData } from '@/app/api/check-session/model';
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const r = await getUserSessionData(req.headers.get('authorization') || '', 'realtor');
-  console.log('');
-  console.log('POST api.agents.customer[id].account');
-  console.log(JSON.stringify(r, null, 4));
-  console.log('');
-  console.log('');
-  console.log('');
   const user = r as { [key: string]: string };
   if (!user?.id)
     return getResponse(
