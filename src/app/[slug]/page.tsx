@@ -1,7 +1,6 @@
 import { REALTOR_DASHBOARD_SLUGS } from '@/_constants/page-slugs';
 import { AgentData } from '@/_typings/agent';
 import DefaultPage from '@/app/page';
-import NavIterator from '@/components/Nav/RxNavIterator';
 import { CheerioAPI, load } from 'cheerio';
 import { DOMNode, domToReact } from 'html-react-parser';
 import { cookies, headers } from 'next/headers';
@@ -9,6 +8,7 @@ import { Children, ReactElement, ReactNode } from 'react';
 import { getUserSessionData } from '../api/check-session/model';
 import RxCRM from '@/rexify/realtors/RxCRM';
 import RxCustomerView from '@/rexify/realtors/RxCustomerView';
+import RxRealtorNav from '@/components/Nav/RxRealtorNav';
 
 function Rexify(p: { children: ReactElement }) {
   const rexified = Children.map(p.children, c => {
@@ -47,7 +47,7 @@ export default async function Page(props: { params: { [k: string]: string }; sea
     const wrapped = domToReact(body as unknown as DOMNode[]) as unknown as ReactElement;
     return (
       <main className='main-container dash-wrapper'>
-        <NavIterator agent={session.agent}>{domToReact(nav as unknown as DOMNode[]) as React.ReactElement}</NavIterator>
+        <RxRealtorNav>{domToReact(nav as unknown as DOMNode[]) as React.ReactElement}</RxRealtorNav>
 
         {/* Main CRM Dashboard */}
         {props.params.slug === 'dash-mycrm' && <RxCRM agent={session.agent}>{wrapped}</RxCRM>}
