@@ -9,6 +9,8 @@ import { getUserSessionData } from '../api/check-session/model';
 import RxCRM from '@/rexify/realtors/RxCRM';
 import RxCustomerView from '@/rexify/realtors/RxCustomerView';
 import RxRealtorNav from '@/components/Nav/RxRealtorNav';
+import { getCustomerLoves } from '@/app/api/agents/customer/[id]/loves/model';
+import { getAgentMapDefaultUrl } from '@/_utilities/data-helpers/agent-helper';
 
 function Rexify(p: { children: ReactElement }) {
   const rexified = Children.map(p.children, c => {
@@ -42,6 +44,16 @@ export default async function Page(props: { params: { [k: string]: string }; sea
     // $('[data-field="empty_state"]').addClass('opacity-0 initially-hidden');
     // $('[data-component]').addClass('opacity-0 initially-hidden');
     // $('.w-tab-content [data-w-tab] > *').addClass('hidden initially-hidden');
+    if (props.searchParams?.customer && session.agent?.customers) {
+      const properties = await getCustomerLoves(Number(props.searchParams.customer));
+      if (properties.length) {
+        $('#SavedHomes [data-field="empty_state"]').remove();
+      } else {
+        $('#SavedHomes [data-action="find_homes"]').each((i, el) => {
+          el.attribs.href = getAgentMapDefaultUrl(session.agent as AgentData) + '&customer=' + props.searchParams.customer;
+        });
+      }
+    }
     let body = $('body .dash-wrapper');
 
     const wrapped = domToReact(body as unknown as DOMNode[]) as unknown as ReactElement;

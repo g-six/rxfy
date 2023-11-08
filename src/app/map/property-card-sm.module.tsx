@@ -141,9 +141,11 @@ export default function PropertyCardSm({ agent, children, className }: { agent: 
                         love: 0,
                       },
                       agent,
-                      loves.includes(property.mls_id),
+                      loves && loves.includes(property.mls_id),
                     );
-                    setLoves(loves.includes(property.mls_id) ? loves.filter(mls_id => mls_id !== property.mls_id) : loves.concat([property.mls_id]));
+                    setLoves(
+                      loves && loves.includes(property.mls_id) ? loves.filter(mls_id => mls_id !== property.mls_id) : (loves || []).concat([property.mls_id]),
+                    );
                   }}
                   property={property}
                 >

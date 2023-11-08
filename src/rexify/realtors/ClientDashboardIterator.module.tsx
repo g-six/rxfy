@@ -18,6 +18,8 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { getAgentBaseUrl } from '@/app/api/_helpers/agent-helper';
 import useEvent, { Events } from '@/hooks/useEvent';
 import styles from '@/rexify/dynamic-styles.module.scss';
+import { classNames } from '@/_utilities/html-helper';
+import { RxEmptyState } from '@/components/RxCards/RxEmptyState.iterator';
 
 type Props = {
   children: React.ReactElement;
@@ -95,7 +97,7 @@ export default function ClientDashboardIterator(
 ) {
   const Wrapped = React.Children.map(p.children, child => {
     if (child.props?.children || child.props?.className) {
-      let { className } = child.props;
+      let { className, 'data-component': component_name } = child.props;
       const classes: string[] = `${className || ''}`.split(' ');
       if (p.property?.id || (p.properties && p.properties.length)) {
         if (classes.includes('initially-hidden')) {
@@ -103,11 +105,19 @@ export default function ClientDashboardIterator(
           console.log('p.property', className, p.property);
         }
       } else {
+        // Empty States empty-state
         if (classes.includes('initially-hidden') && child.props['data-field'] === 'empty_state') {
           className = classes
             .filter(name => name !== 'opacity-0' && name !== 'hidden')
             .concat(styles.shown)
             .join(' ');
+        }
+        if (component_name === 'property_card_small') {
+          return cloneElement(child, {
+            style: {
+              opacity: '0',
+            },
+          });
         }
       }
       if (p.agent && className?.includes('logo-div')) {
@@ -167,13 +177,27 @@ export default function ClientDashboardIterator(
               {child.props.children}
             </RxCustomerPropertyView>
           );
-        } else if (p.agent && child.props['data-field'] === 'empty_state') {
+        } else if (child.props['data-field'] === 'empty_state') {
           // Hide empty state elements on presence of property or properties
-          if (!p.property?.id || p.properties?.length === 0) {
-            return cloneElement(child, { className });
-          }
+          // if (!p.property?.id || p.properties?.length === 0) {
+          //   return cloneElement(child, { className });
+          // }
 
-          return <TransformLink>{child}</TransformLink>;
+          if (p.agent?.agent_id)
+            return (
+              <TransformLink>
+                <RxEmptyState
+                  className={p.className}
+                  agent={p.agent}
+                  data={{
+                    property: p.property,
+                    properties: p.properties,
+                  }}
+                >
+                  {child}
+                </RxEmptyState>
+              </TransformLink>
+            );
         } else if (className?.split(' ').includes('indiv-map-tabs')) {
           return (
             <RxSavedHomesNav {...child.props} active-tab={p['active-tab']}>

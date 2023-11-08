@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 'use client';
+import { AgentData } from '@/_typings/agent';
 import { classNames } from '@/_utilities/html-helper';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import React from 'react';
@@ -32,11 +33,14 @@ function Iterator(p: {
 export default function RxSavedHomesNav(p: { className: string; children: React.ReactElement; 'active-tab': string }) {
   const session = useEvent(Events.LoadUserSession);
   React.useEffect(() => {
-    session.fireEvent({
-      ...session.data,
-      clicked: `${Events.LoadMap}-trigger`,
-    });
-  }, []);
+    const { id: agent_id } = session.data as unknown as AgentData;
+
+    agent_id &&
+      session.fireEvent({
+        ...session.data,
+        clicked: `${Events.LoadMap}-trigger`,
+      });
+  }, [session.data]);
 
   return (
     <nav {...p}>

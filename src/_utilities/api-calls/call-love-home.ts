@@ -45,7 +45,7 @@ export const getLovedHomes = cache(async (relationship_id?: number) => {
  * @param boolean if true, API will remove existing mls_id from loved homes OR add them if they aren't previously loved
  * @returns
  */
-export async function loveHome(mls_id: string, agent: number, toggling_mode: boolean = false) {
+export async function loveHome(mls_id: string, agent: number, customer?: number) {
   try {
     // Handle localStorage
     const local_loves = (getData(Events.LovedItem) as unknown as string[]) || [];
@@ -53,13 +53,14 @@ export async function loveHome(mls_id: string, agent: number, toggling_mode: boo
       local_loves.push(mls_id);
       setData(Events.LovedItem, JSON.stringify(local_loves));
     }
-    if (!Cookies.get('session_key') || Cookies.get('session_as') === 'realtor') return;
+    if (!Cookies.get('session_key') || (Cookies.get('session_as') === 'realtor' && !customer)) return;
 
     const response = await axios.post(
       '/api/loves',
       {
         mls_id,
         agent,
+        customer,
       },
       {
         headers: {

@@ -43,6 +43,21 @@ const mutation_create_agents_customer = `mutation CreateCustomers($data: AgentsC
     }
 }`;
 
+const query_get_customer_by_agent = `query GetAgentCustomerProfile($id: ID!) {
+  agentsCustomer(id: $id) {
+    record: data {
+      id
+      attributes {
+        customer {
+          data {
+            id
+          }
+        }
+      }
+    }
+  }
+}`;
+
 const query_get_account = `query GetMyCustomerProfile($id: ID!) {
   customer(id: $id) {
     record: data {
@@ -87,8 +102,7 @@ export async function findCustomerByEmail(email: string) {
   }
   return {};
 }
-
-export async function getCustomer(id: number, agent?: number) {
+export async function getCustomer(id: number) {
   const { data: response } = await axios.post(
     `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
     {
@@ -111,6 +125,55 @@ export async function getCustomer(id: number, agent?: number) {
       ...attributes,
       id: Number(id),
     };
+  }
+}
+
+/**
+ * Retrieve a customer record based of its related agents_customer record
+ * @param id agents_customer.id
+ * @returns
+ */
+export async function getAgentsCustomer(id: number): Promise<
+  | {
+      customer: {
+        id: number;
+      };
+      id: number;
+    }
+  | undefined
+> {
+  try {
+    const { data: response } = await axios.post(
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+      {
+        query: query_get_customer_by_agent,
+        variables: {
+          id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    if (response.data?.agentsCustomer?.record) {
+      const {
+        customer: { data },
+      } = response.data.agentsCustomer.record.attributes;
+      return {
+        customer: {
+          ...(data.attributes || {}),
+          id: Number(data.id),
+        },
+        id: Number(response.data.agentsCustomer.record.id),
+      };
+    }
+  } catch (e) {
+    console.error('[ERROR] api.customers.model.agentsCustomer');
+    console.error(e);
   }
 }
 

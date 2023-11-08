@@ -22,9 +22,9 @@ Additionally, remove any attributes from the above JSON if they are not availabl
 export async function POST(req: NextRequest) {
   const payload = await req.json();
   let prompt =
-    'A JSON summarizing the real estate property:\n\n' +
+    'A JSON summarizing the real estate property and a paragraph for marketing for the following home:\n\n' +
     payload.description +
-    '\nContain the results in the following JSON format:\n{ "beds": Bedrooms, "baths": Bathrooms, "dwelling_type": Style of Home, "panoramic_view": "View" }';
+    '\nContain the results in the following JSON format:\n{ "beds": Bedrooms, "baths": Bathrooms, "dwelling_type": Style of Home, "panoramic_view": "View" , "paragraph": "A beautiful 3 bedroom family home by the lake with a garage." }';
   //   prompt = `\n\n ${ai_instructions}`;
 
   try {

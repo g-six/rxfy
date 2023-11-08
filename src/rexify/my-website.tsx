@@ -2,19 +2,18 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 import React from 'react';
-import { AgentData, AgentMetatagsInput, RealtorInputModel, ThemeName } from '@/_typings/agent';
+import { AgentData, RealtorInputModel, ThemeName } from '@/_typings/agent';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
 import useEvent, { Events, EventsData, NotificationCategory } from '@/hooks/useEvent';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import Cookies from 'js-cookie';
 import styles from './my-website.module.scss';
 import RxFileUploader from '@/components/RxForms/RxFileUploader';
-import { getUploadUrl, invalidateAgentFile } from '@/_utilities/api-calls/call-uploader';
+import { getUploadUrl } from '@/_utilities/api-calls/call-uploader';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { RxTextInput } from '@/components/RxTextInput';
 import { RxButton } from '@/components/RxButton';
 import { getCleanObject } from '@/_utilities/data-helpers/key-value-cleaner';
-import { convertDivsToSpans } from '@/_replacers/DivToSpan';
 import RxSelectedTheme from './realtors/website/RxSelectedTheme.module';
 
 type Props = {

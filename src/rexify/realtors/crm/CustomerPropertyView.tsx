@@ -16,8 +16,6 @@ import { LegacySearchPayload } from '@/_typings/pipeline';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import KeyValueIterator from '@/app/property/key-value-pair.iterator';
 import { construction_kv, financial_kv, property_info_kv } from '@/app/property/type.definition';
-import { classNames } from '@/_utilities/html-helper';
-import SimilarHomes from '@/components/SimilarHomes';
 import RxMapOfListing from '@/components/RxMapOfListing';
 
 type Props = {
@@ -138,7 +136,9 @@ function BathsIterator(p: { children: ReactElement; baths: BathroomDetails[]; cl
 function Iterator(p: Props & { property?: PropertyDataModel }) {
   const Wrapped = React.Children.map(p.children, child => {
     if (child.props?.children || child.props?.className) {
-      if (child.type === 'div') {
+      if (child.props['data-action'] === 'find_homes') {
+        return <></>;
+      } else if (child.type === 'div') {
         if (child.props.className?.includes('similar-')) {
           return <></>;
         }

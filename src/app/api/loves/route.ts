@@ -6,6 +6,7 @@ import { getNewSessionKey } from '../update-session';
 import { getMutationForPhotoAlbumCreation } from '@/_utilities/data-helpers/property-page';
 import { getLovedHomes, regenerateRecords } from './model';
 import { buildCacheFiles } from '../properties/model';
+import { getAgentsCustomer } from '../customers/model';
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
@@ -107,7 +108,8 @@ export async function POST(request: Request) {
       401,
     );
 
-  const { agent, mls_id } = await request.json();
+  const { agent, mls_id, customer } = await request.json();
+  const agent_customer_id = customer ? Number(customer) : 0;
   let session_key = `${token}-${guid}`;
 
   if (agent && mls_id) {
@@ -132,11 +134,19 @@ export async function POST(request: Request) {
       property_id = find_home_response.data.data.properties.data[0].id;
     } else {
       const property = await buildCacheFiles(mls_id);
-      console.log(JSON.stringify(property, null, 4));
+      if (property?.id) property_id = property.id;
+    }
+
+    let customer_id = 0;
+    if (agent_customer_id) {
+      const agents_customer = await getAgentsCustomer(agent_customer_id);
+      if (agents_customer?.customer.id) {
+        customer_id = agents_customer.customer.id;
+      }
     }
 
     if (property_id) {
-      const [existing] = await getLovedHomes(guid, property_id);
+      const [existing] = await getLovedHomes(customer_id || guid, property_id);
       if (existing) {
         return getResponse(
           {
@@ -165,7 +175,7 @@ export async function POST(request: Request) {
           query: gql_love,
           variables: {
             agent,
-            customer: guid,
+            customer: customer_id || guid,
             property_id,
           },
         },

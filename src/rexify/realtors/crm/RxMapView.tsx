@@ -113,6 +113,10 @@ export default function RxMapView({
         if (!maxlng || (maxlng as number) < property.lon) maxlng = property.lon;
         if (!maxlat || (maxlat as number) < property.lat) maxlat = property.lat;
         if (!minlat || (minlat as number) > property.lat) minlat = property.lat;
+        if (latitude === 49.2827 && longitude === -123.1207) {
+          latitude = property.lat;
+          longitude = property.lon;
+        }
         points.push({
           type: 'Feature' as unknown as Feature,
           properties: {
@@ -150,13 +154,6 @@ export default function RxMapView({
     if (mapDiv && mapDiv.current && session.data?.clicked) {
       if (!pins) {
         const customer_id = searchParams.get('customer') as unknown as number;
-        // getLovedHomes(customer_id).then(data => {
-        //   if (data.records) {
-        //     if (data.records && data.records.length) {
-        //       addPoints(data.records);
-        //     }
-        //   }
-        // });
       } else {
         map?.resize();
       }
