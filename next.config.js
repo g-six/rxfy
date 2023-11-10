@@ -3,6 +3,16 @@ const nextConfig = {
   experimental: {
     appDir: true,
   },
+  async rewrites() {
+    return {
+      afterFiles: [
+      {
+        source: '/opensearch/:path*',
+        destination: '/api/opensearch/:path*',
+      },
+      ]
+    }
+  },
   images: {
     remotePatterns: [
       {
