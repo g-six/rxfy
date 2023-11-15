@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
 
   if (agent_id) {
     if (searchParams.get('only')?.includes('inventory')) {
-      const inventory = await getMostRecentListing(agent_id, '');
+      const inventory = await getMostRecentListing(agent_id);
       // const inventory = await retrieveAgentInventory(agent_id, gql_agent_id_inventory)
       return getResponse(inventory as any);
     }

@@ -6,13 +6,16 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 export async function createPrivateListing(listing: PrivateListingInput, session_hash: string, realtor_id: number) {
   try {
+    const { beds, baths, ...attributes } = listing;
     const response = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
       {
         query: gql_create,
         variables: {
           data: {
-            ...listing,
+            ...attributes,
+            baths: !baths || isNaN(Number(baths)) ? 0 : Number(baths),
+            beds: !beds || isNaN(Number(beds)) ? 0 : Number(beds),
             realtor: realtor_id,
           },
         },
@@ -278,6 +281,8 @@ export async function getPrivateListing(id: number) {
           } else {
             delete response.data.data.listing.record.attributes[key];
           }
+        } else if (response.data.data.listing.record.attributes[key].data === null) {
+          delete response.data.data.listing.record.attributes[key];
         } else if (response.data.data.listing.record.attributes[key].data) {
           // This is a relationship link, let's normalize
           if (Array.isArray(response.data.data.listing.record.attributes[key].data)) {
@@ -604,6 +609,14 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
               }
           }
       }
+      building_style {
+        data {
+          id
+          attributes {
+            name
+          }
+        }
+      }
       connected_services {
           data {
               id
@@ -674,6 +687,7 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
           }
         }
       }
+      place_id
     }
   }
 `;

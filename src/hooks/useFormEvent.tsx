@@ -2,7 +2,7 @@ import React from 'react';
 import cloneDeep from 'lodash.clonedeep';
 import { deepEqual } from '@/_helpers/functions';
 import { ValueInterface } from '@/_typings/ui-types';
-import { Events, PrivateListingData, FormData } from '@/_typings/events';
+import { Events, FormData } from '@/_typings/events';
 import { removeKeys } from '@/_helpers/dom-manipulators';
 
 export interface ImagePreview extends File {

@@ -69,7 +69,7 @@ export async function PUT(req: NextRequest) {
     if (original.photos?.length) {
       // Let's remove any photos that have been deleted
       const to_delete = original.photos.filter((url: string) => !photos || !photos.includes(url));
-      const deletion = await Promise.all(
+      await Promise.all(
         to_delete.map(async (url: string) => {
           const delete_url = url.split(`${process.env.NEXT_APP_S3_PAGES_BUCKET}`)[1].substring(1);
           return await deleteObject(delete_url);

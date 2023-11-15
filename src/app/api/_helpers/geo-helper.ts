@@ -47,20 +47,30 @@ export async function getFormattedPlaceDetails(place_id: string) {
     if (formatted_address) {
       const components = formatted_address.split(', ');
       const address_city_state = address_components as { types: string[]; short_name: string }[];
-      let area, city, state_province, postal_zip_code, neighbourhood, country;
-
+      let area, city, state_province, postal_zip_code, neighbourhood, country, building_unit;
+      let state_zip: string = '';
+      const city_state_components: string[] = [];
       address_city_state.forEach(({ types, short_name }) => {
+        if (types.includes('subpremise')) {
+          building_unit = short_name;
+        }
         if (types.includes('locality') && types.includes('political')) {
           city = short_name;
+          city_state_components.push(short_name);
         }
         if (types.includes('administrative_area_level_2') && types.includes('political')) {
           area = short_name;
+          city_state_components.push(short_name);
         }
         if (types.includes('administrative_area_level_1') && types.includes('political')) {
           state_province = short_name;
+          city_state_components.push(short_name);
+          state_zip = `${short_name} ${state_zip}`;
         }
         if (types.includes('postal_code')) {
           postal_zip_code = short_name;
+          city_state_components.push(short_name);
+          state_zip = `${state_zip} ${short_name}`;
         }
         if (types.includes('neighborhood')) {
           neighbourhood = short_name;
@@ -69,11 +79,15 @@ export async function getFormattedPlaceDetails(place_id: string) {
           country = short_name;
         }
       });
+      state_zip = state_zip.split('  ').join(' ');
+      city_state_components.push(state_zip);
 
       components.pop();
+      const address = components.filter((c, idx) => idx === 0 || !city_state_components.includes(c)).join(', ');
       return {
         ...geometry?.location,
-        address: components.join(', '),
+        title: address,
+        address,
         lat: geometry?.location.lat,
         lon: geometry?.location.lng,
         nelat: geometry?.viewport.northeast.lat,
@@ -87,6 +101,7 @@ export async function getFormattedPlaceDetails(place_id: string) {
         state_province,
         neighbourhood,
         place_id,
+        building_unit,
       };
     }
   }

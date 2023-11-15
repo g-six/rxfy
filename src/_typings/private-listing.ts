@@ -1,4 +1,5 @@
 export interface PrivateListingModel {
+  id?: number;
   title?: string;
   description?: string;
   lat?: number;
@@ -71,8 +72,10 @@ export interface PrivateListingModel {
   total_dogs_allowed?: number;
   total_units_in_community?: number;
   photos?: string[];
+  place_id?: string;
 }
 export interface PrivateListingInput extends PrivateListingModel {
+  building_style?: number;
   dwelling_type?: number;
   amenities?: number[];
   appliances?: number[];

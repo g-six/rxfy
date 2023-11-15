@@ -696,7 +696,10 @@ export function formatValues(obj: any, key: string, reverse = false): string | n
   }
 
   if (key.toLowerCase() === 'address') {
-    return capitalizeFirstLetter((obj[key] as string).toLowerCase());
+    const address_components = `${obj[key]}`.split(' ').map(word => {
+      return isNaN(Number(word.split('').reverse().pop())) ? capitalizeFirstLetter(word.toLowerCase()) : word;
+    });
+    return address_components.join(' ');
   }
   return obj[key] as unknown as string;
 }

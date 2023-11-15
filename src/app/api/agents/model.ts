@@ -16,7 +16,7 @@ import { getSmart } from './repair';
 import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
 import { LegacySearchPayload } from '@/_typings/pipeline';
 import { getRealEstateBoard } from '../real-estate-boards/model';
-import { MLSProperty } from '@/_typings/property';
+import { MLSProperty, PropertyDataModel } from '@/_typings/property';
 import { mutation_update_agent } from './graphql';
 import { SearchHighlightInput } from '@/_typings/maps';
 import { cache } from 'react';
@@ -385,7 +385,7 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
     console.log('agent metatag record does not exist');
     console.log(' retrieve', agent_id, target_city);
     console.log('');
-    const recent = await getMostRecentListing(agent_id, target_city);
+    const recent = await getMostRecentListing(agent_id);
 
     const property = recent as { [key: string]: string | number };
     const { real_estate_board } = recent as {
@@ -468,19 +468,49 @@ export const findAgentRecordByRealtorId = cache(async (realtor_id: number) => {
   };
 });
 
-export async function getMostRecentListing(agent_id: string, city: string, size: number = 1): Promise<unknown> {
+export async function getMostRecentListings(agent_id: string, size: number = 10): Promise<unknown> {
+  return await getMostRecentListing(agent_id, size, true);
+}
+async function strapify(listing: Record<string, unknown>) {
+  const {
+    title,
+    description,
+    lat,
+    lon,
+    area: target_area,
+    city: target_city,
+    asking_price,
+    property_type,
+    beds,
+    baths,
+    listed_at: listing_date,
+    ...mls_data
+  } = listing;
+  const legacy = mls_data as unknown as MLSProperty;
+  const real_estate_board = await getRealEstateBoard(mls_data as unknown as Record<string, string>);
+  let listed_by = legacy.LA1_FullName || legacy.LA2_FullName || legacy.LA3_FullName;
+  return {
+    ...listing,
+    listed_by,
+    real_estate_board,
+  };
+}
+
+export async function getMostRecentListing(agent_id: string, size: number = 1, only_agent = false): Promise<unknown> {
+  const should: {}[] = [
+    { match: { 'data.LA1_LoginName': agent_id } },
+    { match: { 'data.LA2_LoginName': agent_id } },
+    { match: { 'data.LA3_LoginName': agent_id } },
+    { match: { 'data.Status': 'Active' } },
+  ];
+  if (only_agent) should.pop();
   const legacy_params: LegacySearchPayload = {
     from: 0,
-    size: 1,
+    size,
     query: {
       bool: {
-        should: [
-          { match: { 'data.LA1_LoginName': agent_id } },
-          { match: { 'data.LA2_LoginName': agent_id } },
-          { match: { 'data.LA3_LoginName': agent_id } },
-          { match: { 'data.Status': 'Active' } },
-        ],
-        minimum_should_match: 0,
+        should,
+        minimum_should_match: 1,
       },
     },
   };
@@ -491,30 +521,17 @@ export async function getMostRecentListing(agent_id: string, city: string, size:
   ]);
 
   //You can reorder the return priority (either legacy_listings or listings (strapi))
+
   const listing = (listings.length && listings[0]) || (legacy_listings.length && legacy_listings[0]);
-  if (listing) {
-    const {
-      title,
-      description,
-      lat,
-      lon,
-      area: target_area,
-      city: target_city,
-      asking_price,
-      property_type,
-      beds,
-      baths,
-      listed_at: listing_date,
-      ...mls_data
-    } = listing;
-    const legacy = mls_data as unknown as MLSProperty;
-    const real_estate_board = await getRealEstateBoard(mls_data as unknown as Record<string, string>);
-    let listed_by = legacy.LA1_FullName || legacy.LA2_FullName || legacy.LA3_FullName;
-    return {
-      ...listing,
-      listed_by,
-    };
+  if (size === 1) {
+    if (listing) {
+      return await strapify(listing as Record<string, unknown>);
+    }
   }
+  let results: Record<string, unknown>[] = [];
+  if (listings.length) results = listings;
+  if (legacy_listings.length) results = results.concat(legacy_listings as unknown[] as Record<string, unknown>[]);
+  return await Promise.all(results.map(strapify));
 }
 
 export async function createAgentRecord(agent: {
