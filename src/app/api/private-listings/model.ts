@@ -231,7 +231,7 @@ export async function updatePrivateListingAlbum(photos: string[], album_id?: num
     };
   }
 }
-export async function getPrivateListing(id: number) {
+export async function getPrivateListing(id: number, prettify = true) {
   try {
     const response = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
@@ -322,7 +322,7 @@ export async function getPrivateListing(id: number) {
       let { attributes } = response.data.data.listing.record;
 
       Object.keys(attributes).forEach(k => {
-        if (typeof attributes[k] !== 'object') {
+        if (typeof attributes[k] !== 'object' && prettify) {
           attributes[k] = formatValues(attributes, k);
         }
       });

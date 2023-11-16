@@ -58,6 +58,7 @@ export const NumericFields = [
   'total_parking',
   'total_allowed_rentals',
   'year_built',
+  'tax_year',
   'sqft',
 ];
 

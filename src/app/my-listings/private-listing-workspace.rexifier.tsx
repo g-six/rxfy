@@ -66,7 +66,7 @@ export default async function MyListingsPrivateListingsWorkspace({
 
   // User wants to edit a private listing with given id
   if (id) {
-    listing = await getPrivateListing(id);
+    listing = await getPrivateListing(id, false);
     if (!listing) return <NotFound />;
   }
 
