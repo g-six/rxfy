@@ -21,6 +21,9 @@ import { getUserSessionData } from './api/check-session/model';
 import PageComponent from './[slug]/[profile-slug]/page.module';
 import { getAgentBy } from './api/_helpers/agent-helper';
 import { LEAGENT_WEBFLOW_DOMAINS } from '@/_constants/webflow-domains';
+import CustomerLogInPage from './[slug]/[profile-slug]/log-in/page';
+import ClientMyProfile from './[slug]/[profile-slug]/my-profile/page';
+import MyDocuments from './[slug]/[profile-slug]/my-documents/page';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -72,8 +75,35 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
   let agent_data: AgentData = {} as unknown as AgentData;
   const domain_name = `${headers().get('host')}`.split(':').reverse().pop();
+  const agent_webflow_domain = headers().get('x-wf-domain') || '';
+  if (headers().get('x-agent-id')) possible_agent = headers().get('x-agent-id') as string;
+  if (headers().get('x-profile-slug')) profile_slug = headers().get('x-profile-slug') as string;
+  if (agent_webflow_domain) {
+    agent_data = await getAgentBy({
+      webflow_domain: agent_webflow_domain,
+    });
+    const client_dashboard_params = {
+      'profile-slug': profile_slug,
+      slug: possible_agent,
+    };
+    switch (params.slug) {
+      case 'log-in':
+        return CustomerLogInPage({
+          params: client_dashboard_params,
+          searchParams,
+        });
 
-  if (domain_name && !LEAGENT_DOMAINS.includes(domain_name)) {
+      case 'my-profile':
+        return ClientMyProfile({
+          params: client_dashboard_params,
+          searchParams,
+        });
+      case 'my-documents':
+        return MyDocuments({
+          params: client_dashboard_params,
+        });
+    }
+  } else if (domain_name && !LEAGENT_DOMAINS.includes(domain_name)) {
     agent_data = await getAgentBy({
       domain_name,
     });

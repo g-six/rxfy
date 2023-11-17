@@ -91,7 +91,7 @@ export default function NavIterator({ children, ...props }: { children: React.Re
         );
       } else if (!href.includes('/map') && !href.includes('log-out')) {
         return (
-          <a {...link_props} data-original-href={href} href={`${props.agent && getAgentBaseUrl(props.agent)}${href}`}>
+          <a {...link_props} data-original-href={href} href={`${props.agent && !props.agent.domain_name ? getAgentBaseUrl(props.agent) : ''}${href}`}>
             <NavIterator {...props}>{convertDivsToSpans(contents)}</NavIterator>
           </a>
         );

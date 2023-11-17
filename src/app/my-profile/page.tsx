@@ -11,13 +11,22 @@ import NotFound from '../not-found';
 import RxNotifications from '@/components/RxNotifications';
 import { redirect } from 'next/navigation';
 import { queryStringToObject } from '@/_utilities/url-helper';
+import ClientMyProfile from '../[slug]/[profile-slug]/my-profile/page';
 
 /**
  * This is the Realtor's my-profile page
  */
-export default async function MyProfile() {
+export default async function MyProfile({ searchParams }: { searchParams: { [k: string]: string } }) {
   const page_url = headers().get('x-url');
   let session_key = cookies().get('session_key')?.value || '';
+  let session_as = cookies().get('session_as')?.value || '';
+  if (session_as !== 'realtor') {
+    const params = {
+      slug: headers().get('x-agent-id') || '',
+      profile_slug: headers().get('x-profile-slug') || '',
+    };
+    return await ClientMyProfile({ params, searchParams });
+  }
 
   if (!session_key) {
     const search_params = headers().get('x-search-params') as string;

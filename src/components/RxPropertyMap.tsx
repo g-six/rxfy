@@ -131,26 +131,6 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
         if (child.props.className === 'left-bar') {
           child.props.className = `${styles.LeftBar} ${child.props.className} md:max-h-screen max-h-[calc(100dvh_-_6rem)]`;
         }
-        if (child.props.className === 'toggle-base') {
-          // return (
-          //   <Switch
-          //     onChange={props.setHideOthers}
-          //     className={classNames(
-          //       props.hide_others ? 'bg-indigo-600' : 'bg-gray-200',
-          //       'ml-1 relative inline-flex items-center h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
-          //     )}
-          //   >
-          //     <span className='sr-only'>{props.hide_others ? 'Other properties hidden' : 'Showing all properties'}</span>
-          //     <span
-          //       aria-hidden='true'
-          //       className={classNames(
-          //         props.hide_others ? 'translate-x-4' : '-translate-x-1',
-          //         'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-          //       )}
-          //     />
-          //   </Switch>
-          // );
-        }
 
         if (child.props.className === 'mapbox-canvas' && props.config) {
           MapAndHeaderHeader = cloneElement(child, {
