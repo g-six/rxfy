@@ -4,6 +4,7 @@ import {
   gql_by_agent_uniq,
   gql_by_realtor_id,
   gql_create_agent,
+  gql_metatag_by_agent_id,
   mutation_add_to_inventory,
   mutation_create_meta,
   mutation_create_website_build,
@@ -441,9 +442,46 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
   } else if (!record.attributes.agent_metatag?.data) {
     console.log('');
     console.log('');
-    console.log('agent metatag record does not exist');
-    console.log(' retrieve', agent_id, target_city);
-    console.log('');
+    console.log('No linked agent metatag, try to find one in Agent Metatag collection');
+
+    const { data: response_data } = await axios.post(
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+      {
+        query: gql_metatag_by_agent_id,
+        variables: {
+          agent_id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    let [metatag] = response_data?.data?.agentMetatags.data;
+    if (metatag.id) {
+      await axios.post(
+        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+        {
+          query: mutation_update_agent,
+          variables: {
+            id: record.id,
+            data: {
+              agent_metatag: Number(metatag.id),
+            },
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+    }
+
     const recent = await getMostRecentListing(agent_id);
 
     const property = recent as { [key: string]: string | number };
@@ -662,7 +700,6 @@ export async function getMostRecentWebsiteThemeRequest(agent: number) {
 
 async function addToAgentInventory({ agent_id, agent }: { agent_id: string; agent: number }, property: number) {
   try {
-    console.log({ agent_id, agent, property });
     const response = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
       {

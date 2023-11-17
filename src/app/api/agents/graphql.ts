@@ -156,6 +156,11 @@ export const gql_by_agent_uniq = `query Agent($filters: AgentFiltersInput!) {
       data {${GQ_FRAG_AGENT}}
     }
 }`;
+export const gql_metatag_by_agent_id = `query AgentMetatag($agent_id: String!) {
+    agentMetatags(filters: { agent_id: { eqi: $agent_id } }) {
+      data { id }
+    }
+}`;
 
 export const gql_by_realtor_id = `query GetRealtor($id: ID!) {
   realtor(id: $id) {

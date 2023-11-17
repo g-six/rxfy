@@ -31,7 +31,7 @@ import {
   getAssociatedPlacesOfInterests,
 } from './helpers';
 import { BuildingUnit, PropertyAttributes } from './types';
-import { createAgent, findAgentBy } from '../agents/model';
+import { createAgent, findAgentBy, updateAgentMetatags } from '../agents/model';
 
 export interface MapboxResultProperties {
   name: string;
@@ -260,8 +260,33 @@ export async function buildCacheFiles(mls_id: string): Promise<
                 undefined,
                 strapi_record.id,
               );
+            if (response.metatags?.id && !response.metatags?.geocoding && simple.lat && simple.lon) {
+              return await updateAgentMetatags(response.metatags.id, {
+                geocoding: JSON.stringify(
+                  {
+                    title: simple.city,
+                    name: simple.city,
+                    lat: simple.lat,
+                    lng: simple.lon,
+                    zoom: 11,
+                    nelat: simple.lat + 0.001,
+                    nelng: simple.lon + 0.0015,
+                    swlat: simple.lat - 0.001,
+                    swlng: simple.lon - 0.0015,
+                  },
+                  null,
+                  4,
+                ),
+              });
+            }
+            return {
+              message: 'Skipping createAgent() as agent already exists',
+              agent: JSON.stringify(response, null, 4),
+            };
           }),
-        ).then(console.log);
+        ).then(() => {
+          console.log('buildCacheFiles completed');
+        });
       }
 
       return {

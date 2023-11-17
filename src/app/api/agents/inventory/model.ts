@@ -37,7 +37,6 @@ export async function retrieveAgentInventory(agent: string, query = gql_agent_in
 
     if (mls_ids.length) {
       const properties = await Promise.all(mls_ids.map(mls_id => getPropertyByMlsId(mls_id as string)));
-      console.log(properties);
       properties.forEach(property => {
         records.push(property as unknown as Record<string, unknown>);
       });
@@ -73,7 +72,7 @@ export async function updatePublicListing(id: number, updates: { [k: string]: un
       const { errors } = response.data as {
         errors: [];
       };
-      console.error(JSON.stringify(errors || []));
+      console.error('updatePublicListing errors:', JSON.stringify(errors || []));
     } else {
       console.error(response);
     }

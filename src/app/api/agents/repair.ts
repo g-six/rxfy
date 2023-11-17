@@ -58,15 +58,6 @@ export async function getSmart(
     },
   );
   try {
-    console.log('');
-    console.log('');
-    console.log('');
-    console.log('');
-    console.log(JSON.stringify(data, null, 4));
-    console.log('');
-    console.log('');
-    console.log('');
-    console.log('');
     const { choices, error } = data;
 
     const text = (choices as unknown[] as { message: { role: string; content: string } }[])
@@ -169,8 +160,8 @@ export async function getSmart(
           personal_title: ai_results.tagline,
           personal_bio: ai_results.bio,
           description: ai_results.metatags,
-          search_highlights: agent.search_highlights || search_highlights || [],
-          geocoding,
+          search_highlights: JSON.stringify(agent.search_highlights || search_highlights || []),
+          geocoding: JSON.stringify(geocoding, null, 4),
           profile_slug: [
             `${real_estate_board?.abbreviation || 'la'}`,
             slugifyAddress(agent.full_name).split('-')[0],
@@ -178,12 +169,25 @@ export async function getSmart(
             `${`${agent.phone || target_city || agent.agent_id}`.split('').reverse().join('').substring(0, 4).split('').reverse().join('')}`,
           ].join('-'),
         };
+        if (search_highlights.length === 0 && geocoding.nelat) {
+          metatag.search_highlights = JSON.stringify([
+            {
+              labels: {
+                ...geocoding,
+                title: target_city,
+                name: target_city,
+                lat: metatag.lat,
+                lng: metatag.lng,
+              },
+            },
+          ]);
+        }
 
         console.log('');
         console.log('');
         console.log('');
-        console.log('');
         console.log('[BEGIN] mutation_create_meta');
+        console.log(JSON.stringify(metatag, null, 4));
         console.log('');
         console.log('');
         console.log('');
