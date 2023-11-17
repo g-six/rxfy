@@ -401,7 +401,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   };
   webflow_domain = headers().get('x-wf-domain') as string;
 
-  if (!LEAGENT_WEBFLOW_DOMAINS.includes(webflow_domain)) {
+  if (webflow_domain && !LEAGENT_WEBFLOW_DOMAINS.includes(webflow_domain)) {
     return <PageComponent agent_id={headers().get('x-agent-id') as string} />;
   }
   return (
