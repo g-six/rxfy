@@ -77,6 +77,9 @@ async function cacheSite(domain: string) {
       pages.push(pathname.substring(1));
     }
   });
+
+  createCacheItem(JSON.stringify({ pages }, null, 4), domain + `/pages.json`, 'text/javascript', false, BUCKET_NAME);
+
   await Promise.all(
     pages.map(async (page: string) => {
       const url = 'https://' + domain + (page === 'index' ? '' : '/' + page);
