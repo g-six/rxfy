@@ -17,6 +17,7 @@ interface WebflowWebhookPayload {
 
 const pages = [
   'index',
+  'homepage',
   'log-in',
   'login',
   'sign-up',
