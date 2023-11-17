@@ -133,8 +133,13 @@ export async function middleware(request: NextRequest) {
       response.headers.set('x-url', page_url);
       const page_xhr = await fetch(page_url);
       if (!page_xhr.ok) {
-        await savePageToBucket(`${page_url.split(BUCKET_NAME + '/').pop()}`.split('.html').join(''));
-        await sleep(2000);
+        const directory = `${page_url.split(BUCKET_NAME + '/').pop()}`.split('/').reverse().pop();
+        if (directory) {
+          const pages = await fetch(`https://sites.leagent.com/${webflow_domain}/pages.json`);
+          console.log(pages);
+        }
+        // await savePageToBucket(`${page_url.split(BUCKET_NAME + '/').pop()}`.split('.html').join(''));
+        // await sleep(2000);
 
         console.log('page_xhr.ok --->', page_xhr.ok);
         console.log({ page_url });
