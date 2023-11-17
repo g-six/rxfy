@@ -4,6 +4,7 @@ import { AgentData } from '@/_typings/agent';
 import { PrivateListingInput, PrivateListingModel } from '@/_typings/private-listing';
 import { FinanceFields, NumericFields } from '@/_typings/property';
 import { updatePrivateListing } from '@/_utilities/api-calls/call-private-listings';
+import { classNames } from '@/_utilities/html-helper';
 import InputDropdown from '@/components/Dropdowns/InputDropdown.module';
 import SpinningDots from '@/components/Loaders/SpinningDots';
 import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
@@ -60,12 +61,13 @@ function Rexifier({
         if (typeof c.props.children !== 'string') {
           if (className.includes('w-dropdown') && field_name) {
             let key = field_name;
-            const { [key]: defaultValue } = attributes.listing as unknown as {
+            let { [key]: defaultValue } = attributes.listing as unknown as {
               [k: string]: {
                 id: number;
                 name: string;
               };
             };
+
             return (
               <div rx-parent='home-summary.editor' className='w-full'>
                 <InputDropdown
@@ -86,6 +88,9 @@ function Rexifier({
 
           if (model) {
             const options = (data && data[model]) || [];
+            const { [model]: current_items } = attributes.listing as unknown as {
+              [k: string]: { id: number }[];
+            };
             return cloneElement(
               c,
               {},
@@ -105,6 +110,11 @@ function Rexifier({
                       Children.map(chip.props.children, cc => {
                         if (cc.props?.className?.includes('label')) {
                           return cloneElement(cc, {}, opt.name);
+                        }
+                        if (cc.props?.className?.includes('input')) {
+                          return cloneElement(cc, {
+                            className: classNames(cc.props.className, current_items.filter(i => i.id === opt.id).length ? 'w--redirected-checked' : ''),
+                          });
                         }
                         return cc;
                       }),
@@ -144,7 +154,15 @@ function Rexifier({
 
 export function MyListingsHomeSummaryEditor({ children, ...attributes }: Props) {
   const form = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
-  const { dwelling_type, building_style, land_title } = attributes.listing as unknown as {
+  const { amenities, connected_services, dwelling_type, building_style, land_title_taxonomy } = attributes.listing as unknown as {
+    amenities: {
+      id: number;
+      name: string;
+    }[];
+    connected_services: {
+      id: number;
+      name: string;
+    }[];
     dwelling_type?: {
       id: number;
       name: string;
@@ -153,53 +171,64 @@ export function MyListingsHomeSummaryEditor({ children, ...attributes }: Props) 
       id: number;
       name: string;
     };
-    land_title?: string;
+    land_title_taxonomy?: {
+      id: number;
+      name: string;
+    };
   };
 
   const [data, setData] = useState<PrivateListingInput | undefined>({
     ...attributes.listing,
+    amenities: amenities.map(a => a.id),
+    connected_services: connected_services.map(a => a.id),
     dwelling_type: dwelling_type?.id || undefined,
     building_style: building_style?.id || undefined,
-    land_title,
+    land_title_taxonomy: land_title_taxonomy?.id || undefined,
   });
   const [is_loading, toggleLoading] = useState<boolean>(true);
   const [options, setOptions] = useState<{
     amenities?: { id: number; name: string }[];
+    connected_services?: { id: number; name: string }[];
     building_style?: { id: number; name: string }[];
-    land_title?: { id: number; name: string }[];
+    land_title_taxonomy?: { id: number; name: string }[];
     dwelling_type?: { id: number; name: string }[];
   }>({});
 
   function handleAction(action: string) {
     if (form.data) {
-      const { id, dwelling_type, asking_price, building_style, land_title, year_built, property_disclosure, gross_taxes, tax_year } = form.data;
+      const {
+        id,
+        amenities,
+        connected_services,
+        dwelling_type,
+        asking_price,
+        building_style,
+        land_title_taxonomy,
+        year_built,
+        property_disclosure,
+        gross_taxes,
+        tax_year,
+      } = form.data;
 
       if (action === 'next' && id) {
-        console.log(action, {
-          id,
-          dwelling_type,
-          asking_price,
-          building_style,
-          land_title,
-          year_built,
-          property_disclosure,
-          gross_taxes,
-          tax_year,
-        });
-
         toggleLoading(true);
 
         updatePrivateListing(id, {
+          amenities,
+          connected_services,
           dwelling_type,
           asking_price,
           building_style,
-          land_title,
+          land_title_taxonomy,
           year_built,
           property_disclosure,
           gross_taxes,
           tax_year,
         })
-          .then(console.log)
+          .then(() => {
+            const next_tab = document.querySelector('a[data-w-tab="Tab 4"]') as HTMLAnchorElement;
+            next_tab.click();
+          })
           .finally(() => {
             toggleLoading(false);
           });
@@ -214,18 +243,20 @@ export function MyListingsHomeSummaryEditor({ children, ...attributes }: Props) 
   useEffect(() => {
     Promise.all([
       fetch('/api/amenities').then(r => r.json()),
+      fetch('/api/connected-services').then(r => r.json()),
       fetch('/api/dwelling-types').then(r => r.json()),
       fetch('/api/building-styles').then(r => r.json()),
       fetch('/api/land-title-taxonomies').then(r => r.json()),
     ])
       .then(responses => {
         setOptions({
-          land_title: responses.pop(),
+          land_title_taxonomy: responses.pop(),
           building_style: responses.pop(),
           dwelling_type: responses.pop().types.sort((a: { name: string }, b: { name: string }) => {
             if (a.name === 'Other') return 0;
             return a.name < b.name ? -1 : 1;
           }),
+          connected_services: responses.pop(),
           amenities: responses.pop(),
         });
       })
@@ -245,7 +276,7 @@ export function MyListingsHomeSummaryEditor({ children, ...attributes }: Props) 
         const value = polyval as string;
         switch (field) {
           case 'amenities':
-          case 'utilities':
+          case 'connected_services':
             const updates = data as unknown as {
               [k: string]: number[];
             };
@@ -256,15 +287,10 @@ export function MyListingsHomeSummaryEditor({ children, ...attributes }: Props) 
             break;
           case 'dwelling_type':
           case 'building_style':
+          case 'land_title_taxonomy':
             setData({
               ...data,
               [field]: id,
-            });
-            break;
-          case 'land_title':
-            setData({
-              ...data,
-              land_title: name,
             });
             break;
           default:

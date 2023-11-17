@@ -383,15 +383,6 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
             checkThenReload(false);
           }
         });
-
-        // retrievePublicListingsFromPipeline(legacy_params).then(({ records }: { records: PropertyDataModel[] }) => {
-        //   setPipelineResults(records);
-        //   const { loved_only } = love as unknown as { loved_only?: boolean };
-        //   if (!loved_only) {
-        //     setListings(records);
-        //     checkThenReload(false);
-        //   }
-        // });
       }
     }
   };

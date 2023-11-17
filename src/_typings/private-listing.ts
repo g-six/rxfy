@@ -1,3 +1,5 @@
+import { BathroomDetails, RoomDetails } from './property';
+
 export interface PrivateListingModel {
   id?: number;
   title?: string;
@@ -30,6 +32,7 @@ export interface PrivateListingModel {
   floor_area_total?: number;
   floor_area_below_main?: number;
   floor_area_uom?: 'sqft' | 'sqm';
+  lot_uom?: 'sqft' | 'sqm' | 'acres';
   frontage_feet?: number;
   frontage_metres?: number;
   property_photo_album?: number;
@@ -42,19 +45,10 @@ export interface PrivateListingModel {
   roofing?: string;
   region?: string;
   room_details?: {
-    rooms?: {
-      type: string;
-      level: string;
-      width: string;
-      length: string;
-    };
+    rooms: RoomDetails[];
   };
   bathroom_details?: {
-    baths?: {
-      level: string;
-      pieces: number;
-      ensuite: 'No';
-    };
+    baths: BathroomDetails[];
   };
   depth?: number;
   strata_fee?: number;
@@ -77,6 +71,7 @@ export interface PrivateListingModel {
 export interface PrivateListingInput extends PrivateListingModel {
   building_style?: number;
   dwelling_type?: number;
+  land_title_taxonomy?: number;
   amenities?: number[];
   appliances?: number[];
   building_maintenance_items?: number[];

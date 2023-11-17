@@ -17,7 +17,6 @@ import { NextRequest } from 'next/server';
 import { PropertyDataModel } from '@/_typings/property';
 import { LOGO_FIELDS } from '@/_constants/agent-fields';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
-import { AgentData } from '@/_typings/agent';
 import NotFound from '../not-found';
 
 interface SearchOpts {

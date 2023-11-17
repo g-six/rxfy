@@ -12,7 +12,7 @@ import ActionButton from './action-button.module';
 import RxNotifications from '@/components/RxNotifications';
 import { convertDivsToSpans } from '@/_replacers/DivToSpan';
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 
 function Iterator({ children, agent }: { children: React.ReactElement; agent: AgentData }) {
   const Wrapped = React.Children.map(children, c => {
@@ -65,7 +65,8 @@ export default async function ClientMyProfile({ params }: { params: { [key: stri
   if (!cookies().get('session_key')) {
     redirect(`/${params.slug}/${params['profile-slug']}/log-in`);
   }
-  const { data: html } = await axios.get('https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/my-profile');
+  const url = headers().get('x-url') || 'https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/my-profile';
+  const { data: html } = await axios.get(url);
 
   const agent = await findAgentRecordByAgentId(params.slug);
 

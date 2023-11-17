@@ -1,6 +1,6 @@
+'use client';
 import React, { ReactElement, cloneElement } from 'react';
 import useEvent, { Events } from '@/hooks/useEvent';
-import { useRouter } from 'next/navigation';
 
 import styles from './home-list.module.scss';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
@@ -136,14 +136,14 @@ export function PropertyCardIterator({
           contents,
         );
       }
-    } else if (c.type === 'div') {
+    } else if (c.props?.children && typeof c.props.children === 'string') {
       if (c.props.className.includes('area-text') || c.props['data-field'] === 'area') {
         return <div {...c.props}>{listing.area}</div>;
       }
       if (c.props.className.includes('propcard-price') || c.props['data-field'] === 'asking_price') {
         return <div {...c.props}>{formatValues(listing, 'asking_price')}</div>;
       }
-      if (c.props.className.includes('propcard-address') || c.props['data-field'] === 'title') {
+      if (c.props['data-field'] === 'title' || c.props['data-field'] === 'property_address') {
         return <div {...c.props}>{listing.title}</div>;
       }
       if (c.props.className.includes('bedroom-stat') || c.props['data-field'] === 'beds') {
@@ -165,19 +165,27 @@ export function PropertyCardIterator({
           </LoveButton>
         );
       }
-      return (
-        <div
-          className={c.props.className + ' rexified z-10'}
-          onClick={() => {
+      return cloneElement(
+        c,
+        {
+          className: c.props.className + ' rexified z-10',
+          onClick: () => {
             if (c.props.className.includes('propcard-details')) {
               onClickToOpen();
             }
-          }}
-        >
-          <PropertyCardIterator {...props} listing={listing} onClickToOpen={onClickToOpen}>
-            {c.props.children}
-          </PropertyCardIterator>
-        </div>
+          },
+        },
+        <PropertyCardIterator {...props} listing={listing} onClickToOpen={onClickToOpen}>
+          {c.props.children}
+        </PropertyCardIterator>,
+      );
+    } else if (c.props?.children && typeof c.props.children !== 'string') {
+      return cloneElement(
+        c,
+        {},
+        <PropertyCardIterator {...props} onClickToOpen={onClickToOpen} listing={listing}>
+          {c.props.children}
+        </PropertyCardIterator>,
       );
     }
     return c;
@@ -185,22 +193,32 @@ export function PropertyCardIterator({
   return <>{Wrapped}</>;
 }
 
-export default function PropertyCard({ agent, className, children }: { agent?: AgentData; className: string; children: React.ReactElement }) {
+export default function PropertyCard({
+  agent,
+  className,
+  children,
+  properties,
+  ...props
+}: {
+  agent?: AgentData;
+  className: string;
+  children: React.ReactElement;
+  properties: PropertyDataModel[];
+}) {
   const { data: love } = useEvent(Events.MapLoversToggle);
   const evt = useLove();
   const { loved_only } = love as unknown as {
     loved_only: boolean;
   };
-  const router = useRouter();
   const [loved_items, setLovedItems] = React.useState((getData(Events.LovedItem) as unknown as string[]) || []);
 
   const { data } = useEvent(Events.MapSearch);
-  const { points, reload } = data as unknown as {
-    points: {
-      properties: PropertyDataModel;
-    }[];
-    reload: boolean;
-  };
+  // const { points, reload } = data as unknown as {
+  //   points: {
+  //     properties: PropertyDataModel;
+  //   }[];
+  //   reload: boolean;
+  // };
 
   const [cards, setCards] = React.useState<React.ReactElement[]>([]);
 
@@ -232,52 +250,66 @@ export default function PropertyCard({ agent, className, children }: { agent?: A
     }
   };
 
+  function updateCards(listings: PropertyDataModel[]) {
+    setCards(
+      listings
+        .filter(p => {
+          return p.cover_photo;
+        })
+        .slice(0, 100)
+        .map(p => (
+          <div {...props} key={p.mls_id} className={[className, p.mls_id, ' rexified HomeList-PropertyCard'].join(' ')}>
+            <PropertyCardIterator
+              listing={p}
+              loved={loved_items && loved_items.includes(p.mls_id)}
+              onLoveItem={() => {
+                if (agent?.id) {
+                  toggleLoved(p);
+                }
+              }}
+              onUnloveItem={() => {
+                if (agent) {
+                  toggleLoved(p);
+                }
+              }}
+              onClickToOpen={() => {
+                // axios
+                //     location.href = `${segments.join('/')}/property?mls=${p.mls_id}`;
+                //   .get(`/api/properties/mls-id/${p.mls_id}`)
+                //   .then(r => {
+                //     // Fix the application error for properties not imported yet
+                //     location.href = `${segments.join('/')}/property?mls=${p.mls_id}`;
+                //   })
+                //   .catch(console.error);
+                // router.push('property?mls=' + p.mls_id);
+              }}
+            >
+              {children}
+            </PropertyCardIterator>
+          </div>
+        )),
+    );
+  }
+
+  React.useEffect(() => {
+    const { points } = data as unknown as {
+      points: {
+        properties: PropertyDataModel;
+      }[];
+    };
+
+    if (points) updateCards(points?.map(({ properties }) => properties));
+  }, [data]);
+
   React.useEffect(() => {
     const url = new URL(location.href);
     // e.g /agent-id/profile-slug/map
     const segments = url.pathname.split('/');
     // e.g. map
     segments.pop();
-    if (points)
-      setCards(
-        points
-          .filter(p => {
-            return p.properties.cover_photo;
-          })
-          .slice(0, 100)
-          .map(({ properties: p }) => (
-            <div key={p.mls_id} className={[className, p.mls_id, ' rexified HomeList-PropertyCard'].join(' ')}>
-              <PropertyCardIterator
-                listing={p}
-                loved={loved_items && loved_items.includes(p.mls_id)}
-                onLoveItem={() => {
-                  if (agent?.id) {
-                    toggleLoved(p);
-                  }
-                }}
-                onUnloveItem={() => {
-                  if (agent) {
-                    toggleLoved(p);
-                  }
-                }}
-                onClickToOpen={() => {
-                  // axios
-                  //     location.href = `${segments.join('/')}/property?mls=${p.mls_id}`;
-                  //   .get(`/api/properties/mls-id/${p.mls_id}`)
-                  //   .then(r => {
-                  //     // Fix the application error for properties not imported yet
-                  //     location.href = `${segments.join('/')}/property?mls=${p.mls_id}`;
-                  //   })
-                  //   .catch(console.error);
-                  // router.push('property?mls=' + p.mls_id);
-                }}
-              >
-                {children}
-              </PropertyCardIterator>
-            </div>
-          )),
-      );
-  }, [points]);
+    // if (points)
+    // if (properties) updateCards(properties);
+  }, []);
 
   return <>{cards.length > 0 && cards}</>;
 }

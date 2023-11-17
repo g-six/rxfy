@@ -6,7 +6,7 @@ import { findAgentRecordByAgentId } from '@/app/api/agents/model';
 import { CheerioAPI, load } from 'cheerio';
 import Container from './container.module';
 import { AgentData } from '@/_typings/agent';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import NavIterator from '@/components/Nav/RxNavIterator';
 
 export default async function MyDocuments({ params }: { params: { [key: string]: string } }) {
@@ -16,7 +16,9 @@ export default async function MyDocuments({ params }: { params: { [key: string]:
     path = '/access-denied';
     // redirect(`/${params.slug}/${params['profile-slug']}/log-in`);
   }
-  const promises = await Promise.all([axios.get('https://' + WEBFLOW_DASHBOARDS.CUSTOMER + path), findAgentRecordByAgentId(params.slug)]);
+  const url = headers().get('x-url') || `${'https://' + WEBFLOW_DASHBOARDS.CUSTOMER + path}`;
+
+  const promises = await Promise.all([axios.get(url), findAgentRecordByAgentId(params.slug)]);
   const { data: html } = promises[0];
   const agent: AgentData = promises[1];
 

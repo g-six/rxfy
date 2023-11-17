@@ -149,12 +149,15 @@ export interface PrivateListingData extends FormData {
   // property_type?: ValueInterface;
   dwelling_type?: ValueInterface;
   building_style?: ValueInterface;
+  land_title_taxonomy?: ValueInterface;
   amenities?: ValueInterface[];
   connected_services?: ValueInterface[];
 
   // Size
   floor_area_total?: number;
+  floor_area?: number;
   floor_area_uom?: string;
+  garages?: number;
   lot_area?: number;
   lot_uom?: string;
   beds?: number;

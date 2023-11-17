@@ -81,13 +81,15 @@ export default function DocumentsCreateFolder({ child, agent_data, setDocuments,
           { className: 'input-wrapper', key: '0213123', style: { position: 'relative', width: '100%', display: 'flex', alignItems: 'center' } },
           input_elements,
         );
-        return cloneElement(child, {}, [
-          inputWrapper,
-          cloneElement(inputElements.submit, {
-            //getting sumbit work
-            onClick: createNewDocFolder,
-          }),
-        ]);
+        if (inputElements?.submit)
+          return cloneElement(child, {}, [
+            inputWrapper,
+            cloneElement(inputElements?.submit, {
+              //getting sumbit work
+              onClick: createNewDocFolder,
+            }),
+          ]);
+        return child;
       },
     },
   ];

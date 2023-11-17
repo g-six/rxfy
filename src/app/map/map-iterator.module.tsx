@@ -181,7 +181,7 @@ export default async function MapIterator({
           );
         } else if (className.includes('all-properties')) {
           return (
-            <HomeList agent={agent} className={className}>
+            <HomeList agent={agent} className={className} properties={attributes.properties || []}>
               {props.children}
             </HomeList>
           );
@@ -207,7 +207,7 @@ export default async function MapIterator({
           );
         } else if (className.includes('ha-step-3')) {
           return <HomeAlert3 className={className}>{props.children}</HomeAlert3>;
-        } else if (className.includes('property-card-small')) {
+        } else if (className.includes('property-card-small') || (props['data-component'] === 'property_card' && props['data-size'] === 'xs')) {
           return (
             <PropertyCardSm agent={agent?.id || 0} className={className}>
               {props.children}

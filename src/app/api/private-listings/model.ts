@@ -512,6 +512,7 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
       lat
       lon
       postal_zip_code
+      property_disclosure
       region
       state_province
       asking_price
@@ -540,6 +541,7 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
       frontage_feet
       frontage_metres
       frontage_uom
+      garages
       listed_at
       lot_area
       lot_uom
@@ -560,14 +562,6 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
               }
           }
       }
-      amenities {
-          data {
-              id
-              attributes {
-                  name
-              }
-          }
-      }
       total_units_in_community
       strata_fee
       total_allowed_rentals
@@ -577,10 +571,18 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
       council_approval_required
       building_bylaws
       by_law_restrictions {
+        data {
+          id
+          attributes {
+            is_allowed
+            name
+          }
+        }
+      }
+      amenities {
           data {
               id
               attributes {
-                  is_allowed
                   name
               }
           }
@@ -650,6 +652,14 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
           }
       }
       hvacs {
+          data {
+              id
+              attributes {
+                  name
+              }
+          }
+      }
+      land_title_taxonomy {
           data {
               id
               attributes {

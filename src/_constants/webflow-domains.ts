@@ -1,4 +1,5 @@
 export const LEAGENT_WEBFLOW_DOMAINS = [
+  'leagent-website.webflow.io',
   'leagent-webflow-rebuild.webflow.io',
   'alicante-leagent.webflow.io',
   'lisbon-leagent.webflow.io',

@@ -74,7 +74,7 @@ export default function TabAi({ template, nextStepClick, saveAndExit, data, fire
   }, [debouncedPrompt, checkPrompt]);
 
   useEffect(() => {
-    if (new_album_contents) {
+    if (new_album_contents && data) {
       setAlbumContents(undefined);
       updatePrivateListing(data.id, {
         photos: new_album_contents,

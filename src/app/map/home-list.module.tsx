@@ -1,15 +1,23 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from './home-list.module.scss';
 import EmptyState from './empty-state.module';
 import PropertyCard from './property-card.module';
 import { AgentData } from '@/_typings/agent';
+import { PropertyDataModel } from '@/_typings/property';
+import useEvent, { Events } from '@/hooks/useEvent';
 
-function Iterator({ children, ...props }: { agent?: AgentData; children: React.ReactElement }) {
+interface Props {
+  agent?: AgentData;
+  children: React.ReactElement;
+  properties: PropertyDataModel[];
+}
+
+function Iterator({ children, ...props }: Props) {
   const Wrapped = React.Children.map(children, c => {
     if (c.type === 'div') {
-      if (c.props.className?.includes('is-card') || c.props.className?.split(' ').includes('property-card')) {
+      if (c.props['data-component'] === 'property_card') {
         return (
           <PropertyCard {...props} {...c.props}>
             {c.props.children}
@@ -30,10 +38,30 @@ function Iterator({ children, ...props }: { agent?: AgentData; children: React.R
   return <>{Wrapped}</>;
 }
 
-export default function HomeList({ agent, className, children }: { agent?: AgentData; className: string; children: React.ReactElement }) {
+export default function HomeList({ className, children, properties: initial_points, ...props }: Props & { className: string }) {
+  const evt = useEvent(Events.MapSearch);
+  const [properties, setProperties] = useState<PropertyDataModel[]>(initial_points);
+
+  useEffect(() => {
+    if (evt.data) {
+      const search = evt.data as unknown as {
+        points?: {
+          properties: PropertyDataModel;
+        }[];
+      };
+      if (search.points) {
+        setProperties(search.points.map(p => p.properties));
+      } else {
+        setProperties([]);
+      }
+    }
+  }, [evt.data]);
+
   return (
     <div className={[className, styles['list-scroller'], 'rexified', 'HomeList'].join(' ')}>
-      <Iterator agent={agent}>{children}</Iterator>
+      <Iterator {...props} properties={properties}>
+        {children}
+      </Iterator>
     </div>
   );
 }
