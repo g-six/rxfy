@@ -187,8 +187,6 @@ export default async function PageComponent({ agent_id, theme = 'default' }: { a
   } as unknown as NextRequest;
   const [active, sold] = await Promise.all([getPipelineSample(internal_req, { internal: true }), getPipelineSample(intsold_req, { internal: true })]);
 
-  console.log(JSON.stringify(active, null, 4));
-  console.log(JSON.stringify(internal_req.json(), null, 4));
   $('[data-field="search_highlights"]:not(:first-child)').remove();
   $('.property-card:not(:first-child)').remove();
   $('[data-group="sold_listings"] [data-component="property_card"]:not(:first-child)').remove();
