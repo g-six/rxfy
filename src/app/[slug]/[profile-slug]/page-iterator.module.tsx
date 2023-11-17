@@ -24,6 +24,9 @@ export default function Iterator({
     else if (c.type === 'video') return c;
     else if (c.type !== 'a' && c.type !== 'svg' && c.props?.children && typeof c.props?.children !== 'string') {
       const { children: sub, ...props } = c.props;
+
+      if (props.className?.includes('property-card')) {
+      }
       if (props.className?.includes('property-card') && listings?.active) {
         return (
           <>

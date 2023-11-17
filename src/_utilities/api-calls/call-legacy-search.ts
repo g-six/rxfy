@@ -246,4 +246,7 @@ export const STRAPI_FIELDS: {
   LA1_FullName: 'LA1_FullName',
   LA2_FullName: 'LA2_FullName',
   LA3_FullName: 'LA3_FullName',
+  LA1_PhoneNumber1: 'LA1_PhoneNumber1',
+  LA2_PhoneNumber1: 'LA2_PhoneNumber1',
+  LA3_PhoneNumber1: 'LA3_PhoneNumber1',
 };

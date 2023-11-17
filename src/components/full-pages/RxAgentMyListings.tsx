@@ -1,16 +1,13 @@
 'use client';
-import React, { ReactElement, createElement, useEffect, useState } from 'react';
+import React, { ReactElement, useState } from 'react';
 import { AgentData } from '@/_typings/agent';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
-import { removeKeys, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
+import { tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 
 import NewOrEditListingTab from '@/_replacers/AgentMyListingsPage/NewOrEditListingTab';
 
-import { removeClasses } from '@/_helpers/functions';
 import MyListingsTab from '@/_replacers/AgentMyListingsPage/MyListingsTab';
 import { PageTabs } from '@/_typings/agent-my-listings';
-import { createPrivateListing } from '@/_utilities/api-calls/call-private-listings';
-import useFormEvent, { Events } from '@/hooks/useFormEvent';
 import SidebarTabs from '@/_replacers/AgentMyListingsPage/SidebarTabs';
 
 type Props = {

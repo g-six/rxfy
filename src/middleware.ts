@@ -6,6 +6,7 @@ import { objectToQueryString } from './_utilities/url-helper';
 import { getPropertyByMlsId } from './app/api/properties/model';
 import { formatValues } from './_utilities/data-helpers/property-page';
 import { getShortPrice } from './_utilities/data-helpers/price-helper';
+import { LEAGENT_WEBFLOW_DOMAINS } from './_constants/webflow-domains';
 
 const REALTOR_STATIC_PAGES = ['pricing', 'examples', 'contact'];
 const GATED_PAGES = ['my-profile'];
@@ -17,8 +18,12 @@ export async function middleware(request: NextRequest) {
   // Store current request url in a custom header, which you can read later
   // we want to be able to read Property ID (MLS_ID, etc)
   // to place meta tags in HEAD dynamically based on Property Data
-  const { origin, hostname, pathname, searchParams } = new URL(request.url);
-  const domain_name = `${request.headers.get('host') || hostname}`.split(':').reverse().pop() || hostname;
+  const current_url = new URL(request.url);
+  const { origin, hostname, searchParams } = current_url;
+  let { pathname } = current_url;
+  let domain_name = `${request.headers.get('host') || hostname}`.split(':').reverse().pop() || hostname;
+  if (domain_name.includes('.local') && pathname === '/') pathname = '/homepage';
+  domain_name = domain_name.split('.local').join('');
   const setAgentWebsiteHeaders = (webflow_domain: string) => {
     response.headers.set('x-agent-id', agent_data.agent_id);
     response.headers.set('x-profile-slug', agent_data.metatags.profile_slug);
@@ -74,16 +79,15 @@ export async function middleware(request: NextRequest) {
   let is_leagent_website = domain_name === 'leagent.com';
 
   // Maybe it's not a custom domain?
-  if (!is_leagent_website && segments[0] && !REALTOR_MAIN_PAGES.includes(segments[0])) {
+  if (!is_leagent_website && domain_name.includes('leagent.com') && segments[0] && !REALTOR_MAIN_PAGES.includes(segments[0])) {
     is_leagent_website = true;
   }
 
-  let agent_data =
-    domain_name.includes('leagent.com') || (segments && !REALTOR_MAIN_PAGES.includes(segments[0]))
-      ? {}
-      : await getAgentBy({
-          domain_name,
-        });
+  let agent_data = is_leagent_website
+    ? {}
+    : await getAgentBy({
+        domain_name,
+      });
   if (searchParams.get('key') && searchParams.get('as')) {
     response.cookies.set('session_key', searchParams.get('key') as string);
     response.cookies.set('session_as', searchParams.get('as') as 'realtor' | 'customer');
@@ -102,13 +106,13 @@ export async function middleware(request: NextRequest) {
 
   if (agent_data?.agent_id && agent_data.metatags?.id) {
     let webflow_domain = agent_data.webflow_domain || '';
+
     if (!webflow_domain) {
       webflow_domain = WEBFLOW_DASHBOARDS.CUSTOMER;
       if (agent_data.theme) webflow_domain = `${agent_data.theme}-leagent.webflow.io`;
     }
     setAgentWebsiteHeaders(webflow_domain);
-
-    if (REALTOR_MAIN_PAGES.includes(segments[0]) || pathname === '/') {
+    if (REALTOR_MAIN_PAGES.includes(segments[0]) || pathname === '/' || !LEAGENT_WEBFLOW_DOMAINS.includes(webflow_domain)) {
       response.headers.set('x-viewer', 'customer');
       const allCookies = request.cookies.getAll();
       allCookies.forEach(({ name, value }) => {

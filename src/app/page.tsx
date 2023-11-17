@@ -20,6 +20,7 @@ import { getPrivateListing } from './api/private-listings/model';
 import { getUserSessionData } from './api/check-session/model';
 import PageComponent from './[slug]/[profile-slug]/page.module';
 import { getAgentBy } from './api/_helpers/agent-helper';
+import { LEAGENT_WEBFLOW_DOMAINS } from '@/_constants/webflow-domains';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -63,7 +64,6 @@ const LEAGENT_DOMAINS = ['leagent.com', 'dev.leagent.com', 'beta.leagent.com'];
 export default async function Home({ params, searchParams }: { params: Record<string, unknown>; searchParams: Record<string, string> }) {
   const start = Date.now();
   log(start, 'started');
-
   const url = headers().get('x-url') as string;
   const { hostname, origin, pathname } = new URL(url);
 
@@ -399,7 +399,11 @@ export default async function Home({ params, searchParams }: { params: Record<st
       props: $('body').attr() || {},
     },
   };
+  webflow_domain = headers().get('x-wf-domain') as string;
 
+  if (!LEAGENT_WEBFLOW_DOMAINS.includes(webflow_domain)) {
+    return <PageComponent agent_id={headers().get('x-agent-id') as string} />;
+  }
   return (
     <>
       {webflow.body.code ? (

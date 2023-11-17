@@ -16,16 +16,19 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import Iterator from './page-iterator.module';
 import NavIterator from '@/components/Nav/RxNavIterator';
 import { PropertyDataModel } from '@/_typings/property';
+import { headers } from 'next/headers';
 
 export default async function PageComponent({ agent_id, theme = 'default' }: { agent_id: string; theme?: string }) {
   console.log('Loading app/[slug]/[profile-slug]/page.module.tsx', { slug: agent_id });
   const agent = await findAgentRecordByAgentId(agent_id);
-  let webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${agent.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/index.html`;
-  if (!agent) return <></>;
-  if (!agent.webflow_domain && theme) {
-    if (theme === 'default') webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${WEBFLOW_DASHBOARDS.CUSTOMER}/index.html`;
-    else webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${theme}-leagent.webflow.io/index.html`;
-  }
+  // let webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${agent.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/index.html`;
+  // if (!agent) return <></>;
+  // if (!agent.webflow_domain && theme) {
+  //   if (theme === 'default') webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${WEBFLOW_DASHBOARDS.CUSTOMER}/index.html`;
+  //   else webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${theme}-leagent.webflow.io/index.html`;
+  // }
+
+  const webflow_site = headers().get('x-url') as string;
 
   const promises = await Promise.all([axios.get(webflow_site)]);
   const { data: html } = promises[0];
@@ -150,7 +153,7 @@ export default async function PageComponent({ agent_id, theme = 'default' }: { a
               },
             ]),
             should,
-            minimum_should_match: 0,
+            minimum_should_match: should.length >= 3 ? should.length - 2 : 1,
             must_not,
           },
         },
@@ -175,16 +178,17 @@ export default async function PageComponent({ agent_id, theme = 'default' }: { a
               },
             ]),
             should,
-            minimum_should_match: 0,
+            minimum_should_match: 1,
             must_not,
           },
         },
       } as LegacySearchPayload;
     },
   } as unknown as NextRequest;
-
   const [active, sold] = await Promise.all([getPipelineSample(internal_req, { internal: true }), getPipelineSample(intsold_req, { internal: true })]);
 
+  console.log(JSON.stringify(active, null, 4));
+  console.log(JSON.stringify(internal_req.json(), null, 4));
   $('[data-field="search_highlights"]:not(:first-child)').remove();
   $('.property-card:not(:first-child)').remove();
   $('[data-group="sold_listings"] [data-component="property_card"]:not(:first-child)').remove();

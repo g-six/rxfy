@@ -31,6 +31,7 @@ import {
   getAssociatedPlacesOfInterests,
 } from './helpers';
 import { BuildingUnit, PropertyAttributes } from './types';
+import { createAgent, findAgentBy } from '../agents/model';
 
 export interface MapboxResultProperties {
   name: string;
@@ -136,9 +137,45 @@ export async function buildCacheFiles(mls_id: string): Promise<
         LO1_Name,
         LO2_Name,
         LO3_Name,
+        LA1_PhoneNumber1,
+        LA2_PhoneNumber1,
+        LA3_PhoneNumber1,
+        LA1_Email,
+        LA2_Email,
+        LA3_Email,
         L_ShortRegionCode,
         ...legacy_data
       } = mls_data as MLSProperty;
+
+      const agents: {
+        agent_id: string;
+        email: string;
+        phone: string;
+        full_name: string;
+      }[] = [];
+      if (legacy_data.LA1_LoginName)
+        agents.push({
+          agent_id: legacy_data.LA1_LoginName,
+          email: LA1_Email,
+          phone: LA1_PhoneNumber1,
+          full_name: LA1_FullName,
+        });
+      if (legacy_data.LA2_LoginName)
+        agents.push({
+          agent_id: legacy_data.LA2_LoginName,
+          email: LA2_Email || '',
+          phone: LA2_PhoneNumber1 || '',
+          full_name: LA2_FullName || '',
+        });
+      if (legacy_data.LA3_LoginName)
+        agents.push({
+          agent_id: legacy_data.LA3_LoginName,
+          email: LA3_Email || '',
+          phone: LA3_PhoneNumber1 || '',
+          full_name: LA3_FullName || '',
+        });
+
+      let real_estate_board = await getRealEstateBoard(mls_data as unknown as { [key: string]: string });
 
       const listing_by_name =
         LA1_FullName || LA2_FullName || LA3_FullName || SO1_FullName || SO2_FullName || SO3_FullName || LO1_Name || LO2_Name || LO3_Name || '';
@@ -150,7 +187,7 @@ export async function buildCacheFiles(mls_id: string): Promise<
         name: property_type,
       };
       console.log('Legacy pipeline data retrieved in', Date.now() - start, 'ms');
-      let real_estate_board = undefined;
+      real_estate_board = real_estate_board || undefined;
       // const real_estate_board = await getRealEstateBoard(mls_data as unknown as { [key: string]: string });
       // console.log('Real estate board data retrieved in', Date.now() - start, 'ms');
       const room_details: { rooms: RoomDetails[] } = roomsToRoomDetails(legacy_data as MLSProperty);
@@ -208,6 +245,23 @@ export async function buildCacheFiles(mls_id: string): Promise<
         const album = await createPhotoAlbumForProperty(strapi_record.id, mls_photos);
         photos = album.photos;
         property_photo_album = album.id;
+      }
+
+      if (strapi_record?.id && agents.length) {
+        await Promise.all(
+          agents.map(async agent => {
+            const response = await findAgentBy({ agent_id: agent.agent_id });
+            if (!response)
+              return await createAgent(
+                {
+                  ...agent,
+                  real_estate_board_id: real_estate_board?.id || undefined,
+                },
+                undefined,
+                strapi_record.id,
+              );
+          }),
+        ).then(console.log);
       }
 
       return {

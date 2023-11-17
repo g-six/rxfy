@@ -4,6 +4,7 @@ import {
   gql_by_agent_uniq,
   gql_by_realtor_id,
   gql_create_agent,
+  mutation_add_to_inventory,
   mutation_create_meta,
   mutation_create_website_build,
   mutation_update_meta,
@@ -16,10 +17,9 @@ import { getSmart } from './repair';
 import { retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
 import { LegacySearchPayload } from '@/_typings/pipeline';
 import { getRealEstateBoard } from '../real-estate-boards/model';
-import { MLSProperty, PropertyDataModel } from '@/_typings/property';
+import { MLSProperty } from '@/_typings/property';
 import { mutation_update_agent } from './graphql';
 import { SearchHighlightInput } from '@/_typings/maps';
-import { cache } from 'react';
 
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { createTask } from '../clickup/model';
@@ -38,6 +38,7 @@ export async function createAgent(
     real_estate_board_id?: number;
   },
   ai_results?: AIGeneratedDetails,
+  property_id?: number,
 ) {
   try {
     const parts = `${user_data.full_name.split('PREC*').join('').trim()}`.split(' ');
@@ -126,7 +127,15 @@ export async function createAgent(
     );
 
     const agent = agent_response?.data?.data?.createAgent?.data || {};
-
+    if (property_id) {
+      await addToAgentInventory(
+        {
+          agent_id: agent.attributes.agent_id,
+          agent: Number(agent.id),
+        },
+        Number(property_id),
+      );
+    }
     return {
       ...agent.attributes,
       id: agent.id ? Number(agent.id) : undefined,
@@ -139,6 +148,7 @@ export async function createAgent(
     };
   } catch (e) {
     console.log('Error in createAgent');
+    console.error(e);
     const axerr = e as AxiosError;
     const { error, errors } = axerr.response?.data as {
       error?: {
@@ -335,6 +345,55 @@ export async function updateAgentMetatags(
   return {};
 }
 
+export async function findAgentRecordByAgentId(agent_id: string) {
+  try {
+    const response = await findAgentBy({ agent_id });
+    return response;
+  } catch (e) {
+    const { response: axerr } = e as unknown as {
+      response?: {
+        data?: {
+          error?: {
+            [k: string]: string;
+          };
+        };
+      };
+    };
+    console.error(axerr?.data?.error);
+    console.log('Error in api.agents.model.findAgentRecordByAgentId:', agent_id);
+  } finally {
+    console.log('Completed api.agents.model.findAgentRecordByAgentId call for', agent_id);
+  }
+}
+
+export async function findAgentRecordByRealtorId(realtor_id: number) {
+  const query = {
+    query: gql_by_realtor_id,
+    variables: {
+      id: realtor_id,
+    },
+  };
+  const { data: response_data } = await axios.post(`${process.env.NEXT_APP_CMS_GRAPHQL_URL}`, query, {
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+      'Content-Type': 'application/json',
+    },
+  });
+  const { email, last_activity_at, ...relationships } = response_data?.data?.realtor.data?.attributes;
+  const agent = relationships.agent?.data?.attributes
+    ? {
+        ...relationships.agent.data.attributes,
+        id: Number(relationships.agent.data.id),
+      }
+    : {};
+  return {
+    email,
+    last_activity_at,
+    agent_id: agent?.agent_id || undefined,
+    agent: agent?.id || undefined,
+  };
+}
+
 export async function findAgentBy(attributes: { [key: string]: string }) {
   const { agent_id, profile_slug, target_city, email, full_name, neighbourhoods, phone } = attributes;
 
@@ -418,55 +477,6 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
       }
     : null;
 }
-
-export const findAgentRecordByAgentId = cache(async (agent_id: string) => {
-  try {
-    const response = await findAgentBy({ agent_id });
-    return response;
-  } catch (e) {
-    const { response: axerr } = e as unknown as {
-      response?: {
-        data?: {
-          error?: {
-            [k: string]: string;
-          };
-        };
-      };
-    };
-    console.error(axerr?.data?.error);
-    console.log('Error in api.agents.model.findAgentRecordByAgentId:', agent_id);
-  } finally {
-    console.log('Completed api.agents.model.findAgentRecordByAgentId call for', agent_id);
-  }
-});
-
-export const findAgentRecordByRealtorId = cache(async (realtor_id: number) => {
-  const query = {
-    query: gql_by_realtor_id,
-    variables: {
-      id: realtor_id,
-    },
-  };
-  const { data: response_data } = await axios.post(`${process.env.NEXT_APP_CMS_GRAPHQL_URL}`, query, {
-    headers: {
-      Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-      'Content-Type': 'application/json',
-    },
-  });
-  const { email, last_activity_at, ...relationships } = response_data?.data?.realtor.data?.attributes;
-  const agent = relationships.agent?.data?.attributes
-    ? {
-        ...relationships.agent.data.attributes,
-        id: Number(relationships.agent.data.id),
-      }
-    : {};
-  return {
-    email,
-    last_activity_at,
-    agent_id: agent?.agent_id || undefined,
-    agent: agent?.id || undefined,
-  };
-});
 
 export async function getMostRecentListings(agent_id: string, size: number = 10): Promise<unknown> {
   return await getMostRecentListing(agent_id, size, true);
@@ -648,4 +658,33 @@ export async function getMostRecentWebsiteThemeRequest(agent: number) {
         id: Number(response_data.data[0].id),
       }
     : null;
+}
+
+async function addToAgentInventory({ agent_id, agent }: { agent_id: string; agent: number }, property: number) {
+  try {
+    console.log({ agent_id, agent, property });
+    const response = await axios.post(
+      `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+      {
+        query: mutation_add_to_inventory,
+        variables: {
+          data: {
+            agent_id,
+            agent,
+            property,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+    return response;
+  } catch (e) {
+    console.error('Error in addToAgentInventory');
+    console.error(e);
+  }
 }

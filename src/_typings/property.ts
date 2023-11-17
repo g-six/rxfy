@@ -45,6 +45,8 @@ export enum DwellingType {
 }
 
 export const NumericFields = [
+  'beds',
+  'baths',
   'depth',
   'frontage_metres', // 'L_Frontage_Feet',
   'floor_area_upper_floors', //'L_FloorArea_Finished_AboveMainFloor',
@@ -54,6 +56,10 @@ export const NumericFields = [
   'lot_area',
   'floor_area',
   'floor_area_total',
+  'full_baths',
+  'garages',
+  'half_baths',
+  'total_additional_rooms',
   'total_kitchens',
   'total_parking',
   'total_allowed_rentals',
@@ -63,6 +69,7 @@ export const NumericFields = [
 ];
 
 export const FinanceFields = ['asking_price', 'price_per_sqft', 'gross_taxes', 'SoldPrice', 'strata_fee'];
+export const UnitOfMeasurementFields: string[] = ['floor_area_uom', 'lot_uom'];
 
 export enum PropertyStatus {
   ACTIVE = 'active',
@@ -300,6 +307,21 @@ export interface MLSProperty extends Record<string, string | number | boolean | 
   LO1_Name: string;
   LO2_Name: string;
   LO3_Name: string;
+
+  // Agent IDs
+  LA1_LoginName: string;
+  LA2_LoginName: string;
+  LA3_LoginName: string;
+
+  // Agent Phones
+  LA1_PhoneNumber1: string;
+  LA2_PhoneNumber1: string;
+  LA3_PhoneNumber1: string;
+
+  // Agent Emails
+  LA1_Email: string;
+  LA2_Email: string;
+  LA3_Email: string;
 
   // Rooms Data:
   L_Room1_Type: string;

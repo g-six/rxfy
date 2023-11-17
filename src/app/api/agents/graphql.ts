@@ -269,3 +269,15 @@ export const qry_website_build = `query WebsiteBuildRequest($agent: ID!) {
     }
   }
 }`;
+
+export const mutation_add_to_inventory = `mutation CreateAgentInventoryRecord($data: AgentInventoryInput!) {
+  createAgentInventory(data: $data) {
+    data {
+      id
+      attributes {
+        agent_id
+        mls_id
+      }
+    }
+  }
+}`;

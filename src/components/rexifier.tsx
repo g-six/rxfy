@@ -35,7 +35,6 @@ import DocumentsReplacer from '@/_replacers/Documents/documents';
 import RxMyCompareDashboardPage from './full-pages/RxMyCompareDashboardPage';
 import RxDropdownMenu from './Nav/RxDropdownMenu';
 import RxIdPage from './full-pages/RxIdPage';
-import RxAgentMyListings from './full-pages/RxAgentMyListings';
 import RxTools from './full-pages/RxTools';
 import { RxTextInput } from './RxTextInput';
 import RxContactFormButton from './RxForms/RxContactFormButton';
@@ -798,9 +797,6 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         //AGENT SIDE  START
         if (agent_data && node.attribs.class?.split(' ').indexOf(WEBFLOW_NODE_SELECTOR.AGENT_TOOLS) >= 0) {
           return <RxTools nodeProps={props} nodeClassName={node.attribs.class} agent={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
-        }
-        if (agent_data && node.attribs.class?.split(' ').indexOf(WEBFLOW_NODE_SELECTOR.AGENT_MY_LISTINGS) >= 0) {
-          return <RxAgentMyListings nodeProps={props} agent_data={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
         }
         //AGENT SIDE  END
         if (node.attribs['data-type'] === 'email' && node.tagName === 'a') {
