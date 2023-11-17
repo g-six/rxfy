@@ -122,11 +122,14 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
 
   const populateMap = (from = 0) => {
     if (filters && is_loading) {
-      let should: {
-        match?: {
-          [k: string]: string;
+      const should: {
+        match: {
+          [key: string]: string | number;
         };
-      }[] = [];
+      }[] = Cookies.get('session_key')
+        ? [{ match: { 'data.Status': 'Active' } }, { match: { 'data.Status': 'Sold' } }]
+        : [{ match: { 'data.Status': 'Active' } }];
+
       let minimum_should_match = 1;
       checkThenReload(false);
       const user_defined_filters: {
@@ -141,6 +144,10 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
         };
         match?: {
           [k: string]: string;
+        };
+        bool?: {
+          should: { match: { [k: string]: string } }[];
+          minimum_should_match?: number;
         };
       }[] = [];
       if (filters.baths) {
@@ -219,30 +226,39 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
         types = q.types;
       }
       if (types) {
-        should = `${types}`.split(',').map(t => ({
-          match: {
-            'data.Type': t === 'House' ? 'House/Single Family' : t,
-          },
-        }));
+        `${types}`.split(',').forEach((t: string) => {
+          should.push({
+            match: {
+              'data.Type': t === 'House' ? 'House/Single Family' : t,
+            },
+          });
+        });
+        minimum_should_match = 2;
       }
 
       if (agent_only?.show && p.agent?.agent_id) {
-        should.push({
-          match: {
-            'data.LA1_LoginName': p.agent.agent_id,
+        user_defined_filters.push({
+          bool: {
+            should: [
+              {
+                match: {
+                  'data.LA1_LoginName': p.agent.agent_id,
+                },
+              },
+              {
+                match: {
+                  'data.LA2_LoginName': p.agent.agent_id,
+                },
+              },
+              {
+                match: {
+                  'data.LA3_LoginName': p.agent.agent_id,
+                },
+              },
+            ],
+            minimum_should_match: 1,
           },
         });
-        should.push({
-          match: {
-            'data.LA2_LoginName': p.agent.agent_id,
-          },
-        });
-        should.push({
-          match: {
-            'data.LA3_LoginName': p.agent.agent_id,
-          },
-        });
-        minimum_should_match = 2;
       }
       let sort: {
         [key: string]: 'asc' | 'desc';
