@@ -7,11 +7,14 @@ import { getPropertyByMlsId } from './app/api/properties/model';
 import { formatValues } from './_utilities/data-helpers/property-page';
 import { getShortPrice } from './_utilities/data-helpers/price-helper';
 import { LEAGENT_WEBFLOW_DOMAINS } from './_constants/webflow-domains';
+import { savePageToBucket } from './app/api/webhooks/utility';
 
+const BUCKET_NAME = process.env.NEXT_PUBLIC_RX_SITE_BUCKET as string;
 const REALTOR_STATIC_PAGES = ['pricing', 'examples', 'contact'];
 const GATED_PAGES = ['my-profile'];
-const REALTOR_MAIN_PAGES = ['property', 'map'];
+const REALTOR_MAIN_PAGES = ['property', 'map', 'communities'];
 const SKIP_AGENT_SEARCH = ['cdn-cgi'];
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
@@ -112,7 +115,9 @@ export async function middleware(request: NextRequest) {
       if (agent_data.theme) webflow_domain = `${agent_data.theme}-leagent.webflow.io`;
     }
     setAgentWebsiteHeaders(webflow_domain);
+
     if (REALTOR_MAIN_PAGES.includes(segments[0]) || pathname === '/' || !LEAGENT_WEBFLOW_DOMAINS.includes(webflow_domain)) {
+      if (`${pathname.split('/').pop()}`.split('.').length > 1) return response;
       response.headers.set('x-viewer', 'customer');
       const allCookies = request.cookies.getAll();
       allCookies.forEach(({ name, value }) => {
@@ -120,9 +125,24 @@ export async function middleware(request: NextRequest) {
       });
       page_url = `https://sites.leagent.com/${webflow_domain}/${segments[0] || 'index'}`;
       if (segments[0] === 'property') page_url = `${page_url}/propertyid`;
+      else if (segments.length >= 2) {
+        page_url = `${page_url}/${segments.slice(1).join('/')}`;
+      }
       page_url = `${page_url}.html`;
       console.log('Going to bring visitor to Realtor page', page_url);
       response.headers.set('x-url', page_url);
+      const page_xhr = await fetch(page_url);
+      if (!page_xhr.ok) {
+        await savePageToBucket(`${page_url.split(BUCKET_NAME + '/').pop()}`.split('.html').join(''));
+        await sleep(2000);
+
+        console.log('page_xhr.ok --->', page_xhr.ok);
+        console.log({ page_url });
+        console.log({ page_url });
+        console.log({ page_url });
+        console.log({ page_url });
+        console.log({ page_url });
+      }
       return response;
     }
   }
@@ -298,6 +318,8 @@ export async function middleware(request: NextRequest) {
   if (page_url.indexOf('/_next/') === -1 && pathname !== '/favicon.ico') {
     console.log('middleware', { page_url, origin, pathname });
   }
+
+  console.log(page_url);
 
   return response;
 }

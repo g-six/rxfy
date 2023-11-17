@@ -2,9 +2,10 @@ import { AgentData } from '@/_typings/agent';
 import { findAgentRecordByAgentId } from '@/app/api/agents/model';
 import { Metadata } from 'next';
 import PageComponent from './page.module';
+import { headers } from 'next/headers';
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const agent = await findAgentRecordByAgentId(params.slug);
+  const agent = await findAgentRecordByAgentId(headers().get('x-agent-id') || params.slug);
   if (agent.id) {
     const { metatags } = agent as unknown as AgentData;
     return {
@@ -18,10 +19,19 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function AgentHomePage({ params, searchParams }: { params: { slug: string }; searchParams: { [k: string]: string } }) {
-  const { slug: agent_id } = params;
+export default async function AgentHomePage({
+  params,
+  searchParams,
+}: {
+  params: { slug: string; 'profile-slug': string };
+  searchParams: { [k: string]: string };
+}) {
+  let { slug: agent_id } = params;
   const { theme } = searchParams;
 
+  if (params['profile-slug'].substring(0, 3) !== 'la-') {
+    agent_id = headers().get('x-agent-id') as string;
+  }
   if (agent_id) {
     return (
       <>
