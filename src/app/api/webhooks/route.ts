@@ -2,6 +2,7 @@ import axios from 'axios';
 import { CheerioAPI, load } from 'cheerio';
 import { NextResponse } from 'next/server';
 import { createCacheItem, invalidateCache } from '../_helpers/cache-helper';
+import convert from 'xml-js';
 
 const BUCKET_NAME = process.env.NEXT_PUBLIC_RX_SITE_BUCKET as string;
 const CLOUDFRONT_DISTRIBUTION_ID = 'EU4BBJ173XBCG';
@@ -48,10 +49,34 @@ const pages = [
   'private-listings',
   'selling',
 ].concat(['pricing', 'examples', 'contact']);
-
+function getLast(object: any) {
+  if (typeof object !== 'object') {
+    return object.trim();
+  }
+  for (const prop in object) {
+    return getLast(object[prop]);
+  }
+}
 async function cacheSite(domain: string) {
   const invalidation_uris: string[] = [];
+  const sitemap_file = await fetch('https://' + domain + '/sitemap.xml');
+  const xml = await sitemap_file.text();
 
+  const sitemap = convert.xml2js(xml, { compact: true });
+  const {
+    urlset: { url },
+  } = sitemap as unknown as {
+    urlset: {
+      url: unknown[];
+    };
+  };
+
+  url.map(getLast).map(p => {
+    const { pathname } = new URL(p);
+    if (pathname.length > 1 && !pages.includes(pathname.substring(1))) {
+      pages.push(pathname.substring(1));
+    }
+  });
   await Promise.all(
     pages.map(async (page: string) => {
       const url = 'https://' + domain + (page === 'index' ? '' : '/' + page);
