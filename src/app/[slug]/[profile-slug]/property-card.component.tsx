@@ -26,7 +26,7 @@ export function PropertyCard({ agent, listing, children }: { agent: AgentData; l
           {c.props?.['data-group'] === 'listing_info' && (
             <a
               href={(agent.domain_name ? '' : `/${agent.agent_id}/${agent.metatags.profile_slug}`) + `/property?mls=${listing.mls_id}`}
-              className='absolute top-0 left-0 w-full h-full'
+              className='absolute top-0 left-0 w-full h-full z-[1]'
             />
           )}
         </div>

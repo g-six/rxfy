@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
   const { origin, hostname, searchParams } = current_url;
   let { pathname } = current_url;
   let domain_name = `${request.headers.get('host') || hostname}`.split(':').reverse().pop() || hostname;
-  if (domain_name.includes('.local') && pathname === '/') pathname = '/homepage';
+  // if (domain_name.includes('.local') && pathname === '/') pathname = '/homepage';
   domain_name = domain_name.split('.local').join('');
   const setAgentWebsiteHeaders = (webflow_domain: string) => {
     response.headers.set('x-agent-id', agent_data.agent_id);

@@ -43,13 +43,7 @@ export default function Iterator({
           </>
         );
       }
-      // if (props['data-filter'] === 'area') {
-      //   const { pathname } = new URL(headers().get('x-url') as string);
-      //   const file_name = pathname.split('/').pop() as string;
-      //   const page_slug = file_name.split('.html').join('');
-      //   const area = capitalizeFirstLetter(page_slug.split('-').join(' '));
-      //   return <>{area}</>;
-      // }
+
       if (props['data-component'] === 'contact_form') {
         return cloneElement(
           c,
