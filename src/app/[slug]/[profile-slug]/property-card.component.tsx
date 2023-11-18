@@ -106,6 +106,8 @@ export function PropertyCard({ agent, listing, children }: { agent: AgentData; l
           return cloneElement(c, c.props, listing.beds);
         case 'baths':
           return cloneElement(c, c.props, listing.baths);
+        case 'year_built':
+          return cloneElement(c, c.props, listing.year_built);
         case 'sqft':
           return cloneElement(c, c.props, formatValues(listing, 'floor_area'));
         case 'property-price':

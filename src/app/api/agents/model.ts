@@ -461,7 +461,7 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
     );
 
     let [metatag] = response_data?.data?.agentMetatags.data;
-    if (metatag.id) {
+    if (metatag?.id) {
       await axios.post(
         `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
         {
