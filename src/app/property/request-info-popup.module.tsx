@@ -23,6 +23,7 @@ interface RequestInfoPopupProps {
     email: string;
     name: string;
   };
+  show?: boolean;
   'data-action'?: string;
 }
 
@@ -49,7 +50,7 @@ function FormInput({ tag, ...attr }: { tag: string; val?: string; placeholder: s
   let { placeholder } = attr;
 
   if (attr['data-input'] === 'message' && attr.listing?.title)
-    placeholder = `${placeholder} (e.g. I'd like to know more about the ${attr.listing.style_type} at ${formatAddress(attr.listing.title)}}`;
+    placeholder = `${placeholder} (e.g. I'd like to know more about the ${attr.listing.style_type} at ${formatAddress(attr.listing.title)})`;
   return cloneElement(domToReact(htmlToDOM(`<${tag} data-rx=${attr['data-input']} placeholder="${placeholder}" />`) as DOMNode[]) as ReactElement, {
     ...attr,
     placeholder,
@@ -182,7 +183,7 @@ export default function RequestInfoPopup({ children, ...p }: RequestInfoPopupPro
   return (
     <Transition
       key='confirmation'
-      show={show || false}
+      show={show || p.show || false}
       as={'section'}
       className={classNames(p.className || '', show ? styles.popup : '')}
       enter='transform ease-out duration-300 transition'

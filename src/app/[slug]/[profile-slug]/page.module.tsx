@@ -17,6 +17,7 @@ import Iterator from './page-iterator.module';
 import NavIterator from '@/components/Nav/RxNavIterator';
 import { PropertyDataModel } from '@/_typings/property';
 import { headers } from 'next/headers';
+import { capitalizeFirstLetter } from '@/_utilities/formatters';
 
 export default async function PageComponent({ agent_id, theme = 'default', ...props }: { agent_id: string; theme?: string; 'page-url'?: string }) {
   console.log('Loading app/[slug]/[profile-slug]/page.module.tsx', { slug: agent_id });
@@ -52,6 +53,11 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
       },
     },
   ] as unknown[];
+
+  const { pathname } = new URL(headers().get('x-url') as string);
+  const file_name = pathname.split('/').pop() as string;
+  const page_slug = file_name.split('.html').join('');
+  const area = capitalizeFirstLetter(page_slug.split('-').join(' '));
 
   if (agent.metatags?.search_highlights?.labels) {
     const { labels } = agent.metatags.search_highlights as unknown as {
@@ -91,24 +97,33 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
           min_lng = l.sw.lng;
         }
       });
-      filter = filter.concat([
-        {
-          range: {
-            'data.lat': {
-              lte: max_lat,
-              gte: min_lat,
+      console.log({ area });
+      if (!area || ['Homepage', 'Index'].includes(area))
+        filter = filter.concat([
+          {
+            range: {
+              'data.lat': {
+                lte: max_lat,
+                gte: min_lat,
+              },
             },
           },
-        },
-        {
-          range: {
-            'data.lng': {
-              lte: max_lng,
-              gte: min_lng,
+          {
+            range: {
+              'data.lng': {
+                lte: max_lng,
+                gte: min_lng,
+              },
             },
           },
-        },
-      ]);
+        ]);
+      else {
+        filter.push({
+          match: {
+            'data.Area': area,
+          },
+        });
+      }
     }
   }
 
@@ -136,6 +151,7 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
     $(el).replaceWith(`<a ${attribs.join(' ')}>${$(el).html()}</a>`);
   });
 
+  console.log(filter);
   const internal_req = {
     json() {
       return {

@@ -133,20 +133,15 @@ export async function middleware(request: NextRequest) {
       response.headers.set('x-url', page_url);
       const page_xhr = await fetch(page_url);
       if (!page_xhr.ok) {
-        const directory = `${page_url.split(BUCKET_NAME + '/').pop()}`.split('/').reverse().pop();
-        if (directory) {
-          const pages = await fetch(`https://sites.leagent.com/${webflow_domain}/pages.json`);
-          console.log(pages);
-        }
-        // await savePageToBucket(`${page_url.split(BUCKET_NAME + '/').pop()}`.split('.html').join(''));
-        // await sleep(2000);
+        const sitemap_request = await fetch(`https://sites.leagent.com/${webflow_domain}/pages.json`);
+        if (sitemap_request.ok) {
+          const { pages }: { pages: string[] } = await sitemap_request.json();
 
-        console.log('page_xhr.ok --->', page_xhr.ok);
-        console.log({ page_url });
-        console.log({ page_url });
-        console.log({ page_url });
-        console.log({ page_url });
-        console.log({ page_url });
+          if (pages.includes(segments[0])) {
+            await savePageToBucket(`${page_url.split(BUCKET_NAME + '/').pop()}`.split('.html').join(''));
+            await sleep(2000);
+          }
+        }
       }
       return response;
     }

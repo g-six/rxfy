@@ -95,7 +95,7 @@ export function PropertyCard({ agent, listing, children }: { agent: AgentData; l
     }
     if (c.props && c.props['data-field']) {
       switch (c.props['data-field']) {
-        case 'property-address':
+        case 'address':
         case 'property_address':
           return cloneElement(c, c.props, listing.title);
         case 'area':
@@ -109,7 +109,10 @@ export function PropertyCard({ agent, listing, children }: { agent: AgentData; l
         case 'sqft':
           return cloneElement(c, c.props, formatValues(listing, 'floor_area'));
         case 'property-price':
+        case 'asking_price':
           return cloneElement(c, c.props, formatValues(listing, 'asking_price'));
+        default:
+          return cloneElement(c, c.props, formatValues(listing, c.props['data-field']));
       }
     }
     return c;

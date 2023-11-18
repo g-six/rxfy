@@ -42,7 +42,7 @@ export default function PageAction({ children, data, ...props }: PageActionProps
       );
   }
   return (
-    <button {...props} onClick={onClick}>
+    <button {...props} onClick={onClick} data-property-page-action>
       {convertDivsToSpans(children)}
     </button>
   );

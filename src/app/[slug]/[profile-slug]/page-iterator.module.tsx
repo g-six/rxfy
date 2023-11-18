@@ -9,6 +9,9 @@ import HomePageSearchInput from './search-input.component';
 import ActionButton from './homepage-action-button.module';
 import { PropertyCard } from './property-card.component';
 import { SOCIAL_MEDIA_FIELDS } from '@/_constants/agent-fields';
+import { headers } from 'next/headers';
+import { capitalizeFirstLetter } from '@/_utilities/formatters';
+import RequestInfoPopup from '@/app/property/request-info-popup.module';
 
 export default function Iterator({
   agent,
@@ -38,6 +41,28 @@ export default function Iterator({
               </div>
             ))}
           </>
+        );
+      }
+      // if (props['data-filter'] === 'area') {
+      //   const { pathname } = new URL(headers().get('x-url') as string);
+      //   const file_name = pathname.split('/').pop() as string;
+      //   const page_slug = file_name.split('.html').join('');
+      //   const area = capitalizeFirstLetter(page_slug.split('-').join(' '));
+      //   return <>{area}</>;
+      // }
+      if (props['data-component'] === 'contact_form') {
+        return cloneElement(
+          c,
+          {},
+          <RequestInfoPopup
+            show={true}
+            send_to={{
+              email: agent.email,
+              name: agent.full_name,
+            }}
+          >
+            {c.props.children}
+          </RequestInfoPopup>,
         );
       }
       if (props['data-component'] === 'property_card' && listings?.sold) {
