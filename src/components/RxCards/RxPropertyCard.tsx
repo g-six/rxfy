@@ -68,7 +68,7 @@ function RxComponentChomper({ config, children }: any): any {
       } else if (RxElement.props?.['data-field']) {
         let field = RxElement.props['data-field'];
         if (field.includes('address')) field = 'title';
-        if (field === 'image_cover') {
+        if (field === 'cover_photo') {
           if (RxElement.type === 'img')
             return config.cover_photo
               ? cloneElement(RxElement, {

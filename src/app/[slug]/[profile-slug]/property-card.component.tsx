@@ -93,7 +93,7 @@ export function PropertyCard({ agent, listing, children }: { agent: AgentData; l
         </div>
       );
     }
-    if (c.props && c.props['data-field']) {
+    if (c.props && c.props['data-field'] && c.props['data-field'] !== 'cover_photo') {
       switch (c.props['data-field']) {
         case 'address':
         case 'property_address':

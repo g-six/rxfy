@@ -10,6 +10,7 @@ export default function HomePageSearchInput(props: any) {
   const router = useRouter();
   const params = useParams();
   const evt = useEvent(Events.MapSearch);
+  console.log(evt.data);
   useEffect(() => {
     if (evt.data) {
       const q = objectToQueryString(evt.data as unknown as { [k: string]: string });
