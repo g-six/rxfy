@@ -5,7 +5,7 @@ import axios from 'axios';
 import { CheerioAPI, load } from 'cheerio';
 import { AgentData } from '@/_typings/agent';
 import { RoomDetails } from '@/_typings/property';
-import { construction_stats, dimension_stats, general_stats } from '@/_utilities/data-helpers/property-page';
+import { construction_stats, dimension_stats, financial_stats, general_stats, pdf_financial_stats } from '@/_utilities/data-helpers/property-page';
 
 export async function getPdf(page_url: string, data: unknown) {
   const { data: html_data } = await axios.get(page_url);
@@ -237,6 +237,11 @@ export async function getPdf(page_url: string, data: unknown) {
       alias: 'construction',
     },
     {
+      key: 'financial_info',
+      labels: pdf_financial_stats,
+      alias: 'financial',
+    },
+    {
       key: 'dimensions_info',
       labels: dimension_stats,
       alias: 'dimensions',
@@ -358,7 +363,7 @@ export async function getPdf(page_url: string, data: unknown) {
         if (geocoding?.postal_zip_code) address = `${address}${geocoding.postal_zip_code}`;
         if (geocoding?.state_province) address = `${address} ${geocoding.state_province}`;
         if (address) $(el).text(address);
-      } else if (['logo_for_light_bg', 'logo_for_dark_bg'].includes(field) && metatags[field]) {
+      } else if (['headshot', 'logo_for_light_bg', 'logo_for_dark_bg'].includes(field) && metatags[field]) {
         $(el).replaceWith(
           `<div style="background-color: transparent !important; background-image: url('${
             metatags[field]

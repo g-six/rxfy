@@ -88,6 +88,13 @@ export const financial_stats: Record<string, string> = {
   strata_fee: 'Strata Fee',
   listed_at: 'List Date',
 };
+export const pdf_financial_stats: Record<string, string> = {
+  gross_taxes: 'Gross taxes',
+  SoldPrice: 'Sold For',
+  price_per_sqft: 'Price per Sqft',
+  strata_fee: 'Strata Fee',
+  listed_at: 'List Date',
+};
 
 export const construction_stats: Record<string, string> = {
   style_type: 'Style of Home',
