@@ -46,7 +46,11 @@ export default async function MyDocuments({ params }: { params: { [key: string]:
     const body = $('body > div');
     return (
       <>
-        <NavIterator agent={agent}>{domToReact(navbar as unknown as DOMNode[]) as React.ReactElement}</NavIterator>
+        {agent.webflow_domain?.includes('leagent') ? (
+          <NavIterator agent={agent}>{domToReact(navbar as unknown as DOMNode[]) as React.ReactElement}</NavIterator>
+        ) : (
+          (domToReact(navbar as unknown as DOMNode[]) as React.ReactElement)
+        )}
         <Container agent={agent}>{domToReact(body as unknown as DOMNode[]) as React.ReactElement}</Container>;
       </>
     );

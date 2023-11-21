@@ -35,7 +35,6 @@ export async function middleware(request: NextRequest) {
     response.headers.set('x-agent-phone', agent_data.phone);
     response.headers.set('x-wf-domain', webflow_domain);
     if (agent_data.domain_name) response.headers.set('x-agent-domain-name', agent_data.domain_name);
-
     response.headers.set('x-metatag-id', agent_data.metatags?.id);
     response.headers.set('x-page-title', agent_data.metatags?.title);
     response.headers.set('x-page-description', agent_data.metatags?.description.split('•').join(''));
