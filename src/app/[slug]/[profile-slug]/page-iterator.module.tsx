@@ -43,18 +43,17 @@ export default function Iterator({
       }
 
       if (props['data-component'] === 'contact_form') {
-        return cloneElement(
-          c,
-          {},
+        return (
           <RequestInfoPopup
             show={true}
+            className={c.props.className}
             send_to={{
               email: agent.email,
               name: agent.full_name,
             }}
           >
             {c.props.children}
-          </RequestInfoPopup>,
+          </RequestInfoPopup>
         );
       }
       if (props['data-component'] === 'property_card' && listings?.sold) {

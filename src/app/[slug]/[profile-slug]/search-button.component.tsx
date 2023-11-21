@@ -3,10 +3,9 @@
 import { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { objectToQueryString } from '@/_utilities/url-helper';
-import MapSearchInput from '@/app/map/search-input.module';
 import useEvent, { Events } from '@/hooks/useEvent';
 
-export default function HomePageSearchInput(props: any) {
+export default function HomePageSearchButton(props: any) {
   const router = useRouter();
   const params = useParams();
   const evt = useEvent(Events.MapSearch);
@@ -22,5 +21,9 @@ export default function HomePageSearchInput(props: any) {
       }
     }
   }, [evt.data]);
-  return <MapSearchInput className={props.className || ''} placeholder={props.placeholder || ''} />;
+  return (
+    <button type='button' className={props.className || ''}>
+      {props.children}
+    </button>
+  );
 }
