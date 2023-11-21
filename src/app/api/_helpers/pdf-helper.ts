@@ -180,6 +180,7 @@ export async function getPdf(page_url: string, data: unknown) {
   );
 
   const headshot_replacement = values['agent.metatags.headshot'] ? getImageSized(values['agent.metatags.headshot'], 200) : getImageSized(values.photos[0], 200);
+
   $('[data-image="agent.metatags.headshot"]').replaceWith(
     `<div style="background-image: url(${headshot_replacement}); background-position: center; background-size: cover;" class="${$(
       '[data-image="agent.metatags.headshot"]',
@@ -357,7 +358,7 @@ export async function getPdf(page_url: string, data: unknown) {
         if (geocoding?.postal_zip_code) address = `${address}${geocoding.postal_zip_code}`;
         if (geocoding?.state_province) address = `${address} ${geocoding.state_province}`;
         if (address) $(el).text(address);
-      } else if (['headshot', 'logo_for_light_bg', 'logo_for_dark_bg'].includes(field) && metatags[field]) {
+      } else if (['logo_for_light_bg', 'logo_for_dark_bg'].includes(field) && metatags[field]) {
         $(el).replaceWith(
           `<div style="background-color: transparent !important; background-image: url('${
             metatags[field]
