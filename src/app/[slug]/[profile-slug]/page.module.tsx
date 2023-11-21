@@ -201,14 +201,7 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
   $('[data-field="search_highlights"]:not(:first-child)').remove();
   $('.property-card:not(:first-child)').remove();
   $('[data-group="sold_listings"] [data-component="property_card"]:not(:first-child)').remove();
-  console.log('Agent listings');
-  console.log('Active');
-  console.log(JSON.stringify(active, null, 4));
-  console.log('');
-  console.log('Sold');
-  console.log(JSON.stringify(sold, null, 4));
-  console.log('');
-  console.log('');
+
   if (sold) {
     const listings = sold as PropertyDataModel[];
     if (listings.length === 0) $('[data-group="sold_listings"]').remove();
