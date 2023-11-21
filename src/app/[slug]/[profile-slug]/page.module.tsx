@@ -23,13 +23,6 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
   console.log('Loading app/[slug]/[profile-slug]/page.module.tsx', { slug: agent_id });
   const agent = await findAgentRecordByAgentId(agent_id);
 
-  // let webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${agent.webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/index.html`;
-  // if (!agent) return <></>;
-  // if (!agent.webflow_domain && theme) {
-  //   if (theme === 'default') webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${WEBFLOW_DASHBOARDS.CUSTOMER}/index.html`;
-  //   else webflow_site = `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${theme}-leagent.webflow.io/index.html`;
-  // }
-
   const webflow_site = props['page-url'] || (headers().get('x-url') as string);
 
   const promises = await Promise.all([axios.get(webflow_site)]);
