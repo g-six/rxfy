@@ -10,6 +10,7 @@ import ActionButton from './homepage-action-button.module';
 import { PropertyCard } from './property-card.component';
 import { SOCIAL_MEDIA_FIELDS } from '@/_constants/agent-fields';
 import RequestInfoPopup from '@/app/property/request-info-popup.module';
+import HomePageSearchButton from './search-button.component';
 
 export default function Iterator({
   agent,
@@ -22,6 +23,7 @@ export default function Iterator({
 }) {
   const Wrapped = Children.map(children, c => {
     if (c.type === 'input' && c.props.type === 'search') return <HomePageSearchInput {...c.props} />;
+    else if (c.type === 'input' && c.props.type === 'submit') return <HomePageSearchButton {...c.props}>{c.props.value}</HomePageSearchButton>;
     else if (c.type === 'video') return c;
     else if (c.type !== 'a' && c.type !== 'svg' && c.props?.children && typeof c.props?.children !== 'string') {
       const { children: sub, ...props } = c.props;
