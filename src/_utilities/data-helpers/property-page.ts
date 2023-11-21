@@ -655,7 +655,7 @@ export function formatValues(obj: any, key: string, reverse = false): string | n
   if (!obj || !obj[key]) return '';
 
   if (NumericFields.includes(key)) {
-    return reverse
+    return reverse || ['year_built', 'tax_year'].includes(key)
       ? Number((obj as Record<string, string>)[key])
       : new Intl.NumberFormat(undefined).format(parseInt((obj as Record<string, string>)[key], 10) as number);
   }

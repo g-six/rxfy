@@ -99,6 +99,7 @@ export async function getSimilarProperties(property: { [key: string]: string | n
       };
     }
   });
+
   const url = `/api/similar-properties?mls=${property.mls_id}&${objectToQueryString(filters)}`;
   const response = await axios.get(url, {
     headers: {
