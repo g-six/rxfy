@@ -16,7 +16,9 @@ export async function GET(req: NextRequest) {
       ...data,
       agent,
     } as unknown;
-    const page_url = ['https://', process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN, 'brochure'].join('/');
+    const domain = agent.webflow_domain || process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN;
+    const page_url = ['https://sites.leagent.com', domain, 'brochure.html'].join('/');
+
     return await getPdf(page_url, full_data as unknown);
   }
 
