@@ -1,5 +1,5 @@
 import { Menu, Transition } from '@headlessui/react';
-import { Children, Fragment, ReactElement, useEffect, useRef, useState } from 'react';
+import { Children, Fragment, ReactElement } from 'react';
 import styles from './folder-actions.module.scss';
 export default function MyDocumentsFolderActions({
   children,

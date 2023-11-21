@@ -21,12 +21,15 @@ export default function MyDocumentsNewDocumentComponent({ children, className: e
   const [is_creating, toggleCreating] = useState(false);
   return (
     <Rexifier
-      className={className}
       {...props}
+      className={evt.data?.show ? className : ''}
       onInputChange={({ currentTarget }: ChangeEvent<HTMLInputElement>) => {
         evt.fireEvent({
           name: currentTarget.value,
         } as unknown as EventsData);
+      }}
+      onCancel={() => {
+        evt.fireEvent({});
       }}
       onSubmit={() => {
         const { name: folder_name } = evt.data as unknown as {
@@ -47,18 +50,22 @@ export default function MyDocumentsNewDocumentComponent({ children, className: e
       }}
       is-creating={is_creating}
     >
-      {evt.data?.show ? children : <></>}
+      {children}
     </Rexifier>
   );
 }
 
-function Rexifier({ children, className, ...props }: Props & { 'is-creating'?: boolean; onInputChange: ChangeEventHandler; onSubmit(): void }) {
+function Rexifier({
+  children,
+  className,
+  ...props
+}: Props & { 'is-creating'?: boolean; onCancel(): void; onInputChange: ChangeEventHandler; onSubmit(): void }) {
   const Rexified = Children.map(children, c => {
     let className = `${c.props?.className || ''} rx-my-documents rx-new-document-component`;
     if (c.props?.children) {
       if (className.includes('close-link-right')) {
         return cloneElement(
-          <button type='button' {...c.props} className={classNames(className, styles['close-link-right'])} href={undefined} />,
+          <button type='button' {...c.props} onClick={() => props.onCancel()} className={classNames(className, styles['close-link-right'])} href={undefined} />,
           {},
           c.props.children,
         );
@@ -81,6 +88,9 @@ function Rexifier({ children, className, ...props }: Props & { 'is-creating'?: b
             className={classNames(className, styles['new-document-name'])}
             placeholder={c.props.children && typeof c.props.children === 'string' ? c.props.children : ''}
             onChange={props.onInputChange}
+            onKeyDown={({ key }) => {
+              if (key.toUpperCase() === 'ENTER') props.onSubmit();
+            }}
             disabled={props['is-creating']}
           />
         );

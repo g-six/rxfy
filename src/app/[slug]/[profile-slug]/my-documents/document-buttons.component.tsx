@@ -1,6 +1,7 @@
 import { getDocumentSignedUrl, removeDocumentUpload } from '@/_utilities/api-calls/call-documents';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
 import { MouseEvent, ReactElement, useEffect } from 'react';
+import MyDocumentsPreviewDocumentDialog from './preview.dialog';
 
 export function MyDocumentsDownloadDocumentButton(p: { 'file-name': string; children: ReactElement }) {
   return (
@@ -17,6 +18,19 @@ export function MyDocumentsDownloadDocumentButton(p: { 'file-name': string; chil
           a.click();
           a.remove();
         });
+      }}
+    >
+      {p.children}
+    </button>
+  );
+}
+export function MyDocumentsPreviewDocumentButton(p: { 'file-name': string; children: ReactElement; onLoad(url: string): void }) {
+  return (
+    <button
+      type='button'
+      className='bg-transparent p-0'
+      onClick={(e: MouseEvent<HTMLButtonElement>) => {
+        getDocumentSignedUrl(p['file-name']).then(p.onLoad);
       }}
     >
       {p.children}

@@ -8,10 +8,11 @@ import { AgentData } from '@/_typings/agent';
 import { CustomerRecord } from '@/_typings/customer';
 import { DocumentsFolderInterface } from '@/_typings/document';
 import RxFileUploader from '@/components/RxForms/RxFileUploader';
-import { MyDocumentsDeleteDocumentButton, MyDocumentsDownloadDocumentButton } from './document-buttons.component';
+import { MyDocumentsDeleteDocumentButton, MyDocumentsDownloadDocumentButton, MyDocumentsPreviewDocumentButton } from './document-buttons.component';
 import { NotificationCategory, NotificationMessages } from '@/_typings/events';
 import MyDocumentsToggleFolderActions from './folder-buttons.component';
 import MyDocumentsFolderActions from './folder-actions.dropdown';
+import MyDocumentsPreviewDocumentDialog from './preview.dialog';
 
 interface Props {
   agent: AgentData;
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export default function MyDocumentsFolderComponent({ children, className: elementClassName, ...props }: Props) {
+  const [preview_url, setPreview] = useState<string>('');
   const className = `${elementClassName || ''} rx-MyDocumentsFolderComponent`.trim();
   const evt = useEvent(Events.DocFolderShow);
   const listener = useEvent(Events.GenericEvent);
@@ -106,17 +108,24 @@ export default function MyDocumentsFolderComponent({ children, className: elemen
           {...props}
           folder={folder}
           key={folder.id}
+          preview-url={preview_url}
           show-actions={active_folder === Number(folder.id)}
           handleAction={action => handleAction(action, Number(folder.id))}
+          openForPreview={setPreview}
         >
           <section className={className}>{children}</section>
         </Rexifier>
       ))}
+      <MyDocumentsPreviewDocumentDialog data={preview_url}></MyDocumentsPreviewDocumentDialog>
     </>
   );
 }
 
-function FileRexifier({ children, className, ...props }: Props & { file: { id: number; file_name: string } }) {
+function FileRexifier({
+  children,
+  className,
+  ...props
+}: Props & { file: { id: number; file_name: string }; 'preview-url'?: string; openForPreview(url: string): void }) {
   const rexified = Children.map(children, c => {
     if (c.props?.['data-field']) {
       const field_name = c.props['data-field'];
@@ -133,6 +142,13 @@ function FileRexifier({ children, className, ...props }: Props & { file: { id: n
     }
     if (c.props?.['data-action'] === 'download') {
       return <MyDocumentsDownloadDocumentButton file-name={props.file.file_name}>{c}</MyDocumentsDownloadDocumentButton>;
+    }
+    if (c.props?.['data-action'] === 'preview') {
+      return (
+        <MyDocumentsPreviewDocumentButton onLoad={props.openForPreview} file-name={props.file.file_name} preview-url={props['preview-url']}>
+          {c}
+        </MyDocumentsPreviewDocumentButton>
+      );
     }
     if (c.props?.['data-action'] === 'delete') {
       return <MyDocumentsDeleteDocumentButton file-id={props.file.id}>{c}</MyDocumentsDeleteDocumentButton>;
@@ -169,7 +185,14 @@ function Rexifier({
   children,
   className,
   ...props
-}: Props & { 'is-creating'?: boolean; 'show-actions'?: boolean; folder: DocumentsFolderInterface; handleAction(action: string): void }) {
+}: Props & {
+  'is-creating'?: boolean;
+  'show-actions'?: boolean;
+  'preview-url'?: string;
+  folder: DocumentsFolderInterface;
+  handleAction(action: string): void;
+  openForPreview(url: string): void;
+}) {
   const Rexified = Children.map(children, c => {
     let className = `${c.props?.className || ''} rx-my-documents rx-document-folders-component`;
     if (c.props?.['data-field']) {
@@ -191,12 +214,7 @@ function Rexifier({
         </MyDocumentsFolderActions>
       );
     }
-    // if (c.props?.['data-action'] === 'folder actions') {
-    //   return MyDocumentsToggleFolderActions({
-    //     ...c.props,
-    //     'folder-id': Number(props.folder.id),
-    //   });
-    // }
+
     if (c.props?.['data-action'] === 'upload') {
       return (
         <RxFileUploader buttonClassName='bg-transparent w-10 h-10 p-0' className='w-10 h-10' data={{ document_id: props.folder.id }}>

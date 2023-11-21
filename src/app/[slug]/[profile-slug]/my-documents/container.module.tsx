@@ -12,6 +12,7 @@ import { CustomerRecord } from '@/_typings/customer';
 import MyDocumentsFolderComponent from './folders.component';
 import ConfirmDeleteIterator from './confirm-delete.dialog';
 import { classNames } from '@/_utilities/html-helper';
+import { DocumentsFolderInterface } from '@/_typings/document';
 
 interface Props {
   agent: AgentData;
@@ -23,6 +24,10 @@ export default function MyDocumentsContainer({ agent, children, ...props }: Prop
   const session = useEvent(Events.LoadUserSession);
   const listener = useEvent(Events.GenericEvent);
   const evt = useEvent(Events.CreateDocFolderShow);
+  const { data } = useEvent(Events.DocFolderShow);
+  const { folders } = data as unknown as {
+    folders?: DocumentsFolderInterface[];
+  };
   const [customer, setCustomer] = useState<CustomerRecord>();
 
   useEffect(() => {
@@ -61,6 +66,8 @@ export default function MyDocumentsContainer({ agent, children, ...props }: Prop
             createFolder={() => {
               evt.fireEvent({ show: true });
             }}
+            folders={folders}
+            show-create-folder={evt.data?.show}
           >
             {children}
           </Rexify>
@@ -79,26 +86,52 @@ function Rexify({
 }: Props & {
   customer: CustomerRecord;
   createFolder(): void;
+  folders?: DocumentsFolderInterface[];
   delete: {
     data?: EventsData;
     fireEvent(data: EventsData): void;
   };
+  'show-create-folder'?: boolean;
 }) {
   const Rexified = Children.map(children, c => {
+    if (c.props?.['data-field'] === 'empty_state') {
+      return props['show-create-folder'] || props.folders?.length ? (
+        <></>
+      ) : (
+        <section className='w-72 max-xl:w-96 flex flex-col gap-6 bg-white rounded-2xl shadow-2xl p-4 shadow-slate-500/10 items-center justify-center'>
+          {Children.map(c.props.children, cc => {
+            if (cc.type === 'a') {
+              return (
+                <button type='button' className={cc.props.className + ' min-w-full'}>
+                  {cc.props.children}
+                </button>
+              );
+            }
+            return cc;
+          })}
+        </section>
+      );
+    }
+
     if (c.props?.['data-field'] === 'new_folder') {
       return cloneElement(c, { onClick: () => props.createFolder() });
     }
+
     if (c.props?.children && typeof c.props.children !== 'string') {
       const { children: child, className, ...attribs } = c.props;
       if (c.props['data-field'] === 'new_doc') {
-        return cloneElement(
-          c,
-          {
-            className: `${className || ''} rx-my-documents--container`,
-          },
-          <MyDocumentsNewDocumentComponent {...props} {...attribs}>
-            {child}
-          </MyDocumentsNewDocumentComponent>,
+        return props['show-create-folder'] ? (
+          cloneElement(
+            c,
+            {
+              className: `${className || ''} rx-my-documents--container`,
+            },
+            <MyDocumentsNewDocumentComponent {...props} {...attribs}>
+              {child}
+            </MyDocumentsNewDocumentComponent>,
+          )
+        ) : (
+          <></>
         );
       }
       if (c.props['data-group'] === 'folders') {
