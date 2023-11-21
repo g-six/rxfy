@@ -168,6 +168,7 @@ export default function AiPrompt(p: Props) {
                 })
                 .finally(() => {
                   toggleLoader(false);
+                  fireLoader({});
                 });
             }
           },
