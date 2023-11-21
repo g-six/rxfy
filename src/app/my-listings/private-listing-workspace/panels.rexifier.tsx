@@ -15,7 +15,7 @@ function Rexify({ children, ...data }: { agent: AgentData; listing?: PrivateList
 
       // Rexify workspace tabs, TODO in Webflow - add data-group="ai | address | summary | etc..." use it instead
       // of data-w-tab
-      if (props['data-w-tab']) {
+      if (props['data-w-tab'] && data.listing) {
         switch (props['data-w-tab']) {
           case 'ai':
             return cloneElement(

@@ -33,7 +33,7 @@ export default async function MyListingsMLSListings({ children, agent, ...props 
 
   return (
     <section {...props} role='list' data-rx='MyListingsMLSListings'>
-      {properties?.length &&
+      {properties?.length ? (
         Children.map(children, ({ props: { children: card_components, ...card_props } }, idx) => {
           return idx === 0 ? (
             <>
@@ -53,7 +53,10 @@ export default async function MyListingsMLSListings({ children, agent, ...props 
           ) : (
             <>{'<!-- end of iterating cards -->'}</>
           );
-        })}
+        })
+      ) : (
+        <></>
+      )}
     </section>
   );
 }

@@ -28,7 +28,7 @@ export default async function MyListingsPrivateListings({ children, agent, ...pr
 
   return (
     <section {...props} role='list' data-rx='MyListingsPrivateListings'>
-      {properties?.length &&
+      {properties?.length ? (
         Children.map(children, ({ props: { children: card_components, ...card_props } }, idx) => {
           return idx === 0 ? (
             <>
@@ -41,7 +41,10 @@ export default async function MyListingsPrivateListings({ children, agent, ...pr
           ) : (
             <>{'<!-- end of iterating cards -->'}</>
           );
-        })}
+        })
+      ) : (
+        <></>
+      )}
     </section>
   );
 }

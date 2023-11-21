@@ -59,7 +59,7 @@ function Rexifier({
         );
       if (c.props.children) {
         if (typeof c.props.children !== 'string') {
-          if (className.includes('w-dropdown') && field_name) {
+          if (className.includes('w-dropdown') && field_name && attributes) {
             let key = field_name;
             let { [key]: defaultValue } = attributes.listing as unknown as {
               [k: string]: {
@@ -86,7 +86,7 @@ function Rexifier({
             );
           }
 
-          if (model) {
+          if (model && attributes?.listing) {
             const options = (data && data[model]) || [];
             const { [model]: current_items } = attributes.listing as unknown as {
               [k: string]: { id: number }[];
