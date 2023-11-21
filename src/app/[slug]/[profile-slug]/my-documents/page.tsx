@@ -27,6 +27,22 @@ export default async function MyDocuments({ params }: { params: { [key: string]:
 
     const navbar = $('body .navbar---dashboard');
     $('body .navbar---dashboard').remove();
+    const dropdown_class = $('.doc-3dots-dropdown').attr('class');
+    const dropdown_icon = $('.doc-3dots-dropdown').html();
+    const dropdown_container = $('.doc-3dots-dropdown + nav').html();
+    const container_class = $('.doc-3dots-dropdown + nav').attr('class');
+    $('.doc-3dots-dropdown + nav').remove();
+    $('.doc-3dots-dropdown').replaceWith(
+      '<div data-group="folder_actions" class="' +
+        dropdown_class +
+        '">' +
+        dropdown_icon +
+        '<nav class="' +
+        container_class +
+        '">' +
+        dropdown_container +
+        '</nav></div>',
+    );
     const body = $('body > div');
     return (
       <>

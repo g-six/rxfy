@@ -1,0 +1,9 @@
+.close-link-right {
+  @apply bg-transparent;
+}
+input.new-document-name {
+  @apply border-none outline-none ring-0 w-full p-0 text-neutral-950 disabled:bg-transparent disabled:text-neutral-300;
+}
+nav.doc-folder-dropdown {
+  @apply block #{!important};
+}

@@ -1,0 +1,6 @@
+.menu {
+  @apply absolute block w-full right-0 origin-top-right p-2 focus:outline-none #{!important};
+  > button {
+    @apply w-full bg-transparent;
+  }
+}

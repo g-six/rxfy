@@ -97,7 +97,7 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
           min_lng = l.sw.lng;
         }
       });
-      console.log({ area });
+
       if (!area || ['Homepage', 'Index'].includes(area))
         filter = filter.concat([
           {
@@ -151,7 +151,6 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
     $(el).replaceWith(`<a ${attribs.join(' ')}>${$(el).html()}</a>`);
   });
 
-  console.log(filter);
   const internal_req = {
     json() {
       return {
