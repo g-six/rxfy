@@ -20,6 +20,8 @@ import { headers } from 'next/headers';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 
 export default async function PageComponent({ agent_id, theme = 'default', ...props }: { agent_id: string; theme?: string; 'page-url'?: string }) {
+  console.log('');
+  console.log('');
   console.log('Loading app/[slug]/[profile-slug]/page.module.tsx', { slug: agent_id });
   const agent = await findAgentRecordByAgentId(agent_id);
 
@@ -91,7 +93,7 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
         }
       });
 
-      if (!area || ['Homepage', 'Index'].includes(area))
+      if (!area || ['Homepage', 'Index', 'Properties'].includes(area))
         filter = filter.concat([
           {
             range: {
@@ -199,6 +201,14 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
   $('[data-field="search_highlights"]:not(:first-child)').remove();
   $('.property-card:not(:first-child)').remove();
   $('[data-group="sold_listings"] [data-component="property_card"]:not(:first-child)').remove();
+  console.log('Agent listings');
+  console.log('Active');
+  console.log(JSON.stringify(active, null, 4));
+  console.log('');
+  console.log('Sold');
+  console.log(JSON.stringify(sold, null, 4));
+  console.log('');
+  console.log('');
   if (sold) {
     const listings = sold as PropertyDataModel[];
     if (listings.length === 0) $('[data-group="sold_listings"]').remove();
@@ -208,7 +218,6 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
   $('body .navbar-component').remove();
 
   const footer = $('[data-group="footer"]');
-  // $('[data-group="footer"]').remove();
 
   const body = $('body > div');
 

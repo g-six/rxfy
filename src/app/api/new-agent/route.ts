@@ -208,6 +208,7 @@ export async function POST(req: Request) {
   } catch (e) {
     const axerr = e as AxiosError;
     console.log('ERROR in new-agent.POST', axerr.response?.data);
+    console.error(e);
     results.error = axerr.code as string;
   }
 

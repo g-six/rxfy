@@ -4,7 +4,7 @@ import DefaultPage from '@/app/page';
 import { CheerioAPI, load } from 'cheerio';
 import { DOMNode, domToReact } from 'html-react-parser';
 import { cookies, headers } from 'next/headers';
-import { Children, ReactElement, ReactNode } from 'react';
+import { Children, ReactElement } from 'react';
 import { getUserSessionData } from '../api/check-session/model';
 import RxCRM from '@/rexify/realtors/RxCRM';
 import RxCustomerView from '@/rexify/realtors/RxCustomerView';

@@ -80,7 +80,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   if (headers().get('x-profile-slug')) profile_slug = headers().get('x-profile-slug') as string;
   if (agent_webflow_domain) {
     agent_data = await getAgentBy({
-      webflow_domain: agent_webflow_domain,
+      agent_id: possible_agent,
     });
     const client_dashboard_params = {
       'profile-slug': profile_slug,

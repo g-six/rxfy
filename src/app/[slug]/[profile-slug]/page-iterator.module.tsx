@@ -11,6 +11,7 @@ import { PropertyCard } from './property-card.component';
 import { SOCIAL_MEDIA_FIELDS } from '@/_constants/agent-fields';
 import RequestInfoPopup from '@/app/property/request-info-popup.module';
 import HomePageSearchButton from './search-button.component';
+import AgentListingsIterator from './listings-iterator.module';
 
 export default function Iterator({
   agent,
@@ -27,6 +28,23 @@ export default function Iterator({
     else if (c.type === 'video') return c;
     else if (c.type !== 'a' && c.type !== 'svg' && c.props?.children && typeof c.props?.children !== 'string') {
       const { children: sub, ...props } = c.props;
+
+      if (props['data-group'] === 'sold_listings')
+        return cloneElement(
+          c,
+          {},
+          <AgentListingsIterator agent={agent} listings={listings?.sold || []}>
+            {sub}
+          </AgentListingsIterator>,
+        );
+      if (props['data-group'] === 'active_listings')
+        return cloneElement(
+          c,
+          {},
+          <AgentListingsIterator agent={agent} listings={listings?.active || []}>
+            {sub}
+          </AgentListingsIterator>,
+        );
 
       if (props['data-component'] === 'property_card' && listings?.active) {
         return (

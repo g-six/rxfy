@@ -158,7 +158,7 @@ export default async function PropertyPage(props: any) {
             }
             $('[data-node-type]').remove();
             const navbar = $('body > [data-component="navigation"]');
-            const footer = $('[data-component="footer"]');
+            const footer = $('[data-component="footer"],[data-group="footer"]');
 
             $('body > [data-component="navigation"]').remove();
             $('[data-component="footer"]').remove();
