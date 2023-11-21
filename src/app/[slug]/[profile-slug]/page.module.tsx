@@ -208,7 +208,7 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
   $('body .navbar-component').remove();
 
   const footer = $('[data-group="footer"]');
-  $('[data-group="footer"]').remove();
+  // $('[data-group="footer"]').remove();
 
   const body = $('body > div');
 

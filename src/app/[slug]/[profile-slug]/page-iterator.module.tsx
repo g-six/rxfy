@@ -9,8 +9,6 @@ import HomePageSearchInput from './search-input.component';
 import ActionButton from './homepage-action-button.module';
 import { PropertyCard } from './property-card.component';
 import { SOCIAL_MEDIA_FIELDS } from '@/_constants/agent-fields';
-import { headers } from 'next/headers';
-import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import RequestInfoPopup from '@/app/property/request-info-popup.module';
 
 export default function Iterator({
@@ -28,14 +26,12 @@ export default function Iterator({
     else if (c.type !== 'a' && c.type !== 'svg' && c.props?.children && typeof c.props?.children !== 'string') {
       const { children: sub, ...props } = c.props;
 
-      if (props.className?.includes('property-card')) {
-      }
-      if (props.className?.includes('property-card') && listings?.active) {
+      if (props['data-component'] === 'property_card' && listings?.active) {
         return (
           <>
             {listings.active.map(l => (
               <div {...props} key={l.mls_id}>
-                <PropertyCard agent={agent} listing={l}>
+                <PropertyCard agent={agent} listing={l} data-type={props['data-type'] || 'default'}>
                   {sub}
                 </PropertyCard>
               </div>
@@ -180,7 +176,7 @@ export default function Iterator({
                         {
                           ...c.props,
                           key: `${l.title}&lat=${l.lat}`,
-                          href: `${agent.metatags.profile_slug}/map?city=${l.title}&lat=${l.lat}&lng=${l.lng}`,
+                          href: `${agent.domain_name ? '' : agent.metatags.profile_slug}/map?city=${l.title}&lat=${l.lat}&lng=${l.lng}`,
                         },
                         l.title,
                       );
