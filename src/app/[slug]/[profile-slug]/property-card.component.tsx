@@ -33,7 +33,9 @@ export function PropertyCard({ agent, listing, children }: { agent: AgentData; l
       );
     }
     if (c.type === 'img' && listing) {
-      if (c.props.className.includes('property-card-image'))
+      if (c.props['data-field'] === 'cover_photo' && listing.cover_photo) {
+        return cloneElement(c, { src: getImageSized(listing.cover_photo, 540), srcSet: undefined });
+      } else if (c.props.className.includes('property-card-image'))
         return (
           <div
             key={listing.mls_id}
@@ -72,8 +74,6 @@ export function PropertyCard({ agent, listing, children }: { agent: AgentData; l
             ></a>
           </div>
         );
-      } else if (c.props['data-field'] === 'cover_photo' && listing.cover_photo) {
-        return cloneElement(c, { src: getImageSized(listing.cover_photo, 540), srcSet: undefined });
       }
     }
     if (c.type === 'img' && c.props.className.includes('agentface')) {
