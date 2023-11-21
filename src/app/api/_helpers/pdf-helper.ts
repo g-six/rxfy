@@ -273,6 +273,7 @@ export async function getPdf(page_url: string, data: unknown) {
   if (amenities_facilities?.length) {
     const classname = $('[data-field="amenities_name"]').attr('class');
     const wrapper = $('[data-field="amenities_name"]:last-child').parent();
+    $('[data-field="amenities_name"]:last-child').remove();
     amenities_facilities.forEach(({ name }) => {
       // placeholder.replaceWith(`<span class="${placeholder.attr('class')} text-xs">${name}</span>`);
       $(wrapper).append(`<div class="${classname}">${name}</div>`);
