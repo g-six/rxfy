@@ -92,10 +92,12 @@ export async function POST(req: Request) {
               `${process.env.NEXT_APP_OPENAI_URI}`,
               {
                 messages: [{ role: 'user', content: prompt }],
-                max_tokens: 500,
-                temperature: 0.9,
-                model: 'text-davinci-003',
+                max_tokens: 400,
+                temperature: 1,
                 top_p: 1,
+                frequency_penalty: 0,
+                presence_penalty: 0,
+                model: 'gpt-4',
               },
               {
                 headers: {
@@ -104,103 +106,110 @@ export async function POST(req: Request) {
                 },
               },
             );
-            const {
-              choices: [{ text }],
-              error,
-            } = data;
+            const { choices, error } = data;
 
-            console.log({ error });
+            const text = (choices as unknown[] as { message: { role: string; content: string } }[])
+              .filter(choice => choice.message.role === 'assistant')
+              .map(choice => choice.message.content)
+              .pop();
+            if (text) {
+              const { keywords } = JSON.parse(text) as unknown as {
+                keywords: string[];
+              };
 
-            const ai_results = JSON.parse(text.trim()) as unknown as AIGeneratedDetails;
-            const {
-              id: existing_record_id,
-              agent_metatag: {
-                data: { id: metatag_record, attributes: metatags },
-              },
-            } = await createAgentRecordIfNoneFound({
-              agent_id,
+              console.log({ error });
+
+              const ai_results = JSON.parse(text.trim()) as unknown as AIGeneratedDetails;
+              const {
+                id: existing_record_id,
+                agent_metatag: {
+                  data: { id: metatag_record, attributes: metatags },
+                },
+              } = await createAgentRecordIfNoneFound({
+                agent_id,
+                email,
+                phone,
+                full_name,
+                first_name,
+                last_name,
+                stripe_customer,
+                stripe_subscription,
+                ai_results,
+              });
+              agent_record_id = Number(existing_record_id);
+            } else {
+              agent_record_id = agent.id;
+            }
+
+            const password = email.substring(0, 5) + stripe_customer.split('_').pop()?.substring(0, 5);
+            const encrypted_password = encrypt(password);
+            const last_activity_at = new Date().toISOString();
+            const new_realtor = {
+              agent: agent_record_id,
               email,
-              phone,
+              encrypted_password,
               full_name,
               first_name,
               last_name,
               stripe_customer,
-              stripe_subscription,
-              ai_results,
-            });
-            agent_record_id = Number(existing_record_id);
-          } else {
-            agent_record_id = agent.id;
-          }
-
-          const password = email.substring(0, 5) + stripe_customer.split('_').pop()?.substring(0, 5);
-          const encrypted_password = encrypt(password);
-          const last_activity_at = new Date().toISOString();
-          const new_realtor = {
-            agent: agent_record_id,
-            email,
-            encrypted_password,
-            full_name,
-            first_name,
-            last_name,
-            stripe_customer,
-            stripe_subscriptions: {
-              [stripe_subscription]: {
-                invoice,
+              stripe_subscriptions: {
+                [stripe_subscription]: {
+                  invoice,
+                },
               },
-            },
-            phone_number: phone,
-            is_verified: false,
-            last_activity_at,
-          };
-          const { data: realtor } = await axios.post(
-            `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-            {
-              query: gql_create_realtor,
-              variables: {
-                data: new_realtor,
-              },
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-                'Content-Type': 'application/json',
-              },
-            },
-          );
-
-          console.log('realtor.data', JSON.stringify({ new_realtor, realtor_data: realtor.data }));
-
-          const session_key = realtor.data?.createRealtor?.data?.id
-            ? `${encrypt(last_activity_at)}.${encrypt(email)}-${realtor.data?.createRealtor?.data?.id}`
-            : '';
-          if (session_key) {
-            const receipients: MessageRecipient[] = [
+              phone_number: phone,
+              is_verified: false,
+              last_activity_at,
+            };
+            const { data: realtor } = await axios.post(
+              `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
               {
-                email,
-                name: full_name,
+                query: gql_create_realtor,
+                variables: {
+                  data: new_realtor,
+                },
               },
-            ];
+              {
+                headers: {
+                  Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+                  'Content-Type': 'application/json',
+                },
+              },
+            );
 
-            const url = new URL(req.url);
-            console.log('\nAttempt to email', {
-              send_to_email: email,
-              password,
-              dashboard_url: `${url.origin}/my-profile?key=${session_key}`,
-              from_name: 'Leagent Team',
-              subject: 'Welcome aboard!',
-            });
+            console.log('realtor.data', JSON.stringify({ new_realtor, realtor_data: realtor.data }));
 
-            await sendTemplate('welcome-agent', receipients, {
-              send_to_email: email,
-              password,
-              dashboard_url: `${url.origin}/my-profile?key=${session_key}&as=realtor`,
-              from_name: 'Leagent Team',
-              subject: 'Welcome aboard!',
-            });
+            const session_key = realtor.data?.createRealtor?.data?.id
+              ? `${encrypt(last_activity_at)}.${encrypt(email)}-${realtor.data?.createRealtor?.data?.id}`
+              : '';
+            if (session_key) {
+              const receipients: MessageRecipient[] = [
+                {
+                  email,
+                  name: full_name,
+                },
+              ];
 
-            console.log('/n/nwelcome-agent template delivered');
-            console.log('/nend');
+              const url = new URL(req.url);
+              console.log('\nAttempt to email', {
+                send_to_email: email,
+                password,
+                dashboard_url: `${url.origin}/my-profile?key=${session_key}`,
+                from_name: 'Leagent Team',
+                subject: 'Welcome aboard!',
+              });
+
+              await sendTemplate('welcome-agent', receipients, {
+                send_to_email: email,
+                password,
+                dashboard_url: `${url.origin}/my-profile?key=${session_key}&as=realtor`,
+                from_name: 'Leagent Team',
+                subject: 'Welcome aboard!',
+              });
+
+              console.log('/n/nwelcome-agent template delivered');
+              console.log('/nend');
+            }
           }
         } catch (e) {
           const { response } = e as AxiosError;

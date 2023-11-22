@@ -7,6 +7,8 @@ import { updatePrivateListing } from '@/_utilities/api-calls/call-private-listin
 import SpinningDots from '@/components/Loaders/SpinningDots';
 import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
 import { Children, MouseEvent, ReactElement, SyntheticEvent, cloneElement, useEffect, useState } from 'react';
+import RoomInputGroupRexifier from './components/room-input-group.component';
+import BathroomInputGroupRexifier from './components/bath-input-group.component';
 
 interface Props {
   children: ReactElement;
@@ -16,70 +18,14 @@ interface Props {
   disabled?: boolean;
 }
 
-function UOMRexifier({
-  children,
-  ...attributes
-}: Props & {
-  onChange(
-    field: string,
-    value:
-      | {
-          id: number;
-          name: string;
-        }
-      | string,
-  ): void;
-  'field-name': string;
-}) {
-  const Rexified = Children.map(children, c => {
-    if (c.props) {
-      let { className = '', 'data-value': uom_value, 'data-group': model } = c.props;
-      className = `rexified ${className}`.trim();
-
-      if (uom_value) {
-        return cloneElement(c, {
-          onClick: (evt: MouseEvent<HTMLAnchorElement>) => {
-            switch (evt.currentTarget.text.toUpperCase()) {
-              case 'SQ M':
-                attributes.onChange(attributes['field-name'], 'sqm');
-                break;
-              default:
-                attributes.onChange(attributes['field-name'], evt.currentTarget.text.toLowerCase());
-                break;
-            }
-
-            const comp = document.querySelector(`[data-field="${attributes['field-name']}"] div:last-child`);
-            document.querySelector('.dropdown-list.w--open')?.classList.remove('w--open');
-            if (comp) {
-              comp.textContent = evt.currentTarget.text;
-            }
-          },
-        });
-      }
-
-      if (c.props.children && typeof c.props.children !== 'string') {
-        return cloneElement(c, {}, <UOMRexifier {...attributes}>{c.props.children}</UOMRexifier>);
-      }
-    }
-    return c;
-  });
-  return <>{Rexified}</>;
-}
-
 function Rexifier({
   children,
   ...attributes
 }: Props & {
   onAction(action: string): void;
-  onChange(
-    field: string,
-    value:
-      | {
-          id: number;
-          name: string;
-        }
-      | string,
-  ): void;
+  data: PrivateListingInput;
+  onChangeRoom(type: 'room' | 'kitchen' | 'garage' | 'other', index: number, updated: RoomDetails): void;
+  onChangeBathroom(index: number, updated: BathroomDetails): void;
 }) {
   const Rexified = Children.map(children, c => {
     if (c.props) {
@@ -99,19 +45,132 @@ function Rexifier({
           </button>
         );
 
-      if (attributes.listing && field_name) {
-        const { [field_name]: defaultValue } = attributes.listing as unknown as {
-          [k: string]: string;
-        };
-        return cloneElement(c, {
-          defaultValue,
-          onChange: (evt: SyntheticEvent<HTMLInputElement>) => {
-            attributes.onChange(field_name, evt.currentTarget.value);
-          },
-        });
-      }
-      if (c.props.children && typeof c.props.children !== 'string')
+      if (c.props.children && typeof c.props.children !== 'string') {
+        if (c.props['data-input-group'] === 'bedroom') {
+          return (
+            <>
+              {(attributes.data.room_details?.rooms || []).map((r, i) =>
+                cloneElement(
+                  c,
+                  {
+                    key: `${c.props['data-input-group']}-wrapper-${i}`,
+                  },
+                  <RoomInputGroupRexifier
+                    key={`${c.props['data-input-group']}-input-${i}`}
+                    room={r}
+                    onChange={(updated: RoomDetails) => {
+                      attributes.onChangeRoom('room', i, updated);
+                    }}
+                  >
+                    {c.props.children}
+                  </RoomInputGroupRexifier>,
+                ),
+              )}
+            </>
+          );
+        }
+        if (c.props['data-input-group'] === 'additional_room') {
+          return attributes.data.room_details?.others ? (
+            <>
+              {attributes.data.room_details.others.map((r, i) =>
+                cloneElement(
+                  c,
+                  {
+                    key: `${c.props['data-input-group']}-wrapper-${i}`,
+                  },
+                  <RoomInputGroupRexifier
+                    key={`${c.props['data-input-group']}-input-${i}`}
+                    room={r}
+                    onChange={(updated: RoomDetails) => {
+                      attributes.onChangeRoom('other', i, updated);
+                    }}
+                  >
+                    {c.props.children}
+                  </RoomInputGroupRexifier>,
+                ),
+              )}
+            </>
+          ) : (
+            <></>
+          );
+        }
+        if (c.props['data-input-group'] === 'kitchen') {
+          return attributes.data.room_details?.kitchens ? (
+            <>
+              {attributes.data.room_details.kitchens.map((r, i) =>
+                cloneElement(
+                  c,
+                  {
+                    key: `${c.props['data-input-group']}-wrapper-${i}`,
+                  },
+                  <RoomInputGroupRexifier
+                    key={`${c.props['data-input-group']}-input-${i}`}
+                    room={r}
+                    onChange={(updated: RoomDetails) => {
+                      attributes.onChangeRoom('kitchen', i, updated);
+                    }}
+                  >
+                    {c.props.children}
+                  </RoomInputGroupRexifier>,
+                ),
+              )}
+            </>
+          ) : (
+            <></>
+          );
+        }
+        if (c.props['data-input-group'] === 'garage') {
+          return attributes.data.room_details?.garages ? (
+            <>
+              {attributes.data.room_details.garages.map((r, i) =>
+                cloneElement(
+                  c,
+                  {
+                    key: `${c.props['data-input-group']}-wrapper-${i}`,
+                  },
+                  <RoomInputGroupRexifier
+                    key={`${c.props['data-input-group']}-input-${i}`}
+                    room={r}
+                    onChange={(updated: RoomDetails) => {
+                      attributes.onChangeRoom('garage', i, updated);
+                    }}
+                  >
+                    {c.props.children}
+                  </RoomInputGroupRexifier>,
+                ),
+              )}
+            </>
+          ) : (
+            <></>
+          );
+        }
+        if (c.props['data-input-group'] === 'bathroom') {
+          return attributes.data.bathroom_details?.baths ? (
+            <>
+              {attributes.data.bathroom_details.baths.map((r, i) =>
+                cloneElement(
+                  c,
+                  {
+                    key: `bath-${i}`,
+                  },
+                  <BathroomInputGroupRexifier
+                    onChange={updated => {
+                      attributes.onChangeBathroom(i, updated);
+                    }}
+                    bath={r}
+                  >
+                    {c.props.children}
+                  </BathroomInputGroupRexifier>,
+                ),
+              )}
+            </>
+          ) : (
+            <></>
+          );
+        }
+
         return cloneElement(c, { className }, <Rexifier {...attributes}>{c.props.children}</Rexifier>);
+      }
       return cloneElement(c, { className });
     }
     return c;
@@ -123,12 +182,40 @@ export function MyListingsRoomsEditor({ children, ...attributes }: Props) {
   const form = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
   const [data, setData] = useState<PrivateListingInput | undefined>(attributes.listing || {});
   const [is_loading, toggleLoading] = useState<boolean>(false);
-  const [room_details, setRoomDetails] = useState<{
-    rooms: RoomDetails[];
-  }>({ rooms: [] });
-  const [bathroom_details, setBathroomDetails] = useState<{
-    baths: BathroomDetails[];
-  }>({ baths: [] });
+
+  function onChangeRoom(type: 'room' | 'kitchen' | 'garage' | 'other', index: number, updated: RoomDetails) {
+    if (data) {
+      let room_details = data.room_details as unknown as { [k: string]: RoomDetails[] };
+      const { [`${type}s`]: rooms } = room_details;
+      rooms.splice(index, 1, updated);
+      room_details = {
+        ...room_details,
+        [`${type}s`]: rooms,
+      };
+      setData({
+        ...data,
+        room_details: {
+          rooms: room_details.rooms || [],
+          kitchens: room_details.kitchens || [],
+          garages: room_details.garages || [],
+          others: room_details.others || [],
+        },
+      });
+    }
+  }
+
+  function onBathroomUpdate(index: number, updated: BathroomDetails) {
+    if (data) {
+      const { baths } = data.bathroom_details as unknown as { [k: string]: BathroomDetails[] };
+      baths.splice(index, 1, updated);
+      setData({
+        ...data,
+        bathroom_details: {
+          baths,
+        },
+      });
+    }
+  }
 
   function handleAction(action: string) {
     if (form.data) {
@@ -138,17 +225,7 @@ export function MyListingsRoomsEditor({ children, ...attributes }: Props) {
         toggleLoading(true);
 
         // updatePrivateListing(id, {
-        //   baths,
-        //   beds,
-        //   full_baths,
-        //   half_baths,
-        //   floor_area,
-        //   lot_area,
-        //   floor_area_uom,
-        //   lot_uom,
-        //   total_additional_rooms,
-        //   total_kitchens,
-        //   garages,
+        //   room_details,
         // })
         //   .then(() => {
         //     const next_tab = document.querySelector('a[data-w-tab="Tab 6"]') as HTMLAnchorElement;
@@ -160,33 +237,82 @@ export function MyListingsRoomsEditor({ children, ...attributes }: Props) {
       }
     }
   }
-  console.log(data);
+
   useEffect(() => {
-    if (data?.room_details) {
-      setRoomDetails(data.room_details);
+    const bathroom_details = data?.bathroom_details || { baths: [] };
+    let room_details = data?.room_details || { rooms: [] };
+
+    let total = data?.beds || 0;
+    total = total + (data?.total_additional_rooms || 0);
+
+    room_details = {
+      ...room_details,
+      others: room_details.others || [],
+      garages: room_details.garages || [],
+      kitchens: room_details.kitchens || [],
+    };
+
+    if (data?.baths && bathroom_details.baths.length < data.baths) {
+      for (let cnt = data.baths - bathroom_details.baths.length; cnt > 0; cnt--) {
+        bathroom_details.baths.push({
+          pieces: 1,
+          level: 'Main',
+        });
+      }
     }
-    if (data?.bathroom_details) {
-      setBathroomDetails(data.bathroom_details);
+    if (data?.beds && room_details.rooms.length < data.beds) {
+      for (let cnt = data.beds - room_details.rooms.length; cnt > 0; cnt--) {
+        room_details.rooms.push({
+          type: 'Bedroom',
+          length: '',
+          width: '',
+          level: 'Main',
+        });
+      }
     }
+
+    if (data?.total_kitchens && room_details.kitchens && room_details.kitchens.length < data.total_kitchens) {
+      for (let cnt = data.total_kitchens - room_details.kitchens.length; cnt > 0; cnt--) {
+        room_details.kitchens.push({
+          type: 'Kitchen',
+          length: '',
+          width: '',
+          level: 'Main',
+        });
+      }
+    }
+    if (data?.total_garage && room_details.garages && room_details.garages.length < data.total_garage) {
+      for (let cnt = data.total_garage - room_details.garages.length; cnt > 0; cnt--) {
+        room_details.garages.push({
+          type: 'Garage',
+          length: '',
+          width: '',
+          level: 'Ground',
+        });
+      }
+    }
+    if (data?.total_additional_rooms && room_details.others && room_details.others.length < data.total_additional_rooms) {
+      for (let cnt = data.total_additional_rooms - room_details.others.length; cnt > 0; cnt--) {
+        room_details.others.push({
+          type: '',
+          length: '',
+          width: '',
+          level: 'Ground',
+        });
+      }
+    }
+    setData({
+      ...data,
+      room_details,
+      bathroom_details,
+    });
   }, []);
 
-  useEffect(() => {
-    if (data) form.fireEvent(data as unknown as PrivateListingData);
-  }, [data]);
-
-  return (
-    <Rexifier
-      {...attributes}
-      disabled={is_loading}
-      onAction={handleAction}
-      onChange={(field, value: string) => {
-        setData({
-          ...data,
-          [field]: FinanceFields.concat(NumericFields).includes(field) ? Number(value) : value,
-        });
-      }}
-    >
+  return data?.bathroom_details && data?.room_details ? (
+    <Rexifier {...attributes} disabled={is_loading} onAction={handleAction} data={data} onChangeRoom={onChangeRoom} onChangeBathroom={onBathroomUpdate}>
       {children}
     </Rexifier>
+  ) : (
+    <></>
   );
 }

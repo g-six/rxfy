@@ -46,6 +46,9 @@ export interface PrivateListingModel {
   region?: string;
   room_details?: {
     rooms: RoomDetails[];
+    kitchens?: RoomDetails[];
+    garages?: RoomDetails[];
+    others?: RoomDetails[];
   };
   bathroom_details?: {
     baths: BathroomDetails[];

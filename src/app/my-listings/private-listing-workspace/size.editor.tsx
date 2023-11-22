@@ -135,24 +135,24 @@ export function MyListingsSizeEditor({ children, ...attributes }: Props) {
 
   function handleAction(action: string) {
     if (form.data) {
-      const { id, baths, beds, full_baths, half_baths, floor_area, lot_area, floor_area_uom, lot_uom, total_kitchens, total_additional_rooms, garages } =
-        form.data;
+      const { id, ...values } = form.data;
 
       if (action === 'next' && id) {
         toggleLoading(true);
 
         updatePrivateListing(id, {
-          baths,
-          beds,
-          full_baths,
-          half_baths,
-          floor_area,
-          lot_area,
-          floor_area_uom,
-          lot_uom,
-          total_additional_rooms,
-          total_kitchens,
-          garages,
+          baths: values.baths || undefined,
+          beds: values.beds || undefined,
+          full_baths: values.full_baths || undefined,
+          half_baths: values.half_baths || undefined,
+          floor_area: values.floor_area || undefined,
+          lot_area: values.lot_area || undefined,
+          floor_area_uom: values.floor_area_uom || undefined,
+          lot_uom: values.lot_uom || undefined,
+          total_additional_rooms: values.total_additional_rooms || undefined,
+          total_kitchens: values.total_kitchens || undefined,
+          total_garage: values.garages || undefined,
+          garages: values.garages || undefined,
         })
           .then(() => {
             const next_tab = document.querySelector('a[data-w-tab="Tab 5"]') as HTMLAnchorElement;
