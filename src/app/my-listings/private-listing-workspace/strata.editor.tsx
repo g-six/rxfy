@@ -205,21 +205,19 @@ export function MyListingsStrataEditor({ children, ...attributes }: Props & { li
 
         updatePrivateListing(id, {
           facilities: record.facilities || [],
+          strata_fee: isNaN(Number(record.strata_fee)) ? undefined : Number(record.strata_fee),
           building_bylaws: record.building_bylaws,
           restrictions: record.restrictions,
           minimum_age_restriction: record.minimum_age_restriction ? Number(record.minimum_age_restriction) : undefined,
-          total_pets_allowed: isNaN(Number(record.total_pets_allowed)) ? undefined : Number(record.total_pets_allowed),
+          total_pets_allowed: `${record.total_pets_allowed}` === '' || isNaN(Number(record.total_pets_allowed)) ? undefined : Number(record.total_pets_allowed),
           total_allowed_rentals: isNaN(Number(record.total_allowed_rentals)) ? undefined : Number(record.total_allowed_rentals),
           complex_compound_name: record.complex_compound_name,
           council_approval_required: record.council_approval_required || false,
         })
-          .then(
-            console.log,
-            //   () => {
-            //   const next_tab = document.querySelector('a[data-w-tab="Tab 5"]') as HTMLAnchorElement;
-            //   next_tab.click();
-            // }
-          )
+          .then(() => {
+            const next_tab = document.querySelector('a[data-w-tab="Tab 7"]') as HTMLAnchorElement;
+            next_tab.click();
+          })
           .finally(() => {
             toggleLoading(false);
           });
