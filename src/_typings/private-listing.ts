@@ -1,3 +1,4 @@
+import { KeyValuePair } from '@/app/api/properties/types';
 import { BathroomDetails, RoomDetails } from './property';
 
 export interface PrivateListingModel {
@@ -88,6 +89,7 @@ export interface PrivateListingInput extends PrivateListingModel {
   allowed_pets?: number[];
   places_of_interest?: number[];
   construction_information?: number[];
+  minimum_age_restriction?: number;
 }
 
 export interface PrivateListingOutput extends PrivateListingModel {

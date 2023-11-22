@@ -659,7 +659,7 @@ export function getRoomPlusLevelText(type: string, level: string, width?: string
   }
 }
 export function formatValues(obj: any, key: string, reverse = false): string | number {
-  if (!obj || !obj[key]) return '';
+  if (!obj || obj[key] === undefined) return obj[key];
 
   if (NumericFields.includes(key)) {
     return reverse || ['year_built', 'tax_year'].includes(key)
