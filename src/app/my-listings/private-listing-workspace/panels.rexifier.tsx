@@ -6,6 +6,7 @@ import MyListingsAddressEditor from './address.editor';
 import { MyListingsHomeSummaryEditor } from './home-summary.editor';
 import { MyListingsSizeEditor } from './size.editor';
 import { MyListingsRoomsEditor } from './rooms.editor';
+import MyListingsReviewEditor from './review.editor';
 
 function Rexify({ children, ...data }: { agent: AgentData; listing?: PrivateListingModel; children: ReactElement }) {
   const Rexified = Children.map(children, c => {
@@ -15,30 +16,40 @@ function Rexify({ children, ...data }: { agent: AgentData; listing?: PrivateList
 
       // Rexify workspace tabs, TODO in Webflow - add data-group="ai | address | summary | etc..." use it instead
       // of data-w-tab
-      if (props['data-w-tab'] && data.listing) {
-        switch (props['data-w-tab']) {
-          case 'ai':
-            return cloneElement(
-              c,
-              { className, 'data-rx': 'MyListingsAiAssistantEditor' },
-              <MyListingsAiAssistantEditor {...data}>{components}</MyListingsAiAssistantEditor>,
-            );
-          case 'Tab 2':
-            return cloneElement(
-              c,
-              { className, 'data-rx': 'MyListingsAddressEditor' },
-              <MyListingsAddressEditor {...data}>{components}</MyListingsAddressEditor>,
-            );
-          case 'Tab 3':
-            return cloneElement(
-              c,
-              { className, 'data-rx': 'MyListingsHomeSummaryEditor' },
-              <MyListingsHomeSummaryEditor {...data}>{components}</MyListingsHomeSummaryEditor>,
-            );
-          case 'Tab 4':
-            return cloneElement(c, { className, 'data-rx': 'MyListingsSizeEditor' }, <MyListingsSizeEditor {...data}>{components}</MyListingsSizeEditor>);
-          case 'Tab 5':
-            return cloneElement(c, { className, 'data-rx': 'MyListingsRoomsEditor' }, <MyListingsRoomsEditor {...data}>{components}</MyListingsRoomsEditor>);
+      if (props['data-w-tab']) {
+        if (props['data-w-tab'] === 'ai') {
+          return cloneElement(
+            c,
+            { className, 'data-rx': 'MyListingsAiAssistantEditor' },
+            <MyListingsAiAssistantEditor {...data}>{components}</MyListingsAiAssistantEditor>,
+          );
+        } else if (data.listing) {
+          switch (props['data-w-tab']) {
+            case 'ai':
+              return cloneElement(
+                c,
+                { className, 'data-rx': 'MyListingsAiAssistantEditor' },
+                <MyListingsAiAssistantEditor {...data}>{components}</MyListingsAiAssistantEditor>,
+              );
+            case 'Tab 2':
+              return cloneElement(
+                c,
+                { className, 'data-rx': 'MyListingsAddressEditor' },
+                <MyListingsAddressEditor {...data}>{components}</MyListingsAddressEditor>,
+              );
+            case 'Tab 3':
+              return cloneElement(
+                c,
+                { className, 'data-rx': 'MyListingsHomeSummaryEditor' },
+                <MyListingsHomeSummaryEditor {...data}>{components}</MyListingsHomeSummaryEditor>,
+              );
+            case 'Tab 4':
+              return cloneElement(c, { className, 'data-rx': 'MyListingsSizeEditor' }, <MyListingsSizeEditor {...data}>{components}</MyListingsSizeEditor>);
+            case 'Tab 5':
+              return cloneElement(c, { className, 'data-rx': 'MyListingsRoomsEditor' }, <MyListingsRoomsEditor {...data}>{components}</MyListingsRoomsEditor>);
+            case 'Tab 8':
+              return cloneElement(c, { className, 'data-rx': 'MyListingsReview' }, <MyListingsReviewEditor {...data}>{components}</MyListingsReviewEditor>);
+          }
         }
       }
 

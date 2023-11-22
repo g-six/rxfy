@@ -1,6 +1,6 @@
 'use client';
 
-import { Children, ReactElement, cloneElement } from 'react';
+import { Children, ReactElement, cloneElement, useEffect, useState } from 'react';
 import { classNames } from '@/_utilities/html-helper';
 import { BathroomDetails, RoomDetails } from '@/_typings/property';
 import RxMapOfListing from '@/components/RxMapOfListing';
@@ -274,4 +274,15 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
     return c;
   });
   return <>{Rexified}</>;
+}
+
+export function PropertyPageIterator(p: { agent: AgentData; property: PageData }) {
+  const [dom, setDom] = useState<ReactElement>(<></>);
+  const { webflow_domain } = p.agent;
+
+  useEffect(() => {
+    fetch(`https://sites.leagent.com/${webflow_domain}/property/propertyid.html`).then(console.log);
+  }, []);
+
+  return <>test</>;
 }

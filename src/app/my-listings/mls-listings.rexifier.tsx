@@ -11,9 +11,20 @@ export default async function MyListingsMLSListings({ children, agent, ...props 
   const properties: { [k: string]: string }[] = [];
   if (agent?.agent_id) {
     const { agent_id } = agent as AgentData;
-    const listings = await getMostRecentListings(agent_id, 100);
-    if (listings) {
-      const mls_listings = listings as PropertyDataModel[];
+    const results = await getMostRecentListings(agent_id, 50);
+    const listings = results as PropertyDataModel[];
+
+    if (listings && listings.length) {
+      let mls_listings = listings as PropertyDataModel[];
+      mls_listings = mls_listings
+        .filter(l => l)
+        .sort((a, b) => {
+          if (a.status && b.status) {
+            if (a.status < b.status) return -1;
+            if (a.status > b.status) return 1;
+          }
+          return 0;
+        });
       if (mls_listings.length) {
         mls_listings.map(l => {
           properties.push({
@@ -24,7 +35,7 @@ export default async function MyListingsMLSListings({ children, agent, ...props 
             city: l.city,
             status: l.status || 'Terminated',
             asking_price: formatValues(l, 'asking_price') as string,
-            cover_photo: l.photos?.length ? (getImageSized(l.photos[0], 240) as string) : '',
+            cover_photo: l.photos?.length && l.photos[0].length > 1 ? (getImageSized(l.photos[0], 240) as string) : '',
           });
         });
       }

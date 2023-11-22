@@ -21,7 +21,6 @@
 import { AgentData } from '@/_typings/agent';
 import { Children, ReactElement, cloneElement } from 'react';
 import MyListingsWorkspacePanels from './private-listing-workspace/panels.rexifier';
-import { headers } from 'next/headers';
 import { getPrivateListing } from '../api/private-listings/model';
 import NotFound from '../not-found';
 import { PrivateListingModel } from '@/_typings/private-listing';
@@ -69,8 +68,6 @@ export default async function MyListingsPrivateListingsWorkspace({
     listing = await getPrivateListing(id, false);
     if (!listing) return <NotFound />;
   }
-
-  console.log({ listing });
 
   return (
     <div {...props} data-agent={agent.agent_id} data-id={id}>

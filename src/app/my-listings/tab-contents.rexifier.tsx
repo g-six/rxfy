@@ -19,6 +19,7 @@ function Rexified({ agent, children, params, searchParams }: Props) {
         let { className, children: components, ...props } = c.props;
         if (!className) className = '';
         className = `${className} rexified`;
+
         if (props['data-group'] === 'mls_listings') {
           return (
             <MyListingsMLSListings {...props} className={className} agent={agent}>

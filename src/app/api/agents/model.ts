@@ -520,28 +520,34 @@ export async function getMostRecentListings(agent_id: string, size: number = 10)
   return await getMostRecentListing(agent_id, size, true);
 }
 async function strapify(listing: Record<string, unknown>) {
-  const {
-    title,
-    description,
-    lat,
-    lon,
-    area: target_area,
-    city: target_city,
-    asking_price,
-    property_type,
-    beds,
-    baths,
-    listed_at: listing_date,
-    ...mls_data
-  } = listing;
-  const legacy = mls_data as unknown as MLSProperty;
-  const real_estate_board = await getRealEstateBoard(mls_data as unknown as Record<string, string>);
-  let listed_by = legacy.LA1_FullName || legacy.LA2_FullName || legacy.LA3_FullName;
-  return {
-    ...listing,
-    listed_by,
-    real_estate_board,
-  };
+  try {
+    const {
+      title,
+      description,
+      lat,
+      lon,
+      area: target_area,
+      city: target_city,
+      asking_price,
+      property_type,
+      beds,
+      baths,
+      listed_at: listing_date,
+      ...mls_data
+    } = listing;
+    const legacy = mls_data as unknown as MLSProperty;
+    const real_estate_board = await getRealEstateBoard(mls_data as unknown as Record<string, string>);
+    let listed_by = legacy.LA1_FullName || legacy.LA2_FullName || legacy.LA3_FullName;
+    return {
+      ...listing,
+      listed_by,
+      real_estate_board,
+    };
+  } catch (e) {
+    console.log('Error');
+    console.error(e);
+    return listing;
+  }
 }
 
 export async function getMostRecentListing(agent_id: string, size: number = 1, only_agent = false): Promise<unknown> {
@@ -559,27 +565,30 @@ export async function getMostRecentListing(agent_id: string, size: number = 1, o
       bool: {
         should,
         minimum_should_match: 1,
+        must_not: [{ match: { 'data.Status': 'Terminated' } }],
       },
     },
   };
 
-  const [legacy_listings, listings] = await Promise.all([
-    retrieveFromLegacyPipeline(legacy_params, undefined, 1),
-    retrieveAgentInventory(agent_id, gql_agent_id_inventory),
-  ]);
+  // const [legacy_listings, listings] = await Promise.all([
+  //   retrieveFromLegacyPipeline(legacy_params, undefined, 1),
+  //   retrieveAgentInventory(agent_id, gql_agent_id_inventory),
+  // ]);
 
-  //You can reorder the return priority (either legacy_listings or listings (strapi))
+  // //You can reorder the return priority (either legacy_listings or listings (strapi))
 
-  const listing = (listings.length && listings[0]) || (legacy_listings.length && legacy_listings[0]);
-  if (size === 1) {
-    if (listing) {
-      return await strapify(listing as Record<string, unknown>);
-    }
-  }
-  let results: Record<string, unknown>[] = [];
-  if (listings.length) results = listings;
-  if (legacy_listings.length) results = results.concat(legacy_listings as unknown[] as Record<string, unknown>[]);
-  return await Promise.all(results.map(strapify));
+  // const listing = (listings.length && listings[0]) || (legacy_listings.length && legacy_listings[0]);
+  // if (size === 1) {
+  //   if (listing) {
+  //     return await strapify(listing as Record<string, unknown>);
+  //   }
+  // }
+  // let results: Record<string, unknown>[] = [];
+  // if (listings.length) results = listings;
+  // if (legacy_listings.length) results = results.concat(legacy_listings as unknown[] as Record<string, unknown>[]);
+
+  const results = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
+  return await Promise.all(results.map(r => strapify(r as unknown as Record<string, unknown>)));
 }
 
 export async function createAgentRecord(agent: {

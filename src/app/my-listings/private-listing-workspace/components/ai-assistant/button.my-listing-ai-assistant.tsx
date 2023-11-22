@@ -28,9 +28,9 @@ export default function MyListingAiAssistantButton({
   };
 
   async function onSubmit() {
-    const private_listing = listing ? (listing as unknown as PrivateListingOutput) : await createPrivateListing(handler.data as PrivateListingInput);
+    const private_listing = listing?.id ? (listing as unknown as PrivateListingOutput) : await createPrivateListing(handler.data as PrivateListingInput);
 
-    if (!listing) {
+    if (!listing?.id) {
       // Newly created
       handler.fireEvent(private_listing);
       router.push('/my-listings?id=' + private_listing.id);
