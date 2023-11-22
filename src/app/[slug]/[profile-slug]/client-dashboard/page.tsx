@@ -13,8 +13,12 @@ export const metadata = {
 };
 
 export default async function ClientDashboard({ params }: { params: { [key: string]: string } }) {
-  const { data: html } = await axios.get('https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/client-dashboard');
   const agent = await findAgentRecordByAgentId(params.slug);
+  let url = 'https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/client-dashboard';
+  if (agent.webflow_domain) {
+    url = `https://sites.leagent.com/${agent.webflow_domain}/client-dashboard.html`;
+  }
+  const { data: html } = await axios.get(url);
 
   if (html && agent) {
     const $: CheerioAPI = load(html);
@@ -31,10 +35,15 @@ export default async function ClientDashboard({ params }: { params: { [key: stri
     });
 
     replaceAgentFields($);
+
     const contents = $('body > div > div:not(.navbar---dashboard)');
     return (
       <main className={$('body > div').attr('class')}>
-        <NavIterator agent={agent}>{domToReact(nav as unknown as DOMNode[]) as React.ReactElement}</NavIterator>
+        {!agent.webflow_domain || agent.webflow_domain.includes('leagent') ? (
+          <NavIterator agent={agent}>{domToReact(nav as unknown as DOMNode[]) as React.ReactElement}</NavIterator>
+        ) : (
+          (domToReact(nav as unknown as DOMNode[]) as React.ReactElement)
+        )}
         <Container agent={agent}>{domToReact(contents as unknown as DOMNode[]) as React.ReactElement}</Container>
       </main>
     );

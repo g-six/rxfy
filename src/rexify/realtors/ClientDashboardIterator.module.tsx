@@ -102,7 +102,6 @@ export default function ClientDashboardIterator(
       if (p.property?.id || (p.properties && p.properties.length)) {
         if (classes.includes('initially-hidden')) {
           className = classes.filter(name => !['opacity-0', 'hidden'].includes(name)).join(' ');
-          console.log('p.property', className, p.property);
         }
       } else {
         // Empty States empty-state
@@ -159,11 +158,13 @@ export default function ClientDashboardIterator(
             </RxCompareFiltersModal>
           );
         }
-        if (child.props?.['data-panel'] === 'properties_column' && p.properties !== undefined && p.properties.length) {
-          return (
+        if (child.props?.['data-panel'] === 'properties_column') {
+          return p.properties !== undefined && p.properties.length ? (
             <CustomerProperties {...child.props} properties={p.properties} property={p.property}>
               {child.props.children}
             </CustomerProperties>
+          ) : (
+            <div className='block w-72' />
           );
         } else if (p.agent && className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_COMPARE_WRAPPER)) {
           return (
@@ -171,7 +172,7 @@ export default function ClientDashboardIterator(
               {child.props.children}
             </RxCustomerCompareCanvas>
           );
-        } else if (p.agent && className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_PROPERTY_PREVIEW)) {
+        } else if (p.agent && (className?.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_PROPERTY_PREVIEW) || child.props?.['data-panel'] === 'individual')) {
           return (
             <RxCustomerPropertyView agent={p.agent} reload={p.reload} property={p.property} className={className}>
               {child.props.children}

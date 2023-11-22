@@ -28,7 +28,7 @@ function Iterator(p: Props) {
 
 export function RxEmptyState(p: Props) {
   const { agent, data, children, ...props } = p;
-  console.log({ agent, data });
+
   return (
     <div {...props} data-rx='components.RxCards.RxEmptyState'>
       <Iterator {...props} agent={agent} data={data}>

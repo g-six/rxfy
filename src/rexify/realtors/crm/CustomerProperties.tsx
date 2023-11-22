@@ -21,15 +21,7 @@ type Props = {
 function PropertyIterator({ children, ...p }: { children: ReactElement; property: LovedPropertyDataModel }) {
   const rexified = Children.map(children, c => {
     if (c.props) {
-      if (c.props.children && typeof c.props.children !== 'string') {
-        return cloneElement(
-          c,
-          {
-            'data-rexified': c.type,
-          },
-          <PropertyIterator {...p}>{c.props.children}</PropertyIterator>,
-        );
-      } else if (c.props['data-field']) {
+      if (c.props['data-field']) {
         let { [c.props['data-field']]: value } = p.property as unknown as {
           [k: string]: string;
         };
@@ -66,6 +58,14 @@ function PropertyIterator({ children, ...p }: { children: ReactElement; property
             );
         }
         return cloneElement(c, {}, value);
+      } else if (c.props.children && typeof c.props.children !== 'string') {
+        return cloneElement(
+          c,
+          {
+            'data-rexified': c.type,
+          },
+          <PropertyIterator {...p}>{c.props.children}</PropertyIterator>,
+        );
       } else if (c.props.className?.includes('image') && p.property.cover_photo) {
         return cloneElement(c, { style: { backgroundImage: `url(${p.property.cover_photo})` } });
       }
@@ -82,7 +82,7 @@ function Iterator(p: {
   onSelectProperty: (property: LovedPropertyDataModel) => void;
 }) {
   const Wrapped = Children.map(p.children, child => {
-    if (child.props && child.props['data-component'] === 'property_card_small') {
+    if (child.props && child.props['data-component'] && child.props['data-component'].includes('property_card')) {
       return (
         <>
           {p.properties

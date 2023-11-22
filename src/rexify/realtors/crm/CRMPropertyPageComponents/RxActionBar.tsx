@@ -20,8 +20,10 @@ interface Props {
 function replacePlaceholders(placeholder: string, property: PropertyDataModel) {
   switch (placeholder) {
     case '{Price}':
+    case 'Price':
       return placeholder.split(placeholder).join('$' + new Intl.NumberFormat().format(property.asking_price));
     case '{Address}':
+    case 'Address':
       return placeholder
         .split(placeholder)
         .join(formatAddress(property.title || '') + ['', property.city, [property.state_province, property.postal_zip_code].join(' ')].join(', '));

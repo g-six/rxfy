@@ -24,6 +24,7 @@ import { LEAGENT_WEBFLOW_DOMAINS } from '@/_constants/webflow-domains';
 import CustomerLogInPage from './[slug]/[profile-slug]/log-in/page';
 import ClientMyProfile from './[slug]/[profile-slug]/my-profile/page';
 import MyDocuments from './[slug]/[profile-slug]/my-documents/page';
+import ClientDashboard from './[slug]/[profile-slug]/client-dashboard/page';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -117,7 +118,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const { TEST_WF_DOMAIN } = process.env as unknown as { [key: string]: string };
   const axios = (await import('axios')).default;
 
-  let data, listings, property, legacy_data;
+  let data, listings, property;
   let session_key = cookies().get('session_key')?.value || '';
   let session_as = cookies().get('session_as')?.value || 'customer';
 
@@ -394,7 +395,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
             const legacy_json = `${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/legacy.json`;
             try {
               const cached_legacy_xhr = await axios.get(legacy_json);
-              legacy_data = cached_legacy_xhr.data;
             } catch (e) {
               console.log('Property legacy data', legacy_json);
               console.log('No legacy cache, do the long query');
@@ -406,7 +406,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
           buildCacheFiles(searchParams.mls);
           console.log('No cache, do the long query');
           property = await getPropertyData(searchParams.mls, true);
-          legacy_data = property;
         }
       }
     }
@@ -431,8 +430,18 @@ export default async function Home({ params, searchParams }: { params: Record<st
   };
   webflow_domain = headers().get('x-wf-domain') as string;
 
-  if (webflow_domain && !LEAGENT_WEBFLOW_DOMAINS.includes(webflow_domain)) {
-    return <PageComponent agent_id={headers().get('x-agent-id') as string} />;
+  if (webflow_domain) {
+    if (webflow_domain.includes('leagent') === false) {
+      let page = url.split('/').pop() || '';
+      page = page.split('.html').join('');
+      switch (page) {
+        case 'client-dashboard':
+          return <ClientDashboard params={{ slug: agent_data.agent_id }} />;
+      }
+    }
+    if (!LEAGENT_WEBFLOW_DOMAINS.includes(webflow_domain)) {
+      return <PageComponent agent_id={headers().get('x-agent-id') as string} />;
+    }
   }
   return (
     <>

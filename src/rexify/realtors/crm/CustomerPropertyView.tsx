@@ -51,25 +51,39 @@ function OtherUnits({ children, neighbours }: { children: React.ReactElement; ne
 function PhotoComponentsIterator(p: { 'data-field': string; photos: string[]; children: ReactElement }) {
   switch (p['data-field']) {
     case 'image_1':
-      return React.cloneElement(p.children, {
-        style: {
-          backgroundImage: `url(${getImageSized(p.photos[0], 780)})`,
+      return React.cloneElement(
+        p.children,
+        {
+          style: p.photos[0]
+            ? {
+                backgroundImage: `url(${getImageSized(p.photos[0], 780)})`,
+              }
+            : {},
         },
-      });
+        p.photos.length > 0 ? <></> : p.children.props.children,
+      );
     case 'image_2':
       if (p.photos.length > 1)
-        return React.cloneElement(p.children, {
-          style: {
-            backgroundImage: `url(${getImageSized(p.photos[1], 580)})`,
+        return React.cloneElement(
+          p.children,
+          {
+            style: {
+              backgroundImage: `url(${getImageSized(p.photos[1], 580)})`,
+            },
           },
-        });
+          p.photos.length > 1 ? <></> : p.children.props.children,
+        );
     case 'image_3':
       if (p.photos.length > 2)
-        return React.cloneElement(p.children, {
-          style: {
-            backgroundImage: `url(${getImageSized(p.photos[2], 580)})`,
+        return React.cloneElement(
+          p.children,
+          {
+            style: {
+              backgroundImage: `url(${getImageSized(p.photos[2], 580)})`,
+            },
           },
-        });
+          p.photos.length > 2 ? <></> : p.children.props.children,
+        );
     default:
       const photo_number = Number(p['data-field'].split('_').pop());
       if (p.photos.length >= photo_number)
@@ -143,6 +157,7 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
           return <></>;
         }
         if (child.props['data-field'] && child.props['data-field'] !== 'image_cover') {
+          console.log('data-field', child.props['data-field']);
           if (child.props['data-field'].includes('image_') && !isNaN(Number(child.props['data-field'].split('_').pop())) && p.property?.photos?.length)
             return (
               <PhotoComponentsIterator photos={p.property.photos} {...child.props}>
