@@ -127,7 +127,6 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
             )
             .forEach(r => dimensions.push(r));
         } else {
-          console.log(JSON.stringify(data, null, 4));
           dimensions.push(<p className='italic'>Data is being collated at the moment, please check back in a few hours.</p>);
         }
         if (data.bathroom_details && getData('session_key')) {

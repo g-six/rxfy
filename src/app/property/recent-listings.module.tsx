@@ -54,6 +54,15 @@ export default function RecentListings({ children, className, property }: { chil
   let bounds: number[] = [];
   useEffect(() => {
     // Keeping it simple for now
+    console.log('gets', {
+      lat,
+      lon,
+      mls_id,
+      beds,
+      property_type,
+      postal_zip_code,
+      complex_compound_name,
+    });
     getSimilarProperties({
       lat,
       lon,
