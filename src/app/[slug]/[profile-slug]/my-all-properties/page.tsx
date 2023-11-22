@@ -141,7 +141,11 @@ export default async function MyAllProperties({ params, searchParams }: { params
       const body = $('body > div');
       const Page = (
         <>
-          <NavIterator agent={agent}>{domToReact(nav as unknown as DOMNode[]) as unknown as React.ReactElement}</NavIterator>
+          {agent.webflow_domain?.includes('leagent') ? (
+            <NavIterator agent={agent}>{domToReact(nav as unknown as DOMNode[]) as unknown as React.ReactElement}</NavIterator>
+          ) : (
+            domToReact(nav as unknown as DOMNode[])
+          )}
           <MapIterator agent={agent} city={searchParams.city} loves={loves} properties={properties}>
             {domToReact(body as unknown as DOMNode[]) as unknown as React.ReactElement}
           </MapIterator>
