@@ -126,6 +126,8 @@ export async function buildCacheFiles(mls_id: string): Promise<
 
     if (legacy) {
       const { mls_data, property_type, ...property } = legacy;
+
+      // Extract information of real estate agents
       const {
         ListingID: listing_id,
         LA1_FullName,
