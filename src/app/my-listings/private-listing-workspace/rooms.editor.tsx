@@ -221,19 +221,21 @@ export function MyListingsRoomsEditor({ children, ...attributes }: Props) {
     if (form.data) {
       const { id, beds_dimensions, baths_full_dimensions } = form.data;
 
-      if (action === 'next' && id) {
+      if (action === 'next' && id && data) {
         toggleLoading(true);
+        const { room_details, bathroom_details } = data;
 
-        // updatePrivateListing(id, {
-        //   room_details,
-        // })
-        //   .then(() => {
-        //     const next_tab = document.querySelector('a[data-w-tab="Tab 6"]') as HTMLAnchorElement;
-        //     next_tab.click();
-        //   })
-        //   .finally(() => {
-        //     toggleLoading(false);
-        //   });
+        updatePrivateListing(id, {
+          room_details,
+          bathroom_details,
+        })
+          .then(() => {
+            const next_tab = document.querySelector('a[data-w-tab="Tab 6"]') as HTMLAnchorElement;
+            next_tab.click();
+          })
+          .finally(() => {
+            toggleLoading(false);
+          });
       }
     }
   }
@@ -242,8 +244,11 @@ export function MyListingsRoomsEditor({ children, ...attributes }: Props) {
     const bathroom_details = data?.bathroom_details || { baths: [] };
     let room_details = data?.room_details || { rooms: [] };
 
-    let total = data?.beds || 0;
-    total = total + (data?.total_additional_rooms || 0);
+    let beds = form.data?.beds || data?.beds || 0;
+    let baths = form.data?.baths || data?.baths || 0;
+    let total_kitchens = form.data?.total_kitchens || data?.total_kitchens || 0;
+    let total_garage = form.data?.total_garage || data?.total_garage || 0;
+    let total_additional_rooms = form.data?.total_additional_rooms || data?.total_additional_rooms || 0;
 
     room_details = {
       ...room_details,
@@ -252,16 +257,16 @@ export function MyListingsRoomsEditor({ children, ...attributes }: Props) {
       kitchens: room_details.kitchens || [],
     };
 
-    if (data?.baths && bathroom_details.baths.length < data.baths) {
-      for (let cnt = data.baths - bathroom_details.baths.length; cnt > 0; cnt--) {
+    if (baths && bathroom_details.baths.length < baths) {
+      for (let cnt = baths - bathroom_details.baths.length; cnt > 0; cnt--) {
         bathroom_details.baths.push({
           pieces: 1,
           level: 'Main',
         });
       }
     }
-    if (data?.beds && room_details.rooms.length < data.beds) {
-      for (let cnt = data.beds - room_details.rooms.length; cnt > 0; cnt--) {
+    if (beds && room_details.rooms.length < beds) {
+      for (let cnt = beds - room_details.rooms.length; cnt > 0; cnt--) {
         room_details.rooms.push({
           type: 'Bedroom',
           length: '',
@@ -271,8 +276,8 @@ export function MyListingsRoomsEditor({ children, ...attributes }: Props) {
       }
     }
 
-    if (data?.total_kitchens && room_details.kitchens && room_details.kitchens.length < data.total_kitchens) {
-      for (let cnt = data.total_kitchens - room_details.kitchens.length; cnt > 0; cnt--) {
+    if (total_kitchens && room_details.kitchens && room_details.kitchens.length < total_kitchens) {
+      for (let cnt = total_kitchens - room_details.kitchens.length; cnt > 0; cnt--) {
         room_details.kitchens.push({
           type: 'Kitchen',
           length: '',
@@ -281,8 +286,8 @@ export function MyListingsRoomsEditor({ children, ...attributes }: Props) {
         });
       }
     }
-    if (data?.total_garage && room_details.garages && room_details.garages.length < data.total_garage) {
-      for (let cnt = data.total_garage - room_details.garages.length; cnt > 0; cnt--) {
+    if (total_garage && room_details.garages && room_details.garages.length < total_garage) {
+      for (let cnt = total_garage - room_details.garages.length; cnt > 0; cnt--) {
         room_details.garages.push({
           type: 'Garage',
           length: '',
@@ -291,8 +296,8 @@ export function MyListingsRoomsEditor({ children, ...attributes }: Props) {
         });
       }
     }
-    if (data?.total_additional_rooms && room_details.others && room_details.others.length < data.total_additional_rooms) {
-      for (let cnt = data.total_additional_rooms - room_details.others.length; cnt > 0; cnt--) {
+    if (total_additional_rooms && room_details.others && room_details.others.length < total_additional_rooms) {
+      for (let cnt = total_additional_rooms - room_details.others.length; cnt > 0; cnt--) {
         room_details.others.push({
           type: '',
           length: '',

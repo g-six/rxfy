@@ -65,7 +65,7 @@ export async function PUT(req: NextRequest) {
     );
   try {
     const updates: PrivateListingInput = await req.json();
-    let { photos, property_photo_album, ...listing } = updates;
+    let { photos, property_photo_album, room_details, bathroom_details, ...listing } = updates;
     if (original.photos?.length) {
       // Let's remove any photos that have been deleted
       const to_delete = original.photos.filter((url: string) => !photos || !photos.includes(url));
@@ -92,7 +92,17 @@ export async function PUT(req: NextRequest) {
       };
     });
 
-    const record = await updatePrivateListing(id, listing, token, Number(guid));
+    const record = await updatePrivateListing(
+      id,
+      {
+        ...listing,
+        // Workaround to skip public listing logic to rooms
+        ...(bathroom_details ? { bathroom_details } : {}),
+        ...(room_details ? { room_details } : {}),
+      },
+      token,
+      Number(guid),
+    );
     if (record.error) {
       const { error, errors, code } = record;
       return getResponse(
