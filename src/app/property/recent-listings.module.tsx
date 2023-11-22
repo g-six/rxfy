@@ -8,6 +8,7 @@ import RxPropertyCard from '@/components/RxCards/RxPropertyCard';
 import { Children, ReactElement, cloneElement, useEffect, useState } from 'react';
 import { getMLSProperty, getSimilarProperties } from '@/_utilities/api-calls/call-properties';
 import AlicantePropcard from './alicante-propcard.module';
+import SpinningDots from '@/components/Loaders/SpinningDots';
 
 function Iterator({ children, listings }: { children: ReactElement; listings: PropertyDataModel[] }) {
   const Rexified = Children.map(children, c => {
@@ -40,6 +41,7 @@ function Iterator({ children, listings }: { children: ReactElement; listings: Pr
 
 export default function RecentListings({ children, className, property }: { children: ReactElement; className: string; property: PropertyDataModel }) {
   const [listings, setListings] = useState<PropertyDataModel[]>([]);
+  const [ready, toggleReady] = useState<boolean>(false);
 
   const { lat, lon, mls_id, property_type, beds, postal_zip_code, complex_compound_name } = property as {
     lat: number;
@@ -52,17 +54,10 @@ export default function RecentListings({ children, className, property }: { chil
     complex_compound_name: string;
   };
   let bounds: number[] = [];
+
   useEffect(() => {
     // Keeping it simple for now
-    console.log('gets', {
-      lat,
-      lon,
-      mls_id,
-      beds,
-      property_type,
-      postal_zip_code,
-      complex_compound_name,
-    });
+    toggleReady(false);
     getSimilarProperties({
       lat,
       lon,
@@ -71,27 +66,23 @@ export default function RecentListings({ children, className, property }: { chil
       property_type,
       postal_zip_code,
       complex_compound_name,
-    }).then(setListings);
-
-    // More complex logic using rectangular boundaries here
-    // getReverseGeo(lon, lat).then(({ data }) => {
-    //   const { features } = data;
-    //   if (features)
-    //     features.forEach((feature: { bbox: number[]; place_type: string[] }) => {
-    //       const { bbox, place_type } = feature;
-    //       if (bounds && bounds.length === 0) bounds = bbox;
-    //       if (place_type.includes('neighborhood')) {
-    //         bounds = bbox;
-    //       }
-    //     });
-    //   console.log(bounds);
-
-    // });
+    }).then(results => {
+      setListings(results);
+      toggleReady(true);
+    });
   }, []);
 
   return (
     <div className={className}>
-      <Iterator listings={listings}>{children}</Iterator>
+      {ready ? (
+        <Iterator listings={listings}>{children}</Iterator>
+      ) : (
+        <div className='flex justify-between items-center w-full max-w-lg'>
+          <SpinningDots className='w-12 h-12' />
+          <SpinningDots className='w-12 h-12' />
+          <SpinningDots className='w-12 h-12' />
+        </div>
+      )}
     </div>
   );
 }
