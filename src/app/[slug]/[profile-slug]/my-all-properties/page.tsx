@@ -36,24 +36,29 @@ interface SearchOpts {
   };
 }
 
-export default async function MapPage({ params, searchParams }: { params: { [key: string]: string }; searchParams: { [key: string]: string } }) {
+export default async function MyAllProperties({ params, searchParams }: { params: { [key: string]: string }; searchParams: { [key: string]: string } }) {
   const { slug: agent_id, 'profile-slug': slug } = params;
   const url = headers().get('x-url');
-  let agent;
+  let agent = await findAgentRecordByAgentId(agent_id);
   if (!url || !agent_id) return <>404</>;
 
   if (!searchParams.lat || !searchParams.lng) {
     // Redirect
-    agent = await findAgentRecordByAgentId(agent_id);
     const [default_location] = agent.metatags.search_highlights?.labels || ([] as SearchHighlightInput[]);
     if (default_location?.lat && default_location?.lng) {
       const { lat, lng, title } = default_location;
-      redirect(
-        `/${agent_id}/${slug}/my-all-properties?city=${encodeURIComponent(
-          title.split(' ').join('+'),
-        )}&lat=${lat}&lng=${lng}&beds=0&baths=1&minprice=500000&maxprice=20000000`,
-      );
+      if (agent.webflow_domain?.includes('leagent'))
+        redirect(
+          `/${agent_id}/${slug}/my-all-properties?city=${encodeURIComponent(
+            title.split(' ').join('+'),
+          )}&lat=${lat}&lng=${lng}&beds=0&baths=1&minprice=500000&maxprice=20000000`,
+        );
+      else
+        redirect(
+          `/my-all-properties?city=${encodeURIComponent(title.split(' ').join('+'))}&lat=${lat}&lng=${lng}&beds=0&baths=1&minprice=500000&maxprice=20000000`,
+        );
     }
+  } else {
   }
 
   console.log(`\n\nSSR Speed stats for ${headers().get('referer')}`);

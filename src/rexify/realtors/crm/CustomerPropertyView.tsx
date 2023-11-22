@@ -87,11 +87,15 @@ function PhotoComponentsIterator(p: { 'data-field': string; photos: string[]; ch
     default:
       const photo_number = Number(p['data-field'].split('_').pop());
       if (p.photos.length >= photo_number)
-        return React.cloneElement(p.children, {
-          style: {
-            backgroundImage: `url(${getImageSized(p.photos[photo_number - 1], 360)})`,
+        return React.cloneElement(
+          p.children,
+          {
+            style: {
+              backgroundImage: `url(${getImageSized(p.photos[photo_number - 1], 360)})`,
+            },
           },
-        });
+          p.photos.length >= photo_number ? <></> : p.children.props.children,
+        );
   }
 }
 

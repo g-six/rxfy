@@ -25,6 +25,8 @@ import CustomerLogInPage from './[slug]/[profile-slug]/log-in/page';
 import ClientMyProfile from './[slug]/[profile-slug]/my-profile/page';
 import MyDocuments from './[slug]/[profile-slug]/my-documents/page';
 import ClientDashboard from './[slug]/[profile-slug]/client-dashboard/page';
+import MyAllProperties from './[slug]/[profile-slug]/my-all-properties/page';
+import MyHomeAlerts from './[slug]/[profile-slug]/my-home-alerts/page';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -434,9 +436,14 @@ export default async function Home({ params, searchParams }: { params: Record<st
     if (webflow_domain.includes('leagent') === false) {
       let page = url.split('/').pop() || '';
       page = page.split('.html').join('');
+
       switch (page) {
         case 'client-dashboard':
           return <ClientDashboard params={{ slug: agent_data.agent_id }} />;
+        case 'my-all-properties':
+          return <MyAllProperties params={{ slug: agent_data.agent_id, 'profile-slug': agent_data.metatags.profile_slug || '' }} searchParams={searchParams} />;
+        case 'my-home-alerts':
+          return <MyHomeAlerts params={{ slug: agent_data.agent_id }} />;
       }
     }
     if (!LEAGENT_WEBFLOW_DOMAINS.includes(webflow_domain)) {

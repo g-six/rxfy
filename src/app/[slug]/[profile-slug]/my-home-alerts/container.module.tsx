@@ -13,18 +13,5 @@ export default function MyHomeAlerts({ agent, children, ...props }: { agent: Age
     setRecords(props.records);
   }, []);
 
-  // <ClientDashboardIterator
-  //   id='SavedHome'
-  //   className={'my-home-alerts ClientDashboardIterator rexified'}
-  //   onCancel={() => {
-  //     console.log('canceled');
-  //   }}
-  //   onConfirm={console.log}
-  //   reload={console.log}
-  //   agent={agent}
-  // >
-  //   {children}
-  // </ClientDashboardIterator>
-  console.log('test', records);
-  return records ? <RxMyHomeAlerts className={'test'} agent-data={agent} child={children} records={records} /> : <>t</>;
+  return records ? <RxMyHomeAlerts className={'test'} agent-data={agent} child={children} records={records} /> : <></>;
 }
