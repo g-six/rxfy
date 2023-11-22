@@ -1,14 +1,11 @@
 'use client';
 
-import { Children, ReactElement, cloneElement } from 'react';
+import { Children, ReactElement, cloneElement, useEffect, useState } from 'react';
 import { AgentData, Property } from '@/_typings/agent';
 import { PrivateListingModel } from '@/_typings/private-listing';
 import MyListingsAddressInputComponent from './components/address-input.component';
-import PropertyPageIterator from '@/app/property/page.iterator';
 import SpinningDots from '@/components/Loaders/SpinningDots';
 import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
-import { PageData } from '@/app/property/type.definition';
-import { domToReact } from 'html-react-parser';
 
 function Rexify({
   children,
@@ -81,13 +78,31 @@ export default function MyListingsReviewEditor({
   'preview-html'?: string;
 }) {
   const form = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
+  const [property, setProperty] = useState<PrivateListingModel>();
+
+  let { listing, ...attribs } = data;
 
   function proceed() {
     console.log(data.listing);
   }
+
+  useEffect(() => {
+    if (form.data) {
+      const { reload } = form.data as unknown as { reload?: boolean };
+      if (reload) {
+        setProperty(property);
+      }
+    }
+  }, [form]);
+
+  useEffect(() => {
+    if (listing) setProperty(listing as unknown as PrivateListingModel);
+  }, []);
+
   return (
     <Rexify
-      {...data}
+      {...attribs}
+      listing={property}
       onAction={(action: string) => {
         if (action === 'next') {
           proceed();

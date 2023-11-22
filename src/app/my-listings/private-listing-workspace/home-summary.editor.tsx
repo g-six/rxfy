@@ -217,13 +217,13 @@ export function MyListingsHomeSummaryEditor({ children, ...attributes }: Props) 
           amenities,
           connected_services,
           dwelling_type,
-          asking_price,
+          asking_price: asking_price || undefined,
           building_style,
           land_title_taxonomy,
-          year_built,
+          year_built: year_built || undefined,
           property_disclosure,
-          gross_taxes,
-          tax_year,
+          gross_taxes: gross_taxes || undefined,
+          tax_year: tax_year || undefined,
         })
           .then(() => {
             const next_tab = document.querySelector('a[data-w-tab="Tab 4"]') as HTMLAnchorElement;

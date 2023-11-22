@@ -61,6 +61,7 @@ export default async function MyListings(page: Props) {
   const page_xhr = await fetch(source_html_url);
   const html = await page_xhr.text();
   const $: CheerioAPI = load(html);
+
   const nav = $('.navigation-full-wrapper');
 
   const session_key = cookies().get('session_key')?.value;
@@ -91,7 +92,7 @@ export default async function MyListings(page: Props) {
       <RxNavIterator>{domToReact(nav as unknown as DOMNode[]) as ReactElement}</RxNavIterator>
       <div className='dash-area my-listings-dashboard'>
         <main {...TabbedDashboardProps}>
-          <Rexified {...page} agent={agent as AgentData}>
+          <Rexified {...page} agent={agent as AgentData} preview-html={''}>
             {domToReact(TabbedDashboard as unknown as DOMNode[]) as ReactElement}
           </Rexified>
         </main>
