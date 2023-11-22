@@ -225,8 +225,12 @@ export function MyListingsHomeSummaryEditor({ children, ...attributes }: Props) 
           gross_taxes: gross_taxes || undefined,
           tax_year: tax_year || undefined,
         })
-          .then(() => {
+          .then(updated => {
+            const form = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
             const next_tab = document.querySelector('a[data-w-tab="Tab 4"]') as HTMLAnchorElement;
+            form.fireEvent({
+              reload: true,
+            } as unknown as PrivateListingData);
             next_tab.click();
           })
           .finally(() => {

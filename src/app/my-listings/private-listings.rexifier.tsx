@@ -20,7 +20,7 @@ export default async function MyListingsPrivateListings({ children, agent, ...pr
           status: l.status || 'Terminated',
           asking_price: formatValues(l, 'asking_price') as string,
           cover_photo: l.photos?.length ? (getImageSized(l.photos[0], 240) as string) : '',
-          url: getAgentBaseUrl(agent) + '/property?lid=' + l.id,
+          url: getAgentBaseUrl(agent, true) + '/property?lid=' + l.id,
         });
       });
     }

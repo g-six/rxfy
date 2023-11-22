@@ -32,10 +32,6 @@ function Rexify({
           />
         );
 
-      //   return (
-      //     <PropertyPageIterator photos={[]} agent={attributes.agent} property={attributes.listing as unknown as PageData}>
-      // </PropertyPageIterator>
-      //   );
       if (action)
         return (
           <button
@@ -59,8 +55,6 @@ function Rexify({
       if (props['data-field'] === 'description') {
         const description = attributes.listing?.description || '';
         return cloneElement(c, { className, defaultValue: description });
-
-        if (className.includes('address-input')) return <MyListingsAddressInputComponent {...props} className={className} address={address} />;
       }
     }
 
