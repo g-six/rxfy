@@ -7,7 +7,7 @@ import { DocumentInterface, DocumentsFolderInterface } from '@/_typings/document
 
 import DocumentsFolderDropdown from './DocumentsFolderDropdown';
 import useEvent, { Events, EventsData, NotificationCategory } from '@/hooks/useEvent';
-import { removeDocument, removeDocumentUpload, sendDocumentReminder } from '@/_utilities/api-calls/call-documents';
+import { removeDocumentUpload, sendDocumentReminder } from '@/_utilities/api-calls/call-documents';
 import RxFileUploader from '@/components/RxForms/RxFileUploader';
 import RxDropMenu from '@/components/RxForms/RxDropMenu';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
