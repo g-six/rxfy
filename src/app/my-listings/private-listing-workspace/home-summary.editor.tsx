@@ -226,7 +226,6 @@ export function MyListingsHomeSummaryEditor({ children, ...attributes }: Props) 
           tax_year: tax_year || undefined,
         })
           .then(updated => {
-            const form = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
             const next_tab = document.querySelector('a[data-w-tab="Tab 4"]') as HTMLAnchorElement;
             form.fireEvent({
               reload: true,
