@@ -28,7 +28,7 @@ function Rexify({
       if (attributes.listing?.id && props.id && props.id === 'preview-private-listing')
         return (
           <iframe
-            className='h-screen max-w-4xl w-full'
+            className='h-screen w-screen scale-75 -translate-x-[10rem] -translate-y-[5rem]'
             src={`https://${
               attributes.agent.domain_name || `leagent.com/${attributes.agent.agent_id}/${attributes.agent.metatags.profile_slug}`
             }/property?lid=${attributes.listing.id}`}
