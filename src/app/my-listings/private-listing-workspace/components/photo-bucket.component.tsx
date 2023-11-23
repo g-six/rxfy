@@ -122,7 +122,7 @@ export default function MyListingsPhotoBucketComponent({ children, listing: init
         url: string;
       }[] = [];
       data.photos.forEach(file => {
-        if (typeof file !== 'string') {
+        if (file && typeof file !== 'string') {
           const { preview, url = '' } = file as unknown as {
             preview: string;
             url?: string;
@@ -132,7 +132,7 @@ export default function MyListingsPhotoBucketComponent({ children, listing: init
             file: typeof url === 'string' ? undefined : file,
             url: preview ? preview : url,
           });
-        } else {
+        } else if (file) {
           updated.push({
             url: file as unknown as string,
           });

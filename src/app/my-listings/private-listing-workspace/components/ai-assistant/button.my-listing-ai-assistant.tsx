@@ -81,7 +81,7 @@ export default function MyListingAiAssistantButton({
 
       setListing({
         ...listing,
-        photos: photos.map(({ url }) => url),
+        photos: photos.map(p => (p ? p.url : '')),
       });
     }
   }, [new_data]);
