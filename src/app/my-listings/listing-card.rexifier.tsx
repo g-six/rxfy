@@ -1,6 +1,10 @@
+'use client';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
-import { Children, ReactElement, cloneElement } from 'react';
+import { Children, ReactElement, cloneElement, useEffect, useState } from 'react';
 import MLSLinkComponent from './mls-link.component';
+import { deletePrivateListing } from '@/_utilities/api-calls/call-private-listings';
+import useEvent, { Events } from '@/hooks/useEvent';
+import MyListingsDeleteButton from './private-listing-workspace/components/delete-button.component';
 
 function Rexified({ children, listing, ...props }: { children: ReactElement; listing: Record<string, string> }) {
   const rexified = Children.map(children, c => {
@@ -66,6 +70,12 @@ function Rexified({ children, listing, ...props }: { children: ReactElement; lis
           );
         case 'edit':
           return cloneElement(c, { href: `/my-listings?id=${listing.id}` });
+        case 'delete':
+          return (
+            <MyListingsDeleteButton data-id={Number(listing.id)} className={link_props.className}>
+              {contents}
+            </MyListingsDeleteButton>
+          );
       }
     }
 
@@ -77,7 +87,7 @@ function Rexified({ children, listing, ...props }: { children: ReactElement; lis
   return <>{rexified}</>;
 }
 
-export default async function MyListingsListingCard({
+export default function MyListingsListingCard({
   children,
   listing,
   ...props
@@ -86,9 +96,25 @@ export default async function MyListingsListingCard({
   className?: string;
   listing: Record<string, string>;
 }) {
-  return (
+  const { fireEvent: promptConfirmation, data: dialog } = useEvent(Events.Prompt);
+  const [id, setId] = useState(Number(listing.id || listing.listing_id));
+  const private_listing = dialog as unknown as { id: number };
+
+  useEffect(() => {
+    console.log(private_listing.id);
+    if (dialog?.clicked === 'Confirm Action' && id === private_listing.id) {
+      deletePrivateListing(private_listing.id).then(() => {
+        setId(0);
+        promptConfirmation({});
+      });
+    }
+  }, [dialog?.clicked]);
+
+  return id ? (
     <div data-rx='MyListingsListingCard' {...props}>
       <Rexified listing={listing}>{children}</Rexified>
     </div>
+  ) : (
+    <></>
   );
 }

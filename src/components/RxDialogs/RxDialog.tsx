@@ -44,11 +44,11 @@ export default function RxDialog() {
               >
                 <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all'>
                   <Dialog.Title as='h3' className='text-lg font-medium leading-6 text-gray-900 mt-0'>
-                    Payment successful
+                    {dialog?.message ? 'Are you sure' : ''}
                   </Dialog.Title>
                   <div className='mt-2'>
                     <p className='text-sm text-gray-500'>
-                      Your payment has been successfully submitted. We’ve sent you an email with all of the details of your order.
+                      {dialog?.message || 'Your payment has been successfully submitted. We’ve sent you an email with all of the details of your order.'}
                     </p>
                   </div>
 

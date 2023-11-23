@@ -11,6 +11,7 @@ import NotFound from '../not-found';
 import { getUserSessionData } from '../api/check-session/model';
 import { AgentData } from '@/_typings/agent';
 import RxNotifications from '@/components/RxNotifications';
+import RxDialog from '@/components/RxDialogs/RxDialog';
 
 interface Props {
   params: { [k: string]: string };
@@ -103,6 +104,7 @@ export default async function MyListings(page: Props) {
         </main>
       </div>
       <RxNotifications />
+      <RxDialog />
     </div>
   );
 }

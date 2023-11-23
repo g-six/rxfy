@@ -30,12 +30,6 @@ export default function MyListingAiAssistantButton({
   async function onSubmit() {
     const private_listing = listing?.id ? (listing as unknown as PrivateListingOutput) : await createPrivateListing(handler.data as PrivateListingInput);
 
-    if (!listing?.id) {
-      // Newly created
-      handler.fireEvent(private_listing);
-      router.push('/my-listings?id=' + private_listing.id);
-    }
-
     const uploads = new_data.photos
       ? await Promise.all(
           new_data.photos.map(async (file, index) => {
@@ -54,24 +48,24 @@ export default function MyListingAiAssistantButton({
           }),
         )
       : [];
-    let has_updates = false;
-    let updates: { [k: string]: unknown } = {
-      photos: [],
-    };
-    if (listing) {
-      const { photos = [] } = listing;
+
+    let updates: { [k: string]: unknown } = {};
+    const { photos = [] } = private_listing || { photos: [] };
+    if (uploads.length) {
       updates = {
-        photos,
+        photos: photos.concat(uploads),
       };
-      if (uploads.filter(url => url).length) {
-        updates = {
-          photos: photos.concat(uploads).filter(url => url),
-        };
-      }
     }
+    const listing_id = private_listing.id;
+    if (!listing?.id) {
+      // Newly created
+      handler.fireEvent(private_listing);
+      router.push('/my-listings?id=' + private_listing.id);
+    }
+
     if (Object.keys(updates).length) {
-      if (listing?.id) {
-        const updated_listing = await updatePrivateListing(listing?.id, updates);
+      if (listing_id) {
+        const updated_listing = await updatePrivateListing(listing_id, updates);
         handler.fireEvent({
           ...updated_listing,
         });

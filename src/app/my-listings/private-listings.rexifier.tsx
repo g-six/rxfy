@@ -33,7 +33,7 @@ export default async function MyListingsPrivateListings({ children, agent, ...pr
           return idx === 0 ? (
             <>
               {properties.map(p => (
-                <MyListingsListingCard {...card_props} key={`card-for-${p.mls_id}`} listing={p}>
+                <MyListingsListingCard {...card_props} key={`card-for-${p.id}`} listing={p}>
                   {card_components}
                 </MyListingsListingCard>
               ))}
