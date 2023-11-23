@@ -8,6 +8,7 @@ import { MyListingsSizeEditor } from './size.editor';
 import { MyListingsRoomsEditor } from './rooms.editor';
 import MyListingsReviewEditor from './review.editor';
 import { MyListingsStrataEditor } from './strata.editor';
+import { MyListingsAdditionalFieldsEditor } from './additional-fields.editor';
 
 function Rexify({ children, ...data }: { agent: AgentData; listing?: PrivateListingModel; children: ReactElement }) {
   const Rexified = Children.map(children, c => {
@@ -53,6 +54,12 @@ function Rexify({ children, ...data }: { agent: AgentData; listing?: PrivateList
                 c,
                 { className, 'data-rx': 'MyListingsStrataEditor' },
                 <MyListingsStrataEditor {...data}>{components}</MyListingsStrataEditor>,
+              );
+            case 'Tab 7':
+              return cloneElement(
+                c,
+                { className, 'data-rx': 'MyListingsAdditionalFieldsEditor' },
+                <MyListingsAdditionalFieldsEditor {...data}>{components}</MyListingsAdditionalFieldsEditor>,
               );
             case 'Tab 8':
               return cloneElement(c, { className, 'data-rx': 'MyListingsReview' }, <MyListingsReviewEditor {...data}>{components}</MyListingsReviewEditor>);

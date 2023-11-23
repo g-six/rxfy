@@ -9,6 +9,7 @@ import { classNames } from '@/_utilities/html-helper';
 import SpinningDots from '@/components/Loaders/SpinningDots';
 import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
 import { Children, MouseEvent, MouseEventHandler, ReactElement, SyntheticEvent, cloneElement, useEffect, useState } from 'react';
+import MoreFieldsPopup from './components/more-fields.popup';
 
 interface Props {
   children: ReactElement;
@@ -17,37 +18,6 @@ interface Props {
   disabled?: boolean;
 }
 
-function CheckboxRexifier({ children, ...attr }: { children: ReactElement; 'is-checked'?: boolean }) {
-  const Rexified = Children.map(children, c => {
-    if (c.props) {
-      let replacement = undefined;
-      return cloneElement(
-        c,
-        {
-          ...(c.type === 'div'
-            ? {
-                className: classNames(c.props.className, attr['is-checked'] ? 'w--redirected-checked' : ''),
-              }
-            : {}), // Only listen to div click to avoid multiple handling
-          ...(c.type === 'input'
-            ? {
-                checked: attr['is-checked'] || false,
-              }
-            : {}), // Only listen to div click to avoid multiple handling
-        },
-        c.props.children ? (
-          typeof c.props.children === 'string' ? (
-            c.props.children
-          ) : (
-            <CheckboxRexifier {...attr}>{c.props.children}</CheckboxRexifier>
-          )
-        ) : undefined,
-      );
-    }
-    return c;
-  });
-  return <>{Rexified}</>;
-}
 function ChipRexifier({
   children,
   ...attr
@@ -60,12 +30,6 @@ function ChipRexifier({
 }) {
   const Rexified = Children.map(children, c => {
     if (c.props) {
-      let replacement = undefined;
-      if (c.props.children) {
-        if (typeof c.props.children === 'string') {
-          replacement = attr.data.name;
-        }
-      }
       return cloneElement(
         c,
         {
@@ -133,21 +97,14 @@ function Rexifier({
         const { [field_name]: defaultValue } = attributes.listing as unknown as {
           [k: string]: string;
         };
-        return cloneElement(
-          c,
-          {
-            defaultValue,
-            onChange: (evt: SyntheticEvent<HTMLInputElement>) => {
-              if (field_name === 'council_approval_required') {
-                attributes.onToggle(field_name);
-              } else attributes.onChange(field_name, evt.currentTarget.value);
-            },
+        return cloneElement(c, {
+          defaultValue,
+          onChange: (evt: SyntheticEvent<HTMLInputElement>) => {
+            attributes.onChange(field_name, evt.currentTarget.value);
           },
-          field_name === 'council_approval_required' ? (
-            <CheckboxRexifier is-checked={defaultValue as unknown as boolean}>{c.props.children}</CheckboxRexifier>
-          ) : undefined,
-        );
+        });
       }
+
       if (model) {
         if (attributes.relationships?.[model]) {
           const { [model]: current } = attributes.listing as unknown as { [k: string]: { id: number; name: string }[] };
@@ -175,6 +132,11 @@ function Rexifier({
           );
         }
       }
+
+      if (c.props['data-popup'] === 'more_fields') {
+        return <MoreFieldsPopup {...c.props}>{c.props.children}</MoreFieldsPopup>;
+      }
+
       if (c.props.children && typeof c.props.children !== 'string')
         return cloneElement(c, { className }, <Rexifier {...attributes}>{c.props.children}</Rexifier>);
       return cloneElement(c, { className });
@@ -184,7 +146,7 @@ function Rexifier({
   return <>{Rexified}</>;
 }
 
-export function MyListingsStrataEditor({ children, ...attributes }: Props & { listing?: PrivateListingModel }) {
+export function MyListingsAdditionalFieldsEditor({ children, ...attributes }: Props & { listing?: PrivateListingModel }) {
   const form = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
   const { facilities } = attributes.listing as unknown as PrivateListingOutput;
   const [data, setData] = useState<PrivateListingInput | undefined>(

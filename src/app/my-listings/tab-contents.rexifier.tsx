@@ -3,6 +3,7 @@ import MyListingsMLSListings from './mls-listings.rexifier';
 import { AgentData } from '@/_typings/agent';
 import MyListingsPrivateListingWorkspace from './private-listing-workspace.rexifier';
 import MyListingsPrivateListings from './private-listings.rexifier';
+import CreateNewListingButton from './private-listing-workspace/components/new-listing-button.component';
 
 interface Props {
   agent: AgentData;
@@ -57,6 +58,15 @@ function Rexified({ agent, children, params, searchParams }: Props) {
           </Rexified>,
         );
       }
+    }
+
+    if (c.props?.['data-action'] === 'new_private_listing') {
+      return <CreateNewListingButton className={c.props.className}>{c.props.children}</CreateNewListingButton>;
+      // return (
+      //   <button type='button' className={c.props.className} onClick={() => {}}>
+      //     {c.props.children}
+      //   </button>
+      // );
     }
     return c;
   });

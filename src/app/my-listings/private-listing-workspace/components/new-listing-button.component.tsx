@@ -11,7 +11,8 @@ export default function CreateNewListingButton({ children, href, ...attributes }
       {...attributes}
       data-w-tab='New Private listing'
       onClick={() => {
-        router.push('/my-listings?action=new');
+        const { pathname } = new URL(location.href);
+        location.href = pathname + '?action=new';
       }}
       data-href={href}
       type='button'

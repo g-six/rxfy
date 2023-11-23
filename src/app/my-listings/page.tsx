@@ -25,7 +25,11 @@ function Rexified({ agent, children, ...page }: { children: ReactElement; agent:
 
         if (className.includes('dash-tabs')) {
           return (
-            <MyListingsTabMenu {...props} active-tab={page.searchParams?.id ? 'new private listing' : 'tab 1'} className={className}>
+            <MyListingsTabMenu
+              {...props}
+              active-tab={page.searchParams?.id || page.searchParams?.action === 'new' ? 'new private listing' : 'tab 1'}
+              className={className}
+            >
               {components}
             </MyListingsTabMenu>
           );

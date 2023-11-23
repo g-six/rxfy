@@ -1,6 +1,6 @@
 'use client';
 
-import { Children, ReactElement, cloneElement } from 'react';
+import { ChangeEvent, Children, ReactElement, cloneElement, useEffect, useState } from 'react';
 import { AgentData } from '@/_typings/agent';
 import { PrivateListingModel } from '@/_typings/private-listing';
 import MyListingsAddressInputComponent from './components/address-input.component';
@@ -8,6 +8,7 @@ import MyListingStreetMap from './components/street-map.component';
 import MyListingStreetView from './components/street-view.component';
 import SpinningDots from '@/components/Loaders/SpinningDots';
 import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
+import { updatePrivateListing } from '@/_utilities/api-calls/call-private-listings';
 
 function Rexify({
   children,
@@ -18,6 +19,7 @@ function Rexify({
   children: ReactElement;
   disabled?: boolean;
   onAction(action: string): void;
+  onChange(field: string, value: string): void;
 }) {
   const Rexified = Children.map(children, c => {
     if (c.props) {
@@ -27,6 +29,7 @@ function Rexify({
       if (action)
         return (
           <button
+            data-action={action}
             className={c.props.className}
             disabled={attributes.disabled}
             onClick={() => {
@@ -76,17 +79,35 @@ function Rexify({
         if (props['data-name']) {
           switch (props['data-name']) {
             case 'Address':
-              return cloneElement(c, { defaultValue: attributes.listing?.title || '' });
+              return cloneElement(c, {
+                value: attributes.listing?.title || '',
+                onChange: (evt: ChangeEvent<HTMLInputElement>) => attributes.onChange('title', evt.currentTarget.value),
+              });
             case 'Unit':
-              return cloneElement(c, { defaultValue: attributes.listing?.building_unit || '' });
+              return cloneElement(c, {
+                value: attributes.listing?.building_unit || '',
+                onChange: (evt: ChangeEvent<HTMLInputElement>) => attributes.onChange('building_unit', evt.currentTarget.value),
+              });
             case 'City':
-              return cloneElement(c, { defaultValue: attributes.listing?.city || '' });
+              return cloneElement(c, {
+                value: attributes.listing?.city || '',
+                onChange: (evt: ChangeEvent<HTMLInputElement>) => attributes.onChange('city', evt.currentTarget.value),
+              });
             case 'Province':
-              return cloneElement(c, { defaultValue: attributes.listing?.state_province || '' });
+              return cloneElement(c, {
+                value: attributes.listing?.state_province || '',
+                onChange: (evt: ChangeEvent<HTMLInputElement>) => attributes.onChange('state_province', evt.currentTarget.value),
+              });
             case 'Postal Code':
-              return cloneElement(c, { defaultValue: attributes.listing?.postal_zip_code || '' });
+              return cloneElement(c, {
+                value: attributes.listing?.postal_zip_code || '',
+                onChange: (evt: ChangeEvent<HTMLInputElement>) => attributes.onChange('postal_zip_code', evt.currentTarget.value),
+              });
             case 'Neighbourhood':
-              return cloneElement(c, { defaultValue: attributes.listing?.neighbourhood || '' });
+              return cloneElement(c, {
+                value: attributes.listing?.neighbourhood || '',
+                onChange: (evt: ChangeEvent<HTMLInputElement>) => attributes.onChange('neighbourhood', evt.currentTarget.value),
+              });
           }
         }
       }
@@ -96,15 +117,51 @@ function Rexify({
   });
   return <>{Rexified}</>;
 }
-export default function MyListingsAddressEditor({ children, ...data }: { agent: AgentData; listing?: PrivateListingModel; children: ReactElement }) {
+export default function MyListingsAddressEditor({ children, listing, ...data }: { agent: AgentData; listing?: PrivateListingModel; children: ReactElement }) {
   const form = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
-
+  const [updates, setUpdates] = useState<{ [k: string]: string }>((listing || {}) as unknown as { [k: string]: string });
+  const [is_loading, toggleLoading] = useState<boolean>(false);
   function proceed() {
-    console.log(data.listing);
+    if (listing?.id) {
+      const { neighbourhood, title, city, state_province, postal_zip_code, building_unit, lat, lon } = updates as unknown as { [k: string]: string };
+      updatePrivateListing(listing.id, { neighbourhood, title, city, state_province, postal_zip_code, building_unit, lat, lon })
+        .then(() => {
+          const next_tab = document.querySelector('a[data-w-tab="Tab 3"]') as HTMLAnchorElement;
+          next_tab.click();
+        })
+        .finally(() => {
+          toggleLoading(false);
+        });
+    }
   }
+
+  useEffect(() => {
+    if (form.data) {
+      const { address, city, state_province, postal_zip_code, lat, lon } = form.data as unknown as { [k: string]: string };
+      setUpdates({
+        ...updates,
+        address,
+        city,
+        state_province,
+        postal_zip_code,
+        lat,
+        lon,
+        ...(address ? { title: address } : {}),
+      });
+    }
+  }, [form.data]);
+
   return (
     <Rexify
       {...data}
+      listing={updates}
+      disabled={is_loading}
+      onChange={(field, value) => {
+        setUpdates({
+          ...updates,
+          [field]: value,
+        });
+      }}
       onAction={(action: string) => {
         if (action === 'next') {
           proceed();

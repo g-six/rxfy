@@ -1,23 +1,3 @@
-// 'use client';
-
-// import NewOrEditListingTab from '@/_replacers/AgentMyListingsPage/NewOrEditListingTab';
-// import { AgentData } from '@/_typings/agent';
-// import { PageTabs } from '@/_typings/agent-my-listings';
-// import { ReactElement, useState } from 'react';
-
-// export default function MyListingsPrivateListingWorkspace({ agent, children, ...props }: { children: ReactElement; agent: AgentData; className?: string }) {
-//   const [currentTab, setCurrentTab] = useState<PageTabs>('my-listings');
-
-//   const changeTab = (tab: PageTabs) => {
-//     setCurrentTab(tab);
-//   };
-//   return (
-//     <div {...props}>
-//       <NewOrEditListingTab agent={agent} child={children} isActive={currentTab === 'private-listing'} changeTab={changeTab} />
-//     </div>
-//   );
-// }
-
 import { AgentData } from '@/_typings/agent';
 import { Children, ReactElement, cloneElement } from 'react';
 import MyListingsWorkspacePanels from './private-listing-workspace/panels.rexifier';
