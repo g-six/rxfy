@@ -39,8 +39,6 @@ export async function PUT(request: NextRequest) {
         },
       );
 
-      console.log('response.data', response.data);
-
       if (response.data?.updateAgentsCustomer?.data) {
         const { id, attributes } = response.data.updateAgentsCustomer.data;
         let customer = {

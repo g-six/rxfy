@@ -22,6 +22,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   if (customer && Object.keys(payload).length) {
     const updates = await updateAgentCustomerAccount(Number(customer.id), payload);
+    if (updates.error) return getResponse(updates, 400);
     return getResponse(updates);
   }
   return getResponse({

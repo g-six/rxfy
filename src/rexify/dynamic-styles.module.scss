@@ -1,3 +1,6 @@
 .shown {
   @apply flex #{!important};
 }
+.field-has-error {
+  @apply shadow shadow-inner shadow-red-500/50 border-b-red-300 bg-red-500/10 #{!important};
+}

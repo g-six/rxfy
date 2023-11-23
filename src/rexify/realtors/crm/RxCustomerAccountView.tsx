@@ -1,11 +1,13 @@
 'use client';
 import { AgentData } from '@/_typings/agent';
-import { CustomerDataModel } from '@/_typings/customer';
 import { updateClient } from '@/_utilities/api-calls/call-clients';
 import { emailPasswordReset } from '@/_utilities/api-calls/call-session';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
-import { RxDateInputGroup } from '@/components/RxForms/RxInputs/RxDateInputGroup';
+import { classNames } from '@/_utilities/html-helper';
+import BirthdayInput from '@/components/Birthday/birthday.input';
+import styles from '@/rexify/dynamic-styles.module.scss';
 import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
+import { AxiosError } from 'axios';
 import { useSearchParams } from 'next/navigation';
 import React from 'react';
 
@@ -44,7 +46,7 @@ function CleanAnchor(p: Props & { href: string; disabled?: boolean }) {
         {Wrapped}
       </button>
     );
-  if (p.className?.includes('secondary')) console.log(p.children);
+
   return (
     <button
       className={p.className + ' rexified RxCustomerAccountView-CleanAnchor-secondary'}
@@ -66,42 +68,59 @@ function CleanAnchor(p: Props & { href: string; disabled?: boolean }) {
   return <a {...p}>{Wrapped}</a>;
 }
 
-function Iterator(p: Props & { disabled?: boolean; customer: { [key: string]: string }; onChange: (evt: { [key: string]: string | number }) => void }) {
+function Iterator(
+  p: Props & { 'field-errors': string[]; disabled?: boolean; customer: { [key: string]: string }; onChange: (evt: { [key: string]: string | number }) => void },
+) {
   const Wrapped = React.Children.map(p.children, child => {
     switch (child.type) {
       case 'input':
         if (!p.customer) return child;
         if (child.props['data-field'] === 'birthday') {
-          const dt = new Date();
-          if (p.customer.birthday) {
-            const [year, month, day] = p.customer.birthday.split('-').length === 3 ? p.customer.birthday.split('-').map(Number) : [1990, 10, 3];
-            dt.setFullYear(year);
-            dt.setMonth(month - 1);
-            dt.setDate(day);
-          }
+          const field = 'birthday';
           return (
-            <RxDateInputGroup
-              classOverride={child.props.className}
-              icon={false}
-              default_value={dt}
-              field_name={child.props.name}
-              onChange={v => {
-                if (v) {
-                  p.onChange({
-                    [child.props.name]: new Date(v).toISOString().substring(0, 10),
-                  });
-                }
+            <BirthdayInput
+              className={child.props.className || ''}
+              onChange={birthday => {
+                p.onChange({
+                  birthday,
+                });
               }}
+              defaultValue={p.customer.birthday}
             />
           );
         }
-        console.log(child.props.name, p.customer);
+        // if (child.props['data-field'] === 'birthday') {
+        //   const dt = new Date();
+        //   if (p.customer.birthday) {
+        //     const [year, month, day] = p.customer.birthday.split('-').length === 3 ? p.customer.birthday.split('-').map(Number) : [1990, 10, 3];
+        //     dt.setFullYear(year);
+        //     dt.setMonth(month - 1);
+        //     dt.setDate(day);
+        //   }
+        //   return (
+        //     <RxDateInputGroup
+        //       classOverride={child.props.className}
+        //       icon={false}
+        //       default_value={dt}
+        //       field_name={child.props.name}
+        //       onChange={v => {
+        //         if (v) {
+        //           p.onChange({
+        //             [child.props.name]: new Date(v).toISOString().substring(0, 10),
+        //           });
+        //         }
+        //       }}
+        //     />
+        //   );
+        // }
+
         return React.cloneElement(child, {
           ...child.props,
+          className: classNames(child.props.className || '', p['field-errors'].includes(child.props['data-field']) ? styles['field-has-error'] : ''),
           value: (child.props['data-field'] && p.customer[child.props['data-field']]) || '',
           onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
             p.onChange({
-              [child.props.name]: evt.currentTarget.value,
+              [child.props['data-field']]: evt.currentTarget.value,
             });
           },
         });
@@ -146,6 +165,7 @@ export default function RxCustomerAccountView(p: Props) {
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const [customer, setCustomer] = React.useState<{ [key: string]: string | number }>();
   const [updates, setUpdates] = React.useState<{ [key: string]: string | number }>();
+  const [field_errors, setFieldErrors] = React.useState<string[]>([]);
 
   const onSubmit = () => {
     if (customer?.id && updates) {
@@ -160,7 +180,23 @@ export default function RxCustomerAccountView(p: Props) {
           setData('viewing_customer', JSON.stringify(response));
           setCustomer(response);
         })
-        .catch(console.error);
+        .catch(e => {
+          const { response } = e as AxiosError;
+          let message = 'Sorry, we were unable to save your changes. Our team is working on getting this fixed. Try again later.';
+          if (response?.data) {
+            const error_response = response.data as unknown as {
+              field?: string;
+              error?: string;
+            };
+            if (error_response.error) message = error_response.error;
+            if (error_response.field) setFieldErrors([...field_errors, error_response.field]);
+          }
+          notify({
+            timeout: 5000,
+            category: NotificationCategory.ERROR,
+            message,
+          });
+        });
     }
   };
   const onReset = () => {
@@ -204,6 +240,7 @@ export default function RxCustomerAccountView(p: Props) {
           onReset={onReset}
           disabled={!updates || Object.keys(updates).length === 0}
           emailMagicLink={emailMagicLink}
+          field-errors={field_errors}
         >
           {p.children}
         </Iterator>
