@@ -218,14 +218,12 @@ export function MyListingsRoomsEditor({ children, ...attributes }: Props) {
   }
 
   function handleAction(action: string) {
-    if (form.data) {
-      const { id, beds_dimensions, baths_full_dimensions } = form.data;
-
-      if (action === 'next' && id && data) {
+    if (data?.id) {
+      if (action === 'next' && data) {
         toggleLoading(true);
         const { room_details, bathroom_details } = data;
 
-        updatePrivateListing(id, {
+        updatePrivateListing(data.id, {
           room_details,
           bathroom_details,
         })

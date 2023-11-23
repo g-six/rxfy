@@ -8,6 +8,7 @@ import SpinningDots from '@/components/Loaders/SpinningDots';
 import useFormEvent, { Events, NotificationCategory, PrivateListingData } from '@/hooks/useFormEvent';
 import { updatePrivateListing } from '@/_utilities/api-calls/call-private-listings';
 import useEvent from '@/hooks/useEvent';
+import { getAgentBaseUrl } from '@/app/api/_helpers/agent-helper';
 
 function Preview({ url }: { url: string }) {
   const notify = useEvent(Events.SystemNotification);
@@ -47,7 +48,10 @@ function Rexify({
           />
         );
 
-      if (action)
+      if (action) {
+        if (action === 'view_listing' && attributes.listing?.id) {
+          return cloneElement(c, { target: '_blank', href: `${getAgentBaseUrl(attributes.agent, true)}/property?lid=${attributes.listing.id}` });
+        }
         return (
           <button
             type='button'
@@ -62,6 +66,7 @@ function Rexify({
             {c.props.children || c.props.value}
           </button>
         );
+      }
       if (components && typeof components !== 'string') {
         // Rexify workspace tabs
         if (attributes.listing?.id) {
@@ -132,8 +137,10 @@ export default function MyListingsReviewEditor({
       {...attribs}
       listing={property}
       onAction={(action: string) => {
-        if (action === 'save') {
-          proceed();
+        switch (action) {
+          case 'save':
+            proceed();
+            break;
         }
       }}
       onChange={(description: string) => {

@@ -54,7 +54,7 @@ export default async function MyListingsMLSListings({ children, agent, ...props 
                   key={`card-for-${p.mls_id}`}
                   listing={{
                     ...p,
-                    url: `${getAgentBaseUrl(agent)}/property?mls=${p.mls_id}`,
+                    url: `${getAgentBaseUrl(agent, true)}/property?mls=${p.mls_id}`,
                   }}
                 >
                   {card_components}

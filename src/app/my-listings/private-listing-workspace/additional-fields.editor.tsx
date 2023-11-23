@@ -69,7 +69,8 @@ function Rexifier({
           id: number;
           name: string;
         }
-      | string,
+      | string
+      | number[],
   ): void;
   onToggle(field: string): void;
   listing?: PrivateListingOutput;
@@ -134,7 +135,22 @@ function Rexifier({
       }
 
       if (c.props['data-popup'] === 'more_fields') {
-        return <MoreFieldsPopup {...c.props}>{c.props.children}</MoreFieldsPopup>;
+        return (
+          <MoreFieldsPopup
+            {...c.props}
+            onChange={ups => {
+              if (ups) {
+                Object.keys(ups).forEach(field => {
+                  if (field === 'parking') attributes.onChange('parkings', ups[field]);
+                  else if (field === 'hvac') attributes.onChange('hvacs', ups[field]);
+                  else attributes.onChange(field, ups[field]);
+                });
+              }
+            }}
+          >
+            {c.props.children}
+          </MoreFieldsPopup>
+        );
       }
 
       if (c.props.children && typeof c.props.children !== 'string')
@@ -149,6 +165,9 @@ function Rexifier({
 export function MyListingsAdditionalFieldsEditor({ children, ...attributes }: Props & { listing?: PrivateListingModel }) {
   const form = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
   const { facilities } = attributes.listing as unknown as PrivateListingOutput;
+  const [relations, setRelations] = useState<{
+    [k: string]: number[];
+  }>();
   const [data, setData] = useState<PrivateListingInput | undefined>(
     {
       ...attributes.listing,
@@ -164,21 +183,13 @@ export function MyListingsAdditionalFieldsEditor({ children, ...attributes }: Pr
 
       if (action === 'next' && id && record) {
         toggleLoading(true);
-
+        const { appliances, hvacs, parkings, places_of_interest } = record;
         updatePrivateListing(id, {
-          facilities: record.facilities || [],
-          strata_fee: isNaN(Number(record.strata_fee)) ? undefined : Number(record.strata_fee),
-          building_bylaws: record.building_bylaws,
-          restrictions: record.restrictions,
-          minimum_age_restriction: record.minimum_age_restriction ? Number(record.minimum_age_restriction) : undefined,
-          total_pets_allowed: `${record.total_pets_allowed}` === '' || isNaN(Number(record.total_pets_allowed)) ? undefined : Number(record.total_pets_allowed),
-          total_allowed_rentals: isNaN(Number(record.total_allowed_rentals)) ? undefined : Number(record.total_allowed_rentals),
-          complex_compound_name: record.complex_compound_name,
-          council_approval_required: record.council_approval_required || false,
+          ...relations,
         })
           .then(() => {
-            const next_tab = document.querySelector('a[data-w-tab="Tab 7"]') as HTMLAnchorElement;
-            next_tab.click();
+            const next_tab = document.querySelector('a[data-w-tab="Tab 8"]') as HTMLAnchorElement;
+            if (next_tab) next_tab.click();
           })
           .finally(() => {
             toggleLoading(false);
@@ -186,16 +197,6 @@ export function MyListingsAdditionalFieldsEditor({ children, ...attributes }: Pr
       }
     }
   }
-
-  useEffect(() => {
-    if (data)
-      form.fireEvent({
-        facilities: (data.facilities || []).map(facility_id => ({
-          id: facility_id,
-          name: '',
-        })),
-      });
-  }, [data]);
 
   useEffect(() => {
     getPropertyAttributes().then(setPropertyRelationships);
@@ -215,29 +216,17 @@ export function MyListingsAdditionalFieldsEditor({ children, ...attributes }: Pr
           [field]: v[field] ? false : true,
         });
       }}
-      onChange={(field, value: string) => {
-        if (data && relationships && Object.keys(relationships).includes(field) && field === 'facilities') {
-          const values = (data.facilities || []).map(f => ({
-            id: typeof f === 'object' ? (f as { id: number }).id : f,
-            name: typeof f === 'object' ? (f as { name: string }).name : f,
-          }));
-          const index = values.map(f => f.id).indexOf(Number(value));
-          if (index >= 0) values.splice(index, 1);
-          else
-            values.push({
-              id: Number(value),
-              name: '',
-            });
+      onChange={(field, value: string | number[]) => {
+        if (typeof value === 'string')
           setData({
             ...data,
-            [field]: values.map(v => v.id),
+            [field]: value,
           });
-        } else {
-          setData({
-            ...data,
-            [field]: FinanceFields.concat(NumericFields).includes(field) ? Number(value) : value,
+        else
+          setRelations({
+            ...relations,
+            [field]: value,
           });
-        }
       }}
     >
       {children}

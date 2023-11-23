@@ -1,32 +1,12 @@
 import { getPropertyAttributes } from '@/_utilities/api-calls/call-property-attributes';
 import { classNames } from '@/_utilities/html-helper';
 import { KeyValuePair } from '@/app/api/properties/types';
-import { ReactElement, useEffect, useState } from 'react';
+import { ChangeEvent, ReactElement, useEffect, useState } from 'react';
 
 import { Popover, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { Fragment } from 'react';
-
-const solutions = [
-  {
-    name: 'Insights',
-    description: 'Measure actions your users take',
-    href: '##',
-    icon: IconOne,
-  },
-  {
-    name: 'Automations',
-    description: 'Create your own targeted content',
-    href: '##',
-    icon: IconTwo,
-  },
-  {
-    name: 'Reports',
-    description: 'Keep track of your growth',
-    href: '##',
-    icon: IconThree,
-  },
-];
+import { CheckIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 
 function IconOne() {
   return (
@@ -75,16 +55,80 @@ function IconThree() {
   );
 }
 
-export default function MoreFieldsPopup({ children, ...attr }: { children: ReactElement; className: string }) {
+export default function MoreFieldsPopup({
+  children,
+  ...attr
+}: {
+  children: ReactElement;
+  className: string;
+  onChange(updates: { [k: string]: number[] }): void;
+}) {
   const [relationships, setRelationships] = useState<{
     [k: string]: KeyValuePair[];
   }>();
 
+  const [all_items, setFilteredItems] = useState<
+    {
+      category: string;
+      id: number;
+      name: string;
+    }[]
+  >();
+
+  const [category, setCategory] = useState<string>('appliances');
+  const [selected_items, setSelectedItems] = useState<{
+    [k: string]: number[];
+  }>();
+
+  function toggleItem(item_category: string, item_id: number) {
+    let selection = { ...selected_items };
+    if (!selection || !selection[item_category]) {
+      setSelectedItems({
+        ...selected_items,
+        [item_category]: [item_id],
+      });
+    } else {
+      const index = selection[item_category].indexOf(item_id);
+      if (index >= 0) {
+        selection[item_category].splice(index, 1);
+      } else {
+        selection[item_category].push(item_id);
+      }
+      setSelectedItems(selection);
+    }
+  }
+
+  function filterFields(name: string) {
+    setFilteredItems([]);
+    if (relationships) {
+      if (category) setCategory('');
+      const mixed_bag: { category: string; id: number; name: string }[] = [];
+      Object.keys(relationships).forEach(c => {
+        if (['appliances', 'hvac', 'parking', 'places_of_interest'].includes(c))
+          relationships[c].forEach(x => {
+            if (name && x.name.toLowerCase().includes(name.toLowerCase())) {
+              mixed_bag.push({
+                ...x,
+                category: c,
+              });
+            }
+          });
+      });
+      setFilteredItems(mixed_bag);
+    }
+  }
+
   useEffect(() => {
-    getPropertyAttributes().then(console.log);
+    selected_items && attr.onChange(selected_items);
+  }, [selected_items]);
+
+  useEffect(() => {
+    getPropertyAttributes().then(results => {
+      setRelationships(results);
+    });
   }, []);
 
-  return (
+  return relationships ? (
     <>
       <Popover className='relative'>
         {({ open }) => (
@@ -106,35 +150,122 @@ export default function MoreFieldsPopup({ children, ...attr }: { children: React
               leaveFrom='opacity-100 translate-y-0'
               leaveTo='opacity-0 translate-y-1'
             >
-              <Popover.Panel className='absolute left-1/2 z-10 mt-3 w-screen max-w-sm -translate-x-1/2 transform px-4 sm:px-0 lg:max-w-3xl'>
-                <div className='overflow-hidden rounded-lg shadow-lg ring-1 ring-black/5'>
-                  <div className='relative grid gap-8 bg-white p-7 lg:grid-cols-2'>
-                    {solutions.map(item => (
-                      <a
-                        key={item.name}
-                        href={item.href}
-                        className='-m-3 flex items-center rounded-lg p-2 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50'
-                      >
-                        <div className='flex h-10 w-10 shrink-0 items-center justify-center text-white sm:h-12 sm:w-12'>
-                          <item.icon aria-hidden='true' />
-                        </div>
-                        <div className='ml-4'>
-                          <p className='text-sm font-medium text-gray-900'>{item.name}</p>
-                          <p className='text-sm text-gray-500'>{item.description}</p>
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                  <div className='bg-gray-50 p-4'>
-                    <a
-                      href='##'
-                      className='flow-root rounded-md px-2 py-2 transition duration-150 ease-in-out hover:bg-gray-100 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50'
+              <Popover.Panel className='absolute left-1/2 z-10 mt-3 w-screen max-w-sm -translate-x-1/2 transform px-4 sm:px-0 lg:max-w-xl'>
+                <div className='rounded-lg shadow-lg ring-1 ring-black/5 overflow-auto'>
+                  <div className='bg-gray-50 p-4 flex flex-wrap gap-4'>
+                    <button
+                      type='button'
+                      className={classNames(
+                        category === 'appliances' ? '' : 'bg-transparent',
+                        'flow-root rounded-md px-2 py-2 transition duration-150 ease-in-out hover:bg-gray-100 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50',
+                      )}
+                      onClick={() => {
+                        setCategory('appliances');
+                        setFilteredItems([]);
+                      }}
                     >
                       <span className='flex items-center'>
-                        <span className='text-sm font-medium text-gray-900'>Documentation</span>
+                        <span className='text-sm font-medium text-gray-900'>Appliances</span>
                       </span>
-                      <span className='block text-sm text-gray-500'>Start integrating products and tools</span>
-                    </a>
+                    </button>
+                    <button
+                      type='button'
+                      className={classNames(
+                        category === 'hvac' ? '' : 'bg-transparent',
+                        'flow-root rounded-md px-2 py-2 transition duration-150 ease-in-out hover:bg-gray-100 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50',
+                      )}
+                      onClick={() => {
+                        setCategory('hvac');
+                      }}
+                    >
+                      <span className='flex items-center'>
+                        <span className='text-sm font-medium text-gray-900'>Heating & ventilation</span>
+                      </span>
+                    </button>
+                    <button
+                      type='button'
+                      className={classNames(
+                        category === 'parking' ? '' : 'bg-transparent',
+                        'flow-root rounded-md px-2 py-2 transition duration-150 ease-in-out hover:bg-gray-100 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50',
+                      )}
+                      onClick={() => {
+                        setCategory('parking');
+                      }}
+                    >
+                      <span className='flex items-center'>
+                        <span className='text-sm font-medium text-gray-900'>Parkings</span>
+                      </span>
+                    </button>
+
+                    <button
+                      type='button'
+                      className={classNames(
+                        category === 'places_of_interest' ? '' : 'bg-transparent',
+                        'flow-root rounded-md px-2 py-2 transition duration-150 ease-in-out hover:bg-gray-100 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50',
+                      )}
+                      onClick={() => {
+                        setCategory('places_of_interest');
+                      }}
+                    >
+                      <span className='flex items-center'>
+                        <span className='text-sm font-medium text-gray-900'>Nearby places of Interests</span>
+                      </span>
+                    </button>
+                  </div>
+                  <div className='bg-white px-4 pt-4'>
+                    <div className='relative flex items-center'>
+                      <input
+                        type='text'
+                        name='search'
+                        id='search'
+                        onChange={(evt: ChangeEvent<HTMLInputElement>) => {
+                          filterFields(evt.currentTarget.value);
+                        }}
+                        className='block w-full rounded-md border-0 py-1.5 pl-4 pr-14 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 sm:text-sm sm:leading-6'
+                      />
+                      <div className='absolute inset-y-0 right-0 flex py-1.5 pr-1.5'>
+                        <span className='inline-flex items-center px-1 font-sans text-xs text-gray-400'>
+                          <MagnifyingGlassIcon className='w-5 h-5' />
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className='relative grid gap-6 bg-white p-7 lg:grid-cols-2 max-h-60 overflow-scroll'>
+                    {all_items && all_items?.length ? (
+                      (all_items || []).map(item => (
+                        <button
+                          key={`${item.category}-${item.id}`}
+                          onClick={() => {
+                            toggleItem(item.category, item.id);
+                          }}
+                          className={classNames(
+                            '-m-3 flex items-center justify-between rounded-lg p-2 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50 cursor-pointer',
+                            selected_items?.[item.category]?.includes(item.id) ? 'bg-neutral-100/10' : 'bg-transparent',
+                          )}
+                        >
+                          <span className='text-sm font-medium text-gray-900 m-0'>{item.name}</span>
+                          {selected_items?.[item.category]?.includes(item.id) ? <CheckIcon className='w-5 h-5 fill-green-500' /> : ''}
+                        </button>
+                      ))
+                    ) : category ? (
+                      relationships?.[category]?.map(item => (
+                        <button
+                          key={item.name}
+                          onClick={() => {
+                            toggleItem(category, item.id);
+                          }}
+                          className={classNames(
+                            '-m-3 flex items-center justify-between rounded-lg p-2 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50 cursor-pointer',
+                            selected_items?.[category]?.includes(item.id) ? 'bg-neutral-100/10' : 'bg-transparent',
+                          )}
+                        >
+                          <span className='text-sm font-medium text-gray-900 m-0'>{item.name}</span>
+                          {selected_items?.[category]?.includes(item.id) ? <CheckIcon className='w-5 h-5 fill-green-500' /> : ''}
+                        </button>
+                      ))
+                    ) : (
+                      <></>
+                    )}
                   </div>
                 </div>
               </Popover.Panel>
@@ -143,5 +274,7 @@ export default function MoreFieldsPopup({ children, ...attr }: { children: React
         )}
       </Popover>
     </>
+  ) : (
+    <></>
   );
 }
