@@ -70,6 +70,9 @@ export default function RxCRM(p: Props) {
   const formToggle = useEvent(Events.CreateCustomerForm);
   const session = useEvent(Events.LoadUserSession);
   const { agent, ...props } = p;
+  const { active } = (formToggle.data || {}) as unknown as {
+    active?: boolean;
+  };
 
   useEffect(() => {
     if (agent?.id && !session.data?.user) {

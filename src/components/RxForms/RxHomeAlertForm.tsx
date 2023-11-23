@@ -308,7 +308,7 @@ export default function RxHomeAlertForm(p: Props) {
   const { fireEvent: notify } = useEvent(Events.SystemNotification);
   const { data, fireEvent } = useEvent(Events.MyHomeAlertsModal);
   const closeModal = () => {
-    fireEvent({ show: false, message: '', alertData: undefined });
+    fireEvent({ show: false, message: '', alertData: undefined, reload: true });
   };
   const { alertData } = data as unknown as {
     alertData: SavedSearch;
@@ -580,8 +580,7 @@ export default function RxHomeAlertForm(p: Props) {
                     category: NotificationCategory.SUCCESS,
                     message: 'New home alert has been saved.',
                   });
-                  location.reload();
-                  closeModal();
+                  fireEvent({ show: false, message: '', alertData: results, reload: true });
                 });
           },
           setGeo(geo) {

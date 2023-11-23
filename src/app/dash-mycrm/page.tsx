@@ -39,10 +39,13 @@ export default async function DashMyCrmPage() {
       const nav = $('body > div > [class^="navigation-full-wrapper"]');
       $('body > div > [class^="navigation-full-wrapper"]').remove();
       return (
-        <main className='dash-wrapper'>
-          <RxRealtorNav>{domToReact(nav as unknown as DOMNode[]) as ReactElement}</RxRealtorNav>
-          <RxCRM agent={realtor}>{domToReact($('body .dash-wrapper') as unknown as DOMNode[]) as ReactElement}</RxCRM>;
-        </main>
+        <>
+          <main className='dash-wrapper'>
+            <RxRealtorNav>{domToReact(nav as unknown as DOMNode[]) as ReactElement}</RxRealtorNav>
+            <RxCRM agent={realtor}>{domToReact($('body .dash-wrapper') as unknown as DOMNode[]) as ReactElement}</RxCRM>;
+          </main>
+          <RxNotifications />
+        </>
       );
     }
   }

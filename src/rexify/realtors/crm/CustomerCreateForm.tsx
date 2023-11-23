@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
+import useEvent, { Events, EventsData, NotificationCategory } from '@/hooks/useEvent';
 import { RxButton } from '@/components/RxButton';
 import { createClient } from '@/_utilities/api-calls/call-clients';
 import styles from './CustomerNotes.module.scss';
@@ -115,7 +115,6 @@ export default function RxCRMCustomerCreateForm(p: Props) {
       let { year, month, day } = formHandler.data as unknown as {
         [key: string]: number;
       };
-      console.log('formHandler.data', formHandler.data);
       if (!month) month = 1;
       if (!day) day = 1;
       if (!year) year = new Date().getFullYear() - 16;
@@ -143,6 +142,10 @@ export default function RxCRMCustomerCreateForm(p: Props) {
                 category: NotificationCategory.SUCCESS,
                 message: ['An account for', client.full_name, 'has been created and an email has been sent to', client.email].join(' '),
               });
+              formToggle.fireEvent({
+                active: undefined,
+                show: undefined,
+              } as unknown as EventsData);
             }
           })
           .catch(console.error)
