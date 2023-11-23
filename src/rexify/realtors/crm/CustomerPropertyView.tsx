@@ -161,7 +161,6 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
           return <></>;
         }
         if (child.props['data-field'] && child.props['data-field'] !== 'image_cover') {
-          console.log('data-field', child.props['data-field']);
           if (child.props['data-field'].includes('image_') && !isNaN(Number(child.props['data-field'].split('_').pop())) && p.property?.photos?.length)
             return (
               <PhotoComponentsIterator photos={p.property.photos} {...child.props}>

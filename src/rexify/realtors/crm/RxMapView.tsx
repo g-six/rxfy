@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 'use client';
-import React from 'react';
+import React, { useEffect } from 'react';
 import mapboxgl, { GeoJSONSource, GeoJSONSourceRaw, MapboxGeoJSONFeature } from 'mapbox-gl';
 import { Feature } from 'geojson';
 import styles from './RxMapView.module.scss';
@@ -90,12 +90,8 @@ export default function RxMapView({
       center: lat_lng,
       zoom: 10,
     });
-    m.on('idle', () => {
-      m.resize();
-      m.panTo(lat_lng);
-      // generateMapPoints();
-    });
     setMap(m);
+    return m;
   };
 
   const addPoints = (sources: LovedPropertyDataModel[]) => {
@@ -145,13 +141,31 @@ export default function RxMapView({
     else if (typeof maxlat !== 'number' && typeof minlat === 'number') latitude = minlat;
 
     setLngLat([longitude, latitude]);
-    map?.panTo(lat_lng);
+    // map?.panTo(lat_lng);
     map?.resize();
     setPins(points);
   };
 
   React.useEffect(() => {
     if (mapDiv && mapDiv.current && session.data?.clicked) {
+      const { 'active-crm-saved-homes-view': act } = session.data as unknown as { [k: string]: string };
+      if (act === 'Tab 2') {
+        const m = attachMap(setMap, mapDiv);
+        if (m) {
+          m.on('idle', () => {
+            m.resize();
+          });
+          m.on('load', () => {
+            const [property] = properties || [];
+            console.log(property);
+            if (properties && property?.lon && property?.lat) {
+              addPoints(properties);
+              m.resize();
+              m.panTo([property?.lon, property?.lat]);
+            }
+          });
+        }
+      }
       if (!pins) {
         const customer_id = searchParams.get('customer') as unknown as number;
       } else {
@@ -161,7 +175,7 @@ export default function RxMapView({
   }, [session.data?.clicked]);
 
   React.useEffect(() => {
-    map?.panTo(lat_lng);
+    // map?.panTo(lat_lng);
   }, [lat_lng]);
 
   React.useEffect(() => {
@@ -196,6 +210,8 @@ export default function RxMapView({
   React.useEffect(() => {
     if (map?.isStyleLoaded() && properties?.length) {
       addPoints(properties);
+      map.resize();
+      map.panTo(lat_lng);
     }
   }, [map?.isStyleLoaded()]);
 
@@ -214,7 +230,6 @@ export default function RxMapView({
       const boundingRect = current.getBoundingClientRect();
       if (boundingRect.height === 0) {
         setHeight('100%');
-        attachMap(setMap, mapDiv);
       }
       console.log(boundingRect.width, boundingRect.height);
     }
