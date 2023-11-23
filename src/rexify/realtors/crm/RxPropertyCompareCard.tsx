@@ -219,7 +219,7 @@ export default function RxPropertyCompareCard(
 function getStatsValue(key: string, kv: { [key: string]: unknown }): string {
   let db_column = key.split(' ').join('_').toLowerCase();
   let val = `${kv[db_column] || ''}`;
-  if (typeof kv[key] === 'object') {
+  if (kv[key] && typeof kv[key] === 'object') {
     const { data } = kv[key] as unknown as {
       data?: { attributes?: { name: string } }[];
     };
