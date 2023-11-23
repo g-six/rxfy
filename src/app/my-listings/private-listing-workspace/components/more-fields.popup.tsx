@@ -4,9 +4,286 @@ import { KeyValuePair } from '@/app/api/properties/types';
 import { ChangeEvent, ReactElement, useEffect, useState } from 'react';
 
 import { Popover, Transition } from '@headlessui/react';
-import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { Fragment } from 'react';
-import { CheckIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid';
+import { CheckIcon, ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid';
+import { capitalizeFirstLetter } from '@/_utilities/formatters';
+import useEvent, { Events } from '@/hooks/useEvent';
+import { EventData } from 'mapbox-gl';
+
+const base_relationships = [
+  {
+    category: 'home_attributes',
+    items: [
+      'age',
+      'date_listed',
+      'exterior_finish',
+      'floors',
+      'fireplace',
+      'total_fireplaces',
+      'total_parking',
+      'total_covered_parking',
+      'heating',
+      'foundation_specs',
+    ],
+  },
+  {
+    category: 'financial_stats',
+    items: ['gross_taxes', 'strata_fee'],
+  },
+  {
+    category: 'restrictions',
+    items: ['total_allowed_rentals', 'building_by_laws'],
+  },
+  {
+    category: 'building_info',
+    items: ['num_units_in_community', 'building_total_units'],
+  },
+  {
+    category: 'square_footage',
+    items: ['floor_area', 'floor_levels', 'floor_area_below_main', 'price_per_sqft'],
+  },
+  {
+    category: 'others',
+    items: ['amenities', 'facilities', 'appliances', 'build_features', 'hvac', 'connected_services'],
+  },
+];
+
+export default function MoreFieldsPopup({
+  children,
+  ...attr
+}: {
+  children: ReactElement;
+  className: string;
+  amenities?: boolean;
+  facilities?: boolean;
+  'base-only'?: boolean;
+  'connected-services'?: boolean;
+  'hide-icon'?: boolean;
+  'right-align'?: boolean;
+  onChange(updates: { [k: string]: number[] }): void;
+}) {
+  const filterEvent = useEvent(Events.AddPropertyFilter);
+  const only_show = ['appliances', 'hvac', 'parking', 'places_of_interest'];
+  if (attr.amenities) {
+    only_show.reverse().push('amenities');
+    only_show.reverse();
+  }
+  if (attr['connected-services']) only_show.push('connected_services');
+  if (attr.facilities) only_show.push('facilities');
+  const [relationships, setRelationships] = useState<{
+    [k: string]: KeyValuePair[];
+  }>();
+
+  const [all_items, setFilteredItems] = useState<
+    {
+      category: string;
+      id: number;
+      name: string;
+    }[]
+  >();
+
+  const [category, setCategory] = useState<string>(attr['base-only'] ? 'home_attributes' : 'appliances');
+  const [selected_items, setSelectedItems] = useState<{
+    [k: string]: number[];
+  }>();
+
+  function toggleItem(item_category: string, item_id: number) {
+    let selection = { ...selected_items };
+    if (!selection || !selection[item_category]) {
+      setSelectedItems({
+        ...selected_items,
+        [item_category]: [item_id],
+      });
+    } else {
+      const index = selection[item_category].indexOf(item_id);
+      if (index >= 0) {
+        selection[item_category].splice(index, 1);
+      } else {
+        selection[item_category].push(item_id);
+      }
+      setSelectedItems(selection);
+    }
+  }
+
+  function filterFields(name: string) {
+    setFilteredItems([]);
+    if (relationships) {
+      if (category) setCategory('');
+      const mixed_bag: { category: string; id: number; name: string }[] = [];
+      Object.keys(relationships).forEach(c => {
+        if (attr['base-only'] || only_show.includes(c))
+          relationships[c].forEach(x => {
+            if (name && x.name.toLowerCase().includes(name.toLowerCase())) {
+              mixed_bag.push({
+                ...x,
+                category: c,
+              });
+            }
+          });
+      });
+      setFilteredItems(mixed_bag);
+    }
+  }
+
+  useEffect(() => {
+    if (selected_items) {
+      attr.onChange(selected_items);
+
+      if (attr['base-only']) {
+        const filters: string[] = [];
+        Object.keys(selected_items).forEach(category => {
+          const [group] = base_relationships.filter(c => c.category === category);
+          if (group) {
+            selected_items[category].forEach(num => {
+              filters.push(group.items[num - 1]);
+            });
+          }
+          // base_relationships.filter(c=> c.category === category).forEach(group => group.items.filter(name => { selected_items[category].filter((name, idx) => selected_items[](idx + 1)) }))
+        });
+        console.log(filters);
+        filterEvent.fireEvent({
+          filters,
+        } as unknown as EventData);
+      }
+    }
+  }, [selected_items]);
+
+  useEffect(() => {
+    if (attr['base-only']) {
+      let results: { [k: string]: { id: number; name: string }[] } = {};
+      base_relationships.map((r, id) => {
+        results = {
+          ...results,
+          [r.category]: r.items.map((name, i) => ({
+            id: i + 1,
+            name: getLabel(name),
+          })),
+        };
+      });
+      setRelationships(results);
+    } else
+      getPropertyAttributes().then(results => {
+        setRelationships(results);
+      });
+  }, []);
+
+  return relationships ? (
+    <>
+      <Popover className='relative'>
+        {({ open }) => (
+          <>
+            <Popover.Button className={classNames(attr.className, 'w-full', attr['right-align'] ? 'flex gap-1 items-center justify-between' : '')}>
+              <span>{children}</span>
+
+              <ChevronDownIcon
+                className={`${open ? 'text-indigo-300' : 'text-indigo-200/70'}
+                  ${attr['right-align'] ? '' : 'ml-2'} h-4 w-4 transition duration-150 ease-in-out group-hover:text-orange-300/80`}
+                aria-hidden='true'
+              />
+            </Popover.Button>
+            <Transition
+              as={Fragment}
+              enter='transition ease-out duration-200'
+              enterFrom='opacity-0 translate-y-1'
+              enterTo='opacity-100 translate-y-0'
+              leave='transition ease-in duration-150'
+              leaveFrom='opacity-100 translate-y-0'
+              leaveTo='opacity-0 translate-y-1'
+            >
+              <Popover.Panel
+                className={classNames(
+                  attr['right-align'] ? 'right-0' : '-translate-x-1/2 left-1/2',
+                  'absolute z-10 mt-3 w-screen max-w-sm transform px-4 sm:px-0 lg:max-w-xl',
+                )}
+              >
+                <div className={classNames(attr['right-align'] ? 'flex bg-white' : '', 'rounded-2xl shadow-xl ring-1 ring-neutral-200/5 overflow-auto')}>
+                  <div className={classNames(attr['right-align'] ? 'flex-col' : '', 'bg-gray-50 p-4 flex overflow-auto gap-4')}>
+                    {(attr['base-only'] ? base_relationships.map(group => group.category) : only_show).map(name => (
+                      <button
+                        type='button'
+                        className={classNames(
+                          category === name ? '' : 'bg-transparent',
+                          'flow-root rounded-md px-2 py-2 transition duration-150 ease-in-out hover:bg-gray-100 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50',
+                        )}
+                        onClick={() => {
+                          setCategory(name);
+                          setFilteredItems([]);
+                        }}
+                      >
+                        <span className='flex items-center whitespace-nowrap'>
+                          <span className='text-sm font-medium text-gray-900'>{getLabel(name)}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <aside className='flex-1'>
+                    <div className='bg-white px-4 pt-4'>
+                      <div className='relative flex items-center'>
+                        <input
+                          type='text'
+                          name='search'
+                          id='search'
+                          onChange={(evt: ChangeEvent<HTMLInputElement>) => {
+                            filterFields(evt.currentTarget.value);
+                          }}
+                          className='block w-full rounded-md border-0 py-1.5 pl-4 pr-14 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 sm:text-sm sm:leading-6'
+                        />
+                        <div className='absolute inset-y-0 right-0 flex py-1.5 pr-1.5'>
+                          <span className='inline-flex items-center px-1 font-sans text-xs text-gray-400'>
+                            <MagnifyingGlassIcon className='w-5 h-5' />
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className='relative grid gap-6 bg-white p-7 lg:grid-cols-2 max-h-60 overflow-auto'>
+                      {all_items && all_items?.length ? (
+                        (all_items || []).map(item => (
+                          <button
+                            key={`${item.category}-${item.id}`}
+                            onClick={() => {
+                              toggleItem(item.category, item.id);
+                            }}
+                            className={classNames(
+                              '-m-3 flex items-center justify-between rounded-lg p-2 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50 cursor-pointer',
+                              selected_items?.[item.category]?.includes(item.id) ? 'bg-neutral-100/10' : 'bg-transparent',
+                            )}
+                          >
+                            <span className='text-sm font-medium text-gray-900 m-0'>{item.name}</span>
+                            {selected_items?.[item.category]?.includes(item.id) ? <CheckIcon className='w-5 h-5 fill-green-500' /> : ''}
+                          </button>
+                        ))
+                      ) : category ? (
+                        relationships?.[category]?.map(item => (
+                          <button
+                            key={item.name}
+                            onClick={() => {
+                              toggleItem(category, item.id);
+                            }}
+                            className={classNames(
+                              '-m-3 flex items-center justify-between rounded-lg p-2 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50 cursor-pointer',
+                              selected_items?.[category]?.includes(item.id) ? 'bg-neutral-100/10' : 'bg-transparent',
+                            )}
+                          >
+                            <span className='text-sm font-medium text-gray-900 m-0'>{item.name}</span>
+                            {selected_items?.[category]?.includes(item.id) ? <CheckIcon className='w-5 h-5 fill-green-500' /> : ''}
+                          </button>
+                        ))
+                      ) : (
+                        <></>
+                      )}
+                    </div>
+                  </aside>
+                </div>
+              </Popover.Panel>
+            </Transition>
+          </>
+        )}
+      </Popover>
+    </>
+  ) : (
+    <></>
+  );
+}
 
 function IconOne() {
   return (
@@ -55,226 +332,13 @@ function IconThree() {
   );
 }
 
-export default function MoreFieldsPopup({
-  children,
-  ...attr
-}: {
-  children: ReactElement;
-  className: string;
-  onChange(updates: { [k: string]: number[] }): void;
-}) {
-  const [relationships, setRelationships] = useState<{
-    [k: string]: KeyValuePair[];
-  }>();
-
-  const [all_items, setFilteredItems] = useState<
-    {
-      category: string;
-      id: number;
-      name: string;
-    }[]
-  >();
-
-  const [category, setCategory] = useState<string>('appliances');
-  const [selected_items, setSelectedItems] = useState<{
-    [k: string]: number[];
-  }>();
-
-  function toggleItem(item_category: string, item_id: number) {
-    let selection = { ...selected_items };
-    if (!selection || !selection[item_category]) {
-      setSelectedItems({
-        ...selected_items,
-        [item_category]: [item_id],
-      });
-    } else {
-      const index = selection[item_category].indexOf(item_id);
-      if (index >= 0) {
-        selection[item_category].splice(index, 1);
-      } else {
-        selection[item_category].push(item_id);
-      }
-      setSelectedItems(selection);
-    }
+function getLabel(name: string) {
+  switch (name) {
+    case 'hvac':
+      return 'Heating & ventilation';
+    case 'places_of_interest':
+      return 'Nearby attractions';
+    default:
+      return capitalizeFirstLetter(name.split('_').join(' '));
   }
-
-  function filterFields(name: string) {
-    setFilteredItems([]);
-    if (relationships) {
-      if (category) setCategory('');
-      const mixed_bag: { category: string; id: number; name: string }[] = [];
-      Object.keys(relationships).forEach(c => {
-        if (['appliances', 'hvac', 'parking', 'places_of_interest'].includes(c))
-          relationships[c].forEach(x => {
-            if (name && x.name.toLowerCase().includes(name.toLowerCase())) {
-              mixed_bag.push({
-                ...x,
-                category: c,
-              });
-            }
-          });
-      });
-      setFilteredItems(mixed_bag);
-    }
-  }
-
-  useEffect(() => {
-    selected_items && attr.onChange(selected_items);
-  }, [selected_items]);
-
-  useEffect(() => {
-    getPropertyAttributes().then(results => {
-      setRelationships(results);
-    });
-  }, []);
-
-  return relationships ? (
-    <>
-      <Popover className='relative'>
-        {({ open }) => (
-          <>
-            <Popover.Button className={classNames(attr.className, 'w-full')}>
-              <span>{children}</span>
-              <ChevronDownIcon
-                className={`${open ? 'text-orange-300' : 'text-orange-300/70'}
-                  ml-2 h-5 w-5 transition duration-150 ease-in-out group-hover:text-orange-300/80`}
-                aria-hidden='true'
-              />
-            </Popover.Button>
-            <Transition
-              as={Fragment}
-              enter='transition ease-out duration-200'
-              enterFrom='opacity-0 translate-y-1'
-              enterTo='opacity-100 translate-y-0'
-              leave='transition ease-in duration-150'
-              leaveFrom='opacity-100 translate-y-0'
-              leaveTo='opacity-0 translate-y-1'
-            >
-              <Popover.Panel className='absolute left-1/2 z-10 mt-3 w-screen max-w-sm -translate-x-1/2 transform px-4 sm:px-0 lg:max-w-xl'>
-                <div className='rounded-lg shadow-lg ring-1 ring-black/5 overflow-auto'>
-                  <div className='bg-gray-50 p-4 flex flex-wrap gap-4'>
-                    <button
-                      type='button'
-                      className={classNames(
-                        category === 'appliances' ? '' : 'bg-transparent',
-                        'flow-root rounded-md px-2 py-2 transition duration-150 ease-in-out hover:bg-gray-100 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50',
-                      )}
-                      onClick={() => {
-                        setCategory('appliances');
-                        setFilteredItems([]);
-                      }}
-                    >
-                      <span className='flex items-center'>
-                        <span className='text-sm font-medium text-gray-900'>Appliances</span>
-                      </span>
-                    </button>
-                    <button
-                      type='button'
-                      className={classNames(
-                        category === 'hvac' ? '' : 'bg-transparent',
-                        'flow-root rounded-md px-2 py-2 transition duration-150 ease-in-out hover:bg-gray-100 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50',
-                      )}
-                      onClick={() => {
-                        setCategory('hvac');
-                      }}
-                    >
-                      <span className='flex items-center'>
-                        <span className='text-sm font-medium text-gray-900'>Heating & ventilation</span>
-                      </span>
-                    </button>
-                    <button
-                      type='button'
-                      className={classNames(
-                        category === 'parking' ? '' : 'bg-transparent',
-                        'flow-root rounded-md px-2 py-2 transition duration-150 ease-in-out hover:bg-gray-100 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50',
-                      )}
-                      onClick={() => {
-                        setCategory('parking');
-                      }}
-                    >
-                      <span className='flex items-center'>
-                        <span className='text-sm font-medium text-gray-900'>Parkings</span>
-                      </span>
-                    </button>
-
-                    <button
-                      type='button'
-                      className={classNames(
-                        category === 'places_of_interest' ? '' : 'bg-transparent',
-                        'flow-root rounded-md px-2 py-2 transition duration-150 ease-in-out hover:bg-gray-100 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50',
-                      )}
-                      onClick={() => {
-                        setCategory('places_of_interest');
-                      }}
-                    >
-                      <span className='flex items-center'>
-                        <span className='text-sm font-medium text-gray-900'>Nearby places of Interests</span>
-                      </span>
-                    </button>
-                  </div>
-                  <div className='bg-white px-4 pt-4'>
-                    <div className='relative flex items-center'>
-                      <input
-                        type='text'
-                        name='search'
-                        id='search'
-                        onChange={(evt: ChangeEvent<HTMLInputElement>) => {
-                          filterFields(evt.currentTarget.value);
-                        }}
-                        className='block w-full rounded-md border-0 py-1.5 pl-4 pr-14 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 sm:text-sm sm:leading-6'
-                      />
-                      <div className='absolute inset-y-0 right-0 flex py-1.5 pr-1.5'>
-                        <span className='inline-flex items-center px-1 font-sans text-xs text-gray-400'>
-                          <MagnifyingGlassIcon className='w-5 h-5' />
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className='relative grid gap-6 bg-white p-7 lg:grid-cols-2 max-h-60 overflow-scroll'>
-                    {all_items && all_items?.length ? (
-                      (all_items || []).map(item => (
-                        <button
-                          key={`${item.category}-${item.id}`}
-                          onClick={() => {
-                            toggleItem(item.category, item.id);
-                          }}
-                          className={classNames(
-                            '-m-3 flex items-center justify-between rounded-lg p-2 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50 cursor-pointer',
-                            selected_items?.[item.category]?.includes(item.id) ? 'bg-neutral-100/10' : 'bg-transparent',
-                          )}
-                        >
-                          <span className='text-sm font-medium text-gray-900 m-0'>{item.name}</span>
-                          {selected_items?.[item.category]?.includes(item.id) ? <CheckIcon className='w-5 h-5 fill-green-500' /> : ''}
-                        </button>
-                      ))
-                    ) : category ? (
-                      relationships?.[category]?.map(item => (
-                        <button
-                          key={item.name}
-                          onClick={() => {
-                            toggleItem(category, item.id);
-                          }}
-                          className={classNames(
-                            '-m-3 flex items-center justify-between rounded-lg p-2 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50 cursor-pointer',
-                            selected_items?.[category]?.includes(item.id) ? 'bg-neutral-100/10' : 'bg-transparent',
-                          )}
-                        >
-                          <span className='text-sm font-medium text-gray-900 m-0'>{item.name}</span>
-                          {selected_items?.[category]?.includes(item.id) ? <CheckIcon className='w-5 h-5 fill-green-500' /> : ''}
-                        </button>
-                      ))
-                    ) : (
-                      <></>
-                    )}
-                  </div>
-                </div>
-              </Popover.Panel>
-            </Transition>
-          </>
-        )}
-      </Popover>
-    </>
-  ) : (
-    <></>
-  );
 }

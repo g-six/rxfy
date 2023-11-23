@@ -20,6 +20,7 @@ import useEvent, { Events } from '@/hooks/useEvent';
 import styles from '@/rexify/dynamic-styles.module.scss';
 import { classNames } from '@/_utilities/html-helper';
 import { RxEmptyState } from '@/components/RxCards/RxEmptyState.iterator';
+import MoreFieldsPopup from '@/app/my-listings/private-listing-workspace/components/more-fields.popup';
 
 type Props = {
   children: React.ReactElement;
@@ -244,18 +245,27 @@ export default function ClientDashboardIterator(
           </div>
         );
       } else if (child.props?.['data-action'] === 'change_compare_stats') {
-        return React.cloneElement(<button type='button' />, {
-          ...child.props,
-          children: React.cloneElement(<span />, {
-            ...child.props.children.props,
-          }),
-          onClick: (evt: React.MouseEvent<HTMLButtonElement>) => {
-            switch (evt.currentTarget.textContent?.toLowerCase()) {
-              case 'change compare stats':
-                p.onClickChangeCompareStats && p.onClickChangeCompareStats();
-            }
-          },
-        });
+        return cloneElement(
+          child,
+          { style: { padding: 0 } },
+          <div className='w-full'>
+            <MoreFieldsPopup className='bg-transparent w-full h-10 px-4' onChange={console.log} hide-icon right-align base-only>
+              <>Change Compare Stats</>
+            </MoreFieldsPopup>
+          </div>,
+        );
+        // return React.cloneElement(<button type='button' />, {
+        //   ...child.props,
+        //   children: React.cloneElement(<span />, {
+        //     ...child.props.children.props,
+        //   }),
+        //   onClick: (evt: React.MouseEvent<HTMLButtonElement>) => {
+        //     switch (evt.currentTarget.textContent?.toLowerCase()) {
+        //       case 'change compare stats':
+        //         p.onClickChangeCompareStats && p.onClickChangeCompareStats();
+        //     }
+        //   },
+        // });
       }
     }
     return child;

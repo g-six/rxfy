@@ -10,7 +10,7 @@ import { WEBFLOW_NODE_SELECTOR } from '@/_typings/webflow';
 import { getLovedHomes } from '@/_utilities/api-calls/call-love-home';
 import { getData, setData } from '@/_utilities/data-helpers/local-storage-helper';
 import { AgentData } from '@/_typings/agent';
-import { MLSProperty, PropertyDataModel, LovedPropertyDataModel } from '@/_typings/property';
+import { PropertyDataModel, LovedPropertyDataModel } from '@/_typings/property';
 import { LoveDataModel } from '@/_typings/love';
 type MyCompareDashboardPage = {
   className: string;
@@ -57,24 +57,7 @@ function PageIterator(props: MyCompareDashboardPage) {
               props['data-loved'].map((p: LovedPropertyDataModel, sequence_no: number) => {
                 const { love, ...listing } = p;
                 return (
-                  <RxPropertyCard
-                    key={love}
-                    listing={listing}
-                    // listing={{
-                    //   ...(listing as unknown as MLSProperty),
-                    //   MLS_ID,
-                    //   Address,
-                    //   AskingPrice,
-                    //   Area,
-                    //   L_BedroomTotal: beds || 1,
-                    //   L_TotalBaths: baths || 1,
-                    //   L_FloorArea_GrantTotal: floor_area || 0,
-                    // }}
-                    isLink={false}
-                    love={love}
-                    sequence={sequence_no}
-                    agent={props['agent-data'].id}
-                  >
+                  <RxPropertyCard key={love} listing={listing} isLink={false} love={love} sequence={sequence_no} agent={props['agent-data'].id}>
                     {PlaceholderCard}
                   </RxPropertyCard>
                 );
