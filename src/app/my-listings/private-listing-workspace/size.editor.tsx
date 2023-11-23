@@ -88,6 +88,7 @@ function Rexifier({
       if (action)
         return (
           <button
+            data-action={action}
             className={c.props.className}
             disabled={attributes.disabled}
             onClick={() => {
@@ -137,10 +138,10 @@ export function MyListingsSizeEditor({ children, ...attributes }: Props) {
     if (form.data) {
       const { id, ...values } = form.data;
 
-      if (action === 'next' && id) {
+      if (action === 'next' && data?.id) {
         toggleLoading(true);
 
-        updatePrivateListing(id, {
+        updatePrivateListing(data.id, {
           baths: values.baths || undefined,
           beds: values.beds || undefined,
           full_baths: values.full_baths || undefined,
@@ -174,8 +175,11 @@ export function MyListingsSizeEditor({ children, ...attributes }: Props) {
   }, []);
 
   useEffect(() => {
-    if (data) form.fireEvent(data as unknown as PrivateListingData);
-  }, [data]);
+    if (form.data) {
+      console.log('data.total_garage', form.data.total_garage);
+      // form.fireEvent(data as unknown as PrivateListingData);
+    }
+  }, [form.data]);
 
   return (
     <Rexifier
@@ -183,6 +187,18 @@ export function MyListingsSizeEditor({ children, ...attributes }: Props) {
       disabled={is_loading}
       onAction={handleAction}
       onChange={(field, value: string) => {
+        if (field === 'garages') {
+          form.fireEvent({
+            total_garage: Number(value || 0),
+          });
+          setData({
+            ...data,
+            total_garage: Number(value || 0),
+          });
+        }
+        form.fireEvent({
+          [field]: FinanceFields.concat(NumericFields).includes(field) ? Number(value) : value,
+        });
         setData({
           ...data,
           [field]: FinanceFields.concat(NumericFields).includes(field) ? Number(value) : value,

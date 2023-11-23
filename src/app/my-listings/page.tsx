@@ -10,6 +10,7 @@ import { redirect } from 'next/navigation';
 import NotFound from '../not-found';
 import { getUserSessionData } from '../api/check-session/model';
 import { AgentData } from '@/_typings/agent';
+import RxNotifications from '@/components/RxNotifications';
 
 interface Props {
   params: { [k: string]: string };
@@ -101,6 +102,7 @@ export default async function MyListings(page: Props) {
           </Rexified>
         </main>
       </div>
+      <RxNotifications />
     </div>
   );
 }

@@ -1,11 +1,26 @@
 'use client';
 
-import { Children, ReactElement, cloneElement, useEffect, useState } from 'react';
+import { ChangeEvent, Children, ReactElement, cloneElement, useEffect, useState } from 'react';
 import { AgentData, Property } from '@/_typings/agent';
 import { PrivateListingModel } from '@/_typings/private-listing';
 import MyListingsAddressInputComponent from './components/address-input.component';
 import SpinningDots from '@/components/Loaders/SpinningDots';
-import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
+import useFormEvent, { Events, NotificationCategory, PrivateListingData } from '@/hooks/useFormEvent';
+import { updatePrivateListing } from '@/_utilities/api-calls/call-private-listings';
+import useEvent from '@/hooks/useEvent';
+
+function Preview({ url }: { url: string }) {
+  const notify = useEvent(Events.SystemNotification);
+  const [set_url, setUrl] = useState<string>(url);
+
+  useEffect(() => {
+    if (notify.data?.category === NotificationCategory.SUCCESS) {
+      setUrl(url + '&ts=' + Date.now());
+    }
+  }, [notify.data]);
+
+  return <iframe className='h-screen w-screen scale-75 -translate-x-[10rem] -translate-y-[5rem]' src={set_url} />;
+}
 
 function Rexify({
   children,
@@ -16,6 +31,7 @@ function Rexify({
   'preview-html'?: string;
   children: ReactElement;
   disabled?: boolean;
+  onChange(value: string): void;
   onAction(action: string): void;
 }) {
   const Rexified = Children.map(children, c => {
@@ -24,9 +40,8 @@ function Rexify({
       className = `${className}${className && ' '}rexified`;
       if (attributes.listing?.id && props.id && props.id === 'preview-private-listing')
         return (
-          <iframe
-            className='h-screen w-screen scale-75 -translate-x-[10rem] -translate-y-[5rem]'
-            src={`https://${
+          <Preview
+            url={`https://${
               attributes.agent.domain_name || `leagent.com/${attributes.agent.agent_id}/${attributes.agent.metatags.profile_slug}`
             }/property?lid=${attributes.listing.id}`}
           />
@@ -35,9 +50,11 @@ function Rexify({
       if (action)
         return (
           <button
+            type='button'
             className={c.props.className}
+            data-action={action}
             disabled={attributes.disabled}
-            onClick={() => {
+            onClick={e => {
               attributes.onAction(action);
             }}
           >
@@ -54,7 +71,13 @@ function Rexify({
 
       if (props['data-field'] === 'description') {
         const description = attributes.listing?.description || '';
-        return cloneElement(c, { className, defaultValue: description });
+        return cloneElement(c, {
+          className,
+          defaultValue: description,
+          onChange: (evt: ChangeEvent<HTMLTextAreaElement>) => {
+            attributes.onChange(evt.currentTarget.value);
+          },
+        });
       }
     }
 
@@ -72,12 +95,23 @@ export default function MyListingsReviewEditor({
   'preview-html'?: string;
 }) {
   const form = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
+  const notification = useEvent(Events.SystemNotification);
   const [property, setProperty] = useState<PrivateListingModel>();
 
   let { listing, ...attribs } = data;
 
   function proceed() {
-    console.log(data.listing);
+    if (listing?.id && property) {
+      updatePrivateListing(listing.id, {
+        description: property?.description || '',
+      }).then(() => {
+        notification.fireEvent({
+          message: 'Your listing has been updated!',
+          category: NotificationCategory.SUCCESS,
+          timeout: 3450,
+        });
+      });
+    }
   }
 
   useEffect(() => {
@@ -98,9 +132,15 @@ export default function MyListingsReviewEditor({
       {...attribs}
       listing={property}
       onAction={(action: string) => {
-        if (action === 'next') {
+        if (action === 'save') {
           proceed();
         }
+      }}
+      onChange={(description: string) => {
+        setProperty({
+          ...property,
+          description,
+        });
       }}
     >
       {children}

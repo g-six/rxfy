@@ -240,7 +240,7 @@ export function MyListingsRoomsEditor({ children, ...attributes }: Props) {
     }
   }
 
-  useEffect(() => {
+  function updateData() {
     const bathroom_details = data?.bathroom_details || { baths: [] };
     let room_details = data?.room_details || { rooms: [] };
 
@@ -257,43 +257,54 @@ export function MyListingsRoomsEditor({ children, ...attributes }: Props) {
       kitchens: room_details.kitchens || [],
     };
 
-    if (baths && bathroom_details.baths.length < baths) {
-      for (let cnt = baths - bathroom_details.baths.length; cnt > 0; cnt--) {
-        bathroom_details.baths.push({
-          pieces: 1,
-          level: 'Main',
-        });
-      }
+    if (baths && bathroom_details.baths) {
+      if (bathroom_details.baths.length < baths)
+        for (let cnt = baths - bathroom_details.baths.length; cnt > 0; cnt--) {
+          bathroom_details.baths.push({
+            pieces: 1,
+            level: 'Main',
+          });
+        }
+      else if (bathroom_details.baths.length > baths) bathroom_details.baths.splice(baths);
     }
-    if (beds && room_details.rooms.length < beds) {
-      for (let cnt = beds - room_details.rooms.length; cnt > 0; cnt--) {
-        room_details.rooms.push({
-          type: 'Bedroom',
-          length: '',
-          width: '',
-          level: 'Main',
-        });
-      }
+    if (beds && room_details.rooms) {
+      if (room_details.rooms.length < beds)
+        for (let cnt = beds - room_details.rooms.length; cnt > 0; cnt--) {
+          room_details.rooms.push({
+            type: 'Bedroom',
+            length: '',
+            width: '',
+            level: 'Main',
+          });
+        }
+      else if (room_details.rooms.length > beds) room_details.rooms.splice(beds);
     }
 
-    if (total_kitchens && room_details.kitchens && room_details.kitchens.length < total_kitchens) {
-      for (let cnt = total_kitchens - room_details.kitchens.length; cnt > 0; cnt--) {
-        room_details.kitchens.push({
-          type: 'Kitchen',
-          length: '',
-          width: '',
-          level: 'Main',
-        });
-      }
+    if (total_kitchens && room_details.kitchens) {
+      if (room_details.kitchens.length < total_kitchens)
+        for (let cnt = total_kitchens - room_details.kitchens.length; cnt > 0; cnt--) {
+          room_details.kitchens.push({
+            type: 'Kitchen',
+            length: '',
+            width: '',
+            level: 'Main',
+          });
+        }
+      else if (room_details.kitchens.length > total_kitchens) room_details.kitchens.splice(total_kitchens);
     }
-    if (total_garage && room_details.garages && room_details.garages.length < total_garage) {
-      for (let cnt = total_garage - room_details.garages.length; cnt > 0; cnt--) {
-        room_details.garages.push({
-          type: 'Garage',
-          length: '',
-          width: '',
-          level: 'Ground',
-        });
+
+    if (total_garage && room_details.garages) {
+      if (room_details.garages.length < total_garage)
+        for (let cnt = total_garage - room_details.garages.length; cnt > 0; cnt--) {
+          room_details.garages.push({
+            type: 'Garage',
+            length: '',
+            width: '',
+            level: 'Ground',
+          });
+        }
+      else if (room_details.garages.length > total_garage) {
+        room_details.garages.splice(total_garage);
       }
     }
     if (total_additional_rooms && room_details.others && room_details.others.length < total_additional_rooms) {
@@ -306,11 +317,19 @@ export function MyListingsRoomsEditor({ children, ...attributes }: Props) {
         });
       }
     }
-    setData({
+    return {
       ...data,
       room_details,
       bathroom_details,
-    });
+    };
+  }
+
+  useEffect(() => {
+    setData(updateData());
+  }, [form.data]);
+
+  useEffect(() => {
+    setData(updateData());
   }, []);
 
   return data?.bathroom_details && data?.room_details ? (

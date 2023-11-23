@@ -31,7 +31,7 @@ function CheckboxRexifier({ children, ...attr }: { children: ReactElement; 'is-c
             : {}), // Only listen to div click to avoid multiple handling
           ...(c.type === 'input'
             ? {
-                checked: attr['is-checked'] || false,
+                defaultChecked: attr['is-checked'] || false,
               }
             : {}), // Only listen to div click to avoid multiple handling
         },
