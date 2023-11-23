@@ -200,6 +200,7 @@ export default function MoreFieldsPopup({
                   <div className={classNames(attr['right-align'] ? 'flex-col' : '', 'bg-gray-50 p-4 flex overflow-auto gap-4')}>
                     {(attr['base-only'] ? base_relationships.map(group => group.category) : only_show).map(name => (
                       <button
+                        key={`btn-category-${name}`}
                         type='button'
                         className={classNames(
                           category === name ? '' : 'bg-transparent',
