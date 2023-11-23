@@ -40,9 +40,6 @@ export default function BirthdayInput({
 }) {
   const [days, setDays] = useState(Array.from({ length: 31 }, (v, i) => i + 1));
   const [date, setDate] = useState(new Date());
-
-  const [month, setSelectedMonth] = useState(months[new Date().getMonth()]);
-  const [year, setSelectedYear] = useState(new Date().getFullYear() - 30);
   const [selected_date, setSelectedDate] = useState(defaultValue || formatDate());
 
   function adjustDate(value: number = 0, part = '') {
@@ -125,10 +122,10 @@ export default function BirthdayInput({
             </Transition>
           </div>
         </Listbox>
-        <Listbox value={date.getFullYear()} onChange={setSelectedYear}>
+        <Listbox value={date.getFullYear()} onChange={d => adjustDate(d, 'year')}>
           <div className='relative'>
             <Listbox.Button className='relative w-[88px] cursor-default rounded-r-lg bg-white py-2 pl-3 pr-6 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white/75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300'>
-              <span className='block truncate'>{year}</span>
+              <span className='block truncate'>{selected_date.split('-').map(Number).reverse().pop()}</span>
               <span className='pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2'>
                 <ChevronUpDownIcon className='h-5 w-5 text-gray-400' aria-hidden='true' />
               </span>
