@@ -11,7 +11,7 @@ import { savePageToBucket } from './app/api/webhooks/utility';
 
 const BUCKET_NAME = process.env.NEXT_PUBLIC_RX_SITE_BUCKET as string;
 const REALTOR_STATIC_PAGES = ['pricing', 'examples', 'contact'];
-const GATED_PAGES = ['my-profile'];
+const GATED_PAGES = ['my-profile', 'my-listings'];
 const REALTOR_MAIN_PAGES = ['property', 'map', 'communities'];
 const SKIP_AGENT_SEARCH = ['cdn-cgi'];
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));

@@ -24,36 +24,36 @@ export default function MyListingAiAssistantButton({
   const handler = useFormEvent<PrivateListingData>(Events.PrivateListingForm, { beds: 0, baths: 0, floor_area_uom: 'sqft', lot_uom: 'sqft' });
 
   const new_data = handler.data as unknown as {
-    photos: File[];
+    uploads: File[];
   };
+  console.log('private_listing.photos', listing?.photos);
 
   async function onSubmit() {
     const private_listing = listing?.id ? (listing as unknown as PrivateListingOutput) : await createPrivateListing(handler.data as PrivateListingInput);
 
-    const uploads = new_data.photos
+    const upload_results = new_data.uploads
       ? await Promise.all(
-          new_data.photos.map(async (file, index) => {
+          new_data.uploads.map(async (file, index) => {
             if (file.name) {
               const { upload_url } = await uploadListingPhoto(file, index + 1, private_listing);
               await axios.put(upload_url, file, { headers: { 'Content-Type': file.type } });
               const pht_url = 'https://' + new URL(upload_url).pathname.substring(1);
-              new_data.photos[index] = {
+              new_data.uploads[index] = {
                 url: pht_url,
-                preview: getImageSized('https://' + new URL(upload_url).pathname.substring(1), 140),
+                preview: getImageSized(pht_url, 140),
                 lastModified: index,
               } as unknown as ImagePreview;
               return pht_url;
             }
-            return '';
           }),
         )
       : [];
 
     let updates: { [k: string]: unknown } = {};
     const { photos = [] } = private_listing || { photos: [] };
-    if (uploads.length) {
+    if (upload_results.length) {
       updates = {
-        photos: photos.concat(uploads),
+        photos: photos.filter((url: string) => url.indexOf('blob:') !== 0).concat(upload_results),
       };
     }
     const listing_id = private_listing.id;
@@ -74,14 +74,15 @@ export default function MyListingAiAssistantButton({
   }
 
   useEffect(() => {
-    if (new_data?.photos) {
-      const { photos } = new_data as unknown as {
-        photos: { url: string }[];
+    if (new_data?.uploads) {
+      const { uploads } = new_data as unknown as {
+        uploads: { preview: string }[];
       };
-
+      const photos = uploads.filter(p => p.preview).map(p => p.preview);
+      console.log({ photos });
       setListing({
         ...listing,
-        photos: photos.map(p => (p ? p.url : '')),
+        photos,
       });
     }
   }, [new_data]);

@@ -19,9 +19,10 @@ export default function MyListingsPhotoUploaderComponent({
     <RxDropzone
       {...props}
       inputId='private-listing-photos'
-      onFileUpload={(files: ImagePreview[]) => {
-        const photos: ImagePreview[] = [];
-        handler.fireEvent({ photos: [...photos, ...files] });
+      onFileUpload={(uploads: ImagePreview[]) => {
+        handler.fireEvent({
+          uploads: (handler.data?.uploads || []).concat(uploads),
+        });
       }}
     >
       {children}
