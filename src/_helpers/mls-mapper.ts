@@ -11,40 +11,15 @@ export const mapStrAddress = (fields: MLSProperty) => {
           fields[prefix + 'StreetDesignationId'] ? fields[prefix + 'StreetDesignationId'] : ''
         }`
       : fields[prefix + 'Address']
-      ? fields[prefix + 'Address']
-      : '';
+        ? fields[prefix + 'Address']
+        : '';
   const addressUnit = fields[prefix + 'AddressUnit'] ? fields[prefix + 'AddressUnit'] : '';
   addressStreet += addressUnit ? `, Unit ${addressUnit}` : '';
 
   return addressStreet;
 };
 
-export function convertPropertyDataToPrivateListing(prop: PropertyDataModel, photos: ImagePreview[]): PrivateListingData {
-  return {
-    id: parseInt(prop.mls_id),
-    title: prop.title,
-    prompt: prop.description,
-    asking_price: prop.asking_price.toString(),
-    floor_area_total: prop?.floor_area_total,
-    year_built: prop?.year_built,
-    status: prop?.status,
-    // property_type: { id: , name: prop.property_type },
-    state_province: prop.state_province,
-    city: prop.city,
-    region: prop.region,
-    postal_zip_code: prop.postal_zip_code,
-    lat: prop.lat,
-    lon: prop.lon,
-    photos: photos,
-    gross_taxes: prop?.gross_taxes ? prop.gross_taxes.toString() : '',
-    tax_year: prop?.tax_year ? prop.tax_year.toString() : '',
-    beds: prop.beds,
-    baths: prop.baths,
-  };
-}
 export function convertPrivateListingToPropertyData(prop: PrivateListingData): any {
-  const photos = prop?.photos ? prop?.photos : [];
-  const cdnPhotos = photos.map(photo => photo.preview);
   let updates = prop as unknown as {
     [key: string]: unknown;
   };

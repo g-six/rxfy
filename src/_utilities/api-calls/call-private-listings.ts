@@ -134,34 +134,3 @@ export async function uploadListingPhoto(file: File, index: number, listing: Pri
       };
     });
 }
-
-export function createOrUpdate(data: PrivateListingData, callback: (data: any) => void) {
-  if (!data.id) {
-    createPrivateListing(convertPrivateListingToPropertyData(data))
-      .then(record => record.data)
-      .then((rec: PrivateListingOutput) => {
-        if (data.photos && rec.id) {
-          let count = 0;
-          if (data && data.upload_queue?.count) {
-            count = data.upload_queue.count as number;
-          }
-          data?.photos?.map((photo: File, cnt: number) => {
-            uploadListingPhoto(photo, cnt + 1, rec).then((upload_item: { success: boolean; upload_url: string; file_path: string }) => {
-              axios.put(upload_item.upload_url, photo, { headers: { 'Content-Type': photo.type } }).then(() => {
-                count++;
-                if (data.photos && data.photos[cnt]) {
-                  data.photos[cnt].url = 'https://' + new URL(upload_item.upload_url).pathname.substring(1);
-                }
-              });
-            });
-          });
-        }
-      })
-      .then(res => callback(res));
-  } else {
-    const { id, ...updates } = convertPrivateListingToPropertyData(data);
-    updatePrivateListing(id, updates)
-      .then(record => record)
-      .then(res => callback(res));
-  }
-}

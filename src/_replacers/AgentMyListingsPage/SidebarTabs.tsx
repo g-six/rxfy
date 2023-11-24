@@ -1,8 +1,6 @@
 import { removeKeys, tMatch, transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { removeClasses } from '@/_helpers/functions';
-import { convertPrivateListingToPropertyData } from '@/_helpers/mls-mapper';
 import { PageTabs } from '@/_typings/agent-my-listings';
-import { updatePrivateListing } from '@/_utilities/api-calls/call-private-listings';
 import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import useEvent from '@/hooks/useEvent';
 import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
