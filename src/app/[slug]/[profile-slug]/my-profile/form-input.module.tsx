@@ -10,6 +10,7 @@ import useEvent, { Events, NotificationCategory } from '@/hooks/useEvent';
 import styles from './form-input.module.scss';
 import { updateAccount } from '@/_utilities/api-calls/call-update-account';
 import { useRouter } from 'next/navigation';
+import BirthdayInput from '@/components/Birthday/birthday.input';
 
 function Iterator({
   children,
@@ -18,6 +19,7 @@ function Iterator({
   children: React.ReactElement;
   agent: AgentData;
   profile: unknown;
+  updateValue?(field: string, value: string): void;
   onChange?(evt: React.SyntheticEvent): void;
   onChangeDate?(evt: React.SyntheticEvent<HTMLSelectElement>): void;
   sendPasswordRequest?(): void;
@@ -41,6 +43,18 @@ function Iterator({
 
       const { [name]: value } = props.profile as { [key: string]: string | number };
       if (name === 'birthday') {
+        const { birthday } = props.profile as unknown as {
+          [k: string]: string;
+        };
+        return (
+          <BirthdayInput
+            className={c.props.className || ''}
+            onChange={birthday => {
+              props.updateValue && props.updateValue('birthday', birthday);
+            }}
+            defaultValue={birthday}
+          />
+        );
         let ymd = [0, 0, 0];
         if (value) {
           ymd = `${value}`.split('-').map(Number);
@@ -199,6 +213,12 @@ export default function Form({ children, agent }: { children: React.ReactElement
       profile={profile}
       sendPasswordRequest={() => {
         toggleResetPassword(true);
+      }}
+      updateValue={(field, value) => {
+        setProfile({
+          ...(profile as CustomerRecord),
+          [field]: value,
+        });
       }}
       onChange={(input_event: React.SyntheticEvent) => {
         const {

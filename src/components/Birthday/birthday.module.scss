@@ -1,3 +1,6 @@
 .wrapper {
   @apply p-0 #{!important};
+  ul {
+    @apply z-10 overflow-auto;
+  }
 }
