@@ -182,7 +182,7 @@ function Iterator(
               {child.props.children}
               <SearchAddressCombobox
                 defaultValue={p.data.city}
-                className='w-full py-0 px-1 border-0 outline-0'
+                className='w-full py-0 px-1 border-transparent focus:border-transparent focus:ring-0 focus:ring-transparent focus:outline-none'
                 placeholder={child.props.placeholder}
                 name='address'
                 id='address-input'
