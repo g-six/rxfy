@@ -99,7 +99,8 @@ export default function TabAi({ template, nextStepClick, saveAndExit, data, fire
 
   const blockNext = () => ![data?.title, data?.beds].every(Boolean);
   const reorderFiles = (newOrder: ImagePreview[]) => {
-    fireEvent({ photos: [...newOrder] });
+    console.log(newOrder);
+    // fireEvent({ photos: [...newOrder] });
   };
 
   const savePhotos = async (rec: PrivateListingOutput) => {

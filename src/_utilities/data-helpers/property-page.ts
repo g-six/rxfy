@@ -14,7 +14,6 @@ import { capitalizeFirstLetter } from '../formatters';
 import { MLSPropertyExtended } from '@/_typings/filters_compare';
 import { getCombinedData } from './listings-helper';
 import { must_not, retrieveFromLegacyPipeline } from '../api-calls/call-legacy-search';
-import { getRecords } from '@/app/api/property-attributes/model';
 import { formatAddress } from '../string-helper';
 
 export const general_stats: Record<string, string> = {

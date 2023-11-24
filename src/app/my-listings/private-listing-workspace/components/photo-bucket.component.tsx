@@ -2,7 +2,7 @@
 
 import { PrivateListingModel } from '@/_typings/private-listing';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
-import { classNames } from '@/_utilities/html-helper';
+
 import useFormEvent, { Events, ImagePreview, PrivateListingData } from '@/hooks/useFormEvent';
 import { Children, ReactElement, cloneElement, useEffect, useState } from 'react';
 import { MyListingPhotoBucketItem } from './photo-item.component';
@@ -11,7 +11,9 @@ interface Props {
   children: ReactElement;
   className: string;
   listing?: PrivateListingModel;
+  uploads?: string[];
 }
+
 function Rexify({ children, ...component_props }: Props & { photos: string[]; onRemove(url: string): void }) {
   const Rexified = Children.map(children, c => {
     if (c.props) {
@@ -20,18 +22,22 @@ function Rexify({ children, ...component_props }: Props & { photos: string[]; on
 
       if (components && typeof components !== 'string') {
         if (className.includes('card-upload-icon')) {
-          return component_props.photos ? (
+          let photo_urls = component_props.photos || [];
+          if (component_props.uploads) {
+            photo_urls = photo_urls.concat(component_props.uploads);
+          }
+          return photo_urls.length ? (
             <>
-              {component_props.photos.map((pht, index) => {
-                if (pht) {
+              {photo_urls.map((url, index) => {
+                if (url) {
                   return (
                     <MyListingPhotoBucketItem
-                      key={`${index + 1}/${pht}`}
+                      key={`${index + 1}/${url}`}
                       className={className}
                       position={index + 1}
-                      url={pht.indexOf('blob:') === 0 ? pht : getImageSized(pht, 160)}
+                      url={url.indexOf('blob:') === 0 ? url : getImageSized(url, 160)}
                       onRemove={() => {
-                        component_props.onRemove(pht);
+                        component_props.onRemove(url);
                       }}
                     >
                       {components}
@@ -57,39 +63,62 @@ function Rexify({ children, ...component_props }: Props & { photos: string[]; on
 
 export default function MyListingsPhotoBucketComponent({ children, listing: initial_listing, ...props }: Props) {
   const [is_mounted, mountComponent] = useState(false);
-  const [listing, setListing] = useState<PrivateListingModel | undefined>(initial_listing);
   const handler = useFormEvent<PrivateListingData>(Events.PrivateListingForm, { beds: 0, baths: 0, floor_area_uom: 'sqft', lot_uom: 'sqft' });
-  const data = handler.data as unknown as {
+  const [bucket, setPhotoBucketData] = useState<{
     photos: string[];
-    uploads?: ImagePreview[];
-  };
+    uploads: File[];
+  }>({
+    uploads: handler.data?.uploads || [],
+    photos: handler.data?.photos || [],
+  });
+
+  function getUploadPreviewUrl(file: File) {
+    const { preview } = file as unknown as { preview?: string };
+    return preview || '';
+  }
 
   function onRemove(url: string) {
-    const uploads = data.uploads || [];
-    let updated = [...data.photos];
-    const index = updated.indexOf(url);
+    console.log('Remove', url);
+    const photos = [...bucket.photos];
+    const uploads = [...bucket.uploads];
+    console.log('From photos', bucket.photos);
+    const photo_index = photos.indexOf(url);
+    console.log('Index', photo_index);
 
-    updated.splice(index, 1);
-    updated = updated.filter(url => url);
-    uploads.forEach((upload, upload_idx) => {
-      if (upload.url && upload.url === url) uploads.splice(upload_idx, 1);
-    });
+    if (photo_index >= 0) {
+      photos.splice(photo_index, 1);
+      // If the removed item was a File
+      if (url.indexOf('blob:') === 0) {
+        uploads.forEach((upload: File, upload_idx) => {
+          const preview = getUploadPreviewUrl(upload);
+          if (preview && preview === url) uploads.splice(upload_idx, 1);
+        });
+      }
+    }
 
-    handler.fireEvent({
+    setPhotoBucketData({
+      photos,
       uploads,
     });
   }
 
   useEffect(() => {
+    if (is_mounted) {
+      setPhotoBucketData({
+        photos: handler.data?.photos || [],
+        uploads: handler.data?.uploads || [],
+      });
+    }
+  }, [is_mounted, handler.data?.photos, handler.data?.uploads]);
+
+  useEffect(() => {
     mountComponent(true);
   }, []);
 
-  console.log(data.photos);
-
-  return data.photos?.length ? (
+  return bucket.photos.length || bucket.uploads.length ? (
     <div {...props}>
       {is_mounted && (
-        <Rexify {...props} photos={data.photos} onRemove={onRemove}>
+        <Rexify {...props} photos={bucket.photos} uploads={bucket.uploads.map(getUploadPreviewUrl)} onRemove={onRemove}>
           {children}
         </Rexify>
       )}

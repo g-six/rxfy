@@ -1,6 +1,5 @@
 import { MLSProperty } from './property';
 import { SavedSearchInput } from './saved-search';
-import { ImagePreview } from '@/hooks/useFormEvent';
 import { ValueInterface, RoomDimension } from '@/_typings/ui-types';
 
 export enum Events {
@@ -127,7 +126,7 @@ export interface PrivateListingData extends FormData {
     lon?: number;
   };
   strapi?: object;
-  uploads?: ImagePreview[];
+  uploads?: File[];
   photos?: string[];
   status?: string;
   // Address

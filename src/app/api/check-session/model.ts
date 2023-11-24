@@ -54,9 +54,7 @@ export async function getUserSessionData(authorization: string, user_type: 'real
         console.error({ subscription_id });
         if (subscription_id) {
           console.error({ subscription_id });
-          const stripe = new Stripe(`${process.env.NEXT_APP_STRIPE_SECRET}`, {
-            apiVersion: '2023-08-16',
-          });
+          const stripe = new Stripe(`${process.env.NEXT_APP_STRIPE_SECRET}`);
           console.error('Retrieving', { subscription_id });
           const stripe_subscription = await stripe.subscriptions.retrieve(subscription_id);
           if (stripe_subscription.items.data[0].plan) {

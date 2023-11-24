@@ -3,9 +3,7 @@ import { ReactElement } from 'react';
 import { CheerioAPI, load } from 'cheerio';
 import { DOMNode, domToReact } from 'html-react-parser';
 import { LegacySearchPayload } from '@/_typings/pipeline';
-import { NextRequest } from 'next/server';
 import { must_not } from '@/_utilities/api-calls/call-legacy-search';
-import { WEBFLOW_DASHBOARDS } from '@/_typings/webflow';
 import FooterIterator from '@/components/RxFooter';
 import RxNotifications from '@/components/RxNotifications';
 import { LOGO_FIELDS } from '@/_constants/agent-fields';
@@ -17,7 +15,7 @@ import NavIterator from '@/components/Nav/RxNavIterator';
 import { PropertyDataModel } from '@/_typings/property';
 import { headers } from 'next/headers';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
-import { getData } from '@/app/api/pipeline/subroutines';
+import { getPipelineData } from '@/app/api/pipeline/subroutines';
 
 export default async function PageComponent({ agent_id, theme = 'default', ...props }: { agent_id: string; theme?: string; 'page-url'?: string }) {
   console.log('');
@@ -188,7 +186,7 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
       },
     },
   } as LegacySearchPayload;
-  const [{ records: active }, { records: sold }] = await Promise.all([getData(internal_req), getData(intsold_req)]);
+  const [{ records: active }, { records: sold }] = await Promise.all([getPipelineData(internal_req), getPipelineData(intsold_req)]);
 
   $('[data-field="search_highlights"]:not(:first-child)').remove();
   $('.property-card:not(:first-child)').remove();

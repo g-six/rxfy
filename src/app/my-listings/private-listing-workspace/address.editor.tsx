@@ -149,7 +149,7 @@ export default function MyListingsAddressEditor({ children, listing, ...data }: 
         ...(address ? { title: address } : {}),
       });
     }
-  }, [form.data]);
+  }, []);
 
   return (
     <Rexify

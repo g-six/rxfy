@@ -53,7 +53,10 @@ export async function POST(request: NextRequest, { params }: { params: { [key: s
       error: 'Please provide a valid id for the agent customer record',
     });
   }
-  const agent = await checkSession(request, { config: { internal: 'yes' } });
+
+  const authorization = request.headers.get('authorization') || '';
+  const agent = await getUserSessionData(authorization, 'realtor');
+
   const { name } = await request.json();
   const {
     id: realtor,

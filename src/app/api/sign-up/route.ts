@@ -3,13 +3,8 @@ import { encrypt } from '@/_utilities/encryption-helper';
 import { sendTemplate } from '../send-template';
 import { SavedSearch } from '@/_typings/saved-search';
 import { getResponse } from '../response-helper';
-
-type SignUpModel = {
-  email: string;
-  full_name: string;
-  password: string;
-  agent: number;
-};
+import { validateInput } from './subroutines';
+import { NextRequest, NextResponse } from 'next/server';
 
 const gql = `mutation SignUp ($data: CustomerInput!) {
   createCustomer(data: $data) {
@@ -58,54 +53,16 @@ const gql_saved_search = `mutation CreateSavedSearch ($data: SavedSearchInput!) 
   }
 }`;
 
-function validateInput(data: { email?: string; password?: string; full_name?: string; agent?: number }): {
-  data?: SignUpModel;
-  errors?: {
-    email?: string;
-    full_name?: string;
-    password?: string;
-  };
-  error?: string;
-} {
-  let error = '';
-
-  if (!data.email) {
-    error = `${error}\nA valid email is required`;
-  }
-  if (!data.full_name) {
-    error = `${error}\nA name to address`;
-  }
-  if (!data.password) {
-    error = `${error}\nA hard-to-guess password with at least 10 characters is required`;
-  }
-
-  if (error) {
-    return { error };
-  }
-
-  return {
-    data: {
-      ...data,
-    } as unknown as SignUpModel,
-  };
-}
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const { email, full_name, password, agent, logo, yes_to_marketing, saved_search, dashboard_uri } = await request.json();
   let created_saved_search: SavedSearch | undefined = undefined;
   if (!yes_to_marketing) {
-    return new Response(
-      JSON.stringify(
-        {
-          error: 'Please accept our marketing emails to sign up for free',
-        },
-        null,
-        4,
-      ),
+    return NextResponse.json(
       {
-        headers: {
-          'content-type': 'application/json',
-        },
+        error: 'Please accept our marketing emails to sign up for free',
+      },
+
+      {
         status: 400,
       },
     );
@@ -119,8 +76,8 @@ export async function POST(request: Request) {
         agent,
       });
 
-      if (input_error) return { error: input_error };
-      console.log({ valid_data });
+      if (input_error) return NextResponse.json({ error: input_error }, { status: 400 });
+
       if (valid_data) {
         const encrypted_password = encrypt(valid_data.password);
         const response = await axios.post(
@@ -175,11 +132,13 @@ export async function POST(request: Request) {
         );
 
         if (crm.data.errors) {
-          return getResponse(
+          return NextResponse.json(
             {
               error: 'Unable to sign up.  CRM error.',
             },
-            400,
+            {
+              status: 400,
+            },
           );
         }
 
@@ -249,24 +208,11 @@ export async function POST(request: Request) {
               password: valid_data.password,
             },
           ).catch(console.log);
-
-          return new Response(
-            JSON.stringify(
-              {
-                customer: { id: Number(data.id), email, full_name, agents },
-                session_key: `${encrypt(last_activity_at)}.${encrypt(email)}-${data.id}`,
-                saved_search: created_saved_search,
-              },
-              null,
-              4,
-            ),
-            {
-              headers: {
-                'content-type': 'application/json',
-              },
-              status: 200,
-            },
-          );
+          return NextResponse.json({
+            customer: { id: Number(data.id), email, full_name, agents },
+            session_key: `${encrypt(last_activity_at)}.${encrypt(email)}-${data.id}`,
+            saved_search: created_saved_search,
+          });
         } else if (errors && Object.keys(errors).length > 0) {
           errors.forEach(({ message, extensions }) => {
             if (extensions) {
@@ -287,18 +233,11 @@ export async function POST(request: Request) {
           });
         }
 
-        return new Response(
-          JSON.stringify(
-            {
-              error: api_error,
-            },
-            null,
-            4,
-          ),
+        return NextResponse.json(
           {
-            headers: {
-              'content-type': 'application/json',
-            },
+            error: api_error,
+          },
+          {
             status: 400,
           },
         );
@@ -307,20 +246,17 @@ export async function POST(request: Request) {
   } catch (e) {
     const error = e as AxiosError;
     console.log('Error in Signup API', error.response?.data);
+    if (error.response?.data)
+      return NextResponse.json(error.response?.data, {
+        status: 400,
+      });
   }
 
-  return new Response(
-    JSON.stringify(
-      {
-        error: 'Please enter your email and password',
-      },
-      null,
-      4,
-    ),
+  return NextResponse.json(
     {
-      headers: {
-        'content-type': 'application/json',
-      },
+      error: 'Please enter your email and password',
+    },
+    {
       status: 400,
     },
   );

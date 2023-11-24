@@ -13,13 +13,13 @@ import { getFormattedPlaceDetails, googlePlaceQuery } from '../_helpers/geo-help
 import axios, { AxiosError } from 'axios';
 import { createCacheItem, invalidateCache } from '../_helpers/cache-helper';
 import { bathroomsToBathroomDetails, roomsToRoomDetails } from '@/_helpers/mls-mapper';
-import { GQ_FRAG_AGENT } from '../agents/graphql';
+import { getPropertyAttributes } from '@/app/api/property-attributes/model';
+import { GQ_FRAG_AGENT } from '@/app/api/agents/graphql';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { formatAddress } from '@/_utilities/string-helper';
 import { formatValues, getGqlForInsertProperty } from '@/_utilities/data-helpers/property-page';
 import { createPhotoAlbumForProperty } from '../property-photo-albums/model';
 import { getRealEstateBoard } from '../real-estate-boards/model';
-import { getRecords } from '../property-attributes/model';
 import {
   getAssociatedAmenities,
   getAssociatedAppliances,
@@ -673,7 +673,7 @@ function isPropertyAttribute(
   }
 }
 async function createProperty(mls_data: MLSProperty): Promise<PropertyDataModel | undefined> {
-  const property_attributes = await getRecords();
+  const property_attributes = await getPropertyAttributes();
   const relationships = property_attributes as unknown as PropertyAttributes;
   const { photos } = mls_data as unknown as {
     photos?: string[];

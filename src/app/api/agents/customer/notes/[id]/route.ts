@@ -26,13 +26,13 @@ export async function PUT(request: NextRequest) {
   const authorization = request.headers.get('authorization') || '';
   const agent = await getUserSessionData(authorization, user_type);
 
-  const { id: realtor, customers } = agent as AgentData;
+  const { id: agent_record_id, customers } = agent as AgentData;
 
   if (customers) {
     // Get the notes tied to this customer to make sure that the editor is
     // the owner of the notes
     const [customer] = customers.filter(c => {
-      return c.notes.filter(n => n.id === notes_id && n.realtor === realtor).length > 0;
+      return c.notes ? c.notes.filter(n => n.id === notes_id && n.id === agent_record_id).length > 0 : false;
     });
 
     if (customer) {

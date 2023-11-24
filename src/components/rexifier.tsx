@@ -540,31 +540,32 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           }
         }
       } else if (node instanceof Element && node.attribs) {
-        const { class: className, ...props } = attributesToProps(node.attribs);
+        const { class: dom_class, ...props } = attributesToProps(node.attribs);
+        const className = dom_class as string;
         if (node.attribs['data-src']) {
           return <RxThemePreview className={`${props.className ? props.className + ' ' : ''} rexified`} src={node.attribs['data-src']} />;
         }
-        if (node.attribs.class && node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.ID_PAGE)) {
-          return (
-            agent_data && (
-              <RxIdPage {...props} agent={agent_data} className={node.attribs?.class || className}>
-                {domToReact(node.children) as ReactElement[]}
-              </RxIdPage>
-            )
-          );
-        }
+        // if (node.attribs.class && node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.ID_PAGE)) {
+        //   return (
+        //     agent_data && (
+        //       <RxIdPage {...props} agent={agent_data} className={node.attribs?.class || className}>
+        //         {domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[]}
+        //       </RxIdPage>
+        //     )
+        //   );
+        // }
 
-        if (props.className) {
-          if (props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL))
+        if (className) {
+          if (className.split(' ').includes(WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL))
             return (
               <AiPrompt {...props} {...params}>
-                <>{domToReact(node.children)}</>
+                <>{domToReact(node.children as unknown[] as DOMNode[])}</>
               </AiPrompt>
             );
-          if (props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL_BLANK))
+          if (className.split(' ').includes(WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL_BLANK))
             return (
               <AiPrompt {...props}>
-                <>{domToReact(node.children)}</>
+                <>{domToReact(node.children as unknown[] as DOMNode[])}</>
               </AiPrompt>
             );
         }
@@ -572,48 +573,48 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         if (props['data-component'] === 'loader') {
           return (
             <CustomLoader {...props} data-loader='ai'>
-              {domToReact(node.children) as ReactElement}
+              {domToReact(node.children as unknown[] as DOMNode[]) as ReactElement}
             </CustomLoader>
           );
         }
 
-        if (props.className && props.className.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_NOTES_WRAPPER)) {
+        if (className && className.split(' ').includes(WEBFLOW_NODE_SELECTOR.CRM_NOTES_WRAPPER)) {
           return (
             <RxCRMNotes {...props} rx-event={Events.EditCustomerNote}>
-              {domToReact(node.children) as ReactElement}
+              {domToReact(node.children as unknown[] as DOMNode[]) as ReactElement}
             </RxCRMNotes>
           );
         }
-        if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.CRM_NOTES_FORM_WRAPPER) >= 0) {
+        if (className && className.indexOf(WEBFLOW_NODE_SELECTOR.CRM_NOTES_FORM_WRAPPER) >= 0) {
           return (
             <RxCRMNotes {...props} rx-event={Events.AddCustomerNote}>
-              {domToReact(node.children) as ReactElement}
+              {domToReact(node.children as unknown[] as DOMNode[]) as ReactElement}
             </RxCRMNotes>
           );
         }
-        if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.CRM_AREA_WRAPPER) >= 0) {
-          return <RxCRM className={props.className}>{domToReact(node.children) as ReactElement}</RxCRM>;
+        if (className && className.indexOf(WEBFLOW_NODE_SELECTOR.CRM_AREA_WRAPPER) >= 0) {
+          return <RxCRM className={className}>{domToReact(node.children as unknown[] as DOMNode[]) as ReactElement}</RxCRM>;
         }
         if (props.id && CRM_PANE_IDS.includes(props.id as WEBFLOW_NODE_SELECTOR)) {
           return (
-            <RxCustomerView id={props.id} className={props.className + ' RxCustomerView rexified'}>
-              {domToReact(node.children) as ReactElement}
+            <RxCustomerView id={props.id as string} className={className + ' RxCustomerView rexified'}>
+              {domToReact(node.children as unknown[] as DOMNode[]) as ReactElement}
             </RxCustomerView>
           );
         }
 
-        if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.SESSION_DROPDOWN) >= 0) {
+        if (className && className.indexOf(WEBFLOW_NODE_SELECTOR.SESSION_DROPDOWN) >= 0) {
           if (params.slug && `${params.slug}`.indexOf('ai') === 0) {
             // We do not show the session dropdown on ai-results pages
             return <></>;
           }
-          return <RxSessionDropdown className={props.className}>{domToReact(node.children) as ReactElement}</RxSessionDropdown>;
+          return <RxSessionDropdown className={className}>{domToReact(node.children as unknown[] as DOMNode[]) as ReactElement}</RxSessionDropdown>;
         }
-        if (props.className && props.className.indexOf(WEBFLOW_NODE_SELECTOR.GUEST_DROPDOWN) >= 0) {
+        if (className && className.indexOf(WEBFLOW_NODE_SELECTOR.GUEST_DROPDOWN) >= 0) {
           // We hide the guest login / sign up buttons if an agent is already signed in using agent_data
           return (
             <RxGuestNavButtons {...props}>
-              <>{domToReact(node.children)}</>
+              <>{domToReact(node.children as unknown[] as DOMNode[])}</>
             </RxGuestNavButtons>
           );
         }
@@ -626,14 +627,14 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
               agent={agent_data}
               nodeClassName={WEBFLOW_NODE_SELECTOR.PDF_PAGE}
               nodeProps={props}
-              nodes={domToReact(node.children) as ReactElement[]}
+              nodes={domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[]}
             />
           );
         }
 
         // my-website
         if (node.attribs?.['data-dash'] === 'website') {
-          return <MyWebsite>{domToReact(node.children) as ReactElement}</MyWebsite>;
+          return <MyWebsite>{domToReact(node.children as unknown[] as DOMNode[]) as ReactElement}</MyWebsite>;
         }
 
         if (agent_data && node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.SIGNUP) {
@@ -645,28 +646,28 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
               type={node.type}
               className={node.attribs?.class || className}
             >
-              <>{domToReact(node.children) as ReactElement[]}</>
+              <>{domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[]}</>
             </RxSignupPage>
           );
         }
         if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.LOGIN) {
           return (
             <RxLoginPage {...props} className={`rexified ${className || ''} ${node.attribs?.class || ''}`.trim()}>
-              <>{domToReact(node.children) as ReactElement[]}</>
+              <>{domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[]}</>
             </RxLoginPage>
           );
         }
         if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.RESET_PASSWORD) {
           return (
             <RxResetPasswordPage {...props} type={node.type} user-type={viewer}>
-              <>{domToReact(node.children) as ReactElement[]}</>
+              <>{domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[]}</>
             </RxResetPasswordPage>
           );
         }
         if (node.attribs?.['data-wf-user-form-type'] === WEBFLOW_NODE_SELECTOR.UPDATE_PASSWORD) {
           return (
             <RxUpdatePasswordPage {...props} type={node.type} user-type={viewer}>
-              <>{domToReact(node.children) as ReactElement[]}</>
+              <>{domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[]}</>
             </RxUpdatePasswordPage>
           );
         }
@@ -674,7 +675,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         if (node.tagName === 'form' && (!className || className.indexOf('contact-form') === -1)) {
           return (
             <div {...props} id='rex-form' data-class={className}>
-              {Children.map(domToReact(node.children) as ReactElement[], child => {
+              {Children.map(domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[], child => {
                 if (child.type === 'input') {
                   if (child.props.className?.split(' ').includes('txt-agentid')) {
                     return <RxTextInput {...child.props} name='agent_id' rx-event={Events.SignUp} />;
@@ -690,12 +691,14 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           ///// HOME PAGE
 
           if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CTA_CONTACT_FORM) >= 0) {
-            return <RxContactFormButton className={node.attribs.class}>{domToReact(node.children) as ReactElement[]}</RxContactFormButton>;
+            return (
+              <RxContactFormButton className={node.attribs.class}>{domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[]}</RxContactFormButton>
+            );
           }
           if (node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.HOME_SEARCH_WRAPPER) >= 0) {
             return (
               <section className={node.attribs.class + ' rexified'}>
-                {Children.map(domToReact(node.children) as ReactElement, child => {
+                {Children.map(domToReact(node.children as unknown[] as DOMNode[]) as ReactElement, child => {
                   if (child.props?.className === 'w-form') {
                     return <RxSearchPlaceForm className={child.props.className}>{child.props.children}</RxSearchPlaceForm>;
                   }
@@ -719,13 +722,23 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
 
           if (agent_data && node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.CONTACT_FORM) >= 0) {
             return (
-              <RxContactForm agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />
+              <RxContactForm
+                agent={agent_data}
+                nodeClassName={node.attribs.class}
+                nodeProps={props}
+                nodes={domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[]}
+              />
             );
           }
 
           if (agent_data && node.attribs.class && node.attribs.class.indexOf(WEBFLOW_NODE_SELECTOR.FOOTER_SOCIAL_LINKS) >= 0) {
             return (
-              <FooterSocialLinks agent={agent_data} nodeClassName={node.attribs.class} nodeProps={props} nodes={domToReact(node.children) as ReactElement[]} />
+              <FooterSocialLinks
+                agent={agent_data}
+                nodeClassName={node.attribs.class}
+                nodeProps={props}
+                nodes={domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[]}
+              />
             );
           }
 
@@ -740,7 +753,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
                 user-type='customer'
                 domain={params.webflow_domain as string}
               >
-                <>{domToReact(node.children) as ReactElement[]}</>
+                <>{domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[]}</>
               </RxMyAccountPage>
             );
           }
@@ -749,7 +762,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
             // Customer session
             return (
               <BrokerageInformationForm {...props} type={node.type}>
-                <>{domToReact(node.children) as ReactElement[]}</>
+                <>{domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[]}</>
               </BrokerageInformationForm>
             );
           }
@@ -757,7 +770,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           if (node.attribs?.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.CLIENTS_CARDS)) {
             return (
               <RxMyClients {...props}>
-                <>{domToReact(node.children) as ReactElement[]}</>
+                <>{domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[]}</>
               </RxMyClients>
             );
           }
@@ -765,7 +778,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           if (agent_data && node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.USER_MENU_DROPDOWN)) {
             return (
               <RxDropdownMenu {...props} className={className} agent-data={agent_data}>
-                {domToReact(node.children) as ReactElement[]}
+                {domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[]}
               </RxDropdownMenu>
             );
           }
@@ -776,12 +789,14 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           ) {
             return (
               <RxUserSessionLink {...props} className={node.attribs.class} href={node.attribs.href}>
-                <>{domToReact(node.children) as ReactElement[]}</>
+                <>{domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[]}</>
               </RxUserSessionLink>
             );
           }
           if (agent_data && node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.DOCUMENTS)) {
-            return <DocumentsReplacer nodeProps={props} agent_data={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
+            return (
+              <DocumentsReplacer nodeProps={props} agent_data={agent_data} nodes={domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[]} />
+            );
           }
           if (node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.PROPERTY_CARD)) {
             return;
@@ -789,14 +804,21 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           if (agent_data && node.attribs.class === WEBFLOW_NODE_SELECTOR.MY_COMPARE_DASHBOARD) {
             return (
               <RxMyCompareDashboardPage agent-data={agent_data} className={node.attribs.class}>
-                {domToReact(node.children)}
+                {domToReact(node.children as unknown[] as DOMNode[])}
               </RxMyCompareDashboardPage>
             );
           }
         }
         //AGENT SIDE  START
         if (agent_data && node.attribs.class?.split(' ').indexOf(WEBFLOW_NODE_SELECTOR.AGENT_TOOLS) >= 0) {
-          return <RxTools nodeProps={props} nodeClassName={node.attribs.class} agent={agent_data} nodes={domToReact(node.children) as ReactElement[]} />;
+          return (
+            <RxTools
+              nodeProps={props}
+              nodeClassName={node.attribs.class}
+              agent={agent_data}
+              nodes={domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[]}
+            />
+          );
         }
         //AGENT SIDE  END
         if (node.attribs['data-type'] === 'email' && node.tagName === 'a') {
@@ -835,7 +857,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
                   url: process.env.NEXT_APP_LEGACY_PIPELINE_URL as string,
                 }}
               >
-                {domToReact(node.children) as ReactElement[]}
+                {domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[]}
               </RxPropertyMap>
             </div>
           );
@@ -843,7 +865,7 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
 
         if ((node.children && node.children.length === 1) || node.name === 'input') {
           const reX = rexifyOrSkip(
-            node.children[0],
+            node.children[0] as unknown as DOMNode,
             {
               ...(property && Object.keys(property).length ? property : {}),
               agent_data,

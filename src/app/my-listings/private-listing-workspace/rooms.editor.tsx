@@ -322,9 +322,9 @@ export function MyListingsRoomsEditor({ children, ...attributes }: Props) {
     };
   }
 
-  useEffect(() => {
-    setData(updateData());
-  }, [form.data]);
+  // useEffect(() => {
+  //   setData(updateData());
+  // }, [form.data]);
 
   useEffect(() => {
     setData(updateData());

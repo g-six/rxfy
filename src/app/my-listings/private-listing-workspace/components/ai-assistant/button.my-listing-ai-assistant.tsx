@@ -26,7 +26,6 @@ export default function MyListingAiAssistantButton({
   const new_data = handler.data as unknown as {
     uploads: File[];
   };
-  console.log('private_listing.photos', listing?.photos);
 
   async function onSubmit() {
     const private_listing = listing?.id ? (listing as unknown as PrivateListingOutput) : await createPrivateListing(handler.data as PrivateListingInput);
@@ -51,6 +50,7 @@ export default function MyListingAiAssistantButton({
 
     let updates: { [k: string]: unknown } = {};
     const { photos = [] } = private_listing || { photos: [] };
+
     if (upload_results.length) {
       updates = {
         photos: photos.filter((url: string) => url.indexOf('blob:') !== 0).concat(upload_results),
@@ -68,6 +68,7 @@ export default function MyListingAiAssistantButton({
         const updated_listing = await updatePrivateListing(listing_id, updates);
         handler.fireEvent({
           ...updated_listing,
+          uploads: [],
         });
       }
     }
@@ -79,7 +80,6 @@ export default function MyListingAiAssistantButton({
         uploads: { preview: string }[];
       };
       const photos = uploads.filter(p => p.preview).map(p => p.preview);
-      console.log({ photos });
       setListing({
         ...listing,
         photos,

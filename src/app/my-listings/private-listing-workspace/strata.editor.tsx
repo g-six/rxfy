@@ -81,7 +81,7 @@ function ChipRexifier({
             : {}), // Only listen to div click to avoid multiple handling
           ...(c.type === 'input'
             ? {
-                checked: attr['is-selected'] || false,
+                defaultChecked: attr['is-selected'] || false,
               }
             : {}), // Only listen to div click to avoid multiple handling
         },

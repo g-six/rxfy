@@ -66,6 +66,7 @@ export async function PUT(req: NextRequest) {
   try {
     const updates: PrivateListingInput = await req.json();
     let { photos, property_photo_album, room_details, bathroom_details, ...listing } = updates;
+
     if (original.photos?.length) {
       // Let's remove any photos that have been deleted
       const to_delete = original.photos.filter((url: string) => !photos || !photos.includes(url));
@@ -77,7 +78,7 @@ export async function PUT(req: NextRequest) {
       );
     }
     if (photos) {
-      const updated_album = await updatePrivateListingAlbum(photos, property_photo_album);
+      const updated_album = await updatePrivateListingAlbum(original.photos.concat(photos), property_photo_album);
       if (updated_album?.id) {
         listing = {
           property_photo_album: updated_album.id,

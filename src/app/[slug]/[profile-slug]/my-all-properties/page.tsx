@@ -9,13 +9,13 @@ import { SearchHighlightInput } from '@/_typings/maps';
 import { redirect } from 'next/navigation';
 import RxNotifications from '@/components/RxNotifications';
 import { getLovedHomes } from '@/app/api/loves/model';
-import { POST as getPipelineListings } from '@/app/api/pipeline/route';
 import { LegacySearchPayload } from '@/_typings/pipeline';
 import { getBounds } from '@/_utilities/map-helper';
 import { must_not } from '@/_utilities/api-calls/call-legacy-search';
 import { NextRequest } from 'next/server';
 import { PropertyDataModel } from '@/_typings/property';
 import NavIterator from '@/components/Nav/RxNavIterator';
+import { getPipelineData } from '@/app/api/pipeline/subroutines';
 
 interface SearchOpts {
   nelat: number;
@@ -80,38 +80,23 @@ export default async function MyAllProperties({ params, searchParams }: { params
   const promises = await Promise.all(
     [
       axios.get(url) as Promise<any>,
-      getPipelineListings(
-        {
-          async json() {
-            return generatePipelineParams({
-              ...center,
-              ...searchParams,
-            });
-          },
-        } as unknown as NextRequest,
-        { internal: true },
+      getPipelineData(
+        generatePipelineParams({
+          ...center,
+          ...searchParams,
+        }),
       ),
-      getPipelineListings(
-        {
-          async json() {
-            return generatePipelineParams({
-              ...upper,
-              ...searchParams,
-            });
-          },
-        } as unknown as NextRequest,
-        { internal: true },
+      getPipelineData(
+        generatePipelineParams({
+          ...upper,
+          ...searchParams,
+        }),
       ),
-      getPipelineListings(
-        {
-          async json() {
-            return generatePipelineParams({
-              ...lower,
-              ...searchParams,
-            });
-          },
-        } as unknown as NextRequest,
-        { internal: true },
+      getPipelineData(
+        generatePipelineParams({
+          ...lower,
+          ...searchParams,
+        }),
       ),
     ].concat(slug && agent_id ? [findAgentRecordByAgentId(agent_id)] : []),
   );
@@ -121,11 +106,10 @@ export default async function MyAllProperties({ params, searchParams }: { params
 
     const { data: html } = promises[0];
 
-    let properties: PropertyDataModel[] = promises[1];
     let mls_included: string[] = [];
-    promises[1]
-      .concat(promises[2])
-      .concat(promises[3])
+    let properties: PropertyDataModel[] = promises[1].records
+      .concat(promises[2].records)
+      .concat(promises[3].records)
       .forEach((property: PropertyDataModel) => {
         if (!mls_included.includes(property.mls_id)) {
           mls_included.push(property.mls_id);
