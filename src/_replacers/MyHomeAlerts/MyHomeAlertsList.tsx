@@ -23,13 +23,13 @@ export default function MyHomeAlertsList({ child, agent_data }: Props) {
   const [savedList, setSavedList] = useState<SavedSearch[]>([]);
   const [has_loaded, toggleLoaded] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (savedList.length) {
-      fireEvent({
-        records: savedList,
-      } as unknown as EventsData);
-    }
-  }, [savedList]);
+  // useEffect(() => {
+  //   if (savedList.length) {
+  //     fireEvent({
+  //       records: savedList,
+  //     } as unknown as EventsData);
+  //   }
+  // }, [savedList]);
 
   useEffect(() => {
     getSearches(search.get('customer') ? Number(search.get('customer')) : undefined).then(res => {
@@ -46,12 +46,12 @@ export default function MyHomeAlertsList({ child, agent_data }: Props) {
       getSearches(search.get('customer') ? Number(search.get('customer')) : undefined).then(res => {
         setSavedList(res);
       });
-      fireEvent({ key: undefined, reload: false, alertData: undefined });
+      // fireEvent({ key: undefined, reload: false, alertData: undefined });
     } else if (reload) {
       getSearches(search.get('customer') ? Number(search.get('customer')) : undefined).then(res => {
         setSavedList(res);
       });
-      fireEvent({ key: undefined, reload: false });
+      // fireEvent({ key: undefined, reload: false });
     }
   }, [key, reload, alertData]);
 

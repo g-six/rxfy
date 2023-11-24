@@ -4,7 +4,6 @@ import { fireCustomEvent } from '@/_helpers/functions';
 import MyHomeAlertDeleteModalWrapper from '@/_replacers/MyHomeAlerts/MyHomeAlertDeleteModalWrapper';
 import MyHomeAlertModalWrapper from '@/_replacers/MyHomeAlerts/MyHomeAlertModalWrapper';
 import MyHomeAlertsList from '@/_replacers/MyHomeAlerts/MyHomeAlertsList';
-// import MyHomeAlertsList from '@/_replacers/MyHomeAlerts/MyHomeAlertsList';
 import { AgentData } from '@/_typings/agent';
 import { Events, EventsData } from '@/_typings/events';
 import { SavedSearchOutput } from '@/_typings/saved-search';
@@ -92,14 +91,16 @@ export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
     {
       searchFn: searchByClasses(['new-home-alert-wrapper']),
       transformChild: (child: ReactElement) => {
-        return (
+        return data?.show ? (
           <MyHomeAlertModalWrapper
             agent-data={p['agent-data']}
             child={child}
             onSave={() => {
-              fireEvent({ reload: true });
+              fireEvent({ reload: true, show: false });
             }}
           />
+        ) : (
+          <></>
         );
       },
     },
