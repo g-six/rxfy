@@ -2,14 +2,18 @@ import { AxiosError } from 'axios';
 import { NextRequest } from 'next/server';
 import MailChimp from '@mailchimp/mailchimp_transactional';
 import { getResponse } from '@/app/api/response-helper';
-import { GET as checkSession } from '@/app/api/check-session/route';
+import { getUserSessionData, isRealtorRequest } from '@/app/api/check-session/model';
 import { createAgentCustomer, createCustomer, findCustomerByEmail } from '@/app/api/customers/model';
 import { encrypt } from '@/_utilities/encryption-helper';
 import { sendTemplate } from '../../send-template';
 
 export async function POST(request: NextRequest) {
   try {
-    const r = await checkSession(request, { config: { internal: 'yes' } });
+    const user_type = isRealtorRequest(request.url) ? 'realtor' : 'customer';
+    const authorization = request.headers.get('authorization') || '';
+    const r = await getUserSessionData(authorization, user_type);
+    // const r = await checkSession(request, { config: { internal: 'yes' } });
+
     const user = r as { [key: string]: string } & { id?: number; customers: { email: string }[] };
     if (!user?.id)
       return getResponse(

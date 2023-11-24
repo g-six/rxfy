@@ -1,7 +1,7 @@
 import { getResponse } from '@/app/api/response-helper';
 import { NextRequest } from 'next/server';
-import { GET as checkSession } from '@/app/api/check-session/route';
 import { getCustomerLoves, removeCustomerLove } from '../model';
+import { getUserSessionData, isRealtorRequest } from '@/app/api/check-session/model';
 
 export async function DELETE(request: NextRequest) {
   const customer_id = Number(request.url.split('/loves/')[0].split('/').pop());
@@ -16,7 +16,9 @@ export async function DELETE(request: NextRequest) {
       error: 'Please provide a valid id for the love record',
     });
   }
-  const agent = await checkSession(request, { config: { internal: 'yes' } });
+  const user_type = isRealtorRequest(request.url) ? 'realtor' : 'customer';
+  const authorization = request.headers.get('authorization') || '';
+  const agent = await getUserSessionData(authorization, user_type);
 
   const {
     id: realtor,

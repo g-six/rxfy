@@ -74,7 +74,7 @@ function Iterator(
 ) {
   const Wrapped = React.Children.map(p.children, child => {
     if (child.props?.className?.includes('marketing-consent')) {
-      return <IsActiveComponent className={...child.props}>{child.props.children}</IsActiveComponent>;
+      // return <IsActiveComponent className={...child.props}>{child.props.children}</IsActiveComponent>;
     }
     if (child.type === 'a' && child.props.className?.includes('ha-reset')) {
       return (

@@ -1,12 +1,16 @@
 import { getResponse } from '@/app/api/response-helper';
 import { NextRequest } from 'next/server';
-import { GET as checkSession } from '@/app/api/check-session/route';
 import { graphQL } from '@/app/api/_helpers/graphql-helper';
 import { gql_delete_doc_upload } from '@/app/api/document-uploads/[id]/route';
+import { getUserSessionData, isRealtorRequest } from '@/app/api/check-session/model';
+import { AgentData } from '@/_typings/agent';
 
 export async function DELETE(req: NextRequest, { params: { upload, id: agent_customer_id } }: { params: { upload: string; id: string } }) {
-  const r = await checkSession(req, { config: { internal: 'yes' } });
-  const user = r as { id: number; customers: { agent_customer_id: number; id: number }[] };
+  const user_type = isRealtorRequest(req.url) ? 'realtor' : 'customer';
+  const authorization = req.headers.get('authorization') || '';
+  const response = await getUserSessionData(authorization, user_type);
+  const user = response as unknown as AgentData;
+
   if (!user?.id)
     return getResponse(
       {

@@ -2,14 +2,7 @@ import { AxiosError } from 'axios';
 import { getResponse } from '../response-helper';
 import { getUserSessionData, isRealtorRequest } from './model';
 
-export async function GET(
-  request: Request,
-  ctx?: {
-    [key: string]: {
-      [key: string]: string;
-    };
-  },
-) {
+export async function GET(request: Request) {
   let results = {};
   try {
     let user_type: 'realtor' | 'customer' = request.url.split('/').includes('agent') ? 'realtor' : 'customer';
@@ -29,5 +22,5 @@ export async function GET(
     }
     return getResponse({ e, error: 'api.check-session.GET error.  See server logs for details' }, 400);
   }
-  return ctx?.config?.internal === 'yes' ? results : getResponse(results, 200);
+  return getResponse(results, 200);
 }

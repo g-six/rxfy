@@ -1,6 +1,5 @@
-import { NextRequest } from 'next/server';
-import axios from 'axios';
-import { getResponse } from '../response-helper';
+import { NextRequest, NextResponse } from 'next/server';
+import { getPropertyAttributes } from './model';
 
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
@@ -139,36 +138,10 @@ const QRY_PROPERTY_RELATIONSHIPS = `query PropertyRelationships {
 export async function GET(request: NextRequest, p?: { config?: { internal: 'yes' } }) {
   const api_url = `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`;
   if (api_url) {
-    const gql_params: {
-      query: string;
-      variables?: {
-        [key: string]: string;
-      };
-    } = {
-      query: QRY_PROPERTY_RELATIONSHIPS,
-    };
-    const leagent_cms_res = await axios.post(api_url, gql_params, { headers });
-
-    let response = {};
-    if (leagent_cms_res.data.data) {
-      Object.keys(leagent_cms_res.data.data).forEach(relationship => {
-        const existing: { [key: string]: any }[] = [];
-
-        leagent_cms_res.data.data[relationship].records.forEach((record: { id: number; attributes: { name: string } }) => {
-          existing.push({
-            ...record.attributes,
-            id: Number(record.id),
-          });
-        });
-
-        response = {
-          ...response,
-          [relationship]: existing,
-        };
-      });
+    const response = await getPropertyAttributes();
+    if (response) {
+      return NextResponse.json(response);
     }
-
-    return p?.config?.internal === 'yes' ? response : getResponse(response, 200);
   }
-  return p?.config?.internal === 'yes' ? {} : getResponse({}, 201);
+  return NextResponse.json({}, { status: 201 });
 }

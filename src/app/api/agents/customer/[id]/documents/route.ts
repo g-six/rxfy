@@ -1,36 +1,9 @@
 import { getResponse } from '@/app/api/response-helper';
 import { NextRequest } from 'next/server';
-import { GET as checkSession } from '@/app/api/check-session/route';
 import { getCustomerDocuments } from './model';
 import { DocumentDataModel } from '@/_typings/document';
 import { createDocumentFolder } from '@/app/api/documents/model';
-
-const gql_document = `mutation CreateDocument ($data: DocumentInput!) {
-  createDocument(data: $data) {
-    data {
-      id
-      attributes {
-        document_uploads {
-          data {
-            id 
-            attributes {
-              url
-              file_name
-              createdAt
-              updatedAt
-            }
-          }
-        }
-        name
-        agent {
-          data {
-            id
-          }
-        }
-      }
-    }
-  }
-}`;
+import { getUserSessionData, isRealtorRequest } from '@/app/api/check-session/model';
 
 export async function GET(request: NextRequest, { params }: { params: { [key: string]: string } }) {
   const agents_customer_id = Number(params.id);
@@ -39,7 +12,9 @@ export async function GET(request: NextRequest, { params }: { params: { [key: st
       error: 'Please provide a valid id for the agent customer record',
     });
   }
-  const agent = await checkSession(request, { config: { internal: 'yes' } });
+  const user_type = isRealtorRequest(request.url) ? 'realtor' : 'customer';
+  const authorization = request.headers.get('authorization') || '';
+  const agent = await getUserSessionData(authorization, user_type);
 
   const {
     id: realtor,

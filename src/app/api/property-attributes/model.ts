@@ -134,7 +134,7 @@ const QRY_PROPERTY_RELATIONSHIPS = `query PropertyRelationships {
 }
 `;
 
-export async function getRecords() {
+export async function getPropertyAttributes() {
   const api_url = `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`;
   if (api_url) {
     const gql_params: {

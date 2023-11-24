@@ -9,7 +9,6 @@ import { SearchHighlightInput } from '@/_typings/maps';
 import { redirect } from 'next/navigation';
 import RxNotifications from '@/components/RxNotifications';
 import { getLovedHomes } from '../api/loves/model';
-import { POST as getPipelineListings } from '@/app/api/pipeline/route';
 import { LegacySearchPayload } from '@/_typings/pipeline';
 import { getBounds } from '@/_utilities/map-helper';
 import { must_not } from '@/_utilities/api-calls/call-legacy-search';
@@ -18,6 +17,7 @@ import { PropertyDataModel } from '@/_typings/property';
 import { LOGO_FIELDS } from '@/_constants/agent-fields';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import NotFound from '../not-found';
+import { getPipelineData } from '../api/pipeline/subroutines';
 
 interface SearchOpts {
   nelat: number;
@@ -74,44 +74,29 @@ export default async function MapPage({ params, searchParams }: { params: { [key
       console.log(Date.now() - time + 'ms', '[Completed] Love data');
     }
   }
-  const center = getBounds(Number(searchParams.lat), Number(searchParams.lng), 5) as unknown as SearchOpts;
-  const upper = getBounds((center.nelat + Number(searchParams.lat)) / 2, center.nelng / 2, 3) as unknown as SearchOpts;
-  const lower = getBounds((center.swlat + Number(searchParams.lat)) / 2, center.swlng / 2, 3) as unknown as SearchOpts;
+  const center = getBounds(Number(searchParams.lat), Number(searchParams.lng), 10) as unknown as SearchOpts;
+  const upper = getBounds((center.nelat + Number(searchParams.lat)) / 2, center.nelng / 2, 10) as unknown as SearchOpts;
+  const lower = getBounds((center.swlat + Number(searchParams.lat)) / 2, center.swlng / 2, 10) as unknown as SearchOpts;
   const promises = await Promise.all(
     [
       axios.get(url) as Promise<any>,
-      getPipelineListings(
-        {
-          async json() {
-            return generatePipelineParams({
-              ...center,
-              ...searchParams,
-            });
-          },
-        } as unknown as NextRequest,
-        { internal: true },
+      getPipelineData(
+        generatePipelineParams({
+          ...center,
+          ...searchParams,
+        }),
       ),
-      getPipelineListings(
-        {
-          async json() {
-            return generatePipelineParams({
-              ...upper,
-              ...searchParams,
-            });
-          },
-        } as unknown as NextRequest,
-        { internal: true },
+      getPipelineData(
+        generatePipelineParams({
+          ...upper,
+          ...searchParams,
+        }),
       ),
-      getPipelineListings(
-        {
-          async json() {
-            return generatePipelineParams({
-              ...lower,
-              ...searchParams,
-            });
-          },
-        } as unknown as NextRequest,
-        { internal: true },
+      getPipelineData(
+        generatePipelineParams({
+          ...lower,
+          ...searchParams,
+        }),
       ),
     ].concat(agent_id ? [findAgentRecordByAgentId(agent_id)] : []),
   );
@@ -121,15 +106,14 @@ export default async function MapPage({ params, searchParams }: { params: { [key
 
     const { data: html } = promises[0];
 
-    let properties: PropertyDataModel[] = promises[1];
     let mls_included: string[] = [];
-    promises[1]
-      .concat(promises[2])
-      .concat(promises[3])
-      .forEach((property: PropertyDataModel) => {
+    let properties: PropertyDataModel[] = promises[1].records
+      .concat(promises[2].records)
+      .concat(promises[3].records)
+      .map((property: PropertyDataModel) => {
         if (!mls_included.includes(property.mls_id)) {
           mls_included.push(property.mls_id);
-          properties.push(property);
+          return property;
         }
       });
 

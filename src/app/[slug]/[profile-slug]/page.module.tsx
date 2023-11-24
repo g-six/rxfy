@@ -6,7 +6,6 @@ import { LegacySearchPayload } from '@/_typings/pipeline';
 import { NextRequest } from 'next/server';
 import { must_not } from '@/_utilities/api-calls/call-legacy-search';
 import { WEBFLOW_DASHBOARDS } from '@/_typings/webflow';
-import { POST as getPipelineSample } from '@/app/api/pipeline/route';
 import FooterIterator from '@/components/RxFooter';
 import RxNotifications from '@/components/RxNotifications';
 import { LOGO_FIELDS } from '@/_constants/agent-fields';
@@ -18,6 +17,7 @@ import NavIterator from '@/components/Nav/RxNavIterator';
 import { PropertyDataModel } from '@/_typings/property';
 import { headers } from 'next/headers';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
+import { getData } from '@/app/api/pipeline/subroutines';
 
 export default async function PageComponent({ agent_id, theme = 'default', ...props }: { agent_id: string; theme?: string; 'page-url'?: string }) {
   console.log('');
@@ -147,56 +147,48 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
   });
 
   const internal_req = {
-    json() {
-      return {
-        from: 0,
-        size: 3,
-        sort: {
-          'data.UpdateDate': 'desc',
-        },
-        query: {
-          bool: {
-            filter: filter.concat([
-              {
-                match: {
-                  'data.Status': 'Active',
-                },
-              },
-            ]),
-            should,
-            minimum_should_match: should.length >= 3 ? should.length - 2 : 1,
-            must_not,
-          },
-        },
-      } as LegacySearchPayload;
+    from: 0,
+    size: 3,
+    sort: {
+      'data.UpdateDate': 'desc',
     },
-  } as unknown as NextRequest;
+    query: {
+      bool: {
+        filter: filter.concat([
+          {
+            match: {
+              'data.Status': 'Active',
+            },
+          },
+        ]),
+        should,
+        minimum_should_match: should.length >= 3 ? should.length - 2 : 1,
+        must_not,
+      },
+    },
+  } as LegacySearchPayload;
   const intsold_req = {
-    json() {
-      return {
-        from: 0,
-        size: 2,
-        sort: {
-          'data.UpdateDate': 'desc',
-        },
-        query: {
-          bool: {
-            filter: filter.concat([
-              {
-                match: {
-                  'data.Status': 'Sold',
-                },
-              },
-            ]),
-            should,
-            minimum_should_match: 1,
-            must_not,
-          },
-        },
-      } as LegacySearchPayload;
+    from: 0,
+    size: 2,
+    sort: {
+      'data.UpdateDate': 'desc',
     },
-  } as unknown as NextRequest;
-  const [active, sold] = await Promise.all([getPipelineSample(internal_req, { internal: true }), getPipelineSample(intsold_req, { internal: true })]);
+    query: {
+      bool: {
+        filter: filter.concat([
+          {
+            match: {
+              'data.Status': 'Sold',
+            },
+          },
+        ]),
+        should,
+        minimum_should_match: 1,
+        must_not,
+      },
+    },
+  } as LegacySearchPayload;
+  const [{ records: active }, { records: sold }] = await Promise.all([getData(internal_req), getData(intsold_req)]);
 
   $('[data-field="search_highlights"]:not(:first-child)').remove();
   $('.property-card:not(:first-child)').remove();

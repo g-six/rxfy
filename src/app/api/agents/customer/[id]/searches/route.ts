@@ -1,9 +1,10 @@
 import { getResponse } from '@/app/api/response-helper';
 import { NextRequest } from 'next/server';
-import { GET as checkSession } from '@/app/api/check-session/route';
 import { getCustomerSearches } from './model';
 import { CustomerSavedSearch } from '@/_typings/saved-search';
 import { createSavedSearch } from '@/app/api/saved-searches/model';
+import { getUserSessionData, isRealtorRequest } from '@/app/api/check-session/model';
+import { AgentData } from '@/_typings/agent';
 
 export async function GET(request: NextRequest) {
   const agents_customer_id = Number(request.url.split('/searches')[0].split('/').pop());
@@ -12,7 +13,9 @@ export async function GET(request: NextRequest) {
       error: 'Please provide a valid id for the agent customer record',
     });
   }
-  const agent = await checkSession(request, { config: { internal: 'yes' } });
+  const user_type = isRealtorRequest(request.url) ? 'realtor' : 'customer';
+  const authorization = request.headers.get('authorization') || '';
+  const agent = await getUserSessionData(authorization, user_type);
 
   const {
     id: realtor,
@@ -44,40 +47,33 @@ export async function GET(request: NextRequest) {
   });
 }
 export async function POST(request: NextRequest, { params }: { params: { [key: string]: string } }) {
-  const r = await checkSession(request, { config: { internal: 'yes' } });
+  const user_type = isRealtorRequest(request.url) ? 'realtor' : 'customer';
+  const authorization = request.headers.get('authorization') || '';
+  const r = await getUserSessionData(authorization, user_type);
 
-  const {
-    id: realtor,
-    agent,
-    customers,
-    session_key,
-  } = r as unknown as {
-    id: number;
-    agent: number;
-    customers: { notes: string[]; id: number }[];
-    session_key: string;
-  };
+  const { customers, session_key } = r as AgentData & { session_key: string };
   if (!session_key) {
     return getResponse({
       error: "Please login to retrieve your customer's home alerts",
     });
   }
 
-  const { search_params, customer: customer_id } = await request.json();
-  const [customer] = customers.filter(c => Number(c.id) === customer_id);
-
-  if (!customer) {
-    return getResponse({
-      error: 'Please provide a valid customer id',
-      customer_id,
-      params,
-    });
+  const { id, search_params, customer: customer_id } = await request.json();
+  if (customers) {
+    const [customer] = customers.filter(c => Number(c.id) === customer_id);
+    if (customer) {
+      const record: CustomerSavedSearch = await createSavedSearch(id, search_params, customer_id);
+      /////
+      return getResponse({
+        record,
+        session_key,
+      });
+    }
   }
 
-  const record: CustomerSavedSearch = await createSavedSearch(agent, search_params, customer_id);
-  /////
   return getResponse({
-    record,
-    session_key,
+    error: 'Please provide a valid customer id',
+    customer_id,
+    params,
   });
 }
