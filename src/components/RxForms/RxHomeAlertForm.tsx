@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import SearchAddressCombobox from '@/_replacers/FilterFields/SearchAddressCombobox';
 import { getDwellingTypes } from '@/_utilities/api-calls/call-property-attributes';
@@ -580,7 +581,7 @@ export default function RxHomeAlertForm(p: Props) {
                     category: NotificationCategory.SUCCESS,
                     message: 'New home alert has been saved.',
                   });
-                  fireEvent({ show: false, message: '', alertData: results, reload: true });
+                  fireEvent({ show: false, message: '', reload: true });
                 });
           },
           setGeo(geo) {

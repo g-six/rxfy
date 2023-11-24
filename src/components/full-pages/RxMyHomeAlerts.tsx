@@ -14,6 +14,7 @@ import { SavedHomesPropertyList } from '@/app/[slug]/[profile-slug]/client-dashb
 import useEvent from '@/hooks/useEvent';
 
 import React, { ReactElement, ReactNode, cloneElement } from 'react';
+import RxNotifications from '../RxNotifications';
 
 type Props = {
   child: ReactNode;
@@ -123,5 +124,10 @@ export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
     }
   }, []);
 
-  return <>{transformMatchingElements(child, matches)}</>;
+  return (
+    <>
+      {transformMatchingElements(child, matches)}
+      <RxNotifications />
+    </>
+  );
 }
