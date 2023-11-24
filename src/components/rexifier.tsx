@@ -540,20 +540,11 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           }
         }
       } else if (node instanceof Element && node.attribs) {
-        const { class: dom_class, ...props } = attributesToProps(node.attribs);
-        const className = dom_class as string;
+        const { className: dom_class, class: dom_class_alt, ...props } = attributesToProps(node.attribs);
+        const className = `${dom_class || dom_class_alt || ''}`;
         if (node.attribs['data-src']) {
           return <RxThemePreview className={`${props.className ? props.className + ' ' : ''} rexified`} src={node.attribs['data-src']} />;
         }
-        // if (node.attribs.class && node.attribs.class.split(' ').includes(WEBFLOW_NODE_SELECTOR.ID_PAGE)) {
-        //   return (
-        //     agent_data && (
-        //       <RxIdPage {...props} agent={agent_data} className={node.attribs?.class || className}>
-        //         {domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[]}
-        //       </RxIdPage>
-        //     )
-        //   );
-        // }
 
         if (className) {
           if (className.split(' ').includes(WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL))

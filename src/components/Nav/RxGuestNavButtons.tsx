@@ -18,5 +18,5 @@ export default function RxGuestNavButtons(p: Props) {
       hideMenu(true);
     }
   }, [evt.data?.clicked]);
-  return <div className={p.className + ' RxGuestNavButtons'}>{!Cookies.get('session_key') || hide ? p.children : ''}</div>;
+  return <div className={(p.className || 'flex gap-2') + ' RxGuestNavButtons'}>{!Cookies.get('session_key') || hide ? p.children : ''}</div>;
 }
