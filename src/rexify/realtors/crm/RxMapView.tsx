@@ -295,7 +295,7 @@ export default function RxMapView({
 function PropertyCardIterator({ children, property }: { children: React.ReactElement; property: PropertyDataModel }) {
   const Wrapped = React.Children.map(children, c => {
     if (c.props?.children && typeof c.props?.children !== 'string') {
-      if (c.props['data-field'] === 'image_cover') {
+      if (c.props['data-field'] === 'cover_photo') {
         if (property.cover_photo) {
           return React.cloneElement(
             c,

@@ -10,6 +10,12 @@ import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import useEvent, { Events } from '@/hooks/useEvent';
 import { EventData } from 'mapbox-gl';
 
+const default_selection = {
+  home_attributes: [1, 2, 7, 11],
+  financial_stats: [1, 2],
+  square_footage: [1, 4],
+};
+
 const base_relationships = [
   {
     category: 'home_attributes',
@@ -24,6 +30,7 @@ const base_relationships = [
       'total_covered_parking',
       'heating',
       'foundation_specs',
+      'year_built',
     ],
   },
   {
@@ -85,7 +92,7 @@ export default function MoreFieldsPopup({
   const [category, setCategory] = useState<string>(attr['base-only'] ? 'home_attributes' : 'appliances');
   const [selected_items, setSelectedItems] = useState<{
     [k: string]: number[];
-  }>();
+  }>(attr['base-only'] ? default_selection : {});
 
   function toggleItem(item_category: string, item_id: number) {
     let selection = { ...selected_items };
