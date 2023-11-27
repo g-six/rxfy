@@ -56,7 +56,7 @@ export default function MyListingAiAssistantButton({
     if (upload_results && upload_results.length) {
       updates = {
         ...updates,
-        photos: new_data.photos.filter((url: string) => url.indexOf('blob:') !== 0).concat(upload_results as string[]),
+        photos: (new_data.photos || []).filter((url: string) => url.indexOf('blob:') !== 0).concat(upload_results as string[]),
       };
     }
     console.log(JSON.stringify(updates, null, 4));
