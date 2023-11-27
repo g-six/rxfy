@@ -29,6 +29,7 @@ export default function MyListingAiAssistantButton({
   };
 
   async function onSubmit() {
+    const is_new = !listing?.id;
     const private_listing = listing?.id ? (listing as unknown as PrivateListingOutput) : await createPrivateListing(handler.data as PrivateListingInput);
 
     const upload_results = new_data.uploads
@@ -60,7 +61,7 @@ export default function MyListingAiAssistantButton({
     }
 
     const listing_id = private_listing.id;
-    if (!listing?.id) {
+    if (is_new) {
       // Newly created
       handler.fireEvent(private_listing);
       router.push('/my-listings?id=' + private_listing.id);
