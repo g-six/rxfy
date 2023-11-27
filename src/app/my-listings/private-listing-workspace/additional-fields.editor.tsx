@@ -2,14 +2,15 @@
 
 import { AgentData } from '@/_typings/agent';
 import { PrivateListingInput, PrivateListingModel, PrivateListingOutput } from '@/_typings/private-listing';
-import { FinanceFields, NumericFields } from '@/_typings/property';
 import { updatePrivateListing } from '@/_utilities/api-calls/call-private-listings';
 import { getPropertyAttributes } from '@/_utilities/api-calls/call-property-attributes';
 import { classNames } from '@/_utilities/html-helper';
 import SpinningDots from '@/components/Loaders/SpinningDots';
-import useFormEvent, { Events, PrivateListingData } from '@/hooks/useFormEvent';
-import { Children, MouseEvent, MouseEventHandler, ReactElement, SyntheticEvent, cloneElement, useEffect, useState } from 'react';
+import { Events } from '@/hooks/useFormEvent';
+import { Children, MouseEventHandler, ReactElement, SyntheticEvent, cloneElement, useEffect, useState } from 'react';
 import MoreFieldsPopup from './components/more-fields.popup';
+import useEvent from '@/hooks/useEvent';
+import PropertyAttributeInput from './components/property-attribute-input.component';
 
 interface Props {
   children: ReactElement;
@@ -75,6 +76,7 @@ function Rexifier({
   onToggle(field: string): void;
   listing?: PrivateListingOutput;
   relationships: { [k: string]: { name: string; id: number }[] };
+  'fields-shown': string[];
 }) {
   const Rexified = Children.map(children, c => {
     if (c.props) {
@@ -138,18 +140,50 @@ function Rexifier({
         return (
           <MoreFieldsPopup
             {...c.props}
+            right-align
+            base-only
+            hide-defaults
             onChange={ups => {
               if (ups) {
                 Object.keys(ups).forEach(field => {
                   if (field === 'parking') attributes.onChange('parkings', ups[field]);
                   else if (field === 'hvac') attributes.onChange('hvacs', ups[field]);
-                  else attributes.onChange(field, ups[field]);
+                  else {
+                    console.log(field, ups[field]);
+                    // attributes.onChange(field, '');
+                  }
                 });
               }
             }}
           >
             {c.props.children}
           </MoreFieldsPopup>
+        );
+      }
+
+      if (c.type === 'form') {
+        const field_group = c.props.children;
+        const values = attributes.listing as unknown as {
+          [k: string]: string | number;
+        };
+        return cloneElement(
+          c,
+          {},
+          <>
+            {field_group}
+            <div className='flex gap-x-[4%] gap-y-4 flex-wrap mt-4'>
+              {attributes['fields-shown'].map(field => (
+                <PropertyAttributeInput
+                  onChange={(name: string, value: any) => {
+                    attributes.onChange(name, value);
+                  }}
+                  key={field}
+                  name={field}
+                  defaultValue={values[field]}
+                />
+              ))}
+            </div>
+          </>,
         );
       }
 
@@ -162,17 +196,53 @@ function Rexifier({
   return <>{Rexified}</>;
 }
 
+const OTHER_FIELDS = [
+  'exterior_finish',
+  'floors',
+  'fireplace',
+  'total_fireplaces',
+  'total_covered_parking',
+  'foundation_specs',
+  'total_allowed_rentals',
+  'building_by_laws',
+  'total_pets_allowed',
+  'total_cats_allowed',
+  'total_dogs_allowed',
+  'num_units_in_community',
+  'building_total_units',
+  'complex_compound_name',
+  'video_link',
+  'floor_levels',
+  'floor_area_below_main',
+  'frontage_feet',
+];
+
 export function MyListingsAdditionalFieldsEditor({ children, ...attributes }: Props & { listing?: PrivateListingModel }) {
-  const form = useFormEvent<PrivateListingData>(Events.PrivateListingForm);
-  const { facilities } = attributes.listing as unknown as PrivateListingOutput;
+  const { data: more } = useEvent(Events.AddPropertyFilter);
+  const { filters = [] } = more as unknown as {
+    filters: string[];
+  };
+  if (attributes.listing) {
+    const fields = attributes.listing as unknown as {
+      [k: string]: any;
+    };
+    Object.keys(fields).forEach(field => {
+      if (OTHER_FIELDS.includes(field) && fields[field]) {
+        if (!filters.includes(field)) {
+          filters.push(field);
+        }
+      }
+    });
+  }
   const [relations, setRelations] = useState<{
     [k: string]: number[];
   }>();
   const [data, setData] = useState<PrivateListingInput | undefined>(
-    {
-      ...attributes.listing,
-      facilities: (facilities || []).map(facility => facility.id),
-    } || {},
+    attributes?.listing
+      ? {
+          id: attributes.listing.id,
+        }
+      : {},
   );
   const [relationships, setPropertyRelationships] = useState<{ [k: string]: { name: string; id: number }[] }>();
   const [is_loading, toggleLoading] = useState<boolean>(false);
@@ -183,10 +253,7 @@ export function MyListingsAdditionalFieldsEditor({ children, ...attributes }: Pr
 
       if (action === 'next' && id && record) {
         toggleLoading(true);
-        const { appliances, hvacs, parkings, places_of_interest } = record;
-        updatePrivateListing(id, {
-          ...relations,
-        })
+        updatePrivateListing(id, record)
           .then(() => {
             const next_tab = document.querySelector('a[data-w-tab="Tab 8"]') as HTMLAnchorElement;
             if (next_tab) next_tab.click();
@@ -217,7 +284,7 @@ export function MyListingsAdditionalFieldsEditor({ children, ...attributes }: Pr
         });
       }}
       onChange={(field, value: string | number[]) => {
-        if (typeof value === 'string')
+        if (typeof value === 'string' || typeof value === 'number')
           setData({
             ...data,
             [field]: value,
@@ -228,6 +295,7 @@ export function MyListingsAdditionalFieldsEditor({ children, ...attributes }: Pr
             [field]: value,
           });
       }}
+      fields-shown={filters || []}
     >
       {children}
     </Rexifier>

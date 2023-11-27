@@ -18,7 +18,6 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { getAgentBaseUrl } from '@/app/api/_helpers/agent-helper';
 import useEvent, { Events } from '@/hooks/useEvent';
 import styles from '@/rexify/dynamic-styles.module.scss';
-import { classNames } from '@/_utilities/html-helper';
 import { RxEmptyState } from '@/components/RxCards/RxEmptyState.iterator';
 import MoreFieldsPopup from '@/app/my-listings/private-listing-workspace/components/more-fields.popup';
 

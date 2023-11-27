@@ -9,6 +9,7 @@ import { CheckIcon, ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/reac
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import useEvent, { Events } from '@/hooks/useEvent';
 import { EventData } from 'mapbox-gl';
+import styles from './more-fields.popup.module.scss';
 
 const default_selection = {
   home_attributes: [1, 2, 7, 11],
@@ -28,7 +29,6 @@ const base_relationships = [
       'total_fireplaces',
       'total_parking',
       'total_covered_parking',
-      'heating',
       'foundation_specs',
       'year_built',
     ],
@@ -39,11 +39,11 @@ const base_relationships = [
   },
   {
     category: 'restrictions',
-    items: ['total_allowed_rentals', 'building_by_laws'],
+    items: ['total_allowed_rentals', 'building_by_laws', 'total_pets_allowed', 'total_cats_allowed', 'total_dogs_allowed'],
   },
   {
     category: 'building_info',
-    items: ['num_units_in_community', 'building_total_units'],
+    items: ['num_units_in_community', 'building_total_units', 'property_dis'],
   },
   {
     category: 'square_footage',
@@ -52,6 +52,24 @@ const base_relationships = [
   {
     category: 'others',
     items: ['amenities', 'facilities', 'appliances', 'build_features', 'hvac', 'connected_services'],
+  },
+];
+const additional_fields = [
+  {
+    category: 'home_attributes',
+    items: ['exterior_finish', 'floors', 'fireplace', 'total_fireplaces', 'total_covered_parking', 'foundation_specs'],
+  },
+  {
+    category: 'restrictions',
+    items: ['total_allowed_rentals', 'building_by_laws', 'total_pets_allowed', 'total_cats_allowed', 'total_dogs_allowed'],
+  },
+  {
+    category: 'building_info',
+    items: ['num_units_in_community', 'building_total_units', 'complex_compound_name', 'video_link'],
+  },
+  {
+    category: 'square_footage',
+    items: ['floor_levels', 'floor_area_below_main', 'frontage_feet'],
   },
 ];
 
@@ -66,6 +84,7 @@ export default function MoreFieldsPopup({
   'base-only'?: boolean;
   'connected-services'?: boolean;
   'hide-icon'?: boolean;
+  'hide-defaults'?: boolean;
   'right-align'?: boolean;
   onChange(updates: { [k: string]: number[] }): void;
 }) {
@@ -92,7 +111,7 @@ export default function MoreFieldsPopup({
   const [category, setCategory] = useState<string>(attr['base-only'] ? 'home_attributes' : 'appliances');
   const [selected_items, setSelectedItems] = useState<{
     [k: string]: number[];
-  }>(attr['base-only'] ? default_selection : {});
+  }>(attr['base-only'] && !attr['hide-defaults'] ? default_selection : {});
 
   function toggleItem(item_category: string, item_id: number) {
     let selection = { ...selected_items };
@@ -134,31 +153,31 @@ export default function MoreFieldsPopup({
 
   useEffect(() => {
     if (selected_items) {
-      attr.onChange(selected_items);
-
       if (attr['base-only']) {
         const filters: string[] = [];
+        const more_input_fields_to_show: string[] = [];
         Object.keys(selected_items).forEach(category => {
-          const [group] = base_relationships.filter(c => c.category === category);
+          const [group] = (attr['hide-defaults'] ? additional_fields : base_relationships).filter(c => c.category === category);
           if (group) {
             selected_items[category].forEach(num => {
               filters.push(group.items[num - 1]);
             });
           }
-          // base_relationships.filter(c=> c.category === category).forEach(group => group.items.filter(name => { selected_items[category].filter((name, idx) => selected_items[](idx + 1)) }))
         });
-        console.log(filters);
+
         filterEvent.fireEvent({
           filters,
         } as unknown as EventData);
       }
+    } else {
+      attr.onChange(selected_items);
     }
   }, [selected_items]);
 
   useEffect(() => {
     if (attr['base-only']) {
       let results: { [k: string]: { id: number; name: string }[] } = {};
-      base_relationships.map((r, id) => {
+      (attr['hide-defaults'] ? additional_fields : base_relationships).map((r, id) => {
         results = {
           ...results,
           [r.category]: r.items.map((name, i) => ({
@@ -197,32 +216,26 @@ export default function MoreFieldsPopup({
               leaveFrom='opacity-100 translate-y-0'
               leaveTo='opacity-0 translate-y-1'
             >
-              <Popover.Panel
-                className={classNames(
-                  attr['right-align'] ? 'right-0' : '-translate-x-1/2 left-1/2',
-                  'absolute z-10 mt-3 w-screen max-w-sm transform px-4 sm:px-0 lg:max-w-xl',
-                )}
-              >
+              <Popover.Panel className={classNames(attr['right-align'] ? 'right-0' : '-translate-x-1/2 left-1/2', styles['popover-panel'])}>
                 <div className={classNames(attr['right-align'] ? 'flex bg-white' : '', 'rounded-2xl shadow-xl ring-1 ring-neutral-200/5 overflow-auto')}>
-                  <div className={classNames(attr['right-align'] ? 'flex-col' : '', 'bg-gray-50 p-4 flex overflow-auto gap-4')}>
-                    {(attr['base-only'] ? base_relationships.map(group => group.category) : only_show).map(name => (
-                      <button
-                        key={`btn-category-${name}`}
-                        type='button'
-                        className={classNames(
-                          category === name ? '' : 'bg-transparent',
-                          'flow-root rounded-md px-2 py-2 transition duration-150 ease-in-out hover:bg-gray-100 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50',
-                        )}
-                        onClick={() => {
-                          setCategory(name);
-                          setFilteredItems([]);
-                        }}
-                      >
-                        <span className='flex items-center whitespace-nowrap'>
-                          <span className='text-sm font-medium text-gray-900'>{getLabel(name)}</span>
-                        </span>
-                      </button>
-                    ))}
+                  <div className={classNames(attr['right-align'] ? 'flex-col' : '', 'bg-[#f3f5fb] p-4 flex overflow-auto gap-4')}>
+                    {(attr['base-only'] ? (attr['hide-defaults'] ? additional_fields : base_relationships).map(group => group.category) : only_show).map(
+                      name => (
+                        <button
+                          key={`btn-category-${name}`}
+                          type='button'
+                          className={classNames(category === name ? 'w--current' : 'bg-transparent', styles['category-button'], 'tab-button-vertical-toggle')}
+                          onClick={() => {
+                            setCategory(name);
+                            setFilteredItems([]);
+                          }}
+                        >
+                          <span className='flex items-center whitespace-nowrap'>
+                            <span className='text-sm font-medium text-gray-900'>{getLabel(name)}</span>
+                          </span>
+                        </button>
+                      ),
+                    )}
                   </div>
                   <aside className='flex-1'>
                     <div className='bg-white px-4 pt-4'>
