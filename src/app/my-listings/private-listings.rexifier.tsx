@@ -42,7 +42,7 @@ export default async function MyListingsPrivateListings({ children, agent, ...pr
               <></>
             ),
           )
-        : '<!-- No listings -->'}
+        : ''}
     </section>
   );
 }
