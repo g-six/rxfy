@@ -59,6 +59,7 @@ export default function MyListingAiAssistantButton({
         photos: new_data.photos.filter((url: string) => url.indexOf('blob:') !== 0).concat(upload_results as string[]),
       };
     }
+    console.log(JSON.stringify(updates, null, 4));
 
     const listing_id = private_listing.id;
     if (is_new) {
