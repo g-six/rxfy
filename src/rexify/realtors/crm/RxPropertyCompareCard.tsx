@@ -18,7 +18,7 @@ function StatsIterator(p: { className?: string; children: React.ReactElement; la
         case 'Compare Stat Name':
           return React.cloneElement(child, {
             ...child.props,
-            children: capitalizeFirstLetter(p.label.split('_').join(' ')),
+            children: p.label ? capitalizeFirstLetter(p.label.split('_').join(' ')) : '',
           });
         case '{Compare Stat}':
         case 'Compare Stat':
@@ -121,24 +121,28 @@ export default function RxPropertyCompareCard(
             key: `${child.props.className}-${p.property.id}`,
             children: p['include-stats'].map((stat_name: string) => {
               if (child.props.children)
-                return React.cloneElement(child.props.children[0], {
-                  ...child.props.children[0].props,
-                  key: stat_name || 'no-valid-stat-name',
-                  children: (
-                    <StatsIterator
-                      key={stat_name || 'no-valid-stat-name'}
-                      label={stat_name}
-                      value={getStatsValue(
-                        stat_name,
-                        p.property as unknown as {
-                          [key: string]: string;
-                        },
-                      )}
-                    >
-                      {child.props.children[0].props.children}
-                    </StatsIterator>
-                  ),
-                });
+                return stat_name ? (
+                  React.cloneElement(child.props.children[0], {
+                    ...child.props.children[0].props,
+                    key: stat_name || 'no-valid-stat-name',
+                    children: (
+                      <StatsIterator
+                        key={stat_name || 'no-valid-stat-name'}
+                        label={stat_name}
+                        value={getStatsValue(
+                          stat_name,
+                          p.property as unknown as {
+                            [key: string]: string;
+                          },
+                        )}
+                      >
+                        {child.props.children[0].props.children}
+                      </StatsIterator>
+                    ),
+                  })
+                ) : (
+                  <></>
+                );
             }),
           })
         ) : (
@@ -316,12 +320,16 @@ function CompareCardItems(
               <StatsIterator
                 key={stat_name || 'no-valid-stat-name'}
                 label={stat_name === 'hvac' ? 'Heating / Ventilation' : stat_name}
-                value={getStatsValue(
-                  stat_name,
-                  p.property as unknown as {
-                    [key: string]: string;
-                  },
-                )}
+                value={
+                  stat_name
+                    ? getStatsValue(
+                        stat_name,
+                        p.property as unknown as {
+                          [key: string]: string;
+                        },
+                      )
+                    : ''
+                }
               >
                 {child}
               </StatsIterator>
