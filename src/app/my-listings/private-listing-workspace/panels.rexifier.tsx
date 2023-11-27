@@ -20,6 +20,7 @@ function Rexify({ children, ...data }: { agent: AgentData; listing?: PrivateList
       // of data-w-tab
       if (props['data-w-tab']) {
         if (props['data-w-tab'] === 'ai') {
+          if (!data.listing) className = `w--tab-active ${className}`;
           return cloneElement(
             c,
             { className, 'data-rx': 'MyListingsAiAssistantEditor' },

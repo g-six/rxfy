@@ -65,11 +65,6 @@ function Rexified({ agent, children, params, searchParams }: Props) {
 
     if (c.props?.['data-action'] === 'new_private_listing') {
       return <CreateNewListingButton className={c.props.className}>{c.props.children}</CreateNewListingButton>;
-      // return (
-      //   <button type='button' className={c.props.className} onClick={() => {}}>
-      //     {c.props.children}
-      //   </button>
-      // );
     }
     return c;
   });
