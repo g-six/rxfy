@@ -56,6 +56,7 @@ export async function PUT(req: NextRequest) {
     );
   // Then check ownership
   const original = await getPrivateListing(id);
+  let photo_album: string[] = original.photos || [];
   if (original.realtor?.id !== guid)
     return getResponse(
       {
@@ -67,18 +68,30 @@ export async function PUT(req: NextRequest) {
     const updates: PrivateListingInput = await req.json();
     let { photos, property_photo_album, room_details, bathroom_details, ...listing } = updates;
 
-    if (original.photos?.length) {
-      // Let's remove any photos that have been deleted
-      const to_delete = original.photos.filter((url: string) => !photos || !photos.includes(url));
-      await Promise.all(
-        to_delete.map(async (url: string) => {
-          const delete_url = url.split(`${process.env.NEXT_APP_S3_PAGES_BUCKET}`)[1].substring(1);
-          return await deleteObject(delete_url);
-        }),
-      );
-    }
     if (photos) {
-      const updated_album = await updatePrivateListingAlbum(original.photos.concat(photos), property_photo_album);
+      if (photo_album.length) {
+        // Let's remove any photos that have been deleted
+        const to_delete = photo_album.filter((url: string) => !photos || !photos.includes(url));
+        photo_album = photos;
+        await Promise.all(
+          to_delete.map(async (url: string) => {
+            const delete_url = url.split(`${process.env.NEXT_APP_S3_PAGES_BUCKET}`)[1].substring(1);
+            return await deleteObject(delete_url);
+          }),
+        );
+      }
+
+      console.log(
+        JSON.stringify(
+          {
+            photos,
+            property_photo_album,
+          },
+          null,
+          4,
+        ),
+      );
+      const updated_album = await updatePrivateListingAlbum(photos, property_photo_album);
       if (updated_album?.id) {
         listing = {
           property_photo_album: updated_album.id,

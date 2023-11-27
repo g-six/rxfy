@@ -4,6 +4,7 @@ import { AgentData } from '@/_typings/agent';
 import MyListingsPrivateListingWorkspace from './private-listing-workspace.rexifier';
 import MyListingsPrivateListings from './private-listings.rexifier';
 import CreateNewListingButton from './private-listing-workspace/components/new-listing-button.component';
+import { PrivateListingOutput } from '@/_typings/private-listing';
 
 interface Props {
   agent: AgentData;
@@ -11,6 +12,7 @@ interface Props {
   children: ReactElement;
   params: { [k: string]: string };
   searchParams: { [k: string]: string };
+  private_listings?: PrivateListingOutput[];
 }
 
 function Rexified({ agent, children, params, searchParams }: Props) {
@@ -28,6 +30,7 @@ function Rexified({ agent, children, params, searchParams }: Props) {
             </MyListingsMLSListings>
           );
         }
+
         if (props['data-group'] === 'private_listings') {
           return (
             <MyListingsPrivateListings {...props} className={className} agent={agent}>

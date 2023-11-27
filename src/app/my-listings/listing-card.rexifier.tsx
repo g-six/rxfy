@@ -6,7 +6,7 @@ import { deletePrivateListing } from '@/_utilities/api-calls/call-private-listin
 import useEvent, { Events } from '@/hooks/useEvent';
 import MyListingsDeleteButton from './private-listing-workspace/components/delete-button.component';
 
-function Rexified({ children, listing, ...props }: { children: ReactElement; listing: Record<string, string> }) {
+function Rexified({ children, listing, ...props }: { children: ReactElement; listing: { [k: string]: string } }) {
   const rexified = Children.map(children, c => {
     if (c.props?.className?.includes('propcard-image') && listing.cover_photo) {
       return cloneElement(c, {
@@ -94,14 +94,13 @@ export default function MyListingsListingCard({
 }: {
   children: ReactElement;
   className?: string;
-  listing: Record<string, string>;
+  listing: { [k: string]: string };
 }) {
   const { fireEvent: promptConfirmation, data: dialog } = useEvent(Events.Prompt);
-  const [id, setId] = useState(Number(listing.id || listing.listing_id));
+  const [id, setId] = useState(listing ? Number(listing.id || listing.listing_id) : null);
   const private_listing = dialog as unknown as { id: number };
 
   useEffect(() => {
-    console.log(private_listing.id);
     if (dialog?.clicked === 'Confirm Action' && id === private_listing.id) {
       deletePrivateListing(private_listing.id).then(() => {
         setId(0);

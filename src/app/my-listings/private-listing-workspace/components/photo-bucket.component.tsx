@@ -65,11 +65,13 @@ export default function MyListingsPhotoBucketComponent({ children, listing: init
   const [is_mounted, mountComponent] = useState(false);
   const handler = useFormEvent<PrivateListingData>(Events.PrivateListingForm, { beds: 0, baths: 0, floor_area_uom: 'sqft', lot_uom: 'sqft' });
   const [bucket, setPhotoBucketData] = useState<{
+    property_photo_album?: number;
     photos: string[];
     uploads: File[];
   }>({
     uploads: handler.data?.uploads || [],
     photos: handler.data?.photos || [],
+    property_photo_album: initial_listing?.property_photo_album,
   });
 
   function getUploadPreviewUrl(file: File) {
@@ -78,12 +80,9 @@ export default function MyListingsPhotoBucketComponent({ children, listing: init
   }
 
   function onRemove(url: string) {
-    console.log('Remove', url);
     const photos = [...bucket.photos];
     const uploads = [...bucket.uploads];
-    console.log('From photos', bucket.photos);
     const photo_index = photos.indexOf(url);
-    console.log('Index', photo_index);
 
     if (photo_index >= 0) {
       photos.splice(photo_index, 1);
@@ -93,10 +92,15 @@ export default function MyListingsPhotoBucketComponent({ children, listing: init
           const preview = getUploadPreviewUrl(upload);
           if (preview && preview === url) uploads.splice(upload_idx, 1);
         });
+      } else if (url) {
+        photos.forEach((photo: string, upload_idx) => {
+          if (photo === url) uploads.splice(upload_idx, 1);
+        });
+        handler.fireEvent({ photos });
       }
     }
-
     setPhotoBucketData({
+      ...bucket,
       photos,
       uploads,
     });
@@ -105,6 +109,7 @@ export default function MyListingsPhotoBucketComponent({ children, listing: init
   useEffect(() => {
     if (is_mounted) {
       setPhotoBucketData({
+        property_photo_album: initial_listing?.property_photo_album,
         photos: handler.data?.photos || [],
         uploads: handler.data?.uploads || [],
       });

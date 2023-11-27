@@ -95,8 +95,8 @@ export default function RxMyHomeAlerts({ child, className, ...p }: Props) {
           <MyHomeAlertModalWrapper
             agent-data={p['agent-data']}
             child={child}
-            onSave={() => {
-              fireEvent({ reload: true, show: false });
+            onSave={results => {
+              fireEvent({ reload: true, show: false, alertData: results });
             }}
           />
         ) : (

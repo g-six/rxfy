@@ -13,7 +13,6 @@ export default function MyListingAiAssistantButton({
   children,
   listing: initial_listing,
   className,
-  ...props
 }: {
   children: ReactElement;
   className: string;
@@ -24,7 +23,9 @@ export default function MyListingAiAssistantButton({
   const handler = useFormEvent<PrivateListingData>(Events.PrivateListingForm, { beds: 0, baths: 0, floor_area_uom: 'sqft', lot_uom: 'sqft' });
 
   const new_data = handler.data as unknown as {
+    property_photo_album?: number;
     uploads: File[];
+    photos: string[];
   };
 
   async function onSubmit() {
@@ -48,14 +49,16 @@ export default function MyListingAiAssistantButton({
         )
       : [];
 
-    let updates: { [k: string]: unknown } = {};
-    const { photos = [] } = private_listing || { photos: [] };
-
-    if (upload_results.length) {
+    let updates: { [k: string]: unknown } & { photos?: string[]; property_photo_album?: number } = {
+      property_photo_album: new_data.property_photo_album,
+    };
+    if (upload_results && upload_results.length) {
       updates = {
-        photos: photos.filter((url: string) => url.indexOf('blob:') !== 0).concat(upload_results),
+        ...updates,
+        photos: new_data.photos.filter((url: string) => url.indexOf('blob:') !== 0).concat(upload_results as string[]),
       };
     }
+
     const listing_id = private_listing.id;
     if (!listing?.id) {
       // Newly created

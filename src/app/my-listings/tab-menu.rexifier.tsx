@@ -43,7 +43,7 @@ export default async function MyListingsTabMenu({
   'active-tab'?: 'tab 1' | 'new private listing';
 }) {
   return (
-    <nav {...props} data-rx='MyListingsTabMenu'>
+    <nav {...props} data-rx='MyListingsTabMenu' active-tab={active_tab}>
       <Rexified active-tab={active_tab}>{children}</Rexified>
     </nav>
   );

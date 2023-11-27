@@ -127,6 +127,7 @@ export interface PrivateListingData extends FormData {
   };
   strapi?: object;
   uploads?: File[];
+  property_photo_album?: number;
   photos?: string[];
   status?: string;
   // Address
