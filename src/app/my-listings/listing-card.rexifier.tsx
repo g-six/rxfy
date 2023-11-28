@@ -26,6 +26,12 @@ function Rexified({ children, listing, ...props }: { children: ReactElement; lis
             .join(' ')} capitalize status-${listing[c.props['data-field']].toLowerCase()}`;
         }
         return cloneElement(c, { 'data-rx': c.props['data-field'], className }, listing[c.props['data-field']] || <></>);
+      } else if (c.props['data-field'] === 'asking_price' && !listing[c.props['data-field']]) {
+        return cloneElement(
+          c,
+          { 'data-rx': c.props['data-field'] },
+          listing[c.props['data-field']] || <i className='text-slate-600 font-medium'>Price not set</i>,
+        );
       }
       if (c.props['data-field'] === 'address') {
         const { state_province, postal_zip_code, title, city } = listing;

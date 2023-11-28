@@ -4,7 +4,20 @@ import MyListingsWorkspacePanels from './private-listing-workspace/panels.rexifi
 import { getPrivateListing } from '../api/private-listings/model';
 import NotFound from '../not-found';
 import { PrivateListingModel } from '@/_typings/private-listing';
+import { classNames } from '@/_utilities/html-helper';
 
+function TabsRexifier({ children, ...props }: { children: ReactElement; className?: string }) {
+  const Rexified = Children.map(children, c => {
+    if (c.props && c.props.children && typeof c.props.children !== 'string') {
+      if (c.type === 'a') {
+        return cloneElement(c, { className: classNames(`${c.props.className || ''}`, c.props['data-w-tab'] === 'ai' ? 'w--current' : '') });
+      }
+      return cloneElement(c, {}, <TabsRexifier className={c.props.className || ''}>{c.props.children}</TabsRexifier>);
+    }
+    return c;
+  });
+  return <>{Rexified}</>;
+}
 function Rexify({ children, ...data }: { agent: AgentData; children: ReactElement; listing?: PrivateListingModel }) {
   const Rexified = Children.map(children, c => {
     if (c.props && c.props.children && typeof c.props.children !== 'string') {
@@ -18,6 +31,10 @@ function Rexify({ children, ...data }: { agent: AgentData; children: ReactElemen
           { className, 'data-rx': 'MyListingsWorkspacePanels' },
           <MyListingsWorkspacePanels {...data}>{components}</MyListingsWorkspacePanels>,
         );
+      }
+
+      if (props['data-group'] === 'new_listing_tabs') {
+        return cloneElement(c, {}, <TabsRexifier>{c.props.children}</TabsRexifier>);
       }
 
       return cloneElement(c, { className }, <Rexify {...data}>{components}</Rexify>);
