@@ -105,6 +105,11 @@ export async function middleware(request: NextRequest) {
       agent_id: segments[0],
     });
   }
+  if (!agent_data?.agent_id && segments.length > 2 && ['property', 'brochure'].includes(segments[segments.length - 1])) {
+    agent_data = await getAgentBy({
+      agent_id: segments[0],
+    });
+  }
 
   if (agent_data?.agent_id && agent_data.metatags?.id) {
     let webflow_domain = agent_data.webflow_domain || '';
@@ -170,14 +175,14 @@ export async function middleware(request: NextRequest) {
     if (segments[0] === '' || segments[0] === agent_data?.agent_id) {
       page_url = `${page_url}/index`;
     } else {
-      page_url = `${page_url}/${segments.join('/')}`;
+      // page_url = `${page_url}/${segments.join('/')}`;
     }
   } else if (segments.includes('ai-result')) {
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/ai-result`;
     // } else if (searchParams.get('paragon') && !segments.includes('ai-result')) {
-  } else if (segments[0] === 'property') {
+  } else if (segments[0] === 'property' || (segments.length > 1 && segments[segments.length - 1] === 'property')) {
     response.headers.set('x-viewer', 'customer');
-    page_url = `${page_url}/property/propertyid`;
+    page_url = `${page_url}/property/propertyid`.split('//property').join('/property');
   } else if (segments[0] === 'log-in') {
     response.headers.set('x-viewer', 'realtor');
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.REALTOR}/log-in`;
@@ -317,8 +322,6 @@ export async function middleware(request: NextRequest) {
   if (page_url.indexOf('/_next/') === -1 && pathname !== '/favicon.ico') {
     console.log('middleware', { page_url, origin, pathname });
   }
-
-  console.log(page_url);
 
   return response;
 }

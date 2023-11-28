@@ -6,7 +6,6 @@ import { CheerioAPI, load } from 'cheerio';
 import { buildCacheFiles, getBuildingUnits } from '../api/properties/model';
 import NotFound from '../not-found';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
-import PhotosCarousel from '@/components/RxPropertyCarousel/PhotosCarousel';
 import { headers } from 'next/headers';
 import Iterator from './page.iterator';
 import { PageData } from './type.definition';
@@ -147,7 +146,7 @@ export default async function PropertyPage(props: any) {
           }
 
           if (property) {
-            if (Array.isArray(property.fireplace)) property.fireplace = property.fireplace.join('/');
+            if (property.fireplace && Array.isArray(property.fireplace)) property.fireplace = property.fireplace.join('/');
 
             if (property?.room_details?.rooms) {
               if (headers().get('session_key')) {
@@ -165,6 +164,21 @@ export default async function PropertyPage(props: any) {
             $('[data-field="property-price"]').each((i, el) => {
               $(el).attr('data-field', 'asking_price');
             });
+
+            const carousel_json = $('body script.w-json');
+            if (carousel_json && photos && photos.length) {
+              $('body script.w-json').html(
+                JSON.stringify({
+                  items: photos.map(url => ({
+                    _id: url,
+                    origFileName: url.split('/').pop(),
+                    fileName: url.split('/').pop(),
+                    url: getImageSized(url, 1280),
+                    type: 'image',
+                  })),
+                }),
+              );
+            } else $('body script.w-json').remove();
 
             const body = $('body > div');
 
@@ -186,7 +200,6 @@ export default async function PropertyPage(props: any) {
                 </Iterator>
                 <FooterIterator agent={agent}>{domToReact(footer as unknown as DOMNode[]) as unknown as ReactElement}</FooterIterator>
 
-                <PhotosCarousel propertyPhotos={(photos ?? []).map(src => getImageSized(src, 1280))} />
                 <RxNotifications />
               </>
             );
