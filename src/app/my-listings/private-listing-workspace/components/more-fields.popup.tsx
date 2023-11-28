@@ -43,7 +43,7 @@ const base_relationships = [
   },
   {
     category: 'building_info',
-    items: ['num_units_in_community', 'building_total_units', 'property_dis'],
+    items: ['num_units_in_community', 'property_disclosure'],
   },
   {
     category: 'square_footage',
@@ -57,19 +57,23 @@ const base_relationships = [
 const additional_fields = [
   {
     category: 'home_attributes',
-    items: ['exterior_finish', 'floors', 'fireplace', 'total_fireplaces', 'total_covered_parking', 'foundation_specs'],
+    items: ['exterior_finish', 'fireplace', 'total_fireplaces', 'total_covered_parking', 'foundation_specs', 'roofing'],
   },
   {
     category: 'restrictions',
-    items: ['total_allowed_rentals', 'building_by_laws', 'total_pets_allowed', 'total_cats_allowed', 'total_dogs_allowed'],
+    items: ['building_bylaws', 'total_allowed_rentals', 'total_pets_allowed', 'total_cats_allowed', 'total_dogs_allowed', ''],
   },
   {
     category: 'building_info',
-    items: ['num_units_in_community', 'building_total_units', 'complex_compound_name', 'video_link'],
+    items: ['total_units_in_community', 'complex_compound_name'],
   },
   {
     category: 'square_footage',
-    items: ['floor_levels', 'floor_area_below_main', 'frontage_feet'],
+    items: ['floor_area_basement', 'floor_area_upper_floors', 'floor_area_unfinished', 'floor_area_below_main', 'floor_levels', 'frontage'],
+  },
+  {
+    category: 'media',
+    items: ['video_link'],
   },
 ];
 
@@ -86,6 +90,7 @@ export default function MoreFieldsPopup({
   'hide-icon'?: boolean;
   'hide-defaults'?: boolean;
   'right-align'?: boolean;
+  'default-selections'?: string[];
   onChange(updates: { [k: string]: number[] }): void;
 }) {
   const filterEvent = useEvent(Events.AddPropertyFilter);

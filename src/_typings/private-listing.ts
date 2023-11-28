@@ -1,5 +1,92 @@
-import { KeyValuePair } from '@/app/api/properties/types';
 import { BathroomDetails, RoomDetails } from './property';
+
+export const LISTING_NUMERICAL_FIELDS = [
+  'lat',
+  'lon',
+  'beds',
+  'baths',
+  'price_per_sqft',
+  'asking_price',
+  'year_built',
+  'total_garage',
+  'gross_taxes',
+  'tax_year',
+  'floor_area',
+  'floor_area_main',
+  'floor_area_basement',
+  'floor_area_below_main',
+  'floor_area_total',
+  'floor_area_unfinished',
+  'floor_area_upper_floors',
+  'frontage_feet',
+  'frontage_metres',
+  'full_baths',
+  'half_baths',
+  'total_kitchens',
+  'total_additional_rooms',
+  'garages',
+  'depth',
+  'frontage',
+  'lot_area',
+  'strata_fee',
+  'total_allowed_rentals',
+  'total_parking',
+  'total_covered_parking',
+  'total_fireplaces',
+  'floor_levels',
+  'total_units_in_community',
+  'age',
+  'age_restriction',
+  'total_pets_allowed',
+  'total_dogs_allowed',
+  'total_cats_allowed',
+];
+
+export const LISTING_FREE_TEXT_FIELDS = [
+  'title',
+  'area',
+  'city',
+  'postal_zip_code',
+  'state_province',
+  'listed_at',
+  'land_title',
+  'neighbourhood',
+  'complex_compound_name',
+  'fireplace',
+  'roofing',
+  'region',
+  'building_unit',
+  'pets',
+  'property_disclosure',
+  'building_bylaws',
+  'restrictions',
+  'description',
+  'video_link',
+  'exterior_finish',
+  'foundation_specs',
+];
+
+export const LISTING_REL_ID_FIELDS = [
+  'dwelling_type',
+  'property_photo_album',
+  'amenities',
+  'appliances',
+  'building_maintenance_items',
+  'by_law_restrictions',
+  'connected_services',
+  'facilities',
+  'hvacs',
+  'parkings',
+  'allowed_pets',
+  'places_of_interest',
+  'construction_information',
+  'realtor',
+  'building_style',
+  'land_title_taxonomy',
+];
+
+export const LISTING_ENUM_FIELDS = ['floor_area_uom', 'frontage_uom', 'lot_uom', 'status'];
+export const LISTING_BOOL_FIELDS = ['council_approval_required'];
 
 export interface PrivateListingModel {
   id?: number;

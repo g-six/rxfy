@@ -1,9 +1,20 @@
-import { PrivateListingInput, PrivateListingOutput, PrivateListingResult } from '@/_typings/private-listing';
+import {
+  LISTING_BOOL_FIELDS,
+  LISTING_ENUM_FIELDS,
+  LISTING_FREE_TEXT_FIELDS,
+  LISTING_NUMERICAL_FIELDS,
+  LISTING_REL_ID_FIELDS,
+  PrivateListingInput,
+  PrivateListingOutput,
+  PrivateListingResult,
+} from '@/_typings/private-listing';
 import axios, { AxiosError } from 'axios';
 import { GQ_FRAG_AGENT } from '../agents/graphql';
 import { getFullAgentRecord } from '../_helpers/agent-helper';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
+import { LISTING_DATE_FIELDS, LISTING_JSON_FIELDS } from '@/_utilities/data-helpers/listings-helper';
+
 export async function createPrivateListing(listing: PrivateListingInput, session_hash: string, realtor_id: number) {
   try {
     const { beds, baths, ...attributes } = listing;
@@ -98,7 +109,7 @@ export async function updatePrivateListing(id: number, listing: PrivateListingIn
         query: gql_update,
         variables: {
           id,
-          data: listing,
+          data: getSanitizedData(listing),
         },
       },
       {
@@ -698,6 +709,11 @@ const GQ_DATA_FRAG_PRIVATE_LISTING = `data {
         }
       }
       place_id
+      video_link
+      frontage
+      total_units_in_community
+      exterior_finish
+      foundation_specs
     }
   }
 `;
@@ -750,3 +766,47 @@ const gql_create_photo_album = `mutation CreatePrivateListingAlbum($data: Proper
         }
     }
 }`;
+
+export function getSanitizedData(updates: PrivateListingInput) {
+  const iteratable = updates as unknown as { [k: string]: unknown };
+  let data: PrivateListingInput = {};
+  console.log('');
+  console.log('---');
+  Object.keys(iteratable).forEach(key => {
+    if (LISTING_NUMERICAL_FIELDS.includes(key)) {
+      const value = Number(iteratable[key]);
+      if (!isNaN(value)) {
+        // Only store if value is numeric
+        data = {
+          ...data,
+          [key]: value,
+        };
+      }
+    } else if (
+      LISTING_DATE_FIELDS.concat(LISTING_ENUM_FIELDS)
+        .concat(LISTING_BOOL_FIELDS)
+        .concat(LISTING_FREE_TEXT_FIELDS)
+        .concat(LISTING_JSON_FIELDS)
+        .concat(LISTING_REL_ID_FIELDS)
+        .includes(key)
+    ) {
+      data = {
+        ...data,
+        [key]: iteratable[key],
+      };
+    } else {
+      console.log('Unindentified private listing key:');
+      console.log({
+        [key]: iteratable[key],
+      });
+    }
+    console.log('');
+  });
+  console.log('');
+  console.log(JSON.stringify({ data }, null, 4));
+  console.log('---');
+  console.log('');
+  console.log('');
+
+  return data;
+}

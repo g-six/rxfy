@@ -5,7 +5,9 @@ import { ReactElement } from 'react';
 
 function getType(name: string) {
   if (name.includes('total')) return 'number';
+  if (name.includes('price')) return 'number';
   if (name.includes('floor_area')) return 'number';
+  if (['floor_levels', 'frontage', 'num_units_in_community'].includes(name)) return 'number';
   if (name.includes('lot_')) return 'number';
   return 'text';
 }
@@ -47,7 +49,7 @@ export default function PropertyAttributeInput({
   }
 
   return (
-    <fieldset className={classNames(['heating', 'video_link'].includes(name) ? 'w-full' : 'w-[48%]', 'flex flex-col gap-1 mt-1')}>
+    <fieldset className={classNames(['heating', 'video_link'].includes(name) ? 'w-full order-last' : 'w-[48%]', 'flex flex-col gap-1 mt-1')}>
       <label htmlFor={`txt_${name}`} className='block text-sm font-medium leading-6 text-gray-900'>
         {getLabel(name)}
       </label>

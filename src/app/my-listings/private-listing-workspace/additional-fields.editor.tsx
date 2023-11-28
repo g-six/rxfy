@@ -172,16 +172,23 @@ function Rexifier({
           <>
             {field_group}
             <div className='flex gap-x-[4%] gap-y-4 flex-wrap mt-4'>
-              {attributes['fields-shown'].map(field => (
-                <PropertyAttributeInput
-                  onChange={(name: string, value: any) => {
-                    attributes.onChange(name, value);
-                  }}
-                  key={field}
-                  name={field}
-                  defaultValue={values[field]}
-                />
-              ))}
+              {attributes['fields-shown']
+                .sort((a, b) => {
+                  // Sort the input fields alphabetically
+                  if (a > b) return 1;
+                  else if (a < b) return -1;
+                  return 0;
+                })
+                .map(field => (
+                  <PropertyAttributeInput
+                    onChange={(name: string, value: any) => {
+                      attributes.onChange(name, value);
+                    }}
+                    key={field}
+                    name={field}
+                    defaultValue={values[field]}
+                  />
+                ))}
             </div>
           </>,
         );
@@ -198,18 +205,16 @@ function Rexifier({
 
 const OTHER_FIELDS = [
   'exterior_finish',
-  'floors',
   'fireplace',
   'total_fireplaces',
   'total_covered_parking',
   'foundation_specs',
   'total_allowed_rentals',
-  'building_by_laws',
+  'building_bylaws',
   'total_pets_allowed',
   'total_cats_allowed',
   'total_dogs_allowed',
   'num_units_in_community',
-  'building_total_units',
   'complex_compound_name',
   'video_link',
   'floor_levels',
@@ -287,7 +292,7 @@ export function MyListingsAdditionalFieldsEditor({ children, ...attributes }: Pr
         if (typeof value === 'string' || typeof value === 'number')
           setData({
             ...data,
-            [field]: value,
+            [field]: isNaN(Number(value)) ? value : Number(value),
           });
         else
           setRelations({
