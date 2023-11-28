@@ -110,10 +110,10 @@ export default async function MyAllProperties({ params, searchParams }: { params
     let properties: PropertyDataModel[] = promises[1].records
       .concat(promises[2].records)
       .concat(promises[3].records)
-      .forEach((property: PropertyDataModel) => {
+      .map((property: PropertyDataModel) => {
         if (!mls_included.includes(property.mls_id)) {
           mls_included.push(property.mls_id);
-          properties.push(property);
+          return property;
         }
       });
 
