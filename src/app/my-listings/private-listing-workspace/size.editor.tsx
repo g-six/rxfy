@@ -176,7 +176,6 @@ export function MyListingsSizeEditor({ children, ...attributes }: Props) {
 
   useEffect(() => {
     if (form.data) {
-      console.log('data.total_garage', form.data.total_garage);
       // form.fireEvent(data as unknown as PrivateListingData);
     }
   }, [form.data]);
