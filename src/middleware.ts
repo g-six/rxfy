@@ -201,7 +201,7 @@ export async function middleware(request: NextRequest) {
   } else if (pathname && pathname === '/client-dashboard') {
     response.headers.set('x-viewer', 'customer');
     page_url = `${page_url}${WEBFLOW_DASHBOARDS.CUSTOMER}${pathname}`;
-  } else if (segments.length >= 2 && !SKIP_AGENT_SEARCH.includes(segments[0]) && !agent_data?.metatags) {
+  } else if (segments.length >= 2 && !SKIP_AGENT_SEARCH.includes(segments[0]) && agent_data?.metatags) {
     response.headers.set('x-agent-id', segments[0]);
     response.headers.set('x-profile-slug', segments[1]);
     response.headers.set('x-viewer', 'customer');
