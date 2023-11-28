@@ -70,6 +70,17 @@ function Rexifier({
           );
         }
         if (c.props['data-input-group'] === 'additional_room') {
+          const rooms = attributes.data.room_details?.others || [];
+          if (rooms.length === 0 && attributes.data.total_additional_rooms) {
+            Array.from({ length: attributes.data.total_additional_rooms }, () => {
+              return {
+                type: c.props['data-input-group'],
+                length: '',
+                width: '',
+                level: 'main',
+              };
+            }).forEach(i => rooms.push(i));
+          }
           return attributes.data.room_details?.others ? (
             <>
               {attributes.data.room_details.others.map((r, i) =>
@@ -95,9 +106,20 @@ function Rexifier({
           );
         }
         if (c.props['data-input-group'] === 'kitchen') {
-          return attributes.data.room_details?.kitchens ? (
+          const rooms = attributes.data.room_details?.kitchens || [];
+          if (rooms.length === 0 && attributes.data.total_kitchens) {
+            Array.from({ length: attributes.data.total_kitchens }, () => {
+              return {
+                type: c.props['data-input-group'],
+                length: '',
+                width: '',
+                level: 'main',
+              };
+            }).forEach(i => rooms.push(i));
+          }
+          return rooms ? (
             <>
-              {attributes.data.room_details.kitchens.map((r, i) =>
+              {rooms.map((r, i) =>
                 cloneElement(
                   c,
                   {
@@ -120,6 +142,17 @@ function Rexifier({
           );
         }
         if (c.props['data-input-group'] === 'garage') {
+          const garages = attributes.data.room_details?.garages || [];
+          if (garages.length === 0 && attributes.data.total_garage) {
+            Array.from({ length: attributes.data.total_garage }, () => {
+              return {
+                type: c.props['data-input-group'],
+                length: '',
+                width: '',
+                level: 'main',
+              };
+            }).forEach(i => garages.push(i));
+          }
           return attributes.data.room_details?.garages ? (
             <>
               {attributes.data.room_details.garages.map((r, i) =>
