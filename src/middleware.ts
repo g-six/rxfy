@@ -78,10 +78,10 @@ export async function middleware(request: NextRequest) {
 
   if (segments.includes('_next')) return request;
 
-  let is_leagent_website = domain_name === 'leagent.com';
+  let is_leagent_website = false;
 
   // Maybe it's not a custom domain?
-  if (!is_leagent_website && domain_name.includes('leagent.com') && segments[0] && !REALTOR_MAIN_PAGES.includes(segments[0])) {
+  if (!is_leagent_website && (domain_name === 'localhost' || domain_name.includes('leagent.com')) && segments[0] && !REALTOR_MAIN_PAGES.includes(segments[0])) {
     is_leagent_website = true;
   }
 
@@ -105,10 +105,14 @@ export async function middleware(request: NextRequest) {
       agent_id: segments[0],
     });
   }
-  if (!agent_data?.agent_id && segments.length > 2 && ['property', 'brochure'].includes(segments[segments.length - 1])) {
+
+  if (!agent_data?.agent_id && segments.length >= 2 && segments[1].includes('la-')) {
     agent_data = await getAgentBy({
       agent_id: segments[0],
     });
+
+    segments.reverse().pop();
+    segments.pop();
   }
 
   if (agent_data?.agent_id && agent_data.metatags?.id) {
