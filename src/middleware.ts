@@ -16,6 +16,9 @@ const REALTOR_MAIN_PAGES = ['property', 'map', 'communities'];
 const SKIP_AGENT_SEARCH = ['cdn-cgi'];
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function middleware(request: NextRequest) {
+  console.log('');
+  console.log('');
+  console.log('<----- middleware.ts ----  ');
   const response = NextResponse.next();
 
   // Store current request url in a custom header, which you can read later
@@ -67,6 +70,12 @@ export async function middleware(request: NextRequest) {
   if (pathname.includes('images')) return response;
   if (pathname.includes('icons')) return response;
   if (pathname.includes('wf_graphql')) return response;
+  if (pathname.includes('favicon')) return response;
+
+  console.log('');
+  console.log('* * * not a webflow static asset * * *');
+  console.log('* * * Proceed to routing logic * * *');
+  console.log('');
   response.headers.set('x-page-title', 'Leagent');
 
   const [, ...segments] = pathname.split('/');
@@ -124,7 +133,7 @@ export async function middleware(request: NextRequest) {
     }
     setAgentWebsiteHeaders(webflow_domain);
 
-    if (REALTOR_MAIN_PAGES.includes(segments[0]) || pathname === '/' || !LEAGENT_WEBFLOW_DOMAINS.includes(webflow_domain)) {
+    if (segments.length === 0 || REALTOR_MAIN_PAGES.includes(segments[0]) || pathname === '/' || !LEAGENT_WEBFLOW_DOMAINS.includes(webflow_domain)) {
       if (`${pathname.split('/').pop()}`.split('.').length > 1) return response;
       response.headers.set('x-viewer', 'customer');
       const allCookies = request.cookies.getAll();
@@ -315,7 +324,7 @@ export async function middleware(request: NextRequest) {
     if (page_url.endsWith('.io')) page_url = `${page_url}/index`;
 
     page_url = `${page_url}.html`;
-    response.headers.set('x-url', page_url);
+    // response.headers.set('x-url', page_url);
   }
 
   const allCookies = request.cookies.getAll();
@@ -323,9 +332,13 @@ export async function middleware(request: NextRequest) {
     response.headers.set(`x-${name.split('_').join('-')}`, value);
   });
   // Do not remove this, need this to be logged in Vercel for various reasons
-  if (page_url.indexOf('/_next/') === -1 && pathname !== '/favicon.ico') {
+  if (page_url && page_url.indexOf('/_next/') === -1 && pathname !== '/favicon.ico') {
     console.log('middleware', { page_url, origin, pathname });
   }
+
+  console.log('  ---- middleware.ts ----->');
+  console.log('');
+  console.log('');
 
   return response;
 }
