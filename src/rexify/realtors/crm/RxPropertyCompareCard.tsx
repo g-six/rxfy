@@ -316,7 +316,7 @@ function CompareCardItems(
       } else if (child.props['data-group'] === 'compare_stat') {
         return p['include-stats'] ? (
           p['include-stats'].map((stat_name: string) => {
-            return (
+            return stat_name ? (
               <StatsIterator
                 key={stat_name || 'no-valid-stat-name'}
                 label={stat_name === 'hvac' ? 'Heating / Ventilation' : stat_name}
@@ -333,6 +333,8 @@ function CompareCardItems(
               >
                 {child}
               </StatsIterator>
+            ) : (
+              <></>
             );
           })
         ) : (
