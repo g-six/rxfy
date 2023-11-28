@@ -75,7 +75,7 @@ function Rexify({
         if (attributes.listing && props['data-field'] === 'unpublished_status' && attributes.listing?.status === 'active') {
           return <></>;
         }
-        if (props['data-field'] === 'published_status' && attributes.listing?.status === 'draft') {
+        if (props['data-field'] === 'published_status' && attributes.listing?.status !== 'active') {
           return <></>;
         }
 
