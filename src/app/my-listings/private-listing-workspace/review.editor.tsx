@@ -52,6 +52,7 @@ function Rexify({
         if (action === 'view_listing' && attributes.listing?.id) {
           return cloneElement(c, { target: '_blank', href: `${getAgentBaseUrl(attributes.agent, true)}/property?lid=${attributes.listing.id}` });
         }
+
         return (
           <button
             type='button'
@@ -138,6 +139,18 @@ export default function MyListingsReviewEditor({
       listing={property}
       onAction={(action: string) => {
         switch (action) {
+          case 'publish':
+            if (property?.id)
+              updatePrivateListing(property.id, {
+                status: 'active',
+              }).then(() => {
+                notification.fireEvent({
+                  message: 'Your listing is published!',
+                  category: NotificationCategory.SUCCESS,
+                  timeout: 2400,
+                });
+              });
+            break;
           case 'save':
             proceed();
             break;
