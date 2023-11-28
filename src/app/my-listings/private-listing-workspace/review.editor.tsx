@@ -68,10 +68,17 @@ function Rexify({
           </button>
         );
       }
+
       if (components && typeof components !== 'string') {
         // Rexify workspace tabs
-        if (attributes.listing?.id) {
+
+        if (attributes.listing && props['data-field'] === 'unpublished_status' && attributes.listing?.status === 'active') {
+          return <></>;
         }
+        if (props['data-field'] === 'published_status' && attributes.listing?.status === 'draft') {
+          return <></>;
+        }
+
         return cloneElement(c, { className }, <Rexify {...attributes}>{components}</Rexify>);
       }
 
@@ -105,7 +112,6 @@ export default function MyListingsReviewEditor({
   const [property, setProperty] = useState<PrivateListingModel>();
 
   let { listing, ...attribs } = data;
-
   function proceed() {
     if (listing?.id && property) {
       updatePrivateListing(listing.id, {

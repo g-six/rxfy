@@ -174,12 +174,6 @@ export function MyListingsSizeEditor({ children, ...attributes }: Props) {
     if (lot_uom && data?.lot_uom) lot_uom.textContent = data?.lot_uom;
   }, []);
 
-  useEffect(() => {
-    if (form.data) {
-      // form.fireEvent(data as unknown as PrivateListingData);
-    }
-  }, [form.data]);
-
   return (
     <Rexifier
       {...attributes}
@@ -188,6 +182,7 @@ export function MyListingsSizeEditor({ children, ...attributes }: Props) {
       onChange={(field, value: string) => {
         if (field === 'garages') {
           form.fireEvent({
+            garages: Number(value || 0),
             total_garage: Number(value || 0),
           });
           setData({
