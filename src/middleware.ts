@@ -31,6 +31,7 @@ export async function middleware(request: NextRequest) {
   // if (domain_name.includes('.local') && pathname === '/') pathname = '/homepage';
   domain_name = domain_name.split('.local').join('');
   const setAgentWebsiteHeaders = (webflow_domain: string) => {
+    response.headers.set('x-record-id', agent_data.id);
     response.headers.set('x-agent-id', agent_data.agent_id);
     response.headers.set('x-profile-slug', agent_data.metatags.profile_slug);
     response.headers.set('x-agent-name', agent_data.full_name);
@@ -109,6 +110,7 @@ export async function middleware(request: NextRequest) {
       agent_id: searchParams.get('agent') as string,
     });
   }
+
   if (!agent_data?.agent_id && segments.length === 2 && searchParams.get('theme')) {
     agent_data = await getAgentBy({
       agent_id: segments[0],
@@ -146,6 +148,17 @@ export async function middleware(request: NextRequest) {
         page_url = `${page_url}/${segments.slice(1).join('/')}`;
       }
       page_url = `${page_url}.html`;
+
+      if (segments[0] === 'map') {
+        if (!searchParams.has('lat') || !searchParams.has('lat')) {
+          return NextResponse.redirect(
+            `${origin}/${!agent_data.domain_name ? `${agent_data.agent_id}/${agent_data.metatags.profile_slug}/` : ''}map?${objectToQueryString(
+              agent_data.metatags.geocoding as unknown as {},
+            )}&baths=0&beds=0`,
+          );
+        }
+      }
+
       console.log('Going to bring visitor to Realtor page', page_url);
       response.headers.set('x-url', page_url);
       const page_xhr = await fetch(page_url);

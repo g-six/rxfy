@@ -12,12 +12,20 @@ import { getLovedHomes } from '../api/loves/model';
 import { LegacySearchPayload } from '@/_typings/pipeline';
 import { getBounds } from '@/_utilities/map-helper';
 import { must_not } from '@/_utilities/api-calls/call-legacy-search';
-import { NextRequest } from 'next/server';
 import { PropertyDataModel } from '@/_typings/property';
 import { LOGO_FIELDS } from '@/_constants/agent-fields';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import NotFound from '../not-found';
 import { getPipelineData } from '../api/pipeline/subroutines';
+import { objectToQueryString, queryStringToObject } from '@/_utilities/url-helper';
+import { AgentData } from '@/_typings/agent';
+import { Metadata } from 'next';
+import { NextResponse } from 'next/server';
+import { AuthPopup } from './auth.popup';
+type Props = {
+  params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+};
 
 interface SearchOpts {
   nelat: number;
@@ -38,30 +46,110 @@ interface SearchOpts {
   };
 }
 
+export async function generateMetadata(props?: Props): Promise<Metadata> {
+  let page_data: {
+    [k: string]: any;
+  } = {};
+  headers().forEach((value, key) => {
+    /**
+     * GREY Area
+     * > Uncomment commented (//) code below to debug
+     */
+    // console.log({ key, value });
+
+    const field = key.substring(2);
+    if (value) {
+      if (field === 'agent-id') {
+        page_data = {
+          ...page_data,
+          agent_id: value,
+        };
+      } else if (field.indexOf('agent-') === 0 || field.indexOf('page-') === 0) {
+        page_data = {
+          ...page_data,
+          [field.split('-').slice(1).join('_')]: value,
+        };
+      } else if (field === 'record-id' && !isNaN(Number(value))) {
+        page_data = {
+          ...page_data,
+          id: Number(value),
+        };
+      } else if (field === 'metatag-id' && !isNaN(Number(value))) {
+        console.log(page_data);
+        page_data = {
+          ...page_data,
+          metatags: {
+            ...page_data.metatags,
+            id: Number(value),
+          },
+        };
+      } else if (field.includes('bg-logo')) {
+        page_data = {
+          ...page_data,
+          metatags: {
+            ...page_data.metatags,
+            [`logo_for_${field.split('-')[0]}_bg`]: value,
+          },
+        };
+      } else if (field === 'wf-domain') {
+        page_data = {
+          ...page_data,
+          webflow_domain: value,
+        };
+      } else if (field === 'map-uri' && value) {
+        page_data = {
+          ...page_data,
+          metatags: {
+            ...page_data.metatags,
+            geocoding: queryStringToObject(value.split('?').pop() as string),
+          },
+        };
+      }
+      page_data = {
+        ...page_data,
+        full_name: page_data.name || 'Leagent',
+      };
+    }
+  });
+
+  /**
+   * GREY Area
+   * > Uncomment commented (//) code below to debug
+   */
+  // console.log(page_data);
+
+  return page_data;
+}
+
 export default async function MapPage({ params, searchParams }: { params: { [key: string]: string }; searchParams: { [key: string]: string } }) {
   const { 'profile-slug': slug } = params;
   const url = headers().get('x-url');
 
-  let agent;
-  const agent_id = headers().get('x-agent-id') || params.slug || '';
-  if (!url || !agent_id) return <NotFound />;
+  const metadata = await generateMetadata();
+  const page_data = metadata as unknown as AgentData;
 
-  if (!searchParams.lat || !searchParams.lng) {
-    // Redirect
-    agent = await findAgentRecordByAgentId(agent_id);
+  // let agent;
+  // const agent_id = headers().get('x-agent-id') || params.slug || '';
+  // if (!url || !agent_id) return <NotFound />;
 
-    const [default_location] = agent.metatags.search_highlights?.labels || ([] as SearchHighlightInput[]);
-    if (default_location?.lat && default_location?.lng) {
-      const { lat, lng, title } = default_location;
-      redirect(
-        `/${agent_id}/${slug}/map?city=${encodeURIComponent(
-          title.split(' ').join('+'),
-        )}&lat=${lat}&lng=${lng}&beds=0&baths=1&minprice=500000&maxprice=20000000`,
-      );
-    }
-  }
+  // if (!searchParams.lat || !searchParams.lng) {
+  //   // Redirect
+  //   agent = await findAgentRecordByAgentId(agent_id);
 
-  console.log(`\n\nSSR Speed stats for ${headers().get('referer')}`);
+  //   const [default_location] = agent.metatags.search_highlights?.labels || ([] as SearchHighlightInput[]);
+  //   if (default_location?.lat && default_location?.lng) {
+  //     const { lat, lng, title } = default_location;
+  //     redirect(
+  //       `/${agent_id}/${slug}/map?city=${encodeURIComponent(
+  //         title.split(' ').join('+'),
+  //       )}&lat=${lat}&lng=${lng}&beds=0&baths=1&minprice=500000&maxprice=20000000`,
+  //     );
+  //   }
+  // }
+
+  console.log(`\n\nSSR Speed stats for ${headers().get('x-url')}`);
+  console.log(`\n\n   query: ${headers().get('x-search-params')}`);
+
   let time = Date.now();
 
   const session_key = cookies().get('session_key')?.value || '';
@@ -74,82 +162,83 @@ export default async function MapPage({ params, searchParams }: { params: { [key
       console.log(Date.now() - time + 'ms', '[Completed] Love data');
     }
   }
-  const center = getBounds(Number(searchParams.lat), Number(searchParams.lng), 10) as unknown as SearchOpts;
-  const upper = getBounds((center.nelat + Number(searchParams.lat)) / 2, center.nelng / 2, 10) as unknown as SearchOpts;
-  const lower = getBounds((center.swlat + Number(searchParams.lat)) / 2, center.swlng / 2, 10) as unknown as SearchOpts;
-  const promises = await Promise.all(
-    [
-      axios.get(url) as Promise<any>,
-      getPipelineData(
-        generatePipelineParams({
-          ...center,
-          ...searchParams,
-        }),
-      ),
-      getPipelineData(
-        generatePipelineParams({
-          ...upper,
-          ...searchParams,
-        }),
-      ),
-      getPipelineData(
-        generatePipelineParams({
-          ...lower,
-          ...searchParams,
-        }),
-      ),
-    ].concat(agent_id ? [findAgentRecordByAgentId(agent_id)] : []),
-  );
+  // const center = getBounds(Number(searchParams.lat), Number(searchParams.lng), 12) as unknown as SearchOpts;
+  // const upper = getBounds((center.nelat + Number(searchParams.lat)) / 2, center.nelng / 2, 12) as unknown as SearchOpts;
+  // const lower = getBounds((center.swlat + Number(searchParams.lat)) / 2, center.swlng / 2, 12) as unknown as SearchOpts;
+  // const promises = await Promise.all(
+  //   [
+  //     axios.get(url) as Promise<any>,
+  //     getPipelineData(
+  //       generatePipelineParams({
+  //         ...center,
+  //         ...searchParams,
+  //       }),
+  //     ),
+  //     getPipelineData(
+  //       generatePipelineParams({
+  //         ...upper,
+  //         ...searchParams,
+  //       }),
+  //     ),
+  //     getPipelineData(
+  //       generatePipelineParams({
+  //         ...lower,
+  //         ...searchParams,
+  //       }),
+  //     ),
+  //   ].concat(agent_id ? [findAgentRecordByAgentId(agent_id)] : []),
+  // );
 
   if (url) {
-    if (promises.length > 4) agent = promises.pop();
+    // if (promises.length > 4) agent = promises.pop();
 
-    const { data: html } = promises[0];
+    const { data: html } = await axios.get(url);
 
-    let mls_included: string[] = [];
-    let properties: PropertyDataModel[] = promises[1].records
-      .concat(promises[2].records)
-      .concat(promises[3].records)
-      .map((property: PropertyDataModel) => {
-        if (!mls_included.includes(property.mls_id)) {
-          mls_included.push(property.mls_id);
-          return property;
-        }
-      });
+    // let mls_included: string[] = [];
+    // let properties: PropertyDataModel[] = promises[1].records
+    //   .concat(promises[2].records)
+    //   .concat(promises[3].records)
+    //   .map((property: PropertyDataModel) => {
+    //     if (!mls_included.includes(property.mls_id)) {
+    //       mls_included.push(property.mls_id);
+    //       return property;
+    //     }
+    //   });
 
     if (html) {
       console.log(Date.now() - time + 'ms', '[Completed] HTML template & agent Strapi data extraction');
       const $: CheerioAPI = load(html);
       console.log(Date.now() - time + 'ms', '[Completed] HTML template load to memory');
 
-      if (agent) {
-        const { full_name, metatags } = agent as unknown as { full_name: string; metatags?: { [k: string]: string } };
-        if (metatags) {
-          $('[data-field]').each((i, el) => {
-            const field = el.attribs['data-field'];
-            if (LOGO_FIELDS.includes(field)) {
-              const attribs = Object.keys(el.attribs).map(attr => {
-                let val = el.attribs[attr];
-                if (val === field) {
-                  return '';
-                }
-                if (metatags[field] && attr === 'data-field') val = getImageSized(metatags[field], 160);
-
-                return `${attr}="${val}"`;
-              });
-              if (!el.attribs.src) $(el).replaceWith(`<${el.tagName} ${attribs.join(' ')}>${full_name}</${el.tagName}>`);
-              else if (el.tagName !== 'img') $(el).replaceWith(`<h5 data-rx ${attribs.join(' ')}>${full_name}</h5>`);
-            }
-          });
-        }
+      if (page_data) {
+        // const { full_name, metatags } = agent as unknown as { full_name: string; metatags?: { [k: string]: string } };
+        // if (metatags) {
+        //   $('[data-field]').each((i, el) => {
+        //     const field = el.attribs['data-field'];
+        //     if (LOGO_FIELDS.includes(field)) {
+        //       const attribs = Object.keys(el.attribs).map(attr => {
+        //         let val = el.attribs[attr];
+        //         if (val === field) {
+        //           return '';
+        //         }
+        //         if (metatags[field] && attr === 'data-field') val = getImageSized(metatags[field], 160);
+        //         return `${attr}="${val}"`;
+        //       });
+        //       if (!el.attribs.src) $(el).replaceWith(`<${el.tagName} ${attribs.join(' ')}>${full_name}</${el.tagName}>`);
+        //       else if (el.tagName !== 'img') $(el).replaceWith(`<h5 data-rx ${attribs.join(' ')}>${full_name}</h5>`);
+        //     }
+        //   });
+        // }
       }
+
       const body = $('body > div');
       const Page = (
         <>
-          <MapIterator agent={agent} city={searchParams.city} loves={loves} properties={properties}>
+          <MapIterator agent={page_data as unknown as AgentData} city={searchParams.city} loves={loves} properties={[]}>
             {domToReact(body as unknown as DOMNode[]) as unknown as React.ReactElement}
           </MapIterator>
           <RxNotifications />
+          <AuthPopup />
         </>
       );
       console.log(Date.now() - time + 'ms', '[Completed] rexification\n\n\n');

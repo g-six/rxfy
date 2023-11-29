@@ -221,7 +221,8 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
         });
       }
       let { types } = filters;
-      const q = queryStringToObject(search.toString() || '');
+      let q = queryStringToObject(search.toString() || '');
+
       if (Object.keys(q).length > 0 && q.types) {
         types = q.types;
       }
@@ -567,6 +568,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
 
   React.useEffect(() => {
     let q = queryStringToObject(search.toString() || '');
+
     if (q.center && map) {
       const { center, place_id, ...queryparams } = q;
       const [lat, lng] = `${center}`.split(',').map(Number);
@@ -625,14 +627,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
   }, [agent_only]);
 
   return (
-    <aside
-      className={[p.className, styles.MainWrapper, 'rexified MapCanvas'].join(' ')}
-      style={{
-        backgroundImage: `url(${`https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${search.get('lng')},${search.get(
-          'lat',
-        )},12/1080x720@2x?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`})`,
-      }}
-    >
+    <aside className={[p.className, styles.MainWrapper, 'rexified MapCanvas'].join(' ')}>
       <div id='map' className={classNames(styles.RxMapbox)} ref={mapNode}></div>
       <PropertyListModal
         agent={p.agent}

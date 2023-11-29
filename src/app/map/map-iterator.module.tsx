@@ -14,7 +14,7 @@ import MapCanvas from './map-canvas.module';
 import HomeList from './home-list.module';
 
 import list_styles from './home-list.module.scss';
-import AgentListingsToggle from './agent-listing-toggle.module';
+import AgentListingsToggle, { ActionButton } from './agent-listing-toggle.module';
 import HeartToggle from './heart-toggle.module';
 import PropertyCardSm from './property-card-sm.module';
 import { classNames } from '@/_utilities/html-helper';
@@ -143,12 +143,7 @@ export default async function MapIterator({
 
       // <-- Components
       if (className) {
-        if (className.includes('toggle-base'))
-          return React.cloneElement(<RxToggleSwitch />, {
-            ...props,
-            className: className || '' + ' rexified MapPage Iterator',
-          });
-        else if (className.includes('property-card-map')) {
+        if (className.includes('property-card-map')) {
           return (
             <RxPropertyCardList {...props}>
               {React.cloneElement(c, {
@@ -171,14 +166,12 @@ export default async function MapIterator({
               </RxMapFilters>
             </div>
           );
-        } else if (className.includes('listings-by-agent-field')) {
-          return agent ? (
-            <AgentListingsToggle agent={agent} className={className}>
-              {props.children}
-            </AgentListingsToggle>
-          ) : (
-            <></>
+        } else if (props['data-w-id']) {
+          return (
+            <ActionButton data-action-for={props['data-action'] || className || 'not-specified'}>{cloneElement(c, { 'data-w-id': undefined })}</ActionButton>
           );
+        } else if (className.includes('listings-by-agent-field')) {
+          return agent ? cloneElement(c, {}, <MapIterator {...attributes}>{props.children}</MapIterator>) : <></>;
         } else if (className.includes('all-properties')) {
           return (
             <HomeList agent={agent} className={className} properties={attributes.properties || []}>

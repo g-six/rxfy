@@ -1,5 +1,5 @@
 'use client';
-import React, { ReactElement, cloneElement } from 'react';
+import React, { MouseEvent, ReactElement, cloneElement } from 'react';
 import useEvent, { Events } from '@/hooks/useEvent';
 
 import styles from './home-list.module.scss';
@@ -11,12 +11,44 @@ import { classNames } from '@/_utilities/html-helper';
 import useLove from '@/hooks/useLove';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 import { AgentData } from '@/_typings/agent';
+import Cookies from 'js-cookie';
 
 export function isEmptyHeart(props: { className: string; 'data-field': string }) {
   return props.className?.indexOf('heart-full') >= 0 || props['data-field'] === 'heart_empty';
 }
 export function isFullHeart(props: { className: string; 'data-field': string }) {
   return props.className?.indexOf('heart-full') >= 0 || props['data-field'] === 'heart_full';
+}
+
+function LoveActionButton({
+  children,
+  ...props
+}: {
+  children: React.ReactElement;
+  listing: PropertyDataModel;
+  onLoveItem(): void;
+  onUnloveItem(): void;
+  loved?: boolean;
+}) {
+  return (
+    <button
+      type='button'
+      className={classNames('p-0 bg-transparent', props.loved ? '' : 'opacity-0 hover:opacity-50')}
+      onClick={(evt: MouseEvent<HTMLButtonElement>) => {
+        if (props.listing.mls_id) {
+          evt.currentTarget.classList.toggle('opacity-0');
+          evt.currentTarget.classList.toggle('hover:opacity-50');
+          if (evt.currentTarget.classList.contains('opacity-0')) {
+            props.onUnloveItem();
+          } else {
+            props.onLoveItem();
+          }
+        }
+      }}
+    >
+      {children}
+    </button>
+  );
 }
 
 function CoverPhotoContainerIterator({
@@ -36,32 +68,7 @@ function CoverPhotoContainerIterator({
           return cloneElement(c, {}, props.listing.area);
         }
         if (isFullHeart(c.props)) {
-          return cloneElement(c, {
-            className: classNames(
-              c.props.className || 'no-default-class',
-              props.loved ? 'hover:opacity-0 opacity-100' : 'hover:opacity-100 opacity-0',
-              'cursor-pointer',
-            ),
-            onClick: (e: React.SyntheticEvent) => {
-              e.stopPropagation();
-              if (e.currentTarget.classList.contains('opacity-0')) {
-                e.currentTarget.classList.remove('opacity-0');
-                e.currentTarget.classList.add('opacity-100');
-                e.currentTarget.classList.remove('hover:opacity-100');
-                e.currentTarget.classList.add('hover:opacity-0');
-              } else {
-                e.currentTarget.classList.remove('opacity-100');
-                e.currentTarget.classList.add('opacity-0');
-                e.currentTarget.classList.remove('hover:opacity-0');
-                e.currentTarget.classList.add('hover:opacity-100');
-              }
-              if (props.loved) {
-                props.onUnloveItem();
-              } else {
-                props.onLoveItem();
-              }
-            },
-          });
+          return <LoveActionButton {...props}>{c}</LoveActionButton>;
         }
         if (isEmptyHeart(c.props)) {
           return cloneElement(c, {
