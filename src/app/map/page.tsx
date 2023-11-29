@@ -28,10 +28,10 @@ type Props = {
 };
 
 interface SearchOpts {
-  nelat: number;
-  nelng: number;
-  swlat: number;
-  swlng: number;
+  nelat?: number;
+  nelng?: number;
+  swlat?: number;
+  swlng?: number;
   baths?: number;
   beds?: number;
   year_built?: number;
@@ -41,7 +41,8 @@ interface SearchOpts {
   maxprice?: number;
   ptypes?: string[];
   keywords?: string[];
-  sort: {
+  agent_id?: string;
+  sort?: {
     [key: string]: 'asc' | 'desc';
   };
 }
@@ -154,12 +155,13 @@ export default async function MapPage({ params, searchParams }: { params: { [key
 
   const session_key = cookies().get('session_key')?.value || '';
   const session_as = cookies().get('session_as')?.value || '';
+
   let loves: any[] = [];
+  let customer_id = 0;
   if (session_key && session_as === 'customer') {
-    const customer_id = Number(session_key.split('-').pop());
-    if (!isNaN(customer_id)) {
-      loves = await getLovedHomes(customer_id);
-      console.log(Date.now() - time + 'ms', '[Completed] Love data');
+    customer_id = Number(session_key.split('-').pop());
+    if (isNaN(customer_id)) {
+      customer_id = 0;
     }
   }
   // const center = getBounds(Number(searchParams.lat), Number(searchParams.lng), 12) as unknown as SearchOpts;
@@ -190,20 +192,32 @@ export default async function MapPage({ params, searchParams }: { params: { [key
   // );
 
   if (url) {
-    // if (promises.length > 4) agent = promises.pop();
+    const parameters = generatePipelineParams(
+      {
+        agent_id: page_data.agent_id,
+      },
+      1,
+    );
+    const promises: any[] = await Promise.all([
+      ...(customer_id ? [getLovedHomes(customer_id)] : []),
+      getPipelineData(
+        generatePipelineParams(
+          {
+            agent_id: page_data.agent_id,
+          },
+          1,
+        ),
+      ),
+      axios.get(url),
+    ]);
+    if (customer_id) {
+      loves = promises[0];
+      loves = await getLovedHomes(customer_id);
+      console.log(Date.now() - time + 'ms', '[Completed] Love data');
+    }
 
-    const { data: html } = await axios.get(url);
-
-    // let mls_included: string[] = [];
-    // let properties: PropertyDataModel[] = promises[1].records
-    //   .concat(promises[2].records)
-    //   .concat(promises[3].records)
-    //   .map((property: PropertyDataModel) => {
-    //     if (!mls_included.includes(property.mls_id)) {
-    //       mls_included.push(property.mls_id);
-    //       return property;
-    //     }
-    //   });
+    const { data: html } = promises.pop();
+    const hits: { records?: PropertyDataModel[] } = promises.pop();
 
     if (html) {
       console.log(Date.now() - time + 'ms', '[Completed] HTML template & agent Strapi data extraction');
@@ -234,7 +248,7 @@ export default async function MapPage({ params, searchParams }: { params: { [key
       const body = $('body > div');
       const Page = (
         <>
-          <MapIterator agent={page_data as unknown as AgentData} city={searchParams.city} loves={loves} properties={[]}>
+          <MapIterator agent={page_data as unknown as AgentData} city={searchParams.city} loves={loves} properties={hits?.records || []}>
             {domToReact(body as unknown as DOMNode[]) as unknown as React.ReactElement}
           </MapIterator>
           <RxNotifications />
@@ -322,6 +336,24 @@ function generatePipelineParams(opts: SearchOpts, size = 100) {
         'data.Type': t === 'House' ? 'House/Single Family' : t,
       },
     }));
+  }
+
+  if (opts.agent_id) {
+    should.push({
+      match: {
+        'data.LA1_LoginName': opts.agent_id,
+      },
+    });
+    should.push({
+      match: {
+        'data.LA2_LoginName': opts.agent_id,
+      },
+    });
+    should.push({
+      match: {
+        'data.LA3_LoginName': opts.agent_id,
+      },
+    });
   }
 
   const legacy_params: LegacySearchPayload = {

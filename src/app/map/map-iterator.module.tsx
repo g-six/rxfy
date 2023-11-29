@@ -14,7 +14,7 @@ import MapCanvas from './map-canvas.module';
 import HomeList from './home-list.module';
 
 import list_styles from './home-list.module.scss';
-import AgentListingsToggle, { ActionButton } from './agent-listing-toggle.module';
+import { ActionButton } from './agent-listing-toggle.module';
 import HeartToggle from './heart-toggle.module';
 import PropertyCardSm from './property-card-sm.module';
 import { classNames } from '@/_utilities/html-helper';

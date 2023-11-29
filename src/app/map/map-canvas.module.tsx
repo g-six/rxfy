@@ -43,7 +43,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
   const { data: home_alerts_params, fireEvent: setHomeAlertsParams } = useEvent(Events.MyHomeAlertsForm);
   const { data: lovers_data_obj } = useEvent(Events.LoadLovers);
   const { data: love } = useEvent(Events.MapLoversToggle);
-  const { data: agent_only } = useEvent(Events.AgentMyListings);
+  const { data: agent_only, fireEvent: toggleAgentOnly } = useEvent(Events.AgentMyListings);
   const mapNode = React.useRef(null);
   const [map, setMap] = React.useState<mapboxgl.Map>();
   const [is_loading, setLoading] = React.useState<boolean>(false);
@@ -53,6 +53,7 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
   const [listings, setListings] = React.useState<PropertyDataModel[]>([]);
   const [pipeline_listings, setPipelineResults] = React.useState<PropertyDataModel[]>([]);
   const [selected_cluster, setSelectedCluster] = React.useState<PropertyDataModel[]>([]);
+
   const clickEventListener = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
     const features = e.target.queryRenderedFeatures(e.point, {
       layers: ['rx-clusters', 'rx-home-price-bg'],
@@ -480,9 +481,6 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
 
       map.off('zoomend', populate);
       map.on('zoomend', populate);
-
-      // setListings(p.properties);
-      // setPipelineResults(p.properties);
     }
     // If we add populateMap into the dependency, it would cause an infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -625,6 +623,14 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
       populateMap();
     }
   }, [agent_only]);
+
+  React.useEffect(() => {
+    if (p.properties?.length) {
+      toggleAgentOnly({
+        show: true,
+      });
+    }
+  }, []);
 
   return (
     <aside className={[p.className, styles.MainWrapper, 'rexified MapCanvas'].join(' ')}>
