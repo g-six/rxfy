@@ -11,6 +11,10 @@ export async function getSmart(
   property: { [key: string]: string | number },
   real_estate_board?: { id: number; name: string; abbreviation: string },
 ) {
+  console.log(JSON.stringify({ property }, null, 4));
+  if (!property.city) {
+    return { error: 'Invalid property', property };
+  }
   let prompt = `My name's ${agent.full_name} and I'm a licenced realtor catering to the city of ${property.city}${
     property.city && property.state_province ? ', ' : ''
   }${property.state_province || ''}`;
@@ -185,7 +189,7 @@ export async function getSmart(
 
         console.log('');
         console.log('');
-        console.log('');
+        console.log('/api/agents/repair.getSmart');
         console.log('[BEGIN] mutation_create_meta');
         console.log(JSON.stringify(metatag, null, 4));
         console.log('');

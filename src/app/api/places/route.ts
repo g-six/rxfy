@@ -4,7 +4,7 @@ import { googlePlaceQuery } from '../_helpers/geo-helper';
 
 export async function GET(req: NextRequest) {
   const query = req.nextUrl.searchParams.get('query');
-
+  const zoom = req.nextUrl.searchParams.get('zoom') || '12';
   if (!query || query.length < 3)
     return getResponse(
       {
