@@ -13,6 +13,19 @@ export default function RxCarouselPhoto({ idx, photos, width = 1000, ...props }:
         backgroundImage: `url(${getImageSized(photos[idx], width)})`,
       }}
       onClick={() => {
+        document.querySelectorAll('.w-lightbox-strip > div').forEach((item, num) => {
+          if (num === idx) {
+            item.classList.add('active-lightbox');
+
+            const click = new MouseEvent('click', {
+              bubbles: true,
+              cancelable: true,
+              view: window,
+            });
+
+            item.dispatchEvent(click);
+          } else item.classList.remove('active-lightbox');
+        });
         fireCustomEvent({ show: true, photos: (photos ?? []).map(src => getImageSized(src, width)), key: idx }, Events.PropertyGalleryModal);
       }}
     />
