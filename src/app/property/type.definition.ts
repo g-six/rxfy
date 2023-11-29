@@ -49,6 +49,7 @@ export interface PageData extends PropertyDataModel {
   real_estate_board_name: string;
   total_kitchens?: number;
   neighbours?: BuildingUnit[];
+  similar_listings?: PropertyDataModel[];
 }
 export interface PropertyFeaturesWithIcons {
   amenities: { name: string }[];

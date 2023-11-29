@@ -17,6 +17,8 @@ import { BuildingUnit } from '../api/properties/types';
 import RxNotifications from '@/components/RxNotifications';
 import { getPrivateListing } from '../api/private-listings/model';
 import { PropertyDataModel } from '@/_typings/property';
+import { objectToQueryString } from '@/_utilities/url-helper';
+import { getSimilarMLSListings } from '../api/similar-properties/controller';
 
 function isBuildingUnit(property: { complex_compound_name?: string; style_type?: string }) {
   return property.style_type?.includes('Apartment') || property.complex_compound_name;
@@ -138,14 +140,16 @@ export default async function PropertyPage(props: any) {
         console.log('Building section 3', page_url);
         if (listing) {
           console.log('Property data retrieved in', Date.now() - start, 'miliseconds');
+          const similar_listings = await getSimilarListings(listing);
+          console.log({ similar_listings });
           const { photos, ...property } = listing as PageData;
 
           let neighbours: BuildingUnit[] = [];
-          if (property.lat && property.lon && isBuildingUnit(property)) {
-            neighbours = await getBuildingUnits(property);
-          }
 
           if (property) {
+            if (property.lat && property.lon && isBuildingUnit(property)) {
+              neighbours = await getBuildingUnits(property);
+            }
             if (property.fireplace && Array.isArray(property.fireplace)) property.fireplace = property.fireplace.join('/');
 
             if (property?.room_details?.rooms) {
@@ -192,6 +196,7 @@ export default async function PropertyPage(props: any) {
                     {
                       ...property,
                       neighbours,
+                      similar_listings,
                     } as unknown as PageData
                   }
                   photos={photos || []}
@@ -213,4 +218,65 @@ export default async function PropertyPage(props: any) {
     console.log('Layout 120', e);
     return <NotFound />;
   }
+}
+
+async function getSimilarListings(property: unknown) {
+  const { asking_price, area, lat, lon, mls_id, city, property_type, beds, state_province, complex_compound_name } = property as {
+    lat: number;
+    lon: number;
+    asking_price: number;
+    beds: number;
+    area: string;
+    city: string;
+    mls_id: string;
+    style_type: string;
+    property_type: string;
+    state_province: string;
+    complex_compound_name: string;
+  };
+  let bounds: number[] = [];
+
+  const filters = {
+    asking_price,
+    lat,
+    lon,
+    area,
+    city,
+    mls_id,
+    beds,
+    property_type,
+    state_province,
+    complex_compound_name,
+  };
+
+  const listings = await getSimilarMLSListings(filters);
+
+  return (listings || []).map(({ photos, title, asking_price, beds, baths, area, city, state_province, postal_zip_code, floor_area }: PropertyDataModel) => ({
+    cover_photo: photos?.length ? getImageSized(photos[0], 400) : undefined,
+    title,
+    asking_price,
+    beds,
+    baths,
+    area,
+    city,
+    state_province,
+    floor_area,
+    postal_zip_code,
+  }));
+
+  // Object.keys(property).forEach(filter => {
+  //   if (['property_type', 'lat', 'lon', 'beds', 'complex_compound_name', 'postal_zip_code'].includes(filter) && property[filter]) {
+  //     filters = {
+  //       ...filters,
+  //       [filter]: ['property_type', 'postal_zip_code', 'complex_compound_name'].includes(filter) ? encodeURIComponent(property[filter]) : property[filter],
+  //     };
+  //   }
+  // });
+
+  // const response = await axios.get(url, {
+  //   headers: {
+  //     Authorization: `Bearer ${Cookies.get('session_key')}`,
+  //     'Content-Type': 'application/json',
+  //   },
+  // });
 }

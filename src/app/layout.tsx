@@ -26,7 +26,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const requestLink = headers().get('x-url') || '';
   const requestUrl = new URL(requestLink);
   const searchParams = Object.fromEntries(requestUrl.searchParams);
-
   // These variables will determine the page to be served along with the data to be injected
   // in the Rexification process
   let data;

@@ -3,7 +3,7 @@ import { Children, ReactElement, cloneElement } from 'react';
 import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
 import { PageData, PropertyFeaturesWithIcons } from './type.definition';
 
-const no_icons = ['underground', 'dryer', 'other', 'front', 'open', 'wheelchair-access', 'storage'];
+const no_icons = ['underground', 'dryer', 'other', 'front', 'open', 'wheelchair-access', 'storage', 'basketball-court'];
 export default function IconIterator({ children, property, className }: { children: ReactElement; property: PageData; className: string }) {
   const { amenities, appliances, facilities, connected_services, parking, places_of_interest } = property as unknown as PropertyFeaturesWithIcons;
   const Icons: ReactElement[] = [];

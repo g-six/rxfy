@@ -1,6 +1,4 @@
-'use client';
-
-import { Children, ReactElement, cloneElement, useEffect, useState } from 'react';
+import { Children, ReactElement, cloneElement } from 'react';
 import { classNames } from '@/_utilities/html-helper';
 import { BathroomDetails, RoomDetails } from '@/_typings/property';
 import RxMapOfListing from '@/components/RxMapOfListing';
@@ -11,15 +9,15 @@ import SoldHistory from './sold-history.module';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import IconIterator from './features.iterator';
 import KeyValueIterator from './key-value-pair.iterator';
-import { Transition } from '@headlessui/react';
 import RecentListings from './recent-listings.module';
 import PageAction from './page-action.module';
 import { AgentData } from '@/_typings/agent';
 import { LOGO_FIELDS } from '@/_constants/agent-fields';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
+import AnimatedComponent from './animated-component.module';
 
-export default function Iterator({ children, ...props }: { children: ReactElement; agent: AgentData; property: PageData; photos: string[] }) {
+export default async function PropertyPageIterator({ children, ...props }: { children: ReactElement; agent: AgentData; property: PageData; photos: string[] }) {
   const Rexified = Children.map(children, c => {
     if (c.props?.['data-action']) {
       const { children: subcomponents, property, ...subprops } = c.props;
@@ -234,31 +232,24 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
           {c.props.children}
         </SoldHistory>
       );
-    } else if (c.props?.style) {
+    } else if (c.props?.style && c.props.children) {
       return (
-        <Transition
-          appear={false}
-          show={true}
-          enter='transition-opacity duration-75'
-          enterFrom='opacity-0'
-          enterTo='opacity-100'
-          leave='transition-opacity duration-150'
-          leaveFrom='opacity-100'
-          leaveTo='opacity-0'
-        >
+        <AnimatedComponent {...c.props}>
           {cloneElement(c, {
             className: '',
             style: undefined,
           })}
-        </Transition>
+        </AnimatedComponent>
       );
     } else if (c.props?.children && typeof c.props?.children !== 'string') {
       if (!['building_units', 'history'].includes(c.props?.['data-group'])) {
         if (c.props['data-group'] === 'similar_listings') {
-          return (
+          return props.property?.similar_listings?.length ? (
             <RecentListings {...props} className={c.props.className}>
               {c.props.children}
             </RecentListings>
+          ) : (
+            <></>
           );
         }
         return cloneElement(
@@ -266,22 +257,11 @@ export default function Iterator({ children, ...props }: { children: ReactElemen
           {
             className: classNames(c.props.className || '', 'property-page-rexified').trim(),
           },
-          <Iterator {...props}>{c.props.children}</Iterator>,
+          <PropertyPageIterator {...props}>{c.props.children}</PropertyPageIterator>,
         );
       }
     }
     return c;
   });
   return <>{Rexified}</>;
-}
-
-export function PropertyPageIterator(p: { agent: AgentData; property: PageData }) {
-  const [dom, setDom] = useState<ReactElement>(<></>);
-  const { webflow_domain } = p.agent;
-
-  useEffect(() => {
-    fetch(`https://sites.leagent.com/${webflow_domain}/property/propertyid.html`).then(console.log);
-  }, []);
-
-  return <>test</>;
 }
