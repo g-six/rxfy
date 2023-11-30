@@ -43,8 +43,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       street_2: 'Burnaby, BC V5H 2Y3',
       logo_for_light_bg: '',
       title: 'Leagent - REALTOR® AI-Powered Marketing Platform',
-      description:
-        'Leagent is your online office – where you collaborate on the home purchase with your clients, do market analysis, and have your marketing assets made in 10 minutes',
     },
   } as unknown as AgentData;
   let theme = searchParams.theme;
