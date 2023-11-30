@@ -65,8 +65,6 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
     });
   });
 
-  console.log(should);
-
   const { pathname } = new URL(headers().get('x-url') as string);
   const file_name = pathname.split('/').pop() as string;
   const page_slug = file_name.split('.html').join('');
@@ -110,7 +108,11 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
           min_lng = l.sw.lng;
         }
       });
-
+      console.log({ area });
+      console.log({ area });
+      console.log({ area });
+      console.log({ area });
+      console.log({ area });
       if (!area || ['Homepage', 'Index', 'Properties'].includes(area))
         filter = filter.concat([
           {
@@ -163,13 +165,25 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
     });
     $(el).replaceWith(`<a ${attribs.join(' ')}>${$(el).html()}</a>`);
   });
+  const is_homepage = headers().get('x-url')?.split('/').pop() === 'index.html';
+  if (is_homepage) {
+    filter.push({
+      match: {
+        'data.PropertyType': 'Residential Detached',
+      },
+    });
+  }
 
   const internal_req = {
     from: 0,
-    size: 60,
-    sort: {
-      'data.UpdateDate': 'desc',
-    },
+    size: is_homepage ? 3 : 60,
+    sort: is_homepage
+      ? {
+          'data.AskingPrice': 'desc',
+        }
+      : {
+          'data.UpdateDate': 'desc',
+        },
     query: {
       bool: {
         filter: filter.concat([
@@ -207,7 +221,7 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
     },
   } as LegacySearchPayload;
   const [{ records: active }, { records: sold }] = await Promise.all([getPipelineData(internal_req), getPipelineData(intsold_req)]);
-
+  console.log(active[0]);
   $('[data-field="search_highlights"]:not(:first-child)').remove();
   $('.property-card:not(:first-child)').remove();
   $('[data-group="sold_listings"] [data-component="property_card"]:not(:first-child)').remove();

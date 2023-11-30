@@ -37,7 +37,7 @@ export default function Iterator({
             {sub}
           </AgentListingsIterator>,
         );
-      if (props['data-group'] === 'active_listings')
+      if (props['data-group'] === 'active_listings') {
         return cloneElement(
           c,
           {},
@@ -45,6 +45,7 @@ export default function Iterator({
             {sub}
           </AgentListingsIterator>,
         );
+      }
 
       if (props['data-component'] === 'property_card' && listings?.active) {
         return (
