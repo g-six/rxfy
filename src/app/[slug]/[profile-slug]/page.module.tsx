@@ -8,7 +8,7 @@ import FooterIterator from '@/components/RxFooter';
 import RxNotifications from '@/components/RxNotifications';
 import { LOGO_FIELDS } from '@/_constants/agent-fields';
 import { getAgentMapDefaultUrl } from '@/_utilities/data-helpers/agent-helper';
-import { findAgentRecordByAgentId } from '@/app/api/agents/model';
+import { findAgentBrokerageAgents, findAgentRecordByAgentId } from '@/app/api/agents/model';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import Iterator from './page-iterator.module';
 import NavIterator from '@/components/Nav/RxNavIterator';
@@ -22,6 +22,8 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
   console.log('');
   console.log('Loading app/[slug]/[profile-slug]/page.module.tsx', { slug: agent_id });
   const agent = await findAgentRecordByAgentId(agent_id);
+  const brokers = await findAgentBrokerageAgents(agent_id, true);
+  console.log(brokers);
 
   const webflow_site = props['page-url'] || (headers().get('x-url') as string);
 
@@ -46,6 +48,25 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
       },
     },
   ] as unknown[];
+  (brokers as unknown as string[]).forEach(co_agent_id => {
+    should.push({
+      match: {
+        'data.LA1_LoginName': co_agent_id,
+      },
+    });
+    should.push({
+      match: {
+        'data.LA2_LoginName': co_agent_id,
+      },
+    });
+    should.push({
+      match: {
+        'data.LA3_LoginName': co_agent_id,
+      },
+    });
+  });
+
+  console.log(should);
 
   const { pathname } = new URL(headers().get('x-url') as string);
   const file_name = pathname.split('/').pop() as string;
@@ -146,7 +167,7 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
 
   const internal_req = {
     from: 0,
-    size: 3,
+    size: 15,
     sort: {
       'data.UpdateDate': 'desc',
     },
@@ -160,14 +181,14 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
           },
         ]),
         should,
-        minimum_should_match: should.length >= 3 ? should.length - 2 : 1,
+        minimum_should_match: brokers.length === 0 && should.length >= 3 ? should.length - 2 : 1 + brokers.length,
         must_not,
       },
     },
   } as LegacySearchPayload;
   const intsold_req = {
     from: 0,
-    size: 2,
+    size: 15,
     sort: {
       'data.UpdateDate': 'desc',
     },
@@ -181,7 +202,7 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
           },
         ]),
         should,
-        minimum_should_match: 1,
+        minimum_should_match: brokers.length === 0 && should.length >= 3 ? should.length - 2 : 1 + brokers.length,
         must_not,
       },
     },

@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import {
   gql_agent_id_inventory,
+  gql_brokerage_realtors,
   gql_by_agent_uniq,
   gql_by_realtor_id,
   gql_create_agent,
@@ -364,6 +365,48 @@ export async function findAgentRecordByAgentId(agent_id: string) {
     console.log('Error in api.agents.model.findAgentRecordByAgentId:', agent_id);
   } finally {
     console.log('Completed api.agents.model.findAgentRecordByAgentId call for', agent_id);
+  }
+}
+export async function findAgentBrokerageAgents(agent_id: string, exclude_self?: boolean) {
+  try {
+    const query = {
+      query: gql_brokerage_realtors,
+      variables: {
+        agent_id,
+      },
+    };
+    const { data: response_data } = await axios.post(`${process.env.NEXT_APP_CMS_GRAPHQL_URL}`, query, {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response_data?.data?.brokerages?.data) {
+      const agents: string[] = [];
+      response_data?.data?.brokerages?.data.map(({ attributes }: { attributes: { agents: { data: { attributes: { agent_id: string } }[] } } }) => {
+        attributes.agents.data.map(a => {
+          if (!exclude_self || agent_id !== a.attributes.agent_id) agents.push(a.attributes.agent_id);
+        });
+      });
+      return agents;
+    }
+
+    return response_data;
+  } catch (e) {
+    const { response: axerr } = e as unknown as {
+      response?: {
+        data?: {
+          error?: {
+            [k: string]: string;
+          };
+        };
+      };
+    };
+    console.error(axerr?.data?.error);
+    console.log('Error in api.agents.model.findAgentBrokerageAgents:', agent_id);
+  } finally {
+    console.log('Completed api.agents.model.findAgentBrokerageAgents call for', agent_id);
   }
 }
 
