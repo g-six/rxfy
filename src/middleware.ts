@@ -338,7 +338,7 @@ export async function middleware(request: NextRequest) {
     if (page_url.endsWith('.io')) page_url = `${page_url}/index`;
 
     page_url = `${page_url}.html`;
-    // response.headers.set('x-url', page_url);
+    if (page_url.includes('leagent-website')) response.headers.set('x-url', page_url);
   }
 
   const allCookies = request.cookies.getAll();
