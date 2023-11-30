@@ -167,7 +167,7 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
 
   const internal_req = {
     from: 0,
-    size: 15,
+    size: 60,
     sort: {
       'data.UpdateDate': 'desc',
     },
@@ -181,14 +181,14 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
           },
         ]),
         should,
-        minimum_should_match: brokers.length === 0 && should.length >= 3 ? should.length - 2 : 1 + brokers.length,
+        minimum_should_match: brokers.length === 0 && should.length >= 3 ? should.length - 2 : 1,
         must_not,
       },
     },
   } as LegacySearchPayload;
   const intsold_req = {
     from: 0,
-    size: 15,
+    size: 45,
     sort: {
       'data.UpdateDate': 'desc',
     },
@@ -202,7 +202,7 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
           },
         ]),
         should,
-        minimum_should_match: brokers.length === 0 && should.length >= 3 ? should.length - 2 : 1 + brokers.length,
+        minimum_should_match: brokers.length === 0 && should.length >= 3 ? should.length - 2 : 1,
         must_not,
       },
     },
