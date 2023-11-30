@@ -34,7 +34,13 @@ function Iterator({ children }: { children: React.ReactElement }) {
   });
   return <>{Wrapped}</>;
 }
-export default function MapCanvas(p: { agent?: AgentData; className: string; children: React.ReactElement; properties?: PropertyDataModel[] }) {
+export default function MapCanvas(p: {
+  agent?: AgentData;
+  className: string;
+  children: React.ReactElement;
+  properties?: PropertyDataModel[];
+  'other-brokers'?: string[];
+}) {
   const start = Date.now();
   const router = useRouter();
   const search = useSearchParams();
@@ -239,25 +245,46 @@ export default function MapCanvas(p: { agent?: AgentData; className: string; chi
       }
 
       if (agent_only?.show && p.agent?.agent_id) {
+        const should_match_agents = [
+          {
+            match: {
+              'data.LA1_LoginName': p.agent.agent_id,
+            },
+          },
+          {
+            match: {
+              'data.LA2_LoginName': p.agent.agent_id,
+            },
+          },
+          {
+            match: {
+              'data.LA3_LoginName': p.agent.agent_id,
+            },
+          },
+        ];
+        if (p['other-brokers']) {
+          p['other-brokers'].forEach(agent_id => {
+            should_match_agents.push({
+              match: {
+                'data.LA1_LoginName': agent_id,
+              },
+            });
+            should_match_agents.push({
+              match: {
+                'data.LA2_LoginName': agent_id,
+              },
+            });
+            should_match_agents.push({
+              match: {
+                'data.LA3_LoginName': agent_id,
+              },
+            });
+          });
+        }
+        console.log(should_match_agents);
         user_defined_filters.push({
           bool: {
-            should: [
-              {
-                match: {
-                  'data.LA1_LoginName': p.agent.agent_id,
-                },
-              },
-              {
-                match: {
-                  'data.LA2_LoginName': p.agent.agent_id,
-                },
-              },
-              {
-                match: {
-                  'data.LA3_LoginName': p.agent.agent_id,
-                },
-              },
-            ],
+            should: should_match_agents as any,
             minimum_should_match: 1,
           },
         });

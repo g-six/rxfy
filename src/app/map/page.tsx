@@ -14,6 +14,7 @@ import { queryStringToObject } from '@/_utilities/url-helper';
 import { AgentData } from '@/_typings/agent';
 import { Metadata } from 'next';
 import { AuthPopup } from './auth.popup';
+import { findAgentBrokerageAgents } from '../api/agents/model';
 type Props = {
   params: { id: string };
   searchParams: { [key: string]: string | string[] | undefined };
@@ -34,6 +35,7 @@ interface SearchOpts {
   ptypes?: string[];
   keywords?: string[];
   agent_id?: string;
+  brokers?: string[];
   sort?: {
     [key: string]: 'asc' | 'desc';
   };
@@ -141,6 +143,7 @@ export default async function MapPage({ params, searchParams }: { params: { [key
   if (url) {
     const promises: any[] = await Promise.all([
       ...(customer_id ? [getLovedHomes(customer_id)] : []),
+      findAgentBrokerageAgents(page_data.agent_id, true),
       getPipelineData(
         generatePipelineParams(
           {
@@ -159,6 +162,7 @@ export default async function MapPage({ params, searchParams }: { params: { [key
 
     const { data: html } = promises.pop();
     const hits: { records?: PropertyDataModel[] } = promises.pop();
+    const brokers = promises.pop();
 
     if (html) {
       console.log(Date.now() - time + 'ms', '[Completed] HTML template & agent Strapi data extraction');
@@ -168,7 +172,13 @@ export default async function MapPage({ params, searchParams }: { params: { [key
       const body = $('body > div');
       const Page = (
         <>
-          <MapIterator agent={page_data as unknown as AgentData} city={searchParams.city} loves={loves} properties={hits?.records || []}>
+          <MapIterator
+            agent={page_data as unknown as AgentData}
+            city={searchParams.city}
+            loves={loves}
+            other-brokers={brokers || []}
+            properties={hits?.records || []}
+          >
             {domToReact(body as unknown as DOMNode[]) as unknown as React.ReactElement}
           </MapIterator>
           <RxNotifications />
@@ -273,6 +283,25 @@ function generatePipelineParams(opts: SearchOpts, size = 100) {
       match: {
         'data.LA3_LoginName': opts.agent_id,
       },
+    });
+  }
+  if (opts.brokers?.length) {
+    opts.brokers.forEach(agent_id => {
+      should.push({
+        match: {
+          'data.LA1_LoginName': agent_id,
+        },
+      });
+      should.push({
+        match: {
+          'data.LA2_LoginName': agent_id,
+        },
+      });
+      should.push({
+        match: {
+          'data.LA3_LoginName': agent_id,
+        },
+      });
     });
   }
 

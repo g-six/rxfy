@@ -23,7 +23,6 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
   console.log('Loading app/[slug]/[profile-slug]/page.module.tsx', { slug: agent_id });
   const agent = await findAgentRecordByAgentId(agent_id);
   const brokers = await findAgentBrokerageAgents(agent_id, true);
-  console.log(brokers);
 
   const webflow_site = props['page-url'] || (headers().get('x-url') as string);
 

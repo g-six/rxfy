@@ -75,6 +75,7 @@ export default async function MapIterator({
   city?: string;
   loves?: LoveDataModel[];
   properties?: PropertyDataModel[];
+  'other-brokers'?: string[];
 }) {
   const { agent, city } = attributes;
   const Wrapped = React.Children.map(children, c => {
