@@ -94,6 +94,7 @@ export async function middleware(request: NextRequest) {
   if (!is_leagent_website && (domain_name === 'localhost' || domain_name.includes('leagent.com')) && segments[0] && !REALTOR_MAIN_PAGES.includes(segments[0])) {
     is_leagent_website = true;
   }
+  is_leagent_website = is_leagent_website || domain_name === 'leagent.com';
 
   let agent_data = is_leagent_website
     ? {}
