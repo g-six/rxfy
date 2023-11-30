@@ -39,7 +39,7 @@ interface SearchOpts {
   };
 }
 
-export async function generateMetadata(props?: Props): Promise<Metadata> {
+async function getMetadata(props?: Props): Promise<Metadata> {
   let page_data: {
     [k: string]: any;
   } = {};
@@ -118,7 +118,7 @@ export default async function MapPage({ params, searchParams }: { params: { [key
   const { 'profile-slug': slug } = params;
   const url = headers().get('x-url');
 
-  const metadata = await generateMetadata();
+  const metadata = await getMetadata();
   const page_data = metadata as unknown as AgentData;
 
   console.log(`\n\nSSR Speed stats for ${headers().get('x-url')}`);
