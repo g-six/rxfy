@@ -13,7 +13,6 @@ import RxLiveTextDDOption from '@/components/RxLiveUrlBased/RxLiveTextDropdownOp
 import { getPropertyTypeFromSelector, getSortingKey } from '@/_utilities/rx-map-helper';
 import RxMapTermsFilter from '../RxMapTermsFilter';
 import { getShortPrice } from '@/_utilities/data-helpers/price-helper';
-import RxLiveToggle from '../RxLiveUrlBased/RxLiveToggle';
 type Props = {
   children: React.ReactElement[];
   className?: string;
@@ -77,15 +76,6 @@ export default function RxSearchFilters(p: Props) {
   };
 
   const matches = [
-    {
-      searchFn: searchByClasses(['toggle-base']),
-      transformChild: (child: React.ReactElement) => {
-        const { 'data-agent-id': agent_id } = p as unknown as {
-          [key: string]: string;
-        };
-        return <RxLiveToggle filter='agent' value={agent_id} />;
-      },
-    },
     {
       searchFn: searchByPartOfClass(['ptype-']),
       transformChild: (child: React.ReactElement) => {
@@ -394,13 +384,6 @@ export default function RxSearchFilters(p: Props) {
       },
     },
   ];
-
-  if (!p['data-agent-id']) {
-    // Not viewing map through agent
-    if (p.className?.includes('listings-by-agent')) {
-      return <></>;
-    }
-  }
 
   return (
     <fieldset {...p} className={`${p.className || ''} rexified`.trim()}>

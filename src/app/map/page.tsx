@@ -3,24 +3,16 @@ import axios from 'axios';
 import { cookies, headers } from 'next/headers';
 import { CheerioAPI, load } from 'cheerio';
 import { DOMNode, domToReact } from 'html-react-parser';
-import { findAgentRecordByAgentId } from '../api/agents/model';
 import MapIterator from './map-iterator.module';
-import { SearchHighlightInput } from '@/_typings/maps';
-import { redirect } from 'next/navigation';
 import RxNotifications from '@/components/RxNotifications';
 import { getLovedHomes } from '../api/loves/model';
 import { LegacySearchPayload } from '@/_typings/pipeline';
-import { getBounds } from '@/_utilities/map-helper';
 import { must_not } from '@/_utilities/api-calls/call-legacy-search';
 import { PropertyDataModel } from '@/_typings/property';
-import { LOGO_FIELDS } from '@/_constants/agent-fields';
-import { getImageSized } from '@/_utilities/data-helpers/image-helper';
-import NotFound from '../not-found';
 import { getPipelineData } from '../api/pipeline/subroutines';
-import { objectToQueryString, queryStringToObject } from '@/_utilities/url-helper';
+import { queryStringToObject } from '@/_utilities/url-helper';
 import { AgentData } from '@/_typings/agent';
 import { Metadata } from 'next';
-import { NextResponse } from 'next/server';
 import { AuthPopup } from './auth.popup';
 type Props = {
   params: { id: string };
@@ -129,25 +121,6 @@ export default async function MapPage({ params, searchParams }: { params: { [key
   const metadata = await generateMetadata();
   const page_data = metadata as unknown as AgentData;
 
-  // let agent;
-  // const agent_id = headers().get('x-agent-id') || params.slug || '';
-  // if (!url || !agent_id) return <NotFound />;
-
-  // if (!searchParams.lat || !searchParams.lng) {
-  //   // Redirect
-  //   agent = await findAgentRecordByAgentId(agent_id);
-
-  //   const [default_location] = agent.metatags.search_highlights?.labels || ([] as SearchHighlightInput[]);
-  //   if (default_location?.lat && default_location?.lng) {
-  //     const { lat, lng, title } = default_location;
-  //     redirect(
-  //       `/${agent_id}/${slug}/map?city=${encodeURIComponent(
-  //         title.split(' ').join('+'),
-  //       )}&lat=${lat}&lng=${lng}&beds=0&baths=1&minprice=500000&maxprice=20000000`,
-  //     );
-  //   }
-  // }
-
   console.log(`\n\nSSR Speed stats for ${headers().get('x-url')}`);
   console.log(`\n\n   query: ${headers().get('x-search-params')}`);
 
@@ -164,40 +137,8 @@ export default async function MapPage({ params, searchParams }: { params: { [key
       customer_id = 0;
     }
   }
-  // const center = getBounds(Number(searchParams.lat), Number(searchParams.lng), 12) as unknown as SearchOpts;
-  // const upper = getBounds((center.nelat + Number(searchParams.lat)) / 2, center.nelng / 2, 12) as unknown as SearchOpts;
-  // const lower = getBounds((center.swlat + Number(searchParams.lat)) / 2, center.swlng / 2, 12) as unknown as SearchOpts;
-  // const promises = await Promise.all(
-  //   [
-  //     axios.get(url) as Promise<any>,
-  //     getPipelineData(
-  //       generatePipelineParams({
-  //         ...center,
-  //         ...searchParams,
-  //       }),
-  //     ),
-  //     getPipelineData(
-  //       generatePipelineParams({
-  //         ...upper,
-  //         ...searchParams,
-  //       }),
-  //     ),
-  //     getPipelineData(
-  //       generatePipelineParams({
-  //         ...lower,
-  //         ...searchParams,
-  //       }),
-  //     ),
-  //   ].concat(agent_id ? [findAgentRecordByAgentId(agent_id)] : []),
-  // );
 
   if (url) {
-    const parameters = generatePipelineParams(
-      {
-        agent_id: page_data.agent_id,
-      },
-      1,
-    );
     const promises: any[] = await Promise.all([
       ...(customer_id ? [getLovedHomes(customer_id)] : []),
       getPipelineData(
@@ -223,27 +164,6 @@ export default async function MapPage({ params, searchParams }: { params: { [key
       console.log(Date.now() - time + 'ms', '[Completed] HTML template & agent Strapi data extraction');
       const $: CheerioAPI = load(html);
       console.log(Date.now() - time + 'ms', '[Completed] HTML template load to memory');
-
-      if (page_data) {
-        // const { full_name, metatags } = agent as unknown as { full_name: string; metatags?: { [k: string]: string } };
-        // if (metatags) {
-        //   $('[data-field]').each((i, el) => {
-        //     const field = el.attribs['data-field'];
-        //     if (LOGO_FIELDS.includes(field)) {
-        //       const attribs = Object.keys(el.attribs).map(attr => {
-        //         let val = el.attribs[attr];
-        //         if (val === field) {
-        //           return '';
-        //         }
-        //         if (metatags[field] && attr === 'data-field') val = getImageSized(metatags[field], 160);
-        //         return `${attr}="${val}"`;
-        //       });
-        //       if (!el.attribs.src) $(el).replaceWith(`<${el.tagName} ${attribs.join(' ')}>${full_name}</${el.tagName}>`);
-        //       else if (el.tagName !== 'img') $(el).replaceWith(`<h5 data-rx ${attribs.join(' ')}>${full_name}</h5>`);
-        //     }
-        //   });
-        // }
-      }
 
       const body = $('body > div');
       const Page = (

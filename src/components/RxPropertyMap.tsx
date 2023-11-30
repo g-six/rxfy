@@ -69,19 +69,6 @@ export function RxPropertyMapRecursive(props: RxPropertyMapProps & { className?:
               {child.props.children}
             </RxSearchFilters>
           );
-        } else if (child.props.className.indexOf('listings-by-agent-field') >= 0) {
-          return (
-            <RxSearchFilters className={child.props.className || ''} data-agent-id={props.agent_data?.agent_id}>
-              {React.Children.map(child.props.children, child => {
-                if (child.props.children === '{Agent Name}') {
-                  return (
-                    <span className='propcard-stat map'>{props.agent_data?.first_name || props.agent_data?.full_name?.split(' ').slice(0, 2).join(' ')}</span>
-                  );
-                }
-                return child;
-              })}
-            </RxSearchFilters>
-          );
         } else if (child.props.className.split(' ').includes('heart-button')) {
           return (
             <RxToggleSavedHomes {...child.props} onClick={props.toggleLovedHomes}>

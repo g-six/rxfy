@@ -15,16 +15,17 @@ export default function RxToggleSwitch(p: {
   return (
     <div
       {...p}
-      onClick={(evt: React.SyntheticEvent) => {
-        if (p['data-field']) {
-          eventHandler.fireEvent({
-            [p['data-field']]: is_toggled === 'on' ? 'off' : 'on',
-          } as unknown as EventsData);
-        }
-        toggle(is_toggled === 'on' ? 'off' : 'on');
-        return evt;
-      }}
-      data-toggled={is_toggled}
+      className=''
+      // onClick={(evt: React.SyntheticEvent) => {
+      // if (p['data-field']) {
+      //   eventHandler.fireEvent({
+      //     [p['data-field']]: is_toggled === 'on' ? 'off' : 'on',
+      //   } as unknown as EventsData);
+      // }
+      // toggle(is_toggled === 'on' ? 'off' : 'on');
+      // return evt;
+      // }}
+      rx-toggle-switch
     >
       {p.children}
     </div>
