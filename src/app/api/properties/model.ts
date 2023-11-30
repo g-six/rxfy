@@ -123,7 +123,6 @@ export async function buildCacheFiles(mls_id: string): Promise<
       getPropertyByMlsId(mls_id),
     ]);
     const [legacy] = promises[0];
-
     if (legacy) {
       const { mls_data, property_type, ...property } = legacy;
 
@@ -178,6 +177,7 @@ export async function buildCacheFiles(mls_id: string): Promise<
         });
 
       let real_estate_board = await getRealEstateBoard(mls_data as unknown as { [key: string]: string });
+      console.log({ agents });
 
       const listing_by_name =
         LA1_FullName || LA2_FullName || LA3_FullName || SO1_FullName || SO2_FullName || SO3_FullName || LO1_Name || LO2_Name || LO3_Name || '';

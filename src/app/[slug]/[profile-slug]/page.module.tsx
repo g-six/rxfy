@@ -20,6 +20,7 @@ import { getPipelineData } from '@/app/api/pipeline/subroutines';
 export default async function PageComponent({ agent_id, theme = 'default', ...props }: { agent_id: string; theme?: string; 'page-url'?: string }) {
   console.log('');
   console.log('');
+  console.log('* * * [slug]/[profile-slug]/page.module.tsx * * *');
   console.log('Loading app/[slug]/[profile-slug]/page.module.tsx', { slug: agent_id });
   const agent = await findAgentRecordByAgentId(agent_id);
   const brokers = await findAgentBrokerageAgents(agent_id, true);
@@ -89,31 +90,26 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
         min_lat = -999,
         max_lng = -999,
         min_lng = -999;
-      labels.forEach(l => {
-        should = should.concat([
-          {
-            match: { 'data.Area': l.title },
-          },
-        ]);
-        if (max_lat === -999 || max_lat < l.ne.lat) {
-          max_lat = l.ne.lat;
-        }
-        if (max_lng === -999 || max_lng < l.ne.lng) {
-          max_lng = l.ne.lng;
-        }
-        if (min_lat === -999 || min_lat > l.sw.lat) {
-          min_lat = l.sw.lat;
-        }
-        if (min_lng === -999 || min_lng > l.sw.lng) {
-          min_lng = l.sw.lng;
-        }
-      });
-      console.log({ area });
-      console.log({ area });
-      console.log({ area });
-      console.log({ area });
-      console.log({ area });
-      if (!area || ['Homepage', 'Index', 'Properties'].includes(area))
+      if (!area || ['Homepage', 'Index', 'Properties'].includes(area)) {
+        labels.forEach(l => {
+          should = should.concat([
+            {
+              match: { 'data.Area': l.title },
+            },
+          ]);
+          if (max_lat === -999 || max_lat < l.ne.lat) {
+            max_lat = l.ne.lat;
+          }
+          if (max_lng === -999 || max_lng < l.ne.lng) {
+            max_lng = l.ne.lng;
+          }
+          if (min_lat === -999 || min_lat > l.sw.lat) {
+            min_lat = l.sw.lat;
+          }
+          if (min_lng === -999 || min_lng > l.sw.lng) {
+            min_lng = l.sw.lng;
+          }
+        });
         filter = filter.concat([
           {
             range: {
@@ -132,7 +128,7 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
             },
           },
         ]);
-      else {
+      } else {
         filter.push({
           match: {
             'data.Area': area,
@@ -173,6 +169,7 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
       },
     });
   }
+  const minimum_should_match = brokers.length === 0 && should.length >= 3 ? should.length - 2 : 1;
 
   const internal_req = {
     from: 0,
@@ -194,7 +191,7 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
           },
         ]),
         should,
-        minimum_should_match: brokers.length === 0 && should.length >= 3 ? should.length - 2 : 1,
+        minimum_should_match,
         must_not,
       },
     },
@@ -220,8 +217,9 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
       },
     },
   } as LegacySearchPayload;
+  console.log(JSON.stringify({ should, minimum_should_match, filter }, null, 4));
   const [{ records: active }, { records: sold }] = await Promise.all([getPipelineData(internal_req), getPipelineData(intsold_req)]);
-  console.log(active[0]);
+
   $('[data-field="search_highlights"]:not(:first-child)').remove();
   $('.property-card:not(:first-child)').remove();
   $('[data-group="sold_listings"] [data-component="property_card"]:not(:first-child)').remove();
@@ -237,7 +235,7 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
   const footer = $('[data-group="footer"]');
 
   const body = $('body > div');
-
+  console.log('END OF [slug]/[profile-slug]/page.module.tsx FILE');
   return (
     <>
       <NavIterator agent={agent}>{domToReact(navbar as unknown as DOMNode[]) as unknown as ReactElement}</NavIterator>
