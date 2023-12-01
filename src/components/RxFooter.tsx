@@ -50,7 +50,6 @@ function Iterator({ children, ...data }: { agent: AgentData; children: ReactElem
         case 'logo_for_light_bg':
         case 'logo_for_dark_bg':
           const logo = data.agent.metatags.logo_for_light_bg || data.agent.metatags.logo_for_dark_bg;
-          console.log(c.type, field, logo, data.agent.metatags);
           if (logo) {
             if (c.type === 'img') {
               return cloneElement(c, {
@@ -68,7 +67,7 @@ function Iterator({ children, ...data }: { agent: AgentData; children: ReactElem
           return cloneElement(c, {}, data.agent.full_name);
       }
     }
-    if (c.props?.href && c.props?.href.indexOf('://') === -1) {
+    if (!c.props?.['data-field'] && c.props?.href && c.props?.href.indexOf('://') === -1) {
       return cloneElement(
         c,
         {

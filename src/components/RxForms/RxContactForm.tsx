@@ -34,7 +34,7 @@ export default function RxContactForm({ nodes, agent, nodeProps, nodeClassName }
     },
   ];
 
-  const style = Object.assign({}, nodeProps.style, { display: show ? 'inherit' : 'none' });
+  const style = Object.assign({}, { ...(nodeProps.style ? nodeProps.style : {}), display: show ? 'inherit' : 'none' });
 
   return (
     <div {...nodeProps} className={nodeClassName} style={style}>

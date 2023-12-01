@@ -64,8 +64,10 @@ export default function NavIterator({ children, ...props }: { children: React.Re
       link_props['rx-component'] = 'Nav.RxNavIterator';
       if (href.indexOf('tel:') === 0) return c;
       if (href !== '/log-out' && link_props['data-usertype']) {
+        let relative_href = `${link_props['data-usertype'] === 'client' && props.agent ? getAgentBaseUrl(props.agent) : '/'}${href}`;
+        if (relative_href.slice(0, 2) === '//') relative_href = relative_href.slice(1);
         return (
-          <a {...link_props} data-original-href={href} href={`/${props.agent?.agent_id}/${props.agent?.metatags.profile_slug}${href}`}>
+          <a {...link_props} data-original-href={href} href={relative_href}>
             <NavIterator {...props}>{convertDivsToSpans(contents)}</NavIterator>
           </a>
         );
