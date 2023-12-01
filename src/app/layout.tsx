@@ -256,7 +256,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           ''
         )}
         {webflow.body ? (
-          <body {...body_props} className={bodyClassName} suppressHydrationWarning>
+          <body {...body_props} suppressHydrationWarning>
             {children}
             {requestUrl.pathname && requestUrl.pathname.split('/').pop() === 'map' ? (
               <Script src='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js' async />
