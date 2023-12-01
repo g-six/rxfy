@@ -88,32 +88,6 @@ export async function updatePublicListing(id: number, updates: { [k: string]: un
  * Retrieves a property by mls_id
  * @returns property data
  */
-export async function getSimilarProperties(property: { [key: string]: string | number }) {
-  let filters: Record<string, string | number> = {};
-
-  Object.keys(property).forEach(filter => {
-    if (['property_type', 'lat', 'lon', 'beds', 'complex_compound_name', 'postal_zip_code'].includes(filter) && property[filter]) {
-      filters = {
-        ...filters,
-        [filter]: ['property_type', 'postal_zip_code', 'complex_compound_name'].includes(filter) ? encodeURIComponent(property[filter]) : property[filter],
-      };
-    }
-  });
-
-  const url = `/api/similar-properties?mls=${property.mls_id}&${objectToQueryString(filters)}`;
-  const response = await axios.get(url, {
-    headers: {
-      Authorization: `Bearer ${Cookies.get('session_key')}`,
-      'Content-Type': 'application/json',
-    },
-  });
-  const { listings } = response.data || { listings: [] };
-  return listings;
-}
-/**
- * Retrieves a property by mls_id
- * @returns property data
- */
 export async function getHistory(address: string, postal_zip_code: string) {
   const response = await axios.post(
     '/api/properties/get-history',
