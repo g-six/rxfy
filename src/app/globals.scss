@@ -148,6 +148,9 @@ iframe {
       @apply max-h-10 #{!important};
     }
   }
+  .mapboxgl-popup-content {
+    @apply w-full p-0 bg-transparent shadow-none min-w-fit #{!important};
+  }
 }
 .w--tab-active {
   animation: fade-in 1s;
@@ -161,5 +164,4 @@ iframe {
     opacity: 1;
   }
 }
-
 @tailwind utilities;
