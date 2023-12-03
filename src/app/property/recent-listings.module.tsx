@@ -3,7 +3,6 @@ import { PropertyDataModel } from '@/_typings/property';
 
 import RxPropertyCard from '@/components/RxCards/RxPropertyCard';
 import { Children, ReactElement, cloneElement, useEffect, useState } from 'react';
-import { getSimilarProperties } from '@/_utilities/api-calls/call-properties';
 import AlicantePropcard from './alicante-propcard.module';
 import SpinningDots from '@/components/Loaders/SpinningDots';
 
