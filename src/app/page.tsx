@@ -238,7 +238,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
     if (agent_data) {
       if (searchParams.theme === 'default') webflow_domain = `${process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}`;
-      agent_data.webflow_domain = webflow_domain;
+      agent_data.webflow_domain = webflow_domain || '';
       loadAiResults($, agent_data.agent_id, agent_data.metatags.profile_slug, origin);
     }
   } else if (!(searchParams.theme && searchParams.agent) && webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN) {
