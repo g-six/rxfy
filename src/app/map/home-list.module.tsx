@@ -27,7 +27,7 @@ function Iterator({ children, ...props }: Props) {
           </PropertyCard>
         );
       }
-      if (c.props.className?.includes('empty-state')) {
+      if (c.props?.className?.includes('empty-state')) {
         return <EmptyState {...c.props}>{c.props.children}</EmptyState>;
       }
       return (

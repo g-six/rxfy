@@ -330,11 +330,6 @@ function generatePipelineParams(opts: SearchOpts, size = 100) {
           },
           {
             match: {
-              'data.IdxInclude': 'Yes',
-            },
-          },
-          {
-            match: {
               'data.Status': 'Active' as string,
             },
           } as unknown as Record<string, string>,

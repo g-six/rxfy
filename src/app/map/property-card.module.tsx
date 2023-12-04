@@ -145,28 +145,28 @@ export function PropertyCardIterator({
         );
       }
     } else if (c.props?.children && typeof c.props.children === 'string') {
-      if (c.props.className.includes('area-text') || c.props['data-field'] === 'area') {
+      if (c.props.className?.includes('area-text') || c.props['data-field'] === 'area') {
         return <div {...c.props}>{listing.area}</div>;
       }
-      if (c.props.className.includes('propcard-price') || c.props['data-field'] === 'asking_price') {
+      if (c.props.className?.includes('propcard-price') || c.props['data-field'] === 'asking_price') {
         return <div {...c.props}>{formatValues(listing, 'asking_price')}</div>;
       }
       if (c.props['data-field'] === 'title' || c.props['data-field'] === 'property_address') {
         return <div {...c.props}>{listing.title}</div>;
       }
-      if (c.props.className.includes('bedroom-stat') || c.props['data-field'] === 'beds') {
+      if (c.props.className?.includes('bedroom-stat') || c.props['data-field'] === 'beds') {
         return <div {...c.props}>{listing.beds}</div>;
       }
-      if (c.props.className.includes('bath-stat') || c.props['data-field'] === 'baths') {
+      if (c.props.className?.includes('bath-stat') || c.props['data-field'] === 'baths') {
         return <div {...c.props}>{listing.baths}</div>;
       }
-      if (c.props.className.includes('sqft-stat') || c.props['data-field'] === 'sqft') {
+      if (c.props.className?.includes('sqft-stat') || c.props['data-field'] === 'sqft') {
         return <div {...c.props}>{formatValues(listing, 'floor_area')}</div>;
       }
-      if (c.props.className.includes('year-stat') || c.props['data-field'] === 'year_built') {
+      if (c.props.className?.includes('year-stat') || c.props['data-field'] === 'year_built') {
         return <div {...c.props}>{listing.year_built}</div>;
       }
-      if (c.props.className.includes('heart-full')) {
+      if (c.props.className?.includes('heart-full')) {
         return (
           <LoveButton listing={listing} className={c.props.className}>
             {c.props.children}
@@ -176,9 +176,9 @@ export function PropertyCardIterator({
       return cloneElement(
         c,
         {
-          className: c.props.className + ' rexified z-10',
+          className: (c.props?.className || '') + ' rexified z-10',
           onClick: () => {
-            if (c.props.className.includes('propcard-details')) {
+            if (c.props.className?.includes('propcard-details')) {
               onClickToOpen();
             }
           },

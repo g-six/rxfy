@@ -71,10 +71,11 @@ export default function MapCanvas(p: {
   const [is_loading, setLoading] = React.useState<boolean>(false);
   const [filters, setFilters] = React.useState<{
     [k: string]: string | number;
-  }>();
+  }>(search.toString() ? queryStringToObject(search.toString()) : {});
   const [listings, setListings] = React.useState<PropertyDataModel[]>([]);
   const [pipeline_listings, setPipelineResults] = React.useState<PropertyDataModel[]>([]);
   const [selected_cluster, setSelectedCluster] = React.useState<PropertyDataModel[]>([]);
+  const [is_map_loaded, setMapLoaded] = React.useState<boolean>(false);
 
   const clickEventListener = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
     const features = e.target.queryRenderedFeatures(e.point, {
@@ -146,7 +147,8 @@ export default function MapCanvas(p: {
   };
 
   const populateMap = (from = 0) => {
-    if (filters && is_loading) {
+    if (filters) {
+      consoler(FILE, 'populateMap', { filters });
       const should: {
         match: {
           [key: string]: string | number;
@@ -335,16 +337,16 @@ export default function MapCanvas(p: {
         }
       }
       // Update query string
-      router.push(
-        '?' +
-          objectToQueryString({
-            ...qs,
-            lat: filters.lat,
-            lng: filters.lng,
-            baths: filters.baths || 0,
-            beds: filters.beds || 0,
-          }),
-      );
+      // router.push(
+      //   '?' +
+      //     objectToQueryString({
+      //       ...qs,
+      //       lat: filters.lat,
+      //       lng: filters.lng,
+      //       baths: filters.baths || 0,
+      //       beds: filters.beds || 0,
+      //     }),
+      // );
 
       if (map) {
         // Let's get more accurate if possible
@@ -370,11 +372,6 @@ export default function MapCanvas(p: {
                       lte: map.getBounds().getNorthEast().lng,
                       gte: map.getBounds().getSouthWest().lng,
                     },
-                  },
-                },
-                {
-                  match: {
-                    'data.IdxInclude': 'Yes',
                   },
                 },
                 {
@@ -460,8 +457,8 @@ export default function MapCanvas(p: {
             swlng: map.getBounds().getSouthWest().lng,
             zoom: map.getZoom(),
           };
-          setFilters(updated_filters);
-          setLoading(true);
+
+          // setLoading(true);
           // checkThenReload(true);
         }
       }
@@ -490,12 +487,12 @@ export default function MapCanvas(p: {
         zoom: map.getZoom(),
       };
       delete updated_filters.types;
-      router.push('?' + objectToQueryString(updated_filters));
     }
   }, [data]);
 
   React.useEffect(() => {
-    if (map) {
+    if (map && !is_map_loaded) {
+      setMapLoaded(true);
       const nav = new mapboxgl.NavigationControl();
       if (!map.hasControl(nav)) {
         map.addControl(nav, 'bottom-right');
@@ -508,7 +505,19 @@ export default function MapCanvas(p: {
         marker = new mapboxgl.Marker(createMapPin()).setLngLat(map.getCenter()).addTo(map);
 
         const { lat, lng } = map.getCenter();
-        repositionMap(`${lat},${lng}`);
+        const { _ne, _sw } = map.getBounds();
+        let q = queryStringToObject(search.toString() || '');
+        setFilters({
+          ...filters,
+          ...q,
+          lat,
+          lng,
+          zoom: map.getZoom(),
+          nelat: _ne.lat,
+          nelng: _ne.lng,
+          swlat: _sw.lat,
+          swlng: _sw.lng,
+        });
       };
       map.off('dragend', populate);
       map.on('dragend', populate);
@@ -518,7 +527,7 @@ export default function MapCanvas(p: {
     }
     // If we add populateMap into the dependency, it would cause an infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map]);
+  }, [map, is_map_loaded]);
 
   React.useEffect(() => {
     setHomeAlertsParams({
@@ -532,19 +541,16 @@ export default function MapCanvas(p: {
       };
       if (!map) {
         initializeMap();
-        if (!p.properties?.length) {
-          // SSR Pipeline gathering might have failed or yielded zero results,
-          // Let's try calling the /api/pipeline again by setting load - true
-          setLoading(true);
-        }
         return;
-      } else if (reload) {
-        setLoading(true);
+      } else {
+        consoler(FILE, 'useEffect(else, [filters])', { filters });
+        router.push(`map?${objectToQueryString(filters)}`);
+        populateMap();
         return;
       }
       checkThenReload(true);
     }
-  }, [filters]);
+  }, [map, filters]);
 
   React.useEffect(() => {
     if (listings) {
@@ -631,34 +637,34 @@ export default function MapCanvas(p: {
     }
   }, [listings]);
 
-  React.useEffect(() => {
-    let q = queryStringToObject(search.toString() || '');
+  // React.useEffect(() => {
+  //   let q = queryStringToObject(search.toString() || '');
 
-    if (q.center && map) {
-      const { center, place_id, ...queryparams } = q;
-      const [lat, lng] = `${center}`.split(',').map(Number);
-      map.setCenter([lng, lat]);
-      map.setZoom(11);
-      const updated = {
-        ...queryparams,
-        lat,
-        lng,
-        nelat: map.getBounds().getNorthEast().lat,
-        swlat: map.getBounds().getSouthWest().lat,
-        nelng: map.getBounds().getNorthEast().lng,
-        swlng: map.getBounds().getSouthWest().lng,
-      };
-      setFilters(updated);
-      setLoading(true);
-    } else if (!q.lat && !q.lng) {
-      const updated = {
-        lat: Number(search.get('lat')),
-        lng: Number(search.get('lng')),
-        zoom: 12,
-      };
-      setFilters(updated);
-    } else setFilters(q);
-  }, [search]);
+  //   if (q.center && map) {
+  //     const { center, place_id, ...queryparams } = q;
+  //     const [lat, lng] = `${center}`.split(',').map(Number);
+  //     // map.setCenter([lng, lat]);
+  //     // map.setZoom(11);
+  //     const updated = {
+  //       ...queryparams,
+  //       lat,
+  //       lng,
+  //       nelat: map.getBounds().getNorthEast().lat,
+  //       swlat: map.getBounds().getSouthWest().lat,
+  //       nelng: map.getBounds().getNorthEast().lng,
+  //       swlng: map.getBounds().getSouthWest().lng,
+  //     };
+
+  //     setLoading(true);
+  //   } else if (!q.lat && !q.lng) {
+  //     const updated = {
+  //       lat: Number(search.get('lat')),
+  //       lng: Number(search.get('lng')),
+  //       zoom: 12,
+  //     };
+
+  //   } else setFilters(q);
+  // }, [search]);
 
   React.useEffect(() => {
     if (is_loading) {

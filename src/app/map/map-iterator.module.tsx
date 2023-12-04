@@ -172,7 +172,7 @@ export default async function MapIterator({
           );
         } else if (className.includes('listings-by-agent-field')) {
           return agent ? cloneElement(c, {}, <MapIterator {...attributes}>{props.children}</MapIterator>) : <></>;
-        } else if (className.includes('all-properties')) {
+        } else if (props['data-group'] === 'map_card_rows') {
           return (
             <HomeList agent={agent} className={className} properties={attributes.properties || []}>
               {props.children}
