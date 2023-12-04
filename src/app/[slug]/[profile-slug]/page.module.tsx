@@ -26,7 +26,7 @@ export default async function PageComponent({
   agent_id: string;
   theme?: string;
   'page-url'?: string;
-  searchParams: { [k: string]: string };
+  searchParams?: { [k: string]: string };
 }) {
   console.log('');
   console.log('');
@@ -256,7 +256,7 @@ export default async function PageComponent({
   const footer = $('[data-group="footer"]');
 
   const body = $('body > div');
-  if (props.searchParams.theme) {
+  if (props.searchParams?.theme) {
     body.addClass('ai-preview');
   }
 
