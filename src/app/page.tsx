@@ -77,7 +77,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   log(start, 'started');
   const url = headers().get('x-url') as string;
   const { hostname, origin, pathname } = new URL(url);
-  let webflow_domain = getWebflowDomain(headers().get('host') || '');
+  let webflow_domain = getWebflowDomain(headers().get('host') || '') || '';
 
   let possible_agent = '';
   // params.slug as string;
