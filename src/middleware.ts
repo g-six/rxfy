@@ -90,7 +90,7 @@ export async function middleware(request: NextRequest) {
 
   // If the domain is a leagent owned theme domain,
   // default the strapi.agents.agent_id to ONKODA
-  if (domain_name !== 'leagent.com') {
+  if (domain_name !== 'leagent.com' && domain_name !== 'dev.leagent.com') {
     if (!segments[0] && domain_name.includes('leagent.com')) {
       agent_data = await getAgentBy({
         agent_id: 'ONKODA',
