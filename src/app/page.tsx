@@ -348,7 +348,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     if (agent_data && agent_data.agent_id) {
       await fillAgentInfo($, agent_data, params);
 
-      if (!slug || slug === '/') {
+      if (!possible_agent || possible_agent === '/') {
         listings = await getPropertiesFromAgentInventory(agent_data.agent_id);
         // Recent listings
         if (listings?.active?.length) {
