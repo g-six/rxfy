@@ -17,9 +17,17 @@ import { headers } from 'next/headers';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { getPipelineData } from '@/app/api/pipeline/subroutines';
 import { getAgentBaseUrl } from '@/app/api/_helpers/agent-helper';
-import { consoler } from '@/_helpers/consoler';
 
-export default async function PageComponent({ agent_id, theme = 'default', ...props }: { agent_id: string; theme?: string; 'page-url'?: string }) {
+export default async function PageComponent({
+  agent_id,
+  theme = 'default',
+  ...props
+}: {
+  agent_id: string;
+  theme?: string;
+  'page-url'?: string;
+  searchParams: { [k: string]: string };
+}) {
   console.log('');
   console.log('');
   console.log('* * * [slug]/[profile-slug]/page.module.tsx * * *');
@@ -248,7 +256,9 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
   const footer = $('[data-group="footer"]');
 
   const body = $('body > div');
-  body.addClass('ai-preview');
+  if (props.searchParams.theme) {
+    body.addClass('ai-preview');
+  }
 
   return (
     <>
