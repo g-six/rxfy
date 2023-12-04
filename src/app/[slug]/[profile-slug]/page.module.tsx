@@ -16,6 +16,8 @@ import { PropertyDataModel } from '@/_typings/property';
 import { headers } from 'next/headers';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { getPipelineData } from '@/app/api/pipeline/subroutines';
+import { getAgentBaseUrl } from '@/app/api/_helpers/agent-helper';
+import { consoler } from '@/_helpers/consoler';
 
 export default async function PageComponent({ agent_id, theme = 'default', ...props }: { agent_id: string; theme?: string; 'page-url'?: string }) {
   console.log('');
@@ -138,6 +140,10 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
     }
   }
 
+  $('[data-field="agent_name"]').each((i, el) => {
+    $(el).text(agent.full_name);
+  });
+
   LOGO_FIELDS.forEach(logo_field => {
     $(`[data-field="${logo_field}"]`).each((i, el) => {
       const attribs = Object.keys(el.attribs).map(attr => {
@@ -151,15 +157,22 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
     });
   });
 
-  $('a[href="/map"]').each((i, el) => {
-    const attribs = Object.keys(el.attribs).map(attr => {
-      let val = el.attribs[attr];
-      if (attr === 'href') {
-        return `${attr}=${getAgentMapDefaultUrl(agent)}`;
-      }
-      return `${attr}="${val}"`;
-    });
-    $(el).replaceWith(`<a ${attribs.join(' ')}>${$(el).html()}</a>`);
+  $('a[href]').each((i, el) => {
+    if (el.attribs.href.indexOf('/') === 0) {
+      const attribs = Object.keys(el.attribs).map(attr => {
+        let val = el.attribs[attr];
+        if (attr === 'href') {
+          if (val === '/map') return `${attr}=${getAgentMapDefaultUrl(agent)}`;
+          else return `${attr}=${getAgentBaseUrl(agent)}${val}`;
+        }
+        if (attr === 'style') {
+          val = val.split('"').join('');
+          val = val.split("'").join('');
+        }
+        return `${attr}="${val}"`;
+      });
+      $(el).replaceWith(`<a ${attribs.join(' ')}>${$(el).html()}</a>`);
+    }
   });
   const is_homepage = headers().get('x-url')?.split('/').pop() === 'index.html';
   if (is_homepage) {
@@ -217,7 +230,7 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
       },
     },
   } as LegacySearchPayload;
-  console.log(JSON.stringify({ should, minimum_should_match, filter }, null, 4));
+
   const [{ records: active }, { records: sold }] = await Promise.all([getPipelineData(internal_req), getPipelineData(intsold_req)]);
 
   $('[data-field="search_highlights"]:not(:first-child)').remove();
@@ -235,7 +248,8 @@ export default async function PageComponent({ agent_id, theme = 'default', ...pr
   const footer = $('[data-group="footer"]');
 
   const body = $('body > div');
-  console.log('END OF [slug]/[profile-slug]/page.module.tsx FILE');
+  body.addClass('ai-preview');
+
   return (
     <>
       <NavIterator agent={agent}>{domToReact(navbar as unknown as DOMNode[]) as unknown as ReactElement}</NavIterator>

@@ -3,7 +3,6 @@ import { AgentData } from '@/_typings/agent';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { convertDivsToSpans } from '@/_replacers/DivToSpan';
 import RxMapFilters from '@/components/RxMapFilters';
-import RxToggleSwitch from '@/components/RxPropertyMap/RxToggleSwitch';
 import RxPropertyCardList from '@/components/RxCards/RxPropertyCardList';
 import HomeAlertButton from './home-alert-button.module';
 import HomeAlert1 from './home-alert-1.module';
@@ -236,13 +235,7 @@ export default async function MapIterator({
           </HeartToggle>
         );
       }
-      // Turn this on if you wish to debug agent's headers
-      // headers().forEach((val, key) => {
-      //   console.log({
-      //     key,
-      //     val,
-      //   });
-      // });
+
       let { href, className: link_class } = c.props;
       const { pathname } = new URL(headers().get('x-canonical') as string);
       const agent_base_path = `/${headers().get('x-agent-id')}/${headers().get('x-profile-slug')}`;

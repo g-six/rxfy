@@ -1,5 +1,6 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
+import { createRoot } from 'react-dom/client';
 import mapboxgl, { GeoJSONSource, GeoJSONSourceRaw, Map, MapboxGeoJSONFeature } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Feature } from 'geojson';
@@ -19,7 +20,21 @@ import PropertyListModal from '@/components/PropertyListModal';
 import { AgentData } from '@/_typings/agent';
 import Cookies from 'js-cookie';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
+import RxPropertyCard from '@/components/RxCards/RxPropertyCard';
+import { consoler } from '@/_helpers/consoler';
 
+interface ListingPopupProps {
+  id?: string;
+  position?: {
+    x: number;
+    y: number;
+  };
+  bounds?: {
+    height: number;
+    width: number;
+  };
+}
+const FILE = 'map-canvas.module.tsx';
 const PAGE_SIZE = 100;
 function Iterator({ children }: { children: React.ReactElement }) {
   const Wrapped = React.Children.map(children, c => {
@@ -52,6 +67,7 @@ export default function MapCanvas(p: {
   const { data: agent_only, fireEvent: toggleAgentOnly } = useEvent(Events.AgentMyListings);
   const mapNode = React.useRef(null);
   const [map, setMap] = React.useState<mapboxgl.Map>();
+  const [active_marker, setActiveMarker] = useState<PropertyDataModel & { coordinates: mapboxgl.LngLatLike }>();
   const [is_loading, setLoading] = React.useState<boolean>(false);
   const [filters, setFilters] = React.useState<{
     [k: string]: string | number;
@@ -86,9 +102,11 @@ export default function MapCanvas(p: {
               } as unknown as EventsData);
             });
           } else {
-            const items: PropertyDataModel[] = [];
-            items.push(properties as unknown as PropertyDataModel);
-            setSelectedCluster(items);
+            const listing = properties as unknown as PropertyDataModel;
+            // const items: PropertyDataModel[] = [];
+            // items.push(properties as unknown as PropertyDataModel);
+            // setSelectedCluster(items);
+            router.push(`property?mls=${listing.mls_id}`, {});
           }
         }
       });
@@ -281,7 +299,7 @@ export default function MapCanvas(p: {
             });
           });
         }
-        console.log(should_match_agents);
+
         user_defined_filters.push({
           bool: {
             should: should_match_agents as any,
@@ -429,17 +447,6 @@ export default function MapCanvas(p: {
   const repositionMap = React.useCallback(
     (latlng: string) => {
       if (map) {
-        console.log('Map loaded in', Date.now() - start, 'ms');
-        // Not sure why we need this, perhaps performance issue in the past?
-        // Commenting this out for now and if maps performance is an issue,
-        // try uncommenting this
-
-        // map.getStyle().layers.forEach(layer => {
-        //   if (layer.id.indexOf('rx-') === 0) {
-        //     map.removeLayer(layer.id);
-        //   }
-        // });
-
         let q = queryStringToObject(search.toString() || '');
         if (Object.keys(q).length > 0) {
           const [lat, lng] = latlng.split(',').map(Number);
@@ -586,6 +593,39 @@ export default function MapCanvas(p: {
         addClusterLayer(map);
         addClusterHomeCountLayer(map);
         addSingleHomePins(map);
+
+        map.on('mouseenter', 'rx-home-price-bg', e => {
+          map.getCanvas().style.cursor = 'pointer';
+
+          // Populate the popup and set its coordinates
+          // based on the feature found.
+          e.features &&
+            e.features.forEach((feature, i) => {
+              map.fire('closeAllPopups');
+              if (feature.properties && feature.geometry.type === 'Point' && i === 0) {
+                // Copy coordinates array.
+                const coordinates = feature.geometry.coordinates.slice();
+                // Ensure that if the map is zoomed out such that multiple
+                // copies of the feature are visible, the popup appears
+                // over the copy being pointed to.
+                while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                  coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+                }
+
+                const listing = feature.properties as unknown as PropertyDataModel;
+                setActiveMarker({
+                  ...listing,
+                  coordinates: coordinates as unknown as mapboxgl.LngLatLike,
+                });
+              }
+            });
+        });
+
+        map.on('mouseleave', 'rx-home-price-bg', ev => {
+          map.getCanvas().style.cursor = '';
+          map.fire('closeAllPopups');
+        });
+
         registerMapClickHandler(listings);
       }
     }
@@ -652,6 +692,18 @@ export default function MapCanvas(p: {
   }, [agent_only]);
 
   React.useEffect(() => {
+    if (map && active_marker) {
+      addPopup(
+        map,
+        <RxPropertyCard key={active_marker.mls_id} listing={active_marker} sequence={0} agent={p.agent?.id} view-only={false}>
+          {React.cloneElement(<div />, {}, <Iterator>{p.children}</Iterator>)}
+        </RxPropertyCard>,
+        active_marker.coordinates,
+      );
+    }
+  }, [active_marker, map]);
+
+  React.useEffect(() => {
     if (p.properties?.length) {
       toggleAgentOnly({
         show: true,
@@ -673,4 +725,29 @@ export default function MapCanvas(p: {
       />
     </aside>
   );
+}
+
+function addPopup(map: mapboxgl.Map, el: JSX.Element, coordinates: mapboxgl.LngLatLike) {
+  const placeholder = document.createElement('div');
+  // mapboxgl requires a fixed height for its popup placement logic
+  placeholder.setAttribute('style', 'min-height: 230px');
+  const root = createRoot(placeholder);
+  root.render(el);
+
+  const popup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false,
+    offset: 20,
+  })
+    .setDOMContent(placeholder)
+    .setLngLat(coordinates)
+    .addTo(map);
+  popup.addClassName(styles.popup);
+  popup.addClassName('');
+  popup.setMaxWidth('330px');
+
+  map.on('closeAllPopups', () => {
+    popup.remove();
+  });
+  return popup;
 }

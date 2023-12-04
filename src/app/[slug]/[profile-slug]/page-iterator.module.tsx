@@ -103,19 +103,6 @@ export default function Iterator({
           </Iterator>
         </div>
       );
-    } else if (c.type === 'a' && c.props.href && c.props.href !== '#') {
-      const href = !agent.domain_name ? `/${agent.agent_id}/${agent.metatags.profile_slug}/${c.props.href.split('/').pop()}` : c.props.href;
-      return (
-        <a {...c.props} href={href}>
-          {typeof c.props?.children !== 'string' ? (
-            <Iterator agent={agent} listings={listings}>
-              {c.props.children}
-            </Iterator>
-          ) : (
-            c.props.children
-          )}
-        </a>
-      );
     }
 
     if (c.props) {
@@ -227,6 +214,7 @@ export default function Iterator({
             if (!rexified) {
               rexified = (agent.metatags as unknown as { [key: string]: string })[c.props['data-field']];
               if (SOCIAL_MEDIA_FIELDS.includes(c.props['data-field'])) {
+                if (rexified && rexified.indexOf('http') !== 0) rexified = 'https://' + rexified;
                 return rexified ? cloneElement(c, { href: rexified }) : <></>;
               }
               if (c.type === 'img')

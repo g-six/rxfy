@@ -154,7 +154,7 @@ export function setAgentWebsiteHeaders(agent_data: AgentData, request: NextReque
       }
     }
   } else {
-    consoler('_helpers/head-manipulations.ts', 'DEBUG head-manipulations', 'WARNING!', 'No agent metatag found');
+    consoler('_helpers/head-manipulations.tsx', 'DEBUG head-manipulations', 'WARNING!', 'No agent metatag found');
   }
 
   return response;

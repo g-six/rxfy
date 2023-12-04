@@ -17,7 +17,6 @@ import { BuildingUnit } from '../api/properties/types';
 import RxNotifications from '@/components/RxNotifications';
 import { getPrivateListing } from '../api/private-listings/model';
 import { PropertyDataModel } from '@/_typings/property';
-import { objectToQueryString } from '@/_utilities/url-helper';
 import { getSimilarMLSListings } from '../api/similar-properties/controller';
 
 function isBuildingUnit(property: { complex_compound_name?: string; style_type?: string }) {
@@ -141,7 +140,6 @@ export default async function PropertyPage(props: any) {
         if (listing) {
           console.log('Property data retrieved in', Date.now() - start, 'miliseconds');
           const similar_listings = await getSimilarListings(listing);
-          console.log({ similar_listings });
           const { photos, ...property } = listing as PageData;
 
           let neighbours: BuildingUnit[] = [];

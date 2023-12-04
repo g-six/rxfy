@@ -15,6 +15,9 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { objectToQueryString } from '@/_utilities/url-helper';
 import { cookies } from 'next/headers';
 import { getGeocode, getViewPortParamsFromGeolocation } from '@/_utilities/geocoding-helper';
+import { consoler } from '@/_helpers/consoler';
+
+const FILE = 'ai-result/[id]/page.tsx';
 
 export default async function AiResultPage({ params }: { params: { id: string } }) {
   try {
@@ -76,7 +79,8 @@ export default async function AiResultPage({ params }: { params: { id: string } 
         const field = el.attribs['data-text'];
         let value = agent_data[field] || agent_data.metatags[field];
         if (field === 'domain_name' && !value) {
-          value = `https://leagent.com/${agent_data.agent_id}/${agent_data.metatags.profile_slug}`;
+          value = `/${agent_data.agent_id}`;
+          consoler(FILE, { field, value });
         }
         if (el.tagName === 'img' && value) {
           const props: string[] = [];
@@ -91,7 +95,7 @@ export default async function AiResultPage({ params }: { params: { id: string } 
         const field = el.attribs['data-field'];
         let value = agent_data[field] || agent_data.metatags[field];
         if (field === 'domain_name' && !value) {
-          value = `https://leagent.com/${agent_data.agent_id}/${agent_data.metatags.profile_slug}`;
+          value = `https://app.leagent.com/${agent_data.agent_id}/`;
         }
         if (value) {
           if (el.tagName === 'img') {
@@ -221,7 +225,7 @@ export default async function AiResultPage({ params }: { params: { id: string } 
       $('.tabs-content [data-w-tab="Listings Map"]').attr('style', 'width: 100%; height: 100%; pointer-events: none;');
 
       $('.tabs-content [data-w-tab="Listings Map"]').wrapInner(
-        `<iframe src="/${params.id}/${profile_slug}/map?${objectToQueryString({
+        `<iframe src="/${params.id}/map?theme=default&${objectToQueryString({
           ...geocoding,
           lat,
           lng,

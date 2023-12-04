@@ -25,9 +25,9 @@ function Replace({
       return cloneElement(
         c,
         {
-          src: `/${attributes['agent-id']}/${attributes['profile-slug']}?theme=${attributes['active-theme']}`,
+          src: `/${attributes['agent-id']}?theme=${attributes['active-theme']}`,
         },
-        <iframe className={styles['theme-preview']} src={`/${attributes['agent-id']}/${attributes['profile-slug']}?theme=${attributes['active-theme']}`} />,
+        <iframe className={styles['theme-preview']} src={`/${attributes['agent-id']}?theme=${attributes['active-theme']}`} />,
       );
     } else if (c.props?.['data-theme']) {
       const { children: sub, ...props } = c.props;
@@ -65,7 +65,7 @@ function Replace({
             className: classNames(c.props.className.split('w--tab-active').join(''), attributes['active-tab'] === c.props['data-panel'] ? 'w--tab-active' : ''),
           },
           c.props?.['data-panel'] === 'property_page' ? (
-            <iframe className={styles['theme-preview']} src={`/${attributes['agent-id']}/${attributes['profile-slug']}/property?mls=${attributes['mls-id']}`} />
+            <iframe className={styles['theme-preview']} src={`/${attributes['agent-id']}/property?theme=default&mls=${attributes['mls-id']}`} />
           ) : (
             <Replace {...attributes}>{c.props.children}</Replace>
           ),
@@ -76,7 +76,7 @@ function Replace({
         <iframe
           style={{ minHeight: '2000px', width: '100%' }}
           className={styles['theme-preview']}
-          src={`/${attributes['agent-id']}/${attributes['profile-slug']}/property?mls=${attributes['mls-id']}`}
+          src={`/${attributes['agent-id']}/property?theme=default&mls=${attributes['mls-id']}`}
         />
       );
     } else if (c.props?.children && typeof c.props.children !== 'string') {

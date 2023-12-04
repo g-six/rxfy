@@ -26,7 +26,9 @@ import { SearchHighlightInput } from '@/_typings/maps';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { createTask } from '../clickup/model';
 import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
-import { retrieveAgentInventory } from './inventory/model';
+import { consoler } from '@/_helpers/consoler';
+
+const FILE = 'api/agents/model.ts';
 export const maxDuration = 300;
 export async function createAgent(
   user_data: {
@@ -161,7 +163,9 @@ export async function createAgent(
         extensions: unknown[];
       }[];
     };
-    console.log(
+    consoler(
+      FILE,
+      'createAgent',
       JSON.stringify(
         {
           error,
@@ -256,7 +260,7 @@ export async function updateAgent(
     };
   } catch (e) {
     const axerr = e as AxiosError;
-    console.log('Error in updateAgent');
+    consoler(FILE, 'Error in updateAgent');
     if (axerr.response?.data) {
       const { error, errors } = axerr.response?.data as {
         error?: {
@@ -267,7 +271,9 @@ export async function updateAgent(
           extensions: unknown[];
         }[];
       };
-      console.log(
+      consoler(
+        FILE,
+
         JSON.stringify(
           {
             axerr,
@@ -277,7 +283,8 @@ export async function updateAgent(
         ),
       );
     } else {
-      console.log(
+      consoler(
+        FILE,
         JSON.stringify(
           {
             response: axerr.response,
@@ -321,7 +328,7 @@ export async function updateAgentMetatags(
       id: results.id ? Number(results.id) : undefined,
     };
   } catch (e) {
-    console.log('Error in updateAgentMetatags');
+    consoler(FILE, 'Error in updateAgentMetatags');
     const axerr = e as AxiosError;
     const { error, errors } = axerr.response?.data as {
       error?: {
@@ -332,7 +339,8 @@ export async function updateAgentMetatags(
         extensions: unknown[];
       }[];
     };
-    console.log(
+    consoler(
+      FILE,
       JSON.stringify(
         {
           response: axerr.response,
@@ -362,9 +370,9 @@ export async function findAgentRecordByAgentId(agent_id: string) {
       };
     };
     console.error(axerr?.data?.error);
-    console.log('Error in api.agents.model.findAgentRecordByAgentId:', agent_id);
+    consoler(FILE, 'Error in api.agents.model.findAgentRecordByAgentId:', agent_id);
   } finally {
-    console.log('Completed api.agents.model.findAgentRecordByAgentId call for', agent_id);
+    consoler(FILE, 'Completed api.agents.model.findAgentRecordByAgentId call for', agent_id);
   }
 }
 export async function findAgentBrokerageAgents(agent_id: string, exclude_self?: boolean) {
@@ -403,10 +411,10 @@ export async function findAgentBrokerageAgents(agent_id: string, exclude_self?: 
         };
       };
     };
-    console.error(axerr?.data?.error);
-    console.log('Error in api.agents.model.findAgentBrokerageAgents:', agent_id);
+    consoler(FILE, axerr?.data?.error);
+    consoler(FILE, 'Error in api.agents.model.findAgentBrokerageAgents:', agent_id);
   } finally {
-    console.log('Completed api.agents.model.findAgentBrokerageAgents call for', agent_id);
+    consoler(FILE, 'Completed api.agents.model.findAgentBrokerageAgents call for', agent_id);
   }
 }
 
@@ -480,12 +488,10 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
 
   let [record] = response_data?.data?.agents.data;
   if (!record) {
-    console.log('api.agents.model.findAgentsBy: agent record does not exist', attributes);
+    consoler(FILE, 'findAgentsBy: agent record does not exist', attributes);
     return;
   } else if (!record.attributes.agent_metatag?.data) {
-    console.log('');
-    console.log('');
-    console.log('No linked agent metatag, try to find one in Agent Metatag collection');
+    consoler(FILE, 'No linked agent metatag, try to find one in Agent Metatag collection');
 
     const { data: response_data } = await axios.post(
       `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
@@ -588,7 +594,7 @@ async function strapify(listing: Record<string, unknown>) {
     };
   } catch (e) {
     console.log('Error');
-    console.error(e);
+    consoler(FILE, e);
     return listing;
   }
 }
@@ -673,7 +679,7 @@ export async function createAgentRecord(agent: {
 
     return new_agent;
   } catch (e) {
-    console.log('Caught error in createAgentRecordIfNoneFound');
+    consoler(FILE, 'Caught error in createAgentRecordIfNoneFound');
     console.error(e);
   }
 }
@@ -693,7 +699,7 @@ export async function createAgentRecordIfNoneFound(
     const parts = `${full_name.split('PREC*').join('').trim()}`.split(' ');
 
     if (!agent) {
-      console.log("Agent not found, let's create it");
+      consoler(FILE, "Agent not found, let's create it");
       const create_this = {
         agent_id,
         full_name: full_name.split('PREC').join('').trim().split('*').join(''),
@@ -708,14 +714,13 @@ export async function createAgentRecordIfNoneFound(
       };
       const t = new Date();
       console.log('timestamp', t.toISOString());
-      console.log(create_this, ai_results);
+      consoler(FILE, create_this, ai_results);
       agent = await createAgent(create_this, ai_results);
       console.log('');
       console.log('took', [Date.now() - t.getTime(), 'ms'].join(''));
       console.log('---');
     } else {
-      console.log(`Agent found, let's use ${first_name} ${last_name}`);
-      console.log(JSON.stringify(agent, null, 4));
+      consoler(FILE, `Agent found, let's use ${first_name} ${last_name}`);
     }
 
     return agent;

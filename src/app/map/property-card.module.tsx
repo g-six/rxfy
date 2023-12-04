@@ -1,8 +1,7 @@
 'use client';
-import React, { MouseEvent, ReactElement, cloneElement } from 'react';
+import React, { MouseEvent, ReactElement, cloneElement, useEffect, useState } from 'react';
 import useEvent, { Events } from '@/hooks/useEvent';
 
-import styles from './home-list.module.scss';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 import LoveButton from './love-button.module';
 import { PropertyDataModel } from '@/_typings/property';
@@ -11,7 +10,9 @@ import { classNames } from '@/_utilities/html-helper';
 import useLove from '@/hooks/useLove';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 import { AgentData } from '@/_typings/agent';
-import Cookies from 'js-cookie';
+import { consoler } from '@/_helpers/consoler';
+
+const FILE = 'map/property-card.module.tsx';
 
 export function isEmptyHeart(props: { className: string; 'data-field': string }) {
   return props.className?.indexOf('heart-full') >= 0 || props['data-field'] === 'heart_empty';
@@ -220,51 +221,45 @@ export default function PropertyCard({
   const [loved_items, setLovedItems] = React.useState((getData(Events.LovedItem) as unknown as string[]) || []);
 
   const { data } = useEvent(Events.MapSearch);
-  // const { points, reload } = data as unknown as {
-  //   points: {
-  //     properties: PropertyDataModel;
-  //   }[];
-  //   reload: boolean;
-  // };
-
-  const [cards, setCards] = React.useState<React.ReactElement[]>([]);
-
-  const toggleLoved = (listing: PropertyDataModel) => {
-    const last = (getData(Events.LovedItem) as unknown as string[]) || [];
-    if (!loved_items.includes(listing.mls_id)) {
-      setLovedItems(last.concat([listing.mls_id]));
-      if (agent?.id) {
-        evt.fireEvent(
-          {
-            ...listing,
-            love: 0,
-          },
-          agent.id,
-        );
-      }
-    } else {
-      setLovedItems(last.filter(i => i !== listing.mls_id));
-      if (agent?.id) {
-        evt.fireEvent(
-          {
-            ...listing,
-            love: 0,
-          },
-          agent.id,
-          true,
-        );
-      }
-    }
+  const { points, reload } = data as unknown as {
+    points: {
+      properties: PropertyDataModel;
+    }[];
+    reload: boolean;
   };
+  const [lightbox_props, setLightBox] = useState<{
+    x?: number;
+    y?: number;
+    mls_id: string;
+  }>();
 
-  function updateCards(listings: PropertyDataModel[]) {
-    setCards(
-      listings
+  if (data?.mls_id) {
+    const { mls_id, position } = data as unknown as {
+      mls_id: string;
+      position?: {
+        x: number;
+        y: number;
+      };
+    };
+    if (position && lightbox_props?.mls_id !== mls_id) {
+      setLightBox({
+        ...position,
+        mls_id,
+      });
+    }
+  }
+
+  useEffect(() => {
+    consoler('property-card.module.tsx', { lightbox_props });
+  }, [lightbox_props?.mls_id]);
+
+  const cards: React.ReactElement[] = points
+    ? points
         .filter(p => {
-          return p.cover_photo;
+          return p.properties?.cover_photo;
         })
         .slice(0, 100)
-        .map(p => (
+        .map(({ properties: p }) => (
           <div {...props} key={p.mls_id} className={[className, p.mls_id, ' rexified HomeList-PropertyCard'].join(' ')}>
             <PropertyCardIterator
               listing={p}
@@ -294,29 +289,36 @@ export default function PropertyCard({
               {children}
             </PropertyCardIterator>
           </div>
-        )),
-    );
-  }
+        ))
+    : [];
 
-  React.useEffect(() => {
-    const { points } = data as unknown as {
-      points: {
-        properties: PropertyDataModel;
-      }[];
-    };
-
-    if (points) updateCards(points?.map(({ properties }) => properties));
-  }, [data]);
-
-  React.useEffect(() => {
-    const url = new URL(location.href);
-    // e.g /agent-id/profile-slug/map
-    const segments = url.pathname.split('/');
-    // e.g. map
-    segments.pop();
-    // if (points)
-    // if (properties) updateCards(properties);
-  }, []);
+  const toggleLoved = (listing: PropertyDataModel) => {
+    const last = (getData(Events.LovedItem) as unknown as string[]) || [];
+    if (!loved_items.includes(listing.mls_id)) {
+      setLovedItems(last.concat([listing.mls_id]));
+      if (agent?.id) {
+        evt.fireEvent(
+          {
+            ...listing,
+            love: 0,
+          },
+          agent.id,
+        );
+      }
+    } else {
+      setLovedItems(last.filter(i => i !== listing.mls_id));
+      if (agent?.id) {
+        evt.fireEvent(
+          {
+            ...listing,
+            love: 0,
+          },
+          agent.id,
+          true,
+        );
+      }
+    }
+  };
 
   return <>{cards.length > 0 && cards}</>;
 }
