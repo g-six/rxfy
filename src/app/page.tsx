@@ -21,7 +21,7 @@ import { getUserSessionData } from './api/check-session/model';
 import PageComponent from './[slug]/[profile-slug]/page.module';
 import { getAgentBy } from './api/_helpers/agent-helper';
 import { LEAGENT_WEBFLOW_DOMAINS } from '@/_constants/webflow-domains';
-import CustomerLogInPage from './[slug]/[profile-slug]/log-in/page';
+import CustomerLogInPage from './[slug]/log-in/page';
 import ClientMyProfile from './[slug]/[profile-slug]/my-profile/page';
 import MyDocuments from './[slug]/[profile-slug]/my-documents/page';
 import ClientDashboard from './[slug]/[profile-slug]/client-dashboard/page';
@@ -102,11 +102,11 @@ export default async function Home({ params, searchParams }: { params: Record<st
         return <AiPrompt>{domToReact($('body > div') as unknown as DOMNode[]) as ReactElement}</AiPrompt>;
     }
   } else if (agent_webflow_domain) {
+    consoler(FILE, { agent_webflow_domain });
     agent_data = await getAgentBy({
       agent_id: possible_agent,
     });
     const client_dashboard_params = {
-      'profile-slug': profile_slug,
       slug: possible_agent,
     };
     switch (params.slug) {
