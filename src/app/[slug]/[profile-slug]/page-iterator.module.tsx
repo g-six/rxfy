@@ -183,7 +183,7 @@ export default function Iterator({
                         {
                           ...c.props,
                           key: `${l.title}&lat=${l.lat}`,
-                          href: `${agent.domain_name ? '' : agent.metatags.profile_slug}/map?city=${l.title}&lat=${l.lat}&lng=${l.lng}`,
+                          href: `${agent.domain_name ? '' : agent.agent_id}/map?city=${l.title}&lat=${l.lat}&lng=${l.lng}`,
                         },
                         l.title,
                       );
