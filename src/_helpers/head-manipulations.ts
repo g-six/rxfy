@@ -5,6 +5,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { consoler } from './consoler';
 import { objectToQueryString, queryStringToObject } from '@/_utilities/url-helper';
 
+const FILE = '_helpers/head-manipulations.ts';
 export function replaceMetaTags(headCode: string, agent: AgentData, property?: object) {
   if (!agent || !agent.metatags) return headCode;
   const prop = property as PropertyDataModel & { photos?: string[] };
@@ -124,7 +125,11 @@ export function setAgentWebsiteHeaders(agent_data: AgentData, request: NextReque
     } = agent_data.metatags as unknown as { [k: string]: string };
     response.headers.set('x-metatag-id', metatag_id);
     response.headers.set('x-page-title', `${title || 'Leagent'}`);
-    response.headers.set('x-page-description', description.split('•').join(''));
+    try {
+      response.headers.set('x-page-description', description.split('•').join(''));
+    } catch (e) {
+      consoler(FILE, 'Unable to set x-page-description header');
+    }
     response.headers.set('x-profile-slug', profile_slug);
     response.headers.set('x-dark-bg-logo', logo_for_dark_bg || '');
     response.headers.set('x-light-bg-logo', logo_for_light_bg || '');
@@ -154,7 +159,7 @@ export function setAgentWebsiteHeaders(agent_data: AgentData, request: NextReque
       }
     }
   } else {
-    consoler('_helpers/head-manipulations.tsx', 'DEBUG head-manipulations', 'WARNING!', 'No agent metatag found');
+    consoler(FILE, 'DEBUG head-manipulations', 'WARNING!', 'No agent metatag found');
   }
 
   return response;
