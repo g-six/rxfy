@@ -118,7 +118,7 @@ export default function NavIterator({ children, ...props }: { children: React.Re
           <a
             {...link_props}
             data-original-href={href}
-            href={`${props.agent && !props.agent.domain_name ? getAgentBaseUrl(props.agent) : ''}${href}`}
+            href={`${props.agent && !props.agent.domain_name && href !== '/' ? getAgentBaseUrl(props.agent) : ''}${href}`}
             data-rx-dir='components'
             data-rx-src='Nav/RxNavIterator.NavIterator'
           >
