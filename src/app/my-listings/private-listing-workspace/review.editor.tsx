@@ -19,7 +19,7 @@ function Preview({ url }: { url: string }) {
     }
   }, [notify.data]);
 
-  return <iframe className='h-screen w-screen scale-75 -translate-x-[10rem] -translate-y-[5rem]' src={set_url} />;
+  return <iframe className='h-screen w-full' src={set_url} />;
 }
 
 function Rexify({
