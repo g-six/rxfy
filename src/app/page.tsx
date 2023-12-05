@@ -90,6 +90,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
   if (headers().get('x-profile-slug')) profile_slug = headers().get('x-profile-slug') as string;
 
   const filename = `${headers().get('x-url')}`.split('/').pop();
+
   if (filename !== 'index.html' && webflow_domain === 'leagent-website.webflow.io') {
     // Other pages
     const page_req = await fetch(url);
@@ -99,8 +100,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
     switch (filename) {
       case 'ai.html':
         return <AiPrompt>{domToReact($('body > div') as unknown as DOMNode[]) as ReactElement}</AiPrompt>;
-      default:
-        return <>{filename}</>;
     }
   } else if (agent_webflow_domain) {
     agent_data = await getAgentBy({
