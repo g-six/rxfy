@@ -1,6 +1,7 @@
+import { consoler } from '@/_helpers/consoler';
 import { CloudFrontClient, CreateInvalidationCommand, CreateInvalidationCommandOutput } from '@aws-sdk/client-cloudfront';
 import { PutObjectCommand, S3Client, S3ClientConfig } from '@aws-sdk/client-s3';
-
+const FILE = 'api/_helpers/cache-helper.ts';
 export function invalidateCache(Items: string[], DistributionId = process.env.NEXT_APP_SITES_DIST_ID as string) {
   try {
     const client = new CloudFrontClient({
@@ -20,12 +21,10 @@ export function invalidateCache(Items: string[], DistributionId = process.env.NE
         },
       },
     });
-    console.log('Invalidating cache for ', DistributionId);
-    console.log(JSON.stringify(Items, null, 4));
+    consoler(FILE, 'Invalidating', DistributionId, JSON.stringify(Items, null, 4));
     return client.send(command);
   } catch (e) {
-    console.error('Error in function invalidateCache');
-    console.log(JSON.stringify({ Items }, null, 4));
+    consoler(FILE, 'Error in function invalidateCache', JSON.stringify({ Items }, null, 4));
     return { Items, error: 'Failed to invalidate' } as unknown as CreateInvalidationCommandOutput;
   }
 }
@@ -57,10 +56,10 @@ export function createCacheItem(
 
   client
     .send(command)
-    .then(console.log)
+    .then(x => consoler(FILE, x))
     .catch(console.error)
     .finally(() => {
-      console.log('S3 upload complete', Key);
+      consoler(FILE, 'S3 upload complete', Key);
     });
 
   return `${Bucket}/${Key}`;
@@ -89,7 +88,7 @@ export function createTempDocument(Body: any, file_name: string, ContentType: st
     .send(command)
     .catch(console.error)
     .finally(() => {
-      console.log('S3 upload complete', Key);
+      consoler(FILE, 'S3 upload complete', Key);
     });
 
   return `${process.env.NEXT_APP_S3_DOCUMENTS_BUCKET}/${Key}`;

@@ -1,5 +1,5 @@
 import './globals.scss';
-import parse from 'html-react-parser';
+import parse, { DOMNode, domToReact } from 'html-react-parser';
 import { CheerioAPI, load } from 'cheerio';
 import { notFound, redirect } from 'next/navigation';
 import { cookies, headers } from 'next/headers';
@@ -27,7 +27,12 @@ import MyDocuments from './[slug]/[profile-slug]/my-documents/page';
 import ClientDashboard from './[slug]/[profile-slug]/client-dashboard/page';
 import MyAllProperties from './[slug]/[profile-slug]/my-all-properties/page';
 import MyHomeAlerts from './[slug]/[profile-slug]/my-home-alerts/page';
+import { consoler } from '@/_helpers/consoler';
+import { getThemeDomainHostname, getWebflowDomain } from '@/_helpers/themes';
+import AiPrompt from '@/rexify/realtors/ai';
+import { ReactElement } from 'react';
 
+const FILE = 'app/page.tsx';
 const inter = Inter({ subsets: ['latin'] });
 
 function loadAiResults($: CheerioAPI, user_id: string, slug?: string, origin?: string) {
@@ -72,8 +77,10 @@ export default async function Home({ params, searchParams }: { params: Record<st
   log(start, 'started');
   const url = headers().get('x-url') as string;
   const { hostname, origin, pathname } = new URL(url);
+  let webflow_domain = getWebflowDomain(headers().get('host') || '') || '';
 
-  let possible_agent = params.slug as string;
+  let possible_agent = '';
+  // params.slug as string;
   let profile_slug = params['profile-slug'] as string;
 
   let agent_data: AgentData = {} as unknown as AgentData;
@@ -81,7 +88,21 @@ export default async function Home({ params, searchParams }: { params: Record<st
   const agent_webflow_domain = headers().get('x-wf-domain') || '';
   if (headers().get('x-agent-id')) possible_agent = headers().get('x-agent-id') as string;
   if (headers().get('x-profile-slug')) profile_slug = headers().get('x-profile-slug') as string;
-  if (agent_webflow_domain) {
+
+  const filename = `${headers().get('x-url')}`.split('/').pop();
+  if (filename !== 'index.html' && webflow_domain === 'leagent-website.webflow.io') {
+    // Other pages
+    const page_req = await fetch(url);
+    const page_html = await page_req.text();
+    const $: CheerioAPI = load(page_html);
+
+    switch (filename) {
+      case 'ai.html':
+        return <AiPrompt>{domToReact($('body > div') as unknown as DOMNode[]) as ReactElement}</AiPrompt>;
+      default:
+        return <>{filename}</>;
+    }
+  } else if (agent_webflow_domain) {
     agent_data = await getAgentBy({
       agent_id: possible_agent,
     });
@@ -124,20 +145,16 @@ export default async function Home({ params, searchParams }: { params: Record<st
   let session_key = cookies().get('session_key')?.value || '';
   let session_as = cookies().get('session_as')?.value || 'customer';
 
-  if (!possible_agent && !profile_slug && headers().get('x-url') && `${headers().get('x-url')}`.split('/').pop() === 'index.html') {
-    if (headers().get('x-agent-id') && headers().get('x-profile-slug')) {
-      console.log('Returning PageComponent');
-      return <PageComponent agent_id={headers().get('x-agent-id') as string} />;
+  if (headers().get('x-url')) {
+    switch (filename) {
+      case 'index.html':
+        if (headers().get('x-agent-id') && headers().get('x-profile-slug')) {
+          console.log('Returning PageComponent');
+          return <PageComponent agent_id={headers().get('x-agent-id') as string} />;
+        }
+        break;
     }
   }
-
-  console.log('Headers');
-  console.log('   X-Url:', headers().get('x-url'));
-  console.log('   X-Agent-Id:', headers().get('x-agent-id'));
-  console.log('   X-Profile-Slug:', headers().get('x-profile-slug'));
-  console.log('   Page:', `${headers().get('x-url')}`.split('/').pop());
-  console.log('   Agent ID:', possible_agent);
-  console.log('   Slug:', profile_slug);
 
   if (possible_agent && profile_slug) {
     // Check if the slug matches a realtor
@@ -183,10 +200,11 @@ export default async function Home({ params, searchParams }: { params: Record<st
   }
 
   try {
+    consoler(FILE, 'Fetching html file:', headers().get('x-url'));
     const req_page_html = await axios.get(headers().get('x-url') as string);
     data = req_page_html.data;
   } catch (e) {
-    console.log('Unable to fetch page html for', headers().get('x-url'));
+    consoler(FILE, 'Unable to fetch page html for', headers().get('x-url'));
   }
 
   if (typeof data !== 'string') {
@@ -207,8 +225,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
     });
   }
 
-  let { hostname: webflow_domain, pathname: slug } = new URL(headers().get('x-url') as string);
-
   $('form').removeAttr('id');
   $('form').removeAttr('name');
   if (process.env.NEXT_PUBLIC_BUY_BUTTON)
@@ -222,7 +238,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
 
     if (agent_data) {
       if (searchParams.theme === 'default') webflow_domain = `${process.env.NEXT_PUBLIC_DEFAULT_THEME_DOMAIN}`;
-      agent_data.webflow_domain = webflow_domain;
+      agent_data.webflow_domain = webflow_domain || '';
       loadAiResults($, agent_data.agent_id, agent_data.metatags.profile_slug, origin);
     }
   } else if (!(searchParams.theme && searchParams.agent) && webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN) {
@@ -332,7 +348,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     if (agent_data && agent_data.agent_id) {
       await fillAgentInfo($, agent_data, params);
 
-      if (!slug || slug === '/') {
+      if (!possible_agent || possible_agent === '/') {
         listings = await getPropertiesFromAgentInventory(agent_data.agent_id);
         // Recent listings
         if (listings?.active?.length) {

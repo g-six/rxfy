@@ -5,6 +5,6 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   cookies().delete('session_as');
   cookies().delete('session_key');
-  redirect('/');
+  redirect('/?session=clear');
   return NextResponse.json({ message: 'Redirecting you...' });
 }

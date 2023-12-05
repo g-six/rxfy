@@ -13,6 +13,9 @@
 .hide {
   @apply hidden #{!important};
 }
+.show {
+  @apply block #{!important};
+}
 
 .zoom {
   animation: zoom-out 60s ease-in;

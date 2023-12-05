@@ -1,19 +1,25 @@
-import { cookies, headers } from 'next/headers';
+export function consoler(...args: any[]) {
+  console.log('* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *');
+  if (args.length > 1) {
+    const [filename] = args;
+    if (typeof filename !== 'string' || !filename.includes('.ts')) throw 'Please provide filename when using console debugger for better DX';
 
-export function displayConsoleHeader(page: {
-  params: { [k: string]: string };
-  searchParams: {
-    [k: string]: string;
-  };
-}) {
-  const source_html_url = headers().get('x-url') || '';
-  const session_key = cookies().get('session_key')?.value || '';
-  console.log('');
-  console.log('+-------------------------------------');
-  console.log('| app/my-listings/page');
-  console.log('| source:', source_html_url);
-  console.log('+-------------------------------------\n|');
-  console.log('| Session:', session_key);
-  console.log('|', JSON.stringify(page, null, 2).split('\n').join('\n| '));
-  console.log('|\n+-------------------------------------');
+    console.log('* File:', `src/${filename}`);
+    args
+      .slice(1)
+      .filter(a => a !== undefined)
+      .forEach(a => {
+        if (typeof a === 'object' && a) {
+          try {
+            console.log(JSON.stringify(a, null, 4).split('\n').join('\n  '));
+          } catch (e) {
+            console.log(a);
+          }
+        } else if (typeof a === 'string') console.log(a.split('\n').join('\n  '));
+        else console.log(a);
+      });
+    console.log('* End of debugging for:', filename);
+    console.log('* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *');
+    console.log('');
+  }
 }

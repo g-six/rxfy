@@ -28,7 +28,6 @@ export default async function AgentHomePage({
 }) {
   let { slug: agent_id } = params;
   const { theme } = searchParams;
-
   if (params['profile-slug'].substring(0, 3) !== 'la-') {
     agent_id = headers().get('x-agent-id') as string;
   }

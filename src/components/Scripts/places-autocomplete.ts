@@ -5,6 +5,10 @@
  */
 export default function initializePlacesAutocomplete(props: Record<string, string>) {
   return `
+    if (location.search.includes('session=clear')) {
+        localStorage.removeItem('viewing_customer')
+        localStorage.removeItem('event-loved-item')
+    }
     function objectToUrlParams(obj) {
         return Object.keys(obj).map(key => key + '=' + obj[key]).join('&');
     }

@@ -20,8 +20,6 @@ export async function GET(request: NextRequest) {
       401,
     );
 
-  //   const session_data = await getNewSessionKey(token, guid, 'realtor', false);
-  //   console.log(JSON.stringify(session_data, null, 4));
   const realtor = await findAgentRecordByRealtorId(guid);
   const session_key = `${encrypt(realtor.last_activity_at)}.${encrypt(realtor.email)}`;
 

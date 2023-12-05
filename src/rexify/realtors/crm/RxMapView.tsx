@@ -157,7 +157,6 @@ export default function RxMapView({
           });
           m.on('load', () => {
             const [property] = properties || [];
-            console.log(property);
             if (properties && property?.lon && property?.lat) {
               addPoints(properties);
               m.resize();

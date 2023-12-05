@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 import { useSearchParams } from 'next/navigation';
 import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
-import { searchById, searchByTagName } from '@/_utilities/rx-element-extractor';
+import { searchByClasses, searchById, searchByPartOfClass, searchByProp, searchByTagName } from '@/_utilities/rx-element-extractor';
 
 import styles from './ai.module.scss';
 import useEvent, { Events, EventsData, NotificationCategory } from '@/hooks/useEvent';
@@ -15,12 +15,15 @@ import Image from 'next/image';
 import { createAgentRecord } from '@/_utilities/api-calls/call-realtor';
 import RxStreetAddressInput from '@/components/RxForms/RxInputs/RxStreetAddressInput';
 import { SearchHighlightInput, SelectedPlaceDetails } from '@/_typings/maps';
+import { consoler } from '@/_helpers/consoler';
 
 type Props = {
   children: React.ReactElement;
   className?: string;
   origin?: string;
 };
+
+const FILE = 'ai.tsx';
 
 export default function AiPrompt(p: Props) {
   const { data, fireEvent } = useEvent(Events.LoadUserSession);
@@ -48,6 +51,40 @@ export default function AiPrompt(p: Props) {
           onSubmit: (evt: React.KeyboardEvent<HTMLInputElement>) => {
             evt.preventDefault();
           },
+        });
+      },
+    },
+    {
+      searchFn: searchByClasses(['ai-prompt-modal']),
+      transformChild: (child: React.ReactElement) => {
+        return React.cloneElement(child, {
+          defaultValue: realtor?.agent_id,
+          className: (data as unknown as { agent_id?: string }).agent_id ? 'hidden' : child.props.className,
+        });
+      },
+    },
+    {
+      searchFn: searchByClasses(['back-button']),
+      transformChild: (child: React.ReactElement) => {
+        return React.cloneElement(
+          <button type='button' className={child.props.className + ' bg-transparent'} />,
+          {
+            onClick: () => {
+              fireEvent({
+                agent_id: undefined,
+              } as unknown as EventsData);
+            },
+          },
+          child.props.children,
+        );
+      },
+    },
+    {
+      searchFn: searchByPartOfClass(['ai-prompt-modal-noresult']),
+      transformChild: (child: React.ReactElement) => {
+        return React.cloneElement(child, {
+          defaultValue: realtor?.agent_id,
+          className: (data as unknown as { agent_id?: string }).agent_id ? child.props.className : 'hidden',
         });
       },
     },
@@ -248,6 +285,14 @@ export default function AiPrompt(p: Props) {
         });
       },
     },
+    {
+      searchFn: searchByProp('data-component', 'loader'),
+      transformChild: (child: React.ReactElement) => {
+        return React.cloneElement(child, {
+          className: (ui as unknown as { loader: string }).loader === 'ai' ? child.props.className + ' ' + styles.show : styles.hide,
+        });
+      },
+    },
   ];
 
   React.useEffect(() => {
@@ -268,20 +313,7 @@ export default function AiPrompt(p: Props) {
     }
   }, []);
 
-  return (
-    <div
-      className={[
-        ...`${p.className}`.split(' '),
-        data?.clicked === WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL_BLANK
-          ? p.className === WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL_BLANK
-            ? styles.show
-            : styles.hide
-          : (p.className === WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL_BLANK && styles.hide) || styles.show,
-        p.className === WEBFLOW_NODE_SELECTOR.AI_PROMPT_MODAL ? (ui && Object.keys(ui).length ? styles.zoom : styles['zoom-back-in']) : '',
-        'rexified w-full',
-      ].join(' ')}
-    >
-      {transformMatchingElements(p.children, matches)}
-    </div>
-  );
+  consoler(FILE, ui);
+
+  return <>{transformMatchingElements(p.children, matches)}</>;
 }

@@ -376,15 +376,9 @@ export async function getPdf(page_url: string, data: unknown) {
         $(el).text(agent[field]);
       }
     } else {
-      if (field === '') {
-      } else {
-        if (field && values[field]) {
-          if (field !== 'map') {
-            $(el).text(values[field]);
-          }
-        } else {
-          console.log(field, 'field not available');
-          // $(el).remove();
+      if (field && values[field]) {
+        if (field !== 'map') {
+          $(el).text(values[field]);
         }
       }
     }

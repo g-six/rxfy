@@ -42,8 +42,8 @@ export default function RxSelect({ selectedValue, ...props }: SelectProps) {
           selectedValue instanceof Object
             ? selectedValue.name
             : typeof selectedValue === 'string' || typeof selectedValue === 'number'
-            ? props.values.find(value => value.id === selectedValue)?.name
-            : props?.placeholder || child.props.children;
+              ? props.values.find(value => value.id === selectedValue)?.name
+              : props?.placeholder || child.props.children;
 
         return cloneElement(child, {}, selectedLabel);
       },
@@ -99,7 +99,7 @@ export default function RxSelect({ selectedValue, ...props }: SelectProps) {
   ];
 
   const wrapperClassName = props.wrapperNode.props.className;
-  const style = Object.assign({}, props.wrapperNode.props.style, props.wrapperStyle);
+  const style = Object.assign({}, { ...props.wrapperNode.props.style, ...props.wrapperStyle });
 
   return transformMatchingElements(props.wrapperNode, matches) as ReactElement;
 }

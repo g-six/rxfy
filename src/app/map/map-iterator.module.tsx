@@ -3,7 +3,6 @@ import { AgentData } from '@/_typings/agent';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { convertDivsToSpans } from '@/_replacers/DivToSpan';
 import RxMapFilters from '@/components/RxMapFilters';
-import RxToggleSwitch from '@/components/RxPropertyMap/RxToggleSwitch';
 import RxPropertyCardList from '@/components/RxCards/RxPropertyCardList';
 import HomeAlertButton from './home-alert-button.module';
 import HomeAlert1 from './home-alert-1.module';
@@ -24,7 +23,8 @@ import NavIterator from '@/components/Nav/RxNavIterator';
 import { LoveDataModel } from '@/_typings/love';
 import { PropertyDataModel } from '@/_typings/property';
 import { headers } from 'next/headers';
-
+import { consoler } from '@/_helpers/consoler';
+const FILE = 'map-iterator.module.tsx';
 function getAgentLogo(logo: string, default_src: string) {
   if (logo) return getImageSized(logo, 300);
   return default_src;
@@ -173,7 +173,7 @@ export default async function MapIterator({
           );
         } else if (className.includes('listings-by-agent-field')) {
           return agent ? cloneElement(c, {}, <MapIterator {...attributes}>{props.children}</MapIterator>) : <></>;
-        } else if (className.includes('all-properties')) {
+        } else if (props['data-group'] === 'map_card_rows') {
           return (
             <HomeList agent={agent} className={className} properties={attributes.properties || []}>
               {props.children}
@@ -236,13 +236,7 @@ export default async function MapIterator({
           </HeartToggle>
         );
       }
-      // Turn this on if you wish to debug agent's headers
-      // headers().forEach((val, key) => {
-      //   console.log({
-      //     key,
-      //     val,
-      //   });
-      // });
+
       let { href, className: link_class } = c.props;
       const { pathname } = new URL(headers().get('x-canonical') as string);
       const agent_base_path = `/${headers().get('x-agent-id')}/${headers().get('x-profile-slug')}`;

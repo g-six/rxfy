@@ -15,6 +15,9 @@ import { findAgentRecordByAgentId } from './api/agents/model';
 import { attributesToProps } from 'html-react-parser';
 import NotFound from './not-found';
 import { getPrivateListing } from './api/private-listings/model';
+import { consoler } from '@/_helpers/consoler';
+
+const FILE = 'app/layout.tsx';
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const axios = (await import('axios')).default;
@@ -122,7 +125,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     `${data}`.split('</title>').join(`</title>
   <link rel='canonical' href='${header_list.get('referer') || header_list.get('x-canonical')}' />`),
   );
-
   const webflow: WebFlow = {
     head: {
       props: {
@@ -155,6 +157,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   head_meta.toArray().map(meta => {
     metas.push(<meta {...attributesToProps(meta.attribs)} key={meta.attribs.property || meta.attribs.name} />);
   });
+
   let scripts: string[] = [];
   head_scripts.each((i, script) => {
     let text = $(script).text();
@@ -256,7 +259,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           ''
         )}
         {webflow.body ? (
-          <body {...body_props} className={bodyClassName} suppressHydrationWarning>
+          <body {...body_props} suppressHydrationWarning>
             {children}
             {requestUrl.pathname && requestUrl.pathname.split('/').pop() === 'map' ? (
               <Script src='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js' async />

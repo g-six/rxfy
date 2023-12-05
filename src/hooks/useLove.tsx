@@ -9,7 +9,7 @@ import Cookies from 'js-cookie';
 
 type LovedItem = PropertyDataModel & { love?: number };
 export default function useLove() {
-  const q = useSearchParams();
+  const q = getData('viewing_customer') || { id: 0 };
   const [data, setLovedData] = React.useState<{
     item: LovedItem;
     items: string[];
@@ -48,11 +48,11 @@ export default function useLove() {
   const fireEvent = React.useCallback((item: LovedItem, agent: number, remove = false) => {
     console.log('event fired in useLove for', item.mls_id);
     console.log('event tied to ', agent);
-    console.log('customer', q.get('customer'));
+    console.log('customer', q);
     if (remove && item.love) {
       unloveHome(item.love);
     } else {
-      loveHome(item.mls_id, agent, Cookies.get('session_as') === 'realtor' && q.get('customer') ? Number(q.get('customer')) : undefined);
+      loveHome(item.mls_id, agent, Cookies.get('session_as') === 'realtor' && q.id ? Number(q.id) : undefined);
     }
 
     document.dispatchEvent(

@@ -32,6 +32,9 @@ import {
 } from './helpers';
 import { BuildingUnit, PropertyAttributes } from './types';
 import { createAgent, findAgentBy, updateAgentMetatags } from '../agents/model';
+import { consoler } from '@/_helpers/consoler';
+
+const FILE = 'api/properties/model.ts';
 
 export interface MapboxResultProperties {
   name: string;
@@ -177,7 +180,6 @@ export async function buildCacheFiles(mls_id: string): Promise<
         });
 
       let real_estate_board = await getRealEstateBoard(mls_data as unknown as { [key: string]: string });
-      console.log({ agents });
 
       const listing_by_name =
         LA1_FullName || LA2_FullName || LA3_FullName || SO1_FullName || SO2_FullName || SO3_FullName || LO1_Name || LO2_Name || LO3_Name || '';
@@ -188,10 +190,8 @@ export async function buildCacheFiles(mls_id: string): Promise<
       const dwelling_type = {
         name: property_type,
       };
-      console.log('Legacy pipeline data retrieved in', Date.now() - start, 'ms');
+      consoler(FILE, 'Legacy pipeline data retrieved in', Date.now() - start, 'ms');
       real_estate_board = real_estate_board || undefined;
-      // const real_estate_board = await getRealEstateBoard(mls_data as unknown as { [key: string]: string });
-      // console.log('Real estate board data retrieved in', Date.now() - start, 'ms');
       const room_details: { rooms: RoomDetails[] } = roomsToRoomDetails(legacy_data as MLSProperty);
       const bathroom_details: { baths: BathroomDetails[] } = bathroomsToBathroomDetails(legacy_data as MLSProperty);
       let details: { [key: string]: unknown } = {
@@ -201,7 +201,7 @@ export async function buildCacheFiles(mls_id: string): Promise<
       if (isNaN(Number(legacy.lat)) && legacy.title && legacy.postal_zip_code) {
         // No lat,lon - extra processing
         const [place] = await googlePlaceQuery(`${legacy.title} ${legacy.postal_zip_code}`);
-        console.log('Google place query in', Date.now() - start, 'ms');
+        consoler(FILE, 'Google place query in', Date.now() - start, 'ms');
         if (place && place.place_id) {
           details = await getFormattedPlaceDetails(place.place_id);
 
@@ -287,7 +287,7 @@ export async function buildCacheFiles(mls_id: string): Promise<
             };
           }),
         ).then(() => {
-          console.log('buildCacheFiles completed');
+          consoler(FILE, 'buildCacheFiles completed');
         });
       }
 
@@ -306,18 +306,16 @@ export async function buildCacheFiles(mls_id: string): Promise<
     const axerr = e as AxiosError;
     if (axerr.response?.status === 403) {
       // Might not have cache yet, attempt to create
-      console.log('Might not have cache yet, attempt to create');
       const xhr = await axios.get(`${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
-
-      console.log(`From integrations: ${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`);
+      consoler(FILE, `From integrations: ${process.env.NEXT_PUBLIC_API}/strapi/property/${mls_id}`);
     }
 
     if (!axerr.response?.data) {
-      console.log('[ERROR] api/properties/model.buildCacheFiles', axerr.response);
+      consoler(FILE, '[ERROR] api/properties/model.buildCacheFiles', axerr.response);
     }
 
     return {
@@ -432,10 +430,10 @@ export async function getPropertyByMlsId(mls_id: string, legacy_data?: { photos?
     return;
   } catch (e) {
     const axerr = e as AxiosError;
-    console.log('Error caught: properties.model.getPropertyByMlsId');
+    consoler(FILE, 'Error caught: getPropertyByMlsId');
     console.error(e);
-    upsert && console.log(upsert);
-    console.log(axerr.response?.data);
+    upsert && consoler(FILE, upsert);
+    consoler(FILE, axerr.response?.data);
   }
 }
 
@@ -489,8 +487,8 @@ export async function getBuildingUnits(property: PropertyDataModel): Promise<Bui
       .filter((n: BuildingUnit) => n.id !== property.id);
   } catch (e) {
     const axerr = e as AxiosError;
-    console.log('Error caught: properties.model.getBuildingUnits');
-    console.log(axerr.response?.data);
+    consoler(FILE, 'Error caught: properties.model.getBuildingUnits');
+    consoler(FILE, axerr.response?.data);
   }
   return [];
 }
@@ -590,8 +588,7 @@ export async function getPropertiesFromAgentInventory(agent_id: string) {
     return response?.data?.data?.agentInventories?.data || {};
   } catch (e) {
     const axerr = e as AxiosError;
-    console.log('Error caught: properties.model.getPropertiesFromAgentInventory');
-    console.log(axerr.response?.data);
+    consoler(FILE, 'Error caught: getPropertiesFromAgentInventory', axerr.response?.data);
   }
 }
 
@@ -606,72 +603,6 @@ function getFeatureAlias(feature: string, category: string = 'Appliance') {
   }
 }
 
-function isPropertyAttribute(
-  key: string,
-  value: unknown,
-  property_attributes: {
-    [k: string]: {
-      id: number;
-      name: string;
-    }[];
-  },
-) {
-  if (key.toLowerCase().includes('amenities')) {
-    let ids: number[] = [];
-    (value as string[]).forEach(v => {
-      ids = property_attributes.amenities.filter(attr => attr.name.toLowerCase() === v.toLowerCase()).map(attr => attr.id);
-    });
-    return ids;
-  }
-  if (key.toLowerCase().includes('appliance')) {
-    console.log({ key, value });
-  }
-  if (key.toLowerCase().includes('connectedservice')) {
-    console.log({ key, value });
-  }
-  if (key.toLowerCase().includes('bylaw')) {
-    console.log({ key, value });
-  }
-  if (key.toLowerCase().includes('facilit')) {
-    console.log({ key, value });
-  }
-  if (key.toLowerCase().includes('features')) {
-    let ids: number[] = [];
-    (value as string[]).forEach(v => {
-      ids = property_attributes.features.filter(attr => attr.name.toLowerCase() === v.toLowerCase()).map(attr => attr.id);
-    });
-    return ids;
-  }
-  if (key.toLowerCase().includes('parking')) {
-    console.log({ key, value });
-  }
-  if (key.toLowerCase().includes('services')) {
-    let ids: number[] = [];
-    (value as string[]).forEach(v => {
-      ids = property_attributes.connected_services.filter(attr => attr.name.toLowerCase() === v.toLowerCase()).map(attr => attr.id);
-    });
-    return ids;
-  }
-  if (key.toLowerCase().includes('influence')) {
-    let ids: number[] = [];
-    (value as string[]).forEach(v => {
-      ids = property_attributes.places_of_interest.filter(attr => attr.name.toLowerCase() === v.toLowerCase()).map(attr => attr.id);
-    });
-    return ids;
-  }
-  if (key.toLowerCase().includes('outdoor')) {
-    console.log({ key, value });
-  }
-  if (key.toLowerCase().includes('water')) {
-    console.log({ key, value });
-  }
-  if (key.toLowerCase().includes('pets')) {
-    console.log({ key, value });
-  }
-  if (key.toLowerCase().includes('security')) {
-    console.log({ key, value });
-  }
-}
 async function createProperty(mls_data: MLSProperty): Promise<PropertyDataModel | undefined> {
   const property_attributes = await getPropertyAttributes();
   const relationships = property_attributes as unknown as PropertyAttributes;
@@ -776,8 +707,7 @@ async function createProperty(mls_data: MLSProperty): Promise<PropertyDataModel 
         );
 
         if (sold_response?.data) {
-          const sold_data = sold_response.data;
-          console.log(JSON.stringify({ sold_data }, null, 4));
+          consoler(FILE, { sold_response });
         }
       }
 

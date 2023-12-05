@@ -15,6 +15,7 @@ import { AgentData } from '@/_typings/agent';
 import { Metadata } from 'next';
 import { AuthPopup } from './auth.popup';
 import { findAgentBrokerageAgents } from '../api/agents/model';
+import { consoler } from '@/_helpers/consoler';
 type Props = {
   params: { id: string };
   searchParams: { [key: string]: string | string[] | undefined };
@@ -40,6 +41,7 @@ interface SearchOpts {
     [key: string]: 'asc' | 'desc';
   };
 }
+const FILE = 'app/map/page.tsx';
 
 async function getMetadata(props?: Props): Promise<Metadata> {
   let page_data: {
@@ -111,20 +113,18 @@ async function getMetadata(props?: Props): Promise<Metadata> {
    * GREY Area
    * > Uncomment commented (//) code below to debug
    */
-  // console.log(page_data);
+  // consoler(FILE, 'getMetadata', page_data);
 
   return page_data;
 }
 
-export default async function MapPage({ params, searchParams }: { params: { [key: string]: string }; searchParams: { [key: string]: string } }) {
-  const { 'profile-slug': slug } = params;
+export default async function MapPage({ searchParams }: { params?: { [key: string]: string }; searchParams: { [key: string]: string } }) {
   const url = headers().get('x-url');
 
   const metadata = await getMetadata();
   const page_data = metadata as unknown as AgentData;
 
-  console.log(`\n\nSSR Speed stats for ${headers().get('x-url')}`);
-  console.log(`\n\n   query: ${headers().get('x-search-params')}`);
+  consoler(FILE + ':MapPage', `SSR Speed stats for ${headers().get('x-url')}`, `  query: ${headers().get('x-search-params')}`);
 
   let time = Date.now();
 
@@ -149,7 +149,7 @@ export default async function MapPage({ params, searchParams }: { params: { [key
           {
             agent_id: page_data.agent_id,
           },
-          1,
+          50,
         ),
       ),
       axios.get(url),
@@ -326,11 +326,6 @@ function generatePipelineParams(opts: SearchOpts, size = 100) {
                 lte: opts.nelng,
                 gte: opts.swlng,
               },
-            },
-          },
-          {
-            match: {
-              'data.IdxInclude': 'Yes',
             },
           },
           {

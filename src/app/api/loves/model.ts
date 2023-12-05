@@ -144,21 +144,6 @@ export async function regenerateRecords(guid: number) {
       };
     });
 
-    // if (updated_at) {
-    //   const timestamp = new Date(updated_at).toISOString();
-    //   createCacheItem(
-    //     JSON.stringify(
-    //       {
-    //         records,
-    //         timestamp,
-    //       },
-    //       null,
-    //       4,
-    //     ),
-    //     `cache/${guid}/loves.json`,
-    //   );
-    // }
-
     return records;
   }
 

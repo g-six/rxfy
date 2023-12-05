@@ -1,12 +1,15 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import styles from './home-list.module.scss';
 import EmptyState from './empty-state.module';
 import PropertyCard from './property-card.module';
 import { AgentData } from '@/_typings/agent';
 import { PropertyDataModel } from '@/_typings/property';
 import useEvent, { Events } from '@/hooks/useEvent';
+import { consoler } from '@/_helpers/consoler';
+
+const FILE = 'app/map/home-list.module.tsx';
 
 interface Props {
   agent?: AgentData;
@@ -24,7 +27,7 @@ function Iterator({ children, ...props }: Props) {
           </PropertyCard>
         );
       }
-      if (c.props.className?.includes('empty-state')) {
+      if (c.props?.className?.includes('empty-state')) {
         return <EmptyState {...c.props}>{c.props.children}</EmptyState>;
       }
       return (
@@ -38,24 +41,16 @@ function Iterator({ children, ...props }: Props) {
   return <>{Wrapped}</>;
 }
 
-export default function HomeList({ className, children, properties: initial_points, ...props }: Props & { className: string }) {
+export default function HomeList({ className, children, ...props }: Props & { className: string }) {
   const evt = useEvent(Events.MapSearch);
-  const [properties, setProperties] = useState<PropertyDataModel[]>(initial_points);
-
-  useEffect(() => {
-    if (evt.data) {
-      const search = evt.data as unknown as {
-        points?: {
-          properties: PropertyDataModel;
-        }[];
-      };
-      if (search.points) {
-        setProperties(search.points.map(p => p.properties));
-      } else {
-        setProperties([]);
-      }
-    }
-  }, [evt.data]);
+  const { points } = evt.data as unknown as {
+    points?: {
+      // properties here relates to the map points (pin properties)
+      // not to be confused with an array of listings
+      properties: PropertyDataModel;
+    }[];
+  };
+  const properties: PropertyDataModel[] = points ? points.map(p => p.properties) : [];
 
   return (
     <div className={[className, styles['list-scroller'], 'rexified', 'HomeList'].join(' ')}>

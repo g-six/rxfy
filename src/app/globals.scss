@@ -148,6 +148,12 @@ iframe {
       @apply max-h-10 #{!important};
     }
   }
+  .mapboxgl-popup {
+    @apply bg-transparent shadow-none min-w-fit #{!important};
+  }
+  .mapboxgl-popup-content:not(.property-card) {
+    @apply w-full bg-transparent p-0 min-w-fit #{!important};
+  }
 }
 .w--tab-active {
   animation: fade-in 1s;
@@ -161,5 +167,8 @@ iframe {
     opacity: 1;
   }
 }
-
 @tailwind utilities;
+
+.ai-preview {
+  zoom: 0.7;
+}

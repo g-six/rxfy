@@ -3,16 +3,17 @@ import { mutation_create_meta, mutation_update_agent } from './graphql';
 import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
 import { AgentInput } from '@/_typings/agent';
 import { SearchHighlightInput } from '@/_typings/maps';
+import { consoler } from '@/_helpers/consoler';
 
+const FILE = 'api/agents/repair.ts';
 export const maxDuration = 300;
-
 export async function getSmart(
   agent: AgentInput & { id: number; search_highlights?: SearchHighlightInput[] },
   property: { [key: string]: string | number },
   real_estate_board?: { id: number; name: string; abbreviation: string },
 ) {
-  console.log(JSON.stringify({ property }, null, 4));
   if (!property.city) {
+    consoler(FILE, 'getSmart skipped');
     return { error: 'Invalid property', property };
   }
   let prompt = `My name's ${agent.full_name} and I'm a licenced realtor catering to the city of ${property.city}${
@@ -23,21 +24,12 @@ export async function getSmart(
     prompt = `\nI've also recently listed a real estate property at ${property.title} with the following advertisement:\n\n"${property.description}"\n. With that taken into consideration`;
   }
 
-  // if (real_estate_board) {
-  // prompt = `Retrieve the public information of a realtor named ${agent.full_name}, a licenced realtor for ${`${
-  //   real_estate_board?.name
-  //     ? `(${real_estate_board.name})`
-  //     : `${property.city}${property.city && property.state_province ? ', ' : ''}${property.state_province || ''}`
-  // } `} with Paragon ID "${agent.agent_id}" from the internet and only use the most recently published source or article anytime from November ${
-  //   new Date().getFullYear() - 1
-  // } to today. Based on that factual information`;
-  // }
-
   prompt = `${prompt}, write me a 200-worded realtor bio (JSON key "bio") from a first-person point of view for prospect clients 
   belonging to the demographic looking for listings in the same city or area, 
   a set of SEO metatags (JSON key "metatags") fit for my professional website, website title (JSON key "title") and a well structured, 
   3-worded, and SEO friendly tagline (JSON key "tagline"). Contain the results in JSON key-value pair format.
   `;
+  consoler(FILE, { prompt });
   console.log('---');
   console.log('Processing:');
   console.log(`curl ${process.env.NEXT_APP_OPENAI_URI} -H 'content-type: application/json' -H 'Authorization: Bearer ${process.env.NEXT_APP_OPENAI_API}' \\`);

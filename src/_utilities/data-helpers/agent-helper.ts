@@ -1,6 +1,7 @@
 import { AgentData } from '@/_typings/agent';
 import { AxiosStatic } from 'axios';
 import { objectToQueryString } from '../url-helper';
+import { getAgentBaseUrl } from '@/app/api/_helpers/agent-helper';
 
 export async function getAgentDataFromDomain(domain: string): Promise<AgentData> {
   if (`${process.env.NEXT_APP_LEAGENT_DOMAINS}`.split(',').includes(domain)) {
@@ -61,7 +62,7 @@ export function getAgentHomePageUrl(agent: AgentData) {
   return domain_name ? `https://${domain_name}` : `/${agent.agent_id}/${agent.metatags.profile_slug}`;
 }
 export function getAgentMapDefaultUrl(agent: AgentData) {
-  let url = getAgentHomePageUrl(agent) + '/map';
+  let url = getAgentBaseUrl(agent) + '/map';
   if (agent.metatags.geocoding) {
     const { nelat, nelng, swlat, swlng } = agent.metatags.geocoding as unknown as {
       [k: string]: number;

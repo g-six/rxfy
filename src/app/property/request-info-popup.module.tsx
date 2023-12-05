@@ -68,7 +68,7 @@ function SubmitButton(p: RequestInfoPopupProps) {
   const { data, fireEvent: closeModal } = useEvent(Events.GenericEvent);
   const { name: customer_name, phone, message } = data as unknown as { [k: string]: string };
   const [loading, toggleLoading] = useState(false);
-  const { children, listing, send_to, ...attr } = p;
+  const { children, listing, send_to, show, ...attr } = p;
   return (
     <button
       {...attr}
@@ -183,7 +183,7 @@ export default function RequestInfoPopup({ children, ...p }: RequestInfoPopupPro
   return (
     <Transition
       key='confirmation'
-      show={show || p.show || false}
+      show={show || p.show ? true : false}
       as={'section'}
       className={classNames(p.className || '', show ? styles.popup : '')}
       enter='transform ease-out duration-300 transition'

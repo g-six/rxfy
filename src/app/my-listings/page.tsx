@@ -1,4 +1,3 @@
-import { displayConsoleHeader } from '@/_helpers/consoler';
 import { RxNavIterator } from '@/rexify/realtors/RxNavIterator';
 import { CheerioAPI, load } from 'cheerio';
 import { DOMNode, attributesToProps, domToReact } from 'html-react-parser';
@@ -62,7 +61,6 @@ function Rexified({ agent, children, ...page }: { children: ReactElement; agent:
 }
 
 export default async function MyListings(page: Props) {
-  displayConsoleHeader(page);
   const source_html_url = headers().get('x-url') || '';
   const page_xhr = await fetch(source_html_url);
   const html = await page_xhr.text();

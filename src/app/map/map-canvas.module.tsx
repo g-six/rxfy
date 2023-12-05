@@ -1,5 +1,6 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
+import { createRoot } from 'react-dom/client';
 import mapboxgl, { GeoJSONSource, GeoJSONSourceRaw, Map, MapboxGeoJSONFeature } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Feature } from 'geojson';
@@ -19,7 +20,21 @@ import PropertyListModal from '@/components/PropertyListModal';
 import { AgentData } from '@/_typings/agent';
 import Cookies from 'js-cookie';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
+import RxPropertyCard from '@/components/RxCards/RxPropertyCard';
+import { consoler } from '@/_helpers/consoler';
 
+interface ListingPopupProps {
+  id?: string;
+  position?: {
+    x: number;
+    y: number;
+  };
+  bounds?: {
+    height: number;
+    width: number;
+  };
+}
+const FILE = 'map-canvas.module.tsx';
 const PAGE_SIZE = 100;
 function Iterator({ children }: { children: React.ReactElement }) {
   const Wrapped = React.Children.map(children, c => {
@@ -52,13 +67,15 @@ export default function MapCanvas(p: {
   const { data: agent_only, fireEvent: toggleAgentOnly } = useEvent(Events.AgentMyListings);
   const mapNode = React.useRef(null);
   const [map, setMap] = React.useState<mapboxgl.Map>();
+  const [active_marker, setActiveMarker] = useState<PropertyDataModel & { coordinates: mapboxgl.LngLatLike }>();
   const [is_loading, setLoading] = React.useState<boolean>(false);
   const [filters, setFilters] = React.useState<{
     [k: string]: string | number;
-  }>();
+  }>(search.toString() ? queryStringToObject(search.toString()) : {});
   const [listings, setListings] = React.useState<PropertyDataModel[]>([]);
   const [pipeline_listings, setPipelineResults] = React.useState<PropertyDataModel[]>([]);
   const [selected_cluster, setSelectedCluster] = React.useState<PropertyDataModel[]>([]);
+  const [is_map_loaded, setMapLoaded] = React.useState<boolean>(false);
 
   const clickEventListener = (e: mapboxgl.MapMouseEvent & mapboxgl.EventData) => {
     const features = e.target.queryRenderedFeatures(e.point, {
@@ -86,9 +103,11 @@ export default function MapCanvas(p: {
               } as unknown as EventsData);
             });
           } else {
-            const items: PropertyDataModel[] = [];
-            items.push(properties as unknown as PropertyDataModel);
-            setSelectedCluster(items);
+            const listing = properties as unknown as PropertyDataModel;
+            // const items: PropertyDataModel[] = [];
+            // items.push(properties as unknown as PropertyDataModel);
+            // setSelectedCluster(items);
+            router.push(`property?mls=${listing.mls_id}`, {});
           }
         }
       });
@@ -127,8 +146,13 @@ export default function MapCanvas(p: {
     setMap(m);
   };
 
-  const populateMap = (from = 0) => {
-    if (filters && is_loading) {
+  const populateMap = (search_filters?: { [k: string]: string | number }) => {
+    let elastic_filters = {
+      ...filters,
+      ...search_filters,
+    };
+    if (elastic_filters && Object.keys(elastic_filters).length) {
+      const { beds, baths, minprice, maxprice, minsqft, maxsqft } = elastic_filters;
       const should: {
         match: {
           [key: string]: string | number;
@@ -157,72 +181,72 @@ export default function MapCanvas(p: {
           minimum_should_match?: number;
         };
       }[] = [];
-      if (filters.baths) {
+      if (baths) {
         user_defined_filters.push({
           range: {
             'data.L_TotalBaths': {
-              gte: Number(filters.baths),
+              gte: Number(baths),
             },
           },
         });
       }
-      if (filters.beds) {
+      if (beds) {
         user_defined_filters.push({
           range: {
             'data.L_BedroomTotal': {
-              gte: Number(filters.beds),
+              gte: Number(beds),
             },
           },
         });
       }
-      if (filters.minprice && filters.maxprice) {
+      if (minprice && maxprice) {
         user_defined_filters.push({
           range: {
             'data.AskingPrice': {
-              gte: Number(filters.minprice),
-              lte: Number(filters.maxprice),
+              gte: Number(minprice),
+              lte: Number(maxprice),
             },
           },
         });
-      } else if (filters.minprice) {
+      } else if (minprice) {
         user_defined_filters.push({
           range: {
             'data.AskingPrice': {
-              gte: Number(filters.minprice),
+              gte: Number(minprice),
             },
           },
         });
-      } else if (filters.maxprice) {
+      } else if (maxprice) {
         user_defined_filters.push({
           range: {
             'data.AskingPrice': {
-              lte: Number(filters.maxprice),
+              lte: Number(maxprice),
             },
           },
         });
       }
-      if (filters.minsqft && filters.maxsqft) {
+      if (minsqft && maxsqft) {
         user_defined_filters.push({
           range: {
             'data.L_FloorArea_GrantTotal': {
-              gte: Number(filters.minsqft),
-              lte: Number(filters.maxsqft),
+              gte: Number(minsqft),
+              lte: Number(maxsqft),
             },
           },
         });
-      } else if (filters.minsqft) {
+      } else if (minsqft) {
         user_defined_filters.push({
           range: {
             'data.L_FloorArea_GrantTotal': {
-              gte: Number(filters.minsqft),
+              gte: Number(minsqft),
             },
           },
         });
-      } else if (filters.maxsqft) {
+      } else if (maxsqft) {
         user_defined_filters.push({
           range: {
             'data.L_FloorArea_GrantTotal': {
-              lte: Number(filters.maxsqft),
+              lte: Number(maxsqft),
             },
           },
         });
@@ -281,7 +305,7 @@ export default function MapCanvas(p: {
             });
           });
         }
-        console.log(should_match_agents);
+
         user_defined_filters.push({
           bool: {
             should: should_match_agents as any,
@@ -316,23 +340,12 @@ export default function MapCanvas(p: {
             break;
         }
       }
-      // Update query string
-      router.push(
-        '?' +
-          objectToQueryString({
-            ...qs,
-            lat: filters.lat,
-            lng: filters.lng,
-            baths: filters.baths || 0,
-            beds: filters.beds || 0,
-          }),
-      );
 
       if (map) {
         // Let's get more accurate if possible
         // Data bounded by map
         const legacy_params: LegacySearchPayload = {
-          from,
+          from: 0,
           size: PAGE_SIZE,
           sort,
           query: {
@@ -352,11 +365,6 @@ export default function MapCanvas(p: {
                       lte: map.getBounds().getNorthEast().lng,
                       gte: map.getBounds().getSouthWest().lng,
                     },
-                  },
-                },
-                {
-                  match: {
-                    'data.IdxInclude': 'Yes',
                   },
                 },
                 {
@@ -426,82 +434,70 @@ export default function MapCanvas(p: {
     }
   };
 
-  const repositionMap = React.useCallback(
-    (latlng: string) => {
+  React.useEffect(() => {
+    if (is_map_loaded) {
+      const {
+        points,
+        clicked,
+        reload,
+        filters: search_filters,
+      } = data as unknown as { points: unknown[]; clicked?: string; reload?: boolean; filters?: { [k: string]: string | number } };
       if (map) {
-        console.log('Map loaded in', Date.now() - start, 'ms');
-        // Not sure why we need this, perhaps performance issue in the past?
-        // Commenting this out for now and if maps performance is an issue,
-        // try uncommenting this
-
-        // map.getStyle().layers.forEach(layer => {
-        //   if (layer.id.indexOf('rx-') === 0) {
-        //     map.removeLayer(layer.id);
-        //   }
-        // });
-
-        let q = queryStringToObject(search.toString() || '');
-        if (Object.keys(q).length > 0) {
-          const [lat, lng] = latlng.split(',').map(Number);
-          const updated_filters = {
-            ...q,
-            lat,
-            lng,
+        if (clicked === 'reset') {
+          fireEvent({
+            ...search_filters,
+            points,
+          } as unknown as EventsData);
+          const updated_filters: {
+            [key: string]: string | number;
+          } = {
+            ...filters,
+            lat: map.getCenter().lat,
+            lng: map.getCenter().lng,
             nelat: map.getBounds().getNorthEast().lat,
             nelng: map.getBounds().getNorthEast().lng,
             swlat: map.getBounds().getSouthWest().lat,
             swlng: map.getBounds().getSouthWest().lng,
             zoom: map.getZoom(),
           };
-          setFilters(updated_filters);
+          delete updated_filters.types;
+        } else if (reload && is_loading === false) {
+          setFilters(search_filters as unknown as { [k: string]: string | number });
+          populateMap(search_filters as unknown as { [k: string]: string | number });
           setLoading(true);
-          // checkThenReload(true);
         }
       }
-    },
-    // If we add populateMap into the dependency, it would cause an infinite loop
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [map],
-  );
-
-  React.useEffect(() => {
-    if (data?.clicked === 'reset' && map) {
-      fireEvent({
-        ...data,
-        clicked: undefined,
-      });
-      const updated_filters: {
-        [key: string]: string | number;
-      } = {
-        ...filters,
-        lat: map.getCenter().lat,
-        lng: map.getCenter().lng,
-        nelat: map.getBounds().getNorthEast().lat,
-        nelng: map.getBounds().getNorthEast().lng,
-        swlat: map.getBounds().getSouthWest().lat,
-        swlng: map.getBounds().getSouthWest().lng,
-        zoom: map.getZoom(),
-      };
-      delete updated_filters.types;
-      router.push('?' + objectToQueryString(updated_filters));
     }
-  }, [data]);
+  }, [is_map_loaded, data, router, search, agent_only]);
 
   React.useEffect(() => {
-    if (map) {
+    if (map && !is_map_loaded) {
+      setMapLoaded(true);
       const nav = new mapboxgl.NavigationControl();
       if (!map.hasControl(nav)) {
         map.addControl(nav, 'bottom-right');
       }
-      marker = new mapboxgl.Marker(createMapPin()).setLngLat(map.getCenter()).addTo(map);
+      // marker = new mapboxgl.Marker(createMapPin()).setLngLat(map.getCenter()).addTo(map);
 
       const populate = (evt: { target: Map }) => {
-        if (marker) marker.remove();
+        // if (marker) marker.remove();
 
-        marker = new mapboxgl.Marker(createMapPin()).setLngLat(map.getCenter()).addTo(map);
+        // marker = new mapboxgl.Marker(createMapPin()).setLngLat(map.getCenter()).addTo(map);
 
         const { lat, lng } = map.getCenter();
-        repositionMap(`${lat},${lng}`);
+        const { _ne, _sw } = map.getBounds();
+        let q = queryStringToObject(search.toString() || '');
+        setFilters({
+          ...filters,
+          ...q,
+          lat,
+          lng,
+          zoom: map.getZoom(),
+          nelat: _ne.lat,
+          nelng: _ne.lng,
+          swlat: _sw.lat,
+          swlng: _sw.lng,
+        });
       };
       map.off('dragend', populate);
       map.on('dragend', populate);
@@ -511,7 +507,15 @@ export default function MapCanvas(p: {
     }
     // If we add populateMap into the dependency, it would cause an infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map]);
+  }, [map, is_map_loaded]);
+
+  // React.useEffect(() => {
+  //   if (agent_only?.show !== undefined && agent_only?.show) {
+  //     setLoading(true);
+  //     consoler(FILE, '[agent_only] changes triggers populateMap', { filters });
+  //     populateMap();
+  //   }
+  // }, [agent_only]);
 
   React.useEffect(() => {
     setHomeAlertsParams({
@@ -525,19 +529,15 @@ export default function MapCanvas(p: {
       };
       if (!map) {
         initializeMap();
-        if (!p.properties?.length) {
-          // SSR Pipeline gathering might have failed or yielded zero results,
-          // Let's try calling the /api/pipeline again by setting load - true
-          setLoading(true);
-        }
         return;
-      } else if (reload) {
-        setLoading(true);
+      } else {
+        router.push(`map?${objectToQueryString(filters)}`);
+        populateMap();
         return;
       }
       checkThenReload(true);
     }
-  }, [filters]);
+  }, [map, filters, agent_only]);
 
   React.useEffect(() => {
     if (listings) {
@@ -586,46 +586,50 @@ export default function MapCanvas(p: {
         addClusterLayer(map);
         addClusterHomeCountLayer(map);
         addSingleHomePins(map);
+
+        map.on('mouseenter', 'rx-home-price-bg', e => {
+          map.getCanvas().style.cursor = 'pointer';
+
+          // Populate the popup and set its coordinates
+          // based on the feature found.
+          e.features &&
+            e.features.forEach((feature, i) => {
+              map.fire('closeAllPopups');
+              if (feature.properties && feature.geometry.type === 'Point' && i === 0) {
+                // Copy coordinates array.
+                const coordinates = feature.geometry.coordinates.slice();
+                // Ensure that if the map is zoomed out such that multiple
+                // copies of the feature are visible, the popup appears
+                // over the copy being pointed to.
+                while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                  coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+                }
+
+                const listing = feature.properties as unknown as PropertyDataModel;
+                setActiveMarker({
+                  ...listing,
+                  coordinates: coordinates as unknown as mapboxgl.LngLatLike,
+                });
+              }
+            });
+        });
+
+        map.on('mouseleave', 'rx-home-price-bg', ev => {
+          map.getCanvas().style.cursor = '';
+          map.fire('closeAllPopups');
+        });
+
         registerMapClickHandler(listings);
       }
     }
   }, [listings]);
 
-  React.useEffect(() => {
-    let q = queryStringToObject(search.toString() || '');
-
-    if (q.center && map) {
-      const { center, place_id, ...queryparams } = q;
-      const [lat, lng] = `${center}`.split(',').map(Number);
-      map.setCenter([lng, lat]);
-      map.setZoom(11);
-      const updated = {
-        ...queryparams,
-        lat,
-        lng,
-        nelat: map.getBounds().getNorthEast().lat,
-        swlat: map.getBounds().getSouthWest().lat,
-        nelng: map.getBounds().getNorthEast().lng,
-        swlng: map.getBounds().getSouthWest().lng,
-      };
-      setFilters(updated);
-      setLoading(true);
-    } else if (!q.lat && !q.lng) {
-      const updated = {
-        lat: Number(search.get('lat')),
-        lng: Number(search.get('lng')),
-        zoom: 12,
-      };
-      setFilters(updated);
-    } else setFilters(q);
-  }, [search]);
-
-  React.useEffect(() => {
-    if (is_loading) {
-      setLoading(false);
-      populateMap();
-    }
-  }, [is_loading]);
+  // React.useEffect(() => {
+  //   if (is_loading) {
+  //     setLoading(false);
+  //     populateMap();
+  //   }
+  // }, [is_loading]);
 
   React.useEffect(() => {
     const { loved_only } = love as unknown as { loved_only?: boolean };
@@ -645,11 +649,16 @@ export default function MapCanvas(p: {
   }, [love]);
 
   React.useEffect(() => {
-    if (agent_only?.show !== undefined) {
-      setLoading(true);
-      populateMap();
+    if (map && active_marker) {
+      addPopup(
+        map,
+        <RxPropertyCard key={active_marker.mls_id} listing={active_marker} sequence={0} agent={p.agent?.id} view-only={false}>
+          {React.cloneElement(<div />, {}, <Iterator>{p.children}</Iterator>)}
+        </RxPropertyCard>,
+        active_marker.coordinates,
+      );
     }
-  }, [agent_only]);
+  }, [active_marker, map]);
 
   React.useEffect(() => {
     if (p.properties?.length) {
@@ -673,4 +682,29 @@ export default function MapCanvas(p: {
       />
     </aside>
   );
+}
+
+function addPopup(map: mapboxgl.Map, el: JSX.Element, coordinates: mapboxgl.LngLatLike) {
+  const placeholder = document.createElement('div');
+  // mapboxgl requires a fixed height for its popup placement logic
+  placeholder.setAttribute('style', 'min-height: 230px');
+  const root = createRoot(placeholder);
+  root.render(el);
+
+  const popup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false,
+    offset: 20,
+  })
+    .setDOMContent(placeholder)
+    .setLngLat(coordinates)
+    .addTo(map);
+  popup.addClassName(styles.popup);
+  popup.addClassName('');
+  popup.setMaxWidth('330px');
+
+  map.on('closeAllPopups', () => {
+    popup.remove();
+  });
+  return popup;
 }
