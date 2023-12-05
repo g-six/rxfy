@@ -1,7 +1,7 @@
 'use client';
 import styles from './RxMapbox.module.scss';
 import React from 'react';
-import mapboxgl, { GeoJSONSource, GeoJSONSourceRaw, LngLatLike, MapboxGeoJSONFeature } from 'mapbox-gl';
+import mapboxgl, { EventData, GeoJSONSource, GeoJSONSourceRaw, LngLatLike, MapMouseEvent, MapboxGeoJSONFeature } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { queryStringToObject } from '@/_utilities/url-helper';
 import { AgentData } from '@/_typings/agent';
@@ -20,6 +20,7 @@ import Cookies from 'js-cookie';
 import axios from 'axios';
 import { STRAPI_FIELDS, must_not, retrieveFromLegacyPipeline } from '@/_utilities/api-calls/call-legacy-search';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { consoler } from '@/_helpers/consoler';
 
 type RxMapboxProps = {
   agent: AgentData;
@@ -56,7 +57,9 @@ export function addSingleHomePins(map: mapboxgl.Map) {
     map.addLayer(bg);
   }
 
-  if (map.getLayer('rx-home-price-text') === undefined) map.addLayer(renderHomePinTextLayer('rx-home-price-text'));
+  if (map.getLayer('rx-home-price-text') === undefined) {
+    map.addLayer(renderHomePinTextLayer('rx-home-price-text'));
+  }
 }
 
 export function RxMapbox(props: RxMapboxProps) {
@@ -93,7 +96,7 @@ export function RxMapbox(props: RxMapboxProps) {
                     ({
                       ...properties,
                       id,
-                    } as unknown as PropertyDataModel),
+                    }) as unknown as PropertyDataModel,
                 ),
               );
             });

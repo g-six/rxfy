@@ -146,9 +146,14 @@ export default function MapCanvas(p: {
     setMap(m);
   };
 
-  const populateMap = (from = 0) => {
-    if (filters) {
-      consoler(FILE, 'populateMap', { filters });
+  const populateMap = (search_filters?: { [k: string]: string | number }) => {
+    let elastic_filters = {
+      ...filters,
+      ...search_filters,
+    };
+    if (elastic_filters && Object.keys(elastic_filters).length) {
+      consoler(FILE, 'populateMap', { elastic_filters });
+      const { beds, baths, minprice, maxprice, minsqft, maxsqft } = elastic_filters;
       const should: {
         match: {
           [key: string]: string | number;
@@ -177,72 +182,72 @@ export default function MapCanvas(p: {
           minimum_should_match?: number;
         };
       }[] = [];
-      if (filters.baths) {
+      if (baths) {
         user_defined_filters.push({
           range: {
             'data.L_TotalBaths': {
-              gte: Number(filters.baths),
+              gte: Number(baths),
             },
           },
         });
       }
-      if (filters.beds) {
+      if (beds) {
         user_defined_filters.push({
           range: {
             'data.L_BedroomTotal': {
-              gte: Number(filters.beds),
+              gte: Number(beds),
             },
           },
         });
       }
-      if (filters.minprice && filters.maxprice) {
+      if (minprice && maxprice) {
         user_defined_filters.push({
           range: {
             'data.AskingPrice': {
-              gte: Number(filters.minprice),
-              lte: Number(filters.maxprice),
+              gte: Number(minprice),
+              lte: Number(maxprice),
             },
           },
         });
-      } else if (filters.minprice) {
+      } else if (minprice) {
         user_defined_filters.push({
           range: {
             'data.AskingPrice': {
-              gte: Number(filters.minprice),
+              gte: Number(minprice),
             },
           },
         });
-      } else if (filters.maxprice) {
+      } else if (maxprice) {
         user_defined_filters.push({
           range: {
             'data.AskingPrice': {
-              lte: Number(filters.maxprice),
+              lte: Number(maxprice),
             },
           },
         });
       }
-      if (filters.minsqft && filters.maxsqft) {
+      if (minsqft && maxsqft) {
         user_defined_filters.push({
           range: {
             'data.L_FloorArea_GrantTotal': {
-              gte: Number(filters.minsqft),
-              lte: Number(filters.maxsqft),
+              gte: Number(minsqft),
+              lte: Number(maxsqft),
             },
           },
         });
-      } else if (filters.minsqft) {
+      } else if (minsqft) {
         user_defined_filters.push({
           range: {
             'data.L_FloorArea_GrantTotal': {
-              gte: Number(filters.minsqft),
+              gte: Number(minsqft),
             },
           },
         });
-      } else if (filters.maxsqft) {
+      } else if (maxsqft) {
         user_defined_filters.push({
           range: {
             'data.L_FloorArea_GrantTotal': {
-              lte: Number(filters.maxsqft),
+              lte: Number(maxsqft),
             },
           },
         });
@@ -336,23 +341,12 @@ export default function MapCanvas(p: {
             break;
         }
       }
-      // Update query string
-      // router.push(
-      //   '?' +
-      //     objectToQueryString({
-      //       ...qs,
-      //       lat: filters.lat,
-      //       lng: filters.lng,
-      //       baths: filters.baths || 0,
-      //       beds: filters.beds || 0,
-      //     }),
-      // );
 
       if (map) {
         // Let's get more accurate if possible
         // Data bounded by map
         const legacy_params: LegacySearchPayload = {
-          from,
+          from: 0,
           size: PAGE_SIZE,
           sort,
           query: {
@@ -441,54 +435,41 @@ export default function MapCanvas(p: {
     }
   };
 
-  const repositionMap = React.useCallback(
-    (latlng: string) => {
+  React.useEffect(() => {
+    if (is_map_loaded) {
+      const {
+        points,
+        clicked,
+        reload,
+        filters: search_filters,
+      } = data as unknown as { points: unknown[]; clicked?: string; reload?: boolean; filters?: { [k: string]: string | number } };
       if (map) {
-        let q = queryStringToObject(search.toString() || '');
-        if (Object.keys(q).length > 0) {
-          const [lat, lng] = latlng.split(',').map(Number);
-          const updated_filters = {
-            ...q,
-            lat,
-            lng,
+        if (clicked === 'reset') {
+          fireEvent({
+            ...search_filters,
+            points,
+          } as unknown as EventsData);
+          const updated_filters: {
+            [key: string]: string | number;
+          } = {
+            ...filters,
+            lat: map.getCenter().lat,
+            lng: map.getCenter().lng,
             nelat: map.getBounds().getNorthEast().lat,
             nelng: map.getBounds().getNorthEast().lng,
             swlat: map.getBounds().getSouthWest().lat,
             swlng: map.getBounds().getSouthWest().lng,
             zoom: map.getZoom(),
           };
-
-          // setLoading(true);
-          // checkThenReload(true);
+          delete updated_filters.types;
+        } else if (reload && is_loading === false) {
+          setFilters(search_filters as unknown as { [k: string]: string | number });
+          populateMap(search_filters as unknown as { [k: string]: string | number });
+          setLoading(true);
         }
       }
-    },
-    // If we add populateMap into the dependency, it would cause an infinite loop
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [map],
-  );
-
-  React.useEffect(() => {
-    if (data?.clicked === 'reset' && map) {
-      fireEvent({
-        ...data,
-        clicked: undefined,
-      });
-      const updated_filters: {
-        [key: string]: string | number;
-      } = {
-        ...filters,
-        lat: map.getCenter().lat,
-        lng: map.getCenter().lng,
-        nelat: map.getBounds().getNorthEast().lat,
-        nelng: map.getBounds().getNorthEast().lng,
-        swlat: map.getBounds().getSouthWest().lat,
-        swlng: map.getBounds().getSouthWest().lng,
-        zoom: map.getZoom(),
-      };
-      delete updated_filters.types;
     }
-  }, [data]);
+  }, [is_map_loaded, data, router, search, agent_only]);
 
   React.useEffect(() => {
     if (map && !is_map_loaded) {
@@ -529,6 +510,14 @@ export default function MapCanvas(p: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, is_map_loaded]);
 
+  // React.useEffect(() => {
+  //   if (agent_only?.show !== undefined && agent_only?.show) {
+  //     setLoading(true);
+  //     consoler(FILE, '[agent_only] changes triggers populateMap', { filters });
+  //     populateMap();
+  //   }
+  // }, [agent_only]);
+
   React.useEffect(() => {
     setHomeAlertsParams({
       ...home_alerts_params,
@@ -543,14 +532,13 @@ export default function MapCanvas(p: {
         initializeMap();
         return;
       } else {
-        consoler(FILE, 'useEffect(else, [filters])', { filters });
         router.push(`map?${objectToQueryString(filters)}`);
         populateMap();
         return;
       }
       checkThenReload(true);
     }
-  }, [map, filters]);
+  }, [map, filters, agent_only]);
 
   React.useEffect(() => {
     if (listings) {
@@ -638,40 +626,11 @@ export default function MapCanvas(p: {
   }, [listings]);
 
   // React.useEffect(() => {
-  //   let q = queryStringToObject(search.toString() || '');
-
-  //   if (q.center && map) {
-  //     const { center, place_id, ...queryparams } = q;
-  //     const [lat, lng] = `${center}`.split(',').map(Number);
-  //     // map.setCenter([lng, lat]);
-  //     // map.setZoom(11);
-  //     const updated = {
-  //       ...queryparams,
-  //       lat,
-  //       lng,
-  //       nelat: map.getBounds().getNorthEast().lat,
-  //       swlat: map.getBounds().getSouthWest().lat,
-  //       nelng: map.getBounds().getNorthEast().lng,
-  //       swlng: map.getBounds().getSouthWest().lng,
-  //     };
-
-  //     setLoading(true);
-  //   } else if (!q.lat && !q.lng) {
-  //     const updated = {
-  //       lat: Number(search.get('lat')),
-  //       lng: Number(search.get('lng')),
-  //       zoom: 12,
-  //     };
-
-  //   } else setFilters(q);
-  // }, [search]);
-
-  React.useEffect(() => {
-    if (is_loading) {
-      setLoading(false);
-      populateMap();
-    }
-  }, [is_loading]);
+  //   if (is_loading) {
+  //     setLoading(false);
+  //     populateMap();
+  //   }
+  // }, [is_loading]);
 
   React.useEffect(() => {
     const { loved_only } = love as unknown as { loved_only?: boolean };
@@ -689,13 +648,6 @@ export default function MapCanvas(p: {
       setListings(pipeline_listings);
     }
   }, [love]);
-
-  React.useEffect(() => {
-    if (agent_only?.show !== undefined) {
-      setLoading(true);
-      populateMap();
-    }
-  }, [agent_only]);
 
   React.useEffect(() => {
     if (map && active_marker) {

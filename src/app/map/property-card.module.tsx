@@ -250,7 +250,7 @@ export default function PropertyCard({
   }
 
   useEffect(() => {
-    consoler('property-card.module.tsx', { lightbox_props });
+    // consoler('property-card.module.tsx', { lightbox_props });
   }, [lightbox_props?.mls_id]);
 
   const cards: React.ReactElement[] = points

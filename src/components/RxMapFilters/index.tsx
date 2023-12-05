@@ -284,8 +284,9 @@ export default function RxMapFilters({ children, ...values }: { [key: string]: s
         document.querySelectorAll('[aria-expanded]').forEach(el => el.setAttribute('aria-expanded', 'false'));
         fireEvent({
           ...data,
+          filters: updated_filters,
           reload: true,
-        });
+        } as unknown as EventsData);
       }}
       onChange={(className: string) => {
         let modifier = className?.includes('-less') ? -1 : 1;
