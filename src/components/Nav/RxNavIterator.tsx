@@ -32,7 +32,12 @@ export default function NavIterator({ children, ...props }: { children: React.Re
         );
       }
       return (
-        <div {...subprops} className={classNames(className || '', 'rexified', 'NavIterator-div')}>
+        <div
+          {...subprops}
+          className={classNames(className || '', 'rexified', 'NavIterator-div')}
+          data-rx-dir='components'
+          data-rx-src='Nav/RxNavIterator.NavIterator'
+        >
           <NavIterator {...props}>{subchildren}</NavIterator>
         </div>
       );
@@ -40,7 +45,12 @@ export default function NavIterator({ children, ...props }: { children: React.Re
     if (c.type === 'nav') {
       const { children: subchildren, ...subprops } = c.props;
       return (
-        <nav {...subprops} className={classNames(c.props.className || '', 'z-30', 'rexified', 'NavIterator-nav')}>
+        <nav
+          {...subprops}
+          className={classNames(c.props.className || '', 'z-30', 'rexified', 'NavIterator-nav')}
+          data-rx-dir='components'
+          data-rx-src='Nav/RxNavIterator.NavIterator'
+        >
           <NavIterator {...props}>{subchildren}</NavIterator>
         </nav>
       );
@@ -48,7 +58,12 @@ export default function NavIterator({ children, ...props }: { children: React.Re
     if (c.type === 'ul') {
       const { children: li, ...subprops } = c.props;
       return (
-        <ul {...subprops} className={classNames(c.props.className || '', 'rexified', 'NavIterator-ul')}>
+        <ul
+          {...subprops}
+          className={classNames(c.props.className || '', 'rexified', 'NavIterator-ul')}
+          data-rx-dir='components'
+          data-rx-src='Nav/RxNavIterator.NavIterator'
+        >
           {React.Children.map(li, cc => (
             <li {...cc.props} className={classNames(cc.props.className || '', 'rexified', 'NavIterator-li')}>
               <NavIterator {...props}>{cc.props.children}</NavIterator>
@@ -70,14 +85,16 @@ export default function NavIterator({ children, ...props }: { children: React.Re
           relative_href = href;
         }
         return (
-          <a {...link_props} data-original-href={href} href={relative_href}>
+          <a {...link_props} data-original-href={href} href={relative_href} data-rx-dir='components' data-rx-src='Nav/RxNavIterator.NavIterator'>
             <NavIterator {...props}>{convertDivsToSpans(contents)}</NavIterator>
           </a>
         );
       } else if (link_props?.className?.includes('button')) {
-        return React.cloneElement(<button type='button' />, link_props, contents);
+        return React.cloneElement(<button type='button' data-rx-dir='components' data-rx-src='Nav/RxNavIterator.NavIterator' />, link_props, contents);
       } else if (href.includes('/log-out')) {
         return cloneElement(c, {
+          'data-rx-dir': 'components',
+          'data-rx-src': 'Nav/RxNavIterator.NavIterator',
           href: `${href}?user-type=${link_props['data-usertype']}&redirect=${`/${props.agent?.agent_id}/${props.agent?.metatags.profile_slug}`}`,
         });
       } else if (href === '/map') {
@@ -85,6 +102,8 @@ export default function NavIterator({ children, ...props }: { children: React.Re
           <a
             {...link_props}
             data-original-href={href}
+            data-rx-dir='components'
+            data-rx-src='Nav/RxNavIterator.NavIterator'
             href={`${props.agent && getAgentBaseUrl(props.agent)}${href}${
               props.agent?.metatags.geocoding
                 ? `?${objectToQueryString(props.agent?.metatags.geocoding as unknown as { [k: string]: string })}`
@@ -96,14 +115,27 @@ export default function NavIterator({ children, ...props }: { children: React.Re
         );
       } else if (!href.includes('/map') && !href.includes('log-out')) {
         return (
-          <a {...link_props} data-original-href={href} href={`${props.agent && !props.agent.domain_name ? getAgentBaseUrl(props.agent) : ''}${href}`}>
+          <a
+            {...link_props}
+            data-original-href={href}
+            href={`${props.agent && !props.agent.domain_name ? getAgentBaseUrl(props.agent) : ''}${href}`}
+            data-rx-dir='components'
+            data-rx-src='Nav/RxNavIterator.NavIterator'
+          >
             <NavIterator {...props}>{convertDivsToSpans(contents)}</NavIterator>
           </a>
         );
       }
     }
     if (c.props?.['data-field'] === 'agent_name') {
-      return React.cloneElement(c, {}, props.agent?.full_name);
+      return React.cloneElement(
+        c,
+        {
+          'data-rx-dir': 'components',
+          'data-rx-src': 'Nav/RxNavIterator.NavIterator',
+        },
+        props.agent?.full_name,
+      );
     }
     if (c.props?.['data-field'] === 'logo' || c.props?.['data-field'] === 'logo_for_light_bg') {
       const logo = props.agent?.metatags?.logo_for_light_bg || props.agent?.metatags?.logo_for_dark_bg;
@@ -120,21 +152,31 @@ export default function NavIterator({ children, ...props }: { children: React.Re
                 height: '3rem',
                 display: 'inline-block',
               },
+              'data-rx-dir': 'components',
+              'data-rx-src': 'Nav/RxNavIterator.NavIterator',
             },
             [<></>],
           );
-        else return React.cloneElement(c, { src: getImageSized(logo, 100), style: { maxHeight: '2.2rem' } });
+        else
+          return React.cloneElement(c, {
+            'data-rx-dir': 'components',
+            'data-rx-src': 'Nav/RxNavIterator.NavIterator',
+            src: getImageSized(logo, 100),
+            style: { maxHeight: '2.2rem' },
+          });
       } else {
         if (c.type === 'img')
           return (
-            <h6 className={c.props.className + ' agent-name-logo'} style={{ display: 'block' }} data-field={c.props['data-field']}>
+            <h6
+              className={c.props.className + ' agent-name-logo'}
+              style={{ display: 'block' }}
+              data-field={c.props['data-field']}
+              data-rx-dir='components'
+              data-rx-src='Nav/RxNavIterator.NavIterator'
+            >
               {props.agent?.full_name}
             </h6>
           );
-      }
-    }
-    if (typeof c.props?.children === 'string') {
-      if (c.props.children === '{Agent Name}') {
       }
     }
     return c;
