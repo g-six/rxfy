@@ -69,7 +69,16 @@ export async function createAgent(
               ? {
                   lat: ai_results.lat,
                   lng: ai_results.lng,
-                  geocoding: ai_results,
+                  geocoding: {
+                    city: ai_results.city,
+                    lat: ai_results.lat,
+                    lng: ai_results.lng,
+                    zoom: 13,
+                    nelat: ai_results.nelat,
+                    nelng: ai_results.nelng,
+                    swlat: ai_results.swlat,
+                    swlng: ai_results.swlng,
+                  },
                   search_highlights: {
                     labels: [
                       {
