@@ -239,7 +239,20 @@ export default async function PageComponent({
     },
   } as LegacySearchPayload;
 
-  const [{ records: active }, { records: sold }] = await Promise.all([getPipelineData(internal_req), getPipelineData(intsold_req)]);
+  const [{ records: active }, { records: sold }, { records: backup }] = await Promise.all([
+    getPipelineData(internal_req),
+    getPipelineData(intsold_req),
+    getPipelineData({
+      ...internal_req,
+      query: {
+        ...internal_req.query,
+        bool: {
+          ...internal_req.query.bool,
+          minimum_should_match: 0,
+        },
+      },
+    }),
+  ]);
 
   $('[data-field="search_highlights"]:not(:first-child)').remove();
   $('.property-card:not(:first-child)').remove();
@@ -260,13 +273,17 @@ export default async function PageComponent({
     body.addClass('ai-preview');
   }
 
+  let listings = [...active];
+  if (active && active.length < 3) {
+    listings = active.concat(backup);
+  }
   return (
     <>
       <NavIterator agent={agent}>{domToReact(navbar as unknown as DOMNode[]) as unknown as ReactElement}</NavIterator>
       <Iterator
         agent={agent}
         listings={{
-          active: (active || []) as unknown[] as PropertyDataModel[],
+          active: (listings || []) as unknown[] as PropertyDataModel[],
           sold: (sold || []) as unknown[] as PropertyDataModel[],
         }}
       >
