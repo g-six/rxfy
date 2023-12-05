@@ -8,6 +8,7 @@ export default function initializePlacesAutocomplete(props: Record<string, strin
     if (location.search.includes('session=clear')) {
         localStorage.removeItem('viewing_customer')
         localStorage.removeItem('event-loved-item')
+        location.href = 'log-in';
     }
     function objectToUrlParams(obj) {
         return Object.keys(obj).map(key => key + '=' + obj[key]).join('&');
