@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-css-tags */
 import { CheerioAPI, load } from 'cheerio';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 
 import Script from 'next/script';
 
@@ -89,6 +89,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   try {
+    if (searchParams.key) {
+      cookies().set('session_key', searchParams.key as string);
+      if (searchParams.as) {
+        cookies().set('session_as', searchParams.as as string);
+      }
+    }
+    //http://localhost:8880/my-profile?key=e86a9c6fef0016418cb8654a047d8e9b6a7dce7643d8afdaaccfea839eb63bf9.c98a98341e4d654c6d6ed2b841880d8dc91813ce0a00199ff424f70b57a43cfd-100&as=realtor
     console.log('Request link', requestLink);
     const fetch_req = await fetch(requestLink);
     data = await fetch_req.text();

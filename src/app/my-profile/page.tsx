@@ -12,6 +12,7 @@ import RxNotifications from '@/components/RxNotifications';
 import { redirect } from 'next/navigation';
 import { queryStringToObject } from '@/_utilities/url-helper';
 import ClientMyProfile from '../[slug]/[profile-slug]/my-profile/page';
+import { NextResponse } from 'next/server';
 
 /**
  * This is the Realtor's my-profile page
@@ -20,6 +21,11 @@ export default async function MyProfile({ searchParams }: { searchParams: { [k: 
   const page_url = headers().get('x-url');
   let session_key = cookies().get('session_key')?.value || '';
   let session_as = cookies().get('session_as')?.value || '';
+
+  if (searchParams.key) {
+    return redirect('my-profile');
+  }
+
   if (session_as !== 'realtor') {
     const params = {
       slug: headers().get('x-agent-id') || '',
@@ -36,7 +42,7 @@ export default async function MyProfile({ searchParams }: { searchParams: { [k: 
     }
   }
 
-  if (!session_key) return redirect('/log-in');
+  // if (!session_key) return redirect('/log-in');
 
   if (page_url) {
     const [page_results, realtor_results] = await Promise.all([fetch(page_url), getUserSessionData(session_key, 'realtor')]);
@@ -46,7 +52,7 @@ export default async function MyProfile({ searchParams }: { searchParams: { [k: 
       // Realtor
       const realtor = realtor_results as AgentData & { phone_number: string; error?: string };
       if (realtor.error) {
-        redirect('/log-in');
+        // redirect('/log-in');
         return <></>;
       }
       // Load html into Cheerio class

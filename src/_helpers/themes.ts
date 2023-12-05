@@ -1,5 +1,6 @@
 import { consoler } from './consoler';
 
+const FILE = '_helpers/themes.ts';
 export function getThemeDomainHostname(host: string) {
   if (['alicante', 'hamburg', 'lisbon', 'malaga', 'malta', 'oslo'].includes(`${host.split('.').reverse().pop()}`)) {
     consoler('_helpers/themes.ts: getThemeDomainHostname', 'Theme subdomain:', host.split('.').reverse().pop());
@@ -14,6 +15,7 @@ export function getThemeDomainHostname(host: string) {
 }
 
 export function getWebflowDomain(host: string) {
+  if (host.includes('localhost')) return 'leagent-website.webflow.io';
   if (['alicante', 'hamburg', 'lisbon', 'malaga', 'malta', 'oslo'].includes(`${host.split('.').reverse().pop()}`)) {
     consoler('_helpers/themes.ts: getWebflowDomain', 'Theme subdomain:', host.split('.').reverse().pop());
     return `${host.split('.').reverse().pop()}-leagent.webflow.io`;

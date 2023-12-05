@@ -5,7 +5,6 @@ import { getThemeDomainHostname, getWebflowDomain } from './_helpers/themes';
 import { setAgentWebsiteHeaders } from './_helpers/head-manipulations';
 import { consoler } from './_helpers/consoler';
 import { AgentData } from './_typings/agent';
-import { cookies } from 'next/headers';
 const FILE = 'middleware.ts';
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function middleware(request: NextRequest) {
@@ -32,17 +31,10 @@ export async function middleware(request: NextRequest) {
   let agent_data: { [k: string]: string } & { metatags?: { [k: string]: string } } = {};
   let page_url = `https://sites.leagent.com/`;
   response.headers.set('x-viewer', 'realtor');
-  const domain_name = getThemeDomainHostname(`${request.headers.get('host') || hostname}`.split(':').reverse().pop() || hostname);
+  const domain_name = getThemeDomainHostname(`${request.headers.get('host') || hostname}`.split(':').reverse().pop() || hostname) || hostname;
   let webflow_domain = getWebflowDomain(`${request.headers.get('host') || hostname}`.split(':').reverse().pop() || hostname);
+  consoler(FILE, { domain_name, webflow_domain });
   let canonical = '';
-
-  if (searchParams.get('key')) {
-    cookies().set('session_key', searchParams.get('key') as string);
-    if (searchParams.get('as')) {
-      cookies().set('session_as', searchParams.get('as') as string);
-    }
-    return NextResponse.redirect(request.url.split('?').reverse().pop() as string);
-  }
   // Specifying a theme search parameter with agent_id
   // in path param will bypass all theme logic
   // outside this conditional statement
