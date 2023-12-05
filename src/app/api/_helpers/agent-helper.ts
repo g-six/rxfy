@@ -138,7 +138,9 @@ export function getFullAgentRecord(recordset: {
 
 export function getAgentBaseUrl(agent: AgentData, remote?: boolean) {
   if (agent.domain_name) return remote ? `https://${agent.domain_name}` : '';
-  if (agent.agent_id) return `/${agent.agent_id}`;
+  if (agent.agent_id) {
+    return `https://${agent.website_theme || 'app'}.leagent.com/${agent.agent_id}`;
+  }
 
   return '';
 }
