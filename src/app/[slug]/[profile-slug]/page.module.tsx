@@ -248,7 +248,7 @@ export default async function PageComponent({
         ...internal_req.query,
         bool: {
           ...internal_req.query.bool,
-          minimum_should_match: 0,
+          minimum_should_match: 1,
         },
       },
     }),
