@@ -62,7 +62,7 @@ function Rx({ children, ...props }: RexifyComponent) {
             return cloneElement(c, {
               href: props.realtor.domain_name
                 ? `https://${props.realtor.domain_name}`
-                : `https://${props.realtor.website_theme ? `${props.realtor.website_theme}-leagent` : 'app'}.leagent.com/${props.realtor.agent_id}`,
+                : `https://${props.realtor.website_theme || 'app'}.leagent.com/${props.realtor.agent_id}`,
               target: '_blank',
             });
         }
