@@ -38,6 +38,9 @@ export async function middleware(request: NextRequest) {
 
   if (searchParams.get('key')) {
     cookies().set('session_key', searchParams.get('key') as string);
+    if (searchParams.get('as')) {
+      cookies().set('session_as', searchParams.get('as') as string);
+    }
     NextResponse.redirect(request.url.split('?').reverse().pop() as string);
   }
   // Specifying a theme search parameter with agent_id
