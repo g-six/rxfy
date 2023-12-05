@@ -4,9 +4,8 @@ import { setData } from '@/_utilities/data-helpers/local-storage-helper';
 import SpinningDots from '@/components/Loaders/SpinningDots';
 import Cookies from 'js-cookie';
 
-import { NextRequest, NextResponse } from 'next/server';
 import { useEffect } from 'react';
-export default function LogOutPage(req: NextRequest) {
+export default function LogOutPage() {
   useEffect(() => {
     Cookies.remove('session_key');
     Cookies.remove('session_as');
