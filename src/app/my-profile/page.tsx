@@ -9,31 +9,19 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { Rexify } from './page.rexifier';
 import NotFound from '../not-found';
 import RxNotifications from '@/components/RxNotifications';
-import { redirect } from 'next/navigation';
 import { queryStringToObject } from '@/_utilities/url-helper';
 import ClientMyProfile from '../[slug]/[profile-slug]/my-profile/page';
+import { consoler } from '@/_helpers/consoler';
 import { NextResponse } from 'next/server';
-
+import Cookies from 'js-cookie';
+const FILE = 'my-profile/page.tsx';
 /**
  * This is the Realtor's my-profile page
  */
 export default async function MyProfile({ searchParams }: { searchParams: { [k: string]: string } }) {
   const page_url = headers().get('x-url');
-  let session_key = cookies().get('session_key')?.value || '';
-  let session_as = cookies().get('session_as')?.value || '';
-
-  if (searchParams.key) {
-    return redirect('my-profile');
-  }
-
-  if (session_as !== 'realtor') {
-    const params = {
-      slug: headers().get('x-agent-id') || '',
-      profile_slug: headers().get('x-profile-slug') || '',
-    };
-    return await ClientMyProfile({ params, searchParams });
-  }
-
+  let session_key = cookies().get('session_key')?.value || headers().get('x-session-key') || '';
+  let session_as = cookies().get('session_as')?.value || headers().get('x-session-as') || '';
   if (!session_key) {
     const search_params = headers().get('x-search-params') as string;
     if (search_params) {
@@ -42,9 +30,15 @@ export default async function MyProfile({ searchParams }: { searchParams: { [k: 
     }
   }
 
-  // if (!session_key) return redirect('/log-in');
-
   if (page_url) {
+    if (!page_url.includes('leagent-website.webflow.io')) {
+      const params = {
+        slug: headers().get('x-agent-id') || '',
+        profile_slug: headers().get('x-profile-slug') || '',
+      };
+      return await ClientMyProfile({ params, searchParams });
+    }
+
     const [page_results, realtor_results] = await Promise.all([fetch(page_url), getUserSessionData(session_key, 'realtor')]);
 
     const html = await page_results.text();
@@ -52,8 +46,7 @@ export default async function MyProfile({ searchParams }: { searchParams: { [k: 
       // Realtor
       const realtor = realtor_results as AgentData & { phone_number: string; error?: string };
       if (realtor.error) {
-        // redirect('/log-in');
-        return <></>;
+        return NextResponse.redirect('/log-in');
       }
       // Load html into Cheerio class
       const $: CheerioAPI = load(html);

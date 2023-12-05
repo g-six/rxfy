@@ -13,6 +13,7 @@ import RxNotifications from '@/components/RxNotifications';
 import { convertDivsToSpans } from '@/_replacers/DivToSpan';
 import { redirect } from 'next/navigation';
 import { cookies, headers } from 'next/headers';
+import { consoler } from '@/_helpers/consoler';
 
 function Iterator({ children, agent }: { children: React.ReactElement; agent: AgentData }) {
   const Wrapped = React.Children.map(children, c => {
@@ -61,9 +62,11 @@ function Iterator({ children, agent }: { children: React.ReactElement; agent: Ag
   return <>{Wrapped}</>;
 }
 
-export default async function ClientMyProfile({ params }: { params: { [key: string]: string }; searchParams: { [key: string]: string } }) {
-  if (!cookies().get('session_key')) {
-    redirect(`/${params.slug}/${params['profile-slug']}/log-in`);
+const FILE = '[slug]/[profile-slug]/my-profile/page.tsx';
+export default async function ClientMyProfile({ params, searchParams }: { params: { [key: string]: string }; searchParams: { [key: string]: string } }) {
+  if (!cookies().get('session_key') && searchParams?.key) {
+    consoler(FILE, { searchParams });
+    // redirect(`/${params.slug}/${params['profile-slug']}/log-in`);
   }
   const url = headers().get('x-url') || 'https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/my-profile';
   const { data: html } = await axios.get(url);

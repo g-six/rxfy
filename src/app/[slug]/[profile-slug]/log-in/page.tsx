@@ -167,7 +167,6 @@ function Iterator({ agent, children }: { children: ReactElement; agent?: AgentDa
 }
 export default async function CustomerLogInPage(props: {
   params: {
-    'profile-slug': string;
     slug: string;
   };
   searchParams: {
