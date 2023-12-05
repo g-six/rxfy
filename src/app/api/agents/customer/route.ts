@@ -6,6 +6,8 @@ import { getUserSessionData, isRealtorRequest } from '@/app/api/check-session/mo
 import { createAgentCustomer, createCustomer, findCustomerByEmail } from '@/app/api/customers/model';
 import { encrypt } from '@/_utilities/encryption-helper';
 import { sendTemplate } from '../../send-template';
+import { getAgentBaseUrl } from '../../_helpers/agent-helper';
+import { AgentData } from '@/_typings/agent';
 
 export async function POST(request: NextRequest) {
   try {
@@ -68,7 +70,7 @@ export async function POST(request: NextRequest) {
     if (customer && !customer.errors) {
       const { origin } = new URL(request.url);
       const metatags = user.metatags as unknown as { [key: string]: string };
-      let login_url = user.domain_name ? `https://${user.domain_name}` : `${origin}/${user.agent_id}/${metatags.profile_slug}`;
+      let login_url = user.domain_name ? `https://${user.domain_name}` : `${getAgentBaseUrl(user as unknown as AgentData)}/${user.agent_id}`;
       login_url = `${login_url}/log-in?key=${encrypt(last_activity_at)}.${encrypt(data.email)}-${customer.id}`;
       sendTemplate('invite-buyer', send_to, {
         agent_logo:
