@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
   // we want to be able to read Property ID (MLS_ID, etc)
   // to place meta tags in HEAD dynamically based on Property Data
   const current_url = new URL(request.url);
-  const { origin, hostname, searchParams } = current_url;
+  const { hostname, searchParams } = current_url;
   let { pathname } = current_url;
 
   if (pathname.includes('/api')) return response;
@@ -38,6 +38,7 @@ export async function middleware(request: NextRequest) {
 
   if (searchParams.get('key')) {
     cookies().set('session_key', searchParams.get('key') as string);
+    NextResponse.redirect(request.url.split('?').reverse().pop() as string);
   }
   // Specifying a theme search parameter with agent_id
   // in path param will bypass all theme logic
