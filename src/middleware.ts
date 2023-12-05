@@ -41,7 +41,7 @@ export async function middleware(request: NextRequest) {
     if (searchParams.get('as')) {
       cookies().set('session_as', searchParams.get('as') as string);
     }
-    NextResponse.redirect(request.url.split('?').reverse().pop() as string);
+    return NextResponse.redirect(request.url.split('?').reverse().pop() as string);
   }
   // Specifying a theme search parameter with agent_id
   // in path param will bypass all theme logic
