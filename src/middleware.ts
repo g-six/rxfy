@@ -5,6 +5,7 @@ import { getThemeDomainHostname, getWebflowDomain } from './_helpers/themes';
 import { setAgentWebsiteHeaders } from './_helpers/head-manipulations';
 import { consoler } from './_helpers/consoler';
 import { AgentData } from './_typings/agent';
+import { cookies } from 'next/headers';
 const FILE = 'middleware.ts';
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function middleware(request: NextRequest) {
@@ -35,6 +36,9 @@ export async function middleware(request: NextRequest) {
   let webflow_domain = getWebflowDomain(`${request.headers.get('host') || hostname}`.split(':').reverse().pop() || hostname);
   let canonical = '';
 
+  if (searchParams.get('key')) {
+    cookies().set('session_key', searchParams.get('key') as string);
+  }
   // Specifying a theme search parameter with agent_id
   // in path param will bypass all theme logic
   // outside this conditional statement
