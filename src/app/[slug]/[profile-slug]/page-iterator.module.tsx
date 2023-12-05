@@ -23,8 +23,9 @@ export default function Iterator({
   listings?: { active: PropertyDataModel[]; sold: PropertyDataModel[] };
 }) {
   const Wrapped = Children.map(children, c => {
-    if (c.type === 'input' && c.props.type === 'search') return <HomePageSearchInput {...c.props} />;
-    else if (c.type === 'input' && c.props.type === 'submit') return <HomePageSearchButton {...c.props}>{c.props.value}</HomePageSearchButton>;
+    if (c.type === 'input' && c.props.type === 'search') {
+      return <HomePageSearchInput {...c.props} search-path={agent.domain_name ? '/map' : `/${agent.agent_id}/map`} />;
+    } else if (c.type === 'input' && c.props.type === 'submit') return <HomePageSearchButton {...c.props}>{c.props.value}</HomePageSearchButton>;
     else if (c.type === 'video') return c;
     else if (c.type !== 'a' && c.type !== 'svg' && c.props?.children && typeof c.props?.children !== 'string') {
       const { children: sub, ...props } = c.props;
