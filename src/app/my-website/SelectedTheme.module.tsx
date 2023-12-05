@@ -60,7 +60,9 @@ function Rx({ children, ...props }: RexifyComponent) {
         switch (sub.toLowerCase()) {
           case 'preview website':
             return cloneElement(c, {
-              href: `/${props.realtor.agent_id}/${props.realtor.metatags.profile_slug}`,
+              href: props.realtor.domain_name
+                ? `https://${props.realtor.domain_name}`
+                : `https://${props.realtor.website_theme ? `${props.realtor.website_theme}-leagent` : 'app'}.leagent.com/${props.realtor.agent_id}`,
               target: '_blank',
             });
         }
