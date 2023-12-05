@@ -206,15 +206,6 @@ export default async function CustomerLogInPage(props: {
       : agent_data.full_name;
   $('[data-field="logo"]').html(logo);
 
-  // $('[data-field="phone"]').text(agent_data.phone);
-  // $('[data-field="phone"]').each((i, e) => {
-  //   e.attribs['href'] = `tel:${agent_data.phone}`;
-  // });
-  // $('[data-field="email"]').text(agent_data.email);
-  // $('[data-field="email"]').each((i, e) => {
-  //   e.attribs['href'] = `mailto:${agent_data.email}`;
-  // });
-
   const body = $('body > div,section,footer');
   return (
     <>

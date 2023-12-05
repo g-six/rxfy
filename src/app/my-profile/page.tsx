@@ -20,8 +20,7 @@ const FILE = 'my-profile/page.tsx';
  */
 export default async function MyProfile({ searchParams }: { searchParams: { [k: string]: string } }) {
   const page_url = headers().get('x-url');
-  let session_key = cookies().get('session_key')?.value || headers().get('x-session-key') || '';
-  let session_as = cookies().get('session_as')?.value || headers().get('x-session-as') || '';
+  let session_key = cookies().get('session_key')?.value || '';
   if (!session_key) {
     const search_params = headers().get('x-search-params') as string;
     if (search_params) {

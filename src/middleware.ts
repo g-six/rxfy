@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
   // we want to be able to read Property ID (MLS_ID, etc)
   // to place meta tags in HEAD dynamically based on Property Data
   const current_url = new URL(request.url);
-  const { hostname, searchParams } = current_url;
+  const { hostname, protocol, host, searchParams } = current_url;
   let { pathname } = current_url;
 
   if (pathname.includes('/api')) return response;
@@ -25,6 +25,10 @@ export async function middleware(request: NextRequest) {
   if (pathname.includes('icons')) return response;
   if (pathname.includes('wf_graphql')) return response;
   if (pathname.includes('favicon')) return response;
+  if (pathname.includes('log-out')) {
+    response.cookies.delete('session_key');
+    response.cookies.delete('session_as');
+  }
   consoler('middleware.ts', '       not a webflow static asset       ', '       Proceed to routing logic       ');
   consoler(FILE, { current_url });
   const [, ...segments] = pathname.split('/');
@@ -35,7 +39,7 @@ export async function middleware(request: NextRequest) {
   const domain_name = getThemeDomainHostname(`${request.headers.get('host') || hostname}`.split(':').reverse().pop() || hostname) || hostname;
   let webflow_domain = getWebflowDomain(`${request.headers.get('host') || hostname}`.split(':').reverse().pop() || hostname);
   consoler(FILE, { domain_name, webflow_domain });
-  if (searchParams.get('key') && searchParams.get('as') && current_url) {
+  if (searchParams.get('key') && searchParams.get('as') && current_url && !pathname.includes('log-')) {
     if (!cookies().get('session_as') || !cookies().get('session_key')) {
       response.cookies.set('session_key', searchParams.get('key') || '');
       response.cookies.set('session_as', searchParams.get('as') || '');
