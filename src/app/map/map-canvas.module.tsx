@@ -152,7 +152,6 @@ export default function MapCanvas(p: {
       ...search_filters,
     };
     if (elastic_filters && Object.keys(elastic_filters).length) {
-      consoler(FILE, 'populateMap', { elastic_filters });
       const { beds, baths, minprice, maxprice, minsqft, maxsqft } = elastic_filters;
       const should: {
         match: {
@@ -478,12 +477,12 @@ export default function MapCanvas(p: {
       if (!map.hasControl(nav)) {
         map.addControl(nav, 'bottom-right');
       }
-      marker = new mapboxgl.Marker(createMapPin()).setLngLat(map.getCenter()).addTo(map);
+      // marker = new mapboxgl.Marker(createMapPin()).setLngLat(map.getCenter()).addTo(map);
 
       const populate = (evt: { target: Map }) => {
-        if (marker) marker.remove();
+        // if (marker) marker.remove();
 
-        marker = new mapboxgl.Marker(createMapPin()).setLngLat(map.getCenter()).addTo(map);
+        // marker = new mapboxgl.Marker(createMapPin()).setLngLat(map.getCenter()).addTo(map);
 
         const { lat, lng } = map.getCenter();
         const { _ne, _sw } = map.getBounds();

@@ -4,3 +4,18 @@
     @apply h-full w-full bg-center bg-cover;
   }
 }
+.popup {
+  @apply w-full p-0 bg-transparent shadow-none min-w-fit #{!important};
+  animation-name: showup;
+  animation-duration: 0s;
+}
+
+/* The animation code */
+@keyframes showup {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

@@ -6,11 +6,6 @@ import { setAgentWebsiteHeaders } from './_helpers/head-manipulations';
 import { consoler } from './_helpers/consoler';
 import { AgentData } from './_typings/agent';
 const FILE = 'middleware.ts';
-const BUCKET_NAME = process.env.NEXT_PUBLIC_RX_SITE_BUCKET as string;
-const REALTOR_STATIC_PAGES = ['pricing', 'examples', 'contact'];
-const GATED_PAGES = ['my-profile', 'my-listings'];
-const REALTOR_MAIN_PAGES = ['property', 'map', 'communities'];
-const SKIP_AGENT_SEARCH = ['cdn-cgi'];
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();

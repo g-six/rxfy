@@ -23,7 +23,8 @@ import NavIterator from '@/components/Nav/RxNavIterator';
 import { LoveDataModel } from '@/_typings/love';
 import { PropertyDataModel } from '@/_typings/property';
 import { headers } from 'next/headers';
-
+import { consoler } from '@/_helpers/consoler';
+const FILE = 'map-iterator.module.tsx';
 function getAgentLogo(logo: string, default_src: string) {
   if (logo) return getImageSized(logo, 300);
   return default_src;
