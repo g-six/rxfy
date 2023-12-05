@@ -152,7 +152,10 @@ iframe {
     @apply bg-transparent shadow-none min-w-fit #{!important};
   }
   .mapboxgl-popup-content:not(.property-card) {
-    @apply w-full bg-transparent p-0 min-w-fit #{!important};
+    @apply w-full shadow-none bg-transparent p-0 min-w-fit #{!important};
+    > div {
+      min-height: 0 !important;
+    }
   }
 }
 .w--tab-active {
@@ -169,6 +172,7 @@ iframe {
 }
 @tailwind utilities;
 
-.ai-preview {
+.ai-preview,
+iframe body {
   zoom: 0.7;
 }
