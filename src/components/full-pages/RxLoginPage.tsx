@@ -13,6 +13,7 @@ import { hasClassName } from '@/_utilities/html-helper';
 import { clearSessionCookies } from '@/_utilities/api-calls/call-logout';
 import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
 import { useSearchParams } from 'next/navigation';
+import { objectToQueryString, queryStringToObject } from '@/_utilities/url-helper';
 
 type RxLoginPageProps = {
   disabled?: boolean;
@@ -73,6 +74,15 @@ export function RxLoginPage(props: RxLoginPageProps) {
             if (login && login === 'log-in') {
               Cookies.set('agent_id', agent_id);
               Cookies.set('profile_slug', profile_slug);
+            }
+            if (location.search) {
+              const search = queryStringToObject(location.search);
+              if (search.redirect) {
+                delete search.redirect;
+                location.href = `${search.redirect}?${objectToQueryString(search)}}`;
+
+                return;
+              }
             }
             location.href = 'my-profile';
           }, 1000);

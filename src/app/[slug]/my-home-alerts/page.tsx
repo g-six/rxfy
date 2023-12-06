@@ -8,15 +8,15 @@ import Container from './container.module';
 import { AgentData } from '@/_typings/agent';
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { retrieveSavedSearches } from '@/app/api/saved-searches/model';
+import { removeSavedSearch, retrieveSavedSearches } from '@/app/api/saved-searches/model';
 import { SavedSearchOutput } from '@/_typings/saved-search';
 import NavIterator from '@/components/Nav/RxNavIterator';
 import { getUserSessionData } from '@/app/api/check-session/model';
 import { replaceAgentFields } from '@/app/property/page.helpers';
+import { objectToQueryString } from '@/_utilities/url-helper';
 
-export default async function MyHomeAlerts({ params }: { params: { [key: string]: string } }) {
-  if (!cookies().get('session_key')?.value) redirect(`log-in`);
-
+export default async function MyHomeAlerts({ params, searchParams }: { params: { [key: string]: string }; searchParams?: { [key: string]: string } }) {
+  if (!cookies().get('session_key')?.value) redirect(`log-in?redirect=my-home-alerts&${searchParams ? objectToQueryString(searchParams) : ''}`);
   let url = headers().get('x-url') || '';
   let base_path = '/';
   if (!url) url = 'https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/my-home-alerts?x=2';
@@ -44,7 +44,13 @@ export default async function MyHomeAlerts({ params }: { params: { [key: string]
     $('body .navbar---dashboard').remove();
     replaceAgentFields($);
     const contents = $('body > div:not(.navbar---dashboard)');
-    const records: SavedSearchOutput[] = await retrieveSavedSearches(Number(user.id));
+    let records: SavedSearchOutput[] = await retrieveSavedSearches(Number(user.id));
+    if (searchParams?.unsub) {
+      const unsub = Number(searchParams.unsub);
+      if (!isNaN(unsub) && records.filter(r => r.id === unsub).length) {
+        await removeSavedSearch(unsub);
+      }
+    }
 
     return (
       <>
