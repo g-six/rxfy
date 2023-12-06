@@ -312,9 +312,6 @@ export default function RxMapFilters({ children, ...values }: { [key: string]: s
         }
 
         setFilters(updated_filters);
-        // updateLegacyFilters(updated_filters);
-        // const qs = objectToQueryString(updated_filters as unknown as { [k: string]: string });
-        // router.push(location.pathname + '?' + qs);
       }}
       onOptionSelect={(evt: React.SyntheticEvent) => {
         const text = evt.currentTarget.textContent?.toLowerCase() || '';

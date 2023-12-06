@@ -445,7 +445,7 @@ export default function MapCanvas(p: {
       if (map) {
         if (clicked === 'reset') {
           fireEvent({
-            ...search_filters,
+            filters: search_filters,
             points,
           } as unknown as EventsData);
           const updated_filters: {
@@ -462,7 +462,6 @@ export default function MapCanvas(p: {
           };
           delete updated_filters.types;
         } else if (reload && is_loading === false) {
-          setFilters(search_filters as unknown as { [k: string]: string | number });
           populateMap(search_filters as unknown as { [k: string]: string | number });
           setLoading(true);
         }
@@ -487,7 +486,9 @@ export default function MapCanvas(p: {
         const { lat, lng } = map.getCenter();
         const { _ne, _sw } = map.getBounds();
         let q = queryStringToObject(search.toString() || '');
+        const { filters: search_filters } = data as unknown as { filters: { [k: string]: string | number } };
         setFilters({
+          ...search_filters,
           ...filters,
           ...q,
           lat,
@@ -508,14 +509,6 @@ export default function MapCanvas(p: {
     // If we add populateMap into the dependency, it would cause an infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, is_map_loaded]);
-
-  // React.useEffect(() => {
-  //   if (agent_only?.show !== undefined && agent_only?.show) {
-  //     setLoading(true);
-  //     consoler(FILE, '[agent_only] changes triggers populateMap', { filters });
-  //     populateMap();
-  //   }
-  // }, [agent_only]);
 
   React.useEffect(() => {
     setHomeAlertsParams({
@@ -623,13 +616,6 @@ export default function MapCanvas(p: {
       }
     }
   }, [listings]);
-
-  // React.useEffect(() => {
-  //   if (is_loading) {
-  //     setLoading(false);
-  //     populateMap();
-  //   }
-  // }, [is_loading]);
 
   React.useEffect(() => {
     const { loved_only } = love as unknown as { loved_only?: boolean };

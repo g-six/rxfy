@@ -33,5 +33,43 @@ export interface SavedSearchInput {
 }
 export interface SavedSearchGraph {
   id: number;
-  attributes: SavedSearchInput;
+  attributes: SavedSearchInput & {
+    agent_metatag?: {
+      data?: {
+        id: number;
+        attributes: {
+          [k: string]: string;
+        };
+      };
+    };
+    customer?: {
+      data?: {
+        attributes: {
+          agents_customers: {
+            data?: {
+              attributes: {
+                agent: {
+                  data: {
+                    attributes: {
+                      full_name: string;
+                      domain_name?: string;
+                      website_theme?: string;
+                      agent_metatag: {
+                        data: {
+                          attributes: {
+                            logo_for_dark_bg?: string;
+                            logo_for_light_bg?: string;
+                          };
+                        };
+                      };
+                    };
+                  };
+                };
+              };
+            }[];
+          };
+        };
+      };
+    };
+  };
 }

@@ -1,4 +1,4 @@
-import React, { ReactElement, cloneElement } from 'react';
+import React, { ReactElement, cloneElement, useRef } from 'react';
 import { Events } from '@/_typings/events';
 import { PropertyDataModel } from '@/_typings/property';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
@@ -192,6 +192,7 @@ export default function RxPropertyCard({
   const segments = url.pathname.split('/');
   // e.g. map
   segments.pop();
+  const ref = useRef<HTMLDivElement>(null);
   const [is_loading, toggleLoading] = React.useState(false);
   const [loved_items, setLovedItems] = React.useState(getData(Events.LovedItem) as unknown as string[]);
   const evt = useLove();
@@ -219,6 +220,9 @@ export default function RxPropertyCard({
         sequence === 0 ? `` : 'hidden sm:block',
         Cookies.get('session_key') && listing.status?.toLowerCase() === 'sold' ? styles.ShowSold : '',
       )}
+      ref={ref}
+      data-width={ref?.current ? ref.current.offsetWidth : 0}
+      data-height={ref?.current ? ref.current.offsetHeight : 0}
     >
       <RxComponentChomper
         config={{

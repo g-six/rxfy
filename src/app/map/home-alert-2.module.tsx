@@ -94,8 +94,8 @@ export default function HomeAlert2({ className, children, agent }: { agent?: Age
             id: agent.id,
             logo,
           },
-          { email },
-          { search_url: search.toString(), dashboard_uri: agent.domain_name ? '/my-profile' : `/${agent.agent_id}/${agent.metatags.profile_slug}/my-profile` },
+          { email, agent_metatag_id: agent.metatags?.id },
+          { search_url: search.toString(), dashboard_uri: agent.domain_name ? '/my-profile' : `/${agent.agent_id}/my-profile` },
         )
           .then(console.log)
           .catch(console.error);

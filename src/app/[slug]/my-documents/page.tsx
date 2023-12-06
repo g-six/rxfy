@@ -7,8 +7,8 @@ import { CheerioAPI, load } from 'cheerio';
 import Container from './container.module';
 import { AgentData } from '@/_typings/agent';
 import { cookies, headers } from 'next/headers';
-import NavIterator from '@/components/Nav/RxNavIterator';
-
+import { consoler } from '@/_helpers/consoler';
+const FILE = 'my-documents/page.tsx';
 export default async function MyDocuments({ params }: { params: { [key: string]: string } }) {
   const session_key = cookies().get('session_key')?.value;
   let path = '/my-documents';
@@ -17,6 +17,7 @@ export default async function MyDocuments({ params }: { params: { [key: string]:
     // redirect(`/${params.slug}/${params['profile-slug']}/log-in`);
   }
   const url = headers().get('x-url') || `${'https://' + WEBFLOW_DASHBOARDS.CUSTOMER + path}`;
+  consoler(FILE, url);
 
   const promises = await Promise.all([axios.get(url), findAgentRecordByAgentId(params.slug)]);
   const { data: html } = promises[0];
@@ -25,8 +26,6 @@ export default async function MyDocuments({ params }: { params: { [key: string]:
   if (html && agent && session_key) {
     const $: CheerioAPI = load(html);
 
-    const navbar = $('body .navbar---dashboard');
-    $('body .navbar---dashboard').remove();
     const dropdown_class = $('.doc-3dots-dropdown').attr('class');
     const dropdown_icon = $('.doc-3dots-dropdown').html();
     const dropdown_container = $('.doc-3dots-dropdown + nav').html();
@@ -43,17 +42,8 @@ export default async function MyDocuments({ params }: { params: { [key: string]:
         dropdown_container +
         '</nav></div>',
     );
-    const body = $('body > div');
-    return (
-      <>
-        {agent.webflow_domain?.includes('leagent') ? (
-          <NavIterator agent={agent}>{domToReact(navbar as unknown as DOMNode[]) as React.ReactElement}</NavIterator>
-        ) : (
-          (domToReact(navbar as unknown as DOMNode[]) as React.ReactElement)
-        )}
-        <Container agent={agent}>{domToReact(body as unknown as DOMNode[]) as React.ReactElement}</Container>;
-      </>
-    );
+    let body = $('body > div:first-child');
+    return <Container agent={agent}>{domToReact(body as unknown as DOMNode[]) as React.ReactElement}</Container>;
   }
   return <></>;
 }

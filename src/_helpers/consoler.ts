@@ -18,6 +18,6 @@ export function consoler(...args: any[]) {
         } else if (typeof a === 'string') output = `${output} ${a.split('\n').join('\n  ')}\n`;
         else output = `${output}${a}\n`;
       });
-    console.log(output, '* End of debugging for:', filename, '\n' + '* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n\n');
+    console.log(`${output}* End of debugging for: ${filename}\n* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n\n`);
   }
 }

@@ -44,11 +44,18 @@ export async function agentSignUp(agent: { agent_id: string; email: string; full
  */
 export async function signUp(
   agent: { id: number; logo?: string; email?: string },
-  customer: { email: string; full_name?: string; password?: string },
+  customer: { email: string; full_name?: string; password?: string; agent_metatag_id?: number },
   opts?: { search_url?: string; dashboard_uri?: string },
 ) {
-  const password = customer.password || randomString(6);
-  const full_name = customer.full_name || capitalizeFirstLetter(customer.email.split('@')[0].replace(/[^\w\s!?]/g, ''));
+  const full_name =
+    customer.full_name ||
+    capitalizeFirstLetter(
+      customer.email
+        .split('@')[0]
+        .split(/[\+\.\-,@]+/)
+        .join(' '),
+    );
+  const password = customer.password || [randomString(2), full_name.split(' ').reverse().pop(), randomString(3)].join('-');
 
   let saved_search: SavedSearchInput = {};
   if (opts?.search_url) {

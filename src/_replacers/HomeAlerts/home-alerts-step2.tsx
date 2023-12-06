@@ -1,7 +1,6 @@
 'use client';
 import React, { ReactElement, cloneElement, useCallback, useState, useEffect } from 'react';
 import { Transition } from '@headlessui/react';
-import Cookies from 'js-cookie';
 
 import { ReplacerHomeAlerts } from '@/_typings/forms';
 import { HomeAlertStep } from '@/_typings/home-alert';
@@ -12,6 +11,9 @@ import { transformMatchingElements } from '@/_helpers/dom-manipulators';
 
 import useHomeAlert from '@/hooks/useHomeAlert';
 import useEvent, { Events, EventsData, NotificationCategory } from '@/hooks/useEvent';
+import { consoler } from '@/_helpers/consoler';
+
+const FILE = '_replacers/HomeAlerts/home-alerts-step2.tsx';
 
 export default function HomeAlertsStep2({ child, agent }: ReplacerHomeAlerts) {
   const evt = useEvent(Events.MapHomeAlertToast);
@@ -22,7 +24,7 @@ export default function HomeAlertsStep2({ child, agent }: ReplacerHomeAlerts) {
   const [email, setEmail] = useState('');
   const [show, toggleShow] = useState(false);
   const [full_url, setCurrentFullUrl] = useState('');
-
+  consoler(FILE, { agent });
   const hook = useHomeAlert(agent);
   const onRegister = useCallback(
     (email: string) => {

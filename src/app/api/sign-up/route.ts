@@ -5,6 +5,10 @@ import { SavedSearch } from '@/_typings/saved-search';
 import { getResponse } from '../response-helper';
 import { validateInput } from './subroutines';
 import { NextRequest, NextResponse } from 'next/server';
+import { consoler } from '@/_helpers/consoler';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+
+const FILE = 'api/sign-up.ts';
 
 const gql = `mutation SignUp ($data: CustomerInput!) {
   createCustomer(data: $data) {
@@ -24,6 +28,25 @@ const gql_crm = `mutation PostSignUp ($data: AgentsCustomerInput!) {
       id
       attributes {
         status
+        agent {
+          data {
+            attributes {
+              agent_id
+              domain_name
+              website_theme
+              full_name
+              agent_metatag {
+                data {
+                  id
+                  attributes {
+                    logo_for_dark_bg
+                    logo_for_light_bg
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -55,6 +78,7 @@ const gql_saved_search = `mutation CreateSavedSearch ($data: SavedSearchInput!) 
 
 export async function POST(request: NextRequest) {
   const { email, full_name, password, agent, logo, yes_to_marketing, saved_search, dashboard_uri } = await request.json();
+  consoler(FILE, request.referrer);
   let created_saved_search: SavedSearch | undefined = undefined;
   if (!yes_to_marketing) {
     return NextResponse.json(
@@ -103,6 +127,7 @@ export async function POST(request: NextRequest) {
         const { data: response_data } = response;
 
         if (response_data.errors) {
+          consoler(FILE, response_data.errors);
           return getResponse(
             {
               error: 'Unable to sign up.  E-mail might have already been used in signing up.',
@@ -111,7 +136,11 @@ export async function POST(request: NextRequest) {
           );
         }
         const data = response_data.data?.createCustomer?.data || {};
-
+        consoler(FILE, 'Creating CRM record', {
+          agent: Number(agent),
+          customer: Number(data.id),
+          status: 'lead',
+        });
         const crm = await axios.post(
           `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
           {
@@ -120,6 +149,7 @@ export async function POST(request: NextRequest) {
               data: {
                 agent: Number(agent),
                 customer: Number(data.id),
+                status: 'lead',
               },
             },
           },
@@ -164,6 +194,12 @@ export async function POST(request: NextRequest) {
           const url = new URL(request.url);
 
           if (saved_search) {
+            const agent_metatag: {
+              [k: string]: string;
+            } & { id: number } = {
+              ...crm.data.data.createAgentsCustomer.data.attributes.agent.data.attributes.agent_metatag.data.attributes,
+              id: Number(crm.data.data.createAgentsCustomer.data.attributes.agent.data.attributes.agent_metatag.data.id),
+            };
             const { data: search_response } = await axios.post(
               `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
               {
@@ -173,6 +209,7 @@ export async function POST(request: NextRequest) {
                     ...saved_search,
                     zoom: saved_search.zoom ? Math.ceil(saved_search.zoom) : 9,
                     customer: data.id,
+                    agent_metatag: agent_metatag.id,
                   },
                 },
               },
@@ -189,25 +226,41 @@ export async function POST(request: NextRequest) {
                 ...attributes,
                 id,
               };
+              await sendTemplate(
+                'home-alert-confirmation-invitation',
+                [
+                  {
+                    name: full_name,
+                    email,
+                  },
+                ],
+                {
+                  url: `${url.origin}${dashboard_uri || '/my-profile'}?key=${encrypt(last_activity_at)}.${encrypt(email)}-${data.id}`,
+                  agent_logo: getImageSized(
+                    agent_metatag.logo_for_light_bg || agent_metatag.logo_for_dark_bg || 'https://leagent.com/logo-dark.svg',
+                    agent_metatag.logo_for_light_bg || agent_metatag.logo_for_dark_bg ? 150 : 300,
+                  ),
+                  password: valid_data.password,
+                },
+              ).catch(console.log);
             }
+          } else {
+            await sendTemplate(
+              'welcome-buyer',
+              [
+                {
+                  name: full_name,
+                  email,
+                },
+              ],
+              {
+                url: `${url.origin}${dashboard_uri || '/my-profile'}?key=${encrypt(last_activity_at)}.${encrypt(email)}-${data.id}`,
+                agent_logo: logo,
+                password: valid_data.password,
+              },
+            ).catch(console.log);
           }
 
-          // search_url,
-
-          await sendTemplate(
-            'welcome-buyer',
-            [
-              {
-                name: full_name,
-                email,
-              },
-            ],
-            {
-              url: `${url.origin}${dashboard_uri || '/my-profile'}?key=${encrypt(last_activity_at)}.${encrypt(email)}-${data.id}`,
-              agent_logo: logo,
-              password: valid_data.password,
-            },
-          ).catch(console.log);
           return NextResponse.json({
             customer: { id: Number(data.id), email, full_name, agents },
             session_key: `${encrypt(last_activity_at)}.${encrypt(email)}-${data.id}`,
@@ -245,7 +298,7 @@ export async function POST(request: NextRequest) {
     }
   } catch (e) {
     const error = e as AxiosError;
-    console.log('Error in Signup API', error.response?.data);
+    consoler(FILE, 'Error in Signup API', error.response);
     if (error.response?.data)
       return NextResponse.json(error.response?.data, {
         status: 400,

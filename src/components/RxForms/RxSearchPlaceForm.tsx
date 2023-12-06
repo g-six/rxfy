@@ -11,7 +11,7 @@ type Props = {
 const onPlaceSelected = (p: { [key: string]: string }) => {
   const qry = objectToQueryString(p);
   const u = new URL(location.href);
-  if (u.pathname.split('/').length > 2) {
+  if (u.pathname.split('/').length > 0) {
     location.href = `${location.href}/map?${qry}`;
   } else {
     location.href = `/map?${qry}`;

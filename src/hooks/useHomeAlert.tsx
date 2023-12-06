@@ -11,7 +11,6 @@ import { signUp } from '@/_utilities/api-calls/call-signup';
 import { saveSearch } from '@/_utilities/api-calls/call-saved-search';
 import { SavedSearchInput } from '@/_typings/saved-search';
 import { queryStringToObject } from '@/_utilities/url-helper';
-import { DwellingType } from '@/_typings/property';
 
 export default function useHomeAlert(agentData: AgentData) {
   const eventHookSuccess = useEvent(Events.HomeAlertSuccess);
@@ -56,6 +55,7 @@ export default function useHomeAlert(agentData: AgentData) {
           },
           {
             email: data.email,
+            agent_metatag_id: agentData.metatags.id,
           },
           {
             search_url: searchParams.toString(),

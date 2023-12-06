@@ -154,7 +154,7 @@ iframe {
   .mapboxgl-popup-content:not(.property-card) {
     @apply w-full shadow-none bg-transparent p-0 min-w-fit #{!important};
     > div {
-      min-height: 0 !important;
+      min-height: 233px !important;
     }
   }
 }

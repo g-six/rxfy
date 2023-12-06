@@ -9,7 +9,7 @@ import { Events, EventsData } from '@/_typings/events';
 import { SavedSearchOutput } from '@/_typings/saved-search';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 import { searchByClasses, searchByPartOfClass, searchByProp } from '@/_utilities/rx-element-extractor';
-import { SavedHomesPropertyList } from '@/app/[slug]/[profile-slug]/client-dashboard/property-list.module';
+import { SavedHomesPropertyList } from '@/app/[slug]/client-dashboard/property-list.module';
 import useEvent from '@/hooks/useEvent';
 
 import React, { ReactElement, ReactNode, cloneElement } from 'react';

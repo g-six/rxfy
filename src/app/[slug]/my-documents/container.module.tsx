@@ -3,7 +3,7 @@
 import { Children, ReactElement, cloneElement, useEffect, useState } from 'react';
 import { AgentData } from '@/_typings/agent';
 import ClientDashboardIterator from '@/rexify/realtors/ClientDashboardIterator.module';
-import RxNotifications from '@/components/RxNotifications';
+
 import Cookies from 'js-cookie';
 import { getUserBySessionKey } from '@/_utilities/api-calls/call-session';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
@@ -13,6 +13,8 @@ import MyDocumentsFolderComponent from './folders.component';
 import ConfirmDeleteIterator from './confirm-delete.dialog';
 import { classNames } from '@/_utilities/html-helper';
 import { DocumentsFolderInterface } from '@/_typings/document';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { getAgentBaseUrl } from '@/app/api/_helpers/agent-helper';
 
 interface Props {
   agent: AgentData;
@@ -49,7 +51,7 @@ export default function MyDocumentsContainer({ agent, children, ...props }: Prop
     <>
       <ClientDashboardIterator
         id='MyDocuments'
-        className={'RxCustomerView-ClientDashboardIterator rexified'}
+        className={'RxCustomerView-ClientDashboardIterator rexified '}
         onCancel={() => {
           console.log('canceled');
         }}
@@ -75,7 +77,6 @@ export default function MyDocumentsContainer({ agent, children, ...props }: Prop
           <></>
         )}
       </ClientDashboardIterator>
-      <RxNotifications />
     </>
   );
 }
@@ -115,6 +116,10 @@ function Rexify({
 
     if (c.props?.['data-field'] === 'new_folder') {
       return cloneElement(c, { onClick: () => props.createFolder() });
+    }
+
+    if (c.type === 'a' && c.props.href.indexOf('/') === 0) {
+      return cloneElement(c, { href: c.props.href.substring(1) });
     }
 
     if (c.props?.children && typeof c.props.children !== 'string') {
@@ -183,6 +188,28 @@ function Rexify({
           {child}
         </Rexify>,
       );
+    } else if (c.type === 'img') {
+      if (c.props['data-field']?.indexOf('logo_for') === 0) {
+        switch (c.props['data-field']) {
+          case 'logo_for_dark_bg':
+            if (props.agent.metatags?.logo_for_dark_bg) {
+              return cloneElement(c, { src: getImageSized(props.agent.metatags?.logo_for_dark_bg, 200) });
+            }
+          case 'logo_for_light_bg':
+            if (props.agent.metatags?.logo_for_light_bg) {
+              return cloneElement(c, { src: getImageSized(props.agent.metatags?.logo_for_light_bg, 200) });
+            }
+          default:
+            return (
+              <div
+                className={c.props.className + ' navbar-logo-text text-neutral-800 font-bold pb-5 w-24 text-xs'}
+                style={{ background: `url(${c.props.src}) bottom / contain no-repeat` }}
+              >
+                {props.agent.full_name}
+              </div>
+            );
+        }
+      }
     }
     return c;
   });

@@ -430,17 +430,17 @@ export default function RxCustomerPropertyView(p: Props) {
               },
               {
                 match: {
-                  'data.IdxInclude': 'Yes',
-                },
-              },
-              {
-                match: {
                   'data.Status': 'Active' as string,
                 },
               } as unknown as Record<string, string>,
             ],
             should: [],
             must_not: [
+              {
+                match: {
+                  'data.IdxInclude': 'no',
+                },
+              },
               {
                 match: {
                   'data.MLS_ID': property.mls_id,

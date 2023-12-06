@@ -49,7 +49,7 @@ export default async function MyAllProperties({ params, searchParams }: { params
       const { lat, lng, title } = default_location;
       if (agent.webflow_domain?.includes('leagent'))
         redirect(
-          `/${agent_id}/${slug}/my-all-properties?city=${encodeURIComponent(
+          `/${agent_id}/my-all-properties?city=${encodeURIComponent(
             title.split(' ').join('+'),
           )}&lat=${lat}&lng=${lng}&beds=0&baths=1&minprice=500000&maxprice=20000000`,
         );

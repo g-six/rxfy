@@ -5,7 +5,7 @@ import { searchByClasses } from '@/_utilities/rx-element-extractor';
 import styles from './documents.module.scss';
 import { DocumentInterface } from '@/_typings/document';
 import { getDocumentSignedUrl } from '@/_utilities/api-calls/call-documents';
-import axios from 'axios';
+
 type Props = {
   template: ReactElement;
   docData: DocumentInterface;

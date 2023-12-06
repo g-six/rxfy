@@ -14,12 +14,12 @@ import DocumentsReplacer from '@/_replacers/Documents/documents';
 import RxCustomerAccountView from './crm/RxCustomerAccountView';
 import CRMNav from './crm/CRMNav';
 import { AgentData } from '@/_typings/agent';
-import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { getAgentBaseUrl } from '@/app/api/_helpers/agent-helper';
 import useEvent, { Events } from '@/hooks/useEvent';
 import styles from '@/rexify/dynamic-styles.module.scss';
 import { RxEmptyState } from '@/components/RxCards/RxEmptyState.iterator';
 import MoreFieldsPopup from '@/app/my-listings/private-listing-workspace/components/more-fields.popup';
+import { consoler } from '@/_helpers/consoler';
 
 type Props = {
   children: React.ReactElement;
@@ -96,8 +96,28 @@ export default function ClientDashboardIterator(
   },
 ) {
   const Wrapped = React.Children.map(p.children, child => {
+    if (child.props?.['data-field'] || child.props?.className) consoler('ClientDashboardIterator.module.tsx', child.props['data-field']);
+    // if (p.agent && child.props && child.props['data-field']?.indexOf('logo_for_') === 0) {
+    //   let logo = '';
+    //   if (p.agent?.metatags.logo_for_light_bg && (!child.props['data-field'] || child.props['data-field'] === 'logo_for_light_bg')) {
+    //     logo = getImageSized(p.agent?.metatags.logo_for_light_bg, 100);
+    //   } else if (p.agent?.metatags.logo_for_dark_bg && (!child.props['data-field'] || child.props['data-field'] === 'logo_for_dark_bg')) {
+    //     logo = getImageSized(p.agent?.metatags.logo_for_dark_bg, 100);
+    //   }
+    //   return cloneElement(
+    //     child,
+    //     {},
+    //     <a href={''}>
+    //       {logo ? (
+    //         <span className='inline-block rounded bg-no-repeat bg-contain w-full' style={{ backgroundImage: `url(${logo})`, height: '3rem', width: '100px' }} />
+    //       ) : (
+    //         p.agent?.full_name
+    //       )}{' '}
+    //     </a>,
+    //   );
+    // }
     if (child.props?.children || child.props?.className) {
-      let { className, 'data-component': component_name } = child.props;
+      let { className, 'data-component': component_name, ...attribs } = child.props;
       const classes: string[] = `${className || ''}`.split(' ');
       if (p.property?.id || (p.properties && p.properties.length)) {
         if (classes.includes('initially-hidden')) {
@@ -119,28 +139,7 @@ export default function ClientDashboardIterator(
           });
         }
       }
-      if (p.agent && className?.includes('logo-div')) {
-        let logo = '';
-        if (p.agent?.metatags.logo_for_light_bg) {
-          logo = getImageSized(p.agent?.metatags.logo_for_light_bg, 100);
-        } else if (p.agent?.metatags.logo_for_dark_bg) {
-          logo = getImageSized(p.agent?.metatags.logo_for_dark_bg, 100);
-        }
-        return (
-          <div className={className}>
-            <a href={''}>
-              {logo ? (
-                <span
-                  className='inline-block rounded bg-no-repeat bg-contain w-full'
-                  style={{ backgroundImage: `url(${logo})`, height: '3rem', width: '100px' }}
-                />
-              ) : (
-                p.agent?.full_name
-              )}{' '}
-            </a>
-          </div>
-        );
-      } else if (className?.includes('confirm-delete')) {
+      if (className?.includes('confirm-delete')) {
         return React.cloneElement(child, {
           ...child.props,
           className: p.confirm ? 'flex items-center align-center justify-center absolute w-full h-full' : className,
@@ -151,6 +150,7 @@ export default function ClientDashboardIterator(
           ),
         });
       } else if (child.type === 'div') {
+        if (child.props) consoler('ClientDashboardIterator.module.tsx', child.props);
         if (child.props?.id === 'customer-view-modal-compare-filters') {
           return (
             <RxCompareFiltersModal {...child.props} filters={p.property ? Object.keys(p.property) : []}>
