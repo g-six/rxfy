@@ -1,25 +1,23 @@
 export function consoler(...args: any[]) {
-  console.log('* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *');
+  let output = '* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n';
   if (args.length > 1) {
     const [filename] = args;
     if (typeof filename !== 'string' || !filename.includes('.ts')) throw 'Please provide filename when using console debugger for better DX';
 
-    console.log('* File:', `src/${filename}`);
+    output = `${output}* File: src/${filename}\n`;
     args
       .slice(1)
       .filter(a => a !== undefined)
       .forEach(a => {
         if (typeof a === 'object' && a) {
           try {
-            console.log(JSON.stringify(a, null, 4).split('\n').join('\n  '));
+            output = `${output}${JSON.stringify(a, null, 4).split('\n').join('\n  ')}\n`;
           } catch (e) {
-            console.log(a);
+            output = `${output}${a}\n`;
           }
-        } else if (typeof a === 'string') console.log(a.split('\n').join('\n  '));
-        else console.log(a);
+        } else if (typeof a === 'string') output = `${output} ${a.split('\n').join('\n  ')}\n`;
+        else output = `${output}${a}\n`;
       });
-    console.log('* End of debugging for:', filename);
-    console.log('* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *');
-    console.log('');
+    console.log(output, '* End of debugging for:', filename, '\n' + '* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n\n');
   }
 }
