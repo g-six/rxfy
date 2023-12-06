@@ -1,6 +1,6 @@
 import { SavedSearchInput, SavedSearchOutput } from '@/_typings/saved-search';
 import axios from 'axios';
-import { gql_to_notify, gql_my_saved_searches, gql_update_search } from './gql';
+import { gql_to_notify, gql_my_saved_searches, gql_update_search, gql_delete_search } from './gql';
 import { SavedSearchGraph } from './data-types';
 import { getPipelineData } from '../pipeline/subroutines';
 import { LegacySearchPayload } from '@/_typings/pipeline';
@@ -15,6 +15,21 @@ const headers = {
   'Content-Type': 'application/json',
 };
 const FILE = 'saved-searches/model.ts';
+
+export async function removeSavedSearch(id: number) {
+  return await axios.post(
+    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+    {
+      query: gql_delete_search,
+      variables: {
+        id,
+      },
+    },
+    {
+      headers,
+    },
+  );
+}
 
 export async function updateSavedSearch(id: number, updates: SavedSearchInput) {
   return await axios.post(
@@ -71,7 +86,12 @@ export async function createSavedSearch(agent: number, search_params: SavedSearc
   }
 }
 
-export async function getTopListings({ nelat, nelng, swlat, swlng, city, maxprice, maxsqft, minprice, minsqft, beds, baths }: SavedSearchInput) {
+export async function getTopListings(
+  { nelat, nelng, swlat, swlng, city, maxprice, maxsqft, minprice, minsqft, beds, baths }: SavedSearchInput,
+  links?: {
+    property_url?: string;
+  },
+) {
   const should: {
     match?: { [k: string]: string };
     range?: {
@@ -212,6 +232,7 @@ export async function getTopListings({ nelat, nelng, swlat, swlng, city, maxpric
   const { hits } = await getPipelineData(internal_req);
   const records = hits.map(({ _source: { data } }: { _source: { data: MLSProperty } }) => {
     const property: { [k: string]: string | number } = {
+      ...links,
       address: formatValues(data, 'Address') as string,
       asking_price: `$${new Intl.NumberFormat(undefined, {}).format(data.AskingPrice)}` as any,
       city: formatValues(data, 'City') as string,

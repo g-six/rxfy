@@ -1,26 +1,13 @@
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getResponse } from '../../response-helper';
 import axios, { AxiosError } from 'axios';
-import { gqf_saved_search_attributes, gql_update_search } from '../gql';
-import { updateSavedSearch } from '../model';
+import { gqf_saved_search_attributes, gql_delete_search, gql_update_search } from '../gql';
+import { removeSavedSearch, updateSavedSearch } from '../model';
 
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
 };
-
-const gql_delete_search = `mutation DeleteSavedSearch($id: ID!) {
-    updateSavedSearch(id: $id, data: { customer: null }) {
-        data {
-            id
-        }
-    }
-    deleteSavedSearch(id: $id) {
-        data {
-            attributes {${gqf_saved_search_attributes}}
-        }
-    }
-}`;
 
 export async function DELETE(request: Request) {
   let session_key = '';
@@ -32,18 +19,7 @@ export async function DELETE(request: Request) {
 
     const id = Number(request.url.split('/').pop());
     try {
-      const { data: delete_response } = await axios.post(
-        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-        {
-          query: gql_delete_search,
-          variables: {
-            id,
-          },
-        },
-        {
-          headers,
-        },
-      );
+      const { data: delete_response } = await removeSavedSearch(id);
 
       data = {
         ...data,

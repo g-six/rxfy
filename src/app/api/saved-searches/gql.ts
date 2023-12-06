@@ -146,3 +146,16 @@ export const gql_update_search = `mutation UpdateSavedSearch($id: ID!, $updates:
       }
   }
 }`;
+
+export const gql_delete_search = `mutation DeleteSavedSearch($id: ID!) {
+    updateSavedSearch(id: $id, data: { customer: null }) {
+        data {
+            id
+        }
+    }
+    deleteSavedSearch(id: $id) {
+        data {
+            attributes {${gqf_saved_search_attributes}}
+        }
+    }
+}`;
