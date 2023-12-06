@@ -66,6 +66,7 @@ export enum Events {
   Logout = 'evt-logout',
   Blank = 'blank',
   Prompt = 'prompt',
+  Lightbox = 'evt-lightbox',
   AgentMyListings = 'agent-my-listings',
 }
 

@@ -52,6 +52,8 @@ import { updateAgentMetatags } from '@/app/api/agents/model';
 import { BrokerageInformationForm } from '@/rexify/realtors/brokerage-information';
 import { cookies, headers } from 'next/headers';
 import CustomLoader from './Loaders/CustomLoader';
+import { consoler } from '@/_helpers/consoler';
+import { RxLightbox, RxLightboxTrigger } from './RxDialogs/RxDialog';
 
 async function replaceTargetCityComponents($: CheerioAPI, agent: AgentData) {
   if (agent.metatags.target_city && !agent.metatags.geocoding) {
@@ -533,8 +535,11 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
               data: string;
             };
 
-            if (data && data.indexOf('"Property Images"') > 0) {
-              return <div data-carousel-photo='https://assets.website-files.com/642bc0505141b84f69254283/642bc0505141b84848254288_Prop%20Page%2001.jpg'></div>;
+            if (data) {
+              if (data.indexOf('"Property Images"') > 0)
+                return (
+                  <div data-carousel-photo='https://assets.website-files.com/642bc0505141b84f69254283/642bc0505141b84848254288_Prop%20Page%2001.jpg'></div>
+                );
             }
             return <script dangerouslySetInnerHTML={{ __html: data }} type='application/json' />;
           }
@@ -544,6 +549,17 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
         const className = `${dom_class || dom_class_alt || ''}`;
         if (node.attribs['data-src']) {
           return <RxThemePreview className={`${props.className ? props.className + ' ' : ''} rexified`} src={node.attribs['data-src']} />;
+        }
+
+        if (node.attribs['data-video-url']) {
+          return (
+            <>
+              <RxLightboxTrigger content-id={node.attribs['data-video-url']}>{<>{domToReact(node.children as unknown[] as DOMNode[])}</>}</RxLightboxTrigger>
+              <RxLightbox content-height={320} content-width={640} content-id={node.attribs['data-video-url']}>
+                <iframe title='vimeo-player' src={node.attribs['data-video-url']} width='640' height='360' frameBorder='0' allowFullScreen></iframe>
+              </RxLightbox>
+            </>
+          );
         }
 
         if (className) {

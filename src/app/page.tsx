@@ -301,6 +301,9 @@ export default async function Home({ params, searchParams }: { params: Record<st
     }
   }
   log(start, 'done with conditional checking');
+  $('a[data-video-url]').each((num, el) => {
+    $(el).replaceWith(`<div data-video-url="${$('a[data-video-url]').attr('data-video-url')}">${$('a[data-video-url]').html()}</div>`);
+  });
 
   replaceByCheerio($, 'html', {
     removeProps: 'class',

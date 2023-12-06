@@ -1,8 +1,81 @@
 'use client';
+import { classNames } from '@/_utilities/html-helper';
 import useEvent, { Events } from '@/hooks/useEvent';
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
+import { Fragment, ReactElement } from 'react';
 
+export function RxLightboxTrigger({ children, ...attributes }: { children: ReactElement; 'content-id': string }) {
+  const { fireEvent } = useEvent(Events.Lightbox);
+  return (
+    <div
+      {...attributes}
+      className='cursor-pointer'
+      onClick={() => {
+        fireEvent({
+          clicked: attributes['content-id'],
+          show: true,
+        });
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+export function RxLightbox({ children, ...attributes }: { children: ReactElement; 'content-width'?: number; 'content-id': string; 'content-height'?: number }) {
+  const { data, fireEvent } = useEvent(Events.Lightbox);
+
+  return (
+    <>
+      <Transition appear show={data && data.show && data.clicked === attributes['content-id'] ? true : false} as={Fragment}>
+        <Dialog
+          as='div'
+          className='relative z-10'
+          onClose={() => {
+            fireEvent({
+              show: false,
+            });
+          }}
+        >
+          <Transition.Child
+            as={Fragment}
+            enter='ease-out duration-300'
+            enterFrom='opacity-0'
+            enterTo='opacity-100'
+            leave='ease-in duration-100'
+            leaveFrom='opacity-100'
+            leaveTo='opacity-0'
+          >
+            <div className='fixed inset-0 bg-black/50' />
+          </Transition.Child>
+
+          <div className='fixed inset-0 overflow-y-auto'>
+            <div className='flex min-h-full items-center justify-center p-4 text-center'>
+              <Transition.Child
+                as={Fragment}
+                enter='ease-out duration-300'
+                enterFrom='opacity-0 -translate-y-1/2'
+                enterTo='opacity-100 translate-y-0'
+                leave='ease-in duration-100'
+                leaveFrom='opacity-100 translate-y-0'
+                leaveTo='opacity-0 translate-y-1/2'
+              >
+                <Dialog.Panel
+                  className='transform overflow-hidden rounded-2xl bg-white p-0 text-left align-middle shadow-xl transition-all'
+                  style={{
+                    width: 'auto',
+                    height: 'auto',
+                  }}
+                >
+                  {children}
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+    </>
+  );
+}
 export default function RxDialog() {
   const { fireEvent: promptConfirmation, data: dialog } = useEvent(Events.Prompt);
 
