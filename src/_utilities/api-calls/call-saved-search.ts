@@ -135,6 +135,7 @@ export async function updateSearch(id: number, agent: { id: number; logo?: strin
     {
       search_params: {
         ...search_params,
+        agent_metatag: undefined,
         dwelling_types: dwelling_type_ids,
         dwelling_type: undefined,
         dwelling_type_ids: undefined,
