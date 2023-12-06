@@ -461,7 +461,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
         case 'my-all-properties':
           return <MyAllProperties params={{ slug: agent_data.agent_id, 'profile-slug': agent_data.metatags.profile_slug || '' }} searchParams={searchParams} />;
         case 'my-home-alerts':
-          return <MyHomeAlerts params={{ slug: agent_data.agent_id }} />;
+          return <MyHomeAlerts params={{ slug: agent_data.agent_id }} searchParams={searchParams} />;
       }
     }
     if (!LEAGENT_WEBFLOW_DOMAINS.includes(webflow_domain)) {
