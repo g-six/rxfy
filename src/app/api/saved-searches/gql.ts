@@ -87,6 +87,16 @@ export const gql_my_saved_searches = `query MySavedSearches($customer_id: ID!) {
     }
   }`;
 
+export const mutation_update_search = `mutation UpdateSearch($id: ID!, $updates: SavedSearchInput!) {
+  updateSavedSearch(id: $id, data: $updates) {
+    data {
+      attributes {
+        last_email_at
+      }
+    }
+  }
+}`;
+
 export const gql_to_notify = `query SavedSearches($last_email_at: DateTime!) {
   new_items: savedSearches(
     filters: {
@@ -127,3 +137,12 @@ export const gql_to_notify = `query SavedSearches($last_email_at: DateTime!) {
   }
 }
 `;
+
+export const gql_update_search = `mutation UpdateSavedSearch($id: ID!, $updates: SavedSearchInput!) {
+  updateSavedSearch(id: $id, data: $updates) {
+      data {
+          id
+          attributes {${gqf_saved_search_attributes}}
+      }
+  }
+}`;

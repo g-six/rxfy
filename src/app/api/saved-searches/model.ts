@@ -1,6 +1,6 @@
 import { SavedSearchInput, SavedSearchOutput } from '@/_typings/saved-search';
 import axios from 'axios';
-import { gql_to_notify, gql_my_saved_searches } from './gql';
+import { gql_to_notify, gql_my_saved_searches, gql_update_search } from './gql';
 import { SavedSearchGraph } from './data-types';
 import { getPipelineData } from '../pipeline/subroutines';
 import { LegacySearchPayload } from '@/_typings/pipeline';
@@ -15,6 +15,22 @@ const headers = {
   'Content-Type': 'application/json',
 };
 const FILE = 'saved-searches/model.ts';
+
+export async function updateSavedSearch(id: number, updates: SavedSearchInput) {
+  return await axios.post(
+    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
+    {
+      query: gql_update_search,
+      variables: {
+        id,
+        updates,
+      },
+    },
+    {
+      headers,
+    },
+  );
+}
 
 export async function createSavedSearch(agent: number, search_params: SavedSearchInput, customer: number) {
   let params = {};

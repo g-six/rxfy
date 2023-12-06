@@ -23,6 +23,7 @@ export interface SavedSearchBaseModel {
   tags?: string;
   area?: string;
   city?: string;
+  last_email_at?: string;
 }
 
 export interface SavedSearchInput extends SavedSearchBaseModel {

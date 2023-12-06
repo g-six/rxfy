@@ -1,21 +1,13 @@
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
 import { getResponse } from '../../response-helper';
 import axios, { AxiosError } from 'axios';
-import { gqf_saved_search_attributes } from '../gql';
+import { gqf_saved_search_attributes, gql_update_search } from '../gql';
+import { updateSavedSearch } from '../model';
 
 const headers = {
   Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
   'Content-Type': 'application/json',
 };
-
-const gql_update_search = `mutation UpdateSavedSearch($id: ID!, $updates: SavedSearchInput!) {
-    updateSavedSearch(id: $id, data: $updates) {
-        data {
-            id
-            attributes {${gqf_saved_search_attributes}}
-        }
-    }
-}`;
 
 const gql_delete_search = `mutation DeleteSavedSearch($id: ID!) {
     updateSavedSearch(id: $id, data: { customer: null }) {
@@ -82,19 +74,7 @@ export async function PUT(request: Request) {
 
     const id = Number(request.url.split('/').pop());
     try {
-      const { data: update_response } = await axios.post(
-        `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-        {
-          query: gql_update_search,
-          variables: {
-            id,
-            updates: search_params,
-          },
-        },
-        {
-          headers,
-        },
-      );
+      const { data: update_response } = await updateSavedSearch(id, search_params);
 
       const { id: record_id, attributes } = update_response.data.updateSavedSearch.data;
 
