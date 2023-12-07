@@ -14,6 +14,7 @@ export async function middleware(request: NextRequest) {
   // Store current request url in a custom header, which you can read later
   // we want to be able to read Property ID (MLS_ID, etc)
   // to place meta tags in HEAD dynamically based on Property Data
+  response.headers.set('x-referer', request.url);
   const current_url = new URL(request.url);
   const { hostname, protocol, host, searchParams } = current_url;
   let { pathname } = current_url;
