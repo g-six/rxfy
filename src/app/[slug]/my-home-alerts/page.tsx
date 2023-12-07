@@ -16,7 +16,18 @@ import { replaceAgentFields } from '@/app/property/page.helpers';
 import { objectToQueryString } from '@/_utilities/url-helper';
 
 export default async function MyHomeAlerts({ params, searchParams }: { params: { [key: string]: string }; searchParams?: { [key: string]: string } }) {
-  if (!cookies().get('session_key')?.value) redirect(`log-in?redirect=my-home-alerts&${searchParams ? objectToQueryString(searchParams) : ''}`);
+  if (!cookies().get('session_key')?.value) {
+    const referer = headers().get('x-referer') || '';
+    if (referer) {
+      const { pathname, search } = new URL(referer);
+      redirect(
+        `${pathname
+          .split('/')
+          .filter(dir => dir !== 'my-home-alerts')
+          .join('/')}/log-in?redirect=my-home-alerts&${searchParams ? objectToQueryString(searchParams) : search}`,
+      );
+    }
+  }
   let url = headers().get('x-url') || '';
   let base_path = '/';
   if (!url) url = 'https://' + WEBFLOW_DASHBOARDS.CUSTOMER + '/my-home-alerts?x=2';
