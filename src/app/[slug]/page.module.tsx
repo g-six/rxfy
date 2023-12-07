@@ -10,7 +10,7 @@ import { LOGO_FIELDS } from '@/_constants/agent-fields';
 import { getAgentMapDefaultUrl } from '@/_utilities/data-helpers/agent-helper';
 import { findAgentBrokerageAgents, findAgentRecordByAgentId } from '@/app/api/agents/model';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
-import Iterator from './page-iterator.module';
+import Iterator from './[etc]/page-iterator.module';
 import NavIterator from '@/components/Nav/RxNavIterator';
 import { PropertyDataModel } from '@/_typings/property';
 import { headers } from 'next/headers';
@@ -30,8 +30,8 @@ export default async function PageComponent({
 }) {
   console.log('');
   console.log('');
-  console.log('* * * [slug]/[profile-slug]/page.module.tsx * * *');
-  console.log('Loading app/[slug]/[profile-slug]/page.module.tsx', { slug: agent_id });
+  console.log('* * * [slug]/page.module.tsx * * *');
+  console.log('Loading app/[slug]/page.module.tsx', { slug: agent_id });
   const agent = await findAgentRecordByAgentId(agent_id);
   const brokers = await findAgentBrokerageAgents(agent_id, true);
 

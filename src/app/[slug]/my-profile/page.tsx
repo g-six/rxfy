@@ -61,12 +61,11 @@ function Iterator({ children, agent }: { children: React.ReactElement; agent: Ag
   return <>{Wrapped}</>;
 }
 
-const FILE = '[slug]/[profile-slug]/my-profile/page.tsx';
+const FILE = '[slug]/my-profile/page.tsx';
 export default async function ClientMyProfile({ params, searchParams }: { params: { [key: string]: string }; searchParams: { [key: string]: string } }) {
   consoler(FILE, { params, searchParams });
   if (!cookies().get('session_key') && searchParams?.key) {
     consoler(FILE, { searchParams });
-    // redirect(`/${params.slug}/${params['profile-slug']}/log-in`);
   }
   const url = headers().get('x-url') || 'https://sites.leagent.com/' + WEBFLOW_DASHBOARDS.CUSTOMER + '/my-profile.html';
   const { data: html } = await axios.get(url);

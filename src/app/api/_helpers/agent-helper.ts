@@ -3,6 +3,7 @@ import { AgentData } from '@/_typings/agent';
 import { objectToQueryString } from '@/_utilities/url-helper';
 import { gql_by_agent_uniq } from '../agents/graphql';
 import axios from 'axios';
+import { consoler } from '@/_helpers/consoler';
 
 export function getFullAgentRecord(recordset: {
   agent_metatag: { data?: { id: number; attributes: { [key: string]: unknown } } };
@@ -146,7 +147,7 @@ export function getAgentBaseUrl(agent: AgentData, remote?: boolean) {
 }
 export async function getAgentBy(attributes: { [key: string]: string }) {
   const { agent_id, domain_name, profile_slug } = attributes;
-  console.log('_helpers/agent-helper.getAgentBy', attributes);
+  consoler('_helpers/agent-helper.ts', `getAgentBy(${JSON.stringify(attributes)})`);
   let filters: {
     agent_id?: {
       eqi: string;

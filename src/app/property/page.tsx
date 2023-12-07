@@ -35,9 +35,7 @@ export default async function PropertyPage(props: any) {
     }
 
     let profile_slug = headers().get('x-profile-slug') || '';
-    if (!profile_slug && props.params['profile-slug']) {
-      profile_slug = props.params['profile-slug'];
-    }
+
     if ((mls || lid) && profile_slug.indexOf('la-') === 0) {
       let agent = {
         id: Number(headers().get('x-record-id')),

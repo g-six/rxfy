@@ -374,10 +374,10 @@ export async function getNewSessionKey(previous_token: string, id: number, user_
       return {};
     }
   } else {
-    const error = `Mismatched Session Tokens for ${id} ${previous_token}`;
+    const error = `Mismatched Session Tokens for ${user_type} ${id} ${previous_token}`;
     console.log(error);
     return {
-      error: `Mismatched Session Tokens for ${id} ${previous_token}`,
+      error: `Mismatched Session Tokens for  ${user_type} ${id} ${previous_token}`,
       session_key: `${previous_token}-${id}`,
     };
   }

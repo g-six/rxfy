@@ -83,6 +83,7 @@ export function setAgentWebsiteHeaders(agent_data: AgentData, request: NextReque
   response.headers.set('x-agent-name', agent_data.full_name);
   response.headers.set('x-agent-email', agent_data.email);
   response.headers.set('x-agent-phone', agent_data.phone);
+  response.cookies.set('session_as', 'customer');
   const webflow_domain =
     agent_data.webflow_domain || `${agent_data.website_theme ? agent_data.website_theme + '-leagent' : 'leagent-webflow-rebuild'}.webflow.io`;
   response.headers.set('x-wf-domain', webflow_domain);
@@ -103,9 +104,24 @@ export function setAgentWebsiteHeaders(agent_data: AgentData, request: NextReque
       }
     }
   }
-  filename = filename.split('?').reverse().pop() as string;
+  filename = filename.includes('?') ? (filename.split('?').reverse().pop() as string) : filename;
   if (filename === 'property') {
+    response.headers.set(
+      'x-canonical',
+      'https://' + agent_data.domain_name || `${agent_data.website_theme ? agent_data.website_theme : 'app'}.leagent.com/${filename}?mls=x`,
+    );
     filename = 'property/propertyid';
+  } else if (filename === 'map') {
+    response.headers.set(
+      'x-canonical',
+      ('https://' + agent_data.domain_name || `${agent_data.website_theme ? agent_data.website_theme : 'app'}.leagent.com`) +
+        `/${filename}?${objectToQueryString((agent_data?.metatags?.geocoding || {}) as unknown as { [k: string]: string })}&beds=0&baths=0`,
+    );
+  } else {
+    response.headers.set(
+      'x-canonical',
+      'https://' + agent_data.domain_name || `${agent_data.website_theme ? agent_data.website_theme : 'app'}.leagent.com/${filename}`,
+    );
   }
 
   response.headers.set('x-url', `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain}/${filename}.html`);

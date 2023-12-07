@@ -18,7 +18,7 @@ import NotFound from './not-found';
 import { buildCacheFiles, getPropertiesFromAgentInventory } from './api/properties/model';
 import { getPrivateListing } from './api/private-listings/model';
 import { getUserSessionData } from './api/check-session/model';
-import PageComponent from './[slug]/[profile-slug]/page.module';
+import PageComponent from './[slug]/page.module';
 import { getAgentBy } from './api/_helpers/agent-helper';
 import { LEAGENT_WEBFLOW_DOMAINS } from '@/_constants/webflow-domains';
 import CustomerLogInPage from './[slug]/log-in/page';
@@ -66,22 +66,17 @@ function loadAiResults($: CheerioAPI, user_id: string, slug?: string, origin?: s
   });
 }
 
-function log(start: number, message = 'done') {
-  console.log(`[${Date.now() - start}ms] ${message}`);
-}
-
 const LEAGENT_DOMAINS = ['leagent.com', 'dev.leagent.com', 'beta.leagent.com'];
 
-export default async function Home({ params, searchParams }: { params: Record<string, unknown>; searchParams: Record<string, string> }) {
+export default async function Home({ params, searchParams }: { params: { [k: string]: string }; searchParams: { [k: string]: string } }) {
   const start = Date.now();
-  log(start, 'started');
   const url = headers().get('x-url') as string;
+
   const { hostname, origin, pathname } = new URL(url);
   let webflow_domain = getWebflowDomain(headers().get('host') || '') || '';
 
   let possible_agent = '';
-  // params.slug as string;
-  let profile_slug = params['profile-slug'] as string;
+  let profile_slug = '';
 
   let agent_data: AgentData = {} as unknown as AgentData;
   const domain_name = `${headers().get('host')}`.split(':').reverse().pop();
@@ -101,14 +96,11 @@ export default async function Home({ params, searchParams }: { params: Record<st
       case 'ai.html':
         return <AiPrompt>{domToReact($('body > div') as unknown as DOMNode[]) as ReactElement}</AiPrompt>;
     }
-  } else if (agent_webflow_domain) {
-    consoler(FILE, { agent_webflow_domain });
-    agent_data = await getAgentBy({
-      agent_id: possible_agent,
-    });
+  } else if (possible_agent) {
     const client_dashboard_params = {
       slug: possible_agent,
     };
+    consoler(FILE, { possible_agent, client_dashboard_params, params });
     switch (params.slug) {
       case 'log-in':
         return CustomerLogInPage({
@@ -132,7 +124,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     });
 
     if (agent_data?.agent_id && pathname.split('/').pop() === 'index.html') {
-      console.log('Returning PageComponent');
+      consoler(FILE, 'Returning PageComponent');
       return <PageComponent agent_id={agent_data.agent_id} />;
     }
   }
@@ -148,7 +140,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
     switch (filename) {
       case 'index.html':
         if (headers().get('x-agent-id') && headers().get('x-profile-slug')) {
-          console.log('Returning PageComponent');
+          consoler(FILE, 'Returning PageComponent');
           return <PageComponent agent_id={headers().get('x-agent-id') as string} />;
         }
         break;
@@ -158,7 +150,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
   if (possible_agent && profile_slug) {
     // Check if the slug matches a realtor
     if (profile_slug === 'leagent' || profile_slug.indexOf('la-') === 0) {
-      console.log('Loading agent_record', possible_agent);
       const agent_record = await findAgentRecordByAgentId(possible_agent);
       const { metatags } = agent_record;
 
@@ -168,15 +159,16 @@ export default async function Home({ params, searchParams }: { params: Record<st
         };
 
         if (!agent_data || !metatags.profile_slug || metatags.profile_slug !== profile_slug) {
+          consoler(FILE, 'Agent record not found for agent_id', possible_agent);
           return <NotFound id='page-1' className='profile-not-found'></NotFound>;
         }
       } else {
+        consoler(FILE, 'AgentMetatag record not found for agent_id', possible_agent);
         return <NotFound id='page-2' className='invalid-profile-slug'></NotFound>;
       }
     }
   } else if (session_key) {
     if (session_as === 'realtor') {
-      console.log('Load agent data based on session_key', session_key);
       const [session_hash, user_id] = session_key.split('-');
       const session = await getUserDataFromSessionKey(session_hash, Number(user_id), 'realtor');
       if (Object.keys(session).length === 0) {
@@ -193,13 +185,10 @@ export default async function Home({ params, searchParams }: { params: Record<st
         ...session_agent,
         metatags: session_agent.agent_metatag,
       };
-    } else {
-      console.log('Load customer data based on session_key', session_key);
     }
   }
 
   try {
-    consoler(FILE, 'Fetching html file:', headers().get('x-url'));
     const req_page_html = await axios.get(headers().get('x-url') as string);
     data = req_page_html.data;
   } catch (e) {
@@ -216,11 +205,10 @@ export default async function Home({ params, searchParams }: { params: Record<st
     `${data}`.split('</title>').join(`</title>
     <link rel='canonical' href='${header_list.get('referer') || header_list.get('x-canonical')}' />`),
   );
-  log(start, 'response from webflow');
 
-  if (params.slug && params['profile-slug']) {
+  if (params.slug) {
     replaceByCheerio($, 'a.logo-div', {
-      href: `/${params.slug}/${params['profile-slug']}`,
+      href: `/${params.slug}`,
     });
   }
 
@@ -241,8 +229,6 @@ export default async function Home({ params, searchParams }: { params: Record<st
       loadAiResults($, agent_data.agent_id, agent_data.metatags.profile_slug, origin);
     }
   } else if (!(searchParams.theme && searchParams.agent) && webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN) {
-    log(start, 'running script for ' + webflow_domain);
-
     if (!session_key && params.slug && ['ai-result'].includes(params.slug as string)) {
       data = '<html><head><meta name="title" content="Not found" /></head><body>Not found</body></html>';
       notFound();
@@ -269,7 +255,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
                 property = feature_listing.data;
                 property.listing_by = `Listing courtesy of ${session_agent.full_name}`;
               } catch (e) {
-                console.log('Featured listing not found');
+                consoler(FILE, 'Featured listing not found');
               }
             }
             if (agent_data) {
@@ -278,7 +264,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
             }
           }
         } catch (e) {
-          console.log('Invalid session key');
+          consoler(FILE, 'Invalid session key');
         }
       }
     }
@@ -300,7 +286,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
         break;
     }
   }
-  log(start, 'done with conditional checking');
+
   $('a[data-video-url]').each((num, el) => {
     $(el).replaceWith(`<div data-video-url="${$('a[data-video-url]').attr('data-video-url')}">${$('a[data-video-url]').html()}</div>`);
   });
@@ -379,18 +365,12 @@ export default async function Home({ params, searchParams }: { params: Record<st
           agent_data = session as AgentData;
         }
       }
-      if (!agent_data || !agent_data.id) {
-        console.log('\n\nHome.agent_data not available');
-      } else {
-        console.log('Retrieved agent_data through alternative means and assumptions');
-        console.log(JSON.stringify({ agent_data }, null, 4));
-      }
     }
-    if (params?.['profile-slug'] && params?.slug) {
-      if (agent_data?.metatags.target_city) {
-        $('[href="/map"]').attr('href', `/${params.slug}/${params['profile-slug']}/map?q=${agent_data.metatags.target_city}`);
+    if (params?.slug) {
+      if (agent_data?.metatags?.target_city) {
+        $('[href="/map"]').attr('href', `/${params.slug}/map?q=${agent_data.metatags.target_city}`);
       } else {
-        $('[href="/map"]').attr('href', `/${params.slug}/${params['profile-slug']}/map?q=Vancouver`);
+        $('[href="/map"]').attr('href', `/${params.slug}/map?q=Vancouver`);
       }
     }
 
@@ -410,29 +390,23 @@ export default async function Home({ params, searchParams }: { params: Record<st
         try {
           const cached_xhr = await axios.get(cache_json);
           property = cached_xhr.data;
-          console.log('Loading cached file', cache_json);
+
           if (property) {
             const legacy_json = `${process.env.NEXT_PUBLIC_LISTINGS_CACHE}/${searchParams.mls}/legacy.json`;
             try {
               const cached_legacy_xhr = await axios.get(legacy_json);
             } catch (e) {
-              console.log('Property legacy data', legacy_json);
-              console.log('No legacy cache, do the long query');
+              consoler(FILE, 'Property legacy data', legacy_json);
             }
           }
         } catch (e) {
-          // No cache, do the long query
-          console.log('building cache');
           buildCacheFiles(searchParams.mls);
-          console.log('No cache, do the long query');
           property = await getPropertyData(searchParams.mls, true);
         }
       }
     }
 
     $('.w-webflow-badge').remove();
-  } else {
-    log(start, hostname + ' is being treated as webflow site: ' + process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN);
   }
   $('.w-webflow-badge').remove();
 
@@ -459,7 +433,7 @@ export default async function Home({ params, searchParams }: { params: Record<st
         case 'client-dashboard':
           return <ClientDashboard params={{ slug: agent_data.agent_id }} />;
         case 'my-all-properties':
-          return <MyAllProperties params={{ slug: agent_data.agent_id, 'profile-slug': agent_data.metatags.profile_slug || '' }} searchParams={searchParams} />;
+          return <MyAllProperties params={{ slug: agent_data.agent_id }} searchParams={searchParams} />;
         case 'my-home-alerts':
           return <MyHomeAlerts params={{ slug: agent_data.agent_id }} searchParams={searchParams} />;
       }

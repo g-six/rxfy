@@ -27,7 +27,7 @@ export default async function Page(props: { params: { [k: string]: string }; sea
 
   if (session_key) {
     const agent = await getUserSessionData(session_key, 'realtor');
-    if (agent.id) {
+    if (agent?.id) {
       session.agent = agent as AgentData;
     }
   }

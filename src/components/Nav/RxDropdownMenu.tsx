@@ -48,8 +48,8 @@ function RxNavPopup(p: PopupProps) {
       searchFn: searchByClasses(['out-session']),
       transformChild: (child: React.ReactElement) => {
         let { href } = child.props;
-        if (params.slug && params['profile-slug']) {
-          href = `/${params.slug}/${params['profile-slug']}${href}`;
+        if (params.slug) {
+          href = `/${params.slug}${href}`;
         }
         return React.cloneElement(child, {
           ...child.props,

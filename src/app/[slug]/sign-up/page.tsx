@@ -39,7 +39,6 @@ function Iterator({ agent_data, children }: { agent_data: AgentData; children: R
 }
 export default async function CustomerSignUpPage(props: {
   params: {
-    'profile-slug': string;
     slug: string;
   };
   searchParams: {
@@ -50,17 +49,6 @@ export default async function CustomerSignUpPage(props: {
   let data;
   const req = await axios.get(`https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/sign-up.html`);
   data = req.data;
-  // try {
-  //   const req = await axios.get(`https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/sign-up.html`);
-  //   data = req.data;
-  // } catch (e) {
-  //   console.log('static site not found, try webflow direct');
-  //   const req = await axios.get(`https://${webflow_domain || WEBFLOW_DASHBOARDS.CUSTOMER}/sign-up`);
-  //   data = req.data;
-  // }
-
-  // Replace webflow forms
-  // data = data.split('<form').join('<section').split('</form>').join('</section>');
 
   // absolute urls
   data = data.split('href="/').join(`href="${domain_name ? '/' : ['', agent_data.agent_id, metatags.profile_slug, ''].join('/')}`);

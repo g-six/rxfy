@@ -19,8 +19,8 @@ export function RxUserSessionLink(props: RxUserSessionLinkProps) {
   const logout = () => {
     clearSessionCookies();
     let homepage = '/';
-    if (params['profile-slug'] && params.slug) {
-      homepage = `/${params.slug}/${params['profile-slug']}`;
+    if (params.slug) {
+      homepage = `/${params.slug}`;
     }
     router.push(homepage);
   };
@@ -39,8 +39,8 @@ export function RxUserSessionLink(props: RxUserSessionLinkProps) {
   }, []);
 
   let { href } = props;
-  if (params['profile-slug'] && params.slug) {
-    href = `/${params.slug}/${params['profile-slug']}${href}`;
+  if (params.slug) {
+    href = `/${params.slug}${href}`;
   }
 
   return (

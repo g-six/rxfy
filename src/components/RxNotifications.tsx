@@ -70,7 +70,6 @@ export default function RxNotifications() {
                         <div key={m} className='tracking-wide text-xs'>
                           {m.substring(0, 1).toUpperCase()}
                           {m.slice(1)}
-                          {m && '.'}
                         </div>
                       ))}
                     </div>

@@ -10,14 +10,14 @@ const FILE = 'middleware.ts';
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
-
   // Store current request url in a custom header, which you can read later
   // we want to be able to read Property ID (MLS_ID, etc)
   // to place meta tags in HEAD dynamically based on Property Data
-  response.headers.set('x-referer', request.url);
-  const current_url = new URL(request.url);
-  const { hostname, protocol, host, searchParams } = current_url;
-  let { pathname } = current_url;
+  const current_url = request.headers.get('referer') || request.url;
+  const { hostname, searchParams, protocol } = new URL(request.url);
+  const current_origin = request.headers.get('host') ? `${protocol}//${request.headers.get('host')}` : '';
+  response.headers.set('x-rx-origin', current_origin);
+  let { pathname } = new URL(request.url);
 
   if (pathname.includes('/api')) return response;
   if (pathname.includes('/css')) return response;
@@ -30,16 +30,51 @@ export async function middleware(request: NextRequest) {
     response.cookies.delete('session_key');
     response.cookies.delete('session_as');
   }
-  consoler('middleware.ts', '       not a webflow static asset       ', '       Proceed to routing logic       ');
-  consoler(FILE, { current_url });
-  const [, ...segments] = pathname.split('/');
+
+  let [, ...segments] = pathname.split('/');
+  let agent_id = '';
+  segments = segments.filter(s => !!s);
 
   let agent_data: { [k: string]: string } & { metatags?: { [k: string]: string } } = {};
   let page_url = `https://sites.leagent.com/`;
   response.headers.set('x-viewer', 'realtor');
   const domain_name = getThemeDomainHostname(`${request.headers.get('host') || hostname}`.split(':').reverse().pop() || hostname) || hostname;
-  let webflow_domain = getWebflowDomain(`${request.headers.get('host') || hostname}`.split(':').reverse().pop() || hostname);
-  consoler(FILE, { domain_name, webflow_domain });
+  let webflow_domain = getWebflowDomain(domain_name);
+
+  let debug_output = `
+        Proceed to routing logic for:
+        current_url     : ${current_url}
+        domain_name     : ${domain_name}
+        current_origin  : ${current_origin}
+        pathname        : ${pathname}
+        segments        : ${JSON.stringify(segments)}
+`;
+
+  // Domain name is not of *.leagent.com, must be a realtor with own domain set up.
+  if (!webflow_domain && domain_name) {
+    agent_data = await getAgentBy({
+      domain_name,
+    });
+    if (agent_data?.webflow_domain) {
+      consoler(
+        FILE,
+        `if (agent_data?.agent_metatag) :
+        ${debug_output}
+        webflow_domain  : ${agent_data.webflow_domain}
+    `,
+      );
+      return setAgentWebsiteHeaders(agent_data as unknown as AgentData, request, response);
+    }
+  }
+
+  debug_output = `${debug_output}  
+        webflow_domain  : ${webflow_domain}
+  `;
+
+  if (webflow_domain !== 'leagent-website.webflow.io') {
+    if (segments.length > 1) agent_id = segments[0];
+  }
+
   if (searchParams.get('key') && searchParams.get('as') && current_url && !pathname.includes('log-')) {
     if (!cookies().get('session_as') || !cookies().get('session_key')) {
       response.cookies.set('session_key', searchParams.get('key') || '');
@@ -51,11 +86,11 @@ export async function middleware(request: NextRequest) {
   // Specifying a theme search parameter with agent_id
   // in path param will bypass all theme logic
   // outside this conditional statement
-  if (searchParams.get('theme') && segments[0]) {
+  if (searchParams.get('theme')) {
     // For theme preview requests from an iframe
     const theme_subdomain = searchParams.get('theme') === 'default' ? 'app' : searchParams.get('theme');
     const webflow_subdomain = theme_subdomain !== 'app' ? `${searchParams.get('theme')}-leagent` : 'leagent-webflow-rebuild';
-    canonical = `https://${theme_subdomain}.leagent.com/${segments[0]}`;
+    canonical = `https://${theme_subdomain}.leagent.com${segments.length ? '/' : ''}${segments.join('/')}`;
     agent_data = await getAgentBy({
       agent_id: segments[0],
     });
@@ -66,6 +101,17 @@ export async function middleware(request: NextRequest) {
       response.headers.set('x-preview-theme', searchParams.get('theme') || '');
       response.headers.set('x-url', page_url);
       response.headers.set('x-hostname', `${domain_name || ''}`);
+
+      consoler(
+        FILE,
+        `if (agent_data?.agent_metatag) {...
+        ${debug_output}
+    `,
+      );
+
+      if (canonical) {
+        response.headers.set('x-canonical', canonical);
+      }
       return setAgentWebsiteHeaders(
         {
           ...(agent_data as unknown as AgentData),
@@ -78,6 +124,10 @@ export async function middleware(request: NextRequest) {
   } else {
     canonical = `https://${domain_name}${segments[0] ? '/' : ''}${segments.join('/') || ''}`;
 
+    if (canonical) {
+      response.headers.set('x-canonical', canonical);
+    }
+
     response.headers.set('x-hostname', `${domain_name || ''}`);
   }
 
@@ -85,13 +135,12 @@ export async function middleware(request: NextRequest) {
 
   if (segments.includes('_next')) return request;
 
-  if (canonical) {
-    response.headers.set('x-canonical', canonical);
-  }
-
   // If the domain is a leagent owned theme domain,
   // default the strapi.agents.agent_id to ONKODA
-  if (domain_name !== 'leagent.com' && domain_name !== 'dev.leagent.com') {
+  let filename = segments.length === 0 ? 'index' : segments.join('/');
+  if (webflow_domain === 'leagent-website.webflow.io') {
+    response.headers.set('x-url', `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain}/${filename}.html`);
+  } else if (webflow_domain?.includes('-leagent.webflow.io')) {
     if (!segments[0] && domain_name.includes('leagent.com')) {
       agent_data = await getAgentBy({
         agent_id: 'ONKODA',
@@ -112,6 +161,14 @@ export async function middleware(request: NextRequest) {
       agent_data = await getAgentBy({
         agent_id: segments[0],
       });
+
+      consoler(
+        FILE,
+        `//Directory based website and webflow_domain explicitly chosen via subdomain...
+        ${debug_output}
+    `,
+      );
+
       return setAgentWebsiteHeaders(
         {
           ...(agent_data as unknown as AgentData),
@@ -128,16 +185,27 @@ export async function middleware(request: NextRequest) {
     }
 
     if (agent_data?.agent_id) {
+      consoler(
+        FILE,
+        `if (agent_data?.agent_id) { ...
+          ${debug_output}
+        `,
+      );
       return setAgentWebsiteHeaders(agent_data as unknown as AgentData, request, response);
       // return setAgentWebsiteHeaders(agent_data as unknown as AgentData);
     }
   } else {
-    let filename = segments[0] === '' ? 'index' : segments.join('/');
     if (filename.includes('ai-result')) {
       filename = 'ai-result';
     }
     response.headers.set('x-url', `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain}/${filename}.html`);
   }
 
+  consoler(
+    FILE,
+    `[MISS]
+    ${debug_output}
+    `,
+  );
   return response;
 }

@@ -8,16 +8,15 @@ import Container from './container.module';
 import { AgentData } from '@/_typings/agent';
 import { cookies, headers } from 'next/headers';
 import { consoler } from '@/_helpers/consoler';
+
 const FILE = 'my-documents/page.tsx';
-export default async function MyDocuments({ params }: { params: { [key: string]: string } }) {
+export default async function MyDocuments({ params }: { params: { [key: string]: string }; searchParams?: { [key: string]: string } }) {
   const session_key = cookies().get('session_key')?.value;
   let path = '/my-documents';
   if (!cookies().get('session_key')) {
     path = '/access-denied';
-    // redirect(`/${params.slug}/${params['profile-slug']}/log-in`);
   }
   const url = headers().get('x-url') || `${'https://' + WEBFLOW_DASHBOARDS.CUSTOMER + path}`;
-  consoler(FILE, url);
 
   const promises = await Promise.all([axios.get(url), findAgentRecordByAgentId(params.slug)]);
   const { data: html } = promises[0];

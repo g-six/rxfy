@@ -49,7 +49,6 @@ function Iterator({
   children: React.ReactElement;
   'agent-id'?: string;
   'agent-record-id'?: number;
-  'profile-slug'?: string;
   'agent-metatag-id'?: number;
   filters: MapFilters;
   onChange: (className: string) => void;

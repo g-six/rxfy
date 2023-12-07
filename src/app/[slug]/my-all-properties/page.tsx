@@ -37,7 +37,7 @@ interface SearchOpts {
 }
 
 export default async function MyAllProperties({ params, searchParams }: { params: { [key: string]: string }; searchParams: { [key: string]: string } }) {
-  const { slug: agent_id, 'profile-slug': slug } = params;
+  const { slug: agent_id } = params;
   const url = headers().get('x-url');
   let agent = await findAgentRecordByAgentId(agent_id);
   if (!url || !agent_id) return <>404</>;
@@ -98,7 +98,7 @@ export default async function MyAllProperties({ params, searchParams }: { params
           ...searchParams,
         }),
       ),
-    ].concat(slug && agent_id ? [findAgentRecordByAgentId(agent_id)] : []),
+    ].concat(agent_id ? [findAgentRecordByAgentId(agent_id)] : []),
   );
 
   if (url) {

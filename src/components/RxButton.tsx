@@ -22,7 +22,7 @@ export function RxButton(p: RxProps) {
   React.useEffect(() => {
     if (data) {
       const { clicked } = data as unknown as { clicked: boolean };
-      if (!clicked) toggleLoader(false);
+      toggleLoader(!!clicked);
     }
   }, [data]);
 

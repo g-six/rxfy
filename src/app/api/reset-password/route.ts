@@ -3,6 +3,10 @@ import { MessageRecipient } from '@mailchimp/mailchimp_transactional';
 import axios from 'axios';
 import { sendTemplate } from '../send-template';
 import { getResponse } from '../response-helper';
+import { headers } from 'next/headers';
+import { consoler } from '@/_helpers/consoler';
+import { getImageSize } from 'next/dist/server/image-optimizer';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 
 const gql = `query GetUserId ($email: String!) {
   customers(filters: { email: { eqi: $email } }) {
@@ -32,7 +36,7 @@ const mutation_gql = `mutation ResetPassword ($id: ID!, $timestamp: DateTime!) {
 export async function PUT(request: Request) {
   try {
     const { email, pathway } = await request.json();
-    const url = new URL(request.url);
+    const url = new URL(headers().get('x-referer') || request.url);
 
     if (email) {
       const { data: response_data } = await axios.post(
@@ -82,10 +86,26 @@ export async function PUT(request: Request) {
           },
         ];
         const session_key = `${encrypt(customer.data.attributes.last_activity_at)}.${encrypt(email)}-${customer.data.id}`;
-        const client_url = `${url.origin}${pathway ? `/${pathway}` : ''}/update-password?key=${session_key}`;
+        const client_url = `${request.headers.get('x-rx-origin')}${pathway ? `/${pathway}` : ''}/update-password?key=${session_key}`;
+        const logo_url = headers().get('x-light-bg-logo') || headers().get('x-dark-bg-logo') || '';
+        let agent_logo: string = 'https://leagent.com/logo-dark.svg';
+
+        if (logo_url) {
+          let extension = logo_url.split('.').pop() || '';
+          const logo = await fetch(logo_url);
+          const logo_buff = await logo.arrayBuffer();
+          const { width, height } = await getImageSize(Buffer.from(logo_buff), extension.toLowerCase() as unknown as 'jpeg' | 'png');
+          if (height && width && height > width) {
+            agent_logo = getImageSized(logo_url, width > 100 ? 100 : width);
+          } else if (width) {
+            agent_logo = getImageSized(logo_url, width > 240 ? 240 : width);
+          }
+        }
+
         await sendTemplate('forgot-password', send_to, {
           subject: 'Leagent Password Recovery',
           client_url,
+          agent_logo,
         });
         return getResponse({
           message: 'If we have a matching record (correct email), we will be emailing you the reset link.',

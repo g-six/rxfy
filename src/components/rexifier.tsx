@@ -183,7 +183,7 @@ export async function fillAgentInfo($: CheerioAPI, agent_data: AgentData, params
 
   // This should be last because of the logo button on the nav logic
   if (params['site-page']) {
-    $('.navbar-wrapper-2 a[href="/"]').attr('href', ['', params.slug, params['profile-slug']].join('/'));
+    $('.navbar-wrapper-2 a[href="/"]').attr('href', `/${params.slug}`);
   }
 }
 

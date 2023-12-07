@@ -2,6 +2,8 @@ import { encrypt } from '@/_utilities/encryption-helper';
 import { MessageRecipient } from '@mailchimp/mailchimp_transactional';
 import axios from 'axios';
 import { sendTemplate } from '../../send-template';
+import { headers } from 'next/headers';
+import { consoler } from '@/_helpers/consoler';
 
 const gql = `query GetUserId ($email: String!) {
   realtors(filters: { email: { eqi: $email } }) {
@@ -31,7 +33,7 @@ const mutation_gql = `mutation ResetPassword ($id: ID!, $timestamp: DateTime!) {
 export async function PUT(request: Request) {
   try {
     const { email } = await request.json();
-    const url = new URL(request.url);
+    const url = new URL(headers().get('x-referer') || request.url);
 
     if (email) {
       const { data: response_data } = await axios.post(
@@ -53,34 +55,13 @@ export async function PUT(request: Request) {
       const [data] = response_data.data?.realtors?.data || [];
 
       if (data && data.id) {
-        // const {
-        //   data: {
-        //     data: { realtor },
-        //   },
-        // } = await axios.post(
-        //   `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-        //   {
-        //     query: mutation_gql,
-        //     variables: {
-        //       id: data.id,
-        //       timestamp: new Date().toISOString(),
-        //     },
-        //   },
-        //   {
-        //     headers: {
-        //       Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}`,
-        //       'Content-Type': 'application/json',
-        //     },
-        //   },
-        // );
-
         const send_to: MessageRecipient[] = [
           {
             email: data.attributes.email,
             name: data.attributes.full_name,
           },
         ];
-        const client_url = `${url.origin}/update-password?key=${encrypt(data.attributes.last_activity_at)}.${encrypt(email)}-${data.id}`;
+        const client_url = `${headers().get('x-rx-origin')}/update-password?key=${encrypt(data.attributes.last_activity_at)}.${encrypt(email)}-${data.id}`;
         await sendTemplate('forgot-password', send_to, {
           subject: 'Leagent Password Recovery',
           client_url,
