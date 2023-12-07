@@ -53,7 +53,8 @@ export async function signUp(
       customer.email
         .split('@')[0]
         .split(/[\+\.\-,@]+/)
-        .join(' '),
+        .join(' ')
+        .replace(/[0-9]/g, ''),
     );
   const password = customer.password || [randomString(2), full_name.split(' ').reverse().pop(), randomString(3)].join('-');
 
