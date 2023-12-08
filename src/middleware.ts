@@ -140,7 +140,7 @@ export async function middleware(request: NextRequest) {
   let filename = segments.length === 0 ? 'index' : segments.join('/');
   if (webflow_domain === 'leagent-website.webflow.io') {
     response.headers.set('x-url', `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain}/${filename}.html`);
-  } else if (webflow_domain?.includes('-leagent.webflow.io')) {
+  } else if (webflow_domain && (webflow_domain?.includes('-leagent.webflow.io') || webflow_domain === 'leagent-webflow-rebuild.webflow.io')) {
     if (!segments[0] && domain_name.includes('leagent.com')) {
       agent_data = await getAgentBy({
         agent_id: 'ONKODA',
