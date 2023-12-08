@@ -73,9 +73,9 @@ export default async function MyListings(page: Props) {
   if (!session_key) {
     redirect('/log-in');
   }
-  if (session_as !== 'realtor') return <NotFound />;
+  if (!session_key) return <NotFound />;
 
-  const agent = await getUserSessionData(session_key, session_as);
+  const agent = await getUserSessionData(session_key, 'realtor');
 
   $('.navigation-full-wrapper').remove();
 
