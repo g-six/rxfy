@@ -116,31 +116,41 @@ export function setAgentWebsiteHeaders(agent_data: AgentData, request: NextReque
   } else if (filename === 'map') {
     response.headers.set(
       'x-canonical',
-      ('https://' + agent_data.domain_name || `${agent_data.website_theme ? agent_data.website_theme : 'app'}.leagent.com`) +
+      'https://' +
+        (agent_data.domain_name || `${agent_data.website_theme ? agent_data.website_theme : 'app'}.leagent.com`) +
+        (agent_data.domain_name ? '' : `/${agent_data.agent_id}`) +
         `/map?${objectToQueryString((agent_data?.metatags?.geocoding || {}) as unknown as { [k: string]: string })}&beds=0&baths=0`,
     );
     response.headers.set('x-url', `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain}/map.html`);
   } else {
+    consoler(FILE, { pathname: pathname.substring(1).toLowerCase(), id: agent_data.agent_id.toLowerCase() });
     // If the /first-segment/of-this-path satisfies first-segment === agent_id
     if (pathname.substring(1).toLowerCase().indexOf(agent_data.agent_id.toLowerCase()) === 0) {
       response.headers.set(
         'x-canonical',
         'https://' +
           (agent_data.domain_name || `${agent_data.website_theme ? agent_data.website_theme : 'app'}.leagent.com`) +
-          `/${agent_data.agent_id}/${pathname.substring(1).split('/').slice(1).join('/')}`,
+          (agent_data.domain_name ? '' : `/${agent_data.agent_id}`) +
+          `/${pathname.substring(1).toLowerCase() !== agent_data.agent_id.toLowerCase() ? pathname.substring(1).split('/').slice(1).join('/') : ''}`,
       );
 
       response.headers.set(
         'x-url',
-        `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain}/${pathname.substring(1).split('/').slice(1).join('/')}.html`,
+        `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain}/${pathname.substring(1).split('/').slice(1).join('/') || 'index'}.html`,
       );
     } else {
-      response.headers.set(
-        'x-url',
-        `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain}/${
-          pathname !== '/' ? pathname.substring(1).split('/').slice(1).join('/') : 'index'
-        }.html`,
-      );
+      if (agent_data.domain_name) {
+        response.headers.set(
+          'x-url',
+          `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain}/${pathname !== '/' ? pathname.substring(1) : 'index'}.html`,
+        );
+      } else
+        response.headers.set(
+          'x-url',
+          `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain}/${
+            pathname !== '/' ? pathname.substring(1).split('/').slice(1).join('/') : 'index'
+          }.html`,
+        );
 
       response.headers.set(
         'x-canonical',

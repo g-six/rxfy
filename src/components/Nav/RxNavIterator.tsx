@@ -114,8 +114,12 @@ export default function NavIterator({ children, ...props }: { children: React.Re
           </a>
         );
       } else if (!href.includes('/map') && !href.includes('log-out')) {
+        let link_url = href !== '#' ? href : '/';
+        if (props.agent && !props.agent.domain_name) {
+          link_url = `/${props.agent.agent_id}${link_url}`;
+        }
         return (
-          <a {...link_props} data-original-href={href} href={href} data-rx-dir='components' data-rx-src='Nav/RxNavIterator.NavIterator'>
+          <a {...link_props} data-original-href={href} href={link_url} data-rx-dir='components' data-rx-src='Nav/RxNavIterator.NavIterator'>
             <NavIterator {...props}>{convertDivsToSpans(contents)}</NavIterator>
           </a>
         );

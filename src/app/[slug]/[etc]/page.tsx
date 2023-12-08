@@ -83,7 +83,7 @@ function Iterator({ children }: { children: ReactElement }) {
             }
           }
         }
-        if (!href.toLowerCase().includes(`/${agent_id}`.toLowerCase()) && hostname?.includes('leagent.com')) {
+        if (!href?.toLowerCase().includes(`/${agent_id}`.toLowerCase()) && hostname?.includes('leagent.com')) {
           return cloneElement(c, { href: `/${agent_id}${href}` });
         }
       }
