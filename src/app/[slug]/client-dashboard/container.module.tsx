@@ -11,36 +11,6 @@ import { Events, EventsData } from '@/hooks/useFormEvent';
 import useEvent from '@/hooks/useEvent';
 import ClientDashboardIterator from '@/rexify/realtors/ClientDashboardIterator.module';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
-import { classNames } from '@/_utilities/html-helper';
-
-function BlankIterator({ agent, children }: { agent: AgentData; children: React.ReactElement }) {
-  const Wrapped = React.Children.map(children, c => {
-    if (c.type === 'div') {
-      const { children, ...props } = c.props;
-      if (
-        props.className?.indexOf('property-card-wrapper') >= 0 ||
-        props.className?.indexOf('propcompare-card') >= 0 ||
-        props.className?.indexOf('saved-home-detail-panel') >= 0 ||
-        props.className?.indexOf('map-placeholder') >= 0 ||
-        props.className?.indexOf('map-property-modal') >= 0
-      ) {
-        return <div {...props} style={{ backgroundImage: 'none' }} rx-marker='class'></div>;
-      }
-      return (
-        <div {...props} className={classNames(props.className || 'no-class', 'blank-iterator')}>
-          <BlankIterator agent={agent}>{children}</BlankIterator>
-        </div>
-      );
-    }
-    if (c.type === 'a' && c.props.href === '/map') {
-      return React.cloneElement(c, {
-        href: `/${agent.agent_id}/${agent.metatags.profile_slug}${c.props.href}`,
-      });
-    }
-    return c;
-  });
-  return <>{Wrapped}</>;
-}
 
 export default function Container({ agent, children }: { children: React.ReactElement; agent: AgentData }) {
   const router = useRouter();
