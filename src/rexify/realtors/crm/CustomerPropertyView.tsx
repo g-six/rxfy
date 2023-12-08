@@ -18,6 +18,7 @@ import KeyValueIterator from '@/app/property/key-value-pair.iterator';
 import { construction_kv, financial_kv, property_info_kv } from '@/app/property/type.definition';
 import RxMapOfListing from '@/components/RxMapOfListing';
 import { consoler } from '@/_helpers/consoler';
+import { ArrowTopRightOnSquareIcon, LinkIcon } from '@heroicons/react/24/solid';
 
 type Props = {
   children: React.ReactElement;
@@ -330,8 +331,19 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
           return p.property ? <RxFeatures child={child} features={getFeatureIcons(p.property as PropertyDataModel)} /> : <></>;
         } else if (child.props.className === WEBFLOW_NODE_SELECTOR.PROPERTY_MAPS) {
           return p.property && p.property.lon && p.property.lat ? <RxPropertyMaps child={child} property={p.property} /> : <></>;
-        } else if (child.props.className?.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS) >= 0) {
-          return cloneElement(child, {}, <></>);
+          // } else if (child.props.className?.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS) >= 0) {
+        } else if (child.props.className?.indexOf('actions-on-property') >= 0) {
+          return cloneElement(
+            child,
+            {},
+            p.property ? (
+              <a href={`property?mls=${p.property?.mls_id}`} target='_blank' className='h-6 w-6 flex items-center justify-center'>
+                <ArrowTopRightOnSquareIcon className='w-5 h-5' />{' '}
+              </a>
+            ) : (
+              <></>
+            ),
+          );
         } else if (child.props.className?.split(' ').includes('little-profile-card')) {
           return React.cloneElement(child, {
             ...child.props,
