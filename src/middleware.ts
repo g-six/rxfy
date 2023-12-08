@@ -13,11 +13,11 @@ export async function middleware(request: NextRequest) {
   // Store current request url in a custom header, which you can read later
   // we want to be able to read Property ID (MLS_ID, etc)
   // to place meta tags in HEAD dynamically based on Property Data
-  const current_url = request.headers.get('referer') || request.url;
   const { hostname, searchParams, protocol } = new URL(request.url);
   const current_origin = request.headers.get('host') ? `${protocol}//${request.headers.get('host')}` : '';
   response.headers.set('x-rx-origin', current_origin);
   let { pathname } = new URL(request.url);
+  const current_url = `${current_origin}${pathname}`;
 
   if (pathname.includes('/api')) return response;
   if (pathname.includes('/css')) return response;
@@ -63,6 +63,8 @@ export async function middleware(request: NextRequest) {
         webflow_domain  : ${agent_data.webflow_domain}
     `,
       );
+      // Check for static page for the custom theme
+      response.headers.set('x-url', `https://sites.leagent.com/${agent_data.webflow_domain}${pathname}.html`);
       return setAgentWebsiteHeaders(agent_data as unknown as AgentData, request, response);
     }
   }

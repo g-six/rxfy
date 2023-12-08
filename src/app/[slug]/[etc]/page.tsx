@@ -8,13 +8,12 @@ import { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
 import { Children, ReactElement, cloneElement } from 'react';
 
+const FILE = '[slug]/[etc]/page.tsx';
 export async function generateMetadata({ params }: { params: { slug: string; etc: string } }): Promise<Metadata> {
   let { etc: html_file_name, slug: agent_id } = params;
   const agent = await findAgentRecordByAgentId(headers().get('x-agent-id') || agent_id);
 
   if (html_file_name.length > 3) {
-    const page_html_path = `https://sites.leagent.com/leagent-webflow-rebuild.webflow.io/${html_file_name}.html`;
-    consoler('[slug]/[etc]/page.tsx', { page_html_path });
     if (agent?.id) {
       const { metatags } = agent as unknown as AgentData;
       return {
@@ -32,6 +31,7 @@ export async function generateMetadata({ params }: { params: { slug: string; etc
 function Iterator({ children }: { children: ReactElement }) {
   const Rexified = Children.map(children, c => {
     const agent_id = headers().get('x-agent-id') as string;
+    const hostname = headers().get('x-hostname') as string;
     if (c.props && agent_id) {
       if (c.props['data-field']) {
         const field = c.props['data-field'];
@@ -67,21 +67,23 @@ function Iterator({ children }: { children: ReactElement }) {
           );
         }
       }
-      if (c.type === 'a' && c.props['data-usertype'] === 'client') {
+      if (c.type === 'a') {
         let { href, className } = c.props;
-        if (className) {
-          if (className.split(' ').includes('in-session')) {
-            if (!cookies().get('session_key') || `${cookies().get('session_as')}` === 'realtor') {
-              return <></>;
+        if (c.props['data-usertype'] === 'client') {
+          if (className) {
+            if (className.split(' ').includes('in-session')) {
+              if (!cookies().get('session_key') || `${cookies().get('session_as')}` === 'realtor') {
+                return <></>;
+              }
             }
-          }
-          if (className.split(' ').includes('out-session')) {
-            if (cookies().get('session_key') || `${cookies().get('session_as')}` === 'customer') {
-              return <></>;
+            if (className.split(' ').includes('out-session')) {
+              if (cookies().get('session_key') || `${cookies().get('session_as')}` === 'customer') {
+                return <></>;
+              }
             }
           }
         }
-        if (!href.toLowerCase().includes(`/${agent_id}`.toLowerCase())) {
+        if (!href.toLowerCase().includes(`/${agent_id}`.toLowerCase()) && hostname?.includes('leagent.com')) {
           return cloneElement(c, { href: `/${agent_id}${href}` });
         }
       }
@@ -96,14 +98,15 @@ function Iterator({ children }: { children: ReactElement }) {
 
 export default async function AgentHomePage({ params, searchParams }: { params: { slug: string; etc: string }; searchParams: { [k: string]: string } }) {
   let { etc: html_file_name, slug: agent_id } = params;
+  consoler(FILE, agent_id);
   if (html_file_name.length > 3 && headers().get('x-url')?.includes(html_file_name)) {
     const page = await fetch(headers().get('x-url') as string);
     if (page.ok) {
       const html = await page.text();
       const $: CheerioAPI = load(html);
-      const body = $('body > div');
+      const body = $('body > div,section');
       return <Iterator>{domToReact(body as unknown as DOMNode[]) as ReactElement}</Iterator>;
     }
   }
-  return <>{headers().get('x-record-id')}</>;
+  return <>{html_file_name}</>;
 }

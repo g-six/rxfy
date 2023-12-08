@@ -106,26 +106,47 @@ export function setAgentWebsiteHeaders(agent_data: AgentData, request: NextReque
     }
   }
   filename = filename.includes('?') ? (filename.split('?').reverse().pop() as string) : filename;
+  filename = filename || 'index';
   if (filename === 'property') {
     response.headers.set(
       'x-canonical',
       'https://' + agent_data.domain_name || `${agent_data.website_theme ? agent_data.website_theme : 'app'}.leagent.com/${filename}?mls=x`,
     );
-    filename = 'property/propertyid';
+    response.headers.set('x-url', `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain}/property/propertyid.html`);
   } else if (filename === 'map') {
     response.headers.set(
       'x-canonical',
       ('https://' + agent_data.domain_name || `${agent_data.website_theme ? agent_data.website_theme : 'app'}.leagent.com`) +
-        `/${filename}?${objectToQueryString((agent_data?.metatags?.geocoding || {}) as unknown as { [k: string]: string })}&beds=0&baths=0`,
+        `/map?${objectToQueryString((agent_data?.metatags?.geocoding || {}) as unknown as { [k: string]: string })}&beds=0&baths=0`,
     );
   } else {
-    response.headers.set(
-      'x-canonical',
-      'https://' + agent_data.domain_name || `${agent_data.website_theme ? agent_data.website_theme : 'app'}.leagent.com/${filename}`,
-    );
-  }
+    // If the /first-segment/of-this-path satisfies first-segment === agent_id
+    if (pathname.substring(1).toLowerCase().indexOf(agent_data.agent_id.toLowerCase()) === 0) {
+      response.headers.set(
+        'x-canonical',
+        'https://' +
+          (agent_data.domain_name || `${agent_data.website_theme ? agent_data.website_theme : 'app'}.leagent.com`) +
+          `/${agent_data.agent_id}/${pathname.substring(1).split('/').slice(1).join('/')}`,
+      );
 
-  response.headers.set('x-url', `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain}/${filename}.html`);
+      response.headers.set(
+        'x-url',
+        `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain}/${pathname.substring(1).split('/').slice(1).join('/')}.html`,
+      );
+    } else {
+      response.headers.set(
+        'x-url',
+        `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain}/${
+          pathname !== '/' ? pathname.substring(1).split('/').slice(1).join('/') : 'index'
+        }.html`,
+      );
+
+      response.headers.set(
+        'x-canonical',
+        'https://' + agent_data.domain_name || `${agent_data.website_theme ? agent_data.website_theme : 'app'}.leagent.com${pathname}`,
+      );
+    }
+  }
 
   if (agent_data.metatags) {
     const {
