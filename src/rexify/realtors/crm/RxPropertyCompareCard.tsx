@@ -2,10 +2,9 @@ import React from 'react';
 import { LovedPropertyDataModel } from '@/_typings/property';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { field_aliases, relationship_based_attributes } from './RxCompareFiltersModal';
-import { useDrag, useDrop, ConnectDropTarget } from 'react-dnd';
+import { useDrag, useDrop } from 'react-dnd';
 import { Card } from './CustomerCompareCanvas';
 import useEvent, { Events, EventsData } from '@/hooks/useEvent';
-import { LISTING_FEETERS_FIELDS, LISTING_MONEY_FIELDS, LISTING_NUMERIC_FIELDS } from '@/_utilities/data-helpers/listings-helper';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
 
 type Props = { children: React.ReactElement | React.ReactElement[]; className: string; removeCard: () => void };
@@ -112,7 +111,6 @@ export default function RxPropertyCompareCard(
       } else if (className === 'img-placeholder') {
         return null;
       } else if (className === 'compare-stats-wrapper') {
-        console.log('function RxPropertyCompareCard include-stats', p['include-stats']);
         return p['include-stats'] ? (
           React.cloneElement(child, {
             ...child.props,
@@ -177,7 +175,10 @@ export default function RxPropertyCompareCard(
               key={`compare-item-wrapper-${child_idx}`}
               onExpandInfoLinkClick={() => {
                 fireEvent(p.property as unknown as EventsData);
-                const btn = document.querySelector('button#w-tabs-0-data-w-tab-0') as HTMLButtonElement;
+                let btn = document.querySelector('button#w-tabs-0-data-w-tab-0') as HTMLButtonElement;
+                if (!btn) {
+                  btn = document.querySelector('button.indiv-view') as HTMLButtonElement;
+                }
                 btn.click();
               }}
               removeCard={() => {
