@@ -119,6 +119,7 @@ export function setAgentWebsiteHeaders(agent_data: AgentData, request: NextReque
       ('https://' + agent_data.domain_name || `${agent_data.website_theme ? agent_data.website_theme : 'app'}.leagent.com`) +
         `/map?${objectToQueryString((agent_data?.metatags?.geocoding || {}) as unknown as { [k: string]: string })}&beds=0&baths=0`,
     );
+    response.headers.set('x-url', `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain}/map.html`);
   } else {
     // If the /first-segment/of-this-path satisfies first-segment === agent_id
     if (pathname.substring(1).toLowerCase().indexOf(agent_data.agent_id.toLowerCase()) === 0) {
