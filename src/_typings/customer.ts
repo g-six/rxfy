@@ -53,6 +53,7 @@ export interface CustomerDataModel {
 export interface CustomerInputModel extends UserInputModel {
   birthday?: string;
   yes_to_marketing?: boolean;
+  last_activity_at?: string;
 }
 
 export type LogInResponse = {

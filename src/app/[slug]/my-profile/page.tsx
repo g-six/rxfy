@@ -63,7 +63,6 @@ function Iterator({ children, agent }: { children: React.ReactElement; agent: Ag
 
 const FILE = '[slug]/my-profile/page.tsx';
 export default async function ClientMyProfile({ params, searchParams }: { params: { [key: string]: string }; searchParams: { [key: string]: string } }) {
-  consoler(FILE, { params, searchParams });
   if (!cookies().get('session_key') && searchParams?.key) {
     consoler(FILE, { searchParams });
   }

@@ -124,7 +124,7 @@ export function setAgentWebsiteHeaders(agent_data: AgentData, request: NextReque
     response.headers.set('x-url', `https://${process.env.NEXT_PUBLIC_RX_SITE_BUCKET}/${webflow_domain}/map.html`);
   } else {
     // If the /first-segment/of-this-path satisfies first-segment === agent_id
-    if (pathname.substring(1).toLowerCase().indexOf(agent_data.agent_id.toLowerCase()) === 0) {
+    if (agent_data.agent_id && pathname.substring(1).toLowerCase().indexOf(agent_data.agent_id.toLowerCase()) === 0) {
       response.headers.set(
         'x-canonical',
         'https://' +

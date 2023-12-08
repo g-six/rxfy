@@ -5,6 +5,7 @@ import { createCustomer } from '@/app/api/customers/model';
 import { findRealtorBy } from '../../realtors/model';
 import { consoler } from '@/_helpers/consoler';
 import { encrypt } from '@/_utilities/encryption-helper';
+import { NextResponse } from 'next/server';
 const FILE = 'agents/contact/route.ts';
 export async function POST(req: Request) {
   const { send_to, customer_name: from_name, email, message, phone, host } = await req.json();
@@ -68,6 +69,7 @@ export async function POST(req: Request) {
         });
 
         if (realtor) {
+          const last_activity_at = new Date().toISOString();
           const password = `${from_name.split(' ').pop()}-${realtor.agent.id}-${Date.now().toString().split('').reverse().slice(0, 3).join('')}`;
           const customer = await createCustomer(
             {
@@ -76,34 +78,41 @@ export async function POST(req: Request) {
               full_name: from_name,
               encrypted_password: encrypt(password),
               yes_to_marketing: false,
+              last_activity_at,
             },
             realtor.agent.id,
           );
-          const { origin, pathname } = new URL(req.url);
-          const last_activity_at = new Date().toISOString();
-          let login_url = `${host || origin}${realtor.agent.domain_name ? '' : `/${realtor.agent.agent_id}`}`;
-          login_url = `${login_url}/log-in?key=${encrypt(last_activity_at)}.${encrypt(email)}-${customer.id}`;
-          sendTemplate(
-            'invite-buyer',
-            [
+
+          if (customer.id) {
+            const { origin, pathname } = new URL(req.url);
+            let login_url = `${host || origin}${realtor.agent.domain_name ? '' : `/${realtor.agent.agent_id}`}`;
+            login_url = `${login_url}/log-in?key=${encrypt(last_activity_at)}.${encrypt(email)}-${customer.id}&as=customer`;
+            sendTemplate(
+              'invite-buyer',
+              [
+                {
+                  email,
+                  name: from_name,
+                },
+              ],
               {
-                email,
-                name: from_name,
+                agent_logo:
+                  realtor.agent.metatags.logo_for_light_bg ||
+                  realtor.agent.metatags.logo_for_dark_bg ||
+                  'https://assets.website-files.com/643ca5bec96b4ead07ca5e3c/643f1ec844c663ef9d40a187_Leagent%20Logo.svg',
+                agent_full_name: realtor.agent.full_name,
+                password,
+                login_url,
               },
-            ],
-            {
-              agent_logo:
-                realtor.agent.metatags.logo_for_light_bg ||
-                realtor.agent.metatags.logo_for_dark_bg ||
-                'https://assets.website-files.com/643ca5bec96b4ead07ca5e3c/643f1ec844c663ef9d40a187_Leagent%20Logo.svg',
-              agent_full_name: realtor.agent.full_name,
-              password,
+            );
+            return getResponse({
+              customer,
               login_url,
-            },
-          );
-          return getResponse({
-            customer,
-            login_url,
+            });
+          }
+
+          return NextResponse.json({
+            message: 'Skipped creating customer record',
           });
         }
       } catch (e) {
