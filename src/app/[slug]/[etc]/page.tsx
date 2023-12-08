@@ -98,7 +98,7 @@ function Iterator({ children }: { children: ReactElement }) {
 
 export default async function AgentHomePage({ params, searchParams }: { params: { slug: string; etc: string }; searchParams: { [k: string]: string } }) {
   let { etc: html_file_name, slug: agent_id } = params;
-  consoler(FILE, agent_id);
+
   if (html_file_name.length > 3 && headers().get('x-url')?.includes(html_file_name)) {
     const page = await fetch(headers().get('x-url') as string);
     if (page.ok) {

@@ -115,7 +115,7 @@ export default function NavIterator({ children, ...props }: { children: React.Re
         );
       } else if (!href.includes('/map') && !href.includes('log-out')) {
         let link_url = href !== '#' ? href : '/';
-        if (props.agent && !props.agent.domain_name) {
+        if (props.agent && !props.agent.domain_name && link_url.indexOf(props.agent?.agent_id) !== 1) {
           link_url = `/${props.agent.agent_id}${link_url}`;
         }
         return (

@@ -7,6 +7,7 @@ import { classNames } from '@/_utilities/html-helper';
 
 import useDebounce from '@/hooks/useDebounce';
 import { queryPlace, getPlaceDetails } from '@/_utilities/api-calls/call-places';
+import SpinningDots from '@/components/Loaders/SpinningDots';
 
 export type SearchInputProps = {
   defaultValue: string | undefined;
@@ -22,6 +23,7 @@ interface SuggestionInterface {
   place_id: string;
 }
 export default function SearchAddressCombobox(p: SearchInputProps) {
+  const [is_loading, setLoading] = useState(false);
   const [address, setAddressQuery] = useState('');
   const debounced = useDebounce(address ?? '', 900);
   const [suggestions, setSuggestions] = useState<SuggestionInterface[]>([]);
@@ -29,7 +31,12 @@ export default function SearchAddressCombobox(p: SearchInputProps) {
 
   useEffect(() => {
     if (debounced.length > 4) {
-      queryPlace(debounced).then(res => setSuggestions(res));
+      setLoading(true);
+      queryPlace(debounced)
+        .then(res => setSuggestions(res))
+        .finally(() => {
+          setLoading(false);
+        });
     }
   }, [debounced]);
 
@@ -56,6 +63,7 @@ export default function SearchAddressCombobox(p: SearchInputProps) {
           onChange={e => setAddressQuery(e.target.value)}
           displayValue={(addressData: any) => addressData}
         />
+        {is_loading && <SpinningDots className='absolute right-0 w-6 h-6 top-1/2 -translate-y-1/2' />}
 
         {suggestions && suggestions.length > 0 && (
           <Combobox.Options className='absolute px-0 z-[999] left-0 w-full mt-2 max-h-56 overflow-y-auto  rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm'>
