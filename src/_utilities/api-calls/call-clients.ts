@@ -33,13 +33,20 @@ export async function retrieveClients() {
  * Create a client for a realtor
  * @returns customers data object array and session_key string
  */
-export async function createClient(client: CustomerInputModel) {
-  const response = await axios.post(`/api/agents/customer`, client, {
-    headers: {
-      Authorization: `Bearer ${Cookies.get('session_key')}`,
-      'Content-Type': 'application/json',
+export async function createClient(client: CustomerInputModel, host?: string) {
+  const response = await axios.post(
+    `/api/agents/customer`,
+    {
+      ...client,
+      host,
     },
-  });
+    {
+      headers: {
+        Authorization: `Bearer ${Cookies.get('session_key')}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
 
   if (response.status === 200) {
     const { session_key, ...customer } = response.data;

@@ -119,7 +119,6 @@ export async function POST(req: Request) {
         consoler(FILE, 'Unable to process lead via contact', e);
       }
     }
-    // await createCustomer(customer, agent)
   }
 
   return getResponse({ success: `${message} sent` });

@@ -13,7 +13,7 @@ type Props = {
   onChange: (key: string, value: string | number) => void;
 };
 
-function Iterator(p: Props) {
+function Iterator(p: Props & { disabled?: boolean }) {
   const Wrapped = React.Children.map(p.children, child => {
     if (child.type === 'input') {
       if (child.props.name === 'birthday') {
@@ -69,7 +69,7 @@ function Iterator(p: Props) {
     if (child.props?.children) {
       if (child.props.id === 'evt-save-client-trigger') {
         return (
-          <RxButton className={child.props.className} type='button' id={child.props.id} rx-event={Events.SaveClient}>
+          <RxButton className={child.props.className} type='button' id={child.props.id} rx-event={Events.SaveClient} disabled={p.disabled}>
             {child.props.children}
           </RxButton>
         );
@@ -128,7 +128,8 @@ export default function RxCRMCustomerCreateForm(p: Props) {
           email,
           birthday,
         };
-        createClient(client)
+        const { origin } = new URL(location.href);
+        createClient(client, origin)
           .then(() => {
             if (Cookies.get('session_key')) {
               getUserBySessionKey(Cookies.get('session_key') as string, 'realtor').then(d => {
@@ -164,6 +165,7 @@ export default function RxCRMCustomerCreateForm(p: Props) {
             [key]: value,
           });
         }}
+        disabled={!formHandler.data || !(formHandler.data as unknown as { email?: string }).email}
       >
         {p.children}
       </Iterator>

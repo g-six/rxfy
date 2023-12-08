@@ -23,6 +23,7 @@ function Iterate({
       const { active, onTabClick } = props;
       if (c.props.children && typeof c.props.children !== 'string') {
         const { children: sub, ...attribs } = c.props;
+        if (attribs.className?.includes('faq-item-basic')) return <></>;
         if (attribs['data-w-tab']) {
           let className = `${attribs.className}`
             .split(' ')

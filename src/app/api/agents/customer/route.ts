@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
         },
         401,
       );
-    const data = await request.json();
+    const { host, ...data } = await request.json();
 
     const last_activity_at = new Date().toISOString();
     const password = user.session_key.substring(12, 20);
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     if (customer && !customer.errors) {
       const { origin } = new URL(request.url);
       const metatags = user.metatags as unknown as { [key: string]: string };
-      let login_url = user.domain_name ? `https://${user.domain_name}` : `${getAgentBaseUrl(user as unknown as AgentData)}/${user.agent_id}`;
+      let login_url = user.domain_name ? `https://${user.domain_name}` : `${host || origin}${getAgentBaseUrl(user as unknown as AgentData)}`;
       login_url = `${login_url}/log-in?key=${encrypt(last_activity_at)}.${encrypt(data.email)}-${customer.id}`;
       sendTemplate('invite-buyer', send_to, {
         agent_logo:
