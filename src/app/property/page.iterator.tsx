@@ -21,17 +21,19 @@ export default async function PropertyPageIterator({ children, ...props }: { chi
   const Rexified = Children.map(children, c => {
     if (c.props?.['data-action']) {
       const { children: subcomponents, property, ...subprops } = c.props;
-      return (
-        <PageAction
-          {...subprops}
-          data-action={c.props['data-action']}
-          agent={props.agent.agent_id}
-          slug={props.agent.metatags.profile_slug}
-          data={props.property}
-        >
-          {subcomponents}
-        </PageAction>
-      );
+      if (props.agent.agent_id)
+        return (
+          <PageAction
+            {...subprops}
+            data-action={c.props['data-action']}
+            agent={props.agent.agent_id}
+            slug={props.agent.metatags.profile_slug}
+            data={props.property}
+          >
+            {subcomponents}
+          </PageAction>
+        );
+      else return <></>;
     } else if (c.props?.['data-field']) {
       const { photos } = props;
 

@@ -8,6 +8,7 @@ import { useSearchParams } from 'next/navigation';
 import { setData } from '@/_utilities/data-helpers/local-storage-helper';
 import { CustomerRecord } from '@/_typings/customer';
 import ClientDashboardIterator from './ClientDashboardIterator.module';
+import { consoler } from '@/_helpers/consoler';
 
 type Props = {
   children: React.ReactElement;
@@ -88,7 +89,7 @@ export default function RxCustomerView(p: Props) {
   };
 
   React.useEffect(() => {
-    setAgent(session.data as unknown as AgentData);
+    if (Object.keys(session.data || {}).length) setAgent(session.data as unknown as AgentData);
     const tabs = session.data as unknown as {
       [key: string]: string;
     };
@@ -106,6 +107,7 @@ export default function RxCustomerView(p: Props) {
   }, [properties]);
 
   React.useEffect(() => {
+    consoler('RxCustomerView.tsx', agent);
     loadData();
   }, [agent]);
 

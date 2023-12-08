@@ -83,6 +83,7 @@ export function ConfirmDeleteIterator({ children, onCancel, onConfirm }: { child
 
   return <>{Wrapped}</>;
 }
+const FILE = 'realtors/ClientDashboardIterator.module.tsx';
 export default function ClientDashboardIterator(
   p: Props & {
     property?: LovedPropertyDataModel;
@@ -96,26 +97,6 @@ export default function ClientDashboardIterator(
   },
 ) {
   const Wrapped = React.Children.map(p.children, child => {
-    if (child.props?.['data-field'] || child.props?.className) consoler('ClientDashboardIterator.module.tsx', child.props['data-field']);
-    // if (p.agent && child.props && child.props['data-field']?.indexOf('logo_for_') === 0) {
-    //   let logo = '';
-    //   if (p.agent?.metatags.logo_for_light_bg && (!child.props['data-field'] || child.props['data-field'] === 'logo_for_light_bg')) {
-    //     logo = getImageSized(p.agent?.metatags.logo_for_light_bg, 100);
-    //   } else if (p.agent?.metatags.logo_for_dark_bg && (!child.props['data-field'] || child.props['data-field'] === 'logo_for_dark_bg')) {
-    //     logo = getImageSized(p.agent?.metatags.logo_for_dark_bg, 100);
-    //   }
-    //   return cloneElement(
-    //     child,
-    //     {},
-    //     <a href={''}>
-    //       {logo ? (
-    //         <span className='inline-block rounded bg-no-repeat bg-contain w-full' style={{ backgroundImage: `url(${logo})`, height: '3rem', width: '100px' }} />
-    //       ) : (
-    //         p.agent?.full_name
-    //       )}{' '}
-    //     </a>,
-    //   );
-    // }
     if (child.props?.children || child.props?.className) {
       let { className, 'data-component': component_name, ...attribs } = child.props;
       const classes: string[] = `${className || ''}`.split(' ');
@@ -150,7 +131,6 @@ export default function ClientDashboardIterator(
           ),
         });
       } else if (child.type === 'div') {
-        if (child.props) consoler('ClientDashboardIterator.module.tsx', child.props);
         if (child.props?.id === 'customer-view-modal-compare-filters') {
           return (
             <RxCompareFiltersModal {...child.props} filters={p.property ? Object.keys(p.property) : []}>

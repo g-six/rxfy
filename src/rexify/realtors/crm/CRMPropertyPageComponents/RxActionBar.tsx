@@ -1,3 +1,4 @@
+import { consoler } from '@/_helpers/consoler';
 import { convertDivsToSpans } from '@/_replacers/DivToSpan';
 import { LovedPropertyDataModel, PropertyDataModel } from '@/_typings/property';
 import { unloveHome, unloveHomeForCustomer } from '@/_utilities/api-calls/call-love-home';
@@ -44,25 +45,27 @@ function Iterator(p: Props) {
         </div>
       );
     } else if (child.type === 'a') {
-      return React.cloneElement(
-        <button type='button'>
-          <Iterator {...p}>{child.props.children}</Iterator>
-        </button>,
-        {
-          ...child.props,
-          href: undefined,
-          className: child.props.className,
-          children: React.Children.map(child.props.children, convertDivsToSpans),
-          onClick: (evt: React.SyntheticEvent<HTMLButtonElement>) => {
-            if (child.props.className.indexOf('action-heart') >= 0) {
-              p.unlove();
-            } else if (evt.currentTarget.textContent === 'Compare') {
-            } else if (child.props.className.includes('pdf')) {
-              window.open(`/api/pdf/mls/${p.property && p.property.mls_id}?agent=${p.agent}&slug=${p.slug}/brochure?mls=${p.property && p.property.mls_id}`);
-            }
+      if (p.agent)
+        return React.cloneElement(
+          <button type='button'>
+            <Iterator {...p}>{child.props.children}</Iterator>
+          </button>,
+          {
+            ...child.props,
+            href: undefined,
+            className: child.props.className,
+            children: React.Children.map(child.props.children, convertDivsToSpans),
+            onClick: (evt: React.SyntheticEvent<HTMLButtonElement>) => {
+              if (child.props.className.indexOf('action-heart') >= 0) {
+                p.unlove();
+              } else if (evt.currentTarget.textContent === 'Compare') {
+              } else if (child.props.className.includes('pdf')) {
+                window.open(`/api/pdf/mls/${p.property && p.property.mls_id}?agent=${p.agent}&slug=${p.slug}/brochure?mls=${p.property && p.property.mls_id}`);
+              }
+            },
           },
-        },
-      );
+        );
+      return <></>;
     }
 
     return child;
@@ -70,7 +73,7 @@ function Iterator(p: Props) {
 
   return <>{Wrapped}</>;
 }
-
+const FILE = 'CRMPropertyPageComponents/RxActionBar.tsx';
 export default function RxActionBar(p: Props) {
   const { data, fireEvent } = useEvent(Events.AddPropertyToCompare);
   const searchParams = useSearchParams();

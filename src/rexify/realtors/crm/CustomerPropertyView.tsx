@@ -17,6 +17,7 @@ import { formatValues } from '@/_utilities/data-helpers/property-page';
 import KeyValueIterator from '@/app/property/key-value-pair.iterator';
 import { construction_kv, financial_kv, property_info_kv } from '@/app/property/type.definition';
 import RxMapOfListing from '@/components/RxMapOfListing';
+import { consoler } from '@/_helpers/consoler';
 
 type Props = {
   children: React.ReactElement;
@@ -27,6 +28,8 @@ type Props = {
   className?: string;
   reload: (r: unknown) => void;
 };
+
+const FILE = 'crm/CustomerPropertyView.tsx';
 
 function OtherUnits({ children, neighbours }: { children: React.ReactElement; neighbours: PropertyDataModel[] }) {
   const Wrapped = React.Children.map(children, c => {
@@ -326,6 +329,7 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
         } else if (child.props.className === WEBFLOW_NODE_SELECTOR.PROPERTY_MAPS) {
           return p.property && p.property.lon && p.property.lat ? <RxPropertyMaps child={child} property={p.property} /> : <></>;
         } else if (child.props.className?.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS) >= 0) {
+          consoler(FILE, p.agent);
           return (
             <RxActionBar {...p} {...child.props} agent={p.agent?.agent_id} slug={p.agent?.metatags?.profile_slug}>
               {child}

@@ -11,14 +11,9 @@ import RxCustomerView from '@/rexify/realtors/RxCustomerView';
 import RxRealtorNav from '@/components/Nav/RxRealtorNav';
 import { getCustomerLoves } from '@/app/api/agents/customer/[id]/loves/model';
 import { getAgentMapDefaultUrl } from '@/_utilities/data-helpers/agent-helper';
+import { consoler } from '@/_helpers/consoler';
 
-function Rexify(p: { children: ReactElement }) {
-  const rexified = Children.map(p.children, c => {
-    return c;
-  });
-
-  return <>{rexified}</>;
-}
+const FILE = '[slug]/page.tsx';
 
 export default async function Page(props: { params: { [k: string]: string }; searchParams: { [k: string]: string } }) {
   const page_url = headers().get('x-url') || '';
