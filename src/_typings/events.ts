@@ -68,6 +68,7 @@ export enum Events {
   Prompt = 'prompt',
   Lightbox = 'evt-lightbox',
   AgentMyListings = 'agent-my-listings',
+  ContactForm = 'contact-form',
 }
 
 export enum NotificationCategory {

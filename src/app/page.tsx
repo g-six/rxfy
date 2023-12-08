@@ -80,7 +80,7 @@ export default async function Home({ params, searchParams }: { params: { [k: str
 
   let agent_data: AgentData = {} as unknown as AgentData;
   const domain_name = `${headers().get('host')}`.split(':').reverse().pop();
-  const agent_webflow_domain = headers().get('x-wf-domain') || '';
+
   if (headers().get('x-agent-id')) possible_agent = headers().get('x-agent-id') as string;
   if (headers().get('x-profile-slug')) profile_slug = headers().get('x-profile-slug') as string;
 

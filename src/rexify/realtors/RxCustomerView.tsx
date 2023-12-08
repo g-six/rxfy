@@ -107,13 +107,13 @@ export default function RxCustomerView(p: Props) {
   }, [properties]);
 
   React.useEffect(() => {
-    consoler('RxCustomerView.tsx', agent);
     loadData();
   }, [agent]);
 
   React.useEffect(() => {
     if (!agent.id && p.agent?.id) {
       setAgent(p.agent);
+      session.fireEvent(p.agent as unknown as EventsData);
     }
   }, []);
 

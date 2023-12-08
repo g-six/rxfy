@@ -70,6 +70,7 @@ export async function updateCustomerNote(id: number, notes: string) {
 }
 
 export async function sendMessageToRealtor(info: {
+  email?: string;
   customer_name: string;
   phone: string;
   message: string;
@@ -77,6 +78,7 @@ export async function sendMessageToRealtor(info: {
     email: string;
     name: string;
   };
+  host?: string;
 }) {
   const response = await axios.post('/api/agents/contact', info, {
     headers: {

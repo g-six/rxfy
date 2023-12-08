@@ -54,7 +54,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let profile_slug = headers().get('x-profile-slug'); // || 'leagent';
 
   if (profile_slug && agent_id) {
-    console.log('layout', { profile_slug, agent_id });
     const agent_record = await findAgentRecordByAgentId(agent_id);
     const metatags = {
       ...agent_record?.agent_metatag?.data?.attributes,
@@ -96,7 +95,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       }
     }
     //http://localhost:8880/my-profile?key=e86a9c6fef0016418cb8654a047d8e9b6a7dce7643d8afdaaccfea839eb63bf9.c98a98341e4d654c6d6ed2b841880d8dc91813ce0a00199ff424f70b57a43cfd-100&as=realtor
-    console.log('Request link', requestLink);
+    consoler(FILE, 'Request link:', requestLink);
     const fetch_req = await fetch(requestLink);
     data = await fetch_req.text();
   } catch (e) {
@@ -206,9 +205,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // end of extracting and assigning <head> elements
 
   const { class: bodyClassName, ...body_props } = webflow.body.props;
-  let use_v2 = webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN;
-
-  if (use_v2 || requestUrl.pathname.split('/').pop() === 'map' || requestUrl.pathname.split('/').pop() === 'propertyid.html') {
+  if (
+    webflow_domain === process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN ||
+    requestUrl.pathname.split('/').pop() === 'map' ||
+    requestUrl.pathname.split('/').pop() === 'propertyid.html'
+  ) {
+    consoler(FILE, 'Loading alternate html for', webflow_domain, requestUrl.pathname);
     const html_props = {
       ...$('html').attr(),
       class: undefined,
@@ -249,7 +251,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     );
   }
 
-  console.log('Loading alternate html for', webflow_domain, requestUrl.pathname);
   return (
     webflow && (
       <html {...$('html').attr()}>

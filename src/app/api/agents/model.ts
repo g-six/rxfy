@@ -380,8 +380,6 @@ export async function findAgentRecordByAgentId(agent_id: string) {
     };
     console.error(axerr?.data?.error);
     consoler(FILE, 'Error in api.agents.model.findAgentRecordByAgentId:', agent_id);
-  } finally {
-    consoler(FILE, 'Completed api.agents.model.findAgentRecordByAgentId call for', agent_id);
   }
 }
 export async function findAgentBrokerageAgents(agent_id: string, exclude_self?: boolean) {

@@ -1,7 +1,10 @@
 import { consoler } from '@/_helpers/consoler';
+import FormServerComponentRexifier from '@/_rexifiers/form-rexifier.server-component';
 import { AgentData, ThemeName } from '@/_typings/agent';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { findAgentRecordByAgentId } from '@/app/api/agents/model';
+import NotFound from '@/app/not-found';
+import RxNotifications from '@/components/RxNotifications';
 import { CheerioAPI, load } from 'cheerio';
 import { DOMNode, domToReact } from 'html-react-parser';
 import { Metadata } from 'next';
@@ -46,6 +49,21 @@ function Iterator({ children }: { children: ReactElement }) {
               return cloneElement(c, {}, <span>{value}</span>);
             }
         }
+      }
+      if (c.props['data-form']) {
+        return (
+          <FormServerComponentRexifier
+            data-form={c.props['data-form']}
+            agent={
+              {
+                email: headers().get('x-agent-email') as string,
+                full_name: headers().get('x-agent-name') as string,
+              } as unknown as AgentData
+            }
+          >
+            {c}
+          </FormServerComponentRexifier>
+        );
       }
       if (c.type === 'img' && c.props['data-field']) {
         const field = c.props['data-field'];
@@ -105,8 +123,13 @@ export default async function AgentHomePage({ params, searchParams }: { params: 
       const html = await page.text();
       const $: CheerioAPI = load(html);
       const body = $('body > div,section');
-      return <Iterator>{domToReact(body as unknown as DOMNode[]) as ReactElement}</Iterator>;
+      return (
+        <>
+          <RxNotifications />
+          <Iterator>{domToReact(body as unknown as DOMNode[]) as ReactElement}</Iterator>
+        </>
+      );
     }
   }
-  return <>{html_file_name}</>;
+  return <NotFound />;
 }

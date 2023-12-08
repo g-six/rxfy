@@ -10,7 +10,6 @@ import { sendInfoRequest } from '@/_utilities/api-calls/call-properties';
 import { PropertyDataModel } from '@/_typings/property';
 import { formatAddress } from '@/_utilities/string-helper';
 import { formatValues } from '@/_utilities/data-helpers/property-page';
-import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { sendMessageToRealtor } from '@/_utilities/api-calls/call-realtor';
 
 interface RequestInfoPopupProps {

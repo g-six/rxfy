@@ -34,7 +34,7 @@ export default function RxPropertyActions(props: PropertyActionsProps) {
 
   const propertyLink = props?.property ? `${origin}/property?mls=${props.property.mls_id}` : '#';
   const replaceLove = (child: React.ReactElement) =>
-    React.cloneElement(<button />, {
+    React.cloneElement(<button data-action-button />, {
       ...child.props,
       href: undefined,
       className: `rexified ${child.props.className} pt-[0.5rem]`,

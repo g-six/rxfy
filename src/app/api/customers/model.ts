@@ -1,3 +1,4 @@
+import { consoler } from '@/_helpers/consoler';
 import { CustomerInputModel } from '@/_typings/customer';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import axios, { AxiosError } from 'axios';
@@ -176,7 +177,7 @@ export async function getAgentsCustomer(id: number): Promise<
     console.error(e);
   }
 }
-
+const FILE = 'api/customers/model.ts';
 export async function createCustomer(customer: CustomerInputModel, agent: number) {
   try {
     const { data: response } = await axios.post(
@@ -194,8 +195,10 @@ export async function createCustomer(customer: CustomerInputModel, agent: number
         },
       },
     );
+
     let customer_id = 0;
     let customer_data;
+    consoler(FILE, 'createAgentCustomer', customer);
     if (response.data?.customer?.record) {
       const { id, attributes } = response.data.customer.record;
       customer_data = attributes;

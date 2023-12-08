@@ -147,7 +147,6 @@ export function getAgentBaseUrl(agent: AgentData, remote?: boolean) {
 }
 export async function getAgentBy(attributes: { [key: string]: string }) {
   const { agent_id, domain_name, profile_slug } = attributes;
-  consoler('_helpers/agent-helper.ts', `getAgentBy(${JSON.stringify(attributes)})`);
   let filters: {
     agent_id?: {
       eqi: string;
