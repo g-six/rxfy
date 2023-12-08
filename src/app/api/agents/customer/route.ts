@@ -70,7 +70,9 @@ export async function POST(request: NextRequest) {
     if (customer && !customer.errors) {
       const { origin } = new URL(request.url);
       const metatags = user.metatags as unknown as { [key: string]: string };
-      let login_url = user.domain_name ? `https://${user.domain_name}` : `${host || origin}${getAgentBaseUrl(user as unknown as AgentData)}`;
+      let login_url = user.domain_name
+        ? `https://${user.domain_name}`
+        : `https://${user.website_theme ? `${user.website_theme}-leagent` : 'app'}.leagent.com/${getAgentBaseUrl(user as unknown as AgentData)}`;
       login_url = `${login_url}/log-in?key=${encrypt(last_activity_at)}.${encrypt(data.email)}-${customer.id}`;
       sendTemplate('invite-buyer', send_to, {
         agent_logo:
