@@ -164,17 +164,19 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
           return <></>;
         }
         if (child.props['data-field'] && child.props['data-field'] !== 'image_cover') {
-          if (child.props['data-field'].includes('image_') && !isNaN(Number(child.props['data-field'].split('_').pop())) && p.property?.photos?.length)
+          if (child.props['data-field'].includes('image_') && !isNaN(Number(child.props['data-field'].split('_').pop())) && p.property?.photos?.length) {
             return (
               <PhotoComponentsIterator photos={p.property.photos} {...child.props}>
                 {child}
               </PhotoComponentsIterator>
             );
-          else {
+          } else {
             const value = formatValues(p.property, child.props['data-field']);
             if (value) return cloneElement(child, {}, value);
             else {
-              if (['lot_sqft', 'lot_sqm'].includes(child.props['data-field'])) {
+              if (child.props['data-field'].indexOf('image_') === 0) {
+                return <></>;
+              } else if (['lot_sqft', 'lot_sqm'].includes(child.props['data-field'])) {
                 switch (child.props['data-field']) {
                   case 'lot_sqft':
                     if (p.property?.lot_sqm) return cloneElement(child, {}, formatValues(p.property, 'lot_sqm') + ' sqm');
@@ -329,11 +331,7 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
         } else if (child.props.className === WEBFLOW_NODE_SELECTOR.PROPERTY_MAPS) {
           return p.property && p.property.lon && p.property.lat ? <RxPropertyMaps child={child} property={p.property} /> : <></>;
         } else if (child.props.className?.indexOf(WEBFLOW_NODE_SELECTOR.PROPERTY_TOP_STATS) >= 0) {
-          return (
-            <RxActionBar {...p} {...child.props} agent={p.agent?.agent_id} slug={p.agent?.metatags?.profile_slug}>
-              {child}
-            </RxActionBar>
-          );
+          return cloneElement(child, {}, <></>);
         } else if (child.props.className?.split(' ').includes('little-profile-card')) {
           return React.cloneElement(child, {
             ...child.props,
@@ -370,6 +368,14 @@ function Iterator(p: Props & { property?: PropertyDataModel }) {
 
       if (child.type === 'img' && child.props?.['data-field']) {
         return <ImageRexifier {...p} {...child.props} />;
+      }
+
+      if (child.type === 'a' && typeof child.props.children !== 'string') {
+        return cloneElement(child, {}, <Iterator {...p}>{child.props.children}</Iterator>);
+        // const field = child.props['data-field'];
+        // if (field.indexOf('image_') === 0 && !isNaN(field.split('image_').pop())) {
+        //   return <></>;
+        // }
       }
     }
     return child;
