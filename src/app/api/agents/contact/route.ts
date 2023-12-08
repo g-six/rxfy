@@ -81,7 +81,7 @@ export async function POST(req: Request) {
           );
           const { origin, pathname } = new URL(req.url);
           const last_activity_at = new Date().toISOString();
-          let login_url = `${host || origin}${pathname.toLowerCase().includes(`/${realtor.agent.agent_id.toLowerCase()}`) ? `/${realtor.agent.agent_id}` : ''}`;
+          let login_url = `${host || origin}${realtor.agent.domain_name ? '' : `/${realtor.agent.agent_id}`}`;
           login_url = `${login_url}/log-in?key=${encrypt(last_activity_at)}.${encrypt(email)}-${customer.id}`;
           sendTemplate(
             'invite-buyer',
