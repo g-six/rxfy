@@ -13,7 +13,7 @@ import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import Iterator from './[etc]/page-iterator.module';
 import NavIterator from '@/components/Nav/RxNavIterator';
 import { PropertyDataModel } from '@/_typings/property';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { getPipelineData } from '@/app/api/pipeline/subroutines';
 import { getAgentBaseUrl } from '@/app/api/_helpers/agent-helper';
@@ -265,6 +265,12 @@ export default async function PageComponent({
 
   const navbar = $('body .navbar-component');
   $('body .navbar-component').remove();
+
+  if (cookies().get('session_key')) {
+    $('.out-session').remove();
+  } else {
+    $('.in-session').remove();
+  }
 
   const footer = $('[data-group="footer"]');
 
