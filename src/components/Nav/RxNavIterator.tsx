@@ -85,7 +85,7 @@ export default function NavIterator({ children, ...props }: { children: React.Re
           relative_href = href;
         }
         return (
-          <a {...link_props} data-original-href={href} href={relative_href} data-rx-dir='components' data-rx-src='Nav/RxNavIterator.NavIterator'>
+          <a {...link_props} data-original-href={href} href={href} data-rx-dir='components' data-rx-src='Nav/RxNavIterator.NavIterator'>
             <NavIterator {...props}>{convertDivsToSpans(contents)}</NavIterator>
           </a>
         );
@@ -115,13 +115,7 @@ export default function NavIterator({ children, ...props }: { children: React.Re
         );
       } else if (!href.includes('/map') && !href.includes('log-out')) {
         return (
-          <a
-            {...link_props}
-            data-original-href={href}
-            href={`${props.agent && !props.agent.domain_name && href !== '/' ? getAgentBaseUrl(props.agent) : ''}${href}`}
-            data-rx-dir='components'
-            data-rx-src='Nav/RxNavIterator.NavIterator'
-          >
+          <a {...link_props} data-original-href={href} href={href} data-rx-dir='components' data-rx-src='Nav/RxNavIterator.NavIterator'>
             <NavIterator {...props}>{convertDivsToSpans(contents)}</NavIterator>
           </a>
         );

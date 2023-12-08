@@ -339,9 +339,6 @@ export function replaceByCheerio($: CheerioAPI, target: string, replacement: Rep
       ];
       $(target).attr('href', `${uri}/map?${query_params.join('&')}`);
       $(target).text(replacement.city);
-    } else if (replacement.href) {
-      $(target).attr('data-original-href', $(target).attr('href'));
-      $(target).attr('href', replacement.href);
     }
   }
 }
