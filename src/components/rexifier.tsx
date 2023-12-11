@@ -54,6 +54,8 @@ import { cookies, headers } from 'next/headers';
 import CustomLoader from './Loaders/CustomLoader';
 import { consoler } from '@/_helpers/consoler';
 import { RxLightbox, RxLightboxTrigger } from './RxDialogs/RxDialog';
+import RxForm from './RxForms/RxForm';
+const FILE = 'rexifier.tsx';
 
 async function replaceTargetCityComponents($: CheerioAPI, agent: AgentData) {
   if (agent.metatags.target_city && !agent.metatags.geocoding) {
@@ -676,17 +678,27 @@ export function rexify(html_code: string, agent_data: AgentData, property: Recor
           );
         }
 
-        if (node.tagName === 'form' && (!className || className.indexOf('contact-form') === -1)) {
+        consoler(FILE, headers().get('x-url'));
+        if (
+          node.tagName === 'form' &&
+          (!className || (className.indexOf('contact-form') === -1 && !headers().get('x-url')?.includes('leagent-website.webflow.io/contact.html')))
+        ) {
+          // return <RxForm></RxForm>;
           return (
-            <div {...props} id='rex-form' data-class={className}>
-              {Children.map(domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[], child => {
-                if (child.type === 'input') {
-                  if (child.props.className?.split(' ').includes('txt-agentid')) {
-                    return <RxTextInput {...child.props} name='agent_id' rx-event={Events.SignUp} />;
+            <div className={className} id='rex-form' data-class={className}>
+              <RxForm>
+                {Children.map(domToReact(node.children as unknown[] as DOMNode[]) as ReactElement[], child => {
+                  if (child.type === 'input') {
+                    if (child.props.className?.split(' ').includes('txt-agentid')) {
+                      return <RxTextInput {...child.props} name='agent_id' rx-event={Events.SignUp} />;
+                    }
+                    if (child.props.type === 'submit') {
+                      return <></>;
+                    }
                   }
-                }
-                return child;
-              })}
+                  return child;
+                })}
+              </RxForm>
             </div>
           );
         }

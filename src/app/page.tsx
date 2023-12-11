@@ -66,7 +66,7 @@ function loadAiResults($: CheerioAPI, user_id: string, slug?: string, origin?: s
   });
 }
 
-const LEAGENT_DOMAINS = ['leagent.com', 'dev.leagent.com', 'beta.leagent.com'];
+const LEAGENT_DOMAINS = ['leagent.com', 'dev.leagent.com', 'beta.leagent.com', 'localhost'];
 
 export default async function Home({ params, searchParams }: { params: { [k: string]: string }; searchParams: { [k: string]: string } }) {
   const start = Date.now();
@@ -100,7 +100,7 @@ export default async function Home({ params, searchParams }: { params: { [k: str
     const client_dashboard_params = {
       slug: possible_agent,
     };
-    consoler(FILE, { possible_agent, client_dashboard_params, params });
+
     switch (params.slug) {
       case 'log-in':
         return CustomerLogInPage({
@@ -332,7 +332,8 @@ export default async function Home({ params, searchParams }: { params: { [k: str
       href: process.env.NEXT_PUBLIC_BUY_BUTTON,
     });
   }
-  if (hostname !== `${process.env.NEXT_PUBLIC_LEAGENT_WEBFLOW_DOMAIN}` || searchParams.paragon) {
+
+  if (searchParams.paragon) {
     if (agent_data && agent_data.agent_id) {
       await fillAgentInfo($, agent_data, params);
 
