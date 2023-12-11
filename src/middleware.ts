@@ -75,6 +75,9 @@ export async function middleware(request: NextRequest) {
 
   if (webflow_domain !== 'leagent-website.webflow.io') {
     if (segments.length > 1) agent_id = segments[0];
+    if (!agent_id) {
+      agent_id = 'JOHNSMITH01';
+    }
   } else {
     response.cookies.set('session_as', 'realtor');
   }
