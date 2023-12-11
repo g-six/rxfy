@@ -7,6 +7,7 @@ import TabAccountInfo from './tab-account-info.rexifier';
 import TabBrokerageInformation from './tab-brokerage-information.rexifier';
 import TabBrandPreferences from './tab-brand-preferences.rexifier';
 import TabSocialLinks from './tab-social-links.rexifier';
+import TabSubscription from './tab-subsrciption.rexifier';
 
 function Iterate({
   children,
@@ -39,6 +40,7 @@ function Iterate({
             if (active === 'Brokerage Information') panel = <TabBrokerageInformation {...props}>{sub}</TabBrokerageInformation>;
             if (active === 'Brand Preferences') panel = <TabBrandPreferences {...props}>{sub}</TabBrandPreferences>;
             if (active === 'Social Links') panel = <TabSocialLinks {...props}>{sub}</TabSocialLinks>;
+            if (active === 'Subscription') panel = <TabSubscription {...props}>{sub}</TabSubscription>;
           }
           return cloneElement(
             c,

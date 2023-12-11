@@ -11,9 +11,7 @@ import NotFound from '../not-found';
 import RxNotifications from '@/components/RxNotifications';
 import { queryStringToObject } from '@/_utilities/url-helper';
 import ClientMyProfile from '../[slug]/my-profile/page';
-import { consoler } from '@/_helpers/consoler';
 import { NextResponse } from 'next/server';
-import Cookies from 'js-cookie';
 const FILE = 'my-profile/page.tsx';
 /**
  * This is the Realtor's my-profile page
