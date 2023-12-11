@@ -75,7 +75,7 @@ export async function middleware(request: NextRequest) {
 
   if (webflow_domain !== 'leagent-website.webflow.io') {
     if (segments.length > 1) agent_id = segments[0];
-    if (!agent_id) {
+    if (webflow_domain?.includes('leagent') && !agent_id) {
       agent_id = 'JOHNSMITH01';
     }
   } else {
