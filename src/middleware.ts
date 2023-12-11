@@ -75,9 +75,6 @@ export async function middleware(request: NextRequest) {
 
   if (webflow_domain !== 'leagent-website.webflow.io') {
     if (segments.length > 1) agent_id = segments[0];
-    if (webflow_domain?.includes('leagent') && !agent_id) {
-      agent_id = 'JOHNSMITH01';
-    }
   } else {
     response.cookies.set('session_as', 'realtor');
   }
@@ -150,7 +147,7 @@ export async function middleware(request: NextRequest) {
   } else if (webflow_domain && (webflow_domain?.includes('-leagent.webflow.io') || webflow_domain === 'leagent-webflow-rebuild.webflow.io')) {
     if (!segments[0] && domain_name.includes('leagent.com')) {
       agent_data = await getAgentBy({
-        agent_id: 'ONKODA',
+        agent_id: 'JOHNSMITH01',
       });
       if (webflow_domain && agent_data) {
         agent_data = {
