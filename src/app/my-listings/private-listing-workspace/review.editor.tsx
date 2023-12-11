@@ -39,7 +39,7 @@ function Rexify({
       let { children: components, className = '', 'data-action': action, ...props } = c.props;
       className = `${className}${className && ' '}rexified`;
       if (attributes.listing?.id && props.id && props.id === 'preview-private-listing')
-        return <Preview url={`${getAgentBaseUrl(attributes.agent)}/property?lid=${attributes.listing.id}`} />;
+        return <Preview url={`${getAgentBaseUrl(attributes.agent, true)}/property?lid=${attributes.listing.id}`} />;
 
       if (action) {
         if (action === 'view_listing' && attributes.listing?.id) {

@@ -162,7 +162,7 @@ export default function TabBrandPreferences({ children, ...props }: TabProps) {
               },
             });
             notify({
-              timeout: 10000,
+              timeout: 2200,
               category: NotificationCategory.SUCCESS,
               message: 'Great, brand preferences all set!',
             });

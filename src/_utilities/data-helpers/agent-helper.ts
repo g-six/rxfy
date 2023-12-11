@@ -58,11 +58,17 @@ export function getAgentPhoto(agent: AgentData) {
   return photo ? photo : '';
 }
 export function getAgentHomePageUrl(agent: AgentData) {
-  const { domain_name } = agent;
-  return domain_name ? `https://${domain_name}` : `/${agent.agent_id}/${agent.metatags.profile_slug}`;
+  const { website_theme, domain_name } = agent;
+  let url = 'https://app.leagent.com';
+  if (domain_name) {
+    url = `https://${domain_name}`;
+  } else if (website_theme) {
+    url = `https://${website_theme}.leagent.com/${agent.agent_id}`;
+  }
+  return url;
 }
-export function getAgentMapDefaultUrl(agent: AgentData) {
-  let url = getAgentBaseUrl(agent) + '/map';
+export function getAgentMapDefaultUrl(agent: AgentData, preserve_origin = false) {
+  let url = getAgentBaseUrl(agent, !preserve_origin) + '/map';
   if (agent.metatags.geocoding) {
     const { nelat, nelng, swlat, swlng } = agent.metatags.geocoding as unknown as {
       [k: string]: number;

@@ -12,7 +12,8 @@ export default function RxPropertyBrochures({ nodes, agent }: ReplacerPageProps)
       searchFn: searchByClasses(['go-to-map']),
       transformChild: (child: React.ReactElement) => {
         return React.cloneElement(child, {
-          href: getAgentMapDefaultUrl(agent),
+          href: getAgentMapDefaultUrl(agent, false),
+          target: '_blank',
         });
       },
     },

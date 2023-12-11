@@ -57,8 +57,9 @@ export default function EditNewCardForm({ template, showDetails, details, update
       let qr_url = '';
       if (agent.domain_name) {
         qr_url = `https://${agent.domain_name}/id`;
-      } else if (agent.agent_id && agent.agent_metatag.profile_slug) {
-        qr_url = `https://leagent.com/${agent.agent_id}/${agent.agent_metatag.profile_slug}/id`;
+      } else if (agent.agent_id) {
+        const { origin } = new URL(location.href);
+        qr_url = `${origin}/${agent.agent_id}/id`;
       }
 
       if (qr_url) {
