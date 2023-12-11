@@ -12,6 +12,7 @@ import RxNotifications from '@/components/RxNotifications';
 import { queryStringToObject } from '@/_utilities/url-helper';
 import ClientMyProfile from '../[slug]/my-profile/page';
 import { NextResponse } from 'next/server';
+import { consoler } from '@/_helpers/consoler';
 const FILE = 'my-profile/page.tsx';
 /**
  * This is the Realtor's my-profile page
@@ -43,7 +44,12 @@ export default async function MyProfile({ searchParams }: { searchParams: { [k: 
       // Realtor
       const realtor = realtor_results as AgentData & { phone_number: string; error?: string };
       if (realtor.error) {
-        return NextResponse.redirect('/log-in');
+        // return NextResponse.redirect(headers().get('x-rx-origin') + '/log-in');
+        return (
+          <>
+            <script dangerouslySetInnerHTML={{ __html: `location.href = '/log-in';` }} />
+          </>
+        );
       }
       // Load html into Cheerio class
       const $: CheerioAPI = load(html);
