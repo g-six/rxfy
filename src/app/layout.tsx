@@ -89,6 +89,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // $('form').each((idx, form) => {
   //   $(form).replaceWith(`<div data-form="contact">${$(form).html()}</div>`);
   // });
+  if (data) {
+    $('[data-field]').each((idx, component) => {
+      const field = component.attribs['data-field'];
+      const value = data[field];
+      if (value) {
+        $(component).html(value);
+      }
+    });
+  }
 
   consoler('layout.tsx', Date.now() - ts, 'ms');
 
