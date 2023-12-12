@@ -1,9 +1,0 @@
-.popover-panel {
-  @apply absolute z-10 mt-3 w-screen max-w-sm transform px-4 sm:px-0 lg:max-w-2xl;
-}
-.category-button {
-  @apply flow-root rounded-md px-2 py-2 transition duration-150 ease-in-out hover:bg-gray-100 focus:outline-none;
-  &:hover {
-    @apply text-indigo-950 shadow-xl shadow-slate-100 font-medium;
-  }
-}
