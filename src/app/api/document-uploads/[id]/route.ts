@@ -5,6 +5,7 @@ import { getResponse } from '../../response-helper';
 import { getNewSessionKey } from '../../update-session';
 import axios from 'axios';
 import { getTokenAndGuidFromSessionKey } from '@/_utilities/api-calls/token-extractor';
+import { gql_delete_doc_upload } from '../gql';
 
 /**
  * Retrieves signed document url
@@ -154,20 +155,3 @@ export async function DELETE(request: Request) {
     },
   );
 }
-
-export const gql_delete_doc_upload = `mutation DeleteDocumentUpload ($id: ID!) {
-  record: deleteDocumentUpload(id: $id) {
-    data {
-      id
-      attributes {
-        file_name
-        url
-        document {
-          data {
-            id
-          }
-        }
-      }
-    }
-  }
-}`;
