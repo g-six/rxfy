@@ -33,6 +33,7 @@ export async function middleware(request: NextRequest) {
 
   let [, ...segments] = pathname.split('/');
   segments = segments.filter(s => !!s);
+  response.headers.set('x-pathname', pathname);
 
   let agent_data: { [k: string]: string } & { metatags?: { [k: string]: string } } = {};
 
