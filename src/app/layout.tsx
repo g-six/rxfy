@@ -1,10 +1,6 @@
 import { CheerioAPI, load } from 'cheerio';
-import { cookies, headers } from 'next/headers';
+import { headers } from 'next/headers';
 import { getAgentBy } from './api/_helpers/agent-helper';
-import { Metadata } from 'next';
-import Head from 'next/head';
-import { DOMNode, attributesToProps, domToReact } from 'html-react-parser';
-import Script from 'next/script';
 import { consoler } from '@/_helpers/consoler';
 
 async function getPageMetadata(): Promise<{ title: string; description: string; html: string; domain_name: string; data?: { [k: string]: any } }> {
@@ -78,28 +74,18 @@ async function getPageMetadata(): Promise<{ title: string; description: string; 
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const ts = Date.now();
-  const { html, data } = await getPageMetadata();
+  const { html } = await getPageMetadata();
   const $: CheerioAPI = load(html);
-
-  // if (cookies().get('session_key')) {
-  //   $('[data-group="out_session"]').remove();
-  // } else {
-  //   $('[data-group="in_session"]').remove();
-  // }
-  // $('form').each((idx, form) => {
-  //   $(form).replaceWith(`<div data-form="contact">${$(form).html()}</div>`);
-  // });
-  if (data) {
-    $('[data-field]').each((idx, component) => {
-      const field = component.attribs['data-field'];
-      const value = data[field];
-      if (value) {
-        $(component).html(value);
-      }
-    });
-  }
 
   consoler('layout.tsx', Date.now() - ts, 'ms');
 
-  return <html dangerouslySetInnerHTML={{ __html: $('html').html() || '' }} suppressHydrationWarning />;
+  const head = $('head');
+  $('body').remove();
+
+  return (
+    <html suppressHydrationWarning>
+      <head dangerouslySetInnerHTML={{ __html: head.html() || '' }} suppressHydrationWarning />
+      <body>{children}</body>
+    </html>
+  );
 }
