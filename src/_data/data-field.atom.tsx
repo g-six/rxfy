@@ -12,19 +12,37 @@ async function AtomIterator({
 }) {
   const rexifier = Children.map(children, c => {
     if (c.props) {
-      if (c.props.children) {
-        const { children: sub, ...attribs } = c.props;
-        let className = attribs.className || '';
-        className = className ? `${className} rexified` : 'rexified';
+      const { children: sub, ...attribs } = c.props;
+      let className = attribs.className || '';
+      className = className ? `${className} rexified` : 'rexified';
 
-        if (attribs['data-field'] && data) {
-          let field = attribs['data-field'];
+      if (data) {
+        let field = attribs['data-field'] || '';
+        if (attribs['data-image']) field = attribs['data-image'];
+        if (field) {
           if (field === 'address') {
             field = 'title';
           }
           let value = data[field] as string;
+
+          if (field === 'cover_photo') {
+            console.log({ value });
+            value = (data.photos as string[]).reverse().pop() as string;
+          }
+
           if (!value && props['base-context']) {
             value = props['base-context'][field] as string;
+          }
+
+          if (c.type === 'img') {
+            return cloneElement(c, {
+              src: value,
+            });
+          }
+          if (c.type === 'svg') {
+            return cloneElement(<img />, {
+              src: value,
+            });
           }
           return cloneElement(
             c,
@@ -34,19 +52,20 @@ async function AtomIterator({
             value,
           );
         }
-
-        if (typeof c.props.children !== 'string') {
-          return cloneElement(
-            c,
-            {
-              className,
-            },
-            <AtomIterator data={data} base-context={props['base-context']}>
-              {sub}
-            </AtomIterator>,
-          );
-        }
       }
+
+      if (c.props.children && typeof c.props.children !== 'string') {
+        return cloneElement(
+          c,
+          {
+            className,
+          },
+          <AtomIterator data={data} base-context={props['base-context']}>
+            {sub}
+          </AtomIterator>,
+        );
+      }
+
       return c;
     }
   });
