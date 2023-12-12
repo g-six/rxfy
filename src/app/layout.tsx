@@ -5,6 +5,7 @@ import { Metadata } from 'next';
 import Head from 'next/head';
 import { DOMNode, attributesToProps, domToReact } from 'html-react-parser';
 import Script from 'next/script';
+import { consoler } from '@/_helpers/consoler';
 
 async function getPageMetadata(): Promise<{ title: string; description: string; html: string; domain_name: string; data?: { [k: string]: any } }> {
   let domain_name = headers().get('host') || '';
@@ -28,8 +29,11 @@ async function getPageMetadata(): Promise<{ title: string; description: string; 
     data = await getAgentBy({
       domain_name,
     });
+
+    let webflow_domain = data?.webflow_domain || 'leagent-website.webflow.io';
+
     const url = headers().get('x-pathname');
-    const page_url = `https://${data.webflow_domain}${url}`;
+    const page_url = `https://${data?.webflow_domain}${url}`;
     const page_html_xhr = await fetch(page_url);
     if (page_html_xhr.ok) {
       if (data?.webflow_domain) {
@@ -63,16 +67,17 @@ async function getPageMetadata(): Promise<{ title: string; description: string; 
     html,
   };
 }
-export async function generateMetadata({ params }: { params: { [k: string]: any } }): Promise<Metadata> {
-  let { title, description } = await getPageMetadata();
+// export async function generateMetadata({ params }: { params: { [k: string]: any } }): Promise<Metadata> {
+//   let { title, description } = await getPageMetadata();
 
-  return {
-    title,
-    description,
-  };
-}
+//   return {
+//     title,
+//     description,
+//   };
+// }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const ts = Date.now();
   const { html, data } = await getPageMetadata();
   const $: CheerioAPI = load(html);
 
@@ -84,6 +89,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // $('form').each((idx, form) => {
   //   $(form).replaceWith(`<div data-form="contact">${$(form).html()}</div>`);
   // });
+
+  consoler('layout.tsx', Date.now() - ts, 'ms');
 
   return <html dangerouslySetInnerHTML={{ __html: $('html').html() || '' }} suppressHydrationWarning />;
 }
