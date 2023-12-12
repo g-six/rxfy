@@ -1,9 +1,0 @@
-.active {
-  @apply z-50 bg-slate-100 transition-all #{!important};
-  > nav {
-    @apply h-full transition-all #{!important};
-  }
-  > div {
-    @apply opacity-100;
-  }
-}

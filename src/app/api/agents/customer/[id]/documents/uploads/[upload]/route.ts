@@ -1,9 +1,9 @@
 import { getResponse } from '@/app/api/response-helper';
 import { NextRequest } from 'next/server';
 import { graphQL } from '@/app/api/_helpers/graphql-helper';
-import { gql_delete_doc_upload } from '@/app/api/document-uploads/[id]/route';
 import { getUserSessionData, isRealtorRequest } from '@/app/api/check-session/model';
 import { AgentData } from '@/_typings/agent';
+import { gql_delete_doc_upload } from '@/app/api/document-uploads/gql';
 
 export async function DELETE(req: NextRequest, { params: { upload, id: agent_customer_id } }: { params: { upload: string; id: string } }) {
   const user_type = isRealtorRequest(req.url) ? 'realtor' : 'customer';

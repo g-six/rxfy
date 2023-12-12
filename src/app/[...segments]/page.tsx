@@ -5,7 +5,7 @@ import { CheerioAPI, load } from 'cheerio';
 import { DOMNode, domToReact } from 'html-react-parser';
 import Head from 'next/head';
 
-export async function Page({ params, searchParams }: { params: { segments: string[] }; searchParams?: { [k: string]: string } }) {
+async function Page({ params, searchParams }: { params: { segments: string[] }; searchParams?: { [k: string]: string } }) {
   let domain_name = headers().get('host');
   if (domain_name) {
     const domain = domain_name.split(':').reverse().pop() as string;
