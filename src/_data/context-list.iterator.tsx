@@ -1,4 +1,5 @@
 import { Children, ReactElement, cloneElement } from 'react';
+import DataAction from './data-action';
 import DataComponentGroupItem from './data-component.group';
 
 interface Props {
@@ -20,7 +21,7 @@ export default async function ContextListIterator({
     if (c.props) {
       const { className, ...attribs } = c.props;
       if (props.data) {
-        if (attribs['data-component'] && props['data-context']) {
+        if (props['data-context']) {
           let dataset: { [k: string]: unknown }[] = [];
           if (props['data-filter']) {
             const { [props['data-filter']]: d } = props.data[props['data-context']] as {
@@ -35,7 +36,14 @@ export default async function ContextListIterator({
             ];
           }
           if (dataset[idx]) {
-            return <DataComponentGroupItem {...attribs} component={c} data={dataset[idx]} data-sources={props.data} />;
+            if (attribs['data-component']) return <DataComponentGroupItem {...attribs} component={c} data={dataset[idx]} data-sources={props.data} />;
+            else if (attribs['data-action']) {
+              return (
+                <DataAction {...attribs} {...props} data={dataset[idx]}>
+                  {c}
+                </DataAction>
+              );
+            }
           }
         }
         let field = '';
@@ -63,7 +71,7 @@ export default async function ContextListIterator({
               {
                 className,
               },
-              value,
+              value || c.props.children,
             );
           }
 

@@ -5,6 +5,7 @@ import useFormEvent from '@/hooks/useFormEvent';
 import { consoler } from '@/_helpers/consoler';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { sendMessageToRealtor } from '@/_utilities/api-calls/call-realtor';
+import { loveHome } from '@/_utilities/api-calls/call-love-home';
 
 function Iterator({
   children,
@@ -30,7 +31,7 @@ function Iterator({
             ...attribs,
             className,
             onClick: () => {
-              props.onClick(attribs['data-action']);
+              props.onClick();
             },
           });
         }
@@ -50,6 +51,7 @@ function Iterator({
 
       return c;
     }
+    return c;
   });
   return <>{rexifier}</>;
 }
@@ -105,8 +107,13 @@ export default function DataAction({
               );
             }
             break;
+          case 'like':
+            consoler('data-action.tsx', 'Like ' + props.data.mls_id);
+            loveHome(props.data.mls_id, props.data.agent);
+            break;
+          default:
+            consoler('data-action.tsx', `No function handler for: ${action}`, props.data);
         }
-        consoler('data-action.tsx', action, form.data);
         form.fireEvent({
           action,
         });
@@ -115,6 +122,6 @@ export default function DataAction({
       {children}
     </Iterator>
   ) : (
-    children
+    <>{children}</>
   );
 }
