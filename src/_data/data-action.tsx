@@ -77,8 +77,11 @@ export default function DataAction({
   return is_ready ? (
     <Iterator
       {...props}
-      onClick={(action: string) => {
-        switch (action) {
+      onClick={() => {
+        ////////
+        // Logic to the different supported actions below
+        ////////
+        switch (props['data-action']) {
           case 'send_message':
             const { email, message, customer_name } = form.data;
             if (props.data && email && message) {
