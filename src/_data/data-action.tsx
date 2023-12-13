@@ -6,6 +6,7 @@ import { consoler } from '@/_helpers/consoler';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { sendMessageToRealtor } from '@/_utilities/api-calls/call-realtor';
 import { loveHome } from '@/_utilities/api-calls/call-love-home';
+import { AgentData } from '@/_typings/agent';
 
 function Iterator({
   children,
@@ -95,44 +96,49 @@ export default function DataAction({
         ////////
         switch (props['data-action']) {
           case 'send_message':
-            const { email, message, customer_name } = form.data;
+            const { email, message, customer_name, phone } = form.data as {
+              [k: string]: string;
+            };
             if (props.data && email && message) {
-              const agent = props.data[props['data-context']];
+              const agent = props.data[props['data-context']] as AgentData;
               const send_to = {
                 email: agent.email,
                 name: agent.full_name,
               };
               const { origin: host } = new URL(location?.href);
-              sendMessageToRealtor(
-                {
-                  email,
-                  message,
-                  customer_name:
-                    customer_name ||
-                    email
-                      .split('@')[0]
-                      .replace(/[^\w\s!?]/g, ' ')
-                      .replace(/\d+/g, '')
-                      .split(' ')
-                      .map(capitalizeFirstLetter)
-                      .join(' '),
-                  send_to,
-                },
+              sendMessageToRealtor({
+                email,
+                message,
+                phone,
+                customer_name:
+                  customer_name ||
+                  email
+                    .split('@')[0]
+                    .replace(/[^\w\s!?]/g, ' ')
+                    .replace(/\d+/g, '')
+                    .split(' ')
+                    .map(capitalizeFirstLetter)
+                    .join(' '),
+                send_to,
                 host,
-              );
+              });
             }
             break;
           case 'like':
-            consoler('data-action.tsx', 'Like ' + props.data.mls_id);
-            const { loved } = loveHome(props.data.mls_id, props.data.agent);
-            setState({ ...state, loved });
+            const { mls_id } = props.data as {
+              [k: string]: string;
+            };
+            if (props.data) {
+              const agent = props.data[props['data-context']] as AgentData;
+              consoler('data-action.tsx', 'Like ' + mls_id);
+              loveHome(mls_id, agent.id).then(({ loved }) => {
+                setState({ ...state, loved });
+              });
+            }
             break;
           default:
             consoler('data-action.tsx', `No function handler for: ${props['data-action']}`, props.data);
         }
-        form.fireEvent({
-          action,
-        });
       }}
     >
       {children}
