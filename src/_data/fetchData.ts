@@ -15,8 +15,6 @@ export default async function fetchData(context: string, filter: string, fallbac
           agent_id: string;
           id: number;
         };
-        let sorting = [];
-        console.log({ id, sort });
         if (sort) {
           const sorting = sort.split(':');
           if (sorting.length) {

@@ -27,6 +27,7 @@ import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { createTask } from '../clickup/model';
 import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
 import { consoler } from '@/_helpers/consoler';
+import { getAgentBrokerages } from '../brokerages/model';
 
 const FILE = 'api/agents/model.ts';
 export const maxDuration = 300;
@@ -581,12 +582,24 @@ export async function getSoldListings(
   sort?: {
     [key: string]: 'asc' | 'desc';
   },
+  include_brokerage = true,
 ): Promise<unknown> {
   const should: {}[] = [
-    // { match: { 'data.LA1_LoginName': agent_id } },
-    // { match: { 'data.LA2_LoginName': agent_id } },
-    // { match: { 'data.LA3_LoginName': agent_id } },
+    { match: { 'data.LA1_LoginName': agent_id } },
+    { match: { 'data.LA2_LoginName': agent_id } },
+    { match: { 'data.LA3_LoginName': agent_id } },
   ];
+
+  if (include_brokerage) {
+    const brokerages = await getAgentBrokerages(agent_id);
+    if (brokerages?.length) {
+      brokerages.forEach(brokerage => {
+        should.push({ match: { 'data.LO1_Name': brokerage.name } });
+        should.push({ match: { 'data.LO2_Name': brokerage.name } });
+        should.push({ match: { 'data.LO3_Name': brokerage.name } });
+      });
+    }
+  }
 
   const legacy_params: LegacySearchPayload = {
     from: 0,
@@ -596,13 +609,14 @@ export async function getSoldListings(
       bool: {
         filter: [{ match: { 'data.Status': 'Sold' } }],
         should,
-        // minimum_should_match: 1,
+        minimum_should_match: 1,
         must_not: [{ match: { 'data.Status': 'Terminated' } }],
       },
     },
   };
+
   const results = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
-  // consoler('agents/model.ts', { results, legacy_params });
+
   return await Promise.all(results.map(r => strapify(r as unknown as Record<string, unknown>)));
 }
 
