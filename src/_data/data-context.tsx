@@ -1,7 +1,15 @@
 import { Children, ReactElement, cloneElement } from 'react';
 import DataFieldAtom from './data-field.atom';
+import { consoler } from '@/_helpers/consoler';
+import ContextListIterator from './context-list.iterator';
 
-async function ContextIterator({ children, ...props }: { children: ReactElement; 'fallback-context': string; data?: { [k: string]: unknown } }) {
+interface Props {
+  data?: { [k: string]: unknown };
+  contexts: { [k: string]: { [k: string]: unknown } };
+  'fallback-context': string;
+}
+
+async function ContextIterator({ children, ...props }: { children: ReactElement } & Props) {
   const rexifier = Children.map(children, async c => {
     if (c.props) {
       if (c.props.children && typeof c.props.children !== 'string') {
@@ -24,23 +32,22 @@ async function ContextIterator({ children, ...props }: { children: ReactElement;
                     {
                       className,
                     },
-                    <DataFieldAtom data={dataset[0]} base-context={props.data[props['fallback-context']]} {...attribs}>
+                    <ContextListIterator {...props} dataset={dataset} data={props.data} {...attribs}>
                       {sub}
-                    </DataFieldAtom>,
+                    </ContextListIterator>,
                   );
                 }
               }
+
               return cloneElement(
                 c,
                 {
                   className,
                 },
-                <DataFieldAtom data={props.data[attribs['data-context']]} {...attribs}>
+                <DataFieldAtom {...props} {...attribs}>
                   {sub}
                 </DataFieldAtom>,
               );
-            } else {
-              console.log('No data for', attribs['data-context']);
             }
           }
         }
@@ -59,14 +66,11 @@ async function ContextIterator({ children, ...props }: { children: ReactElement;
   return <>{rexifier}</>;
 }
 
-export default async function DataContextAtom({
+export default async function DataContext({
   children,
   ...props
 }: {
   children: ReactElement;
-  data?: { [k: string]: unknown };
-  contexts: { [k: string]: { [k: string]: unknown } };
-  'fallback-context': string;
-}) {
+} & Props) {
   return <ContextIterator {...props}>{children}</ContextIterator>;
 }

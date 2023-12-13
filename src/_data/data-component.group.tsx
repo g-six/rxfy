@@ -1,17 +1,16 @@
 import { consoler } from '@/_helpers/consoler';
 import { Children, ReactElement, cloneElement } from 'react';
 
-async function AtomIterator({
+async function ComponentIterator({
   children,
-  data,
   ...props
 }: {
   children: ReactElement;
+  'data-sources': { [k: string]: { [k: string]: unknown } };
   data?: { [k: string]: unknown };
-  contexts: { [k: string]: { [k: string]: unknown } };
-  'fallback-context': string;
 }) {
   const rexifier = Children.map(children, c => {
+    const { data } = props;
     if (c.props) {
       const { children: sub, ...attribs } = c.props;
       let className = attribs.className || '';
@@ -19,7 +18,6 @@ async function AtomIterator({
 
       if (data) {
         let field = attribs['data-field'] || '';
-
         if (attribs['data-image']) field = attribs['data-image'];
         if (field) {
           if (field === 'address') {
@@ -27,16 +25,13 @@ async function AtomIterator({
           }
           let value = data[field] as string;
 
-          if (field === 'cover_photo') {
-            console.log({ field });
-            if (data.photos) {
-              value = (data.photos as string[]).reverse().pop() as string;
-            }
+          if (field === 'cover_photo' && data.photos) {
+            value = (data.photos as string[]).reverse().pop() as string;
           }
 
           if (!value) {
-            const { [field]: v } = data[props['fallback-context']] as { [k: string]: string };
-            value = v;
+            const source = props['data-sources'][attribs['data-context']];
+            value = attribs['data-context'] ? source[field] : field;
           }
 
           if (c.type === 'img') {
@@ -65,9 +60,7 @@ async function AtomIterator({
           {
             className,
           },
-          <AtomIterator data={data} {...props}>
-            {sub}
-          </AtomIterator>,
+          <ComponentIterator {...props}>{sub}</ComponentIterator>,
         );
       }
 
@@ -77,14 +70,22 @@ async function AtomIterator({
   return <>{rexifier}</>;
 }
 
-export default async function DataFieldAtom({
-  children,
+export default async function DataComponentGroupItem({
+  component,
+  data,
   ...props
 }: {
-  children: ReactElement;
-  data?: { [k: string]: unknown };
-  contexts: { [k: string]: { [k: string]: unknown } };
-  'fallback-context': string;
+  component: ReactElement;
+  'data-sources': {
+    [k: string]: {
+      [k: string]: unknown;
+    };
+  };
+  data: { [k: string]: unknown };
 }) {
-  return <AtomIterator {...props}>{children}</AtomIterator>;
+  return (
+    <ComponentIterator {...props} data={data}>
+      {component}
+    </ComponentIterator>
+  );
 }

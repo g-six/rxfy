@@ -1,7 +1,7 @@
 import { CheerioAPI, load } from 'cheerio';
 import { headers } from 'next/headers';
 import { getAgentBy } from './api/_helpers/agent-helper';
-import DataContextAtom from '@/_data/data-context.atom';
+import DataContextAtom from '@/_data/data-context';
 import { DOMNode, domToReact } from 'html-react-parser';
 import { ReactElement } from 'react';
 import fetchData from '@/_data/fetchData';
@@ -137,8 +137,6 @@ export default async function Page() {
       }),
     );
   }
-
-  // consoler('page.tsx', subcontexts, Object.keys(data.property));
 
   return (
     <DataContextAtom

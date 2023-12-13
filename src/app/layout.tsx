@@ -77,7 +77,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const { html } = await getPageMetadata();
   const $: CheerioAPI = load(html);
 
-  consoler('layout.tsx', Date.now() - ts, 'ms');
+  consoler('layout.tsx', `${Date.now() - ts}ms`);
 
   const head = $('head');
   $('body').remove();
