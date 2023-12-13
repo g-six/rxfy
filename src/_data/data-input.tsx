@@ -1,7 +1,9 @@
+'use client';
 import { consoler } from '@/_helpers/consoler';
-import { Children, ReactElement, cloneElement } from 'react';
+import useFormEvent from '@/hooks/useFormEvent';
+import { ChangeEvent, Children, ReactElement, cloneElement, useEffect, useState } from 'react';
 
-async function Iterator({
+function Iterator({
   children,
   data,
   ...props
@@ -9,6 +11,7 @@ async function Iterator({
   children: ReactElement;
   data?: { [k: string]: unknown };
   contexts: { [k: string]: { [k: string]: unknown } };
+  onChange(name: string, value: string): void;
   'fallback-context': string;
 }) {
   const rexifier = Children.map(children, c => {
@@ -20,9 +23,19 @@ async function Iterator({
       if (data) {
         let field = attribs['data-input'] || '';
         if (field) {
-          return cloneElement(<input type='text' />, {
-            className,
-          });
+          return cloneElement(
+            <input
+              type='text'
+              onChange={(evt: ChangeEvent<HTMLInputElement>) => {
+                props.onChange(evt.currentTarget.name, evt.currentTarget.value);
+              }}
+            />,
+            {
+              ...attribs,
+              className,
+              name: field,
+            },
+          );
         }
       }
 
@@ -44,7 +57,7 @@ async function Iterator({
   return <>{rexifier}</>;
 }
 
-export default async function DataInputAtom({
+export default function DataInputAtom({
   children,
   ...props
 }: {
@@ -52,6 +65,27 @@ export default async function DataInputAtom({
   data?: { [k: string]: unknown };
   contexts: { [k: string]: { [k: string]: unknown } };
   'fallback-context': string;
+  'data-form': string;
 }) {
-  return <Iterator {...props}>{children}</Iterator>;
+  const [is_ready, toggleReady] = useState(false);
+  const form = useFormEvent(props['data-form']);
+
+  useEffect(() => {
+    toggleReady(true);
+  }, []);
+
+  return is_ready ? (
+    <Iterator
+      {...props}
+      onChange={(name: string, value: string) => {
+        form.fireEvent({
+          [name]: value,
+        });
+      }}
+    >
+      {children}
+    </Iterator>
+  ) : (
+    children
+  );
 }

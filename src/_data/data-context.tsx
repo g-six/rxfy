@@ -21,6 +21,9 @@ async function ContextIterator({ children, ...props }: { children: ReactElement 
           if (props.data) {
             // if data of context already fetched
             if (props.data[attribs['data-context']]) {
+              // Filter presence tells us that the context contains multiple records
+              // and should be laid out in a grid or list wrapper that requires a loop
+              // to iterate over the records. eg. list of recent listings
               const filter = attribs['data-filter'];
               if (filter) {
                 const { [filter]: dataset } = props.data[attribs['data-context']] as unknown as {
@@ -39,6 +42,9 @@ async function ContextIterator({ children, ...props }: { children: ReactElement 
                 }
               }
 
+              // If no data-filter is present on the requested context
+              // then we expect to only get one record of that context
+              // eg. single property listing
               return cloneElement(
                 c,
                 {

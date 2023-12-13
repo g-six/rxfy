@@ -1,5 +1,7 @@
 import { consoler } from '@/_helpers/consoler';
 import { Children, ReactElement, cloneElement } from 'react';
+import DataInputAtom from './data-input';
+import DataAction from './data-action';
 
 async function AtomIterator({
   children,
@@ -57,6 +59,22 @@ async function AtomIterator({
             value,
           );
         }
+
+        // Input
+        if (attribs['data-input'] && attribs['data-form']) {
+          return (
+            <DataInputAtom {...props} data={data} data-form={attribs['data-form']}>
+              {c}
+            </DataInputAtom>
+          );
+        }
+        if (attribs['data-action']) {
+          return (
+            <DataAction {...attribs} {...props} data={data}>
+              {c}
+            </DataAction>
+          );
+        }
       }
 
       if (c.props.children && typeof c.props.children !== 'string') {
@@ -83,6 +101,7 @@ export default async function DataFieldAtom({
 }: {
   children: ReactElement;
   data?: { [k: string]: unknown };
+  'data-context': string;
   contexts: { [k: string]: { [k: string]: unknown } };
   'fallback-context': string;
 }) {

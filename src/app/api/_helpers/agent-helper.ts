@@ -179,7 +179,6 @@ export async function getAgentBy(attributes: { [key: string]: string }) {
   } else {
     return;
   }
-
   const query = {
     query: gql_by_agent_uniq,
     variables: {
