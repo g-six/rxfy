@@ -1,6 +1,5 @@
 'use client';
-import { consoler } from '@/_helpers/consoler';
-import useFormEvent from '@/hooks/useFormEvent';
+import useFormEvent, { Events } from '@/hooks/useFormEvent';
 import { ChangeEvent, Children, ReactElement, cloneElement, useEffect, useState } from 'react';
 
 function Iterator({
@@ -68,7 +67,7 @@ export default function DataInputAtom({
   'data-form': string;
 }) {
   const [is_ready, toggleReady] = useState(false);
-  const form = useFormEvent(props['data-form']);
+  const form = useFormEvent(props['data-form'] as unknown as Events);
 
   useEffect(() => {
     toggleReady(true);

@@ -49,11 +49,13 @@ export async function loveHome(mls_id: string, agent: number, customer?: number)
   try {
     // Handle localStorage
     const local_loves = (getData(Events.LovedItem) as unknown as string[]) || [];
+    let toggle = { loved: false };
     if (!local_loves.includes(mls_id)) {
       local_loves.push(mls_id);
       setData(Events.LovedItem, JSON.stringify(local_loves));
+      toggle.loved = true;
     }
-    if (!Cookies.get('session_key') || (Cookies.get('session_as') === 'realtor' && !customer)) return;
+    if (!Cookies.get('session_key') || (Cookies.get('session_as') === 'realtor' && !customer)) return toggle;
 
     const response = await axios.post(
       '/api/loves',

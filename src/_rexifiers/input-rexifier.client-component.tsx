@@ -1,5 +1,4 @@
 'use client';
-import { consoler } from '@/_helpers/consoler';
 import useFormEvent, { Events, EventsData, NotificationCategory } from '@/hooks/useFormEvent';
 import { sendMessageToRealtor } from '@/_utilities/api-calls/call-realtor';
 import { AgentData } from '@/_typings/agent';

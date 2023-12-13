@@ -17,6 +17,7 @@ function Iterator({
   contexts: { [k: string]: { [k: string]: unknown } };
   onClick(): void;
   'fallback-context': string;
+  'toggle-state': { [k: string]: string | boolean | number };
 }) {
   const rexifier = Children.map(children, c => {
     if (c.props) {
@@ -30,6 +31,15 @@ function Iterator({
           return cloneElement(c, {
             ...attribs,
             className,
+            children: sub ? (
+              typeof sub !== 'string' ? (
+                <Iterator data={data} {...props}>
+                  {c.props.children}
+                </Iterator>
+              ) : (
+                sub
+              )
+            ) : undefined,
             onClick: () => {
               props.onClick();
             },
@@ -68,7 +78,8 @@ export default function DataAction({
   'data-context': string;
 }) {
   const [is_ready, toggleReady] = useState(false);
-  const form = useFormEvent(props['data-action']);
+  const [state, setState] = useState<{ [k: string]: boolean | number; string }>({});
+  const form = useFormEvent(props['data-action'] as unknown as Events);
 
   useEffect(() => {
     toggleReady(true);
@@ -77,6 +88,7 @@ export default function DataAction({
   return is_ready ? (
     <Iterator
       {...props}
+      toggle-state={state}
       onClick={() => {
         ////////
         // Logic to the different supported actions below
@@ -112,10 +124,11 @@ export default function DataAction({
             break;
           case 'like':
             consoler('data-action.tsx', 'Like ' + props.data.mls_id);
-            loveHome(props.data.mls_id, props.data.agent);
+            const { loved } = loveHome(props.data.mls_id, props.data.agent);
+            setState({ ...state, loved });
             break;
           default:
-            consoler('data-action.tsx', `No function handler for: ${action}`, props.data);
+            consoler('data-action.tsx', `No function handler for: ${props['data-action']}`, props.data);
         }
         form.fireEvent({
           action,
