@@ -25,8 +25,7 @@ async function AtomIterator({
           }
           let value = data[field] as string;
 
-          if (field === 'cover_photo') {
-            console.log({ value });
+          if (field === 'cover_photo' && data.photos) {
             value = (data.photos as string[]).reverse().pop() as string;
           }
 
@@ -80,6 +79,5 @@ export default async function DataFieldAtom({
   data?: { [k: string]: unknown };
   'base-context': { [k: string]: unknown };
 }) {
-  consoler('data-field.atom.tsx', props['base-context']);
   return <AtomIterator {...props}>{children}</AtomIterator>;
 }

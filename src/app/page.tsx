@@ -7,12 +7,14 @@ import { ReactElement } from 'react';
 import fetchData from '@/_data/fetchData';
 import { getDomain } from './api/domains/model';
 import { consoler } from '@/_helpers/consoler';
+import { includes } from 'lodash';
 
+type SubcontextProps = { [k: string]: { filters: string[]; sort: string[] } };
 async function getPageMetadata(): Promise<{
   title: string;
   description: string;
   html: string;
-  subcontexts: { [k: string]: { filters: string[] } };
+  subcontexts: SubcontextProps;
   base_context: string;
   domain_name: string;
   data?: { [k: string]: any };
@@ -21,7 +23,7 @@ async function getPageMetadata(): Promise<{
   let title = '';
   let description = 'Leagent';
   let data: { [k: string]: any } = {};
-  let subcontexts: { [k: string]: { filters: string[] } } = {};
+  let subcontexts: SubcontextProps = {};
   let base_context = '';
   if (domain_name) {
     const domain = domain_name.split(':').reverse().pop() as string;
@@ -71,16 +73,20 @@ async function getPageMetadata(): Promise<{
               ...subcontexts,
               [el.attribs['data-context']]: {
                 filters: [el.attribs['data-filter']],
+                sort: [el.attribs['data-sort'] || ''],
               },
             };
           } else {
-            const { filters } = subcontexts[el.attribs['data-context']] as {
+            const { filters, sort } = subcontexts[el.attribs['data-context']] as {
               filters?: string[];
+              sort?: string[];
             };
             if (!filters) {
               subcontexts[el.attribs['data-context']].filters = [el.attribs['data-filter']];
-            } else {
+              subcontexts[el.attribs['data-context']].sort = [el.attribs['data-sort'] || ''];
+            } else if (!subcontexts[el.attribs['data-context']].filters.includes(el.attribs['data-filter'])) {
               subcontexts[el.attribs['data-context']].filters.push(el.attribs['data-filter']);
+              subcontexts[el.attribs['data-context']].sort.push(el.attribs['data-sort']);
             }
           }
         } else console.log(el.attribs['data-context'], 'has nothing to reference it with');
@@ -89,17 +95,6 @@ async function getPageMetadata(): Promise<{
     title = data.agent?.full_name || $('title').text();
     if (data.agent?.metatags?.title) title = data.agent?.metatags?.title;
     if (data.agent?.metatags?.description) description = data.agent?.metatags.description;
-  }
-
-  if (Object.keys(subcontexts).length) {
-    // Has other nested contexts to agent
-    const promises = await Promise.all(
-      Object.keys(subcontexts).map(async context => {
-        if (subcontexts[context]) {
-          const filters = subcontexts[context];
-        }
-      }),
-    );
   }
 
   return {
@@ -119,26 +114,22 @@ export default async function Page() {
 
   const $: CheerioAPI = load(html);
   let data = others.data || {};
-
+  let filtered_contexts: { [k: string]: { [k: string]: unknown } } = {};
   if (data[base_context]) {
-    const promises = await Promise.all(
+    await Promise.all(
       Object.keys(subcontexts).map(async context => {
+        data[context] = data[context] || {};
         return await Promise.all(
-          subcontexts[context].filters.map(async filter => {
-            if (!data[context]) {
-              data = {
-                ...data,
-                [context]: {
-                  [filter]: await fetchData(context, filter, data[base_context]),
-                },
+          subcontexts[context].filters.map(async (filter, idx) => {
+            const r = await fetchData(context, filter, data[base_context], subcontexts[context].sort[idx]);
+            if (filtered_contexts[context]) {
+              filtered_contexts[context] = {
+                ...filtered_contexts[context],
+                [filter]: r,
               };
-            } else if (!data[context][filter]) {
-              data = {
-                ...data,
-                [context]: {
-                  ...data[context],
-                  [filter]: await fetchData(context, filter, data[base_context]),
-                },
+            } else {
+              filtered_contexts[context] = {
+                [filter]: r,
               };
             }
           }),
@@ -147,8 +138,17 @@ export default async function Page() {
     );
   }
 
+  // consoler('page.tsx', subcontexts, Object.keys(data.property));
+
   return (
-    <DataContextAtom data={data} fallback-context={base_context} contexts={subcontexts}>
+    <DataContextAtom
+      data={{
+        ...data,
+        ...filtered_contexts,
+      }}
+      fallback-context={base_context}
+      contexts={subcontexts}
+    >
       {domToReact($('body') as unknown as DOMNode[]) as ReactElement}
     </DataContextAtom>
   );

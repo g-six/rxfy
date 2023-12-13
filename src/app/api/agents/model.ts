@@ -575,6 +575,37 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
 export async function getMostRecentListings(agent_id: string, size: number = 10): Promise<unknown> {
   return await getMostRecentListing(agent_id, size, true);
 }
+export async function getSoldListings(
+  agent_id: string,
+  size: number = 10,
+  sort?: {
+    [key: string]: 'asc' | 'desc';
+  },
+): Promise<unknown> {
+  const should: {}[] = [
+    // { match: { 'data.LA1_LoginName': agent_id } },
+    // { match: { 'data.LA2_LoginName': agent_id } },
+    // { match: { 'data.LA3_LoginName': agent_id } },
+  ];
+
+  const legacy_params: LegacySearchPayload = {
+    from: 0,
+    size,
+    sort,
+    query: {
+      bool: {
+        filter: [{ match: { 'data.Status': 'Sold' } }],
+        should,
+        // minimum_should_match: 1,
+        must_not: [{ match: { 'data.Status': 'Terminated' } }],
+      },
+    },
+  };
+  const results = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
+  // consoler('agents/model.ts', { results, legacy_params });
+  return await Promise.all(results.map(r => strapify(r as unknown as Record<string, unknown>)));
+}
+
 async function strapify(listing: Record<string, unknown>) {
   try {
     const {
@@ -625,23 +656,6 @@ export async function getMostRecentListing(agent_id: string, size: number = 1, o
       },
     },
   };
-
-  // const [legacy_listings, listings] = await Promise.all([
-  //   retrieveFromLegacyPipeline(legacy_params, undefined, 1),
-  //   retrieveAgentInventory(agent_id, gql_agent_id_inventory),
-  // ]);
-
-  // //You can reorder the return priority (either legacy_listings or listings (strapi))
-
-  // const listing = (listings.length && listings[0]) || (legacy_listings.length && legacy_listings[0]);
-  // if (size === 1) {
-  //   if (listing) {
-  //     return await strapify(listing as Record<string, unknown>);
-  //   }
-  // }
-  // let results: Record<string, unknown>[] = [];
-  // if (listings.length) results = listings;
-  // if (legacy_listings.length) results = results.concat(legacy_listings as unknown[] as Record<string, unknown>[]);
 
   const results = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
   return await Promise.all(results.map(r => strapify(r as unknown as Record<string, unknown>)));
