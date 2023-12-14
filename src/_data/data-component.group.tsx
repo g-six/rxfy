@@ -1,5 +1,6 @@
 import { consoler } from '@/_helpers/consoler';
 import { Children, ReactElement, cloneElement } from 'react';
+import DataFieldGroup from './data-field.group';
 
 async function ComponentIterator({
   children,
@@ -14,12 +15,12 @@ async function ComponentIterator({
     if (c.props) {
       const { children: sub, ...attribs } = c.props;
       let className = attribs.className || '';
-      className = className ? `${className} rexified` : 'rexified';
 
       if (data) {
         let field = attribs['data-field'] || '';
         if (attribs['data-image']) field = attribs['data-image'];
         if (field) {
+          className = className ? `${className} rexified` : 'rexified';
           if (field === 'address') {
             field = 'title';
           }
@@ -50,6 +51,15 @@ async function ComponentIterator({
               className,
             },
             value,
+          );
+        }
+
+        let group = attribs['data-field-group'] || '';
+        if (group) {
+          return (
+            <DataFieldGroup {...props} data-field-group={group}>
+              {c}
+            </DataFieldGroup>
           );
         }
       }

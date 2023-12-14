@@ -15,7 +15,6 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
       if (c.props.children && typeof c.props.children !== 'string') {
         const { children: sub, ...attribs } = c.props;
         let className = attribs.className || '';
-        className = className ? `${className} rexified` : 'rexified';
         // if (className.includes('image-gallery')) return <></>;
         // if (className.includes('links-hide-show')) return <></>;
         // if (className.includes('id-card')) return <></>;
@@ -26,6 +25,7 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
         // if (className.includes('2-contexts')) return <></>;
         if (attribs['data-context']) {
           if (props.data) {
+            className = className ? `${className} rexified` : 'rexified';
             // if data of context already fetched
             if (props.data[attribs['data-context']]) {
               // Filter presence tells us that the context contains multiple records

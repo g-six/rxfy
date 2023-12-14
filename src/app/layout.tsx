@@ -82,9 +82,41 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const head = $('head');
 
+  /**
+   * Very important!  Webflow's javascript messes with the scripts we create to handle data-context + data-field + data-etc
+   * so we only load the script after all our scripts are done loaded
+   */
+  const scripts = $('body script[src*=webflow]');
+  const webflow_scripts: { [k: string]: string }[] = [];
+  scripts.each((i, el) => {
+    webflow_scripts.push(el.attribs);
+  });
+
+  const combined =
+    '<script type="text/javascript">window.addEventListener("load", function(){ let script;\n' +
+    webflow_scripts
+      .map(script => {
+        return `
+      
+        script = document.createElement('script');
+        ${Object.keys(script)
+          .map(attr => `script.${attr} = "${script[attr]}";`)
+          .join('\n        ')}
+        document.body.appendChild(script)
+      
+      `;
+      })
+      .join('\n\n') +
+    `})
+    </script>`;
+
+  function loadWebflowScripts() {
+    return head.html() + '\n\n' + combined;
+  }
+
   return (
     <html suppressHydrationWarning>
-      <head dangerouslySetInnerHTML={{ __html: head.html() || '' }} suppressHydrationWarning />
+      <head dangerouslySetInnerHTML={{ __html: loadWebflowScripts() || '' }} suppressHydrationWarning />
       <body suppressHydrationWarning>{children}</body>
     </html>
   );

@@ -49,12 +49,17 @@ function Iterator({
           if (attribs['data-component'] && dataset[idx])
             return <DataComponentGroupItem {...attribs} component={c} data={dataset[idx]} data-sources={props.data} />;
 
+          // Rexify action components for only one (first) record
           if (dataset[0] && attribs['data-action']) {
             return (
               <DataAction {...attribs} {...props} context-data={dataset[0]}>
                 {c}
               </DataAction>
             );
+          }
+          // Rexify grouped components for only one (first) record
+          if (dataset[0] && attribs['data-group']) {
+            return <DataComponentGroupItem {...attribs} component={c} data={dataset[0]} data-sources={props.data} />;
           }
         }
         let field = '';

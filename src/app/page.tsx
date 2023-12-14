@@ -141,6 +141,12 @@ export default async function Page() {
   const divs = $('body > div');
   $('body > div').remove();
 
+  /**
+   * Very important!  Webflow's javascript messes with the scripts we create to handle data-context + data-field + data-etc
+   * so we only load the script after all our scripts are done loaded (code to add in layout.tsx)
+   */
+  $('body > script[src*=webflow]').remove();
+
   return (
     <DataContextAtom
       data={{
