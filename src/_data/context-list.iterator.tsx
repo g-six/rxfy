@@ -17,7 +17,18 @@ export default async function ContextListIterator({
   'data-filter'?: string;
   dataset: { [k: string]: unknown }[];
 } & Props) {
-  const rexified = Children.map(children, async (c, idx) => {
+  return <Iterator {...props}>{children}</Iterator>;
+}
+function Iterator({
+  children,
+  ...props
+}: {
+  children: ReactElement;
+  'data-context'?: string;
+  'data-filter'?: string;
+  dataset: { [k: string]: unknown }[];
+} & Props) {
+  const rexified = Children.map(children, (c, idx) => {
     if (c.props) {
       const { className, ...attribs } = c.props;
       if (props.data) {
@@ -90,7 +101,7 @@ export default async function ContextListIterator({
         }
 
         if (attribs.children && typeof attribs.children !== 'string') {
-          return cloneElement(c, {}, <ContextListIterator {...props}>{attribs.children}</ContextListIterator>);
+          return cloneElement(c, {}, <Iterator {...props}>{attribs.children}</Iterator>);
         }
       }
     }

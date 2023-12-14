@@ -37,7 +37,7 @@ export async function getAgentBrokerages(agent_id: string): Promise<Brokerage[]>
 
   const response_data = await results.json();
   return response_data?.data?.brokerages.data
-    ? response_data?.data?.brokerages.data.map(b => ({
+    ? response_data?.data?.brokerages.data.map((b: { attributes: { [k: string]: any }; id: number }) => ({
         ...b.attributes,
         id: Number(b.id),
       }))
