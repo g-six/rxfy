@@ -115,6 +115,7 @@ export default function DataAction({
   useEffect(() => {
     toggleReady(true);
   }, []);
+  const agent = props.data.agent as AgentData;
 
   return is_ready ? (
     <Iterator
@@ -193,7 +194,6 @@ export default function DataAction({
             break;
           case 'email':
             if (props['context-data']) {
-              const agent = props.data.agent as AgentData;
               const { title, mls_id } = props['context-data'] as {
                 [k: string]: string;
               };
@@ -203,6 +203,20 @@ export default function DataAction({
                 }/${agent.agent_id}/property?mls=${mls_id}`,
               );
             }
+            break;
+          case 'link':
+            const copyContent = async () => {
+              const { mls_id } = props['context-data'] as {
+                [k: string]: string;
+              };
+              try {
+                navigator.clipboard.writeText(
+                  `https://${agent.domain_name || `${agent.website_theme || 'app'}.leagent.com`}/${agent.agent_id}/property?mls=${mls_id}`,
+                );
+              } catch (err) {
+                console.error('Failed to copy: ', err);
+              }
+            };
             break;
           default:
             consoler('data-action.tsx', `No function handler for: ${props['data-action']}`, props.data);
