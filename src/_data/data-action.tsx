@@ -8,6 +8,7 @@ import { sendMessageToRealtor } from '@/_utilities/api-calls/call-realtor';
 import { loveHome, unloveByMLSId } from '@/_utilities/api-calls/call-love-home';
 import { AgentData } from '@/_typings/agent';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
+import { useRouter } from 'next/navigation';
 
 function Iterator({
   children,
@@ -85,6 +86,7 @@ export default function DataAction({
   'data-action': string;
   'data-context': string;
 }) {
+  const router = useRouter();
   const [is_ready, toggleReady] = useState(false);
   let loved = false;
   if (props['data-action'] === 'like') {
@@ -170,6 +172,16 @@ export default function DataAction({
                   }
                 }
               }
+            }
+            break;
+          case 'pdf':
+            if (props['context-data']) {
+              const agent = props.data.agent as AgentData;
+              const { mls_id } = props['context-data'] as {
+                [k: string]: string;
+              };
+              consoler('data-action.tsx', `No function handler for: ${props['data-action']}`, props.data);
+              router.push(`/api/pdf/mls/${mls_id}?agent=${agent.agent_id}&wf=leagent-webflow-rebuild.webflow.io`);
             }
             break;
           default:

@@ -173,19 +173,24 @@ export async function getPdf(page_url: string, data: unknown) {
       // );
     });
 
-  $('[data-field="cover_photo"]').replaceWith(
-    `<div style="background-image: url(${getImageSized(values.photos[0], 600)}); background-position: center; background-size: cover;" class="${$(
-      '[data-field="cover_photo"]',
-    ).attr('class')}"></div>`,
-  );
+  if (values.photos?.[0])
+    $('[data-field="cover_photo"]').replaceWith(
+      `<div style="background-image: url(${getImageSized(values.photos[0], 600)}); background-position: center; background-size: cover;" class="${$(
+        '[data-field="cover_photo"]',
+      ).attr('class')}"></div>`,
+    );
 
-  const headshot_replacement = values['agent.metatags.headshot'] ? getImageSized(values['agent.metatags.headshot'], 200) : getImageSized(values.photos[0], 200);
+  if (values['agent.metatags.headshot'] || values.photos?.[0]) {
+    const headshot_replacement = values['agent.metatags.headshot']
+      ? getImageSized(values['agent.metatags.headshot'], 200)
+      : getImageSized(values.photos[0], 200);
 
-  $('[data-image="agent.metatags.headshot"]').replaceWith(
-    `<div style="background-image: url(${headshot_replacement}); background-position: center; background-size: cover;" class="${$(
-      '[data-image="agent.metatags.headshot"]',
-    ).attr('class')}"></div>`,
-  );
+    $('[data-image="agent.metatags.headshot"]').replaceWith(
+      `<div style="background-image: url(${headshot_replacement}); background-position: center; background-size: cover;" class="${$(
+        '[data-image="agent.metatags.headshot"]',
+      ).attr('class')}"></div>`,
+    );
+  }
 
   const { agent } = values as unknown as {
     agent: AgentData;

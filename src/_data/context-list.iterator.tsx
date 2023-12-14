@@ -46,15 +46,15 @@ function Iterator({
               },
             ];
           }
-          if (dataset[idx]) {
-            if (attribs['data-component']) return <DataComponentGroupItem {...attribs} component={c} data={dataset[idx]} data-sources={props.data} />;
-            else if (attribs['data-action']) {
-              return (
-                <DataAction {...attribs} {...props} context-data={dataset[idx]}>
-                  {c}
-                </DataAction>
-              );
-            }
+          if (attribs['data-component'] && dataset[idx])
+            return <DataComponentGroupItem {...attribs} component={c} data={dataset[idx]} data-sources={props.data} />;
+
+          if (dataset[0] && attribs['data-action']) {
+            return (
+              <DataAction {...attribs} {...props} context-data={dataset[0]}>
+                {c}
+              </DataAction>
+            );
           }
         }
         let field = '';

@@ -1,7 +1,7 @@
 import { getResponse } from '@/app/api/response-helper';
 import { NextRequest } from 'next/server';
 import { getPdf } from '@/app/api/_helpers/pdf-helper';
-import { getPropertyByMlsId } from '@/app/api/properties/model';
+import { buildCacheFiles, getPropertyByMlsId } from '@/app/api/properties/model';
 import { findAgentRecordByAgentId } from '@/app/api/agents/model';
 
 // PDF Brochure
@@ -11,9 +11,10 @@ export async function GET(req: NextRequest) {
   const { origin, searchParams, pathname } = new URL(req.url);
 
   const mls_id = pathname.split('/').pop();
-
-  if (origin && searchParams.get('agent') && searchParams.get('slug') && mls_id) {
+  console.log({ mls_id });
+  if (origin && searchParams.get('agent') && mls_id) {
     const agent = await findAgentRecordByAgentId(searchParams.get('agent') as string);
+    await buildCacheFiles(mls_id);
     const data = await getPropertyByMlsId(mls_id);
     const full_data = {
       ...data,
@@ -23,8 +24,7 @@ export async function GET(req: NextRequest) {
     if (agent.webflow_domain && THEMES_WITH_BROCHURE_HTML.includes(agent.webflow_domain.split('.').reverse().pop())) {
       domain = agent.webflow_domain;
     }
-    const page_url = ['https://sites.leagent.com', domain, 'brochure.html'].join('/');
-
+    const page_url = ['https://sites.leagent.com', searchParams.get('wf') || domain, 'brochure.html'].join('/');
     return await getPdf(page_url, full_data as unknown);
   }
 
