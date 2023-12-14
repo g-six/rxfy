@@ -150,7 +150,10 @@ export default async function Page() {
       fallback-context={base_context}
       contexts={subcontexts}
     >
-      <>{domToReact(divs as unknown as DOMNode[]) as ReactElement}</>
+      <>
+        {domToReact(divs as unknown as DOMNode[]) as ReactElement}
+        {domToReact($('body') as unknown as DOMNode[]) as ReactElement}
+      </>
     </DataContextAtom>
   );
 }

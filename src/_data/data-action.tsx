@@ -174,14 +174,34 @@ export default function DataAction({
               }
             }
             break;
+          case 'facebook':
+            if (props['context-data']) {
+              const { mls_id } = props['context-data'] as {
+                [k: string]: string;
+              };
+              router.push(`https://www.facebook.com/sharer/sharer.php?u=app.leagent.com/property?mls${mls_id}`);
+            }
+            break;
           case 'pdf':
             if (props['context-data']) {
               const agent = props.data.agent as AgentData;
               const { mls_id } = props['context-data'] as {
                 [k: string]: string;
               };
-              consoler('data-action.tsx', `No function handler for: ${props['data-action']}`, props.data);
               router.push(`/api/pdf/mls/${mls_id}?agent=${agent.agent_id}&wf=leagent-webflow-rebuild.webflow.io`);
+            }
+            break;
+          case 'email':
+            if (props['context-data']) {
+              const agent = props.data.agent as AgentData;
+              const { title, mls_id } = props['context-data'] as {
+                [k: string]: string;
+              };
+              router.push(
+                `mailto:your@email.here?subject=${title}&body=Check this listing out: https://${
+                  agent.domain_name || `${agent.website_theme || 'app'}.leagent.com`
+                }/${agent.agent_id}/property?mls=${mls_id}`,
+              );
             }
             break;
           default:
