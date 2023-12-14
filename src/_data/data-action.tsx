@@ -86,7 +86,17 @@ export default function DataAction({
   'data-context': string;
 }) {
   const [is_ready, toggleReady] = useState(false);
-  const [state, setState] = useState<{ [k: string]: boolean | number | string }>({});
+  let loved = false;
+  if (props['data-action'] === 'like') {
+    const local_loves = (getData(Events.LovedItem) as unknown as string[]) || [];
+    const { mls_id } = props['context-data'] as {
+      [k: string]: string;
+    };
+    loved = local_loves.includes(mls_id);
+  }
+  const [state, setState] = useState<{ [k: string]: boolean | number | string }>({
+    loved,
+  });
   const form = useFormEvent(props['data-action'] as unknown as Events);
 
   function getState() {
