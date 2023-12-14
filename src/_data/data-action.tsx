@@ -217,6 +217,7 @@ export default function DataAction({
                 console.error('Failed to copy: ', err);
               }
             };
+            copyContent();
             break;
           default:
             consoler('data-action.tsx', `No function handler for: ${props['data-action']}`, props.data);
