@@ -2,6 +2,7 @@ import { CheerioAPI, load } from 'cheerio';
 import { headers } from 'next/headers';
 import { getAgentBy } from './api/_helpers/agent-helper';
 import { consoler } from '@/_helpers/consoler';
+import { DOMNode, domToReact } from 'html-react-parser';
 
 async function getPageMetadata(): Promise<{ title: string; description: string; html: string; domain_name: string; data?: { [k: string]: any } }> {
   let domain_name = headers().get('host') || '';
@@ -80,12 +81,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   consoler('layout.tsx', `${Date.now() - ts}ms`);
 
   const head = $('head');
-  $('body').remove();
 
   return (
     <html suppressHydrationWarning>
       <head dangerouslySetInnerHTML={{ __html: head.html() || '' }} suppressHydrationWarning />
-      <body>{children}</body>
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }

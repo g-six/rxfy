@@ -95,7 +95,7 @@ export async function unloveByMLSId(mls_id: string) {
     // Handle localStorage
     const local_loves = (getData(Events.LovedItem) as unknown as string[]) || [];
     setData(Events.LovedItem, JSON.stringify(local_loves.filter(loved => loved !== mls_id)));
-    if (!Cookies.get('session_key')) return;
+    if (!Cookies.get('session_key')) return { loved: false };
 
     const response = await axios.delete(`/api/loves?mls_id=${mls_id}`, {
       headers: {

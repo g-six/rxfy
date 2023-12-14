@@ -9,8 +9,8 @@ interface Props {
   'fallback-context': string;
 }
 
-async function ContextIterator({ children, ...props }: { children: ReactElement } & Props) {
-  const rexifier = Children.map(children, async c => {
+function ContextIterator({ children, ...props }: { children: ReactElement } & Props) {
+  const rexifier = Children.map(children, c => {
     if (c.props) {
       if (c.props.children && typeof c.props.children !== 'string') {
         const { children: sub, ...attribs } = c.props;
@@ -68,6 +68,7 @@ async function ContextIterator({ children, ...props }: { children: ReactElement 
       }
       return c;
     }
+    return c;
   });
   return <>{rexifier}</>;
 }

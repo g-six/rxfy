@@ -1,12 +1,13 @@
 'use client';
 
 import { ChangeEvent, Children, ReactElement, cloneElement, useEffect, useState } from 'react';
-import useFormEvent from '@/hooks/useFormEvent';
+import useFormEvent, { Events } from '@/hooks/useFormEvent';
 import { consoler } from '@/_helpers/consoler';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { sendMessageToRealtor } from '@/_utilities/api-calls/call-realtor';
-import { loveHome } from '@/_utilities/api-calls/call-love-home';
+import { loveHome, unloveByMLSId } from '@/_utilities/api-calls/call-love-home';
 import { AgentData } from '@/_typings/agent';
+import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 
 function Iterator({
   children,
@@ -15,10 +16,11 @@ function Iterator({
 }: {
   children: ReactElement;
   data?: { [k: string]: unknown };
+  'context-data'?: { [k: string]: unknown };
   contexts: { [k: string]: { [k: string]: unknown } };
   onClick(): void;
   'fallback-context': string;
-  'toggle-state': { [k: string]: string | boolean | number };
+  'toggle-state': boolean;
 }) {
   const rexifier = Children.map(children, c => {
     if (c.props) {
@@ -48,6 +50,10 @@ function Iterator({
         }
       }
 
+      if (c.props['data-off-label'] && c.props['data-on-label']) {
+        return cloneElement(c, {}, props['toggle-state'] ? c.props['data-on-label'] : c.props['data-off-label']);
+      }
+
       if (c.props.children && typeof c.props.children !== 'string') {
         return cloneElement(
           c,
@@ -72,15 +78,27 @@ export default function DataAction({
   ...props
 }: {
   children: ReactElement;
-  data?: { [k: string]: unknown };
+  data: { [k: string]: unknown };
+  'context-data'?: { [k: string]: unknown };
   contexts: { [k: string]: { [k: string]: unknown } };
   'fallback-context': string;
   'data-action': string;
   'data-context': string;
 }) {
   const [is_ready, toggleReady] = useState(false);
-  const [state, setState] = useState<{ [k: string]: boolean | number; string }>({});
+  const [state, setState] = useState<{ [k: string]: boolean | number | string }>({});
   const form = useFormEvent(props['data-action'] as unknown as Events);
+
+  function getState() {
+    switch (props['data-action']) {
+      case 'like':
+        return state.loved as boolean;
+      default:
+        return false;
+    }
+  }
+
+  useEffect(() => {}, [state]);
 
   useEffect(() => {
     toggleReady(true);
@@ -89,7 +107,7 @@ export default function DataAction({
   return is_ready ? (
     <Iterator
       {...props}
-      toggle-state={state}
+      toggle-state={getState()}
       onClick={() => {
         ////////
         // Logic to the different supported actions below
@@ -125,15 +143,23 @@ export default function DataAction({
             }
             break;
           case 'like':
-            const { mls_id } = props.data as {
-              [k: string]: string;
-            };
-            if (props.data) {
-              const agent = props.data[props['data-context']] as AgentData;
-              consoler('data-action.tsx', 'Like ' + mls_id);
-              loveHome(mls_id, agent.id).then(({ loved }) => {
-                setState({ ...state, loved });
-              });
+            if (props['context-data']) {
+              const { mls_id } = props['context-data'] as {
+                [k: string]: string;
+              };
+              if (props.data) {
+                const agent = props.data.agent as AgentData;
+                if (agent) {
+                  const local_loves = (getData(Events.LovedItem) as unknown as string[]) || [];
+                  if (local_loves.includes(mls_id)) {
+                    unloveByMLSId(mls_id);
+                    setState({ ...state, loved: false });
+                  } else {
+                    loveHome(mls_id, agent.id);
+                    setState({ ...state, loved: true });
+                  }
+                }
+              }
             }
             break;
           default:

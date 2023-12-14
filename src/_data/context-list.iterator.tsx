@@ -39,7 +39,7 @@ export default async function ContextListIterator({
             if (attribs['data-component']) return <DataComponentGroupItem {...attribs} component={c} data={dataset[idx]} data-sources={props.data} />;
             else if (attribs['data-action']) {
               return (
-                <DataAction {...attribs} {...props} data={dataset[idx]}>
+                <DataAction {...attribs} {...props} context-data={dataset[idx]}>
                   {c}
                 </DataAction>
               );
