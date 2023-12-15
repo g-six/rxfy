@@ -656,6 +656,7 @@ async function strapify(listing: Record<string, unknown>) {
       mls_id,
       real_estate_board,
       cover_photo,
+      photos: mls_data.photos || [],
     };
   } catch (e) {
     console.log('Error');

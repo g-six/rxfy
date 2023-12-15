@@ -1,6 +1,7 @@
 import { Children, ReactElement, cloneElement } from 'react';
 import DataAction from './data-action';
 import DataComponentGroupItem from './data-component.group';
+import DataFieldGroup from './data-field.group';
 
 interface Props {
   data?: { [k: string]: unknown };
@@ -60,6 +61,20 @@ function Iterator({
           // Rexify grouped components for only one (first) record
           if (dataset[0] && attribs['data-group']) {
             return <DataComponentGroupItem {...attribs} component={c} data={dataset[0]} data-sources={props.data} />;
+          }
+          if (dataset[0] && attribs['data-field-group']) {
+            return cloneElement(
+              c,
+              {},
+              <DataFieldGroup
+                data-field-group={attribs['data-field-group']}
+                data-json-ref={attribs['data-json-ref']}
+                data={dataset[0]}
+                data-sources={props.data}
+              >
+                {attribs.children}
+              </DataFieldGroup>,
+            );
           }
         }
         let field = '';

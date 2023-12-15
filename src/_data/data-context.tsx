@@ -2,6 +2,7 @@ import { Children, ReactElement, cloneElement } from 'react';
 import DataFieldAtom from './data-field.atom';
 import { consoler } from '@/_helpers/consoler';
 import ContextListIterator from './context-list.iterator';
+import ExternalScriptClient from './external-script.client-component';
 
 interface Props {
   data?: { [k: string]: unknown };
@@ -86,5 +87,9 @@ export default async function DataContext({
 }: {
   children: ReactElement;
 } & Props) {
-  return <ContextIterator {...props}>{children}</ContextIterator>;
+  return (
+    <>
+      <ContextIterator {...props}>{children}</ContextIterator>
+    </>
+  );
 }
