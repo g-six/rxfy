@@ -55,9 +55,9 @@ async function ComponentIterator({
         }
 
         let group = attribs['data-field-group'] || '';
-        if (group) {
+        if (group && props.data) {
           return (
-            <DataFieldGroup {...props} data-field-group={group}>
+            <DataFieldGroup {...props} data={props.data} data-field-group={group}>
               {c}
             </DataFieldGroup>
           );
