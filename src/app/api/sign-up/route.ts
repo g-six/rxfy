@@ -78,7 +78,8 @@ const gql_saved_search = `mutation CreateSavedSearch ($data: SavedSearchInput!) 
 
 export async function POST(request: NextRequest) {
   const { email, full_name, password, agent, logo, yes_to_marketing, saved_search, dashboard_uri } = await request.json();
-  consoler(FILE, request.referrer);
+  const dashboard_url = request.headers.get('X-Dashboard-Url') || '';
+  consoler(FILE, { dashboard_url });
   let created_saved_search: SavedSearch | undefined = undefined;
   if (!yes_to_marketing) {
     return NextResponse.json(
@@ -193,7 +194,8 @@ export async function POST(request: NextRequest) {
           const { email, full_name, agents, last_activity_at } = attributes;
           const url = new URL(request.url);
 
-          if (saved_search) {
+          if (saved_search && Object.keys(saved_search).length > 0) {
+            consoler(FILE, { saved_search });
             const agent_metatag: {
               [k: string]: string;
             } & { id: number } = {
@@ -235,7 +237,10 @@ export async function POST(request: NextRequest) {
                   },
                 ],
                 {
-                  url: `${url.origin}${dashboard_uri || '/my-profile'}?key=${encrypt(last_activity_at)}.${encrypt(email)}-${data.id}`,
+                  url: [
+                    dashboard_url || `${url.origin}${dashboard_uri || '/my-profile'}`,
+                    `key=${encrypt(last_activity_at)}.${encrypt(email)}-${data.id}`,
+                  ].join('?'),
                   agent_logo: getImageSized(
                     agent_metatag.logo_for_light_bg || agent_metatag.logo_for_dark_bg || 'https://leagent.com/logo-dark.svg',
                     agent_metatag.logo_for_light_bg || agent_metatag.logo_for_dark_bg ? 150 : 300,
@@ -254,7 +259,9 @@ export async function POST(request: NextRequest) {
                 },
               ],
               {
-                url: `${url.origin}${dashboard_uri || '/my-profile'}?key=${encrypt(last_activity_at)}.${encrypt(email)}-${data.id}`,
+                url: [dashboard_url || `${url.origin}${dashboard_uri || '/my-profile'}`, `key=${encrypt(last_activity_at)}.${encrypt(email)}-${data.id}`].join(
+                  '?',
+                ),
                 agent_logo: logo,
                 password: valid_data.password,
               },

@@ -2,6 +2,8 @@ import { consoler } from '@/_helpers/consoler';
 import { Children, ReactElement, cloneElement } from 'react';
 import DataInputAtom from './data-input';
 import DataAction from './data-action';
+import { cookies } from 'next/headers';
+import DataShowOn from './data-show.client-component';
 
 async function AtomIterator({
   children,
@@ -67,6 +69,10 @@ async function AtomIterator({
               {c}
             </DataInputAtom>
           );
+        }
+        if (attribs['data-show-on']) {
+          const show_on = attribs['data-show-on'] as string;
+          return <DataShowOn {...attribs} element={c} />;
         }
         if (attribs['data-action']) {
           return (

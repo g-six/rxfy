@@ -45,7 +45,7 @@ export async function agentSignUp(agent: { agent_id: string; email: string; full
 export async function signUp(
   agent: { id: number; logo?: string; email?: string },
   customer: { email: string; full_name?: string; password?: string; agent_metatag_id?: number },
-  opts?: { search_url?: string; dashboard_uri?: string },
+  opts?: { search_url?: string; dashboard_uri?: string; dashboard_url?: string },
 ) {
   const full_name =
     customer.full_name ||
@@ -78,6 +78,7 @@ export async function signUp(
     {
       headers: {
         'Content-Type': 'application/json',
+        'X-Dashboard-Url': opts?.dashboard_url || '',
       },
     },
   );

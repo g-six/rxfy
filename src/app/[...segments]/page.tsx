@@ -19,32 +19,40 @@ async function Page({ params, searchParams }: { params: { segments: string[] }; 
         domain_name = domain_name.substring(0, domain_name.indexOf('.grey'));
       }
     }
-    if (domain_name) {
-      const agent = await getAgentBy({
-        domain_name,
-      });
-      if (agent?.webflow_domain) {
-        const page_url = `https://${agent.webflow_domain}${params.segments.length ? '/' : ''}${params.segments.join('/')}`;
-        const page_html_xhr = await fetch(page_url);
+
+    const agent = await getAgentBy({
+      domain_name,
+    });
+    if (agent?.webflow_domain) {
+      const page_url = `https://${agent.webflow_domain}${params.segments.length ? '/' : ''}${params.segments.join('/')}`;
+      const page_html_xhr = await fetch(page_url);
+      let html = '';
+      if (page_html_xhr.ok) html = await page_html_xhr.text();
+      else {
+        // Page does not exist on Webflow
+        const page_404_req = await fetch(`https://${agent.webflow_domain}/404`);
+        if (page_404_req.ok) {
+          html = await page_404_req.text();
+        }
+      }
+
+      if (html) {
+        const $: CheerioAPI = load(html);
         if (page_html_xhr.ok) {
-          const html = await page_html_xhr.text();
-          const $: CheerioAPI = load(html);
           $('[data-field]').each((idx, el) => {
             if (el.tagName !== 'img') {
               const field = $(el).attr('data-field');
               if (field) $(el).text(field);
             }
           });
-          const links = $('head > link');
-          const scripts = $('head > script');
-          const body = $('body > *:not(script)');
-          const page = $('html');
-
-          return <>{body && domToReact(body as unknown as DOMNode[])}</>;
         }
-        return <>{page_url}</>;
+        const links = $('head > link');
+        const scripts = $('head > script');
+        const body = $('body > *:not(script)');
+        const page = $('html');
+
+        return <>{body && domToReact(body as unknown as DOMNode[])}</>;
       }
-      return <pre>{JSON.stringify(agent, null, 4)}</pre>;
     }
   }
 

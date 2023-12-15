@@ -25,6 +25,7 @@ export async function login(email: string, password: string, opts?: { search_url
 
   if (response.data?.user?.id && response.data?.session_key) {
     Cookies.set('session_key', response.data.session_key);
+    Cookies.set('session_as', opts?.is_agent ? 'realtor' : 'customer');
   }
 
   return response.data || {};

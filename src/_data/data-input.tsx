@@ -24,7 +24,7 @@ function Iterator({
         if (field) {
           return cloneElement(
             <input
-              type='text'
+              type={field.includes('password') ? 'password' : 'text'}
               onChange={(evt: ChangeEvent<HTMLInputElement>) => {
                 props.onChange(evt.currentTarget.name, evt.currentTarget.value);
               }}

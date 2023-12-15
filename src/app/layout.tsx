@@ -6,6 +6,7 @@ import { DOMNode, domToReact } from 'html-react-parser';
 import ExternalScriptClient from '@/_data/external-script.client-component';
 
 async function getPageMetadata(): Promise<{ title: string; description: string; html: string; domain_name: string; data?: { [k: string]: any } }> {
+  let html = '';
   let domain_name = headers().get('host') || '';
   let title = '';
   let description = 'Leagent';
@@ -33,28 +34,24 @@ async function getPageMetadata(): Promise<{ title: string; description: string; 
     const url = headers().get('x-pathname');
     const page_url = `https://${data?.webflow_domain}${url}`;
     const page_html_xhr = await fetch(page_url);
-    if (page_html_xhr.ok) {
+
+    if (page_html_xhr.ok) html = await page_html_xhr.text();
+    else {
+      // Page does not exist on Webflow
+      const page_404_req = await fetch(`https://${data.webflow_domain}/404`);
+      if (page_404_req.ok) {
+        html = await page_404_req.text();
+      }
+    }
+
+    if (html) {
       if (data?.webflow_domain) {
-        const html = await page_html_xhr.text();
         const $: CheerioAPI = load(html);
         title = data.full_name;
         if (data.metatags?.title) title = data.metatags.title;
         if (data.metatags?.description) description = data.metatags.description;
       }
-    }
-  }
-
-  let html = '';
-
-  if (domain_name) {
-    const url = headers().get('x-pathname');
-    const page_url = `https://${data.webflow_domain}${url}`;
-    const page_html_xhr = await fetch(page_url);
-    if (page_html_xhr.ok) {
-      if (data?.webflow_domain) {
-        html = await page_html_xhr.text();
-      }
-    }
+    } else consoler('layout.tsx', page_html_xhr);
   }
 
   return {
@@ -109,8 +106,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     `\n\t}\n\n
     document.addEventListener("external-scripts", loadExternalScripts, false)
     /* window.addEventListener("load", loadExternalScripts) */
-
+    // const origAlert = window.alert 
     const origConsoleLog = window.console.log
+    // window.alert = origConsoleLog
     window.console.log = (...message) => {
       if (!Array.isArray(message) || !['tsx', 'ts'].includes(message[0].split('.').pop())) {
         origConsoleLog("Please provide the filename.ts(x) as your first console.log debugging paramater")

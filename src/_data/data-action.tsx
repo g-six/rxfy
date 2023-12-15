@@ -9,6 +9,9 @@ import { loveHome, unloveByMLSId } from '@/_utilities/api-calls/call-love-home';
 import { AgentData } from '@/_typings/agent';
 import { getData } from '@/_utilities/data-helpers/local-storage-helper';
 import { useRouter } from 'next/navigation';
+import { login } from '@/_utilities/api-calls/call-login';
+import { signUp } from '@/_utilities/api-calls/call-signup';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 
 function Iterator({
   children,
@@ -100,6 +103,7 @@ export default function DataAction({
     loved,
   });
   const form = useFormEvent(props['data-action'] as unknown as Events);
+  const { fireEvent: showOn } = useFormEvent('data-show-on' as unknown as Events);
 
   function getState() {
     switch (props['data-action']) {
@@ -202,6 +206,60 @@ export default function DataAction({
                   agent.domain_name || `${agent.website_theme || 'app'}.leagent.com`
                 }/${agent.agent_id}/property?mls=${mls_id}`,
               );
+            }
+            break;
+          case 'login':
+            if (props.data.agent) {
+              // We're on an agent's website
+              const { email, password } = form.data as { email: string; password: string };
+              login(email, password, {
+                is_agent: props['data-context'] === 'agent',
+              })
+                .then(results => {
+                  showOn({
+                    message: 'logged-in',
+                  });
+                })
+                .catch(error => {
+                  console.log('data-action.tsx', error);
+                });
+            }
+            break;
+          case 'signup':
+            if (props.data.agent) {
+              // We're on an agent's website
+              const { customer_name, email, password } = form.data as { customer_name: string; email: string; password: string };
+              const {
+                id,
+                metatags: { logo_for_dark_bg, logo_for_light_bg },
+              } = props.data.agent as AgentData;
+              const logo = logo_for_light_bg || logo_for_dark_bg;
+              signUp(
+                {
+                  id,
+                  logo: getImageSized(
+                    logo_for_light_bg || logo_for_dark_bg || 'https://leagent.com/logo-dark.svg',
+                    logo_for_light_bg || logo_for_dark_bg ? 150 : 300,
+                  ),
+                },
+                {
+                  full_name: customer_name,
+                  email,
+                  password,
+                  agent_metatag_id: agent.metatags.id,
+                },
+                {
+                  dashboard_url: `${location.origin}/my-profile`,
+                },
+              )
+                .then(results => {
+                  showOn({
+                    message: 'logged-in',
+                  });
+                })
+                .catch(error => {
+                  console.log('data-action.tsx', error);
+                });
             }
             break;
           case 'link':

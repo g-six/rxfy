@@ -1,5 +1,5 @@
 import { CheerioAPI, load } from 'cheerio';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { getAgentBy } from './api/_helpers/agent-helper';
 import DataContextAtom from '@/_data/data-context';
 import { DOMNode, domToReact } from 'html-react-parser';
@@ -22,7 +22,7 @@ async function getPageMetadata(): Promise<{
   let domain_name = headers().get('host') || '';
   let title = '';
   let description = 'Leagent';
-  let data: { [k: string]: any } = {};
+  let data: { [k: string]: any } = await buildSessionData();
   let subcontexts: SubcontextProps = {};
   let base_context = '';
   if (domain_name) {
@@ -162,4 +162,40 @@ export default async function Page() {
       </>
     </DataContextAtom>
   );
+}
+
+async function buildSessionData() {
+  // TODO
+  return {
+    client: {},
+  };
+  /*
+
+  // Check if a client (for an agent) is logged in
+  let session_key = cookies().get('session_all')?.value || '';
+  let session_as = cookies().get('session_as')?.value || '';
+  if (session_key) {
+    if (session_as === 'realtor') {
+      // Check if a an agent is logged in
+    } else if (data?.agent) {
+      // If user is not logged in and data-context = client,
+      // fallback to agent as reference so that Rx can link user
+      // to the agent of the website when signing in / up
+      const clients = data.agent.customers.data?.map((client: { attributes: { customer: { data: { attributes: { [k: string]: string }; id: number } } } }) => {
+        const { attributes, id: customer_id } = client.attributes.customer.data;
+        return {
+          ...attributes,
+          id: Number(customer_id),
+        };
+      });
+      data = {
+        ...data,
+        client: {
+          filters: [], // blank as we don't have the info of the client when not in session
+          sort: [], // blank as we don't have the info of the client when not in session
+        },
+      };
+    }
+  }
+  */
 }
