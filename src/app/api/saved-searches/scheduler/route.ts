@@ -40,24 +40,25 @@ export async function GET(req: NextRequest) {
         };
 
         const properties = await getTopListings(saved_search as SavedSearchInput);
+        if (senders[saved_search.agent.agent_id]) {
+          const { logo_for_dark_bg, logo_for_light_bg } = senders[saved_search.agent.agent_id].metatags;
+          const email_contents = {
+            send_to_name: send_to.name,
+            website_url: getAgentBaseUrl(senders[saved_search.agent.agent_id], true),
+            unsubscribe_url: getAgentBaseUrl(senders[saved_search.agent.agent_id], true) + `/my-home-alerts?unsub=${saved_search.id}`,
+            agent_logo_url: logo_for_light_bg || logo_for_dark_bg ? getImageSized(`${logo_for_light_bg || logo_for_dark_bg}`, 150) : agent_logo_url,
+          };
 
-        const { logo_for_dark_bg, logo_for_light_bg } = senders[saved_search.agent.agent_id].metatags;
-        const email_contents = {
-          send_to_name: send_to.name,
-          website_url: getAgentBaseUrl(senders[saved_search.agent.agent_id], true),
-          unsubscribe_url: getAgentBaseUrl(senders[saved_search.agent.agent_id], true) + `/my-home-alerts?unsub=${saved_search.id}`,
-          agent_logo_url: logo_for_light_bg || logo_for_dark_bg ? getImageSized(`${logo_for_light_bg || logo_for_dark_bg}`, 150) : agent_logo_url,
-        };
+          await sendTemplate('saved-search', [send_to], {
+            properties: properties.map((p: PropertyDataModel) => ({
+              ...p,
+              property_url: getAgentBaseUrl(senders[saved_search.agent.agent_id], true) + `/property?mls=${p.mls_id}&ref=my-home-alerts`,
+            })) as unknown as string,
+            ...email_contents,
+          });
 
-        await sendTemplate('saved-search', [send_to], {
-          properties: properties.map((p: PropertyDataModel) => ({
-            ...p,
-            property_url: getAgentBaseUrl(senders[saved_search.agent.agent_id], true) + `/property?mls=${p.mls_id}&ref=my-home-alerts`,
-          })) as unknown as string,
-          ...email_contents,
-        });
-
-        // sent.push(saved_search.id);
+          // sent.push(saved_search.id);
+        }
         return {
           send_to,
           properties,
