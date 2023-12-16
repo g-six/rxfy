@@ -32,7 +32,6 @@ async function AtomIterator({
           let value = data[field] as string;
 
           if (field === 'cover_photo') {
-            console.log({ field });
             if (data.photos) {
               value = (data.photos as string[]).reverse().pop() as string;
             }

@@ -2,7 +2,6 @@ import { Children, ReactElement, cloneElement } from 'react';
 import DataFieldAtom from './data-field.atom';
 import { consoler } from '@/_helpers/consoler';
 import ContextListIterator from './context-list.iterator';
-import ExternalScriptClient from './external-script.client-component';
 
 interface Props {
   data?: { [k: string]: unknown };
@@ -16,6 +15,12 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
       if (c.props.children && typeof c.props.children !== 'string') {
         const { children: sub, ...attribs } = c.props;
         let className = attribs.className || '';
+        // if (className.split(' ').includes('contact-form-wrapper')) return <></>;
+        // if (className.split(' ').includes('navigation')) return <></>;
+        // if (className.includes('navigation')) return <></>;
+        // if (className.includes('f-section-small')) return <></>;
+        // if (className.includes('f-section-regular')) return <></>;
+        // if (className.includes('recent-listings-section')) return <></>;
         // if (className.includes('image-gallery')) return <></>;
         // if (className.includes('links-hide-show')) return <></>;
         // if (className.includes('id-card')) return <></>;
@@ -24,6 +29,7 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
         // if (className.includes('sold-listings')) return <></>;
         // if (className.includes('multiple-agent-names')) return <></>;
         // if (className.includes('2-contexts')) return <></>;
+
         if (attribs['data-context']) {
           if (props.data) {
             className = className ? `${className} rexified` : 'rexified';
@@ -74,7 +80,7 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
           <ContextIterator {...props}>{sub}</ContextIterator>,
         );
       }
-      return c;
+      return cloneElement(c);
     }
     return c;
   });

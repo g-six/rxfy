@@ -1,15 +1,15 @@
 import { CheerioAPI, load } from 'cheerio';
 import { cookies, headers } from 'next/headers';
 import { getAgentBy } from './api/_helpers/agent-helper';
-import DataContextAtom from '@/_data/data-context';
+import DataContext from '@/_data/data-context';
 import { DOMNode, domToReact } from 'html-react-parser';
 import { ReactElement } from 'react';
 import fetchData from '@/_data/fetchData';
 import { getDomain } from './api/domains/model';
 import { consoler } from '@/_helpers/consoler';
-import { includes } from 'lodash';
 
 type SubcontextProps = { [k: string]: { filters: string[]; sort: string[] } };
+
 async function getPageMetadata(): Promise<{
   title: string;
   description: string;
@@ -113,6 +113,13 @@ export default async function Page() {
   const { html, base_context, subcontexts, ...others } = await getPageMetadata();
 
   const $: CheerioAPI = load(html);
+  $('[aria-controls]').each((idx, el) => {
+    $(el).removeAttr('aria-controls');
+  });
+  $('[aria-current]').each((idx, el) => {
+    $(el).removeAttr('aria-current');
+  });
+
   let data = others.data || {};
   let filtered_contexts: { [k: string]: { [k: string]: unknown } } = {};
   if (data[base_context]) {
@@ -148,7 +155,7 @@ export default async function Page() {
   $('body > script[src*=webflow]').remove();
 
   return (
-    <DataContextAtom
+    <DataContext
       data={{
         ...data,
         ...filtered_contexts,
@@ -160,7 +167,7 @@ export default async function Page() {
         {domToReact(divs as unknown as DOMNode[]) as ReactElement}
         {domToReact($('body') as unknown as DOMNode[]) as ReactElement}
       </>
-    </DataContextAtom>
+    </DataContext>
   );
 }
 

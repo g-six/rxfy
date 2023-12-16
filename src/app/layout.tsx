@@ -84,10 +84,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
    * Very important!  Webflow's javascript messes with the scripts we create to handle data-context + data-field + data-etc
    * so we only load the script after all our scripts are done loaded
    */
-  const scripts = $('body script[src*=webflow]');
+  let jquery: string[] = [];
+  $('script[src*=jquery]').each((idx, el) => {
+    jquery.push(`<script ${Object.keys(el.attribs).map(attr => `${attr}=${el.attribs[attr]} `)}></script>`);
+  });
+  consoler('layout-query.tsx', jquery);
+  $('script[src*=jquery]').remove();
+  const scripts = $('body script[src]');
   const webflow_scripts: { [k: string]: string }[] = [];
   scripts.each((i, el) => {
-    webflow_scripts.push(el.attribs);
+    if (el.attribs.src) webflow_scripts.push(el.attribs);
   });
 
   const combined =
@@ -105,7 +111,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       .join('\n') +
     `\n\t}\n\n
     document.addEventListener("external-scripts", loadExternalScripts, false)
-    /* window.addEventListener("load", loadExternalScripts) */
     // const origAlert = window.alert 
     const origConsoleLog = window.console.log
     // window.alert = origConsoleLog
@@ -115,6 +120,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         origConsoleLog(" For example: ")
         origConsoleLog("   const a_variable_to_debug_on_console = { foo: 123 };")
         origConsoleLog("   console.log('app/my-page/page.tsx', a_variable_to_debug_on_console)")
+        origConsoleLog("   Original arguments to console", message)
       } else {
         origConsoleLog("* * * * * * * * * * * * * * * * *\\n" + "File: "
           + message[0]
@@ -131,7 +137,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     </script>`;
 
   function loadWebflowScripts() {
-    return head.html() + '\n\n' + combined;
+    return head.html() + '\n\n' + jquery.join('\n') + '\n\n' + combined;
   }
 
   return (
