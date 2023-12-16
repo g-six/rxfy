@@ -122,6 +122,7 @@ export default async function Page() {
 
   let data = others.data || {};
   let filtered_contexts: { [k: string]: { [k: string]: unknown } } = {};
+  consoler('page.tsx', base_context);
   if (data[base_context]) {
     await Promise.all(
       Object.keys(subcontexts).map(async context => {

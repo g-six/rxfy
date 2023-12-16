@@ -88,7 +88,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   $('script[src*=jquery]').each((idx, el) => {
     jquery.push(`<script ${Object.keys(el.attribs).map(attr => `${attr}=${el.attribs[attr]} `)}></script>`);
   });
-  consoler('layout-query.tsx', jquery);
+
   $('script[src*=jquery]').remove();
   const scripts = $('body script[src]');
   const webflow_scripts: { [k: string]: string }[] = [];

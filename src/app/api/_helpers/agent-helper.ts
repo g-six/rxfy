@@ -204,6 +204,7 @@ export async function getAgentBy(attributes: { [key: string]: string }) {
   }
   return record?.attributes
     ? {
+        ...record.attributes.agent_metatag.data?.attributes,
         ...record.attributes,
         id: Number(record.id),
         metatags: {
