@@ -1,7 +1,7 @@
 'use client';
 
 import { ChangeEvent, Children, ReactElement, cloneElement, useEffect, useState } from 'react';
-import useFormEvent, { Events } from '@/hooks/useFormEvent';
+import useFormEvent, { Events, EventsData } from '@/hooks/useFormEvent';
 import { consoler } from '@/_helpers/consoler';
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { sendMessageToRealtor } from '@/_utilities/api-calls/call-realtor';
@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import { login } from '@/_utilities/api-calls/call-login';
 import { signUp } from '@/_utilities/api-calls/call-signup';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import useEvent from '@/hooks/useEvent';
 
 function Iterator({
   children,
@@ -87,6 +88,7 @@ export default function DataAction({
   contexts: { [k: string]: { [k: string]: unknown } };
   'fallback-context': string;
   'data-action': string;
+  'data-modal'?: string;
   'data-context': string;
 }) {
   const router = useRouter();
@@ -223,6 +225,28 @@ export default function DataAction({
                 .catch(error => {
                   console.log('data-action.tsx', error);
                 });
+            }
+            break;
+          case 'open-popup':
+            if (props['data-modal']) {
+              form.fireEvent({
+                message: `show.${props['data-modal']}`,
+              });
+              // if (props.data.agent) {
+              //   // We're on an agent's website
+              //   const { email, password } = form.data as { email: string; password: string };
+              //   login(email, password, {
+              //     is_agent: props['data-context'] === 'agent',
+              //   })
+              //     .then(results => {
+              //       showOn({
+              //         message: 'logged-in',
+              //       });
+              //     })
+              //     .catch(error => {
+              //       console.log('data-action.tsx', error);
+              //     });
+              // }
             }
             break;
           case 'signup':

@@ -45,6 +45,7 @@ async function getPageMetadata(): Promise<{
   if (domain_name) {
     const domain = await getDomain(domain_name);
     base_context = domain.context;
+    // For Leagent, it's agent
     if (domain.context === 'agent') {
       const agent = await getAgentBy({
         domain_name,

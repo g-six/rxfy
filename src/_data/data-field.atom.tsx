@@ -4,6 +4,7 @@ import DataInputAtom from './data-input';
 import DataAction from './data-action';
 import { cookies } from 'next/headers';
 import DataShowOn from './data-show.client-component';
+import DataModal from './data-modal.client-component';
 
 async function AtomIterator({
   children,
@@ -73,12 +74,15 @@ async function AtomIterator({
           const show_on = attribs['data-show-on'] as string;
           return <DataShowOn {...attribs} element={c} />;
         }
+
         if (attribs['data-action']) {
           return (
             <DataAction {...attribs} {...props} data={data}>
               {c}
             </DataAction>
           );
+        } else if (attribs['data-modal']) {
+          return <DataModal {...attribs} {...props} data={data} element={c} />;
         }
       }
 
