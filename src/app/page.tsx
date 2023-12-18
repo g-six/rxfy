@@ -167,7 +167,7 @@ export default async function Page() {
     >
       <>
         {domToReact(divs as unknown as DOMNode[]) as ReactElement}
-        {domToReact($('body') as unknown as DOMNode[]) as ReactElement}
+        {domToReact($('body > div') as unknown as DOMNode[]) as ReactElement}
       </>
     </DataContext>
   );

@@ -91,6 +91,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   $('script[src*=jquery]').remove();
   const scripts = $('body script[src]');
+  $('body script[src]').remove();
   const webflow_scripts: { [k: string]: string }[] = [];
   scripts.each((i, el) => {
     if (el.attribs.src) webflow_scripts.push(el.attribs);
@@ -103,6 +104,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         return `
 
         script = document.createElement('script');
+        script.async = true;
         ${Object.keys(script)
           .map(attr => `script.${attr} = "${script[attr]}";`)
           .join('\n        ')}
