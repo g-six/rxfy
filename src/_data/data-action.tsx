@@ -35,19 +35,22 @@ function Iterator({
 
       if (data) {
         let action = attribs['data-action'] || '';
+
         if (action) {
-          return cloneElement(c, {
+          return cloneElement(c.type === 'input' ? <button type='button' /> : c, {
             ...attribs,
             className,
             children: sub ? (
               typeof sub !== 'string' ? (
                 <Iterator data={data} {...props}>
-                  {c.props.children}
+                  {sub}
                 </Iterator>
               ) : (
                 sub
               )
-            ) : undefined,
+            ) : (
+              <span>{c.props.value}</span> || undefined
+            ),
             onClick: () => {
               props.onClick();
             },
@@ -92,8 +95,10 @@ export default function DataAction({
   'data-context': string;
 }) {
   const router = useRouter();
+  const context = props['data-context'] || props['fallback-context'];
   const [is_ready, toggleReady] = useState(false);
   let loved = false;
+
   if (props['data-action'] === 'like') {
     const local_loves = (getData(Events.LovedItem) as unknown as string[]) || [];
     const { mls_id } = props['context-data'] as {
@@ -101,9 +106,11 @@ export default function DataAction({
     };
     loved = local_loves.includes(mls_id);
   }
+
   const [state, setState] = useState<{ [k: string]: boolean | number | string }>({
     loved,
   });
+
   const form = useFormEvent(props['data-action'] as unknown as Events);
   const { fireEvent: showOn } = useFormEvent('data-show-on' as unknown as Events);
 
@@ -136,11 +143,11 @@ export default function DataAction({
             const { email, message, customer_name, phone } = form.data as {
               [k: string]: string;
             };
-            if (props.data && email && message) {
-              const agent = props.data[props['data-context']] as AgentData;
+            if (props.data && email && message && context) {
+              const reference = props.data[context] as AgentData;
               const send_to = {
-                email: agent.email,
-                name: agent.full_name,
+                email: reference.email,
+                name: reference.full_name,
               };
               const { origin: host } = new URL(location?.href);
               sendMessageToRealtor({
@@ -158,6 +165,20 @@ export default function DataAction({
                     .join(' '),
                 send_to,
                 host,
+              })
+                .then(() => {
+                  showOn({
+                    message: 'send_message_ok',
+                  });
+                })
+                .catch(() => {
+                  showOn({
+                    message: 'send_message_failed',
+                  });
+                });
+            } else {
+              showOn({
+                message: 'send_message_failed',
               });
             }
             break;
@@ -215,7 +236,7 @@ export default function DataAction({
               // We're on an agent's website
               const { email, password } = form.data as { email: string; password: string };
               login(email, password, {
-                is_agent: props['data-context'] === 'agent',
+                is_agent: context === 'agent',
               })
                 .then(results => {
                   showOn({

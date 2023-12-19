@@ -12,8 +12,12 @@ export default function DataShowOn({ element, ...props }: { 'data-show-on': stri
   );
 
   useEffect(() => {
-    if (handler.data?.message === 'logged-in') {
-      toggleVisibility(props['data-show-on'] === 'in_session');
+    if (props['data-show-on']) {
+      if (handler.data?.message === 'logged-in') {
+        toggleVisibility(props['data-show-on'] === 'in_session');
+      } else if (handler.data?.message) {
+        toggleVisibility(props['data-show-on'] === handler.data.message);
+      }
     }
   }, [handler.data?.message]);
 
@@ -24,6 +28,7 @@ export default function DataShowOn({ element, ...props }: { 'data-show-on': stri
   return is_ready
     ? cloneElement(element, {
         style: handler.data?.show || is_shown ? { display: 'flex' } : element.props.style || undefined,
+        'data-rexifier': 'data-show.client-component',
       })
     : element;
 }

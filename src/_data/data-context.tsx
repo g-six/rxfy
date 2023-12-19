@@ -1,7 +1,8 @@
 import { Children, ReactElement, cloneElement } from 'react';
 import DataFieldAtom from './data-field.atom';
-import { consoler } from '@/_helpers/consoler';
 import ContextListIterator from './context-list.iterator';
+import FormComponent from './client-components/form.client-component';
+import DataShowOn from './data-show.client-component';
 
 interface Props {
   data?: { [k: string]: unknown };
@@ -30,8 +31,13 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
         // if (className.includes('multiple-agent-names')) return <></>;
         // if (className.includes('2-contexts')) return <></>;
 
-        if (attribs['data-context']) {
+        if (attribs['data-show-on']) {
+          return <DataShowOn {...attribs} element={c} />;
+        }
+        if (attribs['data-context'] || c.type === 'form') {
           if (props.data) {
+            const data_context = attribs['data-context'] || props['fallback-context'];
+
             className = className ? `${className} rexified` : 'rexified';
             // if data of context already fetched
             if (props.data[attribs['data-context']]) {
@@ -40,7 +46,7 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
               // to iterate over the records. eg. list of recent listings
               const filter = attribs['data-filter'];
               if (filter) {
-                const { [filter]: dataset } = props.data[attribs['data-context']] as unknown as {
+                const { [filter]: dataset } = props.data[data_context] as unknown as {
                   [k: string]: unknown[];
                 };
                 if (dataset?.length) {
@@ -63,6 +69,23 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
                 c,
                 {
                   className,
+                },
+                <DataFieldAtom {...props} {...attribs}>
+                  {sub}
+                </DataFieldAtom>,
+              );
+            } else {
+              // Form rexify step
+              return (
+                <FormComponent {...attribs} {...props} className={className}>
+                  {sub}
+                </FormComponent>
+              );
+              cloneElement(
+                c,
+                {
+                  className,
+                  method: 'post',
                 },
                 <DataFieldAtom {...props} {...attribs}>
                   {sub}

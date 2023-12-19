@@ -7,10 +7,12 @@ import { ReactElement } from 'react';
 import fetchData from '@/_data/fetchData';
 import { getDomain } from './api/domains/model';
 import { consoler } from '@/_helpers/consoler';
+import { AgentData } from '@/_typings/agent';
 
 type SubcontextProps = { [k: string]: { filters: string[]; sort: string[] } };
-
-async function getPageMetadata(): Promise<{
+const FILE = 'app/page.tsx';
+export async function getPageMetadata(): Promise<{
+  status: number;
   title: string;
   description: string;
   html: string;
@@ -20,7 +22,9 @@ async function getPageMetadata(): Promise<{
   data?: { [k: string]: any };
 }> {
   let domain_name = headers().get('host') || '';
+  let page_status = 200;
   let title = '';
+  let agent: AgentData | undefined = undefined;
   let description = 'Leagent';
   let data: { [k: string]: any } = await buildSessionData();
   let subcontexts: SubcontextProps = {};
@@ -47,11 +51,11 @@ async function getPageMetadata(): Promise<{
     base_context = domain.context;
     // For Leagent, it's agent
     if (domain.context === 'agent') {
-      const agent = await getAgentBy({
+      agent = await getAgentBy({
         domain_name,
       });
       if (agent?.webflow_domain) {
-        page_url = `https://${agent?.webflow_domain}${url}`;
+        page_url = `https://${agent?.webflow_domain}${url || ''}`;
         data = {
           ...data,
           agent,
@@ -96,6 +100,9 @@ async function getPageMetadata(): Promise<{
     title = data.agent?.full_name || $('title').text();
     if (data.agent?.metatags?.title) title = data.agent?.metatags?.title;
     if (data.agent?.metatags?.description) description = data.agent?.metatags.description;
+  } else {
+    html = await page_html_xhr.text();
+    // Page does not exist on Webflow
   }
 
   return {
@@ -104,6 +111,7 @@ async function getPageMetadata(): Promise<{
     domain_name,
     data,
     html,
+    status: page_status,
     base_context,
     subcontexts,
   };
@@ -111,7 +119,7 @@ async function getPageMetadata(): Promise<{
 
 export default async function Page() {
   const ts = Date.now();
-  const { html, base_context, subcontexts, ...others } = await getPageMetadata();
+  const { html, base_context, subcontexts, status, ...others } = await getPageMetadata();
 
   const $: CheerioAPI = load(html);
   $('[aria-controls]').each((idx, el) => {
@@ -123,7 +131,7 @@ export default async function Page() {
 
   let data = others.data || {};
   let filtered_contexts: { [k: string]: { [k: string]: unknown } } = {};
-  consoler('page.tsx', base_context);
+
   if (data[base_context]) {
     await Promise.all(
       Object.keys(subcontexts).map(async context => {
@@ -147,8 +155,7 @@ export default async function Page() {
     );
   }
 
-  const divs = $('body > div');
-  $('body > div').remove();
+  const divs = $('body > :not(script)');
 
   /**
    * Very important!  Webflow's javascript messes with the scripts we create to handle data-context + data-field + data-etc
@@ -165,10 +172,7 @@ export default async function Page() {
       fallback-context={base_context}
       contexts={subcontexts}
     >
-      <>
-        {domToReact(divs as unknown as DOMNode[]) as ReactElement}
-        {domToReact($('body > div') as unknown as DOMNode[]) as ReactElement}
-      </>
+      <>{domToReact(divs as unknown as DOMNode[]) as ReactElement}</>
     </DataContext>
   );
 }

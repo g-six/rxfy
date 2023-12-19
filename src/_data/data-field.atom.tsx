@@ -62,6 +62,10 @@ async function AtomIterator({
           );
         }
 
+        if (attribs['data-show-on']) {
+          return <DataShowOn {...attribs} element={c} />;
+        }
+
         // Input
         if (attribs['data-input'] && attribs['data-form']) {
           return (
@@ -69,10 +73,6 @@ async function AtomIterator({
               {c}
             </DataInputAtom>
           );
-        }
-        if (attribs['data-show-on']) {
-          const show_on = attribs['data-show-on'] as string;
-          return <DataShowOn {...attribs} element={c} />;
         }
 
         if (attribs['data-action']) {

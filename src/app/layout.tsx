@@ -5,11 +5,19 @@ import { consoler } from '@/_helpers/consoler';
 import { DOMNode, domToReact } from 'html-react-parser';
 import ExternalScriptClient from '@/_data/external-script.client-component';
 
-async function getPageMetadata(): Promise<{ title: string; description: string; html: string; domain_name: string; data?: { [k: string]: any } }> {
+async function getPageMetadata(): Promise<{
+  title: string;
+  description: string;
+  html: string;
+  domain_name: string;
+  status: number;
+  data?: { [k: string]: any };
+}> {
   let html = '';
   let domain_name = headers().get('host') || '';
   let title = '';
   let description = 'Leagent';
+  let page_status = 200;
   let data: { [k: string]: any } = {};
   if (domain_name) {
     const domain = domain_name.split(':').reverse().pop() as string;
@@ -32,16 +40,14 @@ async function getPageMetadata(): Promise<{ title: string; description: string; 
     let webflow_domain = data?.webflow_domain || 'leagent-website.webflow.io';
 
     const url = headers().get('x-pathname');
-    const page_url = `https://${data?.webflow_domain}${url}`;
+    const page_url = `https://${data?.webflow_domain}${url || ''}`;
     const page_html_xhr = await fetch(page_url);
-
+    consoler('layout.tsx', page_url);
     if (page_html_xhr.ok) html = await page_html_xhr.text();
     else {
       // Page does not exist on Webflow
-      const page_404_req = await fetch(`https://${data.webflow_domain}/404`);
-      if (page_404_req.ok) {
-        html = await page_404_req.text();
-      }
+      page_status = page_html_xhr.status;
+      html = await page_html_xhr.text();
     }
 
     if (html) {
@@ -60,6 +66,7 @@ async function getPageMetadata(): Promise<{ title: string; description: string; 
     domain_name,
     data,
     html,
+    status: page_status,
   };
 }
 // export async function generateMetadata({ params }: { params: { [k: string]: any } }): Promise<Metadata> {
