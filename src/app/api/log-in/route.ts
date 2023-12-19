@@ -110,7 +110,7 @@ export async function POST(request: Request) {
           error: msg,
         },
         {
-          status: 400,
+          status: 401,
           statusText: msg,
         },
       );

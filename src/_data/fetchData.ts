@@ -1,6 +1,6 @@
 import { consoler } from '@/_helpers/consoler';
 import { getMostRecentListing, getSoldListings } from '@/app/api/agents/model';
-
+const FILE = 'fetchData.ts';
 export default async function fetchData(context: string, filter: string, fallback: unknown, sort?: string) {
   if (fallback) {
     if (context === 'property') {
@@ -9,6 +9,9 @@ export default async function fetchData(context: string, filter: string, fallbac
           agent_id: string;
         };
         return await getMostRecentListing(agent_id);
+      }
+      if (filter === 'search_highlights') {
+        consoler(FILE, { filter });
       }
       if (filter === 'sold') {
         const { agent_id, id } = fallback as unknown as {

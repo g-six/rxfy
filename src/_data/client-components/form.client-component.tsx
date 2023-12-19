@@ -2,6 +2,7 @@
 import useFormEvent, { Events } from '@/hooks/useFormEvent';
 import { ChangeEvent, Children, ReactElement, cloneElement, useEffect } from 'react';
 import DataAction from '../data-action';
+import DataShowOn from '../data-show.client-component';
 
 interface FormProps {
   name?: string;
@@ -17,7 +18,9 @@ function FormIterator({ children, data, ...props }: FormProps & { onChange(name:
   const rexified = Children.map(children, c => {
     if (c.props) {
       const { className, ...attribs } = c.props;
-      if (attribs['data-action']) {
+      if (attribs['data-show-on']) {
+        return <DataShowOn {...attribs} element={c} />;
+      } else if (attribs['data-action']) {
         return (
           <DataAction {...attribs} {...props} data={data}>
             {c}
@@ -66,11 +69,11 @@ function FormIterator({ children, data, ...props }: FormProps & { onChange(name:
 }
 export default function FormComponent({ children, action, data, contexts, ...props }: FormProps & { action?: string }) {
   const form_action = (props['data-form'] || action?.split('/').pop()) as unknown as Events;
-  console.log('form.client-component.tsx', { form_action });
+
   const form = useFormEvent(form_action || '');
 
   return cloneElement(
-    <div data-rexifier='form.client-component.FormComponent' />,
+    <div data-rexifier='form.client-component.FormComponent' data-form={form_action} />,
     props,
     <FormIterator
       {...props}

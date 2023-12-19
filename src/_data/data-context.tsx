@@ -3,6 +3,7 @@ import DataFieldAtom from './data-field.atom';
 import ContextListIterator from './context-list.iterator';
 import FormComponent from './client-components/form.client-component';
 import DataShowOn from './data-show.client-component';
+import { consoler } from '@/_helpers/consoler';
 
 interface Props {
   data?: { [k: string]: unknown };
@@ -10,9 +11,11 @@ interface Props {
   'fallback-context': string;
 }
 
+const FILE = 'data-context.tsx';
+
 function ContextIterator({ children, ...props }: { children: ReactElement } & Props) {
   const rexifier = Children.map(children, c => {
-    if (c.props) {
+    if (c.props && props.data) {
       if (c.props.children && typeof c.props.children !== 'string') {
         const { children: sub, ...attribs } = c.props;
         let className = attribs.className || '';
@@ -34,75 +37,99 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
         if (attribs['data-show-on']) {
           return <DataShowOn {...attribs} element={c} />;
         }
+
         if (attribs['data-context'] || c.type === 'form') {
-          if (props.data) {
-            const data_context = attribs['data-context'] || props['fallback-context'];
+          const data_context = attribs['data-context'] || props['fallback-context'];
 
-            className = className ? `${className} rexified` : 'rexified';
-            // if data of context already fetched
-            if (props.data[attribs['data-context']]) {
-              // Filter presence tells us that the context contains multiple records
-              // and should be laid out in a grid or list wrapper that requires a loop
-              // to iterate over the records. eg. list of recent listings
-              const filter = attribs['data-filter'];
-              if (filter) {
-                const { [filter]: dataset } = props.data[data_context] as unknown as {
-                  [k: string]: unknown[];
-                };
-                if (dataset?.length) {
-                  return cloneElement(
-                    c,
-                    {
-                      className,
-                    },
-                    <ContextListIterator {...props} dataset={dataset} data={props.data} {...attribs}>
-                      {sub}
-                    </ContextListIterator>,
-                  );
-                }
+          className = className ? `${className} rexified` : 'rexified';
+          // if data of context already fetched
+          if (props.data[attribs['data-context']]) {
+            // Filter presence tells us that the context contains multiple records
+            // and should be laid out in a grid or list wrapper that requires a loop
+            // to iterate over the records. eg. list of recent listings
+            const filter = attribs['data-filter'];
+            if (filter) {
+              const { [filter]: dataset } = props.data[data_context] as unknown as {
+                [k: string]: unknown[];
+              };
+              if (dataset?.length) {
+                return cloneElement(
+                  c,
+                  {
+                    className,
+                  },
+                  <ContextListIterator {...props} dataset={dataset} data={props.data} {...attribs}>
+                    {sub}
+                  </ContextListIterator>,
+                );
               }
-
-              // If no data-filter is present on the requested context
-              // then we expect to only get one record of that context
-              // eg. single property listing
-              return cloneElement(
-                c,
-                {
-                  className,
-                },
-                <DataFieldAtom {...props} {...attribs}>
-                  {sub}
-                </DataFieldAtom>,
-              );
-            } else {
-              // Form rexify step
-              return (
-                <FormComponent {...attribs} {...props} className={className}>
-                  {sub}
-                </FormComponent>
-              );
-              cloneElement(
-                c,
-                {
-                  className,
-                  method: 'post',
-                },
-                <DataFieldAtom {...props} {...attribs}>
-                  {sub}
-                </DataFieldAtom>,
-              );
             }
+
+            // If no data-filter is present on the requested context
+            // then we expect to only get one record of that context
+            // eg. single property listing
+            // return cloneElement(
+            //   c,
+            //   {
+            //     className,
+            //   },
+            //   <DataFieldAtom {...props} {...attribs}>
+            //     {sub}
+            //   </DataFieldAtom>,
+            // );
+          } else if (c.type === 'form') {
+            // Form rexify step
+            return (
+              <FormComponent {...attribs} {...props} className={className} data-context={data_context}>
+                {sub}
+              </FormComponent>
+            );
           }
+        } else if (attribs['data-filter']) {
+          const filter = attribs['data-filter'];
+          const { [filter]: dataset } = props.data[props['fallback-context']] as {
+            [k: string]: { [k: string]: unknown };
+          };
+
+          if (dataset?.length) {
+            return cloneElement(
+              c,
+              {
+                className,
+                'data-rexifier': FILE,
+                'data-context': attribs['data-context'] || props.data?.['data-context'],
+              },
+              <ContextListIterator {...props} dataset={dataset} data={props.data} {...attribs}>
+                {sub}
+              </ContextListIterator>,
+            );
+          }
+
+          consoler(FILE, { attribs, dataset });
         }
 
         return cloneElement(
           c,
           {
             className,
+            'data-rexifier': FILE,
+            'data-context': attribs['data-context'] || props.data?.['data-context'],
           },
           <ContextIterator {...props}>{sub}</ContextIterator>,
         );
+      } else if (c.props['data-field'] || c.props['data-image']) {
+        const atomic_parameters: {
+          data?: { [k: string]: unknown };
+          contexts: { [k: string]: { [k: string]: unknown } };
+          'data-context': string;
+          'fallback-context': string;
+        } = {
+          ...props,
+          'data-context': c.props['data-context'] || props['fallback-context'],
+        };
+        return <DataFieldAtom {...atomic_parameters}>{c}</DataFieldAtom>;
       }
+
       return cloneElement(c);
     }
     return c;

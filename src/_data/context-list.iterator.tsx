@@ -2,6 +2,9 @@ import { Children, ReactElement, cloneElement } from 'react';
 import DataAction from './data-action';
 import DataComponentGroupItem from './data-component.group';
 import DataFieldGroup from './data-field.group';
+import DataFieldAtom from './data-field.atom';
+import { consoler } from '@/_helpers/consoler';
+import { objectToQueryString } from '@/_utilities/url-helper';
 
 interface Props {
   data?: { [k: string]: unknown };
@@ -33,6 +36,43 @@ function Iterator({
     if (c.props) {
       const { className, ...attribs } = c.props;
       if (props.data) {
+        if (attribs['data-json'] && props.dataset.length) {
+          const parameters: string[] = attribs['data-json'].split('|');
+          return props.dataset.map(d => {
+            const obj = d as unknown as { [k: string]: string };
+            let params: { [k: string]: string } = {};
+            Object.keys(obj).map(k => {
+              if (parameters.includes(k)) {
+                params = {
+                  ...params,
+                  [k]: obj[k],
+                };
+              }
+            });
+
+            return cloneElement(
+              c,
+              {
+                href: c.type === 'a' ? c.props.href + '?' + objectToQueryString(params) : undefined,
+                'data-rexifier': 'context-list.iterator',
+              },
+              <DataFieldAtom {...props} data={d} data-context={attribs['data-context'] || props['data-context'] || props['fallback-context']}>
+                {c.props.children}
+              </DataFieldAtom>,
+            );
+          });
+          // return (
+          //   <Iterator {...props}>
+          //     <>
+          //       {Object.keys(parameters).map(k => {
+          //         return cloneElement(c, {
+          //           'data-rexifier': 'context-list.iterator',
+          //         });
+          //       })}
+          //     </>
+          //   </Iterator>
+          // );
+        }
         if (props['data-context']) {
           let dataset: { [k: string]: unknown }[] = [];
           if (props['data-filter']) {

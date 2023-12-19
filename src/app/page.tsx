@@ -94,7 +94,7 @@ export async function getPageMetadata(): Promise<{
               subcontexts[el.attribs['data-context']].sort.push(el.attribs['data-sort']);
             }
           }
-        } else console.log(el.attribs['data-context'], 'has nothing to reference it with');
+        } else consoler('page.tsx', 'getPageMetadata data-context: "' + el.attribs['data-context'] + '" has no data reference', { data });
       }
     });
     title = data.agent?.full_name || $('title').text();

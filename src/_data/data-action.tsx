@@ -232,11 +232,12 @@ export default function DataAction({
             }
             break;
           case 'login':
+          case 'log-in':
             if (props.data.agent) {
               // We're on an agent's website
               const { email, password } = form.data as { email: string; password: string };
               login(email, password, {
-                is_agent: context === 'agent',
+                is_agent: !props['data-context'] || props['data-context'] !== 'agent',
               })
                 .then(results => {
                   showOn({
@@ -244,6 +245,9 @@ export default function DataAction({
                   });
                 })
                 .catch(error => {
+                  showOn({
+                    message: 'login_error',
+                  });
                   console.log('data-action.tsx', error);
                 });
             }
@@ -323,7 +327,7 @@ export default function DataAction({
             copyContent();
             break;
           default:
-            consoler('data-action.tsx', `No function handler for: ${props['data-action']}`, props.data);
+            console.log('data-action.tsx', `No function handler for: ${props['data-action']}`, props.data);
         }
       }}
     >

@@ -26,6 +26,7 @@ async function AtomIterator({
         let field = attribs['data-field'] || '';
 
         if (attribs['data-image']) field = attribs['data-image'];
+
         if (field) {
           if (field === 'address') {
             field = 'title';
@@ -41,6 +42,17 @@ async function AtomIterator({
           if (!value) {
             const { [field]: v } = data[props['fallback-context']] as { [k: string]: string };
             value = v;
+          }
+
+          if (attribs['data-image'] && value && c.type !== 'img') {
+            return cloneElement(c, {
+              style: {
+                backgroundImage: `url(${value})`,
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: 'contain',
+                color: 'rgba(0, 0, 0, 0)',
+              },
+            });
           }
 
           if (c.type === 'img') {
@@ -83,6 +95,8 @@ async function AtomIterator({
           );
         } else if (attribs['data-modal']) {
           return <DataModal {...attribs} {...props} data={data} element={c} />;
+        } else if (attribs['data-filter']) {
+          return <></>;
         }
       }
 

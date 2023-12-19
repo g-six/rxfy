@@ -202,10 +202,32 @@ export async function getAgentBy(attributes: { [key: string]: string }) {
     console.log('getAgentBy: agent record does not exist');
     return;
   }
+  // Important
+  // To get the structure of
+  /**
+   * {
+   *    agent_id: "ASAMPLE123",
+   *    search_highlights: { nelat, swlng, lat, lng, name, etc }[]
+   * }
+   */
+  const search_highlights = (record.attributes.agent_metatag.data?.attributes.search_highlights?.labels || []).map(
+    (label: { ne: { lat: number; lng: number }; sw: { lat: number; lng: number }; lat: number; lng: number; name: string; zoom: number; title: string }) => {
+      const { ne, sw, ...geo } = label;
+      return {
+        ...geo,
+        city: geo.name,
+        nelat: ne.lat,
+        nelng: ne.lng,
+        swlat: sw.lat,
+        swlng: sw.lng,
+      };
+    },
+  );
   return record?.attributes
     ? {
         ...record.attributes.agent_metatag.data?.attributes,
         ...record.attributes,
+        search_highlights,
         id: Number(record.id),
         metatags: {
           ...record.attributes.agent_metatag.data?.attributes,
