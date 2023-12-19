@@ -35,14 +35,16 @@ async function AtomIterator({
             field = 'title';
           }
           let value = data[field] as string;
-
+          if (attribs['data-display-as'] && !isNaN(Number(value))) {
+            value = '$' + new Intl.NumberFormat(undefined, {}).format(Number(value));
+          }
           if (field === 'cover_photo') {
             if (data.photos) {
               value = (data.photos as string[]).reverse().pop() as string;
             }
           }
 
-          if (!value) {
+          if (!value && props['fallback-context'] && data[props['fallback-context']]) {
             const { [field]: v } = data[props['fallback-context']] as { [k: string]: string };
             value = v;
           }
@@ -58,7 +60,7 @@ async function AtomIterator({
             });
           }
 
-          if (c.type === 'img') {
+          if (c.type === 'img' && value) {
             let srcSet = undefined;
             if (c.props.srcSet) {
               // If the <img> object contains sources for images of different sizes
@@ -80,6 +82,7 @@ async function AtomIterator({
               src: value,
             });
           }
+
           return cloneElement(
             c,
             {

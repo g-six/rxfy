@@ -1,6 +1,9 @@
 import { consoler } from '@/_helpers/consoler';
 import { Children, ReactElement, cloneElement } from 'react';
 import DataFieldGroup from './data-field.group';
+import { formatValues } from '@/_utilities/data-helpers/property-page';
+
+const FILE = 'data-component.group.tsx';
 
 async function ComponentIterator({
   children,
@@ -38,20 +41,54 @@ async function ComponentIterator({
           if (c.type === 'img') {
             return cloneElement(c, {
               src: value,
+              'data-rexifier': FILE,
             });
           }
           if (c.type === 'svg') {
             return cloneElement(<img />, {
               src: value,
+              'data-rexifier': FILE,
             });
           }
+
+          if (attribs['data-display-as'] === 'currency' && !isNaN(Number(value))) {
+            value = '$' + new Intl.NumberFormat(undefined, {}).format(Number(value));
+          }
+
           return cloneElement(
             c,
             {
               className,
+              'data-rexifier': FILE,
             },
             value,
           );
+        }
+
+        if (attribs['data-fields']) {
+          return <></>;
+          const value = attribs['data-fields']
+            .split(',')
+            .map((key: string) => {
+              if (key === 'title' && data[key])
+                return formatValues(
+                  {
+                    address: data[key],
+                  },
+                  'address',
+                );
+              return data[key] || '';
+            })
+            .filter((v: string) => v)
+            .join(', ');
+          if (value)
+            return cloneElement(
+              c,
+              {
+                className,
+              },
+              value,
+            );
         }
 
         let group = attribs['data-field-group'] || '';
@@ -69,12 +106,15 @@ async function ComponentIterator({
           c,
           {
             className,
+            'data-rexifier': FILE,
           },
           <ComponentIterator {...props}>{sub}</ComponentIterator>,
         );
       }
 
-      return c;
+      return cloneElement(c, {
+        'data-rexifier': FILE,
+      });
     }
   });
   return <>{rexifier}</>;

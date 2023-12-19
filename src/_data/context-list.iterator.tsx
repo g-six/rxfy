@@ -12,6 +12,8 @@ interface Props {
   'fallback-context': string;
 }
 
+const FILE = 'context-list.iterator.tsx';
+
 export default async function ContextListIterator({
   children,
   ...props
@@ -38,8 +40,8 @@ function Iterator({
       if (props.data) {
         if (attribs['data-json'] && props.dataset.length) {
           const parameters: string[] = attribs['data-json'].split('|');
-          return props.dataset.map(d => {
-            const obj = d as unknown as { [k: string]: string };
+          if (props.dataset[idx]) {
+            const obj = props.dataset[idx] as unknown as { [k: string]: string };
             let params: { [k: string]: string } = {};
             Object.keys(obj).map(k => {
               if (parameters.includes(k)) {
@@ -56,11 +58,12 @@ function Iterator({
                 href: c.type === 'a' ? c.props.href + '?' + objectToQueryString(params) : undefined,
                 'data-rexifier': 'context-list.iterator',
               },
-              <DataFieldAtom {...props} data={d} data-context={attribs['data-context'] || props['data-context'] || props['fallback-context']}>
+              <DataFieldAtom {...props} data={props.dataset[idx]} data-context={attribs['data-context'] || props['data-context'] || props['fallback-context']}>
                 {c.props.children}
               </DataFieldAtom>,
             );
-          });
+          }
+          return <></>;
           // return (
           //   <Iterator {...props}>
           //     <>
@@ -87,8 +90,9 @@ function Iterator({
               },
             ];
           }
-          if (attribs['data-component'] && dataset[idx])
+          if (attribs['data-component'] && dataset[idx]) {
             return <DataComponentGroupItem {...attribs} component={c} data={dataset[idx]} data-sources={props.data} />;
+          }
 
           // Rexify action components for only one (first) record
           if (dataset[0] && attribs['data-action']) {
@@ -122,6 +126,13 @@ function Iterator({
           field = attribs['data-field'];
           if (field === 'address') field = 'title';
         }
+        if (attribs['data-fields']) {
+          // field = attribs['data-field'];
+          if (props.dataset.length) {
+            return <></>;
+          }
+          // value = (props.dataset[0][field] as string) || value;
+        }
         if (attribs['data-image']) {
           field = attribs['data-image'];
         }
@@ -141,6 +152,7 @@ function Iterator({
               c,
               {
                 className,
+                'data-rexifier': FILE,
               },
               value || c.props.children,
             );
@@ -161,7 +173,13 @@ function Iterator({
         }
 
         if (attribs.children && typeof attribs.children !== 'string') {
-          return cloneElement(c, {}, <Iterator {...props}>{attribs.children}</Iterator>);
+          return cloneElement(
+            c,
+            {
+              'data-rexifier': FILE,
+            },
+            <Iterator {...props}>{attribs.children}</Iterator>,
+          );
         }
       }
     }

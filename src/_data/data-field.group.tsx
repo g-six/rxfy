@@ -9,6 +9,8 @@ interface GroupProps {
   'data-json-ref'?: string;
 }
 
+const FILE = 'data-field.group.tsx';
+
 function Iterator({ children, ...props }: GroupProps & { 'is-image-gallery'?: boolean }) {
   const rexifier = Children.map(children, (c, position) => {
     if (c.props) {
@@ -82,6 +84,7 @@ function Iterator({ children, ...props }: GroupProps & { 'is-image-gallery'?: bo
         const photos = props.data[props['data-field-group']] as string[];
         if (photos[position]) {
           return cloneElement(c, {
+            'data-rexifier': FILE,
             srcSet: [500, 800, 1080, 1600, 1800].map(width => `${getImageSized(photos[position], width)} ${width}w`).join(', '),
             src: getImageSized(photos[position], 200),
           });
@@ -97,6 +100,7 @@ function Iterator({ children, ...props }: GroupProps & { 'is-image-gallery'?: bo
           c,
           {
             className,
+            'data-rexifier': FILE,
           },
           <Iterator {...props}>{sub}</Iterator>,
         );

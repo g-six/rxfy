@@ -10,6 +10,12 @@ export default async function fetchData(context: string, filter: string, fallbac
         };
         return await getMostRecentListing(agent_id);
       }
+      if (filter === 'recent_listings') {
+        const { agent_id } = fallback as unknown as {
+          agent_id: string;
+        };
+        return await getMostRecentListing(agent_id, 25);
+      }
       if (filter === 'search_highlights') {
         consoler(FILE, { filter });
       }
