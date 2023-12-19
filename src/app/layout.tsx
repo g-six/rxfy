@@ -80,10 +80,22 @@ async function getPageMetadata(): Promise<{
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const ts = Date.now();
-  const { html } = await getPageMetadata();
+  const { html, data } = await getPageMetadata();
   const $: CheerioAPI = load(html);
 
   consoler('layout.tsx', `${Date.now() - ts}ms`);
+
+  // Take care of head metatags (SEO)
+  // TODO: logic for pages that isn't the home page
+
+  // Page title
+  if (data?.title) $('head title').replaceWith(`<title>${data.title}</title>`);
+
+  // Page description
+  $('head meta[name="description"]').remove();
+  if (data?.description) $('head').append(`<meta content="${data.description}" name="description" />`);
+
+  // End of head metatags (SEO)
 
   const head = $('head');
 

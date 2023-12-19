@@ -5,6 +5,9 @@ import DataAction from './data-action';
 import { cookies } from 'next/headers';
 import DataShowOn from './data-show.client-component';
 import DataModal from './data-modal.client-component';
+import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+
+const FILE = 'data-field.atom.tsx';
 
 async function AtomIterator({
   children,
@@ -56,8 +59,20 @@ async function AtomIterator({
           }
 
           if (c.type === 'img') {
+            let srcSet = undefined;
+            if (c.props.srcSet) {
+              // If the <img> object contains sources for images of different sizes
+              srcSet = c.props.srcSet
+                .split(', ')
+                .map((version: string) => {
+                  const width = Number(`${version.split(' ').pop()}`.replace(/\D/g, ''));
+                  return getImageSized(value, width) + ` ${version.split(' ').pop()}`;
+                })
+                .join(', ');
+            }
             return cloneElement(c, {
               src: value,
+              srcSet,
             });
           }
           if (c.type === 'svg') {
@@ -96,6 +111,24 @@ async function AtomIterator({
         } else if (attribs['data-modal']) {
           return <DataModal {...attribs} {...props} data={data} element={c} />;
         } else if (attribs['data-filter']) {
+          const filter = attribs['data-filter'];
+          if (filter) {
+            consoler(FILE);
+            // const { [filter]: dataset } = data[data_context] as unknown as {
+            //   [k: string]: unknown[];
+            // };
+            // if (dataset?.length) {
+            //   return cloneElement(
+            //     c,
+            //     {
+            //       className,
+            //     },
+            //     <ContextListIterator {...props} dataset={dataset} data={props.data} {...attribs}>
+            //       {sub}
+            //     </ContextListIterator>,
+            //   );
+            // }
+          }
           return <></>;
         }
       }

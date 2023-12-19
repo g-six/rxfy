@@ -117,7 +117,7 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
           },
           <ContextIterator {...props}>{sub}</ContextIterator>,
         );
-      } else if (c.props['data-field'] || c.props['data-image']) {
+      } else if (c.props['data-field'] || c.props['data-image'] || c.props['data-input']) {
         const atomic_parameters: {
           data?: { [k: string]: unknown };
           contexts: { [k: string]: { [k: string]: unknown } };
