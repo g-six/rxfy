@@ -25,7 +25,7 @@ import { SearchHighlightInput } from '@/_typings/maps';
 
 import { capitalizeFirstLetter } from '@/_utilities/formatters';
 import { createTask } from '../clickup/model';
-import { slugifyAddress } from '@/_utilities/data-helpers/property-page';
+import { formatValues, slugifyAddress } from '@/_utilities/data-helpers/property-page';
 import { consoler } from '@/_helpers/consoler';
 import { getAgentBrokerages } from '../brokerages/model';
 
@@ -636,10 +636,20 @@ async function strapify(listing: Record<string, unknown>) {
       mls_id,
       floor_area_sqft,
       floor_area,
+      year_built,
       listed_at: listing_date,
       state_province,
       ...mls_data
     } = listing;
+    consoler(
+      FILE,
+      formatValues(
+        {
+          floor_area_sqft: floor_area_sqft || floor_area,
+        },
+        'floor_area_sqft',
+      ),
+    );
     const legacy = mls_data as unknown as MLSProperty;
     const real_estate_board = await getRealEstateBoard(mls_data as unknown as Record<string, string>);
     let listed_by = legacy.LA1_FullName || legacy.LA2_FullName || legacy.LA3_FullName;
@@ -658,10 +668,16 @@ async function strapify(listing: Record<string, unknown>) {
       beds,
       baths,
       listed_by,
+      year_built,
       mls_id,
       real_estate_board,
       cover_photo,
-      floor_area_sqft: floor_area_sqft || floor_area,
+      floor_area_sqft: formatValues(
+        {
+          floor_area_sqft: floor_area_sqft || floor_area,
+        },
+        'floor_area_sqft',
+      ),
       photos: mls_data.photos || [],
     };
   } catch (e) {

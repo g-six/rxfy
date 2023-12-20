@@ -23,6 +23,7 @@ export default async function fetchData(context: string, filter: string, fallbac
           id: number;
         };
         if (sort) {
+          consoler(FILE, { sort });
           const sorting = sort.split(':');
           if (sorting.length) {
             if (sorting.length > 0) {

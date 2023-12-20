@@ -56,6 +56,8 @@ export const NumericFields = [
   'lot_area',
   'floor_area',
   'floor_area_total',
+  'floor_area_sqft',
+  'floor_area_sqm',
   'full_baths',
   'garages',
   'half_baths',
