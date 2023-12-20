@@ -65,32 +65,6 @@ async function ComponentIterator({
           );
         }
 
-        if (attribs['data-fields']) {
-          return <></>;
-          const value = attribs['data-fields']
-            .split(',')
-            .map((key: string) => {
-              if (key === 'title' && data[key])
-                return formatValues(
-                  {
-                    address: data[key],
-                  },
-                  'address',
-                );
-              return data[key] || '';
-            })
-            .filter((v: string) => v)
-            .join(', ');
-          if (value)
-            return cloneElement(
-              c,
-              {
-                className,
-              },
-              value,
-            );
-        }
-
         let group = attribs['data-field-group'] || '';
         if (group && props.data) {
           return (
