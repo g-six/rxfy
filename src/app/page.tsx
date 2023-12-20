@@ -147,13 +147,15 @@ export default async function Page() {
                   ...record,
                 })),
               };
-            } else {
-              filtered_contexts[context] = {
-                [filter]: r.map(record => ({
-                  ...data[base_context],
-                  ...record,
-                })),
-              };
+            } else if (r) {
+              if (!Array.isArray(r)) consoler(FILE, r);
+              else
+                filtered_contexts[context] = {
+                  [filter]: r.map(record => ({
+                    ...data[base_context],
+                    ...record,
+                  })),
+                };
             }
           }),
         );

@@ -33,7 +33,13 @@ function FormIterator({ children, data, ...props }: FormProps & { onChange(name:
 
         if (c.props.type === 'search') {
           return (
-            <DataInputAtom fallback-context={props['fallback-content']} data={data} data-form={props['data-form']} contexts={props.contexts || {}}>
+            <DataInputAtom
+              data-input-type={c.props.type}
+              fallback-context={props['fallback-content']}
+              data={data}
+              data-form={props['data-form']}
+              contexts={props.contexts || {}}
+            >
               {c}
             </DataInputAtom>
           );

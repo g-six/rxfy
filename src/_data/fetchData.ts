@@ -33,6 +33,10 @@ export default async function fetchData(context: string, filter: string, fallbac
               });
             }
           }
+        } else {
+          return getSoldListings(agent_id, 3, {
+            'data.UpdateDate': 'desc',
+          });
         }
         // return await getMostRecentListing(agent_id);
       }
