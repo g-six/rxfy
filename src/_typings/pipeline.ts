@@ -17,10 +17,19 @@ export interface LegacySearchPayload {
       }[];
   fields?: string[];
   query: {
+    match_phrase?: {
+      [k: string]: string;
+    };
+    match?: {
+      [k: string]: {
+        query: string;
+        operator: 'and' | 'or';
+      };
+    };
     terms?: {
       [k: string]: string[];
     };
-    bool: {
+    bool?: {
       filter?: {
         match?: Record<string, string | number>;
         term?: { [k: string]: string };
@@ -28,6 +37,7 @@ export interface LegacySearchPayload {
       }[];
       should?: {
         match?: Record<string, string | number>;
+        match_phrase?: Record<string, string | number>;
         range?: {};
       }[];
       minimum_should_match?: number;

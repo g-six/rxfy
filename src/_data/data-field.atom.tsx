@@ -75,6 +75,7 @@ async function AtomIterator({
 
           if (c.type === 'img' && value) {
             let srcSet = undefined;
+
             if (c.props.srcSet) {
               // If the <img> object contains sources for images of different sizes
               srcSet = c.props.srcSet

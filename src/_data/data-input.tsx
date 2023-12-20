@@ -72,7 +72,6 @@ export default function DataInputAtom({
   const [is_ready, toggleReady] = useState(false);
   const form = useFormEvent(props['data-form'] as unknown as Events);
 
-  console.log(FILE, props['data-form']);
   useEffect(() => {
     toggleReady(true);
   }, []);

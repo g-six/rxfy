@@ -23,8 +23,7 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
         if (attribs['data-show-on']) {
           return <DataShowOn {...attribs} element={c} />;
         }
-
-        const data_context = attribs['data-context'] || props['fallback-context'];
+        const data_context = attribs['data-context'];
         if (attribs['data-context'] || c.type === 'form') {
           className = className ? `${className} rexified` : 'rexified';
           // if data of context already fetched
@@ -43,6 +42,8 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
                   {
                     className,
                     'data-context': data_context,
+                    'fallback-context': props['fallback-context'],
+                    'data-filter': filter,
                   },
                   <ContextListIterator {...props} dataset={dataset} data={props.data} {...attribs}>
                     {sub}
@@ -60,7 +61,7 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
           }
         } else if (attribs['data-filter']) {
           const filter = attribs['data-filter'];
-          const { [filter]: dataset } = props.data[props['fallback-context']] as {
+          const { [filter]: dataset } = props.data[attribs['data-context'] || props['fallback-context']] as {
             [k: string]: { [k: string]: unknown };
           };
 
@@ -70,7 +71,7 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
               {
                 className,
                 'data-rexifier': FILE,
-                'data-context': attribs['data-context'] || props.data?.['data-context'],
+                'data-context': attribs['data-context'],
               },
               <ContextListIterator {...props} dataset={dataset} data={props.data} {...attribs}>
                 {sub}
@@ -84,7 +85,7 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
           {
             className,
             'data-rexifier': FILE,
-            'data-context': attribs['data-context'] || props.data?.['data-context'] || data_context,
+            'data-context': attribs['data-context'] || data_context,
           },
           <ContextIterator {...props}>{sub}</ContextIterator>,
         );
@@ -99,7 +100,7 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
           'data-context': c.props['data-context'] || props['fallback-context'],
         };
         return <DataFieldAtom {...atomic_parameters}>{c}</DataFieldAtom>;
-      } else if (c.props['data-component'] === 'mapbox') {
+      } else if (c.props['data-component'] == 'mapbox') {
         const geocoding_field = c.props[`data-${c.props['data-component']}-json`];
         const geo_context = c.props['data-context'] || props['fallback-context'] || '';
         if (geocoding_field && props.data[geo_context]) {

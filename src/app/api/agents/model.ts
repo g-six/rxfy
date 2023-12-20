@@ -270,7 +270,6 @@ export async function updateAgent(
     };
   } catch (e) {
     const axerr = e as AxiosError;
-    consoler(FILE, 'Error in updateAgent');
     if (axerr.response?.data) {
       const { error, errors } = axerr.response?.data as {
         error?: {
@@ -281,17 +280,6 @@ export async function updateAgent(
           extensions: unknown[];
         }[];
       };
-      consoler(
-        FILE,
-
-        JSON.stringify(
-          {
-            axerr,
-          },
-          null,
-          4,
-        ),
-      );
     } else {
       consoler(
         FILE,
@@ -573,9 +561,6 @@ export async function findAgentBy(attributes: { [key: string]: string }) {
     : null;
 }
 
-export async function getMostRecentListings(agent_id: string, size: number = 10): Promise<unknown> {
-  return await getMostRecentListing(agent_id, size, true);
-}
 export async function getSoldListings(
   agent_id: string,
   size: number = 10,
@@ -639,21 +624,21 @@ async function strapify(listing: Record<string, unknown>) {
       year_built,
       listed_at: listing_date,
       state_province,
+      LO1_Name,
+      LO2_Name,
+      LO3_Name,
       ...mls_data
     } = listing;
-    consoler(
-      FILE,
-      formatValues(
-        {
-          floor_area_sqft: floor_area_sqft || floor_area,
-        },
-        'floor_area_sqft',
-      ),
-    );
+
     const legacy = mls_data as unknown as MLSProperty;
     const real_estate_board = await getRealEstateBoard(mls_data as unknown as Record<string, string>);
     let listed_by = legacy.LA1_FullName || legacy.LA2_FullName || legacy.LA3_FullName;
     const [cover_photo] = mls_data.photos ? (mls_data.photos as string[]) : [''];
+
+    const brokerages: string[] = [];
+    if (LO1_Name) brokerages.push(LO1_Name as string);
+    if (LO2_Name) brokerages.push(LO2_Name as string);
+    if (LO3_Name) brokerages.push(LO3_Name as string);
 
     return {
       title,
@@ -663,6 +648,8 @@ async function strapify(listing: Record<string, unknown>) {
       lon,
       area: target_area,
       city: target_city,
+      brokerages,
+      UpdateDate: mls_data.UpdateDate,
       asking_price,
       property_type,
       beds,
@@ -687,27 +674,107 @@ async function strapify(listing: Record<string, unknown>) {
   }
 }
 
-export async function getMostRecentListing(agent_id: string, size: number = 1, only_agent = false): Promise<unknown> {
-  const should: {}[] = [
+export async function getMostRecentListing(
+  agent_id: string,
+  opts?: {
+    size?: number;
+    sort?: string;
+    filters?: {
+      key: string;
+      value: string;
+    }[];
+  },
+  only_agent = false,
+): Promise<unknown> {
+  let minimum_should_match = 1;
+  let should: {}[] = [
     { match: { 'data.LA1_LoginName': agent_id } },
     { match: { 'data.LA2_LoginName': agent_id } },
     { match: { 'data.LA3_LoginName': agent_id } },
-    { match: { 'data.Status': 'Active' } },
   ];
+  if (opts?.filters?.length) {
+    opts.filters.forEach(filter => {
+      minimum_should_match++;
+      should.push({ match: { [`data.${filter.key}`]: filter.value } });
+    });
+  } else {
+    should.push({ match: { 'data.Status': 'Active' } });
+  }
   if (only_agent) should.pop();
+
   const legacy_params: LegacySearchPayload = {
     from: 0,
-    size,
+    size: opts?.size || 1,
+    // BUGFIX: Recent listings didn't have this very important sorting filter for Elastic search
+    sort:
+      opts?.sort && opts.sort.split(':').length === 2
+        ? { [`data.${opts.sort.split(':').reverse().pop()}`]: opts.sort.split(':').pop() as 'asc' | 'desc' }
+        : {
+            'data.ListingDate': 'desc',
+          },
     query: {
       bool: {
         should,
-        minimum_should_match: 1,
+        minimum_should_match,
         must_not: [{ match: { 'data.Status': 'Terminated' } }],
       },
     },
   };
 
-  const results = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
+  let results = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
+  if (!only_agent && results.length < (opts?.size || 1)) {
+    const brokerages = await getAgentBrokerages(agent_id);
+    let redo = false;
+    if (brokerages && brokerages.length) {
+      let should: {
+        match?: {
+          [k: string]: string;
+        };
+        match_phrase?: {
+          [k: string]: string;
+        };
+      }[] = [];
+      redo = true;
+      if (opts?.filters?.length) {
+        opts.filters.forEach(({ key, value }) => {
+          should.push({ match: { [`data.${key}`]: value } });
+        });
+      } else {
+        should.push({ match: { 'data.Status': 'Active' } });
+      }
+      legacy_params.query.bool = {
+        should,
+      };
+      legacy_params.query.bool.minimum_should_match = 2;
+
+      brokerages.map(brokerage => {
+        if (brokerage.name) {
+          should = should.concat([
+            {
+              match_phrase: {
+                'data.LO1_Name': brokerage.name,
+              },
+            },
+            {
+              match_phrase: {
+                'data.LO2_Name': brokerage.name,
+              },
+            },
+            {
+              match_phrase: {
+                'data.LO3_Name': brokerage.name,
+              },
+            },
+          ]);
+        }
+      });
+
+      legacy_params.query.bool.should = should;
+    }
+    if (redo) {
+      results = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
+    }
+  }
   return await Promise.all(results.map(r => strapify(r as unknown as Record<string, unknown>)));
 }
 
@@ -785,7 +852,6 @@ export async function createAgentRecordIfNoneFound(
       };
       const t = new Date();
       console.log('timestamp', t.toISOString());
-      consoler(FILE, create_this, ai_results);
       agent = await createAgent(create_this, ai_results);
       console.log('');
       console.log('took', [Date.now() - t.getTime(), 'ms'].join(''));

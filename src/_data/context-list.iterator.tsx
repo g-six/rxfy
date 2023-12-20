@@ -64,17 +64,6 @@ function Iterator({
             );
           }
           return <></>;
-          // return (
-          //   <Iterator {...props}>
-          //     <>
-          //       {Object.keys(parameters).map(k => {
-          //         return cloneElement(c, {
-          //           'data-rexifier': 'context-list.iterator',
-          //         });
-          //       })}
-          //     </>
-          //   </Iterator>
-          // );
         }
         if (props['data-context']) {
           let dataset: { [k: string]: unknown }[] = [];

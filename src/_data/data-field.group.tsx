@@ -67,7 +67,7 @@ function Iterator({ children, ...props }: GroupProps & { 'is-image-gallery'?: bo
                   }
                 }
               });
-              consoler('data-field.group.tsx', json);
+
               return cloneElement(c, {
                 dangerouslySetInnerHTML: {
                   __html: JSON.stringify(json, null, 4),

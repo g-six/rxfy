@@ -1,6 +1,7 @@
+import { consoler } from '@/_helpers/consoler';
 import { LegacySearchPayload } from '@/_typings/pipeline';
 import { PropertyDataModel } from '@/_typings/property';
-import axios, { AxiosStatic } from 'axios';
+import axios, { AxiosError, AxiosStatic } from 'axios';
 export async function retrieveFromLegacyPipeline(
   params: LegacySearchPayload = DEF_LEGACY_PAYLOAD,
   config = {
@@ -12,61 +13,67 @@ export async function retrieveFromLegacyPipeline(
   },
   include_mls: number = 1,
 ): Promise<PropertyDataModel[]> {
-  const axios: AxiosStatic = (await import('axios')).default;
-  const {
-    data: {
-      hits: { hits },
-    },
-  } = await axios.post(config.url, params, {
-    headers: config.headers,
-  });
-
-  return hits.map(({ _source, fields }: { _source: unknown; fields: Record<string, unknown> }) => {
-    let hit: Record<string, unknown>;
-    if (_source) {
-      hit = (
-        _source as {
-          data: Record<string, unknown>;
-        }
-      ).data;
-    } else {
-      hit = fields;
-    }
-
-    let property: { [key: string]: unknown } = {};
-    Object.keys(hit as Record<string, unknown>).forEach(key => {
-      if (hit[key]) {
-        const legacy_key = _source || key.substring(0, 5) !== 'data.' ? key : key.split('.')[1];
-        const strapi_key = STRAPI_FIELDS[legacy_key];
-        const value_csv = _source || key === 'data.photos' || key === 'photos' ? hit[key] : (hit[key] as string[] | number[]).join(',');
-        // STRAPI_FIELDS
-        if (strapi_key) {
-          property = {
-            ...property,
-            [strapi_key]: value_csv,
-          };
-        }
-        if (value_csv) {
-          if (include_mls === 1)
-            property = {
-              ...property,
-              [legacy_key]: value_csv,
-            };
-          else if (include_mls === 2) {
-            property = {
-              ...property,
-              mls_data: {
-                ...(property.mls_data || {}),
-                [legacy_key]: value_csv,
-              },
-            };
-          }
-        }
-      } else delete hit[key];
+  try {
+    const axios: AxiosStatic = (await import('axios')).default;
+    const {
+      data: {
+        hits: { hits },
+      },
+    } = await axios.post(config.url, params, {
+      headers: config.headers,
     });
 
-    return property as unknown as PropertyDataModel;
-  });
+    return hits.map(({ _source, fields }: { _source: unknown; fields: Record<string, unknown> }) => {
+      let hit: Record<string, unknown>;
+      if (_source) {
+        hit = (
+          _source as {
+            data: Record<string, unknown>;
+          }
+        ).data;
+      } else {
+        hit = fields;
+      }
+
+      let property: { [key: string]: unknown } = {};
+      Object.keys(hit as Record<string, unknown>).forEach(key => {
+        if (hit[key]) {
+          const legacy_key = _source || key.substring(0, 5) !== 'data.' ? key : key.split('.')[1];
+          const strapi_key = STRAPI_FIELDS[legacy_key];
+          const value_csv = _source || key === 'data.photos' || key === 'photos' ? hit[key] : (hit[key] as string[] | number[]).join(',');
+          // STRAPI_FIELDS
+          if (strapi_key) {
+            property = {
+              ...property,
+              [strapi_key]: value_csv,
+            };
+          }
+          if (value_csv) {
+            if (include_mls === 1)
+              property = {
+                ...property,
+                [legacy_key]: value_csv,
+              };
+            else if (include_mls === 2) {
+              property = {
+                ...property,
+                mls_data: {
+                  ...(property.mls_data || {}),
+                  [legacy_key]: value_csv,
+                },
+              };
+            }
+          }
+        } else delete hit[key];
+      });
+
+      return property as unknown as PropertyDataModel;
+    });
+  } catch (e) {
+    const { response } = e as unknown as AxiosError;
+    consoler('call-legacy-search.ts', params, response?.data);
+    return [];
+  }
 }
 
 export async function retrievePublicListingsFromPipeline(params: LegacySearchPayload = DEF_LEGACY_PAYLOAD) {
@@ -249,4 +256,9 @@ export const STRAPI_FIELDS: {
   LA1_PhoneNumber1: 'LA1_PhoneNumber1',
   LA2_PhoneNumber1: 'LA2_PhoneNumber1',
   LA3_PhoneNumber1: 'LA3_PhoneNumber1',
+
+  // Brokerages
+  LO1_Name: 'main_brokerage',
+  LO2_Name: 'secondary_brokerage',
+  LO3_Name: 'alt_brokerage',
 };

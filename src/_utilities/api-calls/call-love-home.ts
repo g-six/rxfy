@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 import { clearSessionCookies } from './call-logout';
 import { getData, setData } from '../data-helpers/local-storage-helper';
 import { Events } from '@/_typings/events';
-
+const FILE = 'call-love-home.ts';
 /**
  * Retrieve customer saved homes
  * @returns
@@ -81,7 +81,7 @@ export async function loveHome(mls_id: string, agent: number, customer?: number)
     }
     return response;
   } catch (e) {
-    console.log(e);
+    console.log(FILE, e);
   }
 }
 

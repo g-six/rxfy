@@ -8,8 +8,10 @@ import fetchData from '@/_data/fetchData';
 import { getDomain } from './api/domains/model';
 import { consoler } from '@/_helpers/consoler';
 import { AgentData } from '@/_typings/agent';
+import { getImageSize } from 'next/dist/server/image-optimizer';
+import { getAgentBrokerages } from './api/brokerages/model';
 
-type SubcontextProps = { [k: string]: { filters: string[]; sort: string[] } };
+type SubcontextProps = { [k: string]: { filters: string[]; sort: string[]; size: number[] } };
 const FILE = 'app/page.tsx';
 export async function getPageMetadata(): Promise<{
   status: number;
@@ -73,12 +75,20 @@ export async function getPageMetadata(): Promise<{
     $('[data-context]').each((rdx, el) => {
       if (!data[el.attribs['data-context']]) {
         if (el.attribs['data-filter']) {
+          let size: number | undefined = undefined;
+          $(el)
+            .find(`[data-group="${el.attribs['data-filter']}"] > *`)
+            .each(() => {
+              if (!size) size = 1;
+              else size++;
+            });
           if (!subcontexts[el.attribs['data-context']]) {
             subcontexts = {
               ...subcontexts,
               [el.attribs['data-context']]: {
                 filters: [el.attribs['data-filter']],
                 sort: [el.attribs['data-sort'] || ''],
+                size: [size || 1],
               },
             };
           } else {
@@ -89,9 +99,11 @@ export async function getPageMetadata(): Promise<{
             if (!filters) {
               subcontexts[el.attribs['data-context']].filters = [el.attribs['data-filter']];
               subcontexts[el.attribs['data-context']].sort = [el.attribs['data-sort'] || ''];
+              subcontexts[el.attribs['data-context']].size = [size || 1];
             } else if (!subcontexts[el.attribs['data-context']].filters.includes(el.attribs['data-filter'])) {
               subcontexts[el.attribs['data-context']].filters.push(el.attribs['data-filter']);
               subcontexts[el.attribs['data-context']].sort.push(el.attribs['data-sort']);
+              subcontexts[el.attribs['data-context']].size.push(size || 1);
             }
           }
         } else consoler('page.tsx', 'getPageMetadata data-context: "' + el.attribs['data-context'] + '" has no data reference', { data });
@@ -133,26 +145,30 @@ export default async function Page() {
   let filtered_contexts: { [k: string]: { [k: string]: unknown } } = {};
 
   if (data[base_context]) {
+    const { title: owner_title, ...base_object } = data[base_context];
     await Promise.all(
       Object.keys(subcontexts).map(async context => {
         data[context] = data[context] || {};
-        return await Promise.all(
+        await Promise.all(
           subcontexts[context].filters.map(async (filter, idx) => {
-            const r = (await fetchData(context, filter, data[base_context], subcontexts[context].sort[idx])) as { [k: string]: unknown }[];
+            const r = (await fetchData(context, filter, data[base_context], {
+              sort: subcontexts[context].sort[idx],
+              size: subcontexts[context].size[idx] || 1,
+            })) as { [k: string]: unknown }[];
             if (filtered_contexts[context]) {
               filtered_contexts[context] = {
                 ...filtered_contexts[context],
                 [filter]: r.map(record => ({
-                  ...data[base_context],
+                  ...base_object,
                   ...record,
                 })),
               };
             } else if (r) {
-              if (!Array.isArray(r)) consoler(FILE, r);
+              if (!Array.isArray(r)) consoler(FILE, 'Trying to operate on a non-array');
               else
                 filtered_contexts[context] = {
                   [filter]: r.map(record => ({
-                    ...data[base_context],
+                    ...base_object,
                     ...record,
                   })),
                 };
@@ -162,6 +178,31 @@ export default async function Page() {
       }),
     );
   }
+
+  const images: { src: string; 'data-image': string }[] = [];
+  $('body img[src]').each((seq, el) => {
+    if (el.attribs['data-image']) {
+      images.push({
+        src: el.attribs.src,
+        'data-image': el.attribs['data-image'],
+      });
+    }
+  });
+
+  await Promise.all(
+    images.map(async (img: { src: string; 'data-image': string }) => {
+      const img_req = await fetch(img.src);
+      if (img_req.ok) {
+        const img_buf = await img_req.arrayBuffer();
+        const extension = `${img_req.headers.get('content-type')}`.split('/').pop() as 'jpeg' | 'png' | 'webp';
+        if (['jpeg', 'png', 'webp'].includes(extension)) {
+          const { width, height } = await getImageSize(Buffer.from(img_buf), extension);
+          if (!isNaN(Number(height))) {
+          }
+        }
+      }
+    }),
+  );
 
   const divs = $('body > :not(script)');
 
