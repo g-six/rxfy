@@ -138,15 +138,21 @@ export default async function Page() {
         data[context] = data[context] || {};
         return await Promise.all(
           subcontexts[context].filters.map(async (filter, idx) => {
-            const r = await fetchData(context, filter, data[base_context], subcontexts[context].sort[idx]);
+            const r = (await fetchData(context, filter, data[base_context], subcontexts[context].sort[idx])) as { [k: string]: unknown }[];
             if (filtered_contexts[context]) {
               filtered_contexts[context] = {
                 ...filtered_contexts[context],
-                [filter]: r,
+                [filter]: r.map(record => ({
+                  ...data[base_context],
+                  ...record,
+                })),
               };
             } else {
               filtered_contexts[context] = {
-                [filter]: r,
+                [filter]: r.map(record => ({
+                  ...data[base_context],
+                  ...record,
+                })),
               };
             }
           }),

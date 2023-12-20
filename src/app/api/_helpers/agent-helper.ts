@@ -210,7 +210,8 @@ export async function getAgentBy(attributes: { [key: string]: string }) {
    *    search_highlights: { nelat, swlng, lat, lng, name, etc }[]
    * }
    */
-  const search_highlights = (record.attributes.agent_metatag.data?.attributes.search_highlights?.labels || []).map(
+  const metatags = record.attributes.agent_metatag.data?.attributes;
+  const search_highlights = (metatags?.search_highlights?.labels || []).map(
     (label: { ne: { lat: number; lng: number }; sw: { lat: number; lng: number }; lat: number; lng: number; name: string; zoom: number; title: string }) => {
       const { ne, sw, ...geo } = label;
       return {
@@ -223,11 +224,28 @@ export async function getAgentBy(attributes: { [key: string]: string }) {
       };
     },
   );
+  const geocoding = metatags?.geocoding || {};
+  const map_image =
+    geocoding?.lat && geocoding?.lng
+      ? `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/url-https%3A%2F%2Fpages.leagent.com%2Ficons%2Fmap-pin.png%3Fv%3D1(${geocoding.lng},${geocoding.lat})/${geocoding.lng},${geocoding.lat},12,0,60/960x960?access_token=${process.env.NEXT_APP_MAPBOX_TOKEN}`
+      : undefined;
+  let map = '';
+  if (map_image) {
+    const map_req = await fetch(map_image);
+    if (map_req.ok) {
+      const buff = await map_req.arrayBuffer();
+      map = `data:${map_req.headers.get('content-type')};base64,${Buffer.from(buff).toString('base64')}`;
+    }
+  }
+
   return record?.attributes
     ? {
-        ...record.attributes.agent_metatag.data?.attributes,
+        ...metatags,
         ...record.attributes,
         search_highlights,
+        lat: geocoding?.lat,
+        lng: geocoding?.lng,
+        map,
         id: Number(record.id),
         metatags: {
           ...record.attributes.agent_metatag.data?.attributes,

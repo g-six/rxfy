@@ -43,7 +43,7 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
 
           className = className ? `${className} rexified` : 'rexified';
           // if data of context already fetched
-          if (props.data[attribs['data-context']]) {
+          if (props.data[data_context]) {
             // Filter presence tells us that the context contains multiple records
             // and should be laid out in a grid or list wrapper that requires a loop
             // to iterate over the records. eg. list of recent listings
@@ -64,19 +64,6 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
                 );
               }
             }
-
-            // If no data-filter is present on the requested context
-            // then we expect to only get one record of that context
-            // eg. single property listing
-            // return cloneElement(
-            //   c,
-            //   {
-            //     className,
-            //   },
-            //   <DataFieldAtom {...props} {...attribs}>
-            //     {sub}
-            //   </DataFieldAtom>,
-            // );
           } else if (c.type === 'form') {
             // Form rexify step
             return (
@@ -104,8 +91,6 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
               </ContextListIterator>,
             );
           }
-
-          consoler(FILE, { attribs, dataset });
         }
 
         return cloneElement(
@@ -117,7 +102,7 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
           },
           <ContextIterator {...props}>{sub}</ContextIterator>,
         );
-      } else if (c.props['data-field'] || c.props['data-image'] || c.props['data-input']) {
+      } else if (c.props['data-field'] || c.props['data-fields'] || c.props['data-image'] || c.props['data-input']) {
         const atomic_parameters: {
           data?: { [k: string]: unknown };
           contexts: { [k: string]: { [k: string]: unknown } };
@@ -128,9 +113,28 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
           'data-context': c.props['data-context'] || props['fallback-context'],
         };
         return <DataFieldAtom {...atomic_parameters}>{c}</DataFieldAtom>;
+      } else if (c.props['data-component'] === 'mapbox') {
+        const geocoding_field = c.props[`data-${c.props['data-component']}-json`];
+        const geo_context = c.props['data-context'] || props['fallback-context'] || '';
+        if (geocoding_field && props.data[geo_context]) {
+          const { [geocoding_field]: geocoding } = props.data[geo_context] as {
+            [k: string]: {
+              lat: number;
+              lng: number;
+            };
+          };
+          const { map } = props.data[geo_context] as {
+            map: string;
+          };
+          if (map) {
+            return cloneElement(c, { src: map, srcSet: undefined });
+          }
+        }
       }
 
-      return cloneElement(c);
+      return cloneElement(c, {
+        'data-rexifier': FILE,
+      });
     }
     return c;
   });

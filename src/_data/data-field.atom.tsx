@@ -6,6 +6,8 @@ import { cookies } from 'next/headers';
 import DataShowOn from './data-show.client-component';
 import DataModal from './data-modal.client-component';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
+import { capitalizeFirstLetter } from '@/_utilities/formatters';
+import BaseClientComponent from './base.client-component';
 
 const FILE = 'data-field.atom.tsx';
 
@@ -26,15 +28,25 @@ async function AtomIterator({
       className = className ? `${className} rexified` : 'rexified';
 
       if (data) {
+        let value = '';
         let field = attribs['data-field'] || '';
 
         if (attribs['data-image']) field = attribs['data-image'];
 
-        if (field) {
+        if (attribs['data-fields']) {
+          value = attribs['data-fields']
+            .split(',')
+            .map((f: string) => {
+              if (f === 'title') return capitalizeFirstLetter(`${data[f]}`.toLowerCase());
+              return data[f] as string;
+            })
+            .filter((v: string) => !!v)
+            .join(', ') as string;
+        } else if (field) {
           if (field === 'address') {
             field = 'title';
           }
-          let value = data[field] as string;
+          value = data[field] as string;
           if (attribs['data-display-as'] && !isNaN(Number(value))) {
             value = '$' + new Intl.NumberFormat(undefined, {}).format(Number(value));
           }
@@ -51,6 +63,7 @@ async function AtomIterator({
 
           if (attribs['data-image'] && value && c.type !== 'img') {
             return cloneElement(c, {
+              'data-rexifier': FILE,
               style: {
                 backgroundImage: `url(${value})`,
                 backgroundRepeat: 'no-repeat',
@@ -71,15 +84,27 @@ async function AtomIterator({
                   return getImageSized(value, width) + ` ${version.split(' ').pop()}`;
                 })
                 .join(', ');
+              return (
+                <BaseClientComponent
+                  component={cloneElement(c, {
+                    src: value,
+                    'data-original-src': c.props.src,
+                    'data-original-src-set': c.props.srcSet,
+                    srcSet,
+                  })}
+                />
+              );
             }
             return cloneElement(c, {
               src: value,
               srcSet,
+              'data-rexifier': FILE,
             });
           }
           if (c.type === 'svg') {
             return cloneElement(<img />, {
               src: value,
+              'data-rexifier': FILE,
             });
           }
 
@@ -87,6 +112,17 @@ async function AtomIterator({
             c,
             {
               className,
+              'data-rexifier': FILE,
+            },
+            value,
+          );
+        }
+
+        if (value) {
+          return cloneElement(
+            c,
+            {
+              'data-rexifier': FILE,
             },
             value,
           );
@@ -116,7 +152,6 @@ async function AtomIterator({
         } else if (attribs['data-filter']) {
           const filter = attribs['data-filter'];
           if (filter) {
-            consoler(FILE);
             // const { [filter]: dataset } = data[data_context] as unknown as {
             //   [k: string]: unknown[];
             // };
@@ -141,6 +176,7 @@ async function AtomIterator({
           c,
           {
             className,
+            'data-rexifier': FILE,
           },
           <AtomIterator data={data} {...props}>
             {sub}

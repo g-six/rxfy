@@ -14,11 +14,9 @@ export default async function fetchData(context: string, filter: string, fallbac
         const { agent_id } = fallback as unknown as {
           agent_id: string;
         };
-        return await getMostRecentListing(agent_id, 25);
+        return await getMostRecentListing(agent_id, 12);
       }
-      if (filter === 'search_highlights') {
-        consoler(FILE, { filter });
-      }
+
       if (filter === 'sold') {
         const { agent_id, id } = fallback as unknown as {
           agent_id: string;

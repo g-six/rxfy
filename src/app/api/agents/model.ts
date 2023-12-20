@@ -634,15 +634,20 @@ async function strapify(listing: Record<string, unknown>) {
       beds,
       baths,
       mls_id,
+      floor_area_sqft,
+      floor_area,
       listed_at: listing_date,
+      state_province,
       ...mls_data
     } = listing;
     const legacy = mls_data as unknown as MLSProperty;
     const real_estate_board = await getRealEstateBoard(mls_data as unknown as Record<string, string>);
     let listed_by = legacy.LA1_FullName || legacy.LA2_FullName || legacy.LA3_FullName;
     const [cover_photo] = mls_data.photos ? (mls_data.photos as string[]) : [''];
+
     return {
       title,
+      state_province,
       description,
       lat,
       lon,
@@ -656,6 +661,7 @@ async function strapify(listing: Record<string, unknown>) {
       mls_id,
       real_estate_board,
       cover_photo,
+      floor_area_sqft: floor_area_sqft || floor_area,
       photos: mls_data.photos || [],
     };
   } catch (e) {
