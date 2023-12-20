@@ -18,8 +18,8 @@ async function AtomIterator({
 }: {
   children: ReactElement;
   data?: { [k: string]: unknown };
-  contexts: { [k: string]: { [k: string]: unknown } };
-  'fallback-context': string;
+  contexts?: { [k: string]: { [k: string]: unknown } };
+  'fallback-context'?: string;
 }) {
   const rexifier = Children.map(children, c => {
     if (c.props) {
@@ -43,9 +43,6 @@ async function AtomIterator({
             .filter((v: string) => !!v)
             .join(', ') as string;
         } else if (field) {
-          if (field === 'address') {
-            field = 'title';
-          }
           value = data[field] as string;
           if (attribs['data-display-as'] && !isNaN(Number(value))) {
             value = '$' + new Intl.NumberFormat(undefined, {}).format(Number(value));
@@ -197,9 +194,9 @@ export default async function DataFieldAtom({
 }: {
   children: ReactElement;
   data?: { [k: string]: unknown };
-  'data-context': string;
-  contexts: { [k: string]: { [k: string]: unknown } };
-  'fallback-context': string;
+  'data-context'?: string;
+  contexts?: { [k: string]: { [k: string]: unknown } };
+  'fallback-context'?: string;
 }) {
   return <AtomIterator {...props}>{children}</AtomIterator>;
 }

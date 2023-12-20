@@ -92,9 +92,10 @@ function Iterator({
             );
           }
           // Rexify grouped components for only one (first) record
-          if (dataset[0] && attribs['data-group']) {
-            return <DataComponentGroupItem {...attribs} component={c} data={dataset[0]} data-sources={props.data} />;
-          }
+          // if (dataset[0] && attribs['data-group']) {
+          //   console.log(FILE, dataset[idx].mls_id, dataset[idx].title);
+          //   return <DataComponentGroupItem {...attribs} component={c} data={dataset[0]} data-sources={props.data} />;
+          // }
           if (dataset[0] && attribs['data-field-group']) {
             return cloneElement(
               c,
@@ -113,15 +114,8 @@ function Iterator({
         let field = '';
         if (attribs['data-field']) {
           field = attribs['data-field'];
-          if (field === 'address') field = 'title';
         }
-        if (attribs['data-fields']) {
-          // field = attribs['data-field'];
-          if (props.dataset.length) {
-            return <></>;
-          }
-          // value = (props.dataset[0][field] as string) || value;
-        }
+
         if (attribs['data-image']) {
           field = attribs['data-image'];
         }

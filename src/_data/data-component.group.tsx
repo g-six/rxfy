@@ -1,7 +1,8 @@
 import { consoler } from '@/_helpers/consoler';
 import { Children, ReactElement, cloneElement } from 'react';
 import DataFieldGroup from './data-field.group';
-import { formatValues } from '@/_utilities/data-helpers/property-page';
+import { capitalizeFirstLetter } from '@/_utilities/formatters';
+import DataFieldAtom from './data-field.atom';
 
 const FILE = 'data-component.group.tsx';
 
@@ -24,9 +25,6 @@ async function ComponentIterator({
         if (attribs['data-image']) field = attribs['data-image'];
         if (field) {
           className = className ? `${className} rexified` : 'rexified';
-          if (field === 'address') {
-            field = 'title';
-          }
           let value = data[field] as string;
 
           if (field === 'cover_photo' && data.photos) {
@@ -39,10 +37,7 @@ async function ComponentIterator({
           }
 
           if (c.type === 'img') {
-            return cloneElement(c, {
-              src: value,
-              'data-rexifier': FILE,
-            });
+            return <DataFieldAtom data={data}>{c}</DataFieldAtom>;
           }
           if (c.type === 'svg') {
             return cloneElement(<img />, {
@@ -63,6 +58,24 @@ async function ComponentIterator({
             },
             value,
           );
+        } else if (attribs['data-fields'] && data) {
+          const value = attribs['data-fields']
+            .split(',')
+            .map((f: string) => {
+              if (f === 'title') return capitalizeFirstLetter(`${data[f]}`.toLowerCase());
+              return data[f] as string;
+            })
+            .filter((v: string) => !!v)
+            .join(', ') as string;
+          if (value)
+            return cloneElement(
+              c,
+              {
+                className,
+                'data-rexifier': FILE,
+              },
+              value,
+            );
         }
 
         let group = attribs['data-field-group'] || '';
@@ -88,6 +101,7 @@ async function ComponentIterator({
 
       return cloneElement(c, {
         'data-rexifier': FILE,
+        'data-skipped': true,
       });
     }
   });

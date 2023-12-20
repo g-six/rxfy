@@ -146,6 +146,7 @@ export default async function Page() {
 
   if (data[base_context]) {
     const { title: owner_title, ...base_object } = data[base_context];
+
     await Promise.all(
       Object.keys(subcontexts).map(async context => {
         data[context] = data[context] || {};
@@ -164,7 +165,7 @@ export default async function Page() {
                 })),
               };
             } else if (r) {
-              if (!Array.isArray(r)) consoler(FILE, 'Trying to operate on a non-array');
+              if (!Array.isArray(r)) consoler(FILE, 'Trying to operate on a non-array', r, 'Trying to operate on a non-array');
               else
                 filtered_contexts[context] = {
                   [filter]: r.map(record => ({

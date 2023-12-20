@@ -42,7 +42,7 @@ export default function DataShowOn({ element, ...props }: { 'data-show-on': stri
 
   return is_ready
     ? cloneElement(element, {
-        style: handler.data?.show || is_shown ? { display: 'flex' } : element.props.style || undefined,
+        style: handler.data?.show || is_shown ? { display: 'flex', opacity: 1 } : element.props.style || undefined,
         'data-rexifier': 'data-show.client-component',
       })
     : element;

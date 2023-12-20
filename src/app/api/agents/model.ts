@@ -642,6 +642,7 @@ async function strapify(listing: Record<string, unknown>) {
 
     return {
       title,
+      address: title ? capitalizeFirstLetter(`${title}`.toLowerCase()) : '',
       state_province,
       description,
       lat,

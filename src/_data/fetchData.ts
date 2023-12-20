@@ -16,17 +16,29 @@ export default async function fetchData(
 ) {
   if (fallback) {
     if (context === 'property') {
-      if (['recent_listings', 'recent_listing', 'sold'].includes(filter)) {
+      if (['recent_listings', 'recent_listing', 'sold'].includes(filter) || filter.split(':').length === 2) {
         const { agent_id } = fallback as unknown as {
           agent_id: string;
         };
-        if (!opts?.filters && filter === 'sold') {
+        if (!opts?.filters) {
           // TODO: Refactor to work with other filters
           //        value should be like data-filter="Status:Sold"
-          return await getMostRecentListing(agent_id, {
-            ...opts,
-            filters: [{ key: 'Status', value: filter }],
-          });
+          if (filter === 'sold')
+            return await getMostRecentListing(agent_id, {
+              ...opts,
+              filters: [{ key: 'Status', value: filter }],
+            });
+          else if (filter.split(':').length === 2) {
+            //        value should be like data-filter="Status:Sold"
+            const [key, value] = filter.split(':');
+            const listings = await getMostRecentListing(agent_id, {
+              ...opts,
+              filters: [{ key, value }],
+            });
+            return listings;
+          }
+        } else {
+          consoler(FILE, { opts });
         }
         return await getMostRecentListing(agent_id, opts);
       }
