@@ -227,7 +227,7 @@ export default function DataAction({
               router.push(
                 `mailto:your@email.here?subject=${title}&body=Check this listing out: https://${
                   agent.domain_name || `${agent.website_theme || 'app'}.leagent.com`
-                }/${agent.agent_id}/property?mls=${mls_id}`,
+                }/property?mls_id=${mls_id}`,
               );
             }
             break;
