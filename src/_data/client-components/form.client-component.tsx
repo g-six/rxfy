@@ -3,6 +3,7 @@ import useFormEvent, { Events } from '@/hooks/useFormEvent';
 import { ChangeEvent, Children, ReactElement, cloneElement, useEffect } from 'react';
 import DataAction from '../data-action';
 import DataShowOn from '../data-show.client-component';
+import DataInputAtom from '../data-input';
 
 interface FormProps {
   name?: string;
@@ -10,6 +11,7 @@ interface FormProps {
   data: { [k: string]: unknown };
   contexts?: { [k: string]: { [k: string]: unknown } };
   'data-form': string;
+  'fallback-content': string;
   className: string;
   children: ReactElement;
 }
@@ -29,6 +31,14 @@ function FormIterator({ children, data, ...props }: FormProps & { onChange(name:
       } else if (attribs['data-input']) {
         let field = attribs['data-input'] || '';
 
+        if (c.props.type === 'search') {
+          return (
+            <DataInputAtom fallback-context={props['fallback-content']} data={data} data-form={props['data-form']} contexts={props.contexts || {}}>
+              {c}
+            </DataInputAtom>
+          );
+        }
+
         return cloneElement(
           c.type === 'textarea' ? (
             <textarea
@@ -47,6 +57,7 @@ function FormIterator({ children, data, ...props }: FormProps & { onChange(name:
           ),
           {
             ...attribs,
+            'data-form': props['data-form'],
             className,
             'data-rexifier': 'form.client-component.FormIterator',
             name: field,
@@ -78,6 +89,7 @@ export default function FormComponent({ children, action, data, contexts, ...pro
     <FormIterator
       {...props}
       data={data}
+      data-form={form_action}
       contexts={contexts}
       onChange={(name: string, value: string) => {
         form.fireEvent({

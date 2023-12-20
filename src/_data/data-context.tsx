@@ -19,31 +19,16 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
       if (c.props.children && typeof c.props.children !== 'string') {
         const { children: sub, ...attribs } = c.props;
         let className = attribs.className || '';
-        // if (className.split(' ').includes('contact-form-wrapper')) return <></>;
-        // if (className.split(' ').includes('navigation')) return <></>;
-        // if (className.includes('navigation')) return <></>;
-        // if (className.includes('f-section-small')) return <></>;
-        // if (className.includes('f-section-regular')) return <></>;
-        // if (className.includes('recent-listings-section')) return <></>;
-        // if (className.includes('image-gallery')) return <></>;
-        // if (className.includes('links-hide-show')) return <></>;
-        // if (className.includes('id-card')) return <></>;
-        // if (className.includes('property-action-buttons')) return <></>;
-        // if (className.includes('recent-listings')) return <></>;
-        // if (className.includes('sold-listings')) return <></>;
-        // if (className.includes('multiple-agent-names')) return <></>;
-        // if (className.includes('2-contexts')) return <></>;
 
         if (attribs['data-show-on']) {
           return <DataShowOn {...attribs} element={c} />;
         }
 
+        const data_context = attribs['data-context'] || props['fallback-context'];
         if (attribs['data-context'] || c.type === 'form') {
-          const data_context = attribs['data-context'] || props['fallback-context'];
-
           className = className ? `${className} rexified` : 'rexified';
           // if data of context already fetched
-          if (props.data[data_context]) {
+          if (props.data[data_context] && c.type !== 'form') {
             // Filter presence tells us that the context contains multiple records
             // and should be laid out in a grid or list wrapper that requires a loop
             // to iterate over the records. eg. list of recent listings
@@ -57,6 +42,7 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
                   c,
                   {
                     className,
+                    'data-context': data_context,
                   },
                   <ContextListIterator {...props} dataset={dataset} data={props.data} {...attribs}>
                     {sub}
@@ -98,7 +84,7 @@ function ContextIterator({ children, ...props }: { children: ReactElement } & Pr
           {
             className,
             'data-rexifier': FILE,
-            'data-context': attribs['data-context'] || props.data?.['data-context'],
+            'data-context': attribs['data-context'] || props.data?.['data-context'] || data_context,
           },
           <ContextIterator {...props}>{sub}</ContextIterator>,
         );

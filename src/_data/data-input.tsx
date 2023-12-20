@@ -1,7 +1,7 @@
 'use client';
 import useFormEvent, { Events } from '@/hooks/useFormEvent';
 import { ChangeEvent, Children, ReactElement, cloneElement, useEffect, useState } from 'react';
-
+const FILE = 'data-input.tsx';
 function Iterator({
   children,
   data,
@@ -25,6 +25,7 @@ function Iterator({
           return cloneElement(
             <input
               type={field.includes('password') ? 'password' : 'text'}
+              data-rexifier={FILE}
               onChange={(evt: ChangeEvent<HTMLInputElement>) => {
                 props.onChange(evt.currentTarget.name, evt.currentTarget.value);
               }}
