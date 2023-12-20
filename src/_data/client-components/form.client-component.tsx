@@ -15,6 +15,7 @@ interface FormProps {
   className: string;
   children: ReactElement;
 }
+const FILE = 'form.client-component.tsx';
 
 function FormIterator({ children, data, ...props }: FormProps & { onChange(name: string, value: string): void }) {
   const rexified = Children.map(children, c => {
@@ -88,7 +89,7 @@ export default function FormComponent({ children, action, data, contexts, ...pro
   const form_action = (props['data-form'] || action?.split('/').pop()) as unknown as Events;
 
   const form = useFormEvent(form_action || '');
-
+  console.log(FILE, form_action);
   return cloneElement(
     <div data-rexifier='form.client-component.FormComponent' data-form={form_action} />,
     props,

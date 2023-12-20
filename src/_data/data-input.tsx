@@ -64,8 +64,8 @@ export default function DataInputAtom({
 }: {
   children: ReactElement;
   data?: { [k: string]: unknown };
-  contexts: { [k: string]: { [k: string]: unknown } };
-  'fallback-context': string;
+  contexts?: { [k: string]: { [k: string]: unknown } };
+  'fallback-context'?: string;
   'data-form': string;
   'data-input-type'?: string;
 }) {

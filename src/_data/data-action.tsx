@@ -13,7 +13,7 @@ import { login } from '@/_utilities/api-calls/call-login';
 import { signUp } from '@/_utilities/api-calls/call-signup';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import useEvent from '@/hooks/useEvent';
-
+const FILE = 'data-action.tsx';
 function Iterator({
   children,
   data,
@@ -143,6 +143,7 @@ export default function DataAction({
             const { email, message, customer_name, phone } = form.data as {
               [k: string]: string;
             };
+            console.log(FILE, props.data, email, message);
             if (props.data && email && message && context) {
               const reference = props.data[context] as AgentData;
               const send_to = {
