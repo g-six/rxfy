@@ -3,7 +3,8 @@ import { STRAPI_FIELDS } from '@/_utilities/api-calls/call-legacy-search';
 import { formatAddress } from '@/_utilities/string-helper';
 import { getPropertyAttributes } from '../property-attributes/model';
 import axios from 'axios';
-
+import { consoler } from '@/_helpers/consoler';
+const FILE = 'pipeline/subroutine.ts';
 export async function getPipelineData(payload: { [k: string]: any }) {
   let pipeline_params = payload;
   if (payload.search_for === 'RECENTLY_SOLD') {
@@ -88,6 +89,7 @@ export function mapData(hits: { _source: { data: Record<string, unknown> } }[], 
         if (k === 'photos') {
           hit = {
             ...hit,
+            [k]: data[k],
             cover_photo: Array.isArray(data.photos) ? data.photos[0] : data.photos,
           };
         } else if (real_estate_board && real_estate_board.map(r => r.name).includes(data[k] as string)) {
@@ -96,15 +98,35 @@ export function mapData(hits: { _source: { data: Record<string, unknown> } }[], 
             real_estate_board: data[k],
           };
         } else if (STRAPI_FIELDS[k]) {
-          const v = isNaN(Number(data[k])) ? data[k] : Number(data[k]);
-          if (v) {
+          if (STRAPI_FIELDS[k] === 'pets_allowed' && `${data[k]}`.toLowerCase() === 'yes') {
+            let { pets_allowed = [] } = hit as {
+              pets_allowed: { name: string }[];
+            };
+            if (k.toLowerCase().includes('cat')) pets_allowed.push({ name: 'Cat' });
+            if (k.toLowerCase().includes('dog')) pets_allowed.push({ name: 'Dog' });
             hit = {
               ...hit,
-              [STRAPI_FIELDS[k]]: v,
+              pets_allowed,
             };
+          } else {
+            let v = isNaN(Number(data[k])) ? data[k] : Number(data[k]);
+            if (v) {
+              if (Array.isArray(v)) {
+                if (hit[STRAPI_FIELDS[k]]) {
+                  v = (hit[STRAPI_FIELDS[k]] as string[]).concat(v);
+                }
+              }
+              hit = {
+                ...hit,
+                [STRAPI_FIELDS[k]]: v,
+              };
+            }
           }
+        } else if (data[k]) {
+          // consoler(FILE, k + ' has not been strapified but has a value of:', data[k]);
         }
     });
+
     const listing_by =
       data.LA1_FullName ||
       data.LA2_FullName ||
