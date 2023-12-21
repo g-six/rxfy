@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
-import { getAgentBy } from './app/api/_helpers/agent-helper';
-import { getThemeDomainHostname, getWebflowDomain } from './_helpers/themes';
-import { setAgentWebsiteHeaders } from './_helpers/head-manipulations';
 import { consoler } from './_helpers/consoler';
-import { AgentData } from './_typings/agent';
-import { cookies } from 'next/headers';
+import { getUserDataFromSessionKey } from './app/api/update-session';
+import { getTokenAndGuidFromSessionKey } from './_utilities/api-calls/token-extractor';
+
 const FILE = 'middleware.ts';
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function middleware(request: NextRequest) {
@@ -29,6 +27,20 @@ export async function middleware(request: NextRequest) {
   if (pathname.includes('log-out')) {
     response.cookies.delete('session_key');
     response.cookies.delete('session_as');
+  }
+
+  // Check if customer is logged in and has an account under this agent
+  if (request.cookies.get('session_as')?.value === 'customer') {
+    const session_key = request.cookies.get('session_key')?.value;
+    if (session_key) {
+      const { token, guid } = getTokenAndGuidFromSessionKey(session_key);
+      const session = await getUserDataFromSessionKey(token, guid, 'customer');
+      //getUserSessionData(session_key, 'customer');
+      const { error } = session as unknown as { [k: string]: string };
+      if (error) {
+        response.cookies.delete('session_key');
+      }
+    }
   }
 
   let [, ...segments] = pathname.split('/');
