@@ -216,21 +216,20 @@ export default async function updateSessionKey(guid: number, email: string, user
 export async function getUserDataFromSessionKey(session_hash: string, id: number, user_type: 'customer' | 'realtor' = 'customer') {
   const query = gqlFindUser(user_type);
 
-  const response = await axios.post(
-    `${process.env.NEXT_APP_CMS_GRAPHQL_URL}`,
-    {
+  const request = await fetch(`${process.env.NEXT_APP_CMS_GRAPHQL_URL}`, {
+    method: 'POST',
+    body: JSON.stringify({
       query,
       variables: {
         id,
       },
+    }),
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY}`,
+      'Content-Type': 'application/json',
     },
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.NEXT_APP_CMS_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-    },
-  );
+  });
+  const response = await request.json();
   const response_data = response ? response.data : {};
 
   if (response_data.data?.user?.data?.attributes) {

@@ -91,7 +91,7 @@ export default function FormComponent({ children, action, data, contexts, ...pro
   const form = useFormEvent(form_action || '');
   console.log(FILE, form_action);
   return cloneElement(
-    <div data-rexifier='form.client-component.FormComponent' data-form={form_action} />,
+    <div data-rexifier={FILE} data-form={form_action} />,
     props,
     <FormIterator
       {...props}
