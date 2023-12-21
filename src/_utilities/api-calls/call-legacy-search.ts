@@ -154,6 +154,8 @@ export const STRAPI_FIELDS: {
 
   //allowed_pets
   LFD_BylawRestrictions_58: 'building_by_laws',
+  L_Cats: 'pets_allowed',
+  L_Dogs: 'pets_allowed',
 
   // beds baths
   L_BedroomTotal: 'beds',
@@ -261,4 +263,8 @@ export const STRAPI_FIELDS: {
   LO1_Name: 'main_brokerage',
   LO2_Name: 'secondary_brokerage',
   LO3_Name: 'alt_brokerage',
+
+  // Appliances
+  LFD_FeaturesIncluded_55: 'appliances',
+  LFD_FeaturesIncluded_142: 'appliances',
 };
