@@ -605,7 +605,7 @@ export async function getSoldListings(
   return await Promise.all(results.map(r => strapify(r as unknown as Record<string, unknown>)));
 }
 
-async function strapify(listing: Record<string, unknown>) {
+export async function strapify(listing: Record<string, unknown>) {
   try {
     const {
       title,
