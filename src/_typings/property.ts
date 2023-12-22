@@ -96,7 +96,7 @@ export interface BasePropertyDataModel {
   area: string;
   building_unit?: string | number;
   asking_price: number;
-  sold_price: number;
+  sold_price?: number;
   state_province?: string;
   city: string;
   mls_id: string;

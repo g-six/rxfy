@@ -134,7 +134,7 @@ export function mapData(hits: { _source: { data: Record<string, unknown> } }[], 
                   v = v.map(text => text.replace(/supply/g, '').replace(/water/g, '') + ' Supplied Water');
                 }
                 if (hit[STRAPI_FIELDS[k]]) {
-                  v = (hit[STRAPI_FIELDS[k]] as string[]).concat(v);
+                  v = (hit[STRAPI_FIELDS[k]] as string[]).concat(v as string[]);
                 }
               } else {
                 v = isNaN(Number(data[k])) ? data[k] : Number(data[k]);
