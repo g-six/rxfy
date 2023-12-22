@@ -227,6 +227,7 @@ export interface PropertyDataModel extends BasePropertyDataModel {
   cover_photo?: string;
   mls_data?: MLSProperty;
   floor_area_total?: number;
+  id?: number;
 }
 
 export interface MLSProperty extends Record<string, string | number | boolean | string[]> {
