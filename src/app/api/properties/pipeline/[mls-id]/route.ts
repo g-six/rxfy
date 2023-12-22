@@ -35,6 +35,7 @@ export async function POST(req: NextRequest, { params }: { params: { 'mls-id': s
       });
     }
   }
+  console.log({ updates });
   return NextResponse.json({
     mls_id: params['mls-id'],
     updates,
