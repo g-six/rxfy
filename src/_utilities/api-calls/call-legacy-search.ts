@@ -233,6 +233,11 @@ export const STRAPI_FIELDS: {
 
   // pricing
   AskingPrice: 'asking_price',
+  SoldPrice: 'sold_price',
+  ClosingDate: 'closed_at',
+  OffMarketDate: 'off_market_at',
+  L_Sold_PricePerSqFt: 'sold_price_per_sqft',
+
   PricePerSQFT: 'price_per_sqft',
   L_StrataFee: 'strata_fee',
 

@@ -32,6 +32,7 @@ export interface LegacySearchPayload {
     bool?: {
       filter?: {
         match?: Record<string, string | number>;
+        match_phrase?: Record<string, string | number>;
         term?: { [k: string]: string };
         range?: {};
       }[];

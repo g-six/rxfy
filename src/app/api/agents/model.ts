@@ -708,10 +708,20 @@ export async function getMostRecentListing(
     { match: { 'data.LA2_LoginName': agent_id } },
     { match: { 'data.LA3_LoginName': agent_id } },
   ];
+  const attach_related_records: string[] = [];
   if (opts?.filters?.length) {
     opts.filters.forEach(filter => {
-      minimum_should_match++;
-      should.push({ match: { [`data.${filter.key}`]: filter.value } });
+      // If the item was specifically asked by MLS_ID, we don't need the agent_id
+      // filter and we would also need to return:
+      //  - other units listed in the same building
+      //  - sold history
+      if (filter.key === 'mls_id') {
+        should = [{ match: { [`data.${filter.key}`]: filter.value } }];
+        attach_related_records.push('building_units', 'history');
+      } else {
+        should.push({ match: { [`data.${filter.key}`]: filter.value } });
+        minimum_should_match++;
+      }
     });
   } else {
     minimum_should_match++;
@@ -739,7 +749,14 @@ export async function getMostRecentListing(
   };
 
   let results = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
-  if (!only_agent && (results.length === 0 || results.length < (opts?.size || 1))) {
+  if (
+    !only_agent &&
+    (results.length === 0 || results.length < (opts?.size || 1)) &&
+    should.filter(expression => {
+      const { match } = expression as { match: { 'data.mls_id'?: string } };
+      return match['data.mls_id'];
+    }).length === 0
+  ) {
     const brokerages = await getAgentBrokerages(agent_id);
     let redo = false;
     if (brokerages && brokerages.length) {
@@ -794,6 +811,60 @@ export async function getMostRecentListing(
   }
 
   const listings = await Promise.all(results.map(r => strapify(r as unknown as Record<string, unknown>)));
+
+  if (attach_related_records.length && listings.length === 1) {
+    // Only works for single result
+    const [listing] = listings;
+    if (legacy_params.query.bool && listing.title && listing.state_province && listing.postal_zip_code) {
+      if (attach_related_records.includes('history')) {
+        // Let's query for sold history
+        legacy_params.query.bool.filter = [
+          { match: { 'data.Address': listing.title as string } },
+          { match: { 'data.Status': 'Sold' } },
+          { match_phrase: { 'data.Province_State': listing.state_province as string } },
+          { match_phrase: { 'data.PostalCode_Zip': listing.postal_zip_code as string } },
+        ];
+        delete legacy_params.query.bool.minimum_should_match;
+        delete legacy_params.query.bool.should;
+        const history = await retrieveFromLegacyPipeline(legacy_params, undefined, 5);
+
+        listings[0] = {
+          ...listings[0],
+          history: history.map(l => ({
+            asking_price: formatValues(l, 'asking_price'),
+            sold_price: formatValues(l, 'sold_price'),
+            closed_at: formatValues(l, 'closed_at'),
+            mls_id: l.mls_id,
+            status: l.status,
+          })),
+        };
+      }
+
+      if (attach_related_records.includes('building_units')) {
+        // Let's query for other building units
+        legacy_params.query.bool.filter = [
+          { match: { 'data.Address': listing.title as string } },
+          { match: { 'data.Status': 'Active' } },
+          { match_phrase: { 'data.Province_State': listing.state_province as string } },
+          { match_phrase: { 'data.PostalCode_Zip': listing.postal_zip_code as string } },
+        ];
+        legacy_params.query.bool.must_not = [{ match: { 'data.MLS_ID': listings[0].mls_id as string } }];
+        delete legacy_params.query.bool.minimum_should_match;
+        delete legacy_params.query.bool.should;
+        const building_units = await retrieveFromLegacyPipeline(legacy_params, undefined, 5);
+
+        listings[0] = {
+          ...listings[0],
+          building_units: building_units.map(l => ({
+            asking_price: formatValues(l, 'asking_price'),
+
+            mls_id: l.mls_id,
+            status: l.status,
+          })),
+        };
+      }
+    }
+  }
 
   return listings;
 }

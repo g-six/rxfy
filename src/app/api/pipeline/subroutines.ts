@@ -155,7 +155,8 @@ export function mapData(hits: { _source: { data: Record<string, unknown> } }[], 
           }
         }
     });
-    skips.length > 0 && consoler(FILE, { new_fields: skips });
+    // Debug fields not strapified
+    // skips.length > 0 && consoler(FILE, { new_fields: skips });
 
     const listing_by =
       data.LA1_FullName ||
@@ -177,4 +178,107 @@ export function mapData(hits: { _source: { data: Record<string, unknown> } }[], 
       listing_by,
     };
   }) as PropertyDataModel[];
+}
+
+export async function getListingHistory({
+  address,
+  state_province,
+  postal_zip_code,
+}: {
+  address?: string;
+  state_province?: string;
+  postal_zip_code?: string;
+}): Promise<PropertyDataModel[]> {
+  if (!address || !state_province || !postal_zip_code) return [];
+
+  const pipeline_params = {
+    from: 0,
+    size: 5,
+    query: {
+      bool: {
+        filter: [
+          {
+            match_phrase: {
+              'data.Address': address,
+            },
+          },
+          {
+            match_phrase: {
+              'data.Province_State': state_province,
+            },
+          },
+          {
+            match_phrase: {
+              'data.PostalCode_Zip': postal_zip_code,
+            },
+          },
+          {
+            match: {
+              'data.Status': 'Sold',
+            },
+          },
+        ],
+      },
+    },
+  };
+  // consoler(FILE, 'getListingHistory', { pipeline_params });
+  const { hits } = await getPipelineData(pipeline_params);
+  return hits ? mapData(hits) : [];
+}
+
+export async function getBuildingUnits({
+  mls_id,
+  complex_compound_name,
+  state_province,
+  postal_zip_code,
+}: {
+  mls_id: string;
+  complex_compound_name?: string;
+  state_province?: string;
+  postal_zip_code?: string;
+}): Promise<PropertyDataModel[]> {
+  if (!complex_compound_name || !state_province || !postal_zip_code) return [];
+
+  const pipeline_params = {
+    from: 0,
+    size: 100,
+    query: {
+      bool: {
+        should: [
+          {
+            match_phrase: {
+              'data.L_ComplexName': complex_compound_name,
+            },
+          },
+          {
+            match_phrase: {
+              'data.L_SubareaCommunity': complex_compound_name,
+            },
+          },
+        ],
+        minimum_should_match: 1,
+        must_not: [{ match: { 'data.MLS_ID': mls_id } }],
+        must: [
+          {
+            match_phrase: {
+              'data.Province_State': state_province,
+            },
+          },
+          {
+            match_phrase: {
+              'data.PostalCode_Zip': postal_zip_code,
+            },
+          },
+          {
+            match: {
+              'data.Status': 'Active',
+            },
+          },
+        ],
+      },
+    },
+  };
+
+  const { hits } = await getPipelineData(pipeline_params);
+  return hits ? mapData(hits) : [];
 }

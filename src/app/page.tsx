@@ -9,6 +9,7 @@ import { getDomain } from './api/domains/model';
 import { consoler } from '@/_helpers/consoler';
 import { AgentData } from '@/_typings/agent';
 import { getImageSize } from 'next/dist/server/image-optimizer';
+import { notFound } from 'next/navigation';
 
 type SubcontextProps = { [k: string]: { filters: string[]; sort: string[]; size: number[] } };
 const FILE = 'app/page.tsx';
@@ -140,6 +141,7 @@ export async function getPageMetadata(): Promise<{
 }
 
 export default async function Page() {
+  let show_404 = false;
   const ts = Date.now();
   const { html, base_context, subcontexts, status, ...others } = await getPageMetadata();
 
@@ -167,10 +169,14 @@ export default async function Page() {
               size: subcontexts[context].size[idx] || 1,
             })) as { [k: string]: unknown }[];
             data_query_results[context] = data_query_results[context] || {};
-
-            if (r && filter.indexOf(':') > 0) {
+            const query_params = `${headers().get('X-Search-Params')}`.split('=').join(':').split('&');
+            if (r?.length === 0 && query_params.length) {
+              // Record not found for record
+              // targetted via query string parameter
+              // - show 404
+              show_404 = true;
+            } else if (r?.length && filter.indexOf(':') > 0) {
               const [key, id] = filter.split(':') as string[];
-              const query_params = `${headers().get('X-Search-Params')}`.split('=').join(':').split('&');
               if (query_params.length === 1 && query_params[0] === filter) {
                 data_query_results[context] = {
                   ...r.pop(),
@@ -195,6 +201,11 @@ export default async function Page() {
         );
       }),
     );
+  }
+
+  if (show_404) {
+    return notFound();
+    return <>{data.agent.webflow_domain}</>;
   }
 
   const images: { src: string; 'data-image': string }[] = [];
@@ -228,6 +239,7 @@ export default async function Page() {
    * so we only load the script after all our scripts are done loaded (code to add in layout.tsx)
    */
   $('body > script[src*=webflow]').remove();
+
   return (
     <DataContext
       data={{

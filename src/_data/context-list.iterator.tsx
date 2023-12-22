@@ -65,6 +65,21 @@ function Iterator({
           }
           return <></>;
         }
+
+        if (attribs['data-component'] && props['data-filter'] === attribs['data-component']) {
+          if (props.dataset.length === 0 && attribs['data-empty-text']) {
+            return cloneElement(c, {}, attribs['data-empty-text']);
+          } else if (!attribs['data-empty-text'])
+            return props.dataset.map((record, record_position) => {
+              return cloneElement(
+                c,
+                { key: `${attribs['data-component']}-${record_position + 1}`, 'data-index': record_position },
+                <DataFieldAtom {...props} data={record}>
+                  {c.props.children}
+                </DataFieldAtom>,
+              );
+            });
+        }
         if (props['data-context']) {
           let dataset: { [k: string]: unknown }[] = [];
           if (props['data-filter']) {

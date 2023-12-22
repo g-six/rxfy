@@ -661,9 +661,12 @@ export function formatValues(obj: any, key: string, reverse = false): string | n
   if (!obj || obj[key] === undefined) return obj[key];
 
   if (NumericFields.includes(key)) {
-    return reverse || ['year_built', 'tax_year'].includes(key)
-      ? Number((obj as Record<string, string>)[key])
-      : new Intl.NumberFormat(undefined).format(parseInt((obj as Record<string, string>)[key], 10) as number);
+    return [
+      reverse || ['year_built', 'tax_year'].includes(key)
+        ? Number((obj as Record<string, string>)[key])
+        : new Intl.NumberFormat(undefined).format(parseInt((obj as Record<string, string>)[key], 10) as number),
+      getUOM(key),
+    ].join(' ');
   }
 
   if (FinanceFields.includes(key) && !isNaN(Number(obj[key]))) {
@@ -761,4 +764,11 @@ export function slugifyAddress(address: string) {
     .join(' ')
     .replace(/[^a-z0-9]/gi, '-')
     .toLowerCase();
+}
+
+const UOM = ['sqft', 'sqm', 'acre', 'ft', 'feet', 'metres', 'meters', 'meter'];
+export function getUOM(key: string) {
+  const uom = key.split('_').pop() as string;
+  if (uom && UOM.includes(uom)) return uom;
+  else if (key.indexOf('floor_area_') === 0) return 'sqft';
 }

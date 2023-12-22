@@ -52,8 +52,19 @@ async function AtomIterator({
             .join(', ') as string;
         } else if (field) {
           value = data[field] as string;
-          if (attribs['data-display-as'] && !isNaN(Number(value))) {
-            value = '$' + new Intl.NumberFormat(undefined, {}).format(Number(value));
+          if (!isNaN(Number(value))) {
+            if (attribs['data-display-as'] === 'currency') {
+              value = '$' + new Intl.NumberFormat(undefined, {}).format(Number(value));
+            }
+            if (attribs['data-display-as'] === 'thousands') {
+              value = new Intl.NumberFormat(undefined, {}).format(Number(value));
+            }
+          }
+          if (attribs['data-prefix']) {
+            value = `${attribs['data-prefix']}${value}`;
+          }
+          if (attribs['data-suffix']) {
+            value = `${value}${attribs['data-suffix']}`;
           }
           if (field === 'cover_photo') {
             if (data.photos) {

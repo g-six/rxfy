@@ -1,3 +1,39 @@
+export const PROPERTY_INFORMATION_STATS: { [k: string]: string } = {
+  property_type: 'Property Type',
+  age: 'Age',
+  year_built: 'Year built',
+  style_type: 'Residential / building type',
+  listed_at: 'Date listed',
+  land_title: 'Title to land',
+  subarea_community: 'Name of community',
+  complex_compound_name: 'Complex / community',
+  building_total_units: '# of Units w/in building',
+  num_units_in_community: '# of Neighbours',
+  council_approval_required: 'Council approval required',
+  items_maintained: 'Strata services',
+};
+export const PROPERTY_FINANCIAL_STATS: { [k: string]: string } = {
+  gross_taxes: 'Gross Taxes',
+  strata_fee: 'Strata Fee',
+  price_per_sqft: 'Price per Sqft.',
+  asking_price: 'Asking Price',
+};
+
+export const PROPERTY_DIMENSION_STATS: { [k: string]: string } = {
+  room_details: 'Rooms',
+  bathroom_details: 'Baths',
+  frontage_feet: 'Frontage (ft.)',
+  floor_area_main: 'Main floor area',
+  floor_area_total: 'Total floor area',
+  floor_area_basement: 'Basement floor area',
+  floor_area_unfinished: 'Total unfinished floor area',
+  floor_area_upper_floors: 'Upper floor area',
+};
+export const PROPERTY_CONSTRUCTION_STATS: { [k: string]: string } = {
+  foundation_specs: 'Foundation',
+  construction_information: 'Materials / build',
+};
+
 export enum FIELD_CATEGORY {
   Appliance = 'Appliance',
   Construction = 'Construction Material',

@@ -47,8 +47,13 @@ async function ComponentIterator({
             });
           }
 
-          if (attribs['data-display-as'] === 'currency' && !isNaN(Number(value))) {
-            value = '$' + new Intl.NumberFormat(undefined, {}).format(Number(value));
+          if (!isNaN(Number(value))) {
+            if (attribs['data-display-as'] === 'currency') {
+              value = '$' + new Intl.NumberFormat(undefined, {}).format(Number(value));
+            }
+            if (attribs['data-display-as'] === 'thousands') {
+              value = new Intl.NumberFormat(undefined, {}).format(Number(value));
+            }
           }
 
           return cloneElement(

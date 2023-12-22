@@ -8,6 +8,7 @@ import DataInputAtom from './data-input';
 import DataAction from './data-action';
 import DataModal from './data-modal.client-component';
 import DataFieldGroup from './data-field.group';
+import ContextStatsIterator from './context-stats.iterator';
 
 const FILE = 'data-context.iterator.tsx';
 
@@ -95,6 +96,47 @@ export default function ContextIterator({ children, ...props }: { children: Reac
                     {c}
                   </DataFieldGroup>
                 );
+              } else if (c.props['data-group']) {
+                const { [c.props['data-group']]: related_recordset } = props.data[data_context] as {
+                  [k: string]: { [k: string]: string }[];
+                };
+                if (related_recordset) {
+                  return cloneElement(
+                    c,
+                    {
+                      className,
+                      'data-rexifier': FILE,
+                      'data-context': data_context,
+                      'data-relation': 'related_recordset',
+                    },
+                    <ContextListIterator {...props} data-filter={c.props['data-group']} dataset={related_recordset} data={props.data} {...attribs}>
+                      {sub}
+                    </ContextListIterator>,
+                  );
+                }
+              } else if (c.props['data-stat']) {
+                const {
+                  stats: { [c.props['data-stat']]: stat },
+                } = props.data[data_context] as {
+                  stats: {
+                    [k: string]: { label: string; value: string }[];
+                  };
+                };
+                if (stat) {
+                  return <ContextStatsIterator dataset={stat}>{c}</ContextStatsIterator>;
+                  //   return cloneElement(
+                  //     c,
+                  //     {
+                  //       className,
+                  //       'data-rexifier': FILE,
+                  //       'data-context': data_context,
+                  //       'data-relation': 'related_recordset',
+                  //     },
+                  //     <ContextListIterator {...props} data-filter={c.props['data-stat']} dataset={related_recordset} data={props.data} {...attribs}>
+                  //       {sub}
+                  //     </ContextListIterator>,
+                  //   );
+                }
               }
             }
 

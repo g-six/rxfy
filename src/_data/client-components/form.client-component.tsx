@@ -89,7 +89,6 @@ export default function FormComponent({ children, action, data, contexts, ...pro
   const form_action = (props['data-form'] || action?.split('/').pop()) as unknown as Events;
 
   const form = useFormEvent(form_action || '');
-  console.log(FILE, form_action);
   return cloneElement(
     <div data-rexifier={FILE} data-form={form_action} />,
     props,

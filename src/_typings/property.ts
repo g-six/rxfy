@@ -1,6 +1,6 @@
 import { PlaceDetails } from './maps';
 
-export const DateFields = ['UpdateDate', 'ListingDate'];
+export const DateFields = ['UpdateDate', 'ListingDate', 'listed_at', 'closed_at'];
 export const PROPERTY_ASSOCIATION_KEYS: string[] = [
   'amenities',
   'appliances',
@@ -71,7 +71,7 @@ export const NumericFields = [
   'sqft',
 ];
 
-export const FinanceFields = ['asking_price', 'price_per_sqft', 'gross_taxes', 'SoldPrice', 'strata_fee'];
+export const FinanceFields = ['asking_price', 'sold_price', 'price_per_sqft', 'sold_price_per_sqft', 'gross_taxes', 'SoldPrice', 'strata_fee'];
 export const UnitOfMeasurementFields: string[] = ['floor_area_uom', 'lot_uom'];
 
 export enum PropertyStatus {
@@ -96,6 +96,7 @@ export interface BasePropertyDataModel {
   area: string;
   building_unit?: string | number;
   asking_price: number;
+  sold_price: number;
   state_province?: string;
   city: string;
   mls_id: string;
@@ -105,6 +106,7 @@ export interface BasePropertyDataModel {
   beds?: number;
   baths?: number;
   price_per_sqft?: number;
+  sold_price_per_sqft?: number;
   guid?: string;
   changes_applied?: string;
   age?: number;
@@ -115,6 +117,7 @@ export interface BasePropertyDataModel {
   style_type?: string;
   status?: 'Active' | 'Expired' | 'Sold';
   listed_at?: Date;
+  closed_at?: Date;
   land_title?: string;
   gross_taxes?: number;
   original_price?: number;
