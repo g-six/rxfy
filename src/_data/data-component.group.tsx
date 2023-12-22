@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { consoler } from '@/_helpers/consoler';
 import { Children, ReactElement, cloneElement } from 'react';
 import DataFieldGroup from './data-field.group';
@@ -40,7 +41,7 @@ async function ComponentIterator({
             return <DataFieldAtom data={data}>{c}</DataFieldAtom>;
           }
           if (c.type === 'svg') {
-            return cloneElement(<img />, {
+            return cloneElement(<img alt='' />, {
               src: value,
               'data-rexifier': FILE,
             });
@@ -63,6 +64,15 @@ async function ComponentIterator({
             .split(',')
             .map((f: string) => {
               if (f === 'title') return capitalizeFirstLetter(`${data[f]}`.toLowerCase());
+              if (f.includes('+')) {
+                return f
+                  .split('+')
+                  .map(fi => {
+                    consoler(FILE, fi);
+                    return data[fi];
+                  })
+                  .join(' ');
+              }
               return data[f] as string;
             })
             .filter((v: string) => !!v)

@@ -1,9 +1,10 @@
 import { PropertyDataModel } from '@/_typings/property';
-import { STRAPI_FIELDS } from '@/_utilities/api-calls/call-legacy-search';
+import { MLS_FIELDS_SKIPPED, STRAPI_FIELDS } from '@/_utilities/api-calls/call-legacy-search';
 import { formatAddress } from '@/_utilities/string-helper';
 import { getPropertyAttributes } from '../property-attributes/model';
 import axios from 'axios';
 import { consoler } from '@/_helpers/consoler';
+import { BUILD_RELATED_FIELDS, LegacyPipelineFields, WATER_SUPPLY_RELATED_FIELDS } from '../properties/types';
 const FILE = 'pipeline/subroutine.ts';
 export async function getPipelineData(payload: { [k: string]: any }) {
   let pipeline_params = payload;
@@ -79,6 +80,7 @@ export async function getPipelineData(payload: { [k: string]: any }) {
 }
 
 export function mapData(hits: { _source: { data: Record<string, unknown> } }[], real_estate_board?: { name: string }[]): PropertyDataModel[] {
+  const skips: string[] = [];
   return hits.map(p => {
     const {
       _source: { data },
@@ -108,13 +110,34 @@ export function mapData(hits: { _source: { data: Record<string, unknown> } }[], 
               ...hit,
               pets_allowed,
             };
+          } else if (k.includes('Hectares')) {
+            const hectares = Number(data[k]);
+            if (!isNaN(hectares) && !hit[STRAPI_FIELDS[k]])
+              hit = {
+                ...hit,
+                [STRAPI_FIELDS[k]]: hectares * 107639,
+              };
+          } else if (k.includes('Acres')) {
+            const acres = Number(data[k]);
+            if (!isNaN(acres) && !hit[STRAPI_FIELDS[k]])
+              hit = {
+                ...hit,
+                [STRAPI_FIELDS[k]]: acres * 43560,
+              };
           } else {
-            let v = isNaN(Number(data[k])) ? data[k] : Number(data[k]);
+            let v = data[k];
             if (v) {
               if (Array.isArray(v)) {
+                if (WATER_SUPPLY_RELATED_FIELDS.includes(k as unknown as LegacyPipelineFields)) {
+                  v = v.map(text => text.replace(/supply/g, '').replace(/water/g, '') + ' Supplied Water');
+                } else if (BUILD_RELATED_FIELDS.includes(k as unknown as LegacyPipelineFields)) {
+                  v = v.map(text => text.replace(/supply/g, '').replace(/water/g, '') + ' Supplied Water');
+                }
                 if (hit[STRAPI_FIELDS[k]]) {
                   v = (hit[STRAPI_FIELDS[k]] as string[]).concat(v);
                 }
+              } else {
+                v = isNaN(Number(data[k])) ? data[k] : Number(data[k]);
               }
               hit = {
                 ...hit,
@@ -122,10 +145,17 @@ export function mapData(hits: { _source: { data: Record<string, unknown> } }[], 
               };
             }
           }
-        } else if (data[k]) {
-          // consoler(FILE, k + ' has not been strapified but has a value of:', data[k]);
+        } else if (data[k] && (!isNaN(Number(data[k])) ? Number(data[k]) : true)) {
+          // Skip these
+          if (!k.includes('L_Room') && !k.includes('L_Bath') && !MLS_FIELDS_SKIPPED.includes(k)) {
+            skips.push(k);
+
+            // Enable to investigate significance of board fields
+            // if (k === 'ListAgent2') consoler(FILE, k + ' has not been strapified but has a value of:', data[k]);
+          }
         }
     });
+    skips.length > 0 && consoler(FILE, { new_fields: skips });
 
     const listing_by =
       data.LA1_FullName ||

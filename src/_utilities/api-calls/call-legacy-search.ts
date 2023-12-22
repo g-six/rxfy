@@ -1,7 +1,9 @@
 import { consoler } from '@/_helpers/consoler';
 import { LegacySearchPayload } from '@/_typings/pipeline';
 import { PropertyDataModel } from '@/_typings/property';
+import { mapData } from '@/app/api/pipeline/subroutines';
 import axios, { AxiosError, AxiosStatic } from 'axios';
+const FILE = 'call-legacy-search.ts';
 export async function retrieveFromLegacyPipeline(
   params: LegacySearchPayload = DEF_LEGACY_PAYLOAD,
   config = {
@@ -22,7 +24,9 @@ export async function retrieveFromLegacyPipeline(
     } = await axios.post(config.url, params, {
       headers: config.headers,
     });
+    const listings = mapData(hits);
 
+    return listings;
     return hits.map(({ _source, fields }: { _source: unknown; fields: Record<string, unknown> }) => {
       let hit: Record<string, unknown>;
       if (_source) {
@@ -71,7 +75,6 @@ export async function retrieveFromLegacyPipeline(
     });
   } catch (e) {
     const { response } = e as unknown as AxiosError;
-    consoler('call-legacy-search.ts', params, response?.data);
     return [];
   }
 }
@@ -136,6 +139,9 @@ export const STRAPI_FIELDS: {
   MLS_ID: 'mls_id',
   ListingID: 'guid',
 
+  // Dates
+  UpdateDate: 'updatedAt',
+
   // geolocation
   lat: 'lat',
   lng: 'lon',
@@ -158,13 +164,17 @@ export const STRAPI_FIELDS: {
   L_Dogs: 'pets_allowed',
 
   // beds baths
+  L_FullBaths: 'full_baths',
+  L_HalfBaths: 'half_baths',
   L_BedroomTotal: 'beds',
   L_TotalBaths: 'baths',
   B_Basement: 'basement',
-  LFD_Roof_43: 'roofing',
-  B_Roof: 'roofing',
+
+  L_KitchensTotal: 'total_kitchens',
 
   // building info
+  LFD_Roof_43: 'roofing',
+  B_Roof: 'roofing',
   Type: 'style_type',
   LFD_StyleofHome_32: 'style_type',
   PropertyType: 'property_type',
@@ -188,9 +198,12 @@ export const STRAPI_FIELDS: {
   L_FloorArea_BelowMain: 'floor_area_below_main',
   L_FloorArea_Total: 'floor_area_total',
   LFD_ExteriorFinish_42: 'exterior_finish',
+  LFD_FloorFinish_19: 'floorings',
   LandTitle: 'land_title',
   LFD_Foundation_155: 'foundation_specs',
   LFD_Foundation_156: 'foundation_specs',
+  B_Depth: 'depth',
+  B_Style: 'building_style',
 
   // community info
   NumberofUnitsInCommunity: 'num_units_in_community',
@@ -205,6 +218,8 @@ export const STRAPI_FIELDS: {
   // land / lot info
   L_LotSize_SqMtrs: 'lot_sqm',
   L_LotSize_SqFt: 'lot_sqft',
+  L_LotSize_Acres: 'lot_sqft',
+  L_LotSize_Hectares: 'lot_sqft',
   Zoning: 'zoning',
 
   // notes / description
@@ -213,6 +228,8 @@ export const STRAPI_FIELDS: {
   // parking
   L_Parking_covered: 'total_covered_parking',
   L_Parking_total: 'total_parking',
+  B_Parking_Type: 'parkings',
+  B_Parking_Access: 'parkings',
 
   // pricing
   AskingPrice: 'asking_price',
@@ -226,10 +243,6 @@ export const STRAPI_FIELDS: {
   // tax
   ForTaxYear: 'tax_year',
   L_GrossTaxes: 'gross_taxes',
-
-  // amenities
-  L_View_Desc: 'panoramic_views',
-  LFD_FuelHeating_48: 'heating',
 
   // board status
   Status: 'status',
@@ -264,7 +277,76 @@ export const STRAPI_FIELDS: {
   LO2_Name: 'secondary_brokerage',
   LO3_Name: 'alt_brokerage',
 
+  // Amenities relationships.
+  L_View_Desc: 'panoramic_views',
+  LFD_FuelHeating_48: 'heating',
+  B_Heating: 'heating',
+  B_Amenities: 'amenities',
+  B_OutdoorArea: 'amenities',
+
   // Appliances
+  L_Features: 'appliances',
   LFD_FeaturesIncluded_55: 'appliances',
   LFD_FeaturesIncluded_142: 'appliances',
+
+  // Connected Services
+  B_Services: 'connected_services',
+  LFD_ServicesConnected_7: 'connected_services',
+  LFD_WaterSupply_8: 'connected_services',
+
+  // Build features
+  B_Construction: 'build_features',
+  B_ConstructionMaterials: 'build_features',
+  B_Exterior_Finish: 'exterior_finish',
+
+  // Places of Interest
+  B_SiteInfluences: 'places_of_interest',
 };
+
+export const MLS_FIELDS_SKIPPED = [
+  'None',
+  'CDOM',
+  'DOM',
+  'L_PID',
+  'LO1_URL',
+  'LO2_URL',
+  'LO3_URL',
+  'ViewDesc',
+  'Remarks',
+  'InputDate',
+  'LO1_Phone',
+  'LO2_PHone',
+  'FloodPlain',
+  'IdxInclude',
+  'ListAgent2',
+  'LA2_WebPage',
+  'L_Commision',
+  'ListOffice1',
+  'ListOffice2',
+  'LM_Char10_11',
+  'LM_char10_75',
+  'LM_char50_11',
+  'LM_char50_12',
+  'PictureCount',
+  'AddressNumber',
+  'AddressStreet',
+  'OriginalPrice',
+  'ExpirationDate',
+  'Last_Photo_updt',
+  'B_PermitApproved',
+  'B_SketchAttached',
+  'LO1_Abbreviation',
+  'LO2_Abbreviation',
+  'L_DisplayAddress',
+  'L_DisplayListing',
+  'L_FixturesRented',
+  'LFD_Renovations_4',
+  'LFD_BasementArea_6',
+  'PropertyDisclosure',
+  'B_RezoningPotential',
+  'StreetDesignationId',
+  'TaxUtilitiesInclude',
+  'L_BedroomNOTBasement',
+  'L_FixturesRemoved_YN',
+  'B_InfoPackageAvailable',
+];

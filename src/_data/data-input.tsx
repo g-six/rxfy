@@ -9,9 +9,8 @@ function Iterator({
 }: {
   children: ReactElement;
   data?: { [k: string]: unknown };
-  contexts: { [k: string]: { [k: string]: unknown } };
+  contexts?: { [k: string]: { [k: string]: unknown } };
   onChange(name: string, value: string): void;
-  'fallback-context': string;
   'data-input-type'?: string;
 }) {
   const rexifier = Children.map(children, c => {
@@ -65,7 +64,6 @@ export default function DataInputAtom({
   children: ReactElement;
   data?: { [k: string]: unknown };
   contexts?: { [k: string]: { [k: string]: unknown } };
-  'fallback-context'?: string;
   'data-form': string;
   'data-input-type'?: string;
 }) {

@@ -56,7 +56,7 @@ function Iterator({
               c,
               {
                 href: c.type === 'a' ? c.props.href + '?' + objectToQueryString(params) : undefined,
-                'data-rexifier': 'context-list.iterator',
+                'data-rexifier': FILE,
               },
               <DataFieldAtom {...props} data={props.dataset[idx]} data-context={attribs['data-context'] || props['data-context'] || props['fallback-context']}>
                 {c.props.children}
@@ -99,7 +99,9 @@ function Iterator({
           if (dataset[0] && attribs['data-field-group']) {
             return cloneElement(
               c,
-              {},
+              {
+                'data-rexifier': FILE,
+              },
               <DataFieldGroup
                 data-field-group={attribs['data-field-group']}
                 data-json-ref={attribs['data-json-ref']}
@@ -129,6 +131,7 @@ function Iterator({
               return cloneElement(c, {
                 className,
                 src: value,
+                'data-rexifier': FILE,
               });
             }
             return cloneElement(
@@ -149,6 +152,7 @@ function Iterator({
               c,
               {
                 className,
+                'data-rexifier': FILE,
               },
               data[field],
             );

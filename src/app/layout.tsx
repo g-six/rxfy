@@ -42,7 +42,6 @@ async function getPageMetadata(): Promise<{
     const url = headers().get('x-pathname');
     const page_url = `https://${data?.webflow_domain}${url || ''}`;
     const page_html_xhr = await fetch(page_url);
-    consoler('layout.tsx', page_url);
     if (page_html_xhr.ok) html = await page_html_xhr.text();
     else {
       // Page does not exist on Webflow
@@ -82,8 +81,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const ts = Date.now();
   const { html, data } = await getPageMetadata();
   const $: CheerioAPI = load(html);
-
-  consoler('layout.tsx', `${Date.now() - ts}ms`);
 
   // Take care of head metatags (SEO)
   // TODO: logic for pages that isn't the home page

@@ -38,6 +38,14 @@ async function AtomIterator({
             .split(',')
             .map((f: string) => {
               if (f === 'title') return capitalizeFirstLetter(`${data[f]}`.toLowerCase());
+              if (f.includes('+')) {
+                return f
+                  .split('+')
+                  .map(fi => {
+                    return data[fi];
+                  })
+                  .join(' ');
+              }
               return data[f] as string;
             })
             .filter((v: string) => !!v)

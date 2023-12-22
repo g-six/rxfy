@@ -621,18 +621,28 @@ export async function strapify(listing: Record<string, unknown>) {
       mls_id,
       floor_area_sqft,
       floor_area,
+      lot_sqft,
       year_built,
       listed_at: listing_date,
       state_province,
+      postal_zip_code,
       LO1_Name,
       LO2_Name,
       LO3_Name,
       ...mls_data
     } = listing;
 
-    const legacy = mls_data as unknown as MLSProperty;
+    const {
+      LA1_FullName,
+      LA2_FullName,
+      LA3_FullName,
+      LandTitle: land_title,
+      PricePerSQFT: price_per_sqft,
+      L_GrossTaxes: gross_taxes,
+    } = mls_data as unknown as MLSProperty;
+
     const real_estate_board = await getRealEstateBoard(mls_data as unknown as Record<string, string>);
-    let listed_by = legacy.LA1_FullName || legacy.LA2_FullName || legacy.LA3_FullName;
+    let listed_by = LA1_FullName || LA2_FullName || LA3_FullName;
     const [cover_photo] = mls_data.photos ? (mls_data.photos as string[]) : [''];
 
     const brokerages: string[] = [];
@@ -641,9 +651,12 @@ export async function strapify(listing: Record<string, unknown>) {
     if (LO3_Name) brokerages.push(LO3_Name as string);
 
     return {
+      gross_taxes,
+      price_per_sqft,
       title,
       address: title ? capitalizeFirstLetter(`${title}`.toLowerCase()) : '',
       state_province,
+      postal_zip_code,
       description,
       lat,
       lon,
@@ -660,6 +673,8 @@ export async function strapify(listing: Record<string, unknown>) {
       mls_id,
       real_estate_board,
       cover_photo,
+      lot_sqft: lot_sqft ? lot_sqft && formatValues({ lot_sqft }, 'lot_sqft') + ' sqft' : undefined,
+      land_title,
       floor_area_sqft: formatValues(
         {
           floor_area_sqft: floor_area_sqft || floor_area,
@@ -699,6 +714,7 @@ export async function getMostRecentListing(
       should.push({ match: { [`data.${filter.key}`]: filter.value } });
     });
   } else {
+    minimum_should_match++;
     should.push({ match: { 'data.Status': 'Active' } });
   }
   if (only_agent) should.pop();
@@ -723,7 +739,7 @@ export async function getMostRecentListing(
   };
 
   let results = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
-  if (!only_agent && results.length < (opts?.size || 1)) {
+  if (!only_agent && (results.length === 0 || results.length < (opts?.size || 1))) {
     const brokerages = await getAgentBrokerages(agent_id);
     let redo = false;
     if (brokerages && brokerages.length) {
@@ -776,7 +792,10 @@ export async function getMostRecentListing(
       results = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
     }
   }
-  return await Promise.all(results.map(r => strapify(r as unknown as Record<string, unknown>)));
+
+  const listings = await Promise.all(results.map(r => strapify(r as unknown as Record<string, unknown>)));
+
+  return listings;
 }
 
 export async function createAgentRecord(agent: {

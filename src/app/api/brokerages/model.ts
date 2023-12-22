@@ -50,7 +50,7 @@ export async function getAgentBrokerages(agent_id: string): Promise<Brokerage[]>
         const { agents, ...brokerage } = attributes;
         return {
           ...brokerage,
-          agents: (agents.data || []).map((agent: { attributes: { agent_id: string } }) => agent.attributes.agent_id).filter(a => a !== agent_id),
+          agents: (agents.data || []).map((agent: { attributes: { agent_id: string } }) => agent.attributes.agent_id).filter((a: string) => a !== agent_id),
           id: Number(id),
         };
       })

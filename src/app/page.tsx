@@ -9,7 +9,6 @@ import { getDomain } from './api/domains/model';
 import { consoler } from '@/_helpers/consoler';
 import { AgentData } from '@/_typings/agent';
 import { getImageSize } from 'next/dist/server/image-optimizer';
-import { getAgentBrokerages } from './api/brokerages/model';
 
 type SubcontextProps = { [k: string]: { filters: string[]; sort: string[]; size: number[] } };
 const FILE = 'app/page.tsx';
@@ -53,13 +52,15 @@ export async function getPageMetadata(): Promise<{
     base_context = domain.context;
     // For Leagent, it's agent
     if (domain.context === 'agent') {
+      // Retrieve Agent information
       agent = await getAgentBy({
         domain_name,
       });
+
       if (agent?.webflow_domain) {
         page_url = `https://${agent?.webflow_domain}${url || ''}`;
         data = {
-          ...data,
+          session: data,
           agent,
         };
       }
@@ -71,7 +72,8 @@ export async function getPageMetadata(): Promise<{
   if (page_html_xhr.ok) {
     html = await page_html_xhr.text();
     const $: CheerioAPI = load(html);
-
+    let model = '';
+    let filters: { [k: string]: string } = {};
     $('[data-context]').each((rdx, el) => {
       if (!data[el.attribs['data-context']]) {
         if (el.attribs['data-filter']) {
@@ -92,7 +94,7 @@ export async function getPageMetadata(): Promise<{
               },
             };
           } else {
-            const { filters, sort } = subcontexts[el.attribs['data-context']] as {
+            const { filters } = subcontexts[el.attribs['data-context']] as {
               filters?: string[];
               sort?: string[];
             };
@@ -106,9 +108,17 @@ export async function getPageMetadata(): Promise<{
               subcontexts[el.attribs['data-context']].size.push(size || 1);
             }
           }
-        } else consoler('page.tsx', 'getPageMetadata data-context: "' + el.attribs['data-context'] + '" has no data reference', { data });
+        } else if (headers().get('X-Search-Params')) {
+          subcontexts[el.attribs['data-context']] = {
+            filters: `${headers().get('X-Search-Params')}`.split('=').join(':').split('&'),
+            sort: [el.attribs['data-sort'] || ''],
+            size: [Number(filters.size) || 1],
+          };
+          model = el.attribs['data-context'];
+        }
       }
     });
+
     title = data.agent?.full_name || $('title').text();
     if (data.agent?.metatags?.title) title = data.agent?.metatags?.title;
     if (data.agent?.metatags?.description) description = data.agent?.metatags.description;
@@ -142,7 +152,7 @@ export default async function Page() {
   });
 
   let data = others.data || {};
-  let filtered_contexts: { [k: string]: { [k: string]: unknown } } = {};
+  let data_query_results: { [k: string]: { [k: string]: unknown } } = {};
 
   if (data[base_context]) {
     const { title: owner_title, ...base_object } = data[base_context];
@@ -156,22 +166,29 @@ export default async function Page() {
               sort: subcontexts[context].sort[idx],
               size: subcontexts[context].size[idx] || 1,
             })) as { [k: string]: unknown }[];
-            if (filtered_contexts[context]) {
-              filtered_contexts[context] = {
-                ...filtered_contexts[context],
-                [filter]: r.map(record => ({
-                  ...base_object,
-                  ...record,
-                })),
-              };
-            } else if (r) {
+            data_query_results[context] = data_query_results[context] || {};
+
+            if (r && filter.indexOf(':') > 0) {
+              const [key, id] = filter.split(':') as string[];
+              const query_params = `${headers().get('X-Search-Params')}`.split('=').join(':').split('&');
+              if (query_params.length === 1 && query_params[0] === filter) {
+                data_query_results[context] = {
+                  ...r.pop(),
+                };
+              } else {
+                data_query_results[context] = {
+                  ...data_query_results[context],
+                  [key]: {
+                    [id]: r,
+                  },
+                };
+              }
+            } else if (r && r.length) {
               if (!Array.isArray(r)) consoler(FILE, 'Trying to operate on a non-array', r, 'Trying to operate on a non-array');
               else
-                filtered_contexts[context] = {
-                  [filter]: r.map(record => ({
-                    ...base_object,
-                    ...record,
-                  })),
+                data_query_results[context] = {
+                  ...data_query_results[context],
+                  [filter]: r,
                 };
             }
           }),
@@ -206,23 +223,21 @@ export default async function Page() {
   );
 
   const divs = $('body > :not(script)');
-
   /**
    * Very important!  Webflow's javascript messes with the scripts we create to handle data-context + data-field + data-etc
    * so we only load the script after all our scripts are done loaded (code to add in layout.tsx)
    */
   $('body > script[src*=webflow]').remove();
-
   return (
     <DataContext
       data={{
         ...data,
-        ...filtered_contexts,
+        ...data_query_results,
       }}
-      fallback-context={base_context}
+      data-context={base_context}
       contexts={subcontexts}
     >
-      <>{domToReact(divs as unknown as DOMNode[]) as ReactElement}</>
+      {domToReact(divs as unknown as DOMNode[]) as ReactElement[]}
     </DataContext>
   );
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { consoler } from '@/_helpers/consoler';
 import { getImageSized } from '@/_utilities/data-helpers/image-helper';
 import { Children, ReactElement, cloneElement } from 'react';
@@ -36,13 +37,12 @@ function Iterator({ children, ...props }: GroupProps & { 'is-image-gallery'?: bo
               // },
               const ref = json[props['data-json-ref']] as { [k: string]: string }[];
               items.forEach((item, idx) => {
-                if (idx > 10) return;
                 if (!ref[idx]) {
                   ref.push(ref[0]);
                 }
                 if (item && ref && ref[idx]) {
                   if (typeof item === 'string') {
-                    const { url, src, height, width, href, ...attr } = ref[idx] as unknown as { [k: string]: string };
+                    const { url, src, height, width, href, ...attr } = ref[idx] || (ref[0] as unknown as { [k: string]: string });
                     const file_name = item.split('/').pop() as string;
                     const file_extension = `${file_name.split('.').pop() || ''}`.toLowerCase();
                     const file_url = ['jpg', 'jpeg', 'png', 'gif'].includes(file_extension) ? getImageSized(item, 960) : item;
@@ -80,6 +80,33 @@ function Iterator({ children, ...props }: GroupProps & { 'is-image-gallery'?: bo
           // consoler('data-field.group.tsx', props.data[props['data-field-group']]);
         }
       }
+      if (c.props?.['data-item-index'] && props['is-image-gallery']) {
+        const photos = props.data[props['data-field-group']] as string[];
+        const elem_idx = Number(c.props['data-item-index']);
+        return cloneElement(
+          c,
+          {
+            style: {
+              backgroundImage: `url(${getImageSized(photos[elem_idx], 1000)})`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'center',
+              backgroundSize: 'cover',
+            },
+          },
+          <div
+
+          // srcSet={[500, 800, 1080, 1600, 1800].map(width => `${getImageSized(photos[elem_idx], width)} ${width}w`).join(', ')}
+          // src={getImageSized(photos[elem_idx], 800)}
+          />,
+        );
+        if (photos[position]) {
+          return cloneElement(c, {
+            'data-rexifier': FILE,
+            srcSet: [500, 800, 1080, 1600, 1800].map(width => `${getImageSized(photos[position], width)} ${width}w`).join(', '),
+            src: getImageSized(photos[position], 200),
+          });
+        }
+      }
       if (c.type === 'img' && props['is-image-gallery']) {
         const photos = props.data[props['data-field-group']] as string[];
         if (photos[position]) {
@@ -89,7 +116,6 @@ function Iterator({ children, ...props }: GroupProps & { 'is-image-gallery'?: bo
             src: getImageSized(photos[position], 200),
           });
         }
-        consoler('is-image-gallery.tsx', props['is-image-gallery']);
       }
 
       if (c.props.children && typeof c.props.children !== 'string') {
