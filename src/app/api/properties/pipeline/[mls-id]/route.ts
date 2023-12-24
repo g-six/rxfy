@@ -48,4 +48,19 @@ export async function POST(req: NextRequest, { params }: { params: { 'mls-id': s
   });
 }
 
-const PROPERTY_RELATIONSHIPS = ['amenities', 'appliances'];
+const PROPERTY_RELATIONSHIPS = [
+  'amenities',
+  'appliances',
+  'building_styles',
+  'build_features',
+  'connected_services',
+  'types',
+  'facilities',
+  'heating',
+  'hvac',
+  'items_maintained',
+  'parking',
+  'pets_allowed',
+  'places_of_interest',
+  'real_estate_board',
+];
