@@ -2,6 +2,7 @@ import { consoler } from '@/_helpers/consoler';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPropertyByMlsId } from '@/app/api/properties/model';
 import { getPropertyAttributes } from '@/app/api/property-attributes/model';
+import { formatValues } from '@/_utilities/data-helpers/property-page';
 
 const FILE = 'api/properties/pipeline/[mls-id]/route.ts';
 export async function POST(req: NextRequest, { params }: { params: { 'mls-id': string } }) {
@@ -20,9 +21,14 @@ export async function POST(req: NextRequest, { params }: { params: { 'mls-id': s
       let { id, ...listing } = existing;
       Object.keys(listing).forEach(field => {
         if (payload[field]) {
-          const { [field]: strapi } = listing as unknown as { [k: string]: string | number };
-
-          if (payload[field] !== strapi) {
+          let { [field]: strapi } = listing as unknown as { [k: string]: string | number };
+          let board: any = payload[field];
+          if (field === 'title') {
+            board = formatValues({ address: board }, 'address');
+            strapi = formatValues({ address: strapi }, 'address');
+          }
+          if (PROPERTY_RELATIONSHIPS.includes(field)) {
+          } else if (payload[field] !== strapi) {
             updates = {
               ...updates,
               [field]: {
@@ -35,10 +41,11 @@ export async function POST(req: NextRequest, { params }: { params: { 'mls-id': s
       });
     }
   }
-  console.log({ updates });
   return NextResponse.json({
     mls_id: params['mls-id'],
     updates,
     // data: payload,
   });
 }
+
+const PROPERTY_RELATIONSHIPS = ['amenities', 'appliances'];
