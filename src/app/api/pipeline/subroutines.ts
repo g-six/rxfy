@@ -1,4 +1,4 @@
-import { PropertyDataModel } from '@/_typings/property';
+import { PROPERTY_ASSOCIATION_KEYS, PropertyDataModel } from '@/_typings/property';
 import { MLS_FIELDS_SKIPPED, STRAPI_FIELDS } from '@/_utilities/api-calls/call-legacy-search';
 import { formatAddress } from '@/_utilities/string-helper';
 import { getPropertyAttributes } from '../property-attributes/model';
@@ -100,7 +100,12 @@ export function mapData(hits: { _source: { data: Record<string, unknown> } }[], 
             real_estate_board: data[k],
           };
         } else if (STRAPI_FIELDS[k]) {
-          if (STRAPI_FIELDS[k] === 'pets_allowed' && `${data[k]}`.toLowerCase() === 'yes') {
+          if (PROPERTY_ASSOCIATION_KEYS.includes(STRAPI_FIELDS[k])) {
+            hit = {
+              ...hit,
+              [STRAPI_FIELDS[k]]: getPropertyFeatures(data[k] as string[]),
+            };
+          } else if (STRAPI_FIELDS[k] === 'pets_allowed' && `${data[k]}`.toLowerCase() === 'yes') {
             let { pets_allowed = [] } = hit as {
               pets_allowed: { name: string }[];
             };
@@ -281,4 +286,34 @@ export async function getBuildingUnits({
 
   const { hits } = await getPipelineData(pipeline_params);
   return hits ? mapData(hits) : [];
+}
+
+function getPropertyFeatures(keys: string[]): string[] {
+  const concatenated_values = keys.map(k => k.split(',')).join('/');
+  return concatenated_values.split('/');
+}
+
+export function getPropertyIconAndTitle(key: string) {
+  switch (key) {
+    case 'DW':
+      return {
+        title: 'Dish Washer',
+        icon: 'feature_dish-washer.svg',
+      };
+    case 'Stve':
+      return {
+        title: 'Stove',
+        icon: 'feature_stove.svg',
+      };
+    case 'Window Coverings':
+      return {
+        title: key,
+        icon: 'feature_drapes.svg',
+      };
+    default:
+      return {
+        title: key,
+        icon: `feature_${key.split(' ').join('-').toLowerCase()}.svg`,
+      };
+  }
 }
