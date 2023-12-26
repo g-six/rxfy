@@ -13,7 +13,14 @@ export default async function ContextStatsIterator({ children: wrapper, ...props
     return (
       <>
         {props.dataset.map(row => {
-          return cloneElement(wrapper, {}, <Iterator {...row}>{wrapper.props.children}</Iterator>);
+          return cloneElement(
+            wrapper,
+            {
+              key: `${row.label.split(' ').join('_')}-${row.value}`,
+              'data-key': `${row.label}-${row.value}`,
+            },
+            <Iterator {...row}>{wrapper.props.children}</Iterator>,
+          );
         })}
       </>
     );
