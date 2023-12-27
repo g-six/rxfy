@@ -344,7 +344,7 @@ export function getPropertyIconAndTitle(key: string) {
       return {
         label: key,
         value: key,
-        icon: ICONS_DIRECTORY + `feature_${key.split(' ').join('-').toLowerCase()}.svg`,
+        icon: ICONS_DIRECTORY + `feature_${key.split(' ').join('-').toLowerCase().split('---').join('-')}.svg`,
       };
   }
 }
