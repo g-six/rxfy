@@ -4,7 +4,16 @@ import { formatAddress } from '@/_utilities/string-helper';
 import { getPropertyAttributes } from '../property-attributes/model';
 import axios from 'axios';
 import { consoler } from '@/_helpers/consoler';
-import { BUILD_RELATED_FIELDS, LegacyPipelineFields, WATER_SUPPLY_RELATED_FIELDS } from '../properties/types';
+import {
+  BUILD_RELATED_FIELDS,
+  LegacyPipelineFields,
+  PROPERTY_CONSTRUCTION_STATS,
+  PROPERTY_FINANCIAL_STATS,
+  PROPERTY_INFORMATION_STATS,
+  WATER_SUPPLY_RELATED_FIELDS,
+} from '../properties/types';
+import { getPropertyByMlsId, updatePublicListingBy } from '../properties/model';
+import { formatValues } from '@/_utilities/data-helpers/property-page';
 const FILE = 'pipeline/subroutine.ts';
 export async function getPipelineData(payload: { [k: string]: any }) {
   let pipeline_params = payload;
@@ -81,11 +90,33 @@ export async function getPipelineData(payload: { [k: string]: any }) {
 
 export function mapData(hits: { _source: { data: Record<string, unknown> } }[], real_estate_board?: { name: string }[]): PropertyDataModel[] {
   const skips: string[] = [];
-  return hits.map(p => {
+  const listings = hits.map(p => {
     const {
       _source: { data },
     } = p;
     let hit: Record<string, unknown> = {};
+    let data_groups: {
+      [k: string]: {
+        label: string;
+        value?: string;
+        icon?: string;
+      }[];
+    } = {};
+    const hit_data_groups = hit as {
+      data_groups: {
+        [k: string]: {
+          label: string;
+          value: string;
+          icon: string;
+        }[];
+      };
+    };
+    if (hit_data_groups.data_groups) {
+      data_groups = hit_data_groups.data_groups;
+    } else {
+      data_groups = {};
+    }
+
     Object.keys(data).forEach(k => {
       if (data[k] && `${data[k]}` !== 'None')
         if (k === 'photos') {
@@ -101,6 +132,21 @@ export function mapData(hits: { _source: { data: Record<string, unknown> } }[], 
           };
         } else if (STRAPI_FIELDS[k]) {
           if (PROPERTY_ASSOCIATION_KEYS.includes(STRAPI_FIELDS[k])) {
+            // Logic for icons
+            if (!data_groups?.features) {
+              data_groups.features = [];
+            }
+            getPropertyFeatures(data[k] as string[]).map(k => {
+              const feature = getPropertyIconAndTitle(k);
+              if (data_groups.features.filter(({ icon }) => icon === feature.icon).length === 0) {
+                data_groups.features.push(feature);
+              }
+            });
+
+            hit.data_groups = data_groups;
+
+            // End logic for icons
+
             hit = {
               ...hit,
               [STRAPI_FIELDS[k]]: getPropertyFeatures(data[k] as string[]),
@@ -144,6 +190,45 @@ export function mapData(hits: { _source: { data: Record<string, unknown> } }[], 
               } else {
                 v = isNaN(Number(data[k])) ? data[k] : Number(data[k]);
               }
+              if (!data_groups?.property_information || !data_groups?.financial_information || !data_groups?.construction) {
+                // Logic for property_information
+                if (!data_groups?.property_information) {
+                  data_groups.property_information = [];
+                }
+                if (!data_groups?.financial_information) {
+                  data_groups.financial_information = [];
+                }
+                if (!data_groups?.construction) {
+                  data_groups.construction = [];
+                }
+              }
+
+              if (data_groups.property_information.length === 0 || data_groups.financial_information.length === 0 || data_groups.construction.length === 0) {
+                let label = '';
+                let group = '';
+                const strapi_field = STRAPI_FIELDS[k];
+                if (Object.keys(PROPERTY_INFORMATION_STATS).includes(strapi_field)) {
+                  group = 'property_information';
+                  label = PROPERTY_INFORMATION_STATS[strapi_field] as string;
+                }
+                if (Object.keys(PROPERTY_FINANCIAL_STATS).includes(strapi_field)) {
+                  group = 'financial_information';
+                  label = PROPERTY_FINANCIAL_STATS[strapi_field] as string;
+                }
+                if (Object.keys(PROPERTY_CONSTRUCTION_STATS).includes(strapi_field)) {
+                  group = 'construction';
+                  label = PROPERTY_CONSTRUCTION_STATS[strapi_field] as string;
+                }
+
+                if (v && group && label) {
+                  data_groups[group].push({
+                    label,
+                    value: `${Array.isArray(v) ? (v as string[]).join(' • ') : v}`,
+                  });
+                }
+
+                hit.data_groups = data_groups;
+              }
               hit = {
                 ...hit,
                 [STRAPI_FIELDS[k]]: v,
@@ -160,10 +245,15 @@ export function mapData(hits: { _source: { data: Record<string, unknown> } }[], 
           }
         }
     });
+    if (!hit_data_groups.data_groups && Object.keys(data_groups).length && hit.mls_id) {
+      updatePublicListingBy({ mls_id: hit.mls_id as string }, { data_groups })
+        .then(console.log)
+        .catch(console.error);
+    }
     // Debug fields not strapified
     // skips.length > 0 && consoler(FILE, { new_fields: skips });
 
-    const listing_by =
+    const listing_by = `Listing courtesy of ${
       data.LA1_FullName ||
       data.LA2_FullName ||
       data.LA3_FullName ||
@@ -173,7 +263,8 @@ export function mapData(hits: { _source: { data: Record<string, unknown> } }[], 
       data.LO1_Name ||
       data.LO2_Name ||
       data.LO3_Name ||
-      'Leagent';
+      'Leagent'
+    }`;
     return {
       ...hit,
       title: `${hit.title}`
@@ -183,6 +274,7 @@ export function mapData(hits: { _source: { data: Record<string, unknown> } }[], 
       listing_by,
     };
   }) as PropertyDataModel[];
+  return listings;
 }
 
 export async function getListingHistory({
@@ -226,7 +318,7 @@ export async function getListingHistory({
       },
     },
   };
-  // consoler(FILE, 'getListingHistory', { pipeline_params });
+
   const { hits } = await getPipelineData(pipeline_params);
   return hits ? mapData(hits) : [];
 }
@@ -299,51 +391,65 @@ export function getPropertyIconAndTitle(key: string) {
     case 'DW':
       return {
         label: 'Dish Washer',
-        value: key,
+        // value: key,
         icon: ICONS_DIRECTORY + 'feature_dish-washer.svg',
       };
     case 'Microwave':
       return {
         label: key,
-        value: key,
+        // value: key,
         icon: ICONS_DIRECTORY + 'feature_microwave.svg',
       };
     case 'Stve':
       return {
         label: 'Stove',
-        value: key,
+        // value: key,
         icon: ICONS_DIRECTORY + 'feature_cooking-station.svg',
       };
     case 'Dryr':
     case 'ClthWsh':
       return {
         label: 'Washing Machine',
-        value: key,
+        // value: key,
         icon: ICONS_DIRECTORY + 'feature_laundry.svg',
       };
     case 'Window Coverings':
     case 'Drapes':
       return {
         label: key,
-        value: key,
+        // value: key,
         icon: ICONS_DIRECTORY + 'feature_window-coverings.svg',
       };
     case 'Sprinkler - Fire':
       return {
         label: key,
-        value: key,
+        // value: key,
         icon: ICONS_DIRECTORY + 'feature_fire-alarm.svg',
       };
     case 'Frdg':
       return {
         label: 'Refrigerator',
-        value: key,
+        // value: key,
         icon: ICONS_DIRECTORY + 'feature_refrigerator.svg',
+      };
+    case 'City':
+    case 'Municipal':
+      return {
+        label: 'Municipal / City Supplied Water',
+        // value: key,
+        icon: ICONS_DIRECTORY + 'feature_city-municipal.svg',
+      };
+    case 'Air Cond.':
+    case 'Air Conditioning':
+      return {
+        label: 'A/C',
+        // value: key,
+        icon: ICONS_DIRECTORY + 'feature_air-conditioner.svg',
       };
     default:
       return {
         label: key,
-        value: key,
+        // value: key,
         icon: ICONS_DIRECTORY + `feature_${key.split(' ').join('-').toLowerCase().split('---').join('-')}.svg`,
       };
   }

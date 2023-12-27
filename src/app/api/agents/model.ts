@@ -749,6 +749,7 @@ export async function getMostRecentListing(
   };
 
   let results = await retrieveFromLegacyPipeline(legacy_params, undefined, 1);
+
   if (
     !only_agent &&
     (results.length === 0 || results.length < (opts?.size || 1)) &&

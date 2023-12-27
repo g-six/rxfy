@@ -27,52 +27,52 @@ export async function retrieveFromLegacyPipeline(
     const listings = mapData(hits);
 
     return listings;
-    return hits.map(({ _source, fields }: { _source: unknown; fields: Record<string, unknown> }) => {
-      let hit: Record<string, unknown>;
-      if (_source) {
-        hit = (
-          _source as {
-            data: Record<string, unknown>;
-          }
-        ).data;
-      } else {
-        hit = fields;
-      }
+    // return hits.map(({ _source, fields }: { _source: unknown; fields: Record<string, unknown> }) => {
+    //   let hit: Record<string, unknown>;
+    //   if (_source) {
+    //     hit = (
+    //       _source as {
+    //         data: Record<string, unknown>;
+    //       }
+    //     ).data;
+    //   } else {
+    //     hit = fields;
+    //   }
 
-      let property: { [key: string]: unknown } = {};
-      Object.keys(hit as Record<string, unknown>).forEach(key => {
-        if (hit[key]) {
-          const legacy_key = _source || key.substring(0, 5) !== 'data.' ? key : key.split('.')[1];
-          const strapi_key = STRAPI_FIELDS[legacy_key];
-          const value_csv = _source || key === 'data.photos' || key === 'photos' ? hit[key] : (hit[key] as string[] | number[]).join(',');
-          // STRAPI_FIELDS
-          if (strapi_key) {
-            property = {
-              ...property,
-              [strapi_key]: value_csv,
-            };
-          }
-          if (value_csv) {
-            if (include_mls === 1)
-              property = {
-                ...property,
-                [legacy_key]: value_csv,
-              };
-            else if (include_mls === 2) {
-              property = {
-                ...property,
-                mls_data: {
-                  ...(property.mls_data || {}),
-                  [legacy_key]: value_csv,
-                },
-              };
-            }
-          }
-        } else delete hit[key];
-      });
+    //   let property: { [key: string]: unknown } = {};
+    //   Object.keys(hit as Record<string, unknown>).forEach(key => {
+    //     if (hit[key]) {
+    //       const legacy_key = _source || key.substring(0, 5) !== 'data.' ? key : key.split('.')[1];
+    //       const strapi_key = STRAPI_FIELDS[legacy_key];
+    //       const value_csv = _source || key === 'data.photos' || key === 'photos' ? hit[key] : (hit[key] as string[] | number[]).join(',');
+    //       // STRAPI_FIELDS
+    //       if (strapi_key) {
+    //         property = {
+    //           ...property,
+    //           [strapi_key]: value_csv,
+    //         };
+    //       }
+    //       if (value_csv) {
+    //         if (include_mls === 1)
+    //           property = {
+    //             ...property,
+    //             [legacy_key]: value_csv,
+    //           };
+    //         else if (include_mls === 2) {
+    //           property = {
+    //             ...property,
+    //             mls_data: {
+    //               ...(property.mls_data || {}),
+    //               [legacy_key]: value_csv,
+    //             },
+    //           };
+    //         }
+    //       }
+    //     } else delete hit[key];
+    //   });
 
-      return property as unknown as PropertyDataModel;
-    });
+    //   return property as unknown as PropertyDataModel;
+    // });
   } catch (e) {
     const { response } = e as unknown as AxiosError;
     return [];

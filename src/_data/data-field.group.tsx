@@ -87,6 +87,7 @@ function Iterator({ children, ...props }: GroupProps & { 'is-image-gallery'?: bo
           c,
           {
             tabIndex: elem_idx,
+            key: `image-${photos[elem_idx].split('/').pop()}`,
             style: {
               backgroundImage: `url(${getImageSized(photos[elem_idx], 1000)})`,
               backgroundRepeat: 'no-repeat',
@@ -100,13 +101,6 @@ function Iterator({ children, ...props }: GroupProps & { 'is-image-gallery'?: bo
           // src={getImageSized(photos[elem_idx], 800)}
           />,
         );
-        if (photos[position]) {
-          return cloneElement(c, {
-            'data-rexifier': FILE,
-            srcSet: [500, 800, 1080, 1600, 1800].map(width => `${getImageSized(photos[position], width)} ${width}w`).join(', '),
-            src: getImageSized(photos[position], 200),
-          });
-        }
       }
       if (c.type === 'img' && props['is-image-gallery']) {
         const photos = props.data[props['data-field-group']] as string[];
@@ -114,6 +108,7 @@ function Iterator({ children, ...props }: GroupProps & { 'is-image-gallery'?: bo
         if (photos[elem_idx]) {
           return cloneElement(c, {
             'data-rexifier': FILE,
+            key: `image-${photos[elem_idx].split('/').pop()}`,
             srcSet: [500, 800, 1080, 1600, 1800].map(width => `${getImageSized(photos[elem_idx], width)} ${width}w`).join(', '),
             src: getImageSized(photos[elem_idx], 200),
           });

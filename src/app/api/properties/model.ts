@@ -33,6 +33,7 @@ import {
 import { BuildingUnit, PropertyAttributes } from './types';
 import { createAgent, findAgentBy, updateAgentMetatags } from '../agents/model';
 import { consoler } from '@/_helpers/consoler';
+import { updatePublicListing } from '../agents/inventory/model';
 
 const FILE = 'api/properties/model.ts';
 
@@ -434,6 +435,15 @@ export async function getPropertyByMlsId(mls_id: string, legacy_data?: { photos?
     console.error(e);
     upsert && consoler(FILE, upsert);
     consoler(FILE, axerr.response?.data);
+  }
+}
+
+export async function updatePublicListingBy(filters: { [k: string]: string }, updates: { [k: string]: any }) {
+  if (filters.mls_id) {
+    const listing = await getPropertyByMlsId(filters.mls_id);
+    if (listing?.id) {
+      updatePublicListing(listing.id, updates).then(console.log).catch(console.error);
+    }
   }
 }
 

@@ -73,7 +73,7 @@ function Iterator({
             return props.dataset.map((record, record_position) => {
               return cloneElement(
                 c,
-                { key: `${attribs['data-component']}-${record_position + 1}-${new Date()}`, 'data-index': record_position },
+                { key: `${attribs['data-component']}-${record_position + 1}-${new Date()}`, 'data-index': record_position, 'data-rexifier': FILE },
                 <DataFieldAtom {...props} data={record}>
                   {c.props.children}
                 </DataFieldAtom>,
@@ -185,7 +185,7 @@ function Iterator({
         }
       }
     }
-    return c;
+    return cloneElement(c, { 'data-rexifier': FILE });
   });
 
   return <>{rexified}</>;

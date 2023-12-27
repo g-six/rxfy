@@ -40,6 +40,29 @@ export default function ContextIterator({ children, ...props }: { children: Reac
             [k: string]: { [k: string]: unknown };
           };
 
+          if (attribs['data-stat']) {
+            // TODO: Only works for single record - first record
+            try {
+              const {
+                [data_filter]: [filtered_data],
+              } = props.data[data_context] as {
+                [filter_key: string]: {
+                  [k: string]: { label: string; value: string }[];
+                }[];
+              };
+
+              consoler(FILE, { filtered_data });
+
+              const { [attribs['data-stat']]: values } = filtered_data as {
+                [k: string]: { label: string; value: string }[];
+              };
+              if (values) {
+                return <ContextStatsIterator dataset={values}>{c}</ContextStatsIterator>;
+              }
+            } catch (e) {
+              consoler(FILE, e);
+            }
+          }
           if (dataset?.length) {
             return cloneElement(
               c,
