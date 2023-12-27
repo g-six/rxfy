@@ -9,6 +9,7 @@ import DataAction from './data-action';
 import DataModal from './data-modal.client-component';
 import DataFieldGroup from './data-field.group';
 import ContextStatsIterator from './context-stats.iterator';
+import { getPropertyIconAndTitle } from '@/app/api/pipeline/subroutines';
 
 const FILE = 'data-context.iterator.tsx';
 
@@ -22,12 +23,10 @@ export default function ContextIterator({ children, ...props }: { children: Reac
   let data_context = props['data-context'];
   if (!data_context && props['fallback-context']) data_context = props['fallback-context'];
   let data_filter = props['data-filter'];
-  let data_group = '';
 
   const rexifier = Children.map(children, c => {
     if (c.props?.['data-context']) data_context = c.props['data-context'];
     if (c.props?.['data-filter']) data_filter = c.props['data-filter'];
-    if (c.props?.['data-group']) data_group = c.props['data-group'];
 
     if (c.props && props.data) {
       if (c.props.children && typeof c.props.children !== 'string') {
@@ -114,28 +113,65 @@ export default function ContextIterator({ children, ...props }: { children: Reac
                     </ContextListIterator>,
                   );
                 }
-              } else if (c.props['data-stat']) {
-                const {
-                  stats: { [c.props['data-stat']]: stat },
-                } = props.data[data_context] as {
-                  stats: {
-                    [k: string]: { label: string; value: string }[];
+              } else if (c.props['data-groups']) {
+                const main_data_container = props.data[data_context];
+                const icons: ReactElement[] = [];
+                c.props['data-groups'].split(',').forEach((relationship_name: string) => {
+                  if (main_data_container) {
+                    const { [relationship_name]: related_recordsets } = main_data_container as {
+                      [k: string]: { [k: string]: string }[];
+                    };
+
+                    if (related_recordsets && related_recordsets.length) {
+                      related_recordsets.forEach(kv => {
+                        consoler(FILE, getPropertyIconAndTitle(kv));
+                      });
+                    }
+
+                    return <span key={relationship_name}>{relationship_name}</span>;
+                  }
+                });
+                return <>{icons}</>;
+                // if (related_recordsets) {
+                // return cloneElement(
+                //   c,
+                //   {
+                //     className,
+                //     'data-rexifier': FILE,
+                //     'data-context': data_context,
+                //     'data-relation': 'related_recordsets',
+                //   },
+                //   <ContextListIterator {...props} data-filter={c.props['data-group']} dataset={related_recordset} data={props.data} {...attribs}>
+                //     {sub}
+                //   </ContextListIterator>,
+                // );
+                // }
+              } else if (c.props['data-stat'] && props.data[data_context]) {
+                try {
+                  const {
+                    stats: { [c.props['data-stat']]: stat },
+                  } = props.data[data_context] as {
+                    stats: {
+                      [k: string]: { label: string; value: string }[];
+                    };
                   };
-                };
-                if (stat) {
-                  return <ContextStatsIterator dataset={stat}>{c}</ContextStatsIterator>;
-                  //   return cloneElement(
-                  //     c,
-                  //     {
-                  //       className,
-                  //       'data-rexifier': FILE,
-                  //       'data-context': data_context,
-                  //       'data-relation': 'related_recordset',
-                  //     },
-                  //     <ContextListIterator {...props} data-filter={c.props['data-stat']} dataset={related_recordset} data={props.data} {...attribs}>
-                  //       {sub}
-                  //     </ContextListIterator>,
-                  //   );
+                  if (stat) {
+                    return <ContextStatsIterator dataset={stat}>{c}</ContextStatsIterator>;
+                    //   return cloneElement(
+                    //     c,
+                    //     {
+                    //       className,
+                    //       'data-rexifier': FILE,
+                    //       'data-context': data_context,
+                    //       'data-relation': 'related_recordset',
+                    //     },
+                    //     <ContextListIterator {...props} data-filter={c.props['data-stat']} dataset={related_recordset} data={props.data} {...attribs}>
+                    //       {sub}
+                    //     </ContextListIterator>,
+                    //   );
+                  }
+                } catch (e) {
+                  consoler(FILE, e);
                 }
               }
             }
@@ -159,11 +195,6 @@ export default function ContextIterator({ children, ...props }: { children: Reac
         } else if (attribs['data-modal']) {
           return <DataModal element={c} {...attribs} />;
         }
-        // return cloneElement(c, {
-        //   className,
-        //   'data-rexifier': FILE,
-        //   'data-context': data_context,
-        // });
         return cloneElement(
           c,
           {
