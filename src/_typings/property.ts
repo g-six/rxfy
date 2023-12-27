@@ -563,6 +563,7 @@ export const GQ_FRAGMENT_PROPERTY_ATTRIBUTES = `
                           }
                         }
                       }
+                      data_groups
 `;
 
 export interface SoldPropertyInput {
