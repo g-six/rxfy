@@ -199,7 +199,14 @@ export async function getAgentBy(attributes: { [key: string]: string }) {
   let [record] = response_data?.data?.agents.data;
   if (!record) {
     // agent record does not exist,
-    console.log('getAgentBy: agent record does not exist');
+    console.log(`getAgentBy: agent record does not exist
+
+      curl -X POST ${process.env.NEXT_APP_CMS_GRAPHQL_URL} 
+      -H 'Content-Type': 'application/json'
+      -H 'Authorization: Bearer ${process.env.NEXT_APP_CMS_API_KEY as string}'
+      -d '${JSON.stringify(query).split('\\n').join('\n')}'
+
+    `);
     return;
   }
   // Important

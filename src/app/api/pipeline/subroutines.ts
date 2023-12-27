@@ -294,26 +294,57 @@ function getPropertyFeatures(keys: string[]): string[] {
 }
 
 export function getPropertyIconAndTitle(key: string) {
+  const ICONS_DIRECTORY = '/icons/features/';
   switch (key) {
     case 'DW':
       return {
-        title: 'Dish Washer',
-        icon: 'feature_dish-washer.svg',
+        label: 'Dish Washer',
+        value: key,
+        icon: ICONS_DIRECTORY + 'feature_dish-washer.svg',
+      };
+    case 'Microwave':
+      return {
+        label: key,
+        value: key,
+        icon: ICONS_DIRECTORY + 'feature_microwave.svg',
       };
     case 'Stve':
       return {
-        title: 'Stove',
-        icon: 'feature_stove.svg',
+        label: 'Stove',
+        value: key,
+        icon: ICONS_DIRECTORY + 'feature_cooking-station.svg',
+      };
+    case 'Dryr':
+    case 'ClthWsh':
+      return {
+        label: 'Washing Machine',
+        value: key,
+        icon: ICONS_DIRECTORY + 'feature_laundry.svg',
       };
     case 'Window Coverings':
+    case 'Drapes':
       return {
-        title: key,
-        icon: 'feature_drapes.svg',
+        label: key,
+        value: key,
+        icon: ICONS_DIRECTORY + 'feature_window-coverings.svg',
+      };
+    case 'Sprinkler - Fire':
+      return {
+        label: key,
+        value: key,
+        icon: ICONS_DIRECTORY + 'feature_fire-alarm.svg',
+      };
+    case 'Frdg':
+      return {
+        label: 'Refrigerator',
+        value: key,
+        icon: ICONS_DIRECTORY + 'feature_refrigerator.svg',
       };
     default:
       return {
-        title: key,
-        icon: `feature_${key.split(' ').join('-').toLowerCase()}.svg`,
+        label: key,
+        value: key,
+        icon: ICONS_DIRECTORY + `feature_${key.split(' ').join('-').toLowerCase()}.svg`,
       };
   }
 }

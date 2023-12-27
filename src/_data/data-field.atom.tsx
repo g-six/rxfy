@@ -26,10 +26,12 @@ async function AtomIterator({
       const { children: sub, ...attribs } = c.props;
       let className = attribs.className || '';
       className = className ? `${className} rexified` : 'rexified';
-
       if (data) {
         let value = '';
         let field = attribs['data-field'] || '';
+        if (field.includes('feature_block')) {
+          return c;
+        }
 
         if (attribs['data-image']) field = attribs['data-image'];
 
