@@ -114,7 +114,7 @@ export default function ContextIterator({ children, ...props }: { children: Reac
                 }
               } else if (c.props['data-groups']) {
                 const main_data_container = props.data[data_context];
-                const values: { label: string; icon: string; value: string }[] = [];
+                const values: { label: string; icon?: string; value: string }[] = [];
 
                 c.props['data-groups'].split(',').forEach((relationship_name: string) => {
                   if (main_data_container) {
